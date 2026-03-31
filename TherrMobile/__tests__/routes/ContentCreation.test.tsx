@@ -419,40 +419,102 @@ describe('Content Creation Visibility Settings', () => {
 });
 
 describe('Content Creation Radius Settings', () => {
-    const DEFAULT_RADIUS = 25;
-    const MIN_RADIUS_PRIVATE = 5;
-    const MAX_RADIUS_PRIVATE = 100;
-    const MIN_RADIUS_PUBLIC = 25;
-    const MAX_RADIUS_PUBLIC = 500;
+    const DEFAULT_RADIUS = 10;
+    const MIN_RADIUS_PRIVATE = 3;
+    const MAX_RADIUS_PRIVATE = 50;
+    const MIN_RADIUS_PUBLIC = 3;
+    const MAX_RADIUS_PUBLIC = 50;
 
     describe('Radius Constraints', () => {
         it('should have correct default radius', () => {
-            expect(DEFAULT_RADIUS).toBe(25);
+            expect(DEFAULT_RADIUS).toBe(10);
         });
 
         it('should have correct private radius range', () => {
             expect(MIN_RADIUS_PRIVATE).toBeLessThan(MAX_RADIUS_PRIVATE);
-            expect(MIN_RADIUS_PRIVATE).toBe(5);
-            expect(MAX_RADIUS_PRIVATE).toBe(100);
+            expect(MIN_RADIUS_PRIVATE).toBe(3);
+            expect(MAX_RADIUS_PRIVATE).toBe(50);
         });
 
         it('should have correct public radius range', () => {
             expect(MIN_RADIUS_PUBLIC).toBeLessThan(MAX_RADIUS_PUBLIC);
-            expect(MIN_RADIUS_PUBLIC).toBe(25);
-            expect(MAX_RADIUS_PUBLIC).toBe(500);
+            expect(MIN_RADIUS_PUBLIC).toBe(3);
+            expect(MAX_RADIUS_PUBLIC).toBe(50);
         });
     });
 
-    describe('onSliderChange', () => {
-        it('should update radius value', () => {
-            let inputs = { radius: DEFAULT_RADIUS };
+    describe('Radius Numeric Input', () => {
+        // Simulates the stripping logic used in EditMoment/EditSpace onChangeText
+        const stripNonNumeric = (text: string): string => {
+            return text.replace(/[^0-9]/g, '');
+        };
 
-            const onSliderChange = (name: string, value: number) => {
-                inputs = { ...inputs, [name]: value };
-            };
+        // Simulates the onBlur clamping logic
+        const clampRadius = (value: string | number, min: number, max: number): number => {
+            const num = parseInt(String(value), 10);
+            if (isNaN(num) || num < min) {
+                return min;
+            } else if (num > max) {
+                return max;
+            }
+            return num;
+        };
 
-            onSliderChange('radius', 75);
-            expect(inputs.radius).toBe(75);
+        // Simulates the sanitization done in onSubmit before sending to API
+        const sanitizeRadiusForSubmit = (radius: any, min: number, max: number): number => {
+            return Math.max(min, Math.min(max, parseInt(radius, 10) || min));
+        };
+
+        it('should strip non-numeric characters from input', () => {
+            expect(stripNonNumeric('12abc')).toBe('12');
+            expect(stripNonNumeric('abc')).toBe('');
+            expect(stripNonNumeric('1.5')).toBe('15');
+            expect(stripNonNumeric('-10')).toBe('10');
+            expect(stripNonNumeric('25')).toBe('25');
+        });
+
+        it('should allow empty string during editing', () => {
+            const stripped = stripNonNumeric('');
+            expect(stripped).toBe('');
+        });
+
+        it('should clamp radius below minimum to minimum on blur', () => {
+            expect(clampRadius('1', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(MIN_RADIUS_PRIVATE);
+            expect(clampRadius('0', MIN_RADIUS_PUBLIC, MAX_RADIUS_PUBLIC)).toBe(MIN_RADIUS_PUBLIC);
+        });
+
+        it('should clamp radius above maximum to maximum on blur', () => {
+            expect(clampRadius('999', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(MAX_RADIUS_PRIVATE);
+            expect(clampRadius('100', MIN_RADIUS_PUBLIC, MAX_RADIUS_PUBLIC)).toBe(MAX_RADIUS_PUBLIC);
+        });
+
+        it('should clamp empty string to minimum on blur', () => {
+            expect(clampRadius('', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(MIN_RADIUS_PRIVATE);
+            expect(clampRadius('', MIN_RADIUS_PUBLIC, MAX_RADIUS_PUBLIC)).toBe(MIN_RADIUS_PUBLIC);
+        });
+
+        it('should accept valid radius values within range on blur', () => {
+            expect(clampRadius('10', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(10);
+            expect(clampRadius('25', MIN_RADIUS_PUBLIC, MAX_RADIUS_PUBLIC)).toBe(25);
+        });
+
+        it('should sanitize empty string radius to minimum on submit', () => {
+            expect(sanitizeRadiusForSubmit('', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(MIN_RADIUS_PRIVATE);
+            expect(sanitizeRadiusForSubmit('', MIN_RADIUS_PUBLIC, MAX_RADIUS_PUBLIC)).toBe(MIN_RADIUS_PUBLIC);
+        });
+
+        it('should sanitize NaN radius to minimum on submit', () => {
+            expect(sanitizeRadiusForSubmit('abc', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(MIN_RADIUS_PRIVATE);
+        });
+
+        it('should clamp out-of-range radius on submit', () => {
+            expect(sanitizeRadiusForSubmit('999', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(MAX_RADIUS_PRIVATE);
+            expect(sanitizeRadiusForSubmit('0', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(MIN_RADIUS_PRIVATE);
+        });
+
+        it('should pass through valid radius on submit', () => {
+            expect(sanitizeRadiusForSubmit('25', MIN_RADIUS_PRIVATE, MAX_RADIUS_PRIVATE)).toBe(25);
+            expect(sanitizeRadiusForSubmit(10, MIN_RADIUS_PUBLIC, MAX_RADIUS_PUBLIC)).toBe(10);
         });
     });
 });

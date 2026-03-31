@@ -1,6 +1,6 @@
 {
   "type": "no-email-found",
-  "updatedAt": "2026-03-29T16:36:00.578Z",
+  "updatedAt": "2026-03-30T19:20:31.509Z",
   "entries": [
     {
       "id": "026a9415-fadb-4ca5-b54b-ee93abb63935",
@@ -4726,6 +4726,1491 @@
       "id": "754fdeaa-fdb6-433f-9824-1ddb605d78d8",
       "name": "B.L.U.E.S.",
       "processedAt": "2026-03-29T16:36:00.578Z"
+    },
+    {
+      "id": "475be2f6-3574-4681-aebd-1ec5432121f2",
+      "name": "Canopy Road Cafe",
+      "processedAt": "2026-03-30T19:01:52.587Z"
+    },
+    {
+      "id": "f7a8cc25-8cff-4c87-8957-727a2135f7be",
+      "name": "Sahara Restaurant & Grill",
+      "processedAt": "2026-03-30T19:01:55.789Z"
+    },
+    {
+      "id": "b19bae7e-3fd1-4c28-b29e-55e1802f6f28",
+      "name": "Savage Tavern",
+      "processedAt": "2026-03-30T19:01:58.122Z"
+    },
+    {
+      "id": "beef0776-6474-4872-8aa9-3088138f3266",
+      "name": "AW Restaurant",
+      "processedAt": "2026-03-30T19:02:00.520Z"
+    },
+    {
+      "id": "689aaadb-c900-4982-8b32-b827970287af",
+      "name": "Tropicuba",
+      "processedAt": "2026-03-30T19:02:03.312Z"
+    },
+    {
+      "id": "e689cfee-5da9-4cdb-aac1-82731eb9b33b",
+      "name": "Chick-fil-A",
+      "processedAt": "2026-03-30T19:02:07.187Z"
+    },
+    {
+      "id": "f589b720-4687-4797-8c48-018637fe914d",
+      "name": "Charmbiance Cocktail lounge Wine and Arts Bar",
+      "processedAt": "2026-03-30T19:02:09.299Z"
+    },
+    {
+      "id": "799a38aa-011d-4847-8d88-2ca7a5a6dfec",
+      "name": "Carousel Restaurant",
+      "processedAt": "2026-03-30T19:02:12.122Z"
+    },
+    {
+      "id": "9437f856-78c4-494a-a933-f410911c9d61",
+      "name": "Griff's Restaurant",
+      "processedAt": "2026-03-30T19:02:14.961Z"
+    },
+    {
+      "id": "0dfb2b15-21bc-4b75-858a-f4f450275466",
+      "name": "Restaurant 10",
+      "processedAt": "2026-03-30T19:02:17.754Z"
+    },
+    {
+      "id": "cb384532-5276-48b1-815b-3f295e48ce0b",
+      "name": "The Traveler Restaurant",
+      "processedAt": "2026-03-30T19:02:25.716Z"
+    },
+    {
+      "id": "80a8274f-64e1-4193-9073-2abc0bf03100",
+      "name": "The Craft Lounge Taproom & Bottleshop",
+      "processedAt": "2026-03-30T19:02:28.559Z"
+    },
+    {
+      "id": "62c3bd6f-f830-4a81-ab56-d737555c7f69",
+      "name": "Clifton Arts Center & Sculpture Park",
+      "processedAt": "2026-03-30T19:02:33.982Z"
+    },
+    {
+      "id": "897e6d64-5bb7-4ec3-bd3d-8f0aebed5944",
+      "name": "La Botana Tex Mex Restaurant",
+      "processedAt": "2026-03-30T19:02:36.369Z"
+    },
+    {
+      "id": "5966da3e-db84-429c-b192-8fd4b8998d40",
+      "name": "Chapala Mexican Restaurant",
+      "processedAt": "2026-03-30T19:02:43.900Z"
+    },
+    {
+      "id": "2d4c0477-d92d-43bb-988b-1a9c8e9bf700",
+      "name": "The Wilbury",
+      "processedAt": "2026-03-30T19:02:46.649Z"
+    },
+    {
+      "id": "1d653401-ddf8-41a6-a7c1-127b5319c35a",
+      "name": "The White House Restaurant",
+      "processedAt": "2026-03-30T19:02:49.105Z"
+    },
+    {
+      "id": "ea3c6028-6990-4fe9-b8ea-ef55661786b5",
+      "name": "The Goodness Land Middle Eastern & Mediterranean Food Restaurant",
+      "processedAt": "2026-03-30T19:02:56.008Z"
+    },
+    {
+      "id": "dfd5a199-0f14-435c-9500-6bcf657b2f5a",
+      "name": "Clock Restaurant",
+      "processedAt": "2026-03-30T19:03:02.085Z"
+    },
+    {
+      "id": "cc18ca0f-17c6-4047-8fcf-f80b03099f79",
+      "name": "El Tamarindo Mexican Restaurant",
+      "processedAt": "2026-03-30T19:03:04.392Z"
+    },
+    {
+      "id": "16ca2727-4393-47b2-bb86-578a61363272",
+      "name": "Chick-fil-A",
+      "processedAt": "2026-03-30T19:03:07.769Z"
+    },
+    {
+      "id": "8d6e8e68-79ed-4064-a7ff-d93293ff2837",
+      "name": "Mazie Restaurant",
+      "processedAt": "2026-03-30T19:03:11.793Z"
+    },
+    {
+      "id": "a70bbd5e-5388-4463-a08d-1afaac5a2268",
+      "name": "Fusion Restaurant & Bar",
+      "processedAt": "2026-03-30T19:03:14.740Z"
+    },
+    {
+      "id": "5b6aa585-7798-4e49-b311-74c92181c0ea",
+      "name": "Jack's Restaurant and Bar - San Bruno",
+      "processedAt": "2026-03-30T19:03:17.031Z"
+    },
+    {
+      "id": "8681a7d2-cfc7-439f-80c9-71aad1b7f4d1",
+      "name": "Tapia's Pizza",
+      "processedAt": "2026-03-30T19:03:19.154Z"
+    },
+    {
+      "id": "c68e06ce-cf84-471c-984b-d342910aeb20",
+      "name": "Applebee's Grill + Bar",
+      "processedAt": "2026-03-30T19:03:22.104Z"
+    },
+    {
+      "id": "53603de6-a4be-4a3c-8c20-f7f7e27ff6ec",
+      "name": "Table 9",
+      "processedAt": "2026-03-30T19:03:25.343Z"
+    },
+    {
+      "id": "dc16fcd3-4170-44d6-8883-1b127159d74e",
+      "name": "Dam Red Barn",
+      "processedAt": "2026-03-30T19:03:28.079Z"
+    },
+    {
+      "id": "e2fc0e87-2e95-457e-aa99-40964af1bfef",
+      "name": "Oxxo",
+      "processedAt": "2026-03-30T19:03:35.544Z"
+    },
+    {
+      "id": "0972913e-b9ff-4be6-8d9c-b7807dd1b1b4",
+      "name": "Budget Suites of America",
+      "processedAt": "2026-03-30T19:03:37.974Z"
+    },
+    {
+      "id": "aaba2310-f3d4-42c4-a810-eecf991f0b3b",
+      "name": "Hard Eight Barbeque",
+      "processedAt": "2026-03-30T19:03:40.459Z"
+    },
+    {
+      "id": "96675426-5032-48f6-8903-374d1ac3b2aa",
+      "name": "Pita Kitchen - Avondale",
+      "processedAt": "2026-03-30T19:03:43.468Z"
+    },
+    {
+      "id": "3fe79037-58c3-417b-99c4-f1b03d84ef65",
+      "name": "10e Restaurant",
+      "processedAt": "2026-03-30T19:03:46.336Z"
+    },
+    {
+      "id": "f036c46e-ab86-44a1-af1e-07b47b6e82e1",
+      "name": "Trader Joe's",
+      "processedAt": "2026-03-30T19:03:49.218Z"
+    },
+    {
+      "id": "d58002ee-b4a2-493b-9aac-368df6a0e50b",
+      "name": "The Beautiful Restaurant",
+      "processedAt": "2026-03-30T19:03:58.743Z"
+    },
+    {
+      "id": "b7a83fa8-8d75-4c27-afe2-64f30ca78300",
+      "name": "Maya Restaurant",
+      "processedAt": "2026-03-30T19:04:04.289Z"
+    },
+    {
+      "id": "472a27de-c117-4a7a-b628-a10a4bbf8714",
+      "name": "Nasher Sculpture Center",
+      "processedAt": "2026-03-30T19:04:07.787Z"
+    },
+    {
+      "id": "29f4e770-9572-4dbc-99ae-4dd6e36b369d",
+      "name": "Pourhouse Storrs",
+      "processedAt": "2026-03-30T19:04:10.597Z"
+    },
+    {
+      "id": "6d64dc8d-4118-4743-b75d-f4e6b591c751",
+      "name": "Andy's Bar & Grill",
+      "processedAt": "2026-03-30T19:04:13.312Z"
+    },
+    {
+      "id": "f9b8d9c5-b9ff-4b3d-80d8-08760ef6984b",
+      "name": "Bar XIII Delaware",
+      "processedAt": "2026-03-30T19:04:16.766Z"
+    },
+    {
+      "id": "f70568a9-7fb4-4e95-817c-28c182da6fee",
+      "name": "Levante Restaurant",
+      "processedAt": "2026-03-30T19:04:20.174Z"
+    },
+    {
+      "id": "b2654207-cd01-4b45-8100-31908e97c372",
+      "name": "Mel-O-Dee Cocktails",
+      "processedAt": "2026-03-30T19:04:23.502Z"
+    },
+    {
+      "id": "0cff87d8-6d73-4855-b76b-90f06f3e5aae",
+      "name": "Green Arch Food Mart",
+      "processedAt": "2026-03-30T19:04:25.993Z"
+    },
+    {
+      "id": "c66c126b-ba00-40f9-824f-8aec2f2d8295",
+      "name": "Under Armour",
+      "processedAt": "2026-03-30T19:04:31.228Z"
+    },
+    {
+      "id": "89da0dab-140c-4638-9a3b-9fb447c13678",
+      "name": "Baby Bar",
+      "processedAt": "2026-03-30T19:04:33.853Z"
+    },
+    {
+      "id": "1cdc62d5-f675-475c-b605-fdd1a0dd20ce",
+      "name": "MamiTaco Marietta",
+      "processedAt": "2026-03-30T19:04:37.148Z"
+    },
+    {
+      "id": "23b5a1e5-f132-4413-a468-1e886ace86b8",
+      "name": "El Potro",
+      "processedAt": "2026-03-30T19:04:39.716Z"
+    },
+    {
+      "id": "aa5a1856-51b2-40c3-97c2-3504aa1b513e",
+      "name": "Legendary Strikes Mobile Bowling & Gaming Truck",
+      "processedAt": "2026-03-30T19:04:44.077Z"
+    },
+    {
+      "id": "ad9334ab-5712-4b3f-b9e3-15e9760c8adb",
+      "name": "Torchy's Tacos 🌮",
+      "processedAt": "2026-03-30T19:04:46.532Z"
+    },
+    {
+      "id": "fb62e41c-8e9e-46e9-8f92-e82629234ee2",
+      "name": "McDonald's",
+      "processedAt": "2026-03-30T19:04:49.806Z"
+    },
+    {
+      "id": "4fc698b1-5111-4016-99f0-4226c364685e",
+      "name": "Jack in the Box",
+      "processedAt": "2026-03-30T19:05:05.136Z"
+    },
+    {
+      "id": "18759ab1-d3a6-43fd-b465-ff397dc18c37",
+      "name": "American University Museum at the Katzen Arts Center",
+      "processedAt": "2026-03-30T19:05:07.668Z"
+    },
+    {
+      "id": "65e79258-c02a-4d81-a132-f29d2802ecfe",
+      "name": "Signature Lounge",
+      "processedAt": "2026-03-30T19:05:10.611Z"
+    },
+    {
+      "id": "09bf54c2-110f-4be2-9141-1ef5ca4db43f",
+      "name": "Starbucks",
+      "processedAt": "2026-03-30T19:05:13.208Z"
+    },
+    {
+      "id": "e61db3f0-b973-4ae1-9e27-76993272e289",
+      "name": "The Midway",
+      "processedAt": "2026-03-30T19:05:16.371Z"
+    },
+    {
+      "id": "27d62a63-be7b-4ccb-93ef-840f26c0bea2",
+      "name": "Olive Garden Italian Restaurant",
+      "processedAt": "2026-03-30T19:05:22.534Z"
+    },
+    {
+      "id": "6ddd7e64-4dc8-4c13-8420-f41596cab374",
+      "name": "San Marino Italian Restaurant & Bar",
+      "processedAt": "2026-03-30T19:05:28.424Z"
+    },
+    {
+      "id": "41a27979-516f-42a7-af57-d923fb7d6930",
+      "name": "Mel's Drive In Restaurant",
+      "processedAt": "2026-03-30T19:05:30.835Z"
+    },
+    {
+      "id": "d7b9ecca-49cb-4c54-925e-119b4971a40a",
+      "name": "Railgarten",
+      "processedAt": "2026-03-30T19:05:37.225Z"
+    },
+    {
+      "id": "229fb151-9504-4ffc-b868-42139dcef5d7",
+      "name": "Meriwether's Restaurant",
+      "processedAt": "2026-03-30T19:05:49.237Z"
+    },
+    {
+      "id": "1bf74628-2419-45d3-a6a1-fdec7912f0fc",
+      "name": "The 101",
+      "processedAt": "2026-03-30T19:05:51.940Z"
+    },
+    {
+      "id": "28242041-9eac-4432-affc-7589a4ace734",
+      "name": "Acanthophyllum Books",
+      "processedAt": "2026-03-30T19:05:55.031Z"
+    },
+    {
+      "id": "af2a6a54-1cce-4ab6-93c0-cfe653b54e48",
+      "name": "Dee's Family Restaurant",
+      "processedAt": "2026-03-30T19:05:57.365Z"
+    },
+    {
+      "id": "cdf275f4-f7ef-4a92-ad60-42694972c31a",
+      "name": "Howard University Art Gallery",
+      "processedAt": "2026-03-30T19:05:59.880Z"
+    },
+    {
+      "id": "3c1dd2c0-360e-467b-a9bf-98440de070dc",
+      "name": "The Palace Grill",
+      "processedAt": "2026-03-30T19:06:02.311Z"
+    },
+    {
+      "id": "cd08f1bb-aaa5-493b-9206-36580254a175",
+      "name": "The Cottage Lounge",
+      "processedAt": "2026-03-30T19:06:04.615Z"
+    },
+    {
+      "id": "81aeecaf-ed7f-425e-9bc9-75ac4b7448a3",
+      "name": "Guilfoil's Irish Pub",
+      "processedAt": "2026-03-30T19:06:07.687Z"
+    },
+    {
+      "id": "445ef102-81e2-49d5-85fc-dc6015373001",
+      "name": "Boxwood Restaurant",
+      "processedAt": "2026-03-30T19:06:13.566Z"
+    },
+    {
+      "id": "78138dfa-9b3f-4d12-8c19-e7afbe8c1b3e",
+      "name": "Starbucks",
+      "processedAt": "2026-03-30T19:06:16.048Z"
+    },
+    {
+      "id": "b3f42e6f-c33c-4f03-9b23-3de20d7c69a7",
+      "name": "Sister's Family Restaurant",
+      "processedAt": "2026-03-30T19:06:18.361Z"
+    },
+    {
+      "id": "64985f30-33de-4f3a-96d6-22b9efc8a502",
+      "name": "Hirshhorn Museum",
+      "processedAt": "2026-03-30T19:06:22.866Z"
+    },
+    {
+      "id": "5fa3ddf0-e3f2-405e-954a-13453ca097bf",
+      "name": "Olympic Diner",
+      "processedAt": "2026-03-30T19:06:25.440Z"
+    },
+    {
+      "id": "04422482-b5a6-496a-b92b-c2bab7bc60ec",
+      "name": "yummy.com",
+      "processedAt": "2026-03-30T19:06:27.960Z"
+    },
+    {
+      "id": "01a0883b-5a73-4906-9bb9-b5e2e79b43b8",
+      "name": "Greenwood Inn",
+      "processedAt": "2026-03-30T19:06:30.267Z"
+    },
+    {
+      "id": "987ec530-7277-47ce-84be-4837c3f4d656",
+      "name": "Nolan's Restaurant",
+      "processedAt": "2026-03-30T19:06:32.893Z"
+    },
+    {
+      "id": "2d02d379-1073-44ee-8ff8-d46bcd6c92ac",
+      "name": "Starbucks",
+      "processedAt": "2026-03-30T19:06:35.437Z"
+    },
+    {
+      "id": "54ff331f-d20e-426b-9839-e3d188de1405",
+      "name": "Yo",
+      "processedAt": "2026-03-30T19:06:37.850Z"
+    },
+    {
+      "id": "5a94d3a4-0776-4750-8c4a-e5989ecf1cb1",
+      "name": "Nant Y Felin Restaurant",
+      "processedAt": "2026-03-30T19:06:47.947Z"
+    },
+    {
+      "id": "255ab7be-3453-443c-9760-3734d4fba111",
+      "name": "O'Hara's Public House",
+      "processedAt": "2026-03-30T19:06:51.080Z"
+    },
+    {
+      "id": "0120a718-ddb9-4fdf-bacc-db6dbb9300ae",
+      "name": "Caridad Fusion Restaurant",
+      "processedAt": "2026-03-30T19:06:53.618Z"
+    },
+    {
+      "id": "8b54f6ed-4a4c-4ce4-90f0-67ef9ba4c30d",
+      "name": "Taco Bell",
+      "processedAt": "2026-03-30T19:06:56.689Z"
+    },
+    {
+      "id": "43e23a8d-a9c4-4f31-9147-4029550c98ad",
+      "name": "Tsunami",
+      "processedAt": "2026-03-30T19:07:08.203Z"
+    },
+    {
+      "id": "8b6ad06a-4133-48d7-92af-68e678ef7255",
+      "name": "LAW Restaurant",
+      "processedAt": "2026-03-30T19:07:12.543Z"
+    },
+    {
+      "id": "16d81be9-1c70-4cdf-960f-5455b3b6951d",
+      "name": "Ludo's",
+      "processedAt": "2026-03-30T19:07:17.753Z"
+    },
+    {
+      "id": "fb12d650-7ace-493f-84ae-9ee1a0286a56",
+      "name": "The Spanish Traveler Restaurant",
+      "processedAt": "2026-03-30T19:07:21.554Z"
+    },
+    {
+      "id": "0cc7e8c5-50b6-4005-8d10-66f39a47a13b",
+      "name": "Bruceys Sports Bar",
+      "processedAt": "2026-03-30T19:07:24.478Z"
+    },
+    {
+      "id": "5af9e8e5-b0a8-4b68-b9a3-288eac7740dd",
+      "name": "Whataburger",
+      "processedAt": "2026-03-30T19:07:31.075Z"
+    },
+    {
+      "id": "00d0d587-185c-4e79-8d8a-b9aee8ca3859",
+      "name": "Pho Than Brothers",
+      "processedAt": "2026-03-30T19:07:33.672Z"
+    },
+    {
+      "id": "147d9a67-5c65-4f5a-883b-6aea5140b2d0",
+      "name": "Star Saloon",
+      "processedAt": "2026-03-30T19:07:41.839Z"
+    },
+    {
+      "id": "1222b44c-68d8-4efa-8b82-218a9e5f8ac3",
+      "name": "The Brass Tap",
+      "processedAt": "2026-03-30T19:07:44.395Z"
+    },
+    {
+      "id": "d16fa910-d82a-4202-bd07-55c5dd649e23",
+      "name": "Brown Bag Seafood Co.",
+      "processedAt": "2026-03-30T19:07:46.797Z"
+    },
+    {
+      "id": "99a77f25-73e1-40fd-8b88-22960a1d0394",
+      "name": "Waterstones",
+      "processedAt": "2026-03-30T19:07:49.167Z"
+    },
+    {
+      "id": "8fc4845c-f0e1-4d3d-8639-58de123b132c",
+      "name": "DonKamaron Restaurant",
+      "processedAt": "2026-03-30T19:07:51.696Z"
+    },
+    {
+      "id": "88e9c9ba-7901-4dd5-9e24-732d128c1242",
+      "name": "76",
+      "processedAt": "2026-03-30T19:07:54.366Z"
+    },
+    {
+      "id": "4d047ede-76ed-44d0-9f8c-81c2d27c8cc8",
+      "name": "Tony's Fresh Market",
+      "processedAt": "2026-03-30T19:07:57.020Z"
+    },
+    {
+      "id": "6770cde2-79eb-4625-938f-68efce21016b",
+      "name": "Rosely Restaurant",
+      "processedAt": "2026-03-30T19:07:59.580Z"
+    },
+    {
+      "id": "d934d8f8-97ad-4687-a410-f1a435c98dab",
+      "name": "Guacamole's Mexican Restaurant",
+      "processedAt": "2026-03-30T19:08:02.014Z"
+    },
+    {
+      "id": "dd1215ba-d07d-4a12-b39d-d484e819d61e",
+      "name": "Royal Sports Bar",
+      "processedAt": "2026-03-30T19:08:08.846Z"
+    },
+    {
+      "id": "0687340b-ed40-461d-8888-0ebb93eb8120",
+      "name": "The Horses Lounge",
+      "processedAt": "2026-03-30T19:08:12.143Z"
+    },
+    {
+      "id": "19fc24b9-95a1-4d34-aee0-2efbb75801ed",
+      "name": "Billy B's Cajun Grill",
+      "processedAt": "2026-03-30T19:08:16.241Z"
+    },
+    {
+      "id": "d7d9ccdc-73a6-40af-8ee0-17a2b05ed8fd",
+      "name": "Taza",
+      "processedAt": "2026-03-30T19:08:18.357Z"
+    },
+    {
+      "id": "5ccd03a9-0524-49fe-a589-108a09189c5e",
+      "name": "El Imperial Mexican Restaurant",
+      "processedAt": "2026-03-30T19:08:20.903Z"
+    },
+    {
+      "id": "19162914-48a1-46c2-bd0c-9a4fb1a23264",
+      "name": "Dollop Coffee",
+      "processedAt": "2026-03-30T19:08:32.917Z"
+    },
+    {
+      "id": "6423ee27-fc2d-4619-8619-5675d388c115",
+      "name": "Hotel Vegas",
+      "processedAt": "2026-03-30T19:08:36.557Z"
+    },
+    {
+      "id": "d715a800-2320-4c55-83e3-a242e99bc066",
+      "name": "Hardee’s",
+      "processedAt": "2026-03-30T19:08:39.818Z"
+    },
+    {
+      "id": "3cb1f5f6-0b6c-4724-9ec9-cc290b011fd8",
+      "name": "Gas Light",
+      "processedAt": "2026-03-30T19:08:43.473Z"
+    },
+    {
+      "id": "3ec321f9-e743-4467-8da7-8bc332848592",
+      "name": "Taco Bell",
+      "processedAt": "2026-03-30T19:08:46.219Z"
+    },
+    {
+      "id": "d1a4ad4b-9f0c-4de2-bc21-352f882f003c",
+      "name": "151 Bar and Restaurant",
+      "processedAt": "2026-03-30T19:08:49.095Z"
+    },
+    {
+      "id": "a89411e6-fb69-4702-870e-92eafc7f4d57",
+      "name": "Kimmyz On Greenway Rock & Roll Bar & Grill",
+      "processedAt": "2026-03-30T19:08:51.838Z"
+    },
+    {
+      "id": "ab9d2b80-73e1-4571-8fc6-315083dc5d65",
+      "name": "Mariscos Los Chinchorros",
+      "processedAt": "2026-03-30T19:08:58.116Z"
+    },
+    {
+      "id": "eb4c565d-2ccd-4fdd-92a3-a3899f34f9a7",
+      "name": "Al DENTE 2 Duluth",
+      "processedAt": "2026-03-30T19:09:00.231Z"
+    },
+    {
+      "id": "bebf447e-19ff-47f2-abe3-6ffece5b431f",
+      "name": "Nashville North",
+      "processedAt": "2026-03-30T19:09:03.531Z"
+    },
+    {
+      "id": "172a9cfa-4410-4cbe-853a-3d1970a3def1",
+      "name": "Shay's Restaurant",
+      "processedAt": "2026-03-30T19:09:06.153Z"
+    },
+    {
+      "id": "eb32c227-596f-494c-8338-f756e61da3ab",
+      "name": "Aldi",
+      "processedAt": "2026-03-30T19:09:12.077Z"
+    },
+    {
+      "id": "7f5d180e-6db1-4dfb-8750-8381edc6e226",
+      "name": "Hattie's",
+      "processedAt": "2026-03-30T19:09:18.639Z"
+    },
+    {
+      "id": "4616bb10-e259-4b4c-a337-d7fd7d7517fe",
+      "name": "Barnes & Noble",
+      "processedAt": "2026-03-30T19:09:21.058Z"
+    },
+    {
+      "id": "04d01c83-ac2c-46cf-9589-7f155e0105a0",
+      "name": "Rubell Museum",
+      "processedAt": "2026-03-30T19:09:24.176Z"
+    },
+    {
+      "id": "7ac2e404-d04e-47ae-9647-4df819ac10e9",
+      "name": "Backdoor Bakery",
+      "processedAt": "2026-03-30T19:09:26.502Z"
+    },
+    {
+      "id": "3825f1fd-175e-4714-996a-cbb95ce3bc58",
+      "name": "Coosh's Bayou Rouge Restaurant",
+      "processedAt": "2026-03-30T19:09:29.477Z"
+    },
+    {
+      "id": "306302b0-9a74-46c5-94c0-a5dc2dd79dc0",
+      "name": "Altu's Ethiopian Cuisine",
+      "processedAt": "2026-03-30T19:09:32.225Z"
+    },
+    {
+      "id": "823660bf-7c32-4d19-9f0c-deabf036354f",
+      "name": "NORMS Restaurant",
+      "processedAt": "2026-03-30T19:09:35.065Z"
+    },
+    {
+      "id": "dd5ace6b-fd58-4ec0-960c-4343e35c3992",
+      "name": "Tinies",
+      "processedAt": "2026-03-30T19:09:37.479Z"
+    },
+    {
+      "id": "d375e453-917d-48ea-97ba-13389b3cf24a",
+      "name": "RE:HAB Bar on the Bayou",
+      "processedAt": "2026-03-30T19:09:39.892Z"
+    },
+    {
+      "id": "46df1778-1b6e-4183-9465-ca000d41576a",
+      "name": "Houlihan's",
+      "processedAt": "2026-03-30T19:09:45.047Z"
+    },
+    {
+      "id": "96c6f104-cd50-4b1d-ae9c-9a82d833bb67",
+      "name": "Toshi's Sushi",
+      "processedAt": "2026-03-30T19:09:47.511Z"
+    },
+    {
+      "id": "ccc00096-a386-4676-92c1-39cd3352fed7",
+      "name": "Las Potrancas Mexican Restaurant",
+      "processedAt": "2026-03-30T19:09:50.325Z"
+    },
+    {
+      "id": "a6a4ab2d-bb55-42be-af60-a304bb4ad5e9",
+      "name": "Apex Electronics",
+      "processedAt": "2026-03-30T19:09:53.108Z"
+    },
+    {
+      "id": "17c82fd9-c29b-4bbf-898d-853bbe32b3f0",
+      "name": "Nori Presto",
+      "processedAt": "2026-03-30T19:09:55.813Z"
+    },
+    {
+      "id": "8dd97ef2-3580-40cd-81ed-5f70e9b8d4bd",
+      "name": "Phuong Nam Restaurant",
+      "processedAt": "2026-03-30T19:09:58.155Z"
+    },
+    {
+      "id": "7f5c8ee3-41f3-43a9-9829-7ae675b903a9",
+      "name": "Louie's Pub & Grill",
+      "processedAt": "2026-03-30T19:10:00.576Z"
+    },
+    {
+      "id": "bffd119c-4cb9-4836-bf33-46f796cd4bc4",
+      "name": "New Wave Coffee",
+      "processedAt": "2026-03-30T19:10:09.661Z"
+    },
+    {
+      "id": "a0d14022-5071-433c-8773-ee24bc94f3d6",
+      "name": "The Angry Elephant - Bryan",
+      "processedAt": "2026-03-30T19:10:12.207Z"
+    },
+    {
+      "id": "3746727a-c038-4809-93f3-f0ec4015d693",
+      "name": "My body",
+      "processedAt": "2026-03-30T19:10:15.126Z"
+    },
+    {
+      "id": "9bfc6a7a-b391-4a18-8611-7e540dfbf310",
+      "name": "Vicky's Restaurant",
+      "processedAt": "2026-03-30T19:10:17.486Z"
+    },
+    {
+      "id": "fd8b9c23-3aee-40ab-a449-c6cd23549c43",
+      "name": "Bizzy B",
+      "processedAt": "2026-03-30T19:10:20.666Z"
+    },
+    {
+      "id": "c90e8566-7ba3-4e16-96ac-5b1572edba7c",
+      "name": "Dixie Tavern",
+      "processedAt": "2026-03-30T19:10:22.988Z"
+    },
+    {
+      "id": "96abcff2-909d-4c72-8332-694856b6948f",
+      "name": "Joy Yee Noodle",
+      "processedAt": "2026-03-30T19:10:27.042Z"
+    },
+    {
+      "id": "8e9cf4a9-7a6b-4dec-8685-53d9c1c8d6e5",
+      "name": "Aaja Deptford",
+      "processedAt": "2026-03-30T19:10:30.083Z"
+    },
+    {
+      "id": "a84a983a-5f74-4762-bca4-a3721d10dbb5",
+      "name": "Atilano's Mexican Food - Airway Heights",
+      "processedAt": "2026-03-30T19:10:37.141Z"
+    },
+    {
+      "id": "cfaa9c5d-cf5e-4704-a29c-a8749a39506f",
+      "name": "Zen Buffet",
+      "processedAt": "2026-03-30T19:10:39.256Z"
+    },
+    {
+      "id": "9b1f37ef-b27d-464b-a707-5c150a27e814",
+      "name": "Schubas Tavern",
+      "processedAt": "2026-03-30T19:10:42.211Z"
+    },
+    {
+      "id": "59eab40f-6fc2-4643-80cc-c8154dd18d69",
+      "name": "Plano Super Bowl",
+      "processedAt": "2026-03-30T19:10:48.122Z"
+    },
+    {
+      "id": "69dd1814-e848-441f-ba19-6f9b78adf386",
+      "name": "Kuma’s Corner - Belmont",
+      "processedAt": "2026-03-30T19:10:54.756Z"
+    },
+    {
+      "id": "6f4ad270-61e3-49d9-a5e4-105d3338bd63",
+      "name": "Anna's Restaurant",
+      "processedAt": "2026-03-30T19:10:57.092Z"
+    },
+    {
+      "id": "ff9a0e0b-7b1f-4ce9-a7e2-9c7147949268",
+      "name": "Torchy's Tacos - Rockwall",
+      "processedAt": "2026-03-30T19:10:59.697Z"
+    },
+    {
+      "id": "7e1c0723-4358-491b-8bd4-fb93fd4cd359",
+      "name": "Bob Evans",
+      "processedAt": "2026-03-30T19:11:02.250Z"
+    },
+    {
+      "id": "2f8e398a-0dea-4484-892e-cfb58f53a20c",
+      "name": "Miramar Beach Restaurant",
+      "processedAt": "2026-03-30T19:11:13.366Z"
+    },
+    {
+      "id": "21d1e4a9-307a-4965-88a8-4b7fb2934db8",
+      "name": "Omega Restaurant",
+      "processedAt": "2026-03-30T19:11:15.870Z"
+    },
+    {
+      "id": "e45b5949-2045-41aa-adfb-13b94bc39057",
+      "name": "Bounty on Broad",
+      "processedAt": "2026-03-30T19:11:18.707Z"
+    },
+    {
+      "id": "8571bf46-65a0-417b-b8d0-fb316c971f2e",
+      "name": "7-Eleven",
+      "processedAt": "2026-03-30T19:11:22.913Z"
+    },
+    {
+      "id": "a0a2768f-8243-4303-94fc-001aa2c16592",
+      "name": "Oglethorpe University Museum of Art",
+      "processedAt": "2026-03-30T19:11:26.156Z"
+    },
+    {
+      "id": "f3ea184d-0bef-4f0e-a637-7a3a4368115b",
+      "name": "Holler House",
+      "processedAt": "2026-03-30T19:11:28.576Z"
+    },
+    {
+      "id": "7f87c9e7-1eac-4d5e-96ab-668f84d72ceb",
+      "name": "Subway",
+      "processedAt": "2026-03-30T19:11:35.798Z"
+    },
+    {
+      "id": "1c3afd7e-d264-4b3b-90ac-c8b50c4f3dce",
+      "name": "Lokal Burgers and Beer",
+      "processedAt": "2026-03-30T19:11:38.687Z"
+    },
+    {
+      "id": "5d09bce9-3e45-4f0c-bcac-a71c0d8287a5",
+      "name": "Checkerboard Pub",
+      "processedAt": "2026-03-30T19:11:44.689Z"
+    },
+    {
+      "id": "4df196c0-619d-4d25-944a-35fcf916b68a",
+      "name": "Taco Bell",
+      "processedAt": "2026-03-30T19:11:47.370Z"
+    },
+    {
+      "id": "9ca92ac5-bd62-4aa0-86d1-efb94b808960",
+      "name": "McDonald's",
+      "processedAt": "2026-03-30T19:11:53.780Z"
+    },
+    {
+      "id": "d4be825f-01ad-42cf-ad72-f402086e2989",
+      "name": "Lucky House Restaurant",
+      "processedAt": "2026-03-30T19:11:57.037Z"
+    },
+    {
+      "id": "0bbb2f6e-9cf1-48ac-aa15-f72b6ebfc401",
+      "name": "New Paradise Lanes",
+      "processedAt": "2026-03-30T19:12:05.478Z"
+    },
+    {
+      "id": "615e26ee-a587-49cb-8bfb-da37607cc576",
+      "name": "7-Eleven",
+      "processedAt": "2026-03-30T19:12:09.764Z"
+    },
+    {
+      "id": "41f0b509-28b1-427b-ba7e-f39effe8c02f",
+      "name": "The Village Restaurant",
+      "processedAt": "2026-03-30T19:12:14.779Z"
+    },
+    {
+      "id": "1fbf03b2-b080-4ffc-8142-051dc516060d",
+      "name": "Genie G's Family Restaurant",
+      "processedAt": "2026-03-30T19:12:17.273Z"
+    },
+    {
+      "id": "f126d34c-25d1-45b5-bd3a-fd2f463191e3",
+      "name": "Auberge Le Pomerol",
+      "processedAt": "2026-03-30T19:12:20.351Z"
+    },
+    {
+      "id": "32e6e83f-afbf-4596-b420-4ce9de162c43",
+      "name": "Bomber Restaurant",
+      "processedAt": "2026-03-30T19:12:30.516Z"
+    },
+    {
+      "id": "069f5200-29ce-4099-9858-48f9fa294f75",
+      "name": "Spagnuolo's Restaurant",
+      "processedAt": "2026-03-30T19:12:33.182Z"
+    },
+    {
+      "id": "6237ec78-c9c4-41e6-86c0-4efe12d4844a",
+      "name": "Starbucks",
+      "processedAt": "2026-03-30T19:12:35.817Z"
+    },
+    {
+      "id": "40006ca2-8624-4ee2-a50d-dedf682f1907",
+      "name": "LeaderBar Drafthouse & Eatery",
+      "processedAt": "2026-03-30T19:12:38.104Z"
+    },
+    {
+      "id": "926e8f43-11db-4d71-b3f8-229bb3731a7d",
+      "name": "Blue Tavern",
+      "processedAt": "2026-03-30T19:12:41.056Z"
+    },
+    {
+      "id": "b7d48fa5-cbee-4ae9-84d9-ab06b915b73b",
+      "name": "Green Grocer",
+      "processedAt": "2026-03-30T19:12:43.390Z"
+    },
+    {
+      "id": "2f339514-1744-40e7-82d3-fc7215a47971",
+      "name": "A&W Restaurant",
+      "processedAt": "2026-03-30T19:12:45.836Z"
+    },
+    {
+      "id": "b1f64c91-9c9f-4606-bac7-5f48550d94c6",
+      "name": "Jewel-Osco",
+      "processedAt": "2026-03-30T19:12:49.864Z"
+    },
+    {
+      "id": "4c66abb1-8792-449c-9e19-1704d8cd7a05",
+      "name": "Nashville Tn",
+      "processedAt": "2026-03-30T19:12:52.663Z"
+    },
+    {
+      "id": "f4bf2036-0773-4951-b643-74c959a5707f",
+      "name": "Barnes & Noble",
+      "processedAt": "2026-03-30T19:12:55.012Z"
+    },
+    {
+      "id": "e909c07d-73f9-41ed-b312-d336966f9548",
+      "name": "Hermosa Saloon",
+      "processedAt": "2026-03-30T19:12:58.133Z"
+    },
+    {
+      "id": "6101dda7-28ef-494b-ab68-9fe20b753d5b",
+      "name": "Chef Creole Seasoned Restaurant",
+      "processedAt": "2026-03-30T19:13:00.852Z"
+    },
+    {
+      "id": "d337e53f-62da-4f0d-8238-d941f8d768d1",
+      "name": "Savor Restaurant and Bar",
+      "processedAt": "2026-03-30T19:13:04.273Z"
+    },
+    {
+      "id": "444886ac-fe9b-40b8-84f7-5c058ae2722d",
+      "name": "La Costa",
+      "processedAt": "2026-03-30T19:13:07.619Z"
+    },
+    {
+      "id": "6a66123f-6644-4ab3-9433-6913120e9b8b",
+      "name": "Four Moon Tavern",
+      "processedAt": "2026-03-30T19:13:10.914Z"
+    },
+    {
+      "id": "b7931bc1-618b-4b62-b800-a33172b03d24",
+      "name": "Riviera Restaurant",
+      "processedAt": "2026-03-30T19:13:13.232Z"
+    },
+    {
+      "id": "1785bbc6-cab5-4b07-b144-03518ce2a706",
+      "name": "Jimmy’z Gastropub & Red Room Lounge",
+      "processedAt": "2026-03-30T19:13:15.347Z"
+    },
+    {
+      "id": "2427b78e-133b-474e-b6fd-8878114423bd",
+      "name": "The Cornerhouse",
+      "processedAt": "2026-03-30T19:13:18.101Z"
+    },
+    {
+      "id": "4c3d5dd9-f2d8-42fd-8436-9eccd447d458",
+      "name": "Chuck Wagon Restaurant",
+      "processedAt": "2026-03-30T19:13:22.106Z"
+    },
+    {
+      "id": "2abf13ae-a835-48be-ad6b-b2fd8bda3d41",
+      "name": "Pan Am Restaurant",
+      "processedAt": "2026-03-30T19:13:24.606Z"
+    },
+    {
+      "id": "ec53e77e-1b3f-4326-a8db-e46a66abdebd",
+      "name": "Billy Goat Tavern",
+      "processedAt": "2026-03-30T19:13:27.886Z"
+    },
+    {
+      "id": "e9f3253b-a9f9-477f-908a-3a1daa30336e",
+      "name": "Flora's Grill Restaurant #2",
+      "processedAt": "2026-03-30T19:13:39.901Z"
+    },
+    {
+      "id": "7bad8947-1b16-4d8f-aff7-5e748b274386",
+      "name": "Hollywood Boulders",
+      "processedAt": "2026-03-30T19:13:44.634Z"
+    },
+    {
+      "id": "ac83887a-7e28-4f42-b178-d81046e04f89",
+      "name": "Bluemound Bowl",
+      "processedAt": "2026-03-30T19:13:47.617Z"
+    },
+    {
+      "id": "c20a3ec0-f5be-42a8-9484-45be3b8c6f9a",
+      "name": "Raising Cane's Chicken Fingers",
+      "processedAt": "2026-03-30T19:13:50.004Z"
+    },
+    {
+      "id": "191a7cf2-961e-4087-841d-5f6ccd77d643",
+      "name": "Guantanamera Cafe and Lounge",
+      "processedAt": "2026-03-30T19:13:53.647Z"
+    },
+    {
+      "id": "8a225070-bf43-4a21-8295-c686a0920921",
+      "name": "Urban Lounge",
+      "processedAt": "2026-03-30T19:13:56.236Z"
+    },
+    {
+      "id": "1f86368e-a2d0-4254-b7f6-9a9af071aec9",
+      "name": "The Takahashi",
+      "processedAt": "2026-03-30T19:13:58.743Z"
+    },
+    {
+      "id": "ff13beba-3498-4692-92f2-83d6a1a34202",
+      "name": "Fry Street Public House",
+      "processedAt": "2026-03-30T19:14:01.453Z"
+    },
+    {
+      "id": "31fe3909-58ef-48ed-83a6-de1e3372ad12",
+      "name": "Stumptown",
+      "processedAt": "2026-03-30T19:14:03.916Z"
+    },
+    {
+      "id": "7a7d3144-fa10-46ca-beaf-290a09ac7622",
+      "name": "Glasscott's",
+      "processedAt": "2026-03-30T19:14:06.793Z"
+    },
+    {
+      "id": "be80eab3-a339-4636-acec-a4086129738a",
+      "name": "Fed’s Bubble",
+      "processedAt": "2026-03-30T19:14:09.210Z"
+    },
+    {
+      "id": "5eb020bc-d164-4e88-b1eb-f103f9330d20",
+      "name": "Keystone Lanes",
+      "processedAt": "2026-03-30T19:14:12.041Z"
+    },
+    {
+      "id": "174e221f-d48f-407a-aadb-a8c985dc2fbb",
+      "name": "Lebanese Kitchen Restaurant VA",
+      "processedAt": "2026-03-30T19:14:20.882Z"
+    },
+    {
+      "id": "b432d22e-feb5-4427-b716-1d1e983d70fe",
+      "name": "El Beso Restaurante & Cantina of Greenfield",
+      "processedAt": "2026-03-30T19:14:24.086Z"
+    },
+    {
+      "id": "df347778-4187-46a8-8bbe-1ee1ae1ea8ad",
+      "name": "Castle Restaurant",
+      "processedAt": "2026-03-30T19:14:29.032Z"
+    },
+    {
+      "id": "a32b7dc3-2f1f-4141-bdd4-a1f79aae3464",
+      "name": "Parc at Glenbrook",
+      "processedAt": "2026-03-30T19:14:35.319Z"
+    },
+    {
+      "id": "37bfc2a2-1592-43a2-92e7-8b9af7455532",
+      "name": "Baby J’s Bar",
+      "processedAt": "2026-03-30T19:14:37.970Z"
+    },
+    {
+      "id": "a87ea8a0-ce63-4826-8ffc-4ef8131f4ad6",
+      "name": "The Almadinah Restaurant",
+      "processedAt": "2026-03-30T19:14:43.173Z"
+    },
+    {
+      "id": "c9096d34-f60b-42f0-b872-24f0e1f8ac2a",
+      "name": "The Bistro – Eat. Drink. Connect.",
+      "processedAt": "2026-03-30T19:14:46.316Z"
+    },
+    {
+      "id": "bec07629-cca7-4b2c-bf6a-9812573208bd",
+      "name": "Dee's Family Restaurant",
+      "processedAt": "2026-03-30T19:14:48.673Z"
+    },
+    {
+      "id": "1b41de22-307b-4b40-a1fe-870a3db21097",
+      "name": "Shea's Pizzeria and Sports Bar",
+      "processedAt": "2026-03-30T19:14:52.207Z"
+    },
+    {
+      "id": "6e2a1061-dfab-4261-b8aa-af7d404e7b8f",
+      "name": "Hanover Lanes",
+      "processedAt": "2026-03-30T19:15:00.858Z"
+    },
+    {
+      "id": "e28bcdfd-8f45-41dd-892e-ff459c42e2fe",
+      "name": "Caminero Mexican Restaurant",
+      "processedAt": "2026-03-30T19:15:03.485Z"
+    },
+    {
+      "id": "6deaf579-f434-44f9-8602-5bbee5adadb5",
+      "name": "Habesha Ethiopian restaurant and bar",
+      "processedAt": "2026-03-30T19:15:06.371Z"
+    },
+    {
+      "id": "51cbe71d-f8ff-413a-a1c8-c17531ee9911",
+      "name": "Nectar Lounge",
+      "processedAt": "2026-03-30T19:15:09.026Z"
+    },
+    {
+      "id": "04eb42d6-77c1-4f99-91ba-ae460f063e9d",
+      "name": "112 Eatery",
+      "processedAt": "2026-03-30T19:15:12.094Z"
+    },
+    {
+      "id": "1fab17a9-3f40-4964-8c85-2c8a2867cd3b",
+      "name": "Hong Kong Restaurant",
+      "processedAt": "2026-03-30T19:15:14.922Z"
+    },
+    {
+      "id": "025e1b6b-c14d-4fe8-86cf-890da92c4c89",
+      "name": "Mali Thai Restaurant",
+      "processedAt": "2026-03-30T19:15:17.950Z"
+    },
+    {
+      "id": "5c4bdc40-32ec-4012-9613-8639475a9b5b",
+      "name": "Canyons Restaurant & Bar",
+      "processedAt": "2026-03-30T19:15:21.298Z"
+    },
+    {
+      "id": "cc85c89d-ab82-4784-a6ca-aec3f88b2c0e",
+      "name": "Mazadar Mediterranean Kitchen",
+      "processedAt": "2026-03-30T19:15:23.866Z"
+    },
+    {
+      "id": "6001eba9-7de3-428a-a3c7-d8260a37e812",
+      "name": "Robust Coffee Lounge",
+      "processedAt": "2026-03-30T19:15:26.300Z"
+    },
+    {
+      "id": "d29b03c8-6ded-4294-a558-55098ecea446",
+      "name": "The Sunset Tavern",
+      "processedAt": "2026-03-30T19:15:32.080Z"
+    },
+    {
+      "id": "5e4dfa66-9d1f-4990-835c-da7ddc748b74",
+      "name": "LakeHouse Pub",
+      "processedAt": "2026-03-30T19:15:34.902Z"
+    },
+    {
+      "id": "2eca5c38-58ee-41ed-bf1b-55fc5a59507f",
+      "name": "The Usual Place",
+      "processedAt": "2026-03-30T19:15:37.975Z"
+    },
+    {
+      "id": "d3a25645-9907-4690-96b3-b8b9678664e2",
+      "name": "Salty's",
+      "processedAt": "2026-03-30T19:15:45.097Z"
+    },
+    {
+      "id": "2f10d018-85b3-4f51-957f-2a95be05e907",
+      "name": "Starbucks",
+      "processedAt": "2026-03-30T19:15:47.589Z"
+    },
+    {
+      "id": "edd5c3e6-f4c9-467b-aba1-a59c375fd805",
+      "name": "Carriage house",
+      "processedAt": "2026-03-30T19:15:52.522Z"
+    },
+    {
+      "id": "973cf19a-a33c-4f50-870c-181421aa2bee",
+      "name": "Best Buy",
+      "processedAt": "2026-03-30T19:15:56.190Z"
+    },
+    {
+      "id": "04017e77-6c5b-4052-9276-9a03cd47153f",
+      "name": "Chick-fil-A",
+      "processedAt": "2026-03-30T19:15:59.844Z"
+    },
+    {
+      "id": "c5d7154a-c55c-4e25-ac28-da943f39dcb1",
+      "name": "Falling Rabbit Restaurant",
+      "processedAt": "2026-03-30T19:16:03.609Z"
+    },
+    {
+      "id": "548d4884-840a-4e8a-abfb-b4f30e32ae76",
+      "name": "Club Garibaldi",
+      "processedAt": "2026-03-30T19:16:07.333Z"
+    },
+    {
+      "id": "4ff5817e-8b68-4917-9262-91c305497075",
+      "name": "44 Club",
+      "processedAt": "2026-03-30T19:16:09.948Z"
+    },
+    {
+      "id": "e58cdc1c-0b01-408f-b979-92992c0a8bb4",
+      "name": "South of the Border",
+      "processedAt": "2026-03-30T19:16:12.812Z"
+    },
+    {
+      "id": "5b352d96-cafe-449c-9e12-5015a002399f",
+      "name": "Olive Garden Italian Restaurant",
+      "processedAt": "2026-03-30T19:16:15.309Z"
+    },
+    {
+      "id": "e2f92ce1-8d28-4aad-9fee-4318b681d7a0",
+      "name": "Sharky's",
+      "processedAt": "2026-03-30T19:16:19.006Z"
+    },
+    {
+      "id": "1bd6241a-9a3d-4b38-a7e4-dcd2385d3322",
+      "name": "Denny's",
+      "processedAt": "2026-03-30T19:16:31.660Z"
+    },
+    {
+      "id": "72bc11b5-b56f-44d7-84db-c5a277b301ca",
+      "name": "La Fonda Mexican Restaurant",
+      "processedAt": "2026-03-30T19:16:35.109Z"
+    },
+    {
+      "id": "362d7f4a-e97e-405e-a728-3de3e0b1363d",
+      "name": "95 South Soul Food Restaurant",
+      "processedAt": "2026-03-30T19:16:41.258Z"
+    },
+    {
+      "id": "aa07b50d-b008-42ba-bee0-9560923c5da8",
+      "name": "Chela’s Restaurant & Taqueria",
+      "processedAt": "2026-03-30T19:16:44.146Z"
+    },
+    {
+      "id": "3318c429-b31d-4be7-bae2-094ac2fbd542",
+      "name": "Olive Garden Italian Restaurant",
+      "processedAt": "2026-03-30T19:16:46.553Z"
+    },
+    {
+      "id": "a57c5285-3b1d-4638-98bb-624597a4f6ee",
+      "name": "The Allerton",
+      "processedAt": "2026-03-30T19:16:49.171Z"
+    },
+    {
+      "id": "3c63da85-d612-4221-9630-8e81e5bd7fa1",
+      "name": "PJS PUB",
+      "processedAt": "2026-03-30T19:16:51.467Z"
+    },
+    {
+      "id": "7aad0d25-b6c4-4fd7-a6f1-8d0864f8de4c",
+      "name": "Bull Nettle Bar & Billiards",
+      "processedAt": "2026-03-30T19:16:53.868Z"
+    },
+    {
+      "id": "b69e1c09-261b-46fd-9a9f-9451d82189bd",
+      "name": "Applebee's Grill + Bar",
+      "processedAt": "2026-03-30T19:16:56.646Z"
+    },
+    {
+      "id": "645d1722-c8a0-4c80-8f9f-b430491ad6d7",
+      "name": "The Bistro",
+      "processedAt": "2026-03-30T19:16:59.913Z"
+    },
+    {
+      "id": "947f3715-603a-4c66-aae2-e3c26e871f38",
+      "name": "Strap Tank Brewery",
+      "processedAt": "2026-03-30T19:17:02.290Z"
+    },
+    {
+      "id": "b3d25ee9-ef3f-4ce8-beaa-686e49ea9a7c",
+      "name": "Moonshiners Bar & Grill",
+      "processedAt": "2026-03-30T19:17:04.817Z"
+    },
+    {
+      "id": "6e66abce-4263-495b-9497-65e6ae722854",
+      "name": "Kramers",
+      "processedAt": "2026-03-30T19:17:07.567Z"
+    },
+    {
+      "id": "e347e45a-0281-41fb-8fe3-727831815452",
+      "name": "Armando's Restaurant + Bar",
+      "processedAt": "2026-03-30T19:17:10.298Z"
+    },
+    {
+      "id": "fa22320c-7247-4be0-8e5e-5f768b8fc67c",
+      "name": "The Harp on Church",
+      "processedAt": "2026-03-30T19:17:13.054Z"
+    },
+    {
+      "id": "ae3c9ebc-077b-424b-8dcb-f7f89c520769",
+      "name": "Rose's Restaurant & Lounge",
+      "processedAt": "2026-03-30T19:17:15.760Z"
+    },
+    {
+      "id": "20ab469c-6c8d-40fc-a6ff-a64e530bf4a7",
+      "name": "Romio's Greek & Italian Restaurant",
+      "processedAt": "2026-03-30T19:17:18.336Z"
+    },
+    {
+      "id": "0617dd1f-be0b-4161-aa61-cf2dd2b8c231",
+      "name": "The Hub Bar",
+      "processedAt": "2026-03-30T19:17:21.130Z"
+    },
+    {
+      "id": "20f5b935-6bb8-42a2-bce9-82baf773f025",
+      "name": "Versailles Restaurant",
+      "processedAt": "2026-03-30T19:17:23.671Z"
+    },
+    {
+      "id": "d3c4bb4e-df0a-45d8-a5ad-51f27229770c",
+      "name": "7-Eleven",
+      "processedAt": "2026-03-30T19:17:28.185Z"
+    },
+    {
+      "id": "de1aa6a9-03ba-4675-af7c-f8c178a3281f",
+      "name": "The Beer Authority",
+      "processedAt": "2026-03-30T19:17:31.227Z"
+    },
+    {
+      "id": "300c2de6-9933-4a70-ac4d-f745bc6599dd",
+      "name": "Olive Garden Italian Restaurant",
+      "processedAt": "2026-03-30T19:17:45.023Z"
+    },
+    {
+      "id": "9645d661-b7b0-4b68-bbca-e8bbd283cf50",
+      "name": "Shokolad",
+      "processedAt": "2026-03-30T19:17:48.132Z"
+    },
+    {
+      "id": "789bcbac-a591-4619-af03-19c7ba802c18",
+      "name": "Lula Restaurant",
+      "processedAt": "2026-03-30T19:17:57.259Z"
+    },
+    {
+      "id": "0487b7fb-a8a7-4e46-aa65-dcb02918e511",
+      "name": "Starbucks",
+      "processedAt": "2026-03-30T19:17:59.938Z"
+    },
+    {
+      "id": "9d595981-c686-421b-8030-706dd7620879",
+      "name": "Billy's Long Bar",
+      "processedAt": "2026-03-30T19:18:02.442Z"
+    },
+    {
+      "id": "2dc21572-feac-4acc-912d-d36785294e32",
+      "name": "Aga's Restaurant & Catering",
+      "processedAt": "2026-03-30T19:18:04.800Z"
+    },
+    {
+      "id": "43599c61-1a7b-458e-a1c9-4d34e9f7bab9",
+      "name": "Miss Delta Restaurant and Bar",
+      "processedAt": "2026-03-30T19:18:07.504Z"
+    },
+    {
+      "id": "b538054d-e708-48a0-b2f3-250eb0fcecca",
+      "name": "Dark Horse",
+      "processedAt": "2026-03-30T19:18:09.980Z"
+    },
+    {
+      "id": "07880194-9d76-4946-ae9a-99317d2ad9b3",
+      "name": "Cajun Skillet Restaurant - Cedar Park",
+      "processedAt": "2026-03-30T19:18:13.737Z"
+    },
+    {
+      "id": "bda76720-0ce4-476c-89be-54237a6f0495",
+      "name": "Masha Allah Tabarag Corporation restaurant",
+      "processedAt": "2026-03-30T19:18:16.341Z"
+    },
+    {
+      "id": "f56baba0-8fc2-4e20-a19e-f87c508d761a",
+      "name": "Prezzo Italian Restaurant Cheshire Oaks",
+      "processedAt": "2026-03-30T19:18:20.424Z"
+    },
+    {
+      "id": "5f41b30b-1323-40e8-a8f6-465adc88344f",
+      "name": "Voyageur Book Shop",
+      "processedAt": "2026-03-30T19:18:23.274Z"
+    },
+    {
+      "id": "8e7f9afb-b9e1-4528-9b7b-9221ad41b5a8",
+      "name": "Taco Bell",
+      "processedAt": "2026-03-30T19:18:26.086Z"
+    },
+    {
+      "id": "88bf5110-3163-4317-952e-534f0e589a67",
+      "name": "Golden Moon Restaurant",
+      "processedAt": "2026-03-30T19:18:35.044Z"
+    },
+    {
+      "id": "147b7503-2027-4a13-b94e-677e28f42199",
+      "name": "Top Golf ⛳ San Jose",
+      "processedAt": "2026-03-30T19:18:37.483Z"
+    },
+    {
+      "id": "c00558d1-c7f6-41cd-8c83-52e85dac1862",
+      "name": "Maple-N-Jams",
+      "processedAt": "2026-03-30T19:18:40.209Z"
+    },
+    {
+      "id": "0d9daffc-6981-4cbf-a31f-f6c8c376a1c1",
+      "name": "Galaxy Diner-Restaurant",
+      "processedAt": "2026-03-30T19:18:42.682Z"
+    },
+    {
+      "id": "f7de119e-8727-4af7-87b8-898204449d4b",
+      "name": "Pizza Hut",
+      "processedAt": "2026-03-30T19:18:45.649Z"
+    },
+    {
+      "id": "c99ce9f3-0ffc-413a-a859-b174972a4cde",
+      "name": "The Volstead Lounge",
+      "processedAt": "2026-03-30T19:18:48.942Z"
+    },
+    {
+      "id": "5b7ee762-2b2d-4676-bdf0-779e927a0556",
+      "name": "Mother's Pub & Grill North",
+      "processedAt": "2026-03-30T19:18:51.577Z"
+    },
+    {
+      "id": "2bd373ac-0a44-43ad-ad25-fb20ecf7b865",
+      "name": "The Bar at Saint Kate",
+      "processedAt": "2026-03-30T19:18:55.620Z"
+    },
+    {
+      "id": "480fe399-b767-4d44-aae5-9e257582e1a4",
+      "name": "The Fenton House Restaurant",
+      "processedAt": "2026-03-30T19:19:01.482Z"
+    },
+    {
+      "id": "9781d7d9-bf25-405f-8172-55913f512fa9",
+      "name": "Cracker Barrel Old Country Store",
+      "processedAt": "2026-03-30T19:19:04.504Z"
+    },
+    {
+      "id": "5d80e654-46d5-485d-9673-2c6cbfed2cce",
+      "name": "El Tepeyac (Manuel's)",
+      "processedAt": "2026-03-30T19:19:08.437Z"
+    },
+    {
+      "id": "88e42580-95d3-4118-a790-98b926126da4",
+      "name": "Hershel’s",
+      "processedAt": "2026-03-30T19:19:11.557Z"
+    },
+    {
+      "id": "c622de9d-3646-4f1a-ad86-5bd313c3c8f1",
+      "name": "Gabrielle Restaurant",
+      "processedAt": "2026-03-30T19:19:14.413Z"
+    },
+    {
+      "id": "9218ee5c-8b2a-4ef6-afef-4e10e588137f",
+      "name": "elbitas mexican restaurant",
+      "processedAt": "2026-03-30T19:19:18.672Z"
+    },
+    {
+      "id": "ff8ae178-9791-4d05-8c62-e50126e4e8ce",
+      "name": "Skylight Books",
+      "processedAt": "2026-03-30T19:19:20.956Z"
+    },
+    {
+      "id": "386f5126-6f65-4e7b-b3ef-dbd119be20cc",
+      "name": "Grape Room",
+      "processedAt": "2026-03-30T19:19:24.296Z"
+    },
+    {
+      "id": "f47f126b-a297-4c67-ac6f-112804b0ad5c",
+      "name": "Gourmet Haus Staudt",
+      "processedAt": "2026-03-30T19:19:27.687Z"
+    },
+    {
+      "id": "654a2916-c9a8-4f77-9c89-f685e6883c6d",
+      "name": "Buggy Whip",
+      "processedAt": "2026-03-30T19:19:32.945Z"
+    },
+    {
+      "id": "dff8b857-d469-4c09-9189-c3fda817349a",
+      "name": "Pizza and Mariachis 🍕",
+      "processedAt": "2026-03-30T19:19:39.168Z"
+    },
+    {
+      "id": "588abb33-9641-4ef5-a7aa-cfa99673db91",
+      "name": "Halo Bar",
+      "processedAt": "2026-03-30T19:19:41.499Z"
+    },
+    {
+      "id": "0c690ef8-f014-4c4b-849a-b4240c347d26",
+      "name": "STITCH Bar & Blues",
+      "processedAt": "2026-03-30T19:19:49.499Z"
+    },
+    {
+      "id": "d4cf2ea7-6b28-435c-a0ff-9b2d7aaa1159",
+      "name": "Premier Restaurant and Lounge",
+      "processedAt": "2026-03-30T19:19:51.815Z"
+    },
+    {
+      "id": "07a5c65d-4514-473a-9d22-3821978d180c",
+      "name": "Paradise Restaurant",
+      "processedAt": "2026-03-30T19:19:54.282Z"
+    },
+    {
+      "id": "9ecd0c79-52f7-40ec-aa79-d35ab3a7424d",
+      "name": "7-Eleven",
+      "processedAt": "2026-03-30T19:19:58.640Z"
+    },
+    {
+      "id": "0d7c1675-6a3b-473f-b312-f3c38b85650f",
+      "name": "Fishland Fish Market",
+      "processedAt": "2026-03-30T19:20:05.276Z"
+    },
+    {
+      "id": "7ca7b020-ec23-4915-97d7-dd8795e56cad",
+      "name": "Los Mariachis Restaurant",
+      "processedAt": "2026-03-30T19:20:07.340Z"
+    },
+    {
+      "id": "7edcfd68-3544-4ca0-8824-9b6668bdfb4b",
+      "name": "Dairy Queen Grill & Chill",
+      "processedAt": "2026-03-30T19:20:09.654Z"
+    },
+    {
+      "id": "443315f1-9518-48b7-a6db-489033c7aa90",
+      "name": "Halligan Bar",
+      "processedAt": "2026-03-30T19:20:12.131Z"
+    },
+    {
+      "id": "198f83a5-987e-4d4e-ba7a-89d862276dbb",
+      "name": "Clear Springs Restaurant",
+      "processedAt": "2026-03-30T19:20:14.481Z"
+    },
+    {
+      "id": "288130d7-6cec-41f3-bcbf-adb56f1d2c1a",
+      "name": "Al Sultan Restaurant",
+      "processedAt": "2026-03-30T19:20:16.945Z"
+    },
+    {
+      "id": "999ccf79-ef16-4c63-98d1-4d7ec9102b81",
+      "name": "Leo's Restaurant",
+      "processedAt": "2026-03-30T19:20:19.392Z"
+    },
+    {
+      "id": "6fcf79bf-6346-46c9-b066-de1246a5377e",
+      "name": "The Goat",
+      "processedAt": "2026-03-30T19:20:22.155Z"
+    },
+    {
+      "id": "0516a0b1-098f-4f87-ac79-16ce917bd37f",
+      "name": "Rockabillies",
+      "processedAt": "2026-03-30T19:20:28.921Z"
+    },
+    {
+      "id": "98feb350-9d3a-414c-9037-a025d2d12e9b",
+      "name": "Rudyard's",
+      "processedAt": "2026-03-30T19:20:31.509Z"
     }
   ]
 }

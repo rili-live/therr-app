@@ -1,6 +1,7 @@
 import { Redis } from 'ioredis';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAreaType } from 'therr-js-utilities/types';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 
 const MAPS_STORE_PREFIX = 'MAPS_STORE:';
 const PLACES_CACHE_PREFIX = 'PLACES_CACHE:';

@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
 import EditFormFooter from '../components/EditFormFooter';
-import Slider from '@react-native-community/slider';
+import LottieView from 'lottie-react-native';
 import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
@@ -90,7 +90,6 @@ interface IEditMomentState {
     isSharePromptVisible: boolean;
     inputs: any;
     isEditingNearbySpaces: boolean;
-    isSliderActive: boolean;
     isSubmitting: boolean;
     nearbySpaces: { id: string, title: string }[];
     previewLinkId?: string;
@@ -159,7 +158,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isEditingNearbySpaces: false,
             isInsufficientFundsModalVisible: false,
             isSharePromptVisible: false,
-            isSliderActive: false,
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
@@ -328,6 +326,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude = route.params.area?.longitude;
         }
 
+        const sanitizedRadius = Math.max(MIN_RADIUS_PRIVATE, Math.min(MAX_RADIUS_PRIVATE, parseInt(radius, 10) || MIN_RADIUS_PRIVATE));
+
         const createArgs: any = {
             category,
             fromUserId: user.details.id,
@@ -339,7 +339,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             latitude,
             longitude,
             maxViews,
-            radius,
+            radius: sanitizedRadius,
             rating,
             skipReward: shouldSkipRewards,
             spaceId,
@@ -621,21 +621,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
     };
 
-    onSliderChange = (name, value) => {
-        const newInputChanges = {
-            [name]: value,
-        };
-
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                ...newInputChanges,
-            },
-            errorMsg: '',
-            isSubmitting: false,
-        });
-    };
-
     onConfirmInsufficientFunds = () => {
         this.toggleInfoModal();
 
@@ -736,15 +721,30 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         return (
             <>
                 <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
-                    {
-                        !!imagePreviewPath &&
-                        <View style={this.themeMoments.styles.mediaContainer}>
-                            <Image
-                                source={{ uri: imagePreviewPath }}
-                                style={this.themeMoments.styles.mediaImage}
-                            />
-                        </View>
-                    }
+                    <View style={this.themeMoments.styles.mediaContainer}>
+                        {
+                            imagePreviewPath
+                                ? (
+                                    <Image
+                                        source={{ uri: imagePreviewPath }}
+                                        style={this.themeMoments.styles.mediaImage}
+                                    />
+                                )
+                                : (
+                                    <LottieView
+                                        source={require('../assets/missing-image-storefront.json')}
+                                        resizeMode="contain"
+                                        speed={0.8}
+                                        autoPlay
+                                        loop
+                                        style={{
+                                            width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                            height: 160,
+                                        }}
+                                    />
+                                )
+                        }
+                    </View>
                     <Button
                         containerStyle={spacingStyles.marginBotMd}
                         buttonStyle={this.themeForms.styles.buttonPrimary}
@@ -883,21 +883,34 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     <View
                         style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}
                     >
-                        <Slider
-                            value={inputs.radius}
-                            onValueChange={(value) => this.onSliderChange('radius', value)}
-                            maximumValue={MAX_RADIUS_PRIVATE}
-                            minimumValue={MIN_RADIUS_PRIVATE}
-                            step={1}
-                            thumbTintColor={this.theme.colors.accentBlue}
-                            minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
-                            maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                            onSlidingStart={() => { Keyboard.dismiss(); this.setState({ isSliderActive: true }); }}
-                            onSlidingComplete={() => this.setState({ isSliderActive: false })}
+                        <RoundInput
+                            placeholder={this.translate('forms.editMoment.labels.radiusPlaceholder', {
+                                min: MIN_RADIUS_PRIVATE,
+                                max: MAX_RADIUS_PRIVATE,
+                            })}
+                            value={inputs.radius === '' ? '' : String(inputs.radius)}
+                            onChangeText={(text) => {
+                                const stripped = text.replace(/[^0-9]/g, '');
+                                if (stripped === '') {
+                                    this.onInputChange('radius', '' as any);
+                                } else {
+                                    this.onInputChange('radius', parseInt(stripped, 10) as any);
+                                }
+                            }}
+                            onBlur={() => {
+                                const num = parseInt(inputs.radius, 10);
+                                if (isNaN(num) || num < MIN_RADIUS_PRIVATE) {
+                                    this.onInputChange('radius', MIN_RADIUS_PRIVATE as any);
+                                } else if (num > MAX_RADIUS_PRIVATE) {
+                                    this.onInputChange('radius', MAX_RADIUS_PRIVATE as any);
+                                }
+                            }}
+                            keyboardType="number-pad"
+                            themeForms={this.themeForms}
                         />
-                        <Text style={this.themeForms.styles.inputLabelDark}>
+                        {inputs.radius !== '' && <Text style={this.themeForms.styles.inputLabelDark}>
                             {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
-                        </Text>
+                        </Text>}
                     </View>
                     <Alert
                         containerStyles={addMargins({
@@ -1025,7 +1038,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
-                        scrollEnabled={!this.state.isSliderActive}
+                        scrollEnabled
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
                         contentContainerStyle={[

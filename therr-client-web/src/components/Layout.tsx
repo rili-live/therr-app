@@ -83,6 +83,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
 
 // TODO: Animation between view change is not working when wrapped around a Switch
 export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
+    private handleReconnectAttempt: (() => void) | undefined;
+
+    private handleReconnect: (() => void) | undefined;
+
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
@@ -125,17 +129,19 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             });
         }
 
-        socketIO.on('reconnect_attempt', () => {
+        this.handleReconnectAttempt = () => {
             // Only send event when user is already logged in and refreshes the page
             updateSocketToken(user);
-        });
+        };
+        socketIO.on('reconnect_attempt', this.handleReconnectAttempt);
 
-        socketIO.on('reconnect', () => {
+        this.handleReconnect = () => {
             // Only send event when user is already logged in and refreshes the page
             if (user && user.isAuthenticated) {
                 refreshConnection(user);
             }
-        });
+        };
+        socketIO.on('reconnect', this.handleReconnect);
     }
 
     componentDidUpdate() {
@@ -157,14 +163,20 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     componentWillUnmount() { // eslint-disable-line
         document.removeEventListener('click', this.handleClick);
+        if (this.handleReconnectAttempt) {
+            socketIO.off('reconnect_attempt', this.handleReconnectAttempt);
+        }
+        if (this.handleReconnect) {
+            socketIO.off('reconnect', this.handleReconnect);
+        }
     }
 
     handleClick = (event: any) => {
         if (this.state.isNavMenuOpen) {
             const navMenuEl = document.getElementById('nav_menu');
-            const isClickInsideNavMenu = navMenuEl.contains(event.target)
-                || document.getElementById('footer_messages').contains(event.target)
-                || document.getElementById('header_account_button').contains(event.target)
+            const isClickInsideNavMenu = navMenuEl?.contains(event.target)
+                || document.getElementById('footer_messages')?.contains(event.target)
+                || document.getElementById('header_account_button')?.contains(event.target)
                 || event.target.closest('[data-portal]');
 
             if (!isClickInsideNavMenu) {
@@ -195,10 +207,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const navMenuEl = document.getElementById('nav_menu');
         this.setState(newState, () => {
             if (this.state.isNavMenuOpen) {
-                const activeTabEl = navMenuEl && navMenuEl
-                    .getElementsByClassName('nav-menu-header')[0]
-                    .getElementsByClassName('menu-tab-button active')[0] as HTMLElement;
-                activeTabEl.focus();
+                const activeTabEl = navMenuEl
+                    ?.getElementsByClassName('nav-menu-header')[0]
+                    ?.getElementsByClassName('menu-tab-button active')[0] as HTMLElement | undefined;
+                activeTabEl?.focus();
             }
         });
     };
