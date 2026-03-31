@@ -418,6 +418,16 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         navToViewContent(content, user, navigation.navigate);
     };
 
+    goToCreateEvent = () => {
+        const { navigation, route } = this.props;
+        const { id: forumId } = route.params;
+
+        navigation.navigate('EditEvent', {
+            area: { groupId: forumId },
+            imageDetails: {},
+        });
+    };
+
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
 
@@ -574,6 +584,18 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 </Pressable>
                             );
                         }}
+                        ListHeaderComponent={
+                            <View style={[spacingStyles.marginHorizLg, spacingStyles.padVertMd]}>
+                                <PaperButton
+                                    mode="contained"
+                                    icon="calendar-plus"
+                                    onPress={this.goToCreateEvent}
+                                    style={{ borderRadius: 20 }}
+                                >
+                                    {this.translate('pages.viewGroup.buttons.createEvent')}
+                                </PaperButton>
+                            </View>
+                        }
                         ListEmptyComponent={<View style={spacingStyles.marginHorizLg}>
                             <ListEmpty iconName="calendar" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.EVENTS)} />
                         </View>}

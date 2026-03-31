@@ -1290,6 +1290,9 @@
         "creator": "Creador del grupo",
         "admin": "Admin / Moderador",
         "eventHost": "Anfitrión de eventos"
+      },
+      "buttons": {
+        "createEvent": "Crear Evento"
       }
     },
     "viewSpace": {
