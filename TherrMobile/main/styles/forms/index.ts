@@ -485,6 +485,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 16,
             fontWeight: '500',
             fontFamily: therrFontFamily,
+            color: therrTheme.colors.textWhite,
         },
     });
 
