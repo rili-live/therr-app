@@ -1709,6 +1709,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
+    closeBottomSheet = () => {
+        this.bottomSheetRef?.current?.close();
+    };
+
     onBottomSheetClose = () => {
         this.setState({
             areButtonsVisible: true,
@@ -2025,7 +2029,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             createMoment={createMoment}
                             navigation={navigation}
                             nearbySpaces={nearbySpaces}
-                            onClose={this.onBottomSheetClose}
+                            onClose={this.closeBottomSheet}
                             theme={this.theme}
                             user={user}
                             themeBottomSheet={this.themeBottomSheet}

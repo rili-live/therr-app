@@ -655,7 +655,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             const payload = options.payload as  Partial<Sheets['group-sheet']['payload']>;
             const { user } = this.props;
             const canJoinGroup = !user?.myUserGroups[payload.group.id]?.role;
-            const hasGroupEditAccess = user?.myUserGroups[payload.group.id]?.role === GroupMemberRoles.ADMIN;
+            const hasGroupEditAccess = user?.myUserGroups[payload.group.id]?.role === GroupMemberRoles.ADMIN
+                || user?.details?.id === payload.group?.authorId;
             const isGroupMember = user?.myUserGroups[payload.group.id]?.role && user?.myUserGroups[payload.group.id]?.role !== GroupMemberRoles.ADMIN;
             const hasGroupArchiveAccess = user?.details?.id === payload.group.authorId;
             return SheetManager.show<typeof sheetId>(sheetId, {

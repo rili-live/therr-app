@@ -28,6 +28,12 @@ const forums = produce((draft: IForumsState, action: any) => {
                     ...action.data,
                 };
             }
+            if (action.data?.id && draft.forumDetails[action.data.id]) {
+                draft.forumDetails[action.data.id] = {
+                    ...draft.forumDetails[action.data.id],
+                    ...action.data,
+                };
+            }
             break;
         }
         case ForumActionTypes.DELETE_FORUM: {

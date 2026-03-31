@@ -279,6 +279,7 @@
     "addDetails": "Agregar detalles (opcional)",
     "submitSuccess": "Reporte enviado!",
     "submitError": "Error al enviar reporte",
+    "duplicateReport": "Este reporte ya ha sido publicado",
     "stillTrue": "Aun es cierto",
     "notAnymore": "Ya no",
     "confirmCount": "{{count}} confirmaron"
@@ -1303,6 +1304,9 @@
         "creator": "Creador del grupo",
         "admin": "Admin / Moderador",
         "eventHost": "Anfitrión de eventos"
+      },
+      "buttons": {
+        "createEvent": "Crear Evento"
       }
     },
     "viewSpace": {

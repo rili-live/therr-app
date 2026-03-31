@@ -528,6 +528,13 @@
       "noForumsMessage": "Aucun clavardage n'est actuellement actif. Cliquez sur « Créer un clavardage hébergé » pour en démarrer un nouveau.",
       "pageTitle": "Clavardages hébergés"
     },
+    "editGroup": {
+      "buttons": {
+        "submit": "Enregistrer les modifications"
+      },
+      "pageTitle": "Modifier le groupe",
+      "notAuthorized": "Vous n'êtes pas autorisé à modifier ce groupe."
+    },
     "createProfile": {
       "pageTitle": "Créer le profil",
       "pageTitleVerify": "Créer le profil : Vérifier le téléphone",
@@ -856,6 +863,9 @@
         "upcomingEvents": "Événements à venir",
         "pastEvents": "Événements passés",
         "noEvents": "Aucun événement trouvé pour ce groupe."
+      },
+      "buttons": {
+        "editGroup": "Modifier le groupe"
       }
     },
     "viewEvent": {

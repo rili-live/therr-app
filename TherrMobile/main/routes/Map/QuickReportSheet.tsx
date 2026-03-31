@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Categories } from 'therr-js-utilities/constants';
+import { Categories, ErrorCodes } from 'therr-js-utilities/constants';
 import { showToast } from '../../utilities/toasts';
 import { ITherrThemeColors } from '../../styles/themes';
 
@@ -141,10 +141,21 @@ const QuickReportSheet = ({
                     onClose();
                 }
             })
-            .catch(() => {
-                showToast.error({
-                    text1: translate('quickReports.submitError'),
-                });
+            .catch((err) => {
+                console.log('QuickReport submit error:', err);
+                if (err?.errorCode === ErrorCodes.DUPLICATE_POST) {
+                    showToast.info({
+                        text1: translate('quickReports.duplicateReport'),
+                    });
+                    setDetails('');
+                    if (onClose) {
+                        onClose();
+                    }
+                } else {
+                    showToast.error({
+                        text1: translate('quickReports.submitError'),
+                    });
+                }
             })
             .finally(() => {
                 setIsSubmitting(false);

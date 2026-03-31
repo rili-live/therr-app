@@ -279,6 +279,7 @@
     "addDetails": "Add details (optional)",
     "submitSuccess": "Report submitted!",
     "submitError": "Failed to submit report",
+    "duplicateReport": "This report has already been posted",
     "stillTrue": "Still true",
     "notAnymore": "Not anymore",
     "confirmCount": "{{count}} confirmed"
@@ -1303,6 +1304,9 @@
         "creator": "Group Creator",
         "admin": "Admin / Moderator",
         "eventHost": "Event Host"
+      },
+      "buttons": {
+        "createEvent": "Create Event"
       }
     },
     "viewSpace": {
