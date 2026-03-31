@@ -1910,6 +1910,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 onPreviewBottomSheetOpen={this.onPreviewBottomSheetOpen}
                                 shouldFollowUserLocation={shouldFollowUserLocation}
                                 shouldRenderMapCircles={shouldRenderMapCircles}
+                                isQuickReportOpen={bottomSheetContentType === 'quick-report'}
+                                closeQuickReport={this.closeBottomSheet}
                                 hideCreateActions={this.hideCreateActions}
                                 isScrollEnabled={isScrollEnabled}
                                 onMapLayout={this.onMapLayout}
