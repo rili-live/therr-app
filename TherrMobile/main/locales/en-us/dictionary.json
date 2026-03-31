@@ -1241,7 +1241,8 @@
         "subtitle": "Headline:",
         "memberCount": "{count} members"
       },
-      "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here."
+      "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here.",
+      "discoverGroups": "Discover Groups"
     },
     "invite": {
       "headerTitle": "Invite"

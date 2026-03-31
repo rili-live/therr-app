@@ -1241,7 +1241,8 @@
         "subtitle": "Titular:",
         "memberCount": "{count} miembros"
       },
-      "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí."
+      "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí.",
+      "discoverGroups": "Descubrir Grupos"
     },
     "invite": {
       "headerTitle": "Invitar"

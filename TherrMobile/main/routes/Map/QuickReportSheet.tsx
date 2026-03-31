@@ -20,7 +20,7 @@ const quickReportOptions: IQuickReportOption[] = [
     { category: CategoriesMap[31], labelKey: 'quickReports.longWait', icon: 'hourglass-top', iconSet: 'material' },
     { category: CategoriesMap[32], labelKey: 'quickReports.liveEntertainment', icon: 'musical-notes', iconSet: 'ionicons' },
     { category: CategoriesMap[33], labelKey: 'quickReports.crowdAlert', icon: 'people', iconSet: 'material' },
-    { category: CategoriesMap[34], labelKey: 'quickReports.hiddenGem', icon: 'diamond', iconSet: 'ionicons' },
+    { category: CategoriesMap[34], labelKey: 'quickReports.hiddenGem', icon: 'auto-awesome', iconSet: 'material' },
     { category: CategoriesMap[35], labelKey: 'quickReports.localDeal', icon: 'local-offer', iconSet: 'material' },
 ];
 
@@ -34,6 +34,7 @@ interface IQuickReportSheetProps {
         colors: ITherrThemeColors;
         styles: any;
     };
+    user?: any;
 }
 
 const styles = StyleSheet.create({
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 18,
         fontWeight: '600',
-        marginBottom: 4,
+        marginBottom: 12,
         textAlign: 'center',
     },
     nearbySpaceLabel: {
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
-        marginTop: 12,
+        marginBottom: 12,
         fontSize: 14,
     },
     loadingOverlay: {
@@ -103,6 +104,7 @@ const QuickReportSheet = ({
     onClose,
     translate,
     theme,
+    user,
 }: IQuickReportSheetProps) => {
     const [details, setDetails] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,10 +118,12 @@ const QuickReportSheet = ({
 
         const momentData = {
             category: option.category,
+            fromUserId: user?.details?.id,
             latitude: circleCenter.latitude,
             longitude: circleCenter.longitude,
+            radius: 100,
             isPublic: true,
-            message: details || '',
+            message: details || translate(option.labelKey),
             notificationMsg: details || translate(option.labelKey),
             spaceId: nearestSpace?.id,
         };
@@ -157,7 +161,7 @@ const QuickReportSheet = ({
 
     return (
         <View style={styles.container}>
-            <Text style={[styles.title, { color: theme.colors.textBlack }]}>
+            <Text style={[styles.title, { color: theme.colors.textWhite }]}>
                 {translate('quickReports.title')}
             </Text>
             {nearestSpace && (
@@ -165,6 +169,19 @@ const QuickReportSheet = ({
                     {`@ ${nearestSpace.title}`}
                 </Text>
             )}
+            <TextInput
+                style={[styles.detailsInput, {
+                    borderColor: theme.colors.textGray,
+                    color: theme.colors.textWhite,
+                    backgroundColor: theme.colors.backgroundWhite,
+                }]}
+                placeholder={translate('quickReports.addDetails')}
+                placeholderTextColor={theme.colors.textGray}
+                value={details}
+                onChangeText={setDetails}
+                maxLength={140}
+                editable={!isSubmitting}
+            />
             <View style={styles.grid}>
                 {quickReportOptions.map((option) => (
                     <Pressable
@@ -181,25 +198,12 @@ const QuickReportSheet = ({
                         disabled={isSubmitting}
                     >
                         {renderIcon(option)}
-                        <Text style={[styles.reportButtonLabel, { color: theme.colors.textBlack }]}>
+                        <Text style={[styles.reportButtonLabel, { color: theme.colors.textWhite }]}>
                             {translate(option.labelKey)}
                         </Text>
                     </Pressable>
                 ))}
             </View>
-            <TextInput
-                style={[styles.detailsInput, {
-                    borderColor: theme.colors.textGray,
-                    color: theme.colors.textBlack,
-                    backgroundColor: theme.colors.backgroundWhite,
-                }]}
-                placeholder={translate('quickReports.addDetails')}
-                placeholderTextColor={theme.colors.textGray}
-                value={details}
-                onChangeText={setDetails}
-                maxLength={140}
-                editable={!isSubmitting}
-            />
             {isSubmitting && (
                 <View style={styles.loadingOverlay}>
                     <ActivityIndicator size="small" color={theme.colors.primary3} />

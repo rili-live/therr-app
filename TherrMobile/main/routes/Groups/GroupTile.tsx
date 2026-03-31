@@ -18,6 +18,9 @@ const TherrIcon = createIconSetFromIcoMoon(
     'TherrFont.ttf'
 );
 
+const getDisplayTitle = (title: any): string =>
+    typeof title === 'object' ? (title?.title || title?.name || '') : (title || '');
+
 const renderChatIcon = (item, style = {}) => {
     const props = {
         color: item.iconColor,
@@ -72,7 +75,7 @@ export default ({
                 onPress={() => onChatTilePress(group)}
             >
                 <Avatar
-                    title={`${group.title?.substring(0, 1)}`}
+                    title={`${getDisplayTitle(group.title)?.substring(0, 1)}`}
                     rounded
                     source={{
                         uri: group.media?.featuredImage
@@ -83,7 +86,7 @@ export default ({
                 />
             </Pressable>
             <View style={spacingStyles.flexOne}>
-                <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{group.title}</ListItem.Title>
+                <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{getDisplayTitle(group.title)}</ListItem.Title>
                 {
                     group.city &&
                     <ListItem.Subtitle

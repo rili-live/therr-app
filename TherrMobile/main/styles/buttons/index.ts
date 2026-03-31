@@ -638,6 +638,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         buttonPillTitle: {
             fontSize: 15,
             fontFamily: therrFontFamily,
+            color: therrTheme.colors.brandingWhite,
         },
     });
 

@@ -795,6 +795,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             if (action === 'quick-report') {
                 this.setState({
                     bottomSheetContentType: 'quick-report',
+                    bottomSheetSnapPoints: [defaultSnapPoints[0], '65%', '100%'],
                     areButtonsVisible: false,
                     shouldShowCreateActions: false,
                 });
@@ -2026,6 +2027,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             nearbySpaces={nearbySpaces}
                             onClose={this.onBottomSheetClose}
                             theme={this.theme}
+                            user={user}
                             themeBottomSheet={this.themeBottomSheet}
                             themeViewArea={this.themeViewArea}
                             translate={this.translate}

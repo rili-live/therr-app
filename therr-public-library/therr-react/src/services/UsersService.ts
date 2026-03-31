@@ -272,7 +272,7 @@ class UsersService {
         },
     });
 
-    getExchangeRate = (amount: number) => axios({
+    getExchangeRate = () => axios({
         method: 'get',
         url: '/users-service/rewards/exchange-rate',
     });
