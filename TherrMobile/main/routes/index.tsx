@@ -17,6 +17,7 @@ import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
 import AchievementClaim from './Achievements/AchievementClaim';
+import ActivatedAreas from './Areas/ActivatedAreas';
 import Areas from './Areas';
 import Connect from './Connect';
 import Groups from './Groups';
@@ -174,6 +175,18 @@ const routes: RouteConfig<
         options: () => ({
             title: 'AchievementClaim',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'ActivatedAreas',
+        component: ActivatedAreas,
+        options: () => ({
+            title: 'Activated Areas',
+            requiredFeatures: [FeatureFlags.ENABLE_AREAS],
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

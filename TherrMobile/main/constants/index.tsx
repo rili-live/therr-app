@@ -14,6 +14,7 @@ const GROUP_CAROUSEL_TABS = {
     MEMBERS: 'members',
 };
 const GROUPS_CAROUSEL_TABS = {
+    DISCOVER: 'discover',
     GROUPS: 'groups',
 };
 const PEOPLE_CAROUSEL_TABS = {

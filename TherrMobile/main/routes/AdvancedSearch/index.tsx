@@ -158,7 +158,8 @@ const AdvancedSearch = ({
         setCategoryFilters(
             initialCategoryFilters.current.map((x: CategoryFilter) => ({ ...x, isChecked: true }))
         );
-    }, []);
+        setActiveMomentsFilters({ contentType: 'all' });
+    }, [setActiveMomentsFilters]);
 
     const handleCategoryChipPress = useCallback((index: number, isSelectAll: boolean = false) => {
         setCategoryFilters((prev: CategoryFilter[]) => {
@@ -182,8 +183,8 @@ const AdvancedSearch = ({
         });
     }, [translate]);
 
-    const onSearchOrderSelect = useCallback((value: string) => {
-        setActiveMomentsFilters({ order: value });
+    const onContentTypeSelect = useCallback((value: string) => {
+        setActiveMomentsFilters({ contentType: value });
     }, [setActiveMomentsFilters]);
 
     const brandColor = theme.colors.brandingBlueGreen;
@@ -199,26 +200,30 @@ const AdvancedSearch = ({
                     style={theme.styles.scrollViewFull}
                 >
                     <View style={[theme.styles.body, styles.container]}>
-                        {/* Sort Order */}
+                        {/* Content Type */}
                         <Text
                             variant="titleMedium"
                             style={[theme.styles.sectionTitle, styles.sectionHeader]}
                         >
-                            {translate('pages.advancedSearch.labels.searchOrder')}
+                            {translate('pages.advancedSearch.labels.contentType')}
                         </Text>
                         <SegmentedButtons
-                            value={content.activeAreasFilters?.order || 'DESC'}
-                            onValueChange={onSearchOrderSelect}
+                            value={content.activeAreasFilters?.contentType || 'all'}
+                            onValueChange={onContentTypeSelect}
                             buttons={[
                                 {
-                                    value: 'DESC',
-                                    label: translate('pages.advancedSearch.labels.desc'),
-                                    icon: 'sort-descending',
+                                    value: 'all',
+                                    label: translate('pages.advancedSearch.labels.all'),
                                 },
                                 {
-                                    value: 'ASC',
-                                    label: translate('pages.advancedSearch.labels.asc'),
-                                    icon: 'sort-ascending',
+                                    value: 'moments',
+                                    label: translate('pages.advancedSearch.labels.moments'),
+                                    icon: 'image',
+                                },
+                                {
+                                    value: 'thoughts',
+                                    label: translate('pages.advancedSearch.labels.thoughts'),
+                                    icon: 'lightbulb-outline',
                                 },
                             ]}
                             style={styles.segmentedButtons}

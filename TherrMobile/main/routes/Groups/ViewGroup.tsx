@@ -40,6 +40,9 @@ import RoundInput from '../../components/Input/Round';
 import TherrIcon from '../../components/TherrIcon';
 import ForumMessage from './ForumMessage';
 import ListEmpty from '../../components/ListEmpty';
+
+const getDisplayTitle = (title: any): string =>
+    typeof title === 'object' ? (title?.title || title?.name || '') : (title || '');
 import LazyPlaceholder from '../Areas/components/LazyPlaceholder';
 import UserSearchItem from '../Connect/components/UserSearchItem';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -158,7 +161,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
 
         this.state = {
             activeTabIndex,
-            title: title || '',
+            title: getDisplayTitle(title),
             groupMembers: [],
             groupEvents: [],
             isSending: false,
@@ -197,15 +200,17 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                 groupEvents: response.data?.events || [],
             });
 
+            const resolvedTitle = getDisplayTitle(title || response?.data?.title);
+
             navigation.setOptions({
-                title: title || response?.data?.title,
+                title: resolvedTitle,
                 subtitle: response?.data?.subtitle,
                 description: response?.data?.description,
             });
 
             joinForum({
                 roomId: forumId,
-                roomName: title || response?.data?.title,
+                roomName: resolvedTitle,
                 userId: user.details.id,
                 userName: user.details.userName,
                 userImgSrc: getUserImageUri(user.details, 100),
@@ -653,7 +658,9 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         const { activeTabIndex, isSending, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
         const { route, forums } = this.props;
         const { description, subtitle, id: forumId } = route.params;
-        const group = forums?.searchResults?.find((g) => g.id === forumId) || {};
+        const group = forums?.searchResults?.find((g) => g.id === forumId)
+            || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
+            || route.params;
 
         return (
             <>
@@ -751,6 +758,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 )}
                                 onSubmitEditing={this.handleSend}
                                 containerStyle={this.themeMessage.styles.inputContainer}
+                                inputContainerStyle={[this.themeForms.styles.inputContainerRound, { height: 40 }]}
                                 errorStyle={this.theme.styles.displayNone}
                                 themeForms={this.themeForms}
                             />

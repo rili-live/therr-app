@@ -6,6 +6,7 @@ import { AuthRoute } from 'therr-react/components';
 import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 import CreateForum from './CreateForum';
+import ListGroups from './ListGroups';
 import ViewGroup from './ViewGroup';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
@@ -22,6 +23,7 @@ import EditProfile from './EditProfile';
 import EditSpace from './EditSpace';
 import CreateSpace from './CreateSpace';
 import ManageSpaces from './ManageSpaces';
+import Bookmarks from './Bookmarks';
 import Discovered from './Discovered';
 import Explore from './Explore';
 import ExploreMoments from './Explore/ExploreMoments';
@@ -55,6 +57,15 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/',
         element: <Home />,
+    },
+    {
+        path: '/groups',
+        element: <ListGroups />,
+        fetchData: (dispatch: any) => ForumActions.searchForums({
+            itemsPerPage: 50,
+            pageNumber: 1,
+            order: 'desc',
+        }, {})(dispatch),
     },
     {
         path: '/groups/:groupId',
@@ -230,6 +241,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/users',
         element: <AuthRoute
             component={ExplorePeople}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/bookmarks',
+        element: <AuthRoute
+            component={Bookmarks}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

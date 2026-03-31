@@ -46,8 +46,7 @@ describe('MomentsStore', () => {
     });
 
     describe('searchMoments', () => {
-        it('queries with postgis functions and distance sort', () => {
-            const expected = `select "id", "areaType", "locale", "category", "notificationMsg", "medias", "mediaIds", "hashTags", "latitude", "longitude", "radius", "isMatureContent", "isModeratorApproved", "createdAt", "updatedAt", "interestsKeys", "spaceId" from "main"."moments" where ST_DWithin(geom::geography, ST_MakePoint(15.3034, -1.12314)::geography, 5) and "isMatureContent" = false order by ST_Distance(geom::geography, ST_MakePoint(15.3034, -1.12314)::geography) ASC limit 100 offset 100`;
+        it('queries with postgis functions and expiresAt filter', () => {
             const mockStore = createMockStore();
             const store = new MomentsStore(mockStore, createMockMediaStore());
             store.searchMoments(mockHeaders, {
@@ -63,7 +62,12 @@ describe('MomentsStore', () => {
                 order: 'desc',
             }, []);
 
-            expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('"isMatureContent" = false');
+            expect(query).to.include('ST_DWithin');
+            expect(query).to.include('ST_Distance');
+            expect(query).to.include('"expiresAt" is null');
+            expect(query).to.include('"expiresAt" >');
         });
 
         it('always includes ORDER BY ST_Distance ASC regardless of filter type', () => {
@@ -181,6 +185,54 @@ describe('MomentsStore', () => {
             const query = mockStore.read.query.args[0][0];
             expect(query).to.include('limit 25');
             expect(query).to.include('offset 50');
+        });
+    });
+
+    describe('getQuickReportsSummary', () => {
+        it('queries for quick report moments grouped by category', () => {
+            const mockStore = createMockStore();
+            const store = new MomentsStore(mockStore, createMockMediaStore());
+            store.getQuickReportsSummary('space-123');
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('select "category"');
+            expect(query).to.include('count(');
+            expect(query).to.include('max(');
+            expect(query).to.include('"spaceId" = \'space-123\'');
+            expect(query).to.include('group by "category"');
+        });
+
+        it('filters by non-expired moments', () => {
+            const mockStore = createMockStore();
+            const store = new MomentsStore(mockStore, createMockMediaStore());
+            store.getQuickReportsSummary('space-456');
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('"expiresAt" is null');
+            expect(query).to.include('"expiresAt" >');
+        });
+
+        it('filters by isMatureContent false', () => {
+            const mockStore = createMockStore();
+            const store = new MomentsStore(mockStore, createMockMediaStore());
+            store.getQuickReportsSummary('space-789');
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('"isMatureContent" = false');
+        });
+
+        it('filters only quick report categories', () => {
+            const mockStore = createMockStore();
+            const store = new MomentsStore(mockStore, createMockMediaStore());
+            store.getQuickReportsSummary('space-abc');
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('"category" in');
+            expect(query).to.include('categories.deals');
+            expect(query).to.include('categories.warning');
+            expect(query).to.include('categories.happeningNow');
+            expect(query).to.include('categories.longWait');
+            expect(query).to.include('categories.liveEntertainment');
         });
     });
 

@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
 import EditFormFooter from '../components/EditFormFooter';
-import Slider from '@react-native-community/slider';
+import LottieView from 'lottie-react-native';
 import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
@@ -94,7 +94,6 @@ interface IEditSpaceState {
     isBusinessAccount: boolean;
     isCreatorAccount?: boolean;
     isRequestDetailsExpanded: boolean;
-    isSliderActive: boolean;
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
@@ -183,7 +182,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 featuredIncentiveCurrencyId: area?.featuredIncentiveCurrencyId?.toString() || undefined,
             },
             isRequestDetailsExpanded: false,
-            isSliderActive: false,
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
@@ -426,6 +424,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             longitude,
         } = route.params;
 
+        const sanitizedRadius = Math.max(MIN_RADIUS_PUBLIC, Math.min(MAX_RADIUS_PUBLIC, parseInt(radius, 10) || MIN_RADIUS_PUBLIC));
+
         let createArgs: any = {
             category,
             featuredIncentiveKey,
@@ -441,7 +441,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             latitude: addressLatitude || latitude,
             longitude: addressLongitude || longitude,
             maxViews,
-            radius,
+            radius: sanitizedRadius,
             expiresAt,
         };
 
@@ -800,21 +800,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         });
     };
 
-    onSliderChange = (name, value) => {
-        const newInputChanges = {
-            [name]: value,
-        };
-
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                ...newInputChanges,
-            },
-            errorMsg: '',
-            isSubmitting: false,
-        });
-    };
-
     handleHashtagPress = (tag) => {
         const { hashtags } = this.state;
         let modifiedHastags = hashtags.filter(t => t !== tag);
@@ -893,15 +878,30 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 <Pressable style={this.themeAccentLayout.styles.container} onPress={this.onOuterContainerPress}>
                     {
                         isBusinessAccount && <>
-                            {
-                                !!imagePreviewPath &&
-                                <View style={this.themeMoments.styles.mediaContainer}>
-                                    <Image
-                                        source={{ uri: imagePreviewPath }}
-                                        style={this.themeMoments.styles.mediaImage}
-                                    />
-                                </View>
-                            }
+                            <View style={this.themeMoments.styles.mediaContainer}>
+                                {
+                                    imagePreviewPath
+                                        ? (
+                                            <Image
+                                                source={{ uri: imagePreviewPath }}
+                                                style={this.themeMoments.styles.mediaImage}
+                                            />
+                                        )
+                                        : (
+                                            <LottieView
+                                                source={require('../assets/missing-image-storefront.json')}
+                                                resizeMode="contain"
+                                                speed={0.8}
+                                                autoPlay
+                                                loop
+                                                style={{
+                                                    width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                                    height: 160,
+                                                }}
+                                            />
+                                        )
+                                }
+                            </View>
                             <Button
                                 containerStyle={spacingStyles.marginBotMd}
                                 buttonStyle={this.themeForms.styles.buttonPrimary}
@@ -1139,21 +1139,34 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         isBusinessAccount && <View
                             style={this.themeForms.styles.inputSliderContainer}
                         >
-                            <Slider
-                                value={inputs.radius}
-                                onValueChange={(value) => this.onSliderChange('radius', value)}
-                                maximumValue={MAX_RADIUS_PUBLIC}
-                                minimumValue={MIN_RADIUS_PUBLIC}
-                                step={1}
-                                thumbTintColor={this.theme.colors.accentBlue}
-                                minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
-                                maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                                onSlidingStart={() => { Keyboard.dismiss(); this.setState({ isSliderActive: true }); }}
-                                onSlidingComplete={() => this.setState({ isSliderActive: false })}
+                            <RoundInput
+                                placeholder={this.translate('forms.editSpace.labels.radiusPlaceholder', {
+                                    min: MIN_RADIUS_PUBLIC,
+                                    max: MAX_RADIUS_PUBLIC,
+                                })}
+                                value={inputs.radius === '' ? '' : String(inputs.radius)}
+                                onChangeText={(text) => {
+                                    const stripped = text.replace(/[^0-9]/g, '');
+                                    if (stripped === '') {
+                                        this.onInputChange('radius', '' as any);
+                                    } else {
+                                        this.onInputChange('radius', parseInt(stripped, 10) as any);
+                                    }
+                                }}
+                                onBlur={() => {
+                                    const num = parseInt(inputs.radius, 10);
+                                    if (isNaN(num) || num < MIN_RADIUS_PUBLIC) {
+                                        this.onInputChange('radius', MIN_RADIUS_PUBLIC as any);
+                                    } else if (num > MAX_RADIUS_PUBLIC) {
+                                        this.onInputChange('radius', MAX_RADIUS_PUBLIC as any);
+                                    }
+                                }}
+                                keyboardType="number-pad"
+                                themeForms={this.themeForms}
                             />
-                            <Text style={this.themeForms.styles.inputLabelDark}>
+                            {inputs.radius !== '' && <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
-                            </Text>
+                            </Text>}
                             <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.cost', { pointCost: 0 })}`}
                             </Text>
@@ -1345,7 +1358,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
-                        scrollEnabled={!this.state.isSliderActive}
+                        scrollEnabled
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit, this.theme.styles.scrollViewFull]}
                         contentContainerStyle={[

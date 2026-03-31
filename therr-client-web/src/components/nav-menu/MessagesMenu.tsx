@@ -112,6 +112,8 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         switch (destination) {
             case 'create-forum':
                 return this.props.navigation.navigate('/create-forum');
+            case 'browse-groups':
+                return this.props.navigation.navigate('/groups');
             case 'forums':
                 return this.props.navigation.navigate(`/groups/${params.roomKey}`, {
                     state,
@@ -137,6 +139,16 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
             <>
                 <h2>{this.props.translate('components.messagesMenu.h2.forums')}</h2>
                 <div className="forums-menu">
+                    <MantineButton
+                        id="nav_menu_browse_groups"
+                        className="menu-item left-icon"
+                        onClick={this.navigate('browse-groups')}
+                        variant="subtle"
+                        fullWidth
+                    >
+                        <InlineSvg name="door" />
+                        {this.props.translate('components.messagesMenu.buttons.browseGroups')}
+                    </MantineButton>
                     <MantineButton
                         id="nav_menu_join_forum"
                         className="menu-item left-icon"

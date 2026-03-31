@@ -136,6 +136,11 @@ class UsersService {
         url: `/users-service/users/${id}`,
     });
 
+    getByUserName = (userName: string) => axios({
+        method: 'get',
+        url: `/users-service/users/by-username/${userName}`,
+    });
+
     getMe = () => axios({
         method: 'get',
         url: '/users-service/users/me',
@@ -267,7 +272,7 @@ class UsersService {
         },
     });
 
-    getExchangeRate = (amount: number) => axios({
+    getExchangeRate = () => axios({
         method: 'get',
         url: '/users-service/rewards/exchange-rate',
     });

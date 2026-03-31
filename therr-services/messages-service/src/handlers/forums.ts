@@ -62,6 +62,11 @@ const createActivity = (req, res) => {
         maxCommentsPerMin: group.maxCommentsPerMin || 50,
         doesExpire: group.doesExpire || true,
         isPublic: group.isPublic,
+        city: group.city,
+        region: group.region,
+        country: group.country,
+        localLatitude: group.localLatitude,
+        localLongitude: group.localLongitude,
     })
         .then(([dbForum]) => {
             forumId = dbForum.id;
@@ -136,6 +141,11 @@ const createForum = async (req, res) => {
         });
     }
 
+    const media: any = {};
+    if (req.body.media?.length) {
+        media.featuredImage = req.body.media[0]?.path;
+    }
+
     return Store.forums.createForum({
         authorId: userId,
         authorLocale: locale,
@@ -153,6 +163,12 @@ const createForum = async (req, res) => {
         maxCommentsPerMin: req.body.maxCommentsPerMin || 50,
         doesExpire: req.body.doesExpire || true,
         isPublic: req.body.isPublic || true,
+        media: JSON.stringify(media),
+        city: req.body.city,
+        region: req.body.region,
+        country: req.body.country,
+        localLatitude: req.body.localLatitude,
+        localLongitude: req.body.localLongitude,
     })
         .then(([forum]) => createUserForum(req.headers, forum.id).then((response) => {
             const userGroup = response.data;
@@ -305,6 +321,10 @@ const searchForums: RequestHandler = (req: any, res: any) => {
             usersInvitedForumIds: undefined,
             categoryTags: req.body.categoryTags,
             forumIds: req.body.forumIds,
+            nearbyCity: req.body.nearbyCity,
+            nearbyLatitude: req.body.nearbyLatitude,
+            nearbyLongitude: req.body.nearbyLongitude,
+            nearbyMaxDistanceKm: req.body.nearbyMaxDistanceKm,
         }).then((results) => {
             const response = {
                 results: results.map((result) => ({
@@ -326,6 +346,10 @@ const searchForums: RequestHandler = (req: any, res: any) => {
         usersInvitedForumIds: req.body.usersInvitedForumIds,
         categoryTags: req.body.categoryTags,
         forumIds: req.body.forumIds,
+        nearbyCity: req.body.nearbyCity,
+        nearbyLatitude: req.body.nearbyLatitude,
+        nearbyLongitude: req.body.nearbyLongitude,
+        nearbyMaxDistanceKm: req.body.nearbyMaxDistanceKm,
     });
     // const countPromise = Store.forums.countRecords({
     //     filterBy,
@@ -344,6 +368,10 @@ const searchForums: RequestHandler = (req: any, res: any) => {
             usersInvitedForumIds: validGroupIds,
             categoryTags: req.body.categoryTags,
             forumIds: req.body.forumIds,
+            nearbyCity: req.body.nearbyCity,
+            nearbyLatitude: req.body.nearbyLatitude,
+            nearbyLongitude: req.body.nearbyLongitude,
+            nearbyMaxDistanceKm: req.body.nearbyMaxDistanceKm,
         });
 
         return Promise.all([searchPromise, userMemberGroupsPromise, countPromise]).then(([results, userMemberResults, countResult]) => {
@@ -431,10 +459,7 @@ const updateForum = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const { forumId } = req.params;
 
-    return Store.forums.updateForum({
-        id: forumId,
-        authorId: userId,
-    }, {
+    const updateParams: any = {
         administratorIds: req.body.administratorIds,
         title: req.body.title,
         subtitle: req.body.subtitle,
@@ -449,7 +474,21 @@ const updateForum = (req, res) => {
         maxCommentsPerMin: req.body.maxCommentsPerMin,
         doesExpire: req.body.doesExpire,
         isPublic: req.body.isPublic,
-    })
+        city: req.body.city,
+        region: req.body.region,
+        country: req.body.country,
+        localLatitude: req.body.localLatitude,
+        localLongitude: req.body.localLongitude,
+    };
+
+    if (req.body.media?.length) {
+        updateParams.media = JSON.stringify({ featuredImage: req.body.media[0]?.path });
+    }
+
+    return Store.forums.updateForum({
+        id: forumId,
+        authorId: userId,
+    }, updateParams)
         .then(([forum]) => res.status(202).send(forum))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
 };

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
@@ -401,7 +402,12 @@ mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
 
         return res.status(200).json(data);
     } catch (err) {
-        console.error('Geocoding proxy error:', err);
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_GATEWAY_MAPS_ROUTER',
+            messages: ['Geocoding proxy error'],
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
+        });
         return res.status(502).json({ message: 'Geocoding service unavailable' });
     }
 });
