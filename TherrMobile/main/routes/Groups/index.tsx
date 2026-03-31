@@ -176,7 +176,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             title: this.translate('pages.groups.headerTitle'),
         });
 
-        if (!user.myUserGroups?.length) {
+        if (!Object.keys(user.myUserGroups || {}).length) {
             getUserGroups({ withGroups: true });
         }
 
@@ -201,6 +201,10 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             this.setState({
                 activeTabIndex,
             });
+
+            // Refresh data when returning from ViewGroup/EditGroup
+            this.handleRefreshMyGroupsSearch();
+            this.handleRefreshDiscoverSearch();
         });
     }
 

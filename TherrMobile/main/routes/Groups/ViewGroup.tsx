@@ -40,14 +40,12 @@ import RoundInput from '../../components/Input/Round';
 import TherrIcon from '../../components/TherrIcon';
 import ForumMessage from './ForumMessage';
 import ListEmpty from '../../components/ListEmpty';
-
-const getDisplayTitle = (title: any): string =>
-    typeof title === 'object' ? (title?.title || title?.name || '') : (title || '');
 import LazyPlaceholder from '../Areas/components/LazyPlaceholder';
 import UserSearchItem from '../Connect/components/UserSearchItem';
 import UsersActions from '../../redux/actions/UsersActions';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import { navToViewContent } from '../../utilities/postViewHelpers';
+import { getDisplayTitle } from './groupUtils';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -676,13 +674,27 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         );
     };
 
+    handleEditGroup = () => {
+        const { navigation, route, forums } = this.props;
+        const { id: forumId } = route.params;
+        const group = forums?.searchResults?.find((g) => g.id === forumId)
+            || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
+            || route.params;
+
+        navigation.navigate('EditGroup', {
+            group,
+        });
+    };
+
     render() {
         const { activeTabIndex, isSending, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
-        const { route, forums } = this.props;
+        const { route, forums, user } = this.props;
         const { description, subtitle, id: forumId } = route.params;
         const group = forums?.searchResults?.find((g) => g.id === forumId)
             || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
             || route.params;
+        const isGroupAdmin = group.authorId === user.details?.id
+            || group.administratorIds?.includes(user.details?.id);
 
         return (
             <>
@@ -720,7 +732,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                     />
                                 </View>
                             }
-                            <View style={spacingStyles.marginLtMd}>
+                            <View style={[spacingStyles.marginLtMd, spacingStyles.flexOne]}>
                                 {
                                     subtitle &&
                                     <Text style={{ color: this.theme.colors.textWhite }}>
@@ -738,6 +750,15 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                     styles={this.themeForms.styles}
                                 />
                             </View>
+                            {
+                                isGroupAdmin &&
+                                <Pressable
+                                    onPress={this.handleEditGroup}
+                                    style={{ justifyContent: 'center', paddingLeft: 8 }}
+                                >
+                                    <TherrIcon name="edit" size={22} color={this.theme.colors.textWhite} />
+                                </Pressable>
+                            }
                         </View>
                         <View style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}>
                             <TabView
