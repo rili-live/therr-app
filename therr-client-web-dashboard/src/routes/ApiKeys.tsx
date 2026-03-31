@@ -34,7 +34,7 @@ interface IStoreProps extends IApiKeysDispatchProps {
 
 interface IApiKeysProps extends IApiKeysRouterProps, IStoreProps {}
 
-interface IApiKeysState {
+interface IApiKeysPageState {
     alertIsVisible: boolean;
     alertVariation: string;
     alertTitle: string;
@@ -52,7 +52,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     revokeApiKey: ApiKeyActions.revoke,
 }, dispatch);
 
-class ApiKeysComponent extends React.Component<IApiKeysProps, IApiKeysState> {
+class ApiKeysComponent extends React.Component<IApiKeysProps, IApiKeysPageState> {
     private translate: Function;
 
     constructor(props: IApiKeysProps) {

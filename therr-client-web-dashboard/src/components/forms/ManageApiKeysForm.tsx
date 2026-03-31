@@ -71,10 +71,24 @@ const ManageApiKeysForm = ({
             .finally(() => setIsSubmitting(false));
     };
 
+    const handleCloseCreatedModal = () => {
+        setShowCreatedModal(false);
+        setCreatedKeyValue(''); // Clear raw key from memory immediately
+    };
+
     const handleCopy = () => {
-        navigator.clipboard.writeText(createdKeyValue);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        navigator.clipboard.writeText(createdKeyValue)
+            .then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            })
+            .catch(() => {
+                // Fallback: select the input text for manual copy
+                const input = document.querySelector<HTMLInputElement>('#created-key-input');
+                if (input) {
+                    input.select();
+                }
+            });
     };
 
     const openRevokeModal = (key: IApiKey) => {
@@ -188,7 +202,7 @@ const ManageApiKeysForm = ({
             </Modal>
 
             {/* Key Created Modal */}
-            <Modal show={showCreatedModal} onHide={() => setShowCreatedModal(false)} centered backdrop="static">
+            <Modal show={showCreatedModal} onHide={handleCloseCreatedModal} centered backdrop="static">
                 <Modal.Header>
                     <Modal.Title>API Key Created</Modal.Title>
                 </Modal.Header>
@@ -198,6 +212,7 @@ const ManageApiKeysForm = ({
                     </p>
                     <InputGroup>
                         <Form.Control
+                            id="created-key-input"
                             readOnly
                             value={createdKeyValue}
                             className="font-monospace"
@@ -209,7 +224,7 @@ const ManageApiKeysForm = ({
                     </InputGroup>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={() => setShowCreatedModal(false)}>
+                    <Button variant="primary" onClick={handleCloseCreatedModal}>
                         Done
                     </Button>
                 </Modal.Footer>

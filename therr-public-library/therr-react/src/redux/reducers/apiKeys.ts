@@ -11,9 +11,13 @@ const apiKeys = produce((draft: IApiKeysState, action: any) => {
         case ApiKeyActionTypes.GET_API_KEYS:
             draft.apiKeys = action.data;
             break;
-        case ApiKeyActionTypes.CREATE_API_KEY:
-            draft.apiKeys.unshift(action.data);
+        case ApiKeyActionTypes.CREATE_API_KEY: {
+            // Strip the raw key before storing — it should only be shown once in the UI
+            const storedData = { ...action.data };
+            delete storedData.key;
+            draft.apiKeys.unshift(storedData);
             break;
+        }
         case ApiKeyActionTypes.REVOKE_API_KEY:
             if (action.data?.id) {
                 const index = draft.apiKeys.findIndex((k) => k.id === action.data.id);
