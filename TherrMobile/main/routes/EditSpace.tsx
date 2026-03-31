@@ -424,6 +424,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             longitude,
         } = route.params;
 
+        const sanitizedRadius = Math.max(MIN_RADIUS_PUBLIC, Math.min(MAX_RADIUS_PUBLIC, parseInt(radius, 10) || MIN_RADIUS_PUBLIC));
+
         let createArgs: any = {
             category,
             featuredIncentiveKey,
@@ -439,7 +441,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             latitude: addressLatitude || latitude,
             longitude: addressLongitude || longitude,
             maxViews,
-            radius,
+            radius: sanitizedRadius,
             expiresAt,
         };
 
@@ -889,9 +891,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                             <LottieView
                                                 source={require('../assets/missing-image-storefront.json')}
                                                 resizeMode="contain"
-                                                speed={1}
+                                                speed={0.8}
                                                 autoPlay
-                                                loop={false}
+                                                loop
                                                 style={{
                                                     width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
                                                     height: 160,
@@ -1138,8 +1140,10 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             style={this.themeForms.styles.inputSliderContainer}
                         >
                             <RoundInput
-                                containerStyle={{ marginBottom: 4 }}
-                                placeholder={this.translate('forms.editSpace.labels.radius', { meters: '' })}
+                                placeholder={this.translate('forms.editSpace.labels.radiusPlaceholder', {
+                                    min: MIN_RADIUS_PUBLIC,
+                                    max: MAX_RADIUS_PUBLIC,
+                                })}
                                 value={inputs.radius === '' ? '' : String(inputs.radius)}
                                 onChangeText={(text) => {
                                     const stripped = text.replace(/[^0-9]/g, '');
@@ -1160,9 +1164,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 keyboardType="number-pad"
                                 themeForms={this.themeForms}
                             />
-                            <Text style={this.themeForms.styles.inputLabelDark}>
+                            {inputs.radius !== '' && <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
-                            </Text>
+                            </Text>}
                             <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.cost', { pointCost: 0 })}`}
                             </Text>
