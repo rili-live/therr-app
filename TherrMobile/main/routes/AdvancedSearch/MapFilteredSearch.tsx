@@ -1,15 +1,15 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { FAB } from 'react-native-paper';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Chip, Divider, FAB, Text } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IMapState, IUserState } from 'therr-react/types';
-import { ListItem } from '../../components/BaseListItem';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -19,10 +19,6 @@ import {
     getInitialCategoryFilters,
     getInitialVisibilityFilters,
 } from '../../utilities/getInitialFilters';
-
-
-
-// const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 const fabStyle = { borderRadius: 100 };
 
@@ -77,6 +73,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
     private translate: Function;
     private theme = buildStyles();
     private themeButtons = buildButtonStyles();
+    private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
 
     constructor(props) {
@@ -105,6 +102,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
     }
 
@@ -152,13 +150,13 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         console.log('Refresh');
     };
 
-    onCheckmarkPress = (filterGroup: 'authorFilters' | 'categoryFilters' | 'visibilityFilters', index, isSelectAll: boolean = false) => {
-        let modifiedGroup = this.state[filterGroup];
+    onChipPress = (filterGroup: 'authorFilters' | 'categoryFilters' | 'visibilityFilters', index: number, isSelectAll: boolean = false) => {
+        let modifiedGroup = [...this.state[filterGroup].map(x => ({ ...x }))];
         modifiedGroup[index].isChecked = !modifiedGroup[index].isChecked;
         if (isSelectAll) {
             modifiedGroup = modifiedGroup.map(x => ({ ...x, isChecked: modifiedGroup[index].isChecked}));
         } else {
-            // Select All box
+            // Select All chip
             modifiedGroup[0].isChecked = modifiedGroup.every((item, idx) => {
                 if (idx === 0) { return true; }
                 return item.isChecked;
@@ -198,6 +196,78 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         } as any);
     };
 
+    renderFilterSection = (
+        title: string,
+        filterGroup: 'authorFilters' | 'categoryFilters' | 'visibilityFilters',
+        filters: { title: string; name: string; isChecked?: boolean }[],
+    ) => {
+        const brandColor = this.theme.colors.brandingBlueGreen;
+        const selectAllFilter = filters[0];
+        const individualFilters = filters.slice(1);
+
+        return (
+            <View style={localStyles.section}>
+                <Text
+                    variant="titleMedium"
+                    style={[this.theme.styles.sectionTitle, localStyles.sectionHeader]}
+                >
+                    {title}
+                </Text>
+
+                {/* Select All / Deselect All */}
+                {selectAllFilter && (
+                    <Chip
+                        mode={selectAllFilter.isChecked ? 'flat' : 'outlined'}
+                        selected={selectAllFilter.isChecked}
+                        style={[
+                            localStyles.selectAllChip,
+                            selectAllFilter.isChecked
+                                ? { backgroundColor: brandColor }
+                                : { backgroundColor: this.theme.colors.backgroundWhite },
+                        ]}
+                        textStyle={[
+                            selectAllFilter.isChecked
+                                ? this.themeForms.styles.buttonPillTitleInvert
+                                : this.themeForms.styles.buttonPillTitle,
+                            localStyles.selectAllChipText,
+                        ]}
+                        selectedColor={this.theme.colors.brandingWhite}
+                        onPress={() => this.onChipPress(filterGroup, 0, true)}
+                    >
+                        {selectAllFilter.title}
+                    </Chip>
+                )}
+
+                {/* Individual filter chips */}
+                <View style={localStyles.chipsContainer}>
+                    {individualFilters.map((item, index) => (
+                        <Chip
+                            key={item.name}
+                            compact
+                            mode={item.isChecked ? 'flat' : 'outlined'}
+                            selected={item.isChecked}
+                            selectedColor={this.theme.colors.brandingWhite}
+                            style={[
+                                localStyles.chip,
+                                item.isChecked
+                                    ? { backgroundColor: brandColor }
+                                    : { backgroundColor: this.theme.colors.backgroundWhite },
+                            ]}
+                            textStyle={
+                                item.isChecked
+                                    ? this.themeForms.styles.buttonPillTitleInvert
+                                    : this.themeForms.styles.buttonPillTitle
+                            }
+                            onPress={() => this.onChipPress(filterGroup, index + 1, false)}
+                        >
+                            {item.title}
+                        </Chip>
+                    ))}
+                </View>
+            </View>
+        );
+    };
+
     render() {
         const { navigation, user } = this.props;
         const { authorFilters, categoryFilters, visibilityFilters } = this.state;
@@ -210,79 +280,31 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
                         contentInsetAdjustmentBehavior="automatic"
                         style={this.theme.styles.scrollViewFull}
                     >
-                        <View style={[this.theme.styles.body, localStyles.bodyBottomMargin]}>
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionTitle}>
-                                    {this.translate('pages.mapFilteredSearch.h2.categoryFilters')}
-                                </Text>
-                                {
-                                    categoryFilters.map((item, index) => (
-                                        <ListItem
-                                            key={index}
-                                            onPress={() => this.onCheckmarkPress('categoryFilters', index, this.isSelectAll(item.title))}
-                                            bottomDivider
-                                            containerStyle={this.theme.styles.listItemCard}
-                                        >
-                                            <ListItem.Content>
-                                                <ListItem.Title>{item.title}</ListItem.Title>
-                                            </ListItem.Content>
-                                            <ListItem.CheckBox
-                                                checked={item.isChecked}
-                                                onPress={() => this.onCheckmarkPress('categoryFilters', index, this.isSelectAll(item.title))}
-                                                checkedColor={this.theme.colors.brandingBlueGreen}
-                                            />
-                                        </ListItem>
-                                    ))
-                                }
-                            </View>
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionTitle}>
-                                    {this.translate('pages.mapFilteredSearch.h2.visibilityFilters')}
-                                </Text>
-                                {
-                                    visibilityFilters.map((item, index) => (
-                                        <ListItem
-                                            key={index}
-                                            onPress={() => this.onCheckmarkPress('visibilityFilters', index, this.isSelectAll(item.title))}
-                                            bottomDivider
-                                            containerStyle={this.theme.styles.listItemCard}
-                                        >
-                                            <ListItem.Content>
-                                                <ListItem.Title>{item.title}</ListItem.Title>
-                                            </ListItem.Content>
-                                            <ListItem.CheckBox
-                                                checked={item.isChecked}
-                                                onPress={() => this.onCheckmarkPress('visibilityFilters', index, this.isSelectAll(item.title))}
-                                                checkedColor={this.theme.colors.brandingBlueGreen}
-                                            />
-                                        </ListItem>
-                                    ))
-                                }
-                            </View>
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionTitle}>
-                                    {this.translate('pages.mapFilteredSearch.h2.authorFilters')}
-                                </Text>
-                                {
-                                    authorFilters.map((item, index) => (
-                                        <ListItem
-                                            key={index}
-                                            onPress={() => this.onCheckmarkPress('authorFilters', index, this.isSelectAll(item.title))}
-                                            bottomDivider
-                                            containerStyle={this.theme.styles.listItemCard}
-                                        >
-                                            <ListItem.Content>
-                                                <ListItem.Title>{item.title}</ListItem.Title>
-                                            </ListItem.Content>
-                                            <ListItem.CheckBox
-                                                checked={item.isChecked}
-                                                onPress={() => this.onCheckmarkPress('authorFilters', index, this.isSelectAll(item.title))}
-                                                checkedColor={this.theme.colors.brandingBlueGreen}
-                                            />
-                                        </ListItem>
-                                    ))
-                                }
-                            </View>
+                        <View style={[this.theme.styles.body, localStyles.container]}>
+                            {/* Visibility Filters (moved to top) */}
+                            {this.renderFilterSection(
+                                this.translate('pages.mapFilteredSearch.h2.visibilityFilters'),
+                                'visibilityFilters',
+                                visibilityFilters,
+                            )}
+
+                            <Divider style={localStyles.divider} />
+
+                            {/* Author Filters */}
+                            {this.renderFilterSection(
+                                this.translate('pages.mapFilteredSearch.h2.authorFilters'),
+                                'authorFilters',
+                                authorFilters,
+                            )}
+
+                            <Divider style={localStyles.divider} />
+
+                            {/* Category Filters */}
+                            {this.renderFilterSection(
+                                this.translate('pages.mapFilteredSearch.h2.categoryFilters'),
+                                'categoryFilters',
+                                categoryFilters,
+                            )}
                         </View>
                     </ScrollView>
                 </SafeAreaView>
@@ -306,7 +328,6 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
                         onPress={() => this.handleApplyFilters(true)}
                     />
                 </View>
-                {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.onRefresh}
@@ -320,8 +341,34 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
 }
 
 const localStyles = StyleSheet.create({
-    bodyBottomMargin: {
-        marginBottom: 80,
+    container: {
+        padding: 16,
+        paddingBottom: 120,
+    },
+    section: {
+        marginBottom: 8,
+    },
+    sectionHeader: {
+        marginBottom: 12,
+    },
+    divider: {
+        marginBottom: 20,
+    },
+    selectAllChip: {
+        borderRadius: 20,
+        marginBottom: 16,
+        justifyContent: 'center',
+    },
+    selectAllChipText: {
+        fontSize: 15,
+    },
+    chipsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    chip: {
+        borderRadius: 20,
     },
 });
 

@@ -14,7 +14,8 @@ import { ISearchQuery } from '../../types';
 const POST_FEED_PAGE_SIZE = 31;
 
 interface IActiveMomentsFilters {
-    order: 'ASC' | 'DESC';
+    order?: 'ASC' | 'DESC';
+    contentType?: 'all' | 'moments' | 'thoughts';
 }
 
 const Content = {

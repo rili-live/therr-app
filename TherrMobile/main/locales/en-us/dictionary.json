@@ -1125,7 +1125,11 @@
         "asc": "Oldest to Newest",
         "desc": "Newest to Oldest",
         "categories": "Category Filters",
-        "searchOrder": "Order Results By: Date"
+        "searchOrder": "Order Results By: Date",
+        "contentType": "Content Type",
+        "all": "All",
+        "moments": "Moments",
+        "thoughts": "Thoughts"
       }
     },
     "advancedSettings": {
