@@ -94,6 +94,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...notificationStyle,
             color: therrTheme.colors.textWhite,
         },
+        highlightUnread: {
+            ...notificationStyle,
+            color: therrTheme.colors.hyperlink,
+            fontWeight: 'bold' as const,
+        },
+        highlightRead: {
+            ...notificationStyle,
+            color: therrTheme.colors.hyperlink,
+            fontWeight: 'bold' as const,
+        },
         iconContainerStyle: {
             position: 'absolute',
             right: 10,

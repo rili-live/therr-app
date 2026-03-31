@@ -44,6 +44,9 @@
     "linkCopied": "Link copied!"
   },
   "components": {
+    "tile": {
+      "untitled": "Untitled"
+    },
     "layout": {
       "floatingButton": {
         "tooltip": "Share a thought"
@@ -121,7 +124,8 @@
     },
     "messagesMenu": {
       "buttons": {
-        "createForum": "Create a Hosted Chat"
+        "createForum": "Create a Hosted Chat",
+        "browseGroups": "Browse All Groups"
       },
       "h2": {
         "messaging": "Messaging",
@@ -165,6 +169,7 @@
     "userMenu": {
       "buttons": {
         "changePassword": "Change Password",
+        "bookmarks": "My Bookmarks",
         "discovered": "Discovered Feed",
         "editProfile": "Edit Profile",
         "explore": "Explore All",
@@ -256,6 +261,18 @@
       "returnToLogin": "Return to login page",
       "sectionHeaders": {
         "response": "A brief app feedback survey"
+      }
+    },
+    "bookmarks": {
+      "pageTitle": "My Bookmarks",
+      "subtitle": "Content you have saved for later",
+      "noResults": "You haven't bookmarked anything yet. Browse the community and bookmark content you want to revisit.",
+      "exploreCta": "Discover content",
+      "filters": {
+        "all": "All",
+        "moments": "Moments",
+        "spaces": "Spaces",
+        "thoughts": "Thoughts"
       }
     },
     "discovered": {
@@ -495,16 +512,28 @@
         "subtitle": "Subtitle",
         "hashTags": "Tags",
         "description": "Description",
-        "activeForums": "Total Active Chats"
+        "activeForums": "Total Active Chats",
+        "city": "City",
+        "region": "State / Region",
+        "categories": "Categories"
       },
       "placeholders": {
         "title": "A catchy title...",
         "subtitle": "An optional subtitle",
         "hashTags": "Tags (ie. my_tag, MyTag)",
-        "description": "A brief description of the chat..."
+        "description": "A brief description of the chat...",
+        "city": "e.g. Austin",
+        "region": "e.g. Texas"
       },
       "noForumsMessage": "No chats are currently active. Click 'Create Hosted Chat' to start a new one.",
       "pageTitle": "Hosted Chats"
+    },
+    "editGroup": {
+      "buttons": {
+        "submit": "Save Changes"
+      },
+      "pageTitle": "Edit Group",
+      "notAuthorized": "You are not authorized to edit this group."
     },
     "createProfile": {
       "pageTitle": "Create Profile",
@@ -742,6 +771,9 @@
         "upcomingEvents": "Upcoming Events",
         "pastEvents": "Past Events",
         "noEvents": "No events found for this group."
+      },
+      "buttons": {
+        "editGroup": "Edit Group"
       }
     },
     "viewEvent": {
@@ -884,6 +916,27 @@
         "noEvents": "No upcoming events",
         "noUpdates": "No recent updates"
       }
+    },
+    "listGroups": {
+      "pageTitle": "Groups",
+      "tabs": {
+        "discover": "Discover",
+        "myGroups": "My Groups"
+      },
+      "placeholders": {
+        "search": "Search groups by name...",
+        "city": "Filter by city..."
+      },
+      "labels": {
+        "joined": "Joined",
+        "memberCount": "{count} members",
+        "clearFilters": "Clear filters"
+      },
+      "buttons": {
+        "createGroup": "+ Create Group"
+      },
+      "noResultsFound": "No groups found. Try adjusting your search or filters.",
+      "noMyGroupsFound": "You haven't joined any groups yet. Discover groups and join to see them here."
     },
     "userLocations": {
       "pageTitle": "Locations",

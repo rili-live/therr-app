@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
-import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -18,6 +17,8 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import { getUserImageUri } from '../../utilities/content';
 import TherrIcon from '../TherrIcon';
+import RichText from '../RichText';
+import handleMentionPress from '../../utilities/handleMentionPress';
 // import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
@@ -63,6 +64,7 @@ interface IThoughtDisplayProps {
 }
 
 interface IThoughtDisplayState {
+    isLiked: boolean;
     likeCount: number | null;
 }
 
@@ -71,6 +73,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         if (nextProps.thought?.likeCount != null
             && nextState.likeCount == null) {
             return {
+                isLiked: !!nextProps.thought.reaction?.userHasLiked,
                 likeCount: nextProps.thought?.likeCount,
             };
         }
@@ -82,6 +85,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         super(props);
 
         this.state = {
+            isLiked: !!props.thought.reaction?.userHasLiked,
             likeCount: props.thought.likeCount,
         };
     }
@@ -105,18 +109,17 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         if (!thought.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateThoughtReaction, user } = this.props;
+            const newIsLiked = !this.state.isLiked;
 
-            // Only display on own user post
-            if (this.props.thought.likeCount != null) {
-                this.setState({
-                    likeCount: !thought.reaction?.userHasLiked
-                        ? (this.state.likeCount || 0) + 1
-                        : (this.state.likeCount || 0) - 1,
-                });
-            }
+            this.setState({
+                isLiked: newIsLiked,
+                likeCount: this.props.thought.likeCount != null
+                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
+                    : this.state.likeCount,
+            });
 
             updateThoughtReaction(thought.id, {
-                userHasLiked: !thought.reaction?.userHasLiked,
+                userHasLiked: newIsLiked,
             }, thought.fromUserId, user?.details?.userName);
         }
     };
@@ -136,10 +139,9 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             themeForms,
             themeViewContent,
         } = this.props;
-        const { likeCount } = this.state;
+        const { isLiked, likeCount } = this.state;
 
         const isBookmarked = thought.reaction?.userBookmarkCategory;
-        const isLiked = thought.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const dateTime = formatDate(thought.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
@@ -220,6 +222,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                     onBookmarkPress={this.onBookmarkPress}
                                     onCommentPress={this.onCommentPress}
                                     onLikePress={this.onLikePress}
+                                    goToViewUser={goToViewUser}
                                     theme={theme}
                                     themeForms={themeForms}
                                     themeViewContent={themeViewContent}
@@ -244,6 +247,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 onBookmarkPress={this.onBookmarkPress}
                                 onCommentPress={this.onCommentPress}
                                 onLikePress={this.onLikePress}
+                                goToViewUser={goToViewUser}
                                 theme={theme}
                                 themeForms={themeForms}
                                 themeViewContent={themeViewContent}
@@ -269,21 +273,24 @@ const ThoughtContent = ({
     onBookmarkPress,
     onCommentPress,
     onLikePress,
+    goToViewUser,
     theme,
     themeForms,
     themeViewContent,
     thought,
 }) => {
+    const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
+
     return (
         <Pressable style={themeViewContent.styles.thoughtContentContainer} onPress={() => inspectThought(thought)}>
             <View style={spacingStyles.flexOne}>
-                <Text style={themeViewContent.styles.thoughtMessage} numberOfLines={isExpanded ? undefined : 7}>
-                    <Autolink
-                        text={thought.message}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={themeViewContent.styles.thoughtMessage}
+                    text={thought.message}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={onMentionPress}
+                    numberOfLines={isExpanded ? undefined : 7}
+                />
                 <View>
                     <HashtagsContainer
                         hasIcon={false}

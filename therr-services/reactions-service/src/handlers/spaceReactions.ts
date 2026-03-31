@@ -53,7 +53,7 @@ const createOrUpdateSpaceReaction = (req, res) => {
 };
 
 // CREATE/UPDATE
-const createOrUpdateMultiSpaceReactions = (req, res) => {
+const createOrUpdateMultiSpaceReactions = async (req, res) => {
     // TODO: This endpoint should be secure/non-public so user's cannot activate spaces on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -91,20 +91,23 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
-    return Store.spaceReactions.get({
-        userId,
-    }, spaceIds).then((existing) => {
+    try {
+        const existing = await Store.spaceReactions.get({
+            userId,
+        }, spaceIds);
+
         const existingMapped = {};
         const existingReactions: string[][] = existing.map((reaction) => {
             existingMapped[reaction.spaceId] = reaction;
             return [userId, reaction.spaceId];
         });
-        const updatePromise = existing?.length
-            ? Store.spaceReactions.update({}, updateParams, {
+        let updatedReactions;
+        if (existing?.length) {
+            updatedReactions = await Store.spaceReactions.update({}, updateParams, {
                 columns: ['userId', 'spaceId'],
                 whereInArray: existingReactions,
-            })
-            : Promise.resolve([]);
+            });
+        }
 
         const createArray = spaceIds
             .filter((id) => !existingMapped[id])
@@ -114,15 +117,14 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
                 ...createParams,
             }));
 
-        const createPromise = createArray.length
-            ? Store.spaceReactions.create(createArray)
-            : Promise.resolve([]);
-
-        return Promise.all([updatePromise, createPromise]).then(([updatedReactions, createdReactions]) => res.status(200).send({
+        const createdReactions = await Store.spaceReactions.create(createArray);
+        return res.status(200).send({
             created: createdReactions,
             updated: updatedReactions,
-        }));
-    }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+        });
+    } catch (err) {
+        return handleHttpError({ err: err as Error, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
+    }
 };
 
 // READ

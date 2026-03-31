@@ -28,6 +28,12 @@ const forums = produce((draft: IForumsState, action: any) => {
                     ...action.data,
                 };
             }
+            if (action.data?.id && draft.forumDetails[action.data.id]) {
+                draft.forumDetails[action.data.id] = {
+                    ...draft.forumDetails[action.data.id],
+                    ...action.data,
+                };
+            }
             break;
         }
         case ForumActionTypes.DELETE_FORUM: {
@@ -40,6 +46,10 @@ const forums = produce((draft: IForumsState, action: any) => {
         case ForumActionTypes.SEARCH_FORUMS:
             draft.searchResults = action.data.results;
             draft.pagination = action.data.pagination;
+            break;
+        case ForumActionTypes.SEARCH_MY_FORUMS:
+            draft.myForumsSearchResults = action.data.results;
+            draft.myForumsPagination = action.data.pagination;
             break;
         case ForumActionTypes.SEARCH_FORUM_CATEGORIES:
             draft.forumCategories = action.data.results;

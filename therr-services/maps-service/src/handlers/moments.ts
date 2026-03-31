@@ -5,6 +5,7 @@ import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import submitToIndexNow from 'therr-js-utilities/index-now';
 import {
     AccessLevels,
+    Categories,
     Content,
     CurrencyTransactionMessages,
     ErrorCodes,
@@ -223,6 +224,16 @@ const createMoment = async (req, res) => {
 
         const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
 
+        // Auto-set expiry and visibility for quick report moments
+        const isQuickReport = Categories.QuickReportCategories.includes(req.body.category);
+        if (isQuickReport && !req.body.expiresAt) {
+            const expiryHours = Categories.QuickReportExpiryHoursMap[req.body.category] || 2;
+            req.body.expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000).toISOString();
+        }
+        if (isQuickReport) {
+            req.body.isPublic = true;
+        }
+
         return Store.moments.createMoment({
             ...req.body,
             locale,
@@ -324,10 +335,56 @@ const createMoment = async (req, res) => {
                                 });
                             });
                         }
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed sightengine media safety check'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                            },
+                        });
                     });
                 }
 
                 updateAchievements(req.headers, req.body);
+
+                // Fire-and-forget: notify group members when a quick report is shared to a group
+                if (isQuickReport && req.body.groupId) {
+                    internalRestRequest({
+                        headers: req.headers,
+                    }, {
+                        method: 'post',
+                        url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/notifications`,
+                        headers: {
+                            authorization,
+                            'x-localecode': locale,
+                            'x-userid': userId,
+                        },
+                        data: {
+                            userId,
+                            type: 'new-group-message',
+                            groupId: req.body.groupId,
+                            associationId: moment.id,
+                            isUnread: true,
+                            messageParams: {
+                                momentId: moment.id,
+                                category: moment.category,
+                                userName,
+                            },
+                        },
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Failed to send group quick report notification'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                                'group.id': req.body.groupId,
+                            },
+                        });
+                    });
+                }
 
                 // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
                 if (process.env.INDEXNOW_API_KEY && moment.id && !moment.isDraft) {
@@ -460,6 +517,15 @@ const createIntegratedMomentBase = ({
                             });
                         });
                     }
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed sightengine media safety check'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
                 });
 
                 return Promise.all([
@@ -790,6 +856,7 @@ const getMomentDetails = (req, res) => {
         }]) => {
             const moment = moments[0];
             let userHasAccessPromise = () => Promise.resolve(true);
+            let needsSeparateReactionFetch = !!userId; // Assume we need to fetch unless access check already does it
             const isOwnMoment = userId === moment?.fromUserId;
 
             if (!moment) {
@@ -808,6 +875,7 @@ const getMomentDetails = (req, res) => {
 
                     // Private moments require a reactions/activation
                     if (userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+                        needsSeparateReactionFetch = false; // getReactions will return reaction data
                         return getReactions('moment', momentId, req.headers);
                     }
 
@@ -857,8 +925,8 @@ const getMomentDetails = (req, res) => {
             }
 
             // Verify that user has activated moment and has access to view it
-            return userHasAccessPromise().then((isActivated) => {
-                if (!isActivated) {
+            return userHasAccessPromise().then((reactionOrActivated) => {
+                if (!reactionOrActivated) {
                     return handleHttpError({
                         res,
                         message: translate(locale, 'momentReactions.momentNotActivated'),
@@ -867,15 +935,18 @@ const getMomentDetails = (req, res) => {
                     });
                 }
 
-                const promises = [
+                const promises: any[] = [
                     countReactions('moment', momentId, req.headers),
+                    needsSeparateReactionFetch
+                        ? getReactions('moment', momentId, req.headers)
+                        : Promise.resolve(false),
                 ];
 
                 if (moment.spaceId) {
                     promises.push(Store.spaces.getByIdSimple(moment.spaceId).then(([space]) => space));
                 }
 
-                return Promise.all(promises).then(([momentCount, space]) => {
+                return Promise.all(promises).then(([momentCount, userReaction, space]) => {
                     if (space) {
                         // Response including space details for navigation
                         moment.space = space;
@@ -908,6 +979,14 @@ const getMomentDetails = (req, res) => {
 
                     moment.viewCount = parseInt(viewCount || '0', 10);
                     moment.likeCount = parseInt(momentCount?.count || 0, 10);
+
+                    // Attach full reaction data if available (for bookmark/like status)
+                    const reaction = (reactionOrActivated && typeof reactionOrActivated === 'object' && reactionOrActivated)
+                        || (userReaction && typeof userReaction === 'object' && userReaction);
+                    if (reaction) {
+                        moment.reaction = reaction;
+                    }
+
                     return res.status(200).send({
                         moment,
                         media,

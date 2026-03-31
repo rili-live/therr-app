@@ -207,6 +207,9 @@ export default class MomentsStore {
             .andWhere({
                 // TODO: Check user settings to determine if content should be included
                 isMatureContent: false, // content that has been blocked
+            })
+            .andWhere(function () { // eslint-disable-line func-names
+                this.whereNull('expiresAt').orWhere('expiresAt', '>', new Date().toISOString());
             });
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
@@ -633,5 +636,24 @@ export default class MomentsStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    getQuickReportsSummary(spaceId: string) {
+        const quickReportCats = Categories.QuickReportCategories;
+        const queryString = knexBuilder
+            .select('category')
+            .count('* as count')
+            .max('createdAt as latestCreatedAt')
+            .from(MOMENTS_TABLE_NAME)
+            .where({ spaceId })
+            .whereIn('category', quickReportCats)
+            .andWhere(function () { // eslint-disable-line func-names
+                this.whereNull('expiresAt').orWhere('expiresAt', '>', new Date().toISOString());
+            })
+            .andWhere('isMatureContent', false)
+            .groupBy('category')
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
     }
 }

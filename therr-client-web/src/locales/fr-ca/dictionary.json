@@ -44,6 +44,9 @@
     "linkCopied": "Lien copié!"
   },
   "components": {
+    "tile": {
+      "untitled": "Sans titre"
+    },
     "layout": {
       "floatingButton": {
         "tooltip": "Partager une pensée"
@@ -121,7 +124,8 @@
     },
     "messagesMenu": {
       "buttons": {
-        "createForum": "Créer un clavardage hébergé"
+        "createForum": "Créer un clavardage hébergé",
+        "browseGroups": "Parcourir Tous les Groupes"
       },
       "h2": {
         "messaging": "Messagerie",
@@ -165,6 +169,7 @@
     "userMenu": {
       "buttons": {
         "changePassword": "Changer le mot de passe",
+        "bookmarks": "Mes signets",
         "discovered": "Fil des découvertes",
         "editProfile": "Modifier le profil",
         "explore": "Tout explorer",
@@ -256,6 +261,18 @@
       "returnToLogin": "Retour à la page de connexion",
       "sectionHeaders": {
         "response": "Un bref sondage sur l'application"
+      }
+    },
+    "bookmarks": {
+      "pageTitle": "Mes signets",
+      "subtitle": "Contenu que vous avez enregistré pour plus tard",
+      "noResults": "Vous n'avez encore rien enregistré. Parcourez la communauté et enregistrez le contenu que vous souhaitez revoir.",
+      "exploreCta": "Découvrir du contenu",
+      "filters": {
+        "all": "Tout",
+        "moments": "Moments",
+        "spaces": "Espaces",
+        "thoughts": "Pensées"
       }
     },
     "discovered": {
@@ -495,16 +512,28 @@
         "subtitle": "Sous-titre",
         "hashTags": "Étiquettes",
         "description": "Description",
-        "activeForums": "Total de clavardages actifs"
+        "activeForums": "Total de clavardages actifs",
+        "city": "Ville",
+        "region": "Province / Région",
+        "categories": "Catégories"
       },
       "placeholders": {
         "title": "Un titre accrocheur...",
         "subtitle": "Un sous-titre optionnel",
         "hashTags": "Étiquettes (ex. mon_tag, MonTag)",
-        "description": "Une brève description du clavardage..."
+        "description": "Une brève description du clavardage...",
+        "city": "ex. Montréal",
+        "region": "ex. Québec"
       },
       "noForumsMessage": "Aucun clavardage n'est actuellement actif. Cliquez sur « Créer un clavardage hébergé » pour en démarrer un nouveau.",
       "pageTitle": "Clavardages hébergés"
+    },
+    "editGroup": {
+      "buttons": {
+        "submit": "Enregistrer les modifications"
+      },
+      "pageTitle": "Modifier le groupe",
+      "notAuthorized": "Vous n'êtes pas autorisé à modifier ce groupe."
     },
     "createProfile": {
       "pageTitle": "Créer le profil",
@@ -834,6 +863,9 @@
         "upcomingEvents": "Événements à venir",
         "pastEvents": "Événements passés",
         "noEvents": "Aucun événement trouvé pour ce groupe."
+      },
+      "buttons": {
+        "editGroup": "Modifier le groupe"
       }
     },
     "viewEvent": {
@@ -884,6 +916,27 @@
         "noEvents": "Aucun événement à venir",
         "noUpdates": "Aucune mise à jour récente"
       }
+    },
+    "listGroups": {
+      "pageTitle": "Groupes",
+      "tabs": {
+        "discover": "Découvrir",
+        "myGroups": "Mes Groupes"
+      },
+      "placeholders": {
+        "search": "Rechercher des groupes par nom...",
+        "city": "Filtrer par ville..."
+      },
+      "labels": {
+        "joined": "Membre",
+        "memberCount": "{count} membres",
+        "clearFilters": "Effacer les filtres"
+      },
+      "buttons": {
+        "createGroup": "+ Créer un Groupe"
+      },
+      "noResultsFound": "Aucun groupe trouvé. Essayez d'ajuster votre recherche ou vos filtres.",
+      "noMyGroupsFound": "Vous n'avez rejoint aucun groupe. Découvrez des groupes et rejoignez-les pour les voir ici."
     },
     "userLocations": {
       "pageTitle": "Emplacements",

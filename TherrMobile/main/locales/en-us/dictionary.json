@@ -54,7 +54,7 @@
     "spaceCreatedSuccess": "You Claimed a Space",
     "spaceRequestSuccess": "Request Sent",
     "ssoLoginError": "Error With Single Sign-On",
-    "startDateAfterEndDate" : "Invalid Start/End Dates",
+    "startDateAfterEndDate": "Invalid Start/End Dates",
     "walkCloser": "Too Far Away",
     "nameUnknown": "Anonymous User",
     "newAreasActivated": "New Areas Activated",
@@ -95,7 +95,7 @@
     "spaceUpdatedSuccess": "Your space was successfully updated!",
     "spaceRequestSuccess": "You have successfully requested to add a new business space!",
     "pleaseTryAgain": "Connection error. Please try again later.",
-    "startDateAfterEndDate" : "End date must occur after start date.",
+    "startDateAfterEndDate": "End date must occur after start date.",
     "walkCloser": "Walk closer to claim rewards. Check the map for details.",
     "newAreasActivated": "You recently activated {total} new moments/spaces.",
     "draftReminder": "Did you remember to finish your drafted post?",
@@ -260,7 +260,28 @@
     "seasonal": "Seasonal / Holidays",
     "drinks": "Happy Hour / Drinks",
     "nightLife": "Night Life / Social",
-    "sports": "Sports"
+    "sports": "Sports",
+    "happeningNow": "Happening Now",
+    "longWait": "Long Wait",
+    "liveEntertainment": "Live Entertainment",
+    "crowdAlert": "Crowded",
+    "hiddenGem": "Hidden Gem",
+    "localDeal": "Great Deal"
+  },
+  "quickReports": {
+    "title": "What's happening here?",
+    "happeningNow": "Happening Now",
+    "longWait": "Long Wait",
+    "liveEntertainment": "Live Entertainment",
+    "crowdAlert": "Crowded",
+    "hiddenGem": "Hidden Gem",
+    "localDeal": "Great Deal",
+    "addDetails": "Add details (optional)",
+    "submitSuccess": "Report submitted!",
+    "submitError": "Failed to submit report",
+    "stillTrue": "Still true",
+    "notAnymore": "Not anymore",
+    "confirmCount": "{{count}} confirmed"
   },
   "components": {
     "activeConnections": {
@@ -419,7 +440,8 @@
     },
     "groups": {
       "noResultsFound": "No results found...",
-      "searchPlaceholder": "Search by name..."
+      "searchPlaceholder": "Search by name...",
+      "cityPlaceholder": "Filter by city..."
     },
     "loginForm": {
       "buttons": {
@@ -457,7 +479,15 @@
         "delete": "Delete?",
         "confirm": "Delete",
         "back": "Back",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "addImage": "Attach an Image",
+        "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo"
+      },
+      "labels": {
+        "addImageNote": "Add a group cover image"
       },
       "placeholders": {
         "title": "A searchable title...",
@@ -465,7 +495,9 @@
         "description": "A brief summary of the group...",
         "hashTags": "Tags (ie. my_tag, myTag)",
         "maxComments": "Max comments (per minute)",
-        "expiresAt": "Countdown"
+        "expiresAt": "Countdown",
+        "city": "City (e.g. Austin)",
+        "region": "State/Region (e.g. Texas)"
       },
       "archiveSuccess": "Successfully archived",
       "backendSuccessHeader": "Success!",
@@ -499,6 +531,7 @@
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",
         "radius": "Radius: {meters} meters",
+        "radiusPlaceholder": "Radius ({min}-{max} meters)",
         "unselected": "Select a Space"
       },
       "headers": {
@@ -626,6 +659,7 @@
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",
         "radius": "Radius: {meters} meters",
+        "radiusPlaceholder": "Radius ({min}-{max} meters)",
         "incentiveRequirement": "Reward Requirement",
         "unselectedIncentiveRequirement": "Select a Requirement",
         "incentiveReward": "Reward for Participation",
@@ -718,7 +752,7 @@
       "alertTitles": {
         "accountUpdated": "Account Updated",
         "backendErrorMessage": "Oops! Something went wrong.",
-        "insecurePassword": "Insecure Password" 
+        "insecurePassword": "Insecure Password"
       },
       "alertMessages": {
         "accountUpdated": "Successfully updated."
@@ -872,12 +906,8 @@
       "tableTopGames": "Table Top Games",
       "boardGames": "Board Games & Game Night"
     },
-    "homeGarden": {
-
-    },
-    "nature": {
-
-    },
+    "homeGarden": {},
+    "nature": {},
     "sports": {
       "basketball": "Basketball",
       "baseball": "Baseball",
@@ -906,9 +936,7 @@
       "cars": "Cars",
       "bikes": "Motor Bikes & Motorcycles"
     },
-    "tv": {
-
-    }
+    "tv": {}
   },
   "interestsCategories": {
     "arts": "Arts & Creativity",
@@ -949,13 +977,15 @@
       "invite": "+",
       "media": "Media",
       "news": "News",
-      "thoughts": "Thoughts"
+      "thoughts": "Thoughts",
+      "groupsDiscover": "Discover"
     },
     "mapActions": {
       "create": "Create",
       "claimASpace": "Claim a Space",
       "createEvent": "Create an Event",
       "addACheckIn": "Check In",
+      "quickReport": "Quick Report",
       "requestASpace": "Request a Space",
       "shareAThought": "Share a Thought",
       "uploadAMoment": "Create a Moment",
@@ -1071,7 +1101,7 @@
     "achievements": {
       "headerTitle": "Achievements",
       "pageHeader": "Achievements",
-      "labels":{
+      "labels": {
         "coinValue": "Coin Value",
         "xpValue": "Experience Value"
       },
@@ -1103,7 +1133,11 @@
         "asc": "Oldest to Newest",
         "desc": "Newest to Oldest",
         "categories": "Category Filters",
-        "searchOrder": "Order Results By: Date"
+        "searchOrder": "Order Results By: Date",
+        "contentType": "Content Type",
+        "all": "All",
+        "moments": "Moments",
+        "thoughts": "Thoughts"
       }
     },
     "advancedSettings": {
@@ -1218,7 +1252,9 @@
         "description": "Description:",
         "subtitle": "Headline:",
         "memberCount": "{count} members"
-      }
+      },
+      "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here.",
+      "discoverGroups": "Discover Groups"
     },
     "invite": {
       "headerTitle": "Invite"
@@ -1267,6 +1303,9 @@
         "creator": "Group Creator",
         "admin": "Admin / Moderator",
         "eventHost": "Event Host"
+      },
+      "buttons": {
+        "createEvent": "Create Event"
       }
     },
     "viewSpace": {
@@ -1290,8 +1329,13 @@
       "h2": {
         "claimRewards": "Claim Your Rewards",
         "requirements": "Steps",
+        "hours": "Hours",
+        "contactAndLocation": "Contact & Location",
         "events": "Upcoming Events",
         "moments": "Guest Posts"
+      },
+      "labels": {
+        "viewOnGoogleMaps": "View on Google Maps"
       },
       "info": {
         "shareAMoment": {
@@ -1460,6 +1504,13 @@
       "locationDescription2": "Use the awareness and influence sliders to control content distance and your own visibility.",
       "locationDescription3": "Enable location services to activate this feature."
     },
+    "activatedAreas": {
+      "headerTitle": "Recently Activated",
+      "description": "These are the moments and spaces you recently activated.",
+      "noAreasFound": "No activated areas found",
+      "backToNotifications": "Back to Notifications",
+      "discoverMore": "Discover more moments and spaces nearby"
+    },
     "notifications": {
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
@@ -1530,7 +1581,7 @@
       "alertTitles": {
         "accountUpdated": "Account Updated",
         "backendErrorMessage": "Oops! Something went wrong.",
-        "insecurePassword": "Insecure Password" 
+        "insecurePassword": "Insecure Password"
       },
       "alertMessages": {
         "accountUpdated": "Successfully updated."

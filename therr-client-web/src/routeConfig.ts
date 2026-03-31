@@ -201,6 +201,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/bookmarks',
+        head: {
+            title: 'My Bookmarks',
+            description: 'View your saved bookmarks on Therr. Revisit your favorite moments, spaces, and thoughts.',
+        },
+        view: 'index',
+    },
+    {
         route: '/go-mobile',
         head: {
             title: 'Your Local Hub',

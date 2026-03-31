@@ -9,7 +9,12 @@ export default (areaType: 'moment' | 'space' | 'event', areaId: string, headers:
     method: 'get',
     url: `${baseReactionsServiceRoute}/${areaType}-reactions/${areaId}`,
 })
-    .then(({ data: areaReaction }) => !!(areaReaction && areaReaction.userHasActivated))
+    .then(({ data: areaReaction }) => {
+        if (areaReaction && areaReaction.userHasActivated) {
+            return areaReaction;
+        }
+        return false;
+    })
     .catch((err) => {
         if (err?.response?.data?.statusCode === 403) {
             return false;

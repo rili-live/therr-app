@@ -17,6 +17,7 @@ export enum Types {
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',
     newThoughtReplyReceived = 'new-thought-reply-received',
+    reportConfirmed = 'report-confirmed',
 
     // Automation
     createYourProfileReminder = 'create-your-profile-reminder',
@@ -63,6 +64,7 @@ export enum PressActionIds {
     dmReplyToMsg = 'reply-to-dm-msg',
     groupView = 'view-group',
     groupReplyToMsg = 'reply-to-group-msg',
+    reportView = 'view-report',
     thoughtView = 'view-thought',
     spaceView = 'view-space',
     userView = 'view-user',
@@ -94,6 +96,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'UNREAD_NOTIFICATIONS_REMINDER'
 | 'UNCLAIMED_ACHIEVEMENTS_REMINDER'
 | 'INVITE_FRIENDS_REMINDER'
+| 'REPORT_CONFIRMED'
 // HABITS
 | 'PACT_INVITATION'
 | 'PACT_ACCEPTED'
@@ -124,6 +127,7 @@ enum TeemAndroidIntentActions {
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'com.therr.mobile.INVITE_FRIENDS_REMINDER',
+    REPORT_CONFIRMED = 'com.therr.mobile.REPORT_CONFIRMED',
 }
 
 enum TherrAndroidIntentActions {
@@ -147,6 +151,7 @@ enum TherrAndroidIntentActions {
     UNREAD_NOTIFICATIONS_REMINDER = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'app.therrmobile.INVITE_FRIENDS_REMINDER',
+    REPORT_CONFIRMED = 'app.therrmobile.REPORT_CONFIRMED',
 }
 
 enum HabitsAndroidIntentActions {
@@ -170,6 +175,7 @@ enum HabitsAndroidIntentActions {
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.habits.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.habits.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'com.therr.mobile.habits.INVITE_FRIENDS_REMINDER',
+    REPORT_CONFIRMED = 'com.therr.mobile.habits.REPORT_CONFIRMED',
     // HABITS-specific
     PACT_INVITATION = 'com.therr.mobile.habits.PACT_INVITATION',
     PACT_ACCEPTED = 'com.therr.mobile.habits.PACT_ACCEPTED',

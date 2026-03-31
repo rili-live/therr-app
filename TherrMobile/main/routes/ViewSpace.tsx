@@ -215,7 +215,7 @@ const ViewSpace = ({
     const brandColor = isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen;
 
     // Derived values
-    const { space, isMyContent, previousView } = route.params;
+    const { space, isMyContent, previousView, previewScrollIndex } = route.params;
 
     const hashtags = useMemo(
         () => (space.hashTags ? space.hashTags.split(',') : []),
@@ -328,7 +328,7 @@ const ViewSpace = ({
             return;
         }
         if (!isUserAuthenticated(user)) {
-            navigation.navigate('Map', { shouldShowPreview: true });
+            navigation.navigate('Map', { shouldShowPreview: true, previewScrollIndex });
         } else if (previousView === 'Areas') {
             navigation.goBack();
         } else if (previousView === 'ActivityGenerator') {
@@ -336,9 +336,9 @@ const ViewSpace = ({
         } else if (previousView === 'Notifications') {
             navigation.navigate('Notifications');
         } else {
-            navigation.navigate('Map', { shouldShowPreview: true });
+            navigation.navigate('Map', { shouldShowPreview: true, previewScrollIndex });
         }
-    }, [isViewingIncentives, user, previousView, navigation]);
+    }, [isViewingIncentives, user, previousView, previewScrollIndex, navigation]);
 
     const handleGoToViewMap = useCallback((lat, long) => {
         navigation.replace('Map', { latitude: lat, longitude: long });

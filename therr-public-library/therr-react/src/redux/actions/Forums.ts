@@ -57,6 +57,13 @@ const Forums = {
                 data: response.data,
             });
         }),
+    searchMyForums: (query: any, args: ISearchForumsArgs = {}) => (dispatch: any) => ForumsService.searchForums(query, args)
+        .then((response: any) => {
+            dispatch({
+                type: ForumActionTypes.SEARCH_MY_FORUMS,
+                data: response.data,
+            });
+        }),
 };
 
 export default Forums;

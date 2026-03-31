@@ -369,10 +369,25 @@ export class ViewGroupComponent extends React.Component<IViewGroupProps, IViewGr
         return this.props.translate('pages.chatForum.membershipRoles.default');
     };
 
+    isGroupAdmin = (): boolean => {
+        const { forums, user } = this.props;
+        const { groupId } = this.state;
+        const group = forums?.forumDetails?.[groupId];
+        if (!group || !user?.details?.id) return false;
+
+        const userId = String(user.details.id);
+        if (String(group.authorId) === userId) return true;
+
+        const adminIds = group.administratorIds
+            ? String(group.administratorIds).split(',').map((id: string) => id.trim())
+            : [];
+        return adminIds.includes(userId);
+    };
+
     renderBreadcrumbs(groupTitle: string): JSX.Element {
         const items = [
             <Anchor href="/" key="home">{this.props.translate('pages.navigation.home')}</Anchor>,
-            <Text key="groups" component="span">{this.props.translate('pages.navigation.groups')}</Text>,
+            <Anchor href="/groups" key="groups">{this.props.translate('pages.navigation.groups')}</Anchor>,
             <Text key="title" component="span">{groupTitle}</Text>,
         ];
 
@@ -597,6 +612,7 @@ export class ViewGroupComponent extends React.Component<IViewGroupProps, IViewGr
         const hashtags = group?.hashTags ? group.hashTags.split(',') : [];
         const featuredImage = group?.featuredImage || group?.media?.[0]?.path;
         const groupEvents = group?.events || [];
+        const locationText = [group?.city, group?.region].filter(Boolean).join(', ');
 
         return (
             <div id="page_view_group">
@@ -618,6 +634,7 @@ export class ViewGroupComponent extends React.Component<IViewGroupProps, IViewGr
                                 </Avatar>
                                 <div className="forum-header-info">
                                     <Title order={1} size="h2">{groupTitle}</Title>
+                                    {locationText && <Text size="sm" c="dimmed">{locationText}</Text>}
                                     {subtitle && <Text size="sm" c="dimmed">{subtitle}</Text>}
                                     {description && (
                                         <Text size="sm" mt="xs" className="forum-description" lineClamp={3}>
@@ -632,6 +649,15 @@ export class ViewGroupComponent extends React.Component<IViewGroupProps, IViewGr
                                                 </Badge>
                                             ))}
                                         </MantineGroup>
+                                    )}
+                                    {this.isGroupAdmin() && (
+                                        <MantineButton
+                                            id="edit_group"
+                                            text={this.props.translate('pages.viewGroup.buttons.editGroup')}
+                                            onClick={() => this.props.navigation.navigate(`/groups/${groupId}/edit`)}
+                                            variant="outline"
+                                            mt="sm"
+                                        />
                                     )}
                                 </div>
                             </div>

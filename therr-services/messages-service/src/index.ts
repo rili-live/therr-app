@@ -100,3 +100,16 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
         },
     });
 });
+
+process.on('uncaughtException', (err, origin) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Uncaught Exception - Shutting down'],
+        traceArgs: {
+            'error.message': err?.message,
+            'process.origin': origin,
+        },
+    });
+    setTimeout(() => process.exit(1), 1000);
+});

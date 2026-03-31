@@ -142,6 +142,15 @@ const createSpace = async (req, res) => {
                             });
                         });
                     }
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed sightengine media safety check'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
                 });
             }
 
@@ -312,10 +321,19 @@ const getSpaceDetails = (req, res) => {
                 });
             }
             let userHasAccessPromise = () => Promise.resolve(true);
+            const isNonOwnerNonAdmin = userId && space?.fromUserId !== userId
+                && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN);
+
             // Verify that user has activated space and has access to view it
-            if (userId && space?.fromUserId !== userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+            if (isNonOwnerNonAdmin) {
                 // TODO: Check if user is part of organization and has access to view
                 userHasAccessPromise = () => getReactions('space', spaceId, req.headers);
+            }
+
+            // Fetch user's own reaction for bookmark/like status display (when not already fetched above)
+            let userReactionPromise = () => Promise.resolve(false);
+            if (userId && !isNonOwnerNonAdmin) {
+                userReactionPromise = () => getReactions('space', spaceId, req.headers);
             }
 
             const serializedSpace = {
@@ -330,6 +348,7 @@ const getSpaceDetails = (req, res) => {
                     ...req.headers,
                     'x-userid': userId || undefined,
                 }),
+                userReactionPromise(),
             ];
 
             if (shouldFetchEvents) {
@@ -338,19 +357,26 @@ const getSpaceDetails = (req, res) => {
                 promises.push(Promise.resolve([]));
             }
 
-            return Promise.all(promises).then(([isActivated, eventCount, events]) => {
+            return Promise.all(promises).then(([reactionOrActivated, eventCount, userReaction, events]) => {
                 if (userId && userId !== space.fromUserId) {
                     incrementInterestEngagement(space.interestsKeys, 2, req.headers);
                 }
                 serializedSpace.likeCount = parseInt(eventCount?.count || 0, 10);
                 serializedSpace.events = events;
 
+                // Attach full reaction data if available (for bookmark/like status)
+                const reaction = (reactionOrActivated && typeof reactionOrActivated === 'object' && reactionOrActivated)
+                    || (userReaction && typeof userReaction === 'object' && userReaction);
+                if (reaction) {
+                    serializedSpace.reaction = reaction;
+                }
+
                 return res.status(200).send({
                     events,
                     space: serializedSpace,
                     media,
                     users,
-                    isActivated,
+                    isActivated: !!reactionOrActivated,
                 });
             });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
@@ -739,6 +765,15 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                                 });
                             });
                         }
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed sightengine media safety check'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                            },
+                        });
                     });
                 }
             })).catch((err) => {
@@ -1058,9 +1093,18 @@ const submitPairingFeedback: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+const getSpaceReportsSummary = (req, res) => {
+    const { spaceId } = req.params;
+
+    return Store.moments.getQuickReportsSummary(spaceId)
+        .then((summary) => res.status(200).send(summary))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
 export {
     createSpace,
     getSpaceDetails,
+    getSpaceReportsSummary,
     searchSpaces,
     searchMySpaces,
     claimSpace,
