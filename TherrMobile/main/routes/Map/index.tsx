@@ -795,6 +795,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             if (action === 'quick-report') {
                 this.setState({
                     bottomSheetContentType: 'quick-report',
+                    areButtonsVisible: false,
+                    shouldShowCreateActions: false,
                 });
                 if (this.bottomSheetRef?.current) {
                     this.bottomSheetRef.current.snapToIndex(1);
