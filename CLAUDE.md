@@ -230,12 +230,20 @@ Feature flags will be implemented via:
 
 ## Localization / i18n
 
-When adding or modifying user-facing text in `therr-client-web`, always maintain translation strings in **all three** locale dictionaries:
+When adding or modifying user-facing text, always maintain translation strings in **all** locale dictionaries for the relevant package. Never add a key to one dictionary without adding it to all others in that package.
+
+### therr-client-web (3 locales)
 - `therr-client-web/src/locales/en-us/dictionary.json` (English)
 - `therr-client-web/src/locales/es/dictionary.json` (Spanish)
 - `therr-client-web/src/locales/fr-ca/dictionary.json` (Canadian French)
 
-Use the `useTranslation` hook (or `withTranslation` HOC for class components) instead of hardcoded strings. Never add a key to one dictionary without adding it to all others.
+Use the `useTranslation` hook (or `withTranslation` HOC for class components) instead of hardcoded strings.
+
+### TherrMobile (2 locales)
+- `TherrMobile/main/locales/en-us/dictionary.json` (English)
+- `TherrMobile/main/locales/es/dictionary.json` (Spanish)
+
+Use the `translator` utility imported from `../../services/translator` instead of hardcoded strings.
 
 ### Hardcoded Locale Strings in Frontend Code
 

@@ -406,7 +406,7 @@ mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
             level: 'error',
             messageOrigin: 'API_GATEWAY_MAPS_ROUTER',
             messages: ['Geocoding proxy error'],
-            traceArgs: { 'error.message': err?.message },
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
         });
         return res.status(502).json({ message: 'Geocoding service unavailable' });
     }
