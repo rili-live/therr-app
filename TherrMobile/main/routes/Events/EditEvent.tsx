@@ -1087,7 +1087,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 disableScroll
                             />
                         }
-                        <View style={spacingStyles.marginBotMd}>
+                        <View style={[spacingStyles.marginTopMd, spacingStyles.marginBotMd]}>
                             <InputEventName
                                 autoFocus={!!areaId}
                                 translate={this.translate}
