@@ -479,7 +479,15 @@
         "delete": "¿Eliminar?",
         "confirm": "Eliminar",
         "back": "Atrás",
-        "cancel": "Cancelar"
+        "cancel": "Cancelar",
+        "addImage": "Adjuntar una Imagen",
+        "replaceImage": "Reemplazar Imagen",
+        "removeImage": "Eliminar Imagen",
+        "captureNew": "Capturar una Nueva Foto",
+        "selectExisting": "Seleccionar una Foto Existente"
+      },
+      "labels": {
+        "addImageNote": "Agregar imagen de portada del grupo"
       },
       "placeholders": {
         "title": "Un título que se pueda buscar...",

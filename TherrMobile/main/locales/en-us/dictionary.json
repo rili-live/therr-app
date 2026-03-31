@@ -479,7 +479,15 @@
         "delete": "Delete?",
         "confirm": "Delete",
         "back": "Back",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "addImage": "Attach an Image",
+        "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo"
+      },
+      "labels": {
+        "addImageNote": "Add a group cover image"
       },
       "placeholders": {
         "title": "A searchable title...",
