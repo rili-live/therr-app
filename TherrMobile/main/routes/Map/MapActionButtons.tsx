@@ -15,6 +15,12 @@ import checkIn from '../../assets/coin-wallet.json';
 import claimASpace from '../../assets/claim-a-space.json';
 import { MIN_TIME_BTW_CHECK_INS_MS, MIN_TIME_BTW_MOMENTS_MS } from '../../constants';
 import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
+import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
+
+const BUTTON_SPACING = 60;
+const BASE_BOTTOM = 120;
+const COLLAPSE_OFFSET = 20;
+const BTN_LARGE_WIDTH = 42;
 
 export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in' | 'event' | 'quick-report';
 
@@ -202,6 +208,17 @@ export default ({
     const hasValidCheckinSpaces = validCheckInSpaces?.length > 0 && !shouldShowCreateActions;
     const shouldFeatureCheckIn = (hasNearbySpaces && hasValidCheckinSpaces);
 
+    // Dynamic position computation for expanded menu buttons
+    // quickReport stays fixed at 120 (static style); other buttons stack above it
+    const expandedButtonKeys: string[] = ['createEvent', 'claimASpace', 'uploadMoment'];
+    if (hasNearbySpaces && validCheckInSpaces?.length > 0) {
+        expandedButtonKeys.push('addACheckIn');
+    }
+    const getExpandedBottom = (key: string): number => {
+        const index = expandedButtonKeys.indexOf(key);
+        return BASE_BOTTOM + BUTTON_SPACING + (index * BUTTON_SPACING) + buttonMenuHeight - COLLAPSE_OFFSET;
+    };
+
     return (
         <>
             {
@@ -274,8 +291,9 @@ export default ({
                     />
                 </AttachStep>
             </View>
+            {/* Featured quick-access buttons (collapsed state only) */}
             {
-                shouldFeatureCheckIn
+                !shouldShowCreateActions && shouldFeatureCheckIn
                     ? <>
                         <View style={themeButtons.styles.addACheckInBadgeFeatured}>
                             <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.checkInRewardsBadgeContainer}>
@@ -293,9 +311,9 @@ export default ({
                             />
                         </View>
                     </>
-                    : <>
+                    : !shouldShowCreateActions && <>
                         {
-                            validRewardMoments?.length > 0 && !shouldShowCreateActions &&
+                            validRewardMoments?.length > 0 &&
                             <View style={themeButtons.styles.uploadMomentBadgeFeatured}>
                                 <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.momentRewardsBadgeContainer}>
                                     <Badge style={themeButtons.styles.momentRewardsBadge}>
@@ -315,64 +333,43 @@ export default ({
                         </View>
                     </>
             }
-            {
-                shouldShowCreateActions && hasNearbySpaces && !shouldFeatureCheckIn &&
-                <>
-                    {
-                        hasValidCheckinSpaces &&
-                        <View style={themeButtons.styles.addACheckInBadge}>
-                            <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.checkInRewardsBadgeContainer}>
-                                <Badge style={themeButtons.styles.checkInRewardsBadge}>
-                                    {`$${checkinValue}`}
-                                </Badge>
-                            </Pressable>
-                        </View>
-                    }
-                    <View style={themeButtons.styles.addACheckIn}>
-                        <FAB
-                            icon={renderMapMarkerClockIcon}
-                            label={shouldShowCreateActions ? translate('menus.mapActions.addACheckIn') : undefined}
-                            variant="secondary"
-                            size="small"
-                            style={fabStyle}
-                            onPress={onShowCheckInModal}
-                        />
-                    </View>
-                </>
-            }
-            {
-                shouldShowCreateActions &&
-                <View style={themeButtons.styles.quickReport}>
-                    <FAB
-                        icon={renderFlagIcon}
-                        label={translate('menus.mapActions.quickReport')}
-                        variant="secondary"
-                        size="small"
-                        style={fabStyle}
-                        onPress={() => handleCreate('quick-report')}
-                    />
-                </View>
-            }
-            <View style={[
-                themeButtons.styles.createEvent,
-            ]}>
+            {/* Quick report: always visible as quick-access; labeled when expanded */}
+            <View style={themeButtons.styles.quickReport}>
                 <FAB
-                    icon={renderCalendarIcon}
-                    label={shouldShowCreateActions ? translate('menus.mapActions.createEvent') : undefined}
+                    icon={renderFlagIcon}
+                    label={shouldShowCreateActions ? translate('menus.mapActions.quickReport') : undefined}
                     variant="secondary"
                     size="small"
                     style={fabStyle}
-                    onPress={() => handleCreate('event')}
+                    onPress={() => handleCreate('quick-report')}
                 />
             </View>
+            {/* Expanded menu buttons (only when plus is toggled) */}
             {
                 shouldShowCreateActions &&
-                <View style={themeButtons.styles.claimASpace}>
+                <View style={[
+                    themeButtons.styles.createEvent,
+                    { bottom: getExpandedBottom('createEvent') },
+                ]}>
+                    <FAB
+                        icon={renderCalendarIcon}
+                        label={translate('menus.mapActions.createEvent')}
+                        variant="secondary"
+                        size="small"
+                        style={fabStyle}
+                        onPress={() => handleCreate('event')}
+                    />
+                </View>
+            }
+            {
+                shouldShowCreateActions &&
+                <View style={[
+                    themeButtons.styles.claimASpace,
+                    { bottom: getExpandedBottom('claimASpace') },
+                ]}>
                     <FAB
                         icon={renderRoadMapIcon}
-                        label={shouldShowCreateActions
-                            ? translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')
-                            : undefined}
+                        label={translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')}
                         style={fabStyle}
                         variant="secondary"
                         size="small"
@@ -382,25 +379,44 @@ export default ({
             }
             {
                 shouldShowCreateActions &&
+                <View style={[
+                    themeButtons.styles.uploadMoment,
+                    { bottom: getExpandedBottom('uploadMoment') },
+                ]}>
+                    <FAB
+                        icon={renderMapMarkerPlusIcon}
+                        label={translate('menus.mapActions.uploadAMoment')}
+                        variant="secondary"
+                        size="small"
+                        style={fabStyle}
+                        onPress={() => handleCreate('moment')}
+                    />
+                </View>
+            }
+            {
+                shouldShowCreateActions && hasNearbySpaces && validCheckInSpaces?.length > 0 &&
                 <>
-                    {
-                        validRewardMoments?.length > 0 && !shouldShowCreateActions &&
-                        <View style={themeButtons.styles.uploadMomentBadge}>
-                            <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.momentRewardsBadgeContainer}>
-                                <Badge style={themeButtons.styles.momentRewardsBadge}>
-                                    {`$${momentRewardValue}`}
-                                </Badge>
-                            </Pressable>
-                        </View>
-                    }
-                    <View style={themeButtons.styles.uploadMoment}>
+                    <View style={[
+                        themeButtons.styles.addACheckInBadge,
+                        { bottom: getExpandedBottom('addACheckIn') + (BTN_LARGE_WIDTH - 10) },
+                    ]}>
+                        <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.checkInRewardsBadgeContainer}>
+                            <Badge style={themeButtons.styles.checkInRewardsBadge}>
+                                {`$${checkinValue}`}
+                            </Badge>
+                        </Pressable>
+                    </View>
+                    <View style={[
+                        themeButtons.styles.addACheckIn,
+                        { bottom: getExpandedBottom('addACheckIn') },
+                    ]}>
                         <FAB
-                            icon={renderMapMarkerPlusIcon}
-                            label={shouldShowCreateActions ? translate('menus.mapActions.uploadAMoment') : undefined}
+                            icon={renderMapMarkerClockIcon}
+                            label={translate('menus.mapActions.addACheckIn')}
                             variant="secondary"
                             size="small"
                             style={fabStyle}
-                            onPress={() => handleCreate('moment')}
+                            onPress={onShowCheckInModal}
                         />
                     </View>
                 </>
