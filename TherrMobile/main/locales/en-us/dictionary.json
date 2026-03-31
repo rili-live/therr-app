@@ -1303,6 +1303,9 @@
         "creator": "Group Creator",
         "admin": "Admin / Moderator",
         "eventHost": "Event Host"
+      },
+      "buttons": {
+        "createEvent": "Create Event"
       }
     },
     "viewSpace": {
