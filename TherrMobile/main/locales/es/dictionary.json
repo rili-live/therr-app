@@ -279,6 +279,7 @@
     "addDetails": "Agregar detalles (opcional)",
     "submitSuccess": "Reporte enviado!",
     "submitError": "Error al enviar reporte",
+    "duplicateReport": "Este reporte ya ha sido publicado",
     "stillTrue": "Aun es cierto",
     "notAnymore": "Ya no",
     "confirmCount": "{{count}} confirmaron"
@@ -479,7 +480,15 @@
         "delete": "¿Eliminar?",
         "confirm": "Eliminar",
         "back": "Atrás",
-        "cancel": "Cancelar"
+        "cancel": "Cancelar",
+        "addImage": "Adjuntar una Imagen",
+        "replaceImage": "Reemplazar Imagen",
+        "removeImage": "Eliminar Imagen",
+        "captureNew": "Capturar una Nueva Foto",
+        "selectExisting": "Seleccionar una Foto Existente"
+      },
+      "labels": {
+        "addImageNote": "Agregar imagen de portada del grupo"
       },
       "placeholders": {
         "title": "Un título que se pueda buscar...",
@@ -1125,7 +1134,11 @@
         "asc": "Más antiguos primero",
         "desc": "Más recientes primero",
         "categories": "Filtros de categoría",
-        "searchOrder": "Ordenar resultados por: Fecha"
+        "searchOrder": "Ordenar resultados por: Fecha",
+        "contentType": "Tipo de contenido",
+        "all": "Todos",
+        "moments": "Momentos",
+        "thoughts": "Pensamientos"
       }
     },
     "advancedSettings": {
@@ -1241,7 +1254,8 @@
         "subtitle": "Titular:",
         "memberCount": "{count} miembros"
       },
-      "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí."
+      "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí.",
+      "discoverGroups": "Descubrir Grupos"
     },
     "invite": {
       "headerTitle": "Invitar"
@@ -1290,6 +1304,9 @@
         "creator": "Creador del grupo",
         "admin": "Admin / Moderador",
         "eventHost": "Anfitrión de eventos"
+      },
+      "buttons": {
+        "createEvent": "Crear Evento"
       }
     },
     "viewSpace": {

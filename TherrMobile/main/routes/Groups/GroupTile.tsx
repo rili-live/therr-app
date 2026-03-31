@@ -11,6 +11,7 @@ import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import spacingStyles from '../../styles/layouts/spacing';
+import { getDisplayTitle } from './groupUtils';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -72,7 +73,7 @@ export default ({
                 onPress={() => onChatTilePress(group)}
             >
                 <Avatar
-                    title={`${group.title?.substring(0, 1)}`}
+                    title={`${getDisplayTitle(group.title)?.substring(0, 1)}`}
                     rounded
                     source={{
                         uri: group.media?.featuredImage
@@ -83,7 +84,7 @@ export default ({
                 />
             </Pressable>
             <View style={spacingStyles.flexOne}>
-                <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{group.title}</ListItem.Title>
+                <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{getDisplayTitle(group.title)}</ListItem.Title>
                 {
                     group.city &&
                     <ListItem.Subtitle

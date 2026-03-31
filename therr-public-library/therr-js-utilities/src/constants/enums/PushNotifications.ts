@@ -13,6 +13,7 @@ export enum Types {
     newSuperLikeReceived = 'new-super-like-received',
     newAreasActivated = 'new-moments-activated',
     nudgeSpaceEngagement = 'nudge-space-engagement',
+    postVisitReviewReminder = 'post-visit-review-reminder',
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',
     newThoughtReplyReceived = 'new-thought-reply-received',
@@ -82,6 +83,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'LATEST_POST_VIEWCOUNT_STATS'
 | 'NEW_AREAS_ACTIVATED'
 | 'NUDGE_SPACE_ENGAGEMENT'
+| 'POST_VISIT_REVIEW_REMINDER'
 | 'NEW_CONNECTION'
 | 'NEW_CONNECTION_REQUEST'
 | 'NEW_DIRECT_MESSAGE'
@@ -112,6 +114,7 @@ enum TeemAndroidIntentActions {
     LATEST_POST_VIEWCOUNT_STATS = 'com.therr.mobile.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'com.therr.mobile.NEW_AREAS_ACTIVATED',
     NUDGE_SPACE_ENGAGEMENT = 'com.therr.mobile.NUDGE_SPACE_ENGAGEMENT',
+    POST_VISIT_REVIEW_REMINDER = 'com.therr.mobile.POST_VISIT_REVIEW_REMINDER',
     NEW_CONNECTION = 'com.therr.mobile.NEW_CONNECTION',
     NEW_CONNECTION_REQUEST = 'com.therr.mobile.NEW_CONNECTION_REQUEST',
     NEW_DIRECT_MESSAGE = 'com.therr.mobile.NEW_DIRECT_MESSAGE',
@@ -135,6 +138,7 @@ enum TherrAndroidIntentActions {
     LATEST_POST_VIEWCOUNT_STATS = 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'app.therrmobile.NEW_AREAS_ACTIVATED',
     NUDGE_SPACE_ENGAGEMENT = 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT',
+    POST_VISIT_REVIEW_REMINDER = 'app.therrmobile.POST_VISIT_REVIEW_REMINDER',
     NEW_CONNECTION = 'app.therrmobile.NEW_CONNECTION',
     NEW_CONNECTION_REQUEST = 'app.therrmobile.NEW_CONNECTION_REQUEST',
     NEW_DIRECT_MESSAGE = 'app.therrmobile.NEW_DIRECT_MESSAGE',
@@ -158,6 +162,7 @@ enum HabitsAndroidIntentActions {
     LATEST_POST_VIEWCOUNT_STATS = 'com.therr.mobile.habits.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'com.therr.mobile.habits.NEW_AREAS_ACTIVATED',
     NUDGE_SPACE_ENGAGEMENT = 'com.therr.mobile.habits.NUDGE_SPACE_ENGAGEMENT',
+    POST_VISIT_REVIEW_REMINDER = 'com.therr.mobile.habits.POST_VISIT_REVIEW_REMINDER',
     NEW_CONNECTION = 'com.therr.mobile.habits.NEW_CONNECTION',
     NEW_CONNECTION_REQUEST = 'com.therr.mobile.habits.NEW_CONNECTION_REQUEST',
     NEW_DIRECT_MESSAGE = 'com.therr.mobile.habits.NEW_DIRECT_MESSAGE',

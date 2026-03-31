@@ -279,6 +279,7 @@
     "addDetails": "Add details (optional)",
     "submitSuccess": "Report submitted!",
     "submitError": "Failed to submit report",
+    "duplicateReport": "This report has already been posted",
     "stillTrue": "Still true",
     "notAnymore": "Not anymore",
     "confirmCount": "{{count}} confirmed"
@@ -479,7 +480,15 @@
         "delete": "Delete?",
         "confirm": "Delete",
         "back": "Back",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "addImage": "Attach an Image",
+        "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo"
+      },
+      "labels": {
+        "addImageNote": "Add a group cover image"
       },
       "placeholders": {
         "title": "A searchable title...",
@@ -1125,7 +1134,11 @@
         "asc": "Oldest to Newest",
         "desc": "Newest to Oldest",
         "categories": "Category Filters",
-        "searchOrder": "Order Results By: Date"
+        "searchOrder": "Order Results By: Date",
+        "contentType": "Content Type",
+        "all": "All",
+        "moments": "Moments",
+        "thoughts": "Thoughts"
       }
     },
     "advancedSettings": {
@@ -1241,7 +1254,8 @@
         "subtitle": "Headline:",
         "memberCount": "{count} members"
       },
-      "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here."
+      "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here.",
+      "discoverGroups": "Discover Groups"
     },
     "invite": {
       "headerTitle": "Invite"
@@ -1290,6 +1304,9 @@
         "creator": "Group Creator",
         "admin": "Admin / Moderator",
         "eventHost": "Event Host"
+      },
+      "buttons": {
+        "createEvent": "Create Event"
       }
     },
     "viewSpace": {

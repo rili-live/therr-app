@@ -528,6 +528,13 @@
       "noForumsMessage": "No hay chats activos actualmente. Haz clic en 'Crear chat grupal' para iniciar uno nuevo.",
       "pageTitle": "Chats grupales"
     },
+    "editGroup": {
+      "buttons": {
+        "submit": "Guardar cambios"
+      },
+      "pageTitle": "Editar grupo",
+      "notAuthorized": "No tienes autorización para editar este grupo."
+    },
     "createProfile": {
       "pageTitle": "Crear perfil",
       "pageTitleVerify": "Crear perfil: Verificar teléfono",
@@ -767,6 +774,9 @@
         "upcomingEvents": "Próximos Eventos",
         "pastEvents": "Eventos Pasados",
         "noEvents": "No se encontraron eventos para este grupo."
+      },
+      "buttons": {
+        "editGroup": "Editar grupo"
       }
     },
     "viewEvent": {

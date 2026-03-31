@@ -45,6 +45,7 @@ import UserSearchItem from '../Connect/components/UserSearchItem';
 import UsersActions from '../../redux/actions/UsersActions';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import { navToViewContent } from '../../utilities/postViewHelpers';
+import { getDisplayTitle } from './groupUtils';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -158,7 +159,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
 
         this.state = {
             activeTabIndex,
-            title: title || '',
+            title: getDisplayTitle(title),
             groupMembers: [],
             groupEvents: [],
             isSending: false,
@@ -197,15 +198,17 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                 groupEvents: response.data?.events || [],
             });
 
+            const resolvedTitle = getDisplayTitle(title || response?.data?.title);
+
             navigation.setOptions({
-                title: title || response?.data?.title,
+                title: resolvedTitle,
                 subtitle: response?.data?.subtitle,
                 description: response?.data?.description,
             });
 
             joinForum({
                 roomId: forumId,
-                roomName: title || response?.data?.title,
+                roomName: resolvedTitle,
                 userId: user.details.id,
                 userName: user.details.userName,
                 userImgSrc: getUserImageUri(user.details, 100),
@@ -418,6 +421,16 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         navToViewContent(content, user, navigation.navigate);
     };
 
+    goToCreateEvent = () => {
+        const { navigation, route } = this.props;
+        const { id: forumId } = route.params;
+
+        navigation.navigate('EditEvent', {
+            area: { groupId: forumId },
+            imageDetails: {},
+        });
+    };
+
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
 
@@ -574,6 +587,18 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 </Pressable>
                             );
                         }}
+                        ListHeaderComponent={
+                            <View style={[spacingStyles.marginHorizLg, spacingStyles.padVertMd]}>
+                                <PaperButton
+                                    mode="contained"
+                                    icon="calendar-plus"
+                                    onPress={this.goToCreateEvent}
+                                    style={{ borderRadius: 20 }}
+                                >
+                                    {this.translate('pages.viewGroup.buttons.createEvent')}
+                                </PaperButton>
+                            </View>
+                        }
                         ListEmptyComponent={<View style={spacingStyles.marginHorizLg}>
                             <ListEmpty iconName="calendar" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.EVENTS)} />
                         </View>}
@@ -649,11 +674,27 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         );
     };
 
+    handleEditGroup = () => {
+        const { navigation, route, forums } = this.props;
+        const { id: forumId } = route.params;
+        const group = forums?.searchResults?.find((g) => g.id === forumId)
+            || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
+            || route.params;
+
+        navigation.navigate('EditGroup', {
+            group,
+        });
+    };
+
     render() {
         const { activeTabIndex, isSending, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
-        const { route, forums } = this.props;
+        const { route, forums, user } = this.props;
         const { description, subtitle, id: forumId } = route.params;
-        const group = forums?.searchResults?.find((g) => g.id === forumId) || {};
+        const group = forums?.searchResults?.find((g) => g.id === forumId)
+            || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
+            || route.params;
+        const isGroupAdmin = group.authorId === user.details?.id
+            || group.administratorIds?.includes(user.details?.id);
 
         return (
             <>
@@ -691,7 +732,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                     />
                                 </View>
                             }
-                            <View style={spacingStyles.marginLtMd}>
+                            <View style={[spacingStyles.marginLtMd, spacingStyles.flexOne]}>
                                 {
                                     subtitle &&
                                     <Text style={{ color: this.theme.colors.textWhite }}>
@@ -709,6 +750,15 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                     styles={this.themeForms.styles}
                                 />
                             </View>
+                            {
+                                isGroupAdmin &&
+                                <Pressable
+                                    onPress={this.handleEditGroup}
+                                    style={{ justifyContent: 'center', paddingLeft: 8 }}
+                                >
+                                    <TherrIcon name="edit" size={22} color={this.theme.colors.textWhite} />
+                                </Pressable>
+                            }
                         </View>
                         <View style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}>
                             <TabView
@@ -751,6 +801,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 )}
                                 onSubmitEditing={this.handleSend}
                                 containerStyle={this.themeMessage.styles.inputContainer}
+                                inputContainerStyle={[this.themeForms.styles.inputContainerRound, { height: 40 }]}
                                 errorStyle={this.theme.styles.displayNone}
                                 themeForms={this.themeForms}
                             />

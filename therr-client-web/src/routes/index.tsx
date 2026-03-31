@@ -6,6 +6,7 @@ import { AuthRoute } from 'therr-react/components';
 import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 import CreateForum from './CreateForum';
+import EditGroup from './EditGroup';
 import ListGroups from './ListGroups';
 import ViewGroup from './ViewGroup';
 import CreateProfile from './CreateProfile';
@@ -66,6 +67,18 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             pageNumber: 1,
             order: 'desc',
         }, {})(dispatch),
+    },
+    {
+        path: '/groups/:groupId/edit',
+        element: <AuthRoute
+            component={EditGroup}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+        fetchData: (dispatch: any, params: any) => ForumActions.getForumDetails(params.groupId)(dispatch),
     },
     {
         path: '/groups/:groupId',

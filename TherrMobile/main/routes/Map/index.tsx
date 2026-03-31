@@ -795,6 +795,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             if (action === 'quick-report') {
                 this.setState({
                     bottomSheetContentType: 'quick-report',
+                    bottomSheetSnapPoints: [defaultSnapPoints[0], '65%', '100%'],
+                    areButtonsVisible: false,
+                    shouldShowCreateActions: false,
                 });
                 if (this.bottomSheetRef?.current) {
                     this.bottomSheetRef.current.snapToIndex(1);
@@ -1706,6 +1709,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
+    closeBottomSheet = () => {
+        this.bottomSheetRef?.current?.close();
+    };
+
     onBottomSheetClose = () => {
         this.setState({
             areButtonsVisible: true,
@@ -2022,8 +2029,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             createMoment={createMoment}
                             navigation={navigation}
                             nearbySpaces={nearbySpaces}
-                            onClose={this.onBottomSheetClose}
+                            onClose={this.closeBottomSheet}
                             theme={this.theme}
+                            user={user}
                             themeBottomSheet={this.themeBottomSheet}
                             themeViewArea={this.themeViewArea}
                             translate={this.translate}

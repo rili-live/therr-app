@@ -23,6 +23,7 @@ interface IMapBottomSheetContent {
         styles: any;
     },
     translate: Function;
+    user?: any;
 }
 
 const MapBottomSheetContent = ({
@@ -34,6 +35,7 @@ const MapBottomSheetContent = ({
     onClose,
     theme,
     translate,
+    user,
 }: IMapBottomSheetContent) => {
     if (contentType === 'quick-report' && circleCenter && createMoment) {
         return (
@@ -44,6 +46,7 @@ const MapBottomSheetContent = ({
                 onClose={onClose}
                 translate={translate}
                 theme={theme}
+                user={user}
             />
         );
     }

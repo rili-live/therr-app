@@ -395,7 +395,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         mapFiltersBadge: {
             backgroundColor: badgeBg,
-            color: therrTheme.colors.textWhite,
+            color: therrTheme.colors.brandingWhite,
         },
         recenter: {
             position: 'absolute',
@@ -638,6 +638,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         buttonPillTitle: {
             fontSize: 15,
             fontFamily: therrFontFamily,
+            color: therrTheme.colors.brandingWhite,
         },
     });
 

@@ -652,13 +652,14 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
 
         switch (route.key) {
             case CAROUSEL_TABS.DISCOVERIES:
+                const contentTypeFilter = content.activeAreasFilters?.contentType || 'all';
                 const categoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
                 const socialData = (isLoadingMoments && isLoadingThoughts) ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
-                    shouldIncludeThoughts: true,
-                    shouldIncludeMoments: true,
+                    shouldIncludeThoughts: contentTypeFilter !== 'moments',
+                    shouldIncludeMoments: contentTypeFilter !== 'thoughts',
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: false,
                     translate: this.translate,

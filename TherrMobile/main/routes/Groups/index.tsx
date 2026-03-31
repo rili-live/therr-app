@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, FlatList, SafeAreaView, Text, TextInput, View } from 'react-native';
+import { Dimensions, FlatList, Pressable, SafeAreaView, Text, TextInput, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -176,7 +176,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             title: this.translate('pages.groups.headerTitle'),
         });
 
-        if (!user.myUserGroups?.length) {
+        if (!Object.keys(user.myUserGroups || {}).length) {
             getUserGroups({ withGroups: true });
         }
 
@@ -201,6 +201,10 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             this.setState({
                 activeTabIndex,
             });
+
+            // Refresh data when returning from ViewGroup/EditGroup
+            this.handleRefreshMyGroupsSearch();
+            this.handleRefreshDiscoverSearch();
         });
     }
 
@@ -387,10 +391,20 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     };
 
     onJoinGroup = (group) => {
-        const { createUserGroup } = this.props;
+        const { createUserGroup, searchMyForums, user } = this.props;
+        const { searchFilters } = this.state;
 
         createUserGroup({
             groupId: group.id,
+        }).then(() => {
+            const myGroupIds = Object.keys(user.myUserGroups || {})
+                .filter((id) => user.myUserGroups[id]?.status === GroupRequestStatuses.APPROVED);
+            if (!myGroupIds.includes(group.id)) {
+                myGroupIds.push(group.id);
+            }
+            if (myGroupIds.length) {
+                searchMyForums(searchFilters, { forumIds: myGroupIds });
+            }
         }).catch((err) => {
             console.log(err);
         });
@@ -436,17 +450,17 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         paddingHorizontal: 10,
                         height: 38,
                     }}>
-                        <MaterialIcon name="search" size={20} color="#888" />
+                        <MaterialIcon name="search" size={20} color={this.theme.colors.placeholderTextColor} />
                         <TextInput
                             style={{
                                 flex: 1,
                                 fontSize: 14,
                                 paddingVertical: 4,
                                 paddingHorizontal: 6,
-                                color: this.theme.colors.textBlack || '#333',
+                                color: this.theme.colors.textWhite,
                             }}
                             placeholder={this.translate('forms.groups.searchPlaceholder')}
-                            placeholderTextColor="#999"
+                            placeholderTextColor={this.theme.colors.placeholderTextColor}
                             value={searchText}
                             onChangeText={this.handleSearchTextChange}
                             autoCorrect={false}
@@ -461,17 +475,17 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         paddingHorizontal: 10,
                         height: 38,
                     }}>
-                        <MaterialIcon name="location-on" size={20} color="#888" />
+                        <MaterialIcon name="location-on" size={20} color={this.theme.colors.placeholderTextColor} />
                         <TextInput
                             style={{
                                 flex: 1,
                                 fontSize: 14,
                                 paddingVertical: 4,
                                 paddingHorizontal: 6,
-                                color: this.theme.colors.textBlack || '#333',
+                                color: this.theme.colors.textWhite,
                             }}
                             placeholder={this.translate('forms.groups.cityPlaceholder')}
-                            placeholderTextColor="#999"
+                            placeholderTextColor={this.theme.colors.placeholderTextColor}
                             value={citySearchText}
                             onChangeText={this.handleCitySearchChange}
                             autoCorrect={false}
@@ -560,6 +574,21 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                                 <ListEmpty iconName="group" theme={this.theme} text={this.translate(
                                     'pages.groups.noMyGroupsFound'
                                 )} />
+                                <Pressable
+                                    onPress={() => this.onTabSelect(0)}
+                                    style={{
+                                        marginTop: 16,
+                                        marginHorizontal: 40,
+                                        backgroundColor: this.theme.colors.primary3,
+                                        borderRadius: 8,
+                                        paddingVertical: 10,
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <Text style={{ color: this.theme.colors.brandingWhite, fontSize: 16, fontWeight: '600' }}>
+                                        {this.translate('pages.groups.discoverGroups')}
+                                    </Text>
+                                </Pressable>
                             </View>
                         }
                         stickyHeaderIndices={[]}
