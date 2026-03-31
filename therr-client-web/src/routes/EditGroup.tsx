@@ -101,14 +101,10 @@ export class EditGroupComponent extends React.Component<IEditGroupProps, IEditGr
         }
 
         const existingGroup = forums?.forumDetails?.[groupId];
-        if (existingGroup) {
+        if (existingGroup && forums.forumCategories?.length) {
             this.populateFromGroup(existingGroup);
-        } else {
-            getForumDetails(groupId).then((group: any) => {
-                if (group) {
-                    this.populateFromGroup(group);
-                }
-            }).catch(() => {
+        } else if (!existingGroup) {
+            getForumDetails(groupId).catch(() => {
                 this.props.navigation.navigate('/groups');
             });
         }
@@ -118,15 +114,9 @@ export class EditGroupComponent extends React.Component<IEditGroupProps, IEditGr
         const { forums, routeParams } = this.props;
         const { isLoaded } = this.state;
         const group = forums?.forumDetails?.[routeParams.groupId];
-        const prevGroup = prevProps.forums?.forumDetails?.[routeParams.groupId];
 
-        // Populate categories once both group and categories are loaded
-        if (!isLoaded && group && forums.forumCategories?.length && !prevProps.forums.forumCategories?.length) {
-            this.populateFromGroup(group);
-        }
-
-        // Handle case where group loaded after categories
-        if (!isLoaded && group && !prevGroup && forums.forumCategories?.length) {
+        // Populate once both group details and categories are available
+        if (!isLoaded && group && forums.forumCategories?.length) {
             this.populateFromGroup(group);
         }
     }

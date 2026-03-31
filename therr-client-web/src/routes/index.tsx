@@ -69,6 +69,18 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         }, {})(dispatch),
     },
     {
+        path: '/groups/:groupId/edit',
+        element: <AuthRoute
+            component={EditGroup}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+        fetchData: (dispatch: any, params: any) => ForumActions.getForumDetails(params.groupId)(dispatch),
+    },
+    {
         path: '/groups/:groupId',
         element: <ViewGroup />,
         fetchData: (dispatch: any, params: any) => ForumActions.getForumDetails(params.groupId)(dispatch),
@@ -83,18 +95,6 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             })}
             redirectPath={'/create-profile'}
         />,
-    },
-    {
-        path: '/groups/:groupId/edit',
-        element: <AuthRoute
-            component={EditGroup}
-            isAuthorized={routePropsConfig.isAuthorized({
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            })}
-            redirectPath={'/create-profile'}
-        />,
-        fetchData: (dispatch: any, params: any) => ForumActions.getForumDetails(params.groupId)(dispatch),
     },
     {
         path: '/create-profile',
