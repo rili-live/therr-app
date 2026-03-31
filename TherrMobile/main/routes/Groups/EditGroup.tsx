@@ -33,6 +33,7 @@ import RoundTextInput from '../../components/Input/TextInput/Round';
 import spacingStyles from '../../styles/layouts/spacing';
 import { GROUPS_CAROUSEL_TABS } from '../../constants';
 import InputGroupName from './InputGroupName';
+import CityAutocompleteInput from '../../components/Input/CityAutocompleteInput';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { signImageUrl } from '../../utilities/content';
 import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
@@ -485,6 +486,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
                         style={this.theme.styles.scrollViewFull}
+                        keyboardShouldPersistTaps="handled"
                         // contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
                         <GroupCategories
@@ -605,29 +607,32 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 }
                                 themeForms={this.themeForms}
                             />
-                            <RoundTextInput
-                                containerStyle={{ marginTop: 24 }}
-                                placeholder={this.translate(
-                                    'forms.editGroup.placeholders.description'
-                                )}
-                                value={inputs.description}
-                                onChangeText={(text) =>
-                                    this.onInputChange('description', text)
-                                }
-                                minHeight={150}
-                                numberOfLines={7}
+                            <View style={{ marginTop: 24 }}>
+                                <RoundTextInput
+                                    placeholder={this.translate(
+                                        'forms.editGroup.placeholders.description'
+                                    )}
+                                    value={inputs.description}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('description', text)
+                                    }
+                                    minHeight={150}
+                                    numberOfLines={7}
+                                    themeForms={this.themeForms}
+                                />
+                            </View>
+                            <CityAutocompleteInput
+                                placeholder={this.translate('forms.editGroup.placeholders.city')}
+                                initialValue={inputs.city}
+                                onCitySelect={(city, region) => {
+                                    this.onInputChange('city', city);
+                                    if (region) {
+                                        this.onInputChange('region', region);
+                                    }
+                                }}
+                                theme={this.theme}
                                 themeForms={this.themeForms}
-                            />
-                            <RoundInput
-                                containerStyle={{ marginTop: 14 }}
-                                placeholder={this.translate(
-                                    'forms.editGroup.placeholders.city'
-                                )}
-                                value={inputs.city}
-                                onChangeText={(text) =>
-                                    this.onInputChange('city', text)
-                                }
-                                themeForms={this.themeForms}
+                                containerStyle={{ marginTop: 14, zIndex: 10 }}
                             />
                             <RoundInput
                                 containerStyle={{ marginTop: 14 }}

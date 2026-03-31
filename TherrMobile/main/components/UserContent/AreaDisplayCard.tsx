@@ -8,8 +8,9 @@ import {
     Text,
     View,
 } from 'react-native';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { Image } from '../BaseImage';
-import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
+import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { ITherrThemeColors } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
@@ -69,6 +70,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
             themeViewArea,
             translate,
         } = this.props;
+        const isQuickReport = Categories.QuickReportCategories.includes(area.category);
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
@@ -108,6 +110,12 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                 />
                         }
                     </View>
+                    {isQuickReport && (
+                        <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                            <MaterialIcon name="schedule" size={12} color={theme.colors.brandingWhite} />
+                            <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                        </View>
+                    )}
                     <View style={[localStyles.textContent, themeViewArea.styles.textContent]}>
                         <Text numberOfLines={2} style={themeViewArea.styles.cardTitle}>
                             {area.notificationMsg}
@@ -149,5 +157,22 @@ const localStyles = StyleSheet.create({
     },
     textContent: {
         padding: 0,
+    },
+    quickReportBadge: {
+        position: 'absolute',
+        top: 6,
+        left: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 8,
+        gap: 3,
+    },
+    quickReportBadgeText: {
+        color: '#ffffff',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
 });

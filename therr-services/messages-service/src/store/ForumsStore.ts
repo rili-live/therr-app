@@ -26,6 +26,7 @@ export interface ICreateForumParams {
     maxCommentsPerMin?: number;
     doesExpire?: boolean;
     isPublic?: boolean;
+    media?: any;
     city?: string;
     region?: string;
     country?: string;
@@ -55,6 +56,7 @@ export interface IUpdateForumParams {
     maxCommentsPerMin?: number;
     doesExpire?: boolean;
     isPublic?: boolean;
+    media?: any;
     city?: string;
     region?: string;
     country?: string;

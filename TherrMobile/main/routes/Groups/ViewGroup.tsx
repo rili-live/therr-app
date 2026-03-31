@@ -658,7 +658,9 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         const { activeTabIndex, isSending, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
         const { route, forums } = this.props;
         const { description, subtitle, id: forumId } = route.params;
-        const group = forums?.searchResults?.find((g) => g.id === forumId) || {};
+        const group = forums?.searchResults?.find((g) => g.id === forumId)
+            || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
+            || route.params;
 
         return (
             <>
