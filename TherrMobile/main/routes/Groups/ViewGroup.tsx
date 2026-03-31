@@ -674,27 +674,13 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         );
     };
 
-    handleEditGroup = () => {
-        const { navigation, route, forums } = this.props;
-        const { id: forumId } = route.params;
-        const group = forums?.searchResults?.find((g) => g.id === forumId)
-            || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
-            || route.params;
-
-        navigation.navigate('EditGroup', {
-            group,
-        });
-    };
-
     render() {
         const { activeTabIndex, isSending, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
-        const { route, forums, user } = this.props;
+        const { route, forums } = this.props;
         const { description, subtitle, id: forumId } = route.params;
         const group = forums?.searchResults?.find((g) => g.id === forumId)
             || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
             || route.params;
-        const isGroupAdmin = group.authorId === user.details?.id
-            || group.administratorIds?.includes(user.details?.id);
 
         return (
             <>
@@ -732,7 +718,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                     />
                                 </View>
                             }
-                            <View style={[spacingStyles.marginLtMd, spacingStyles.flexOne]}>
+                            <View style={spacingStyles.marginLtMd}>
                                 {
                                     subtitle &&
                                     <Text style={{ color: this.theme.colors.textWhite }}>
@@ -750,15 +736,6 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                     styles={this.themeForms.styles}
                                 />
                             </View>
-                            {
-                                isGroupAdmin &&
-                                <Pressable
-                                    onPress={this.handleEditGroup}
-                                    style={{ justifyContent: 'center', paddingLeft: 8 }}
-                                >
-                                    <TherrIcon name="edit" size={22} color={this.theme.colors.textWhite} />
-                                </Pressable>
-                            }
                         </View>
                         <View style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}>
                             <TabView

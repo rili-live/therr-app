@@ -105,6 +105,7 @@ Read these files when relevant to the task:
 - `docs/LOCALE_URL_ROUTING.md` - Locale-prefixed URL routing, i18n architecture, SEO strategy
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
 - `docs/TARGET_MARKETS.md` - Consumer and business target market definitions (core Therr App)
+- `docs/FEATURES.md` - **High-level feature list for mobile & web clients. Update this file when adding or removing features.**
 
 ## Monorepo Structure
 
