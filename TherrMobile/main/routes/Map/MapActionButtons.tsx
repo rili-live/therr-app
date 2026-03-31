@@ -209,14 +209,14 @@ export default ({
     const shouldFeatureCheckIn = (hasNearbySpaces && hasValidCheckinSpaces);
 
     // Dynamic position computation for expanded menu buttons
-    // Build ordered list from bottom to top based on which buttons are visible
-    const expandedButtonKeys: string[] = ['quickReport', 'createEvent', 'claimASpace', 'uploadMoment'];
+    // quickReport stays fixed at 120 (static style); other buttons stack above it
+    const expandedButtonKeys: string[] = ['createEvent', 'claimASpace', 'uploadMoment'];
     if (hasNearbySpaces && validCheckInSpaces?.length > 0) {
         expandedButtonKeys.push('addACheckIn');
     }
     const getExpandedBottom = (key: string): number => {
         const index = expandedButtonKeys.indexOf(key);
-        return BASE_BOTTOM + (index * BUTTON_SPACING) + buttonMenuHeight - COLLAPSE_OFFSET;
+        return BASE_BOTTOM + BUTTON_SPACING + (index * BUTTON_SPACING) + buttonMenuHeight - COLLAPSE_OFFSET;
     };
 
     return (
@@ -334,10 +334,7 @@ export default ({
                     </>
             }
             {/* Quick report: always visible as quick-access; labeled when expanded */}
-            <View style={[
-                themeButtons.styles.quickReport,
-                shouldShowCreateActions && { bottom: getExpandedBottom('quickReport') },
-            ]}>
+            <View style={themeButtons.styles.quickReport}>
                 <FAB
                     icon={renderFlagIcon}
                     label={shouldShowCreateActions ? translate('menus.mapActions.quickReport') : undefined}
