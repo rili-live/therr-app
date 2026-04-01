@@ -292,7 +292,7 @@ export const AreaDisplayContent = ({
                 </PresssableWithDoubleTap>
                 {isQuickReport && (
                     <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
-                        <Icon name="schedule" size={10} color="#ffffff" />
+                        <Icon name="schedule" size={10} color={theme.colors.brandingWhite} />
                         <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
                     </View>
                 )}
