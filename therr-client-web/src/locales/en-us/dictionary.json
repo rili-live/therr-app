@@ -450,7 +450,7 @@
       },
       "pageTitle": "Account Verification",
       "returnToLogin": "Return to login page",
-      "successMessage": "Your!",
+      "successMessage": "Your email has been verified!",
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
     "resetPassword": {

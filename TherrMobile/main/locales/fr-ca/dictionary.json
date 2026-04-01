@@ -610,7 +610,7 @@
         }
       },
       "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cet événement?",
-      "backendSuccessMessage": "Votre moment a été sauvegardé avec succès!",
+      "backendSuccessMessage": "Votre événement a été sauvegardé avec succès!",
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard."
     },
     "editSpace": {
@@ -1381,7 +1381,7 @@
       "headerTitle": "Vérification du compte",
       "pageHeader": "Vérifier le courriel",
       "returnToLogin": "Retour à la page de connexion",
-      "successMessage": "Votre!",
+      "successMessage": "Votre courriel a été vérifié!",
       "successVerifiedMessage": "Votre compte a été vérifié. Connectez-vous pour continuer."
     },
     "exchangePointsDisclaimer": {
