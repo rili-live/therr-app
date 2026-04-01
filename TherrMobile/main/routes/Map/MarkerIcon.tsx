@@ -5,12 +5,16 @@ import { ITherrTheme } from '../../styles/themes';
 import MarkerIconArt from './MarkerIconArt';
 import MarkerIconGeocache from './MarkerIconGeocache';
 import MarkerIconCamera from './MarkerIconCamera';
+import MarkerIconCrowd from './MarkerIconCrowd';
 import MarkerIconDiscount from './MarkerIconDiscount';
 import MarkerIconDrinks from './MarkerIconDrinks';
 import MarkerIconEvent from './MarkerIconEvent';
+import MarkerIconFire from './MarkerIconFire';
 import MarkerIconFitness from './MarkerIconFitness';
 import MarkerIconFood from './MarkerIconFood';
+import MarkerIconGem from './MarkerIconGem';
 import MarkerIconHotel from './MarkerIconHotel';
+import MarkerIconHourglass from './MarkerIconHourglass';
 import MarkerIconMusic from './MarkerIconMusic';
 import MarkerIconNature from './MarkerIconNature';
 import MarkerIconStorefront from './MarkerIconStorefront';
@@ -70,6 +74,18 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
     },
     warning: {
         fill: theme.colors.brandingRed,
+    },
+    fire: {
+        fill: theme.colors.brandingOrange,
+    },
+    hourglass: {
+        fill: theme.colors.brandingOrange,
+    },
+    crowd: {
+        fill: theme.colors.brandingOrange,
+    },
+    gem: {
+        fill: theme.colors.brandingOrange,
     },
 });
 
@@ -135,11 +151,20 @@ const getIconForCategory = (category, areaType, area, theme) => {
     if (category === 'museum/academia') {
         return <MarkerIconArt {...configs.art} />;
     }
-    if (category === 'warning' || category === 'crowdAlert' || category === 'longWait') {
+    if (category === 'warning') {
         return <MarkerIconWarning {...configs.warning} />;
     }
-    if (category === 'happeningNow' || category === 'hiddenGem') {
-        return <MarkerIconSeasonal {...configs.seasonal} />;
+    if (category === 'happeningNow') {
+        return <MarkerIconFire {...configs.fire} />;
+    }
+    if (category === 'longWait') {
+        return <MarkerIconHourglass {...configs.hourglass} />;
+    }
+    if (category === 'crowdAlert') {
+        return <MarkerIconCrowd {...configs.crowd} />;
+    }
+    if (category === 'hiddenGem') {
+        return <MarkerIconGem {...configs.gem} />;
     }
 
     // No category
