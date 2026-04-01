@@ -87,6 +87,8 @@ export interface ITherrMapViewProps extends IStoreProps {
     filteredMoments: any;
     filteredSpaces: any;
     hideCreateActions: () => any;
+    isQuickReportOpen: boolean;
+    closeQuickReport: () => void;
     isScrollEnabled: boolean;
     onPreviewBottomSheetClose: any;
     onPreviewBottomSheetOpen: any;
@@ -317,6 +319,11 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
      * On press handler for any map press. Handles pressing an area, and determines when view or bottom-sheet menu to open
      */
     handleMapPress = (event: MapPressEvent | MarkerPressEvent, shouldToggleOnly = false, restoreScrollIndex = 0) => {
+        if (this.props.isQuickReportOpen) {
+            this.props.closeQuickReport();
+            return;
+        }
+
         const { nativeEvent } = event;
         const {
             circleCenter,
