@@ -413,7 +413,6 @@ mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
 });
 
 // External APIs - Mapbox Search proxy with rate limiting and caching
-const MAPBOX_CACHE_PREFIX = 'MAPBOX_CACHE:';
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';
 
 mapsServiceRouter.get('/mapbox/search', placesApiLimiter, async (req, res) => {

@@ -424,12 +424,18 @@ const Maps = {
             return MapsService.getMapboxSearchAutoComplete(mapboxArgs)
                 .then((response) => {
                     const suggestions = response.data?.suggestions || [];
-                    const predictions: ISearchPrediction[] = suggestions.map((s: any) => ({
-                        place_id: s.mapbox_id,
-                        description: s.full_address || s.name || s.place_formatted || '',
-                        provider: 'mapbox',
-                        mapbox_id: s.mapbox_id,
-                    }));
+                    const predictions: ISearchPrediction[] = suggestions.map((s: any) => {
+                        let description = s.full_address || '';
+                        if (!description && s.name) {
+                            description = s.place_formatted ? `${s.name}, ${s.place_formatted}` : s.name;
+                        }
+                        return {
+                            place_id: s.mapbox_id,
+                            description,
+                            provider: 'mapbox' as const,
+                            mapbox_id: s.mapbox_id,
+                        };
+                    });
                     dispatch({
                         type: MapActionTypes.AUTOCOMPLETE_UPDATE,
                         data: { predictions },

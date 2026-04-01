@@ -1386,7 +1386,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
         this.handleSearchThisLocation(searchRadiusMeters, lat, lng)
             .finally(() => {
-                if (shouldTogglePreview) {
+                if (shouldTogglePreview && this.mapRef) {
                     this.mapRef.props.onPress({
                         nativeEvent: {
                             coordinate: { latitude: lat, longitude: lng },
