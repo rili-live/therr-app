@@ -382,12 +382,9 @@ class MapsService {
         sessiontoken,
     }: IPlacesAutoCompleteArgs) => {
         let url = '/maps-service/place/autocomplete/json?';
+        const searchRadius = radius || 50000;
 
-        url = `${url}input=${input}&location=${latitude},${longitude}&locationbias=circle:radius@lat,lng`;
-
-        if (radius) {
-            url = `${url}&radius=${radius}`;
-        }
+        url = `${url}input=${encodeURIComponent(input)}&location=${latitude},${longitude}&radius=${searchRadius}&locationbias=circle:${searchRadius}@${latitude},${longitude}`;
 
         if (types) {
             url = `${url}&types=${types}`;
