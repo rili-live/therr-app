@@ -12,6 +12,7 @@ import {
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Categories } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import HashtagsContainer from './HashtagsContainer';
@@ -249,43 +250,53 @@ export const AreaDisplayContent = ({
     //     setMediaWidth(width);
     // };
 
+    const isQuickReport = Categories.QuickReportCategories.includes(area.category);
+
     return (
         <View style={localStyles.rowContainer}>
-            <PresssableWithDoubleTap
-                onPress={inspectContent}
-                onDoubleTap={onDoubleTap || (() => {})}
-                style={localStyles.mediaPressable}
-            >
-                {/* <UserMedia
-                    viewportWidth={mediaWidth}
-                    media={areaMedia}
-                    isVisible={!!areaMedia}
-                    isSingleView={false}
-                    onLayout={onUserMediaLayout}
-                /> */}
-                {
-                    areaMedia ?
-                        <Image
-                            source={{
-                                uri: areaMedia,
-                            }}
-                            style={[localStyles.mediaImage, {
-                                width: mediaWidth,
-                                height: mediaWidth,
-                            }]}
-                            resizeMode="contain"
-                            PlaceholderContent={<ActivityIndicator />}
-                        /> :
-                        <MissingImagePlaceholder
-                            area={area}
-                            themeViewArea={themeViewArea}
-                            dimensions={{
-                                width: mediaWidth,
-                                height: mediaWidth,
-                            }}
-                        />
-                }
-            </PresssableWithDoubleTap>
+            <View>
+                <PresssableWithDoubleTap
+                    onPress={inspectContent}
+                    onDoubleTap={onDoubleTap || (() => {})}
+                    style={localStyles.mediaPressable}
+                >
+                    {/* <UserMedia
+                        viewportWidth={mediaWidth}
+                        media={areaMedia}
+                        isVisible={!!areaMedia}
+                        isSingleView={false}
+                        onLayout={onUserMediaLayout}
+                    /> */}
+                    {
+                        areaMedia ?
+                            <Image
+                                source={{
+                                    uri: areaMedia,
+                                }}
+                                style={[localStyles.mediaImage, {
+                                    width: mediaWidth,
+                                    height: mediaWidth,
+                                }]}
+                                resizeMode="contain"
+                                PlaceholderContent={<ActivityIndicator />}
+                            /> :
+                            <MissingImagePlaceholder
+                                area={area}
+                                themeViewArea={themeViewArea}
+                                dimensions={{
+                                    width: mediaWidth,
+                                    height: mediaWidth,
+                                }}
+                            />
+                    }
+                </PresssableWithDoubleTap>
+                {isQuickReport && (
+                    <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                        <Icon name="schedule" size={10} color={theme.colors.brandingWhite} />
+                        <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                    </View>
+                )}
+            </View>
             <View style={spacingStyles.flexOne}>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <Text
@@ -349,5 +360,22 @@ const localStyles = StyleSheet.create({
     },
     mediaImage: {
         borderRadius: 7,
+    },
+    quickReportBadge: {
+        position: 'absolute',
+        top: 12,
+        left: 18,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 5,
+        paddingVertical: 2,
+        borderRadius: 6,
+        gap: 2,
+    },
+    quickReportBadgeText: {
+        color: '#ffffff',
+        fontSize: 9,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
 });
