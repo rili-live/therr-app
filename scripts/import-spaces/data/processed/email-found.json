@@ -1,6 +1,6 @@
 {
   "type": "email-found",
-  "updatedAt": "2026-03-30T19:20:26.057Z",
+  "updatedAt": "2026-03-31T18:03:53.323Z",
   "entries": [
     {
       "id": "9fbe963b-6e01-494c-acee-d628cc40ce01",
@@ -1016,6 +1016,241 @@
       "id": "0378c8cc-07bd-4ae1-9cde-1e5e4502db82",
       "name": "The PATH Museum",
       "processedAt": "2026-03-30T19:20:26.057Z"
+    },
+    {
+      "id": "88874a94-7528-4f59-8924-1ee28f3be632",
+      "name": "It's a Wrap",
+      "processedAt": "2026-03-31T17:51:09.952Z"
+    },
+    {
+      "id": "1332d8e1-cc55-4ebd-98ec-1c54719f25ca",
+      "name": "The Slaughter House",
+      "processedAt": "2026-03-31T17:51:41.048Z"
+    },
+    {
+      "id": "b30972a9-458c-4331-bc8b-746c0d90a4ff",
+      "name": "Bowlero Torrance",
+      "processedAt": "2026-03-31T17:51:45.974Z"
+    },
+    {
+      "id": "f48507cb-1b0c-4b6a-ade4-609aa6113dbd",
+      "name": "Brown Deer Lanes",
+      "processedAt": "2026-03-31T17:53:21.619Z"
+    },
+    {
+      "id": "2d4ce8bb-c35b-460d-b65d-3df3df08f4c0",
+      "name": "Duke’s Indy",
+      "processedAt": "2026-03-31T17:54:18.416Z"
+    },
+    {
+      "id": "71a4c8c3-3441-4386-b785-7f7e6def532c",
+      "name": "JB's on 41",
+      "processedAt": "2026-03-31T17:54:34.940Z"
+    },
+    {
+      "id": "2bc02e54-07e4-439a-abb7-d948aec53fa5",
+      "name": "Red barrel bar and grill",
+      "processedAt": "2026-03-31T17:54:40.836Z"
+    },
+    {
+      "id": "7510da01-9c66-4d88-9869-41a11ffcf553",
+      "name": "Maya Riviera Bar & Restaurant",
+      "processedAt": "2026-03-31T17:55:12.387Z"
+    },
+    {
+      "id": "cb1de8ca-f379-4cb6-ab80-83ea9134350a",
+      "name": "Stivers Restaurant",
+      "processedAt": "2026-03-31T17:55:31.431Z"
+    },
+    {
+      "id": "dfc6510a-c3c8-4958-9906-c380ce25a52a",
+      "name": "The Green Gallery",
+      "processedAt": "2026-03-31T17:55:41.735Z"
+    },
+    {
+      "id": "709a016b-6ebf-4483-bb28-cef28a4d421d",
+      "name": "Torrance Art Museum",
+      "processedAt": "2026-03-31T17:56:08.019Z"
+    },
+    {
+      "id": "96f0c178-397f-4c0a-8ced-af1620b52c38",
+      "name": "Martin's Restaurant - Morrow Location",
+      "processedAt": "2026-03-31T17:56:24.078Z"
+    },
+    {
+      "id": "bdc6c4fa-6fd1-4487-8b18-a5598eee3d93",
+      "name": "Rusty Bucket Restaurant and Tavern",
+      "processedAt": "2026-03-31T17:56:36.403Z"
+    },
+    {
+      "id": "a009bd59-b433-45c5-b406-60bdf6ba209e",
+      "name": "Peppino's Restaurant & Catering",
+      "processedAt": "2026-03-31T17:56:39.323Z"
+    },
+    {
+      "id": "971845c8-978c-49ed-900b-8b91985a69f4",
+      "name": "Darna Restaurant",
+      "processedAt": "2026-03-31T17:56:55.874Z"
+    },
+    {
+      "id": "5214dd30-df2a-4275-b348-288cd4c1df87",
+      "name": "Lizard's Thicket Restaurant",
+      "processedAt": "2026-03-31T17:56:56.094Z"
+    },
+    {
+      "id": "ea3c36ab-7d94-40f0-a1d9-a06ec2573cf8",
+      "name": "Ninkasi Tasting Room",
+      "processedAt": "2026-03-31T17:57:21.448Z"
+    },
+    {
+      "id": "609945a5-7de5-47ad-88f5-61dcd8d1fa7b",
+      "name": "Twin Peaks",
+      "processedAt": "2026-03-31T17:57:54.566Z"
+    },
+    {
+      "id": "8dc97489-11e6-462f-9c15-370359ff5d9e",
+      "name": "Barbara's Bookstore",
+      "processedAt": "2026-03-31T17:58:11.840Z"
+    },
+    {
+      "id": "e8c31a91-40f8-4206-8ca1-2636016b23aa",
+      "name": "Sender One Climbing & Sender City - Los Angeles",
+      "processedAt": "2026-03-31T17:58:16.692Z"
+    },
+    {
+      "id": "947b6f68-2873-4af5-a95b-9021425500fa",
+      "name": "U & I Steak and Seafood Restaurant",
+      "processedAt": "2026-03-31T17:58:23.999Z"
+    },
+    {
+      "id": "20852942-9275-4855-ae92-736ac50c5df8",
+      "name": "Eastburn",
+      "processedAt": "2026-03-31T17:58:40.322Z"
+    },
+    {
+      "id": "cd6c5f6d-60f5-41d7-bf79-16bfdc1b4c42",
+      "name": "The Beginning II",
+      "processedAt": "2026-03-31T17:58:41.777Z"
+    },
+    {
+      "id": "a894a7ba-bce5-4fbb-90f1-1c577d89413a",
+      "name": "Thee Parkside",
+      "processedAt": "2026-03-31T17:58:52.421Z"
+    },
+    {
+      "id": "9abb1d43-d708-4042-940b-aefeeca55f45",
+      "name": "Granny's Restaurant",
+      "processedAt": "2026-03-31T17:59:01.696Z"
+    },
+    {
+      "id": "8b807c72-1c6b-4257-8c81-3695753a5da2",
+      "name": "Old Street Records",
+      "processedAt": "2026-03-31T17:59:07.534Z"
+    },
+    {
+      "id": "b0875182-ea4c-4625-a8b4-37c32efd4251",
+      "name": "answer. restaurant",
+      "processedAt": "2026-03-31T17:59:10.274Z"
+    },
+    {
+      "id": "46e72ce3-d80e-4756-9f6d-a35147c2cb7e",
+      "name": "Junction Restaurant",
+      "processedAt": "2026-03-31T17:59:22.375Z"
+    },
+    {
+      "id": "c01581e2-0b95-4417-9d5d-4816c6c2dd25",
+      "name": "Howl at the Moon Boston",
+      "processedAt": "2026-03-31T17:59:31.496Z"
+    },
+    {
+      "id": "a7dfb025-63b0-4049-ae48-7fcd69aee5e9",
+      "name": "Glunz Tavern",
+      "processedAt": "2026-03-31T17:59:39.463Z"
+    },
+    {
+      "id": "10d834b5-df18-4d1b-9367-102d300e7679",
+      "name": "The Bronx Museum of the Arts",
+      "processedAt": "2026-03-31T18:00:00.029Z"
+    },
+    {
+      "id": "96841f7a-d1fe-4fb8-9826-1b8f750b03ae",
+      "name": "Miami Art Central",
+      "processedAt": "2026-03-31T18:00:03.437Z"
+    },
+    {
+      "id": "6214e509-34a6-4db5-8e9c-f4f70df9d1e0",
+      "name": "Old Queens Head Chester",
+      "processedAt": "2026-03-31T18:00:25.876Z"
+    },
+    {
+      "id": "5001dace-41f8-469d-9208-ee615f82e39a",
+      "name": "Last Concert Cafe",
+      "processedAt": "2026-03-31T18:00:37.879Z"
+    },
+    {
+      "id": "8b590d64-5513-4bef-86e0-04275796d8e2",
+      "name": "Marino Restaurant",
+      "processedAt": "2026-03-31T18:00:38.520Z"
+    },
+    {
+      "id": "e360f599-36f1-41ca-a911-b51cfe5d7f08",
+      "name": "Chen Art Gallery (please call to schedule a tour)",
+      "processedAt": "2026-03-31T18:00:44.742Z"
+    },
+    {
+      "id": "e91cced6-0ba0-4f75-85e7-494cc091b32d",
+      "name": "The Hotel Utah Saloon",
+      "processedAt": "2026-03-31T18:00:51.485Z"
+    },
+    {
+      "id": "5b32ddc7-eb41-41a6-9b5b-220e1a161c4b",
+      "name": "Apple Store",
+      "processedAt": "2026-03-31T18:00:53.177Z"
+    },
+    {
+      "id": "b25a1b38-5fa5-4b87-aa02-74a1d2c99fe0",
+      "name": "FLAVORHOUSE EATERY",
+      "processedAt": "2026-03-31T18:00:55.878Z"
+    },
+    {
+      "id": "529b60b6-ac11-4da7-aecd-d3617f5322ae",
+      "name": "iâl Restaurant",
+      "processedAt": "2026-03-31T18:01:06.441Z"
+    },
+    {
+      "id": "b558121e-a689-4f57-8f2f-12e2045f8b01",
+      "name": "The Dive Bar & Restaurant",
+      "processedAt": "2026-03-31T18:02:25.238Z"
+    },
+    {
+      "id": "bf07dc6b-971c-40de-a240-70bab835c380",
+      "name": "1642",
+      "processedAt": "2026-03-31T18:02:33.648Z"
+    },
+    {
+      "id": "309a82a8-06a6-4d8c-8fd7-29d6d73892c6",
+      "name": "TAB Bistro",
+      "processedAt": "2026-03-31T18:02:46.099Z"
+    },
+    {
+      "id": "af56c544-162f-4cb5-b411-86dd43b63ebe",
+      "name": "Bristol",
+      "processedAt": "2026-03-31T18:03:27.197Z"
+    },
+    {
+      "id": "96c20ba4-56ee-43bf-bb4a-1309df630214",
+      "name": "Montrose Saloon",
+      "processedAt": "2026-03-31T18:03:39.901Z"
+    },
+    {
+      "id": "0bc7a51d-1e99-41b3-8485-81628ccec777",
+      "name": "Milwaukee Art Museum",
+      "processedAt": "2026-03-31T18:03:45.039Z"
+    },
+    {
+      "id": "61a7c13d-aad3-402b-95d9-3720db20d297",
+      "name": "The Royale",
+      "processedAt": "2026-03-31T18:03:53.323Z"
     }
   ]
 }

@@ -500,7 +500,10 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         }, () => this.togglePreviewBottomSheet(pressedCoords, undefined, restoreScrollIndex));
     };
 
-    togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any, restoreScrollIndex = 0, overlappingAreas?: any[]) => {
+    togglePreviewBottomSheet = (
+        pressedCoords: { latitude: number, longitude: number },
+        pressedAreaId?: any, restoreScrollIndex = 0, overlappingAreas?: any[],
+    ) => {
         const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
         // Reset to zero to review marker highlight
         this.removeAnimation();
