@@ -32,20 +32,25 @@ const parseApiKeyPrefix = (rawKey: string): string | null => {
     return keyPrefix;
 };
 
+interface IValidateApiKeyResult {
+    context: ICachedApiKeyContext | null;
+    serviceError?: boolean;
+}
+
 /**
  * Validates an API key by first checking Redis cache, then falling back to users-service.
  * On cache miss, the validated context is cached for 5 minutes.
  */
-const validateApiKeyWithService = async (apiKey: string): Promise<ICachedApiKeyContext | null> => {
+const validateApiKeyWithService = async (apiKey: string): Promise<IValidateApiKeyResult> => {
     const keyPrefix = parseApiKeyPrefix(apiKey);
     if (!keyPrefix) {
-        return null;
+        return { context: null };
     }
 
     // Check Redis cache first
     const cached = await getCachedApiKeyContext(keyPrefix);
     if (cached) {
-        return cached;
+        return { context: cached };
     }
 
     // Cache miss — call users-service to validate
@@ -73,10 +78,10 @@ const validateApiKeyWithService = async (apiKey: string): Promise<ICachedApiKeyC
             // Non-blocking cache write
         });
 
-        return context;
+        return { context };
     } catch (err: any) {
         if (err?.response?.status === 401 || err?.response?.status === 403) {
-            return null;
+            return { context: null };
         }
 
         logSpan({
@@ -89,7 +94,7 @@ const validateApiKeyWithService = async (apiKey: string): Promise<ICachedApiKeyC
             },
         });
 
-        return null;
+        return { context: null, serviceError: true };
     }
 };
 
@@ -108,9 +113,16 @@ const authenticateApiKey = async (req, res, next) => {
         });
     }
 
-    const context = await validateApiKeyWithService(apiKey);
+    const { context, serviceError } = await validateApiKeyWithService(apiKey);
 
     if (!context) {
+        if (serviceError) {
+            return handleHttpError({
+                res,
+                message: 'Unable to validate API key. Please try again later.',
+                statusCode: 503,
+            });
+        }
         return handleHttpError({
             res,
             message: 'Invalid or revoked API key',
@@ -129,4 +141,5 @@ const authenticateApiKey = async (req, res, next) => {
     return next();
 };
 
+export { parseApiKeyPrefix, validateApiKeyWithService };
 export default authenticateApiKey;
