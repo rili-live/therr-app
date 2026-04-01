@@ -16,6 +16,7 @@ import MarkerIconGem from './MarkerIconGem';
 import MarkerIconHotel from './MarkerIconHotel';
 import MarkerIconHourglass from './MarkerIconHourglass';
 import MarkerIconMusic from './MarkerIconMusic';
+import MarkerIconMusicNotes from './MarkerIconMusicNotes';
 import MarkerIconNature from './MarkerIconNature';
 import MarkerIconStorefront from './MarkerIconStorefront';
 import MarkerIconThinking from './MarkerIconThinking';
@@ -58,6 +59,9 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
     music: {
         fill: theme.colors.brandingBlack,
     },
+    musicNotes: {
+        fill: theme.colors.brandingOrange,
+    },
     seasonal: {
         fill: theme.colors.accentTeal,
     },
@@ -87,6 +91,9 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
     gem: {
         fill: theme.colors.brandingOrange,
     },
+    localDeal: {
+        fill: theme.colors.brandingOrange,
+    },
 });
 
 const quickReportIconSize = 36;
@@ -111,7 +118,10 @@ const getIconForCategory = (category, areaType, area, theme) => {
     if (category === 'art' || category === 'artwork/expression' || category?.includes('artwork')) {
         return <MarkerIconArt {...configs.art} />;
     }
-    if (category === 'deals' || category === 'localDeal') {
+    if (category === 'localDeal') {
+        return <MarkerIconDiscount {...configs.localDeal} />;
+    }
+    if (category === 'deals') {
         return <MarkerIconDiscount {...configs.deals} />;
     }
     if (category === 'drinks' || category === 'bar/drinks') {
@@ -123,7 +133,10 @@ const getIconForCategory = (category, areaType, area, theme) => {
     if (category === 'food' || category === 'restaurant/food' || category === 'menu') {
         return <MarkerIconFood {...configs.food} />;
     }
-    if (category === 'music' || category === 'music/concerts' || category === 'liveEntertainment') {
+    if (category === 'liveEntertainment') {
+        return <MarkerIconMusicNotes {...configs.musicNotes} />;
+    }
+    if (category === 'music' || category === 'music/concerts') {
         return <MarkerIconMusic {...configs.music} />;
     }
     if (category === 'seasonal') {
