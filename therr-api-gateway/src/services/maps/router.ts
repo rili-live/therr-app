@@ -417,7 +417,7 @@ const MAPBOX_CACHE_PREFIX = 'MAPBOX_CACHE:';
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';
 
 mapsServiceRouter.get('/mapbox/search', placesApiLimiter, async (req, res) => {
-    const { q, latitude, longitude, limit: resultLimit, language } = req.query;
+    const { q, latitude, longitude, limit: resultLimit, language, sessionToken } = req.query;
 
     if (!q || typeof q !== 'string' || !q.trim()) {
         return res.status(400).json({ message: 'Query parameter "q" is required' });
@@ -446,6 +446,10 @@ mapsServiceRouter.get('/mapbox/search', placesApiLimiter, async (req, res) => {
 
         if (latitude && longitude) {
             params.proximity = `${longitude},${latitude}`;
+        }
+
+        if (sessionToken && typeof sessionToken === 'string') {
+            params.session_token = sessionToken;
         }
 
         const response = await axios.get('https://api.mapbox.com/search/searchbox/v1/suggest', {

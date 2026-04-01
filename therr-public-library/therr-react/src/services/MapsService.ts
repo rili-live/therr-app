@@ -6,6 +6,7 @@ import { IAreaType } from 'therr-js-utilities/types';
 import { ISearchQuery } from '../types';
 
 let googleDynamicSessionToken = uuid.v4(); // This gets stored in the local state of this file/module
+let mapboxSessionToken = uuid.v4(); // Session token for Mapbox Search Box API (groups suggest + retrieve into one billing session)
 
 export interface ISearchAreasArgs {
     distanceOverride?: number;
@@ -113,7 +114,6 @@ export interface IMapboxSearchArgs {
     input: string;
     limit?: number;
     language?: string;
-    sessionToken?: string;
 }
 
 // Normalized prediction format used by both Google and Mapbox providers
@@ -486,13 +486,13 @@ class MapsService {
     };
 
     // Mapbox Search (via server-side proxy)
+    // Session token groups suggest + retrieve calls into one billing session
     getMapboxSearchAutoComplete = ({
         longitude,
         latitude,
         input,
         limit,
         language,
-        sessionToken,
     }: IMapboxSearchArgs) => axios({
         method: 'get',
         url: '/maps-service/mapbox/search',
@@ -502,16 +502,18 @@ class MapsService {
             longitude,
             limit: limit || 5,
             language: language || 'en',
-            sessionToken,
+            sessionToken: mapboxSessionToken,
         },
         headers: {},
     });
 
-    getMapboxRetrieve = (mapboxId: string, sessionToken?: string) => axios({
+    getMapboxRetrieve = (mapboxId: string) => axios({
         method: 'get',
         url: `/maps-service/mapbox/retrieve/${encodeURIComponent(mapboxId)}`,
-        params: sessionToken ? { sessionToken } : {},
+        params: { sessionToken: mapboxSessionToken },
         headers: {},
+    }).finally(() => {
+        mapboxSessionToken = uuid.v4(); // Reset after retrieve to start a new billing session
     });
 
     // Geocoding (Nominatim via server-side proxy)
