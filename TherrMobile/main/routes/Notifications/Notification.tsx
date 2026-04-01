@@ -35,30 +35,30 @@ const getHighlightValues = (notification: any): string[] => {
     }
 
     // Add type-specific action keywords that indicate routing destination
-    // Include both English and Spanish variants for locale support
+    // Include English, Spanish, and French variants for locale support
     if (type === NotificationEnums.Types.ACHIEVEMENT_COMPLETED) {
-        values.push('claim your reward', 'Reclama tu recompensa');
+        values.push('claim your reward', 'Reclama tu recompensa', 'réclamer tes pièces');
     } else if (type === NotificationEnums.Types.CONNECTION_REQUEST_ACCEPTED) {
-        values.push('connection request', 'solicitud de conexión');
+        values.push('connection request', 'solicitud de conexión', 'demande de connexion');
     } else if (type === NotificationEnums.Types.CONNECTION_REQUEST_RECEIVED) {
-        values.push('connection request', 'solicitud de conexión');
+        values.push('connection request', 'solicitud de conexión', 'demande de connexion');
     } else if (type === NotificationEnums.Types.NEW_LIKE_RECEIVED
         || type === NotificationEnums.Types.NEW_SUPER_LIKE_RECEIVED) {
-        values.push('your post', 'tu publicación');
+        values.push('your post', 'tu publicación', 'ta publication');
     } else if (type === NotificationEnums.Types.THOUGHT_REPLY) {
-        values.push('new replies', 'nuevas respuestas');
+        values.push('new replies', 'nuevas respuestas', 'a répondu à ta publication');
     } else if (type === NotificationEnums.Types.NEW_DM_RECEIVED) {
-        values.push('direct message', 'mensaje directo');
+        values.push('direct message', 'mensaje directo', 'Nouveau message');
     } else if (type === NotificationEnums.Types.NEW_GROUP_INVITE) {
-        values.push('join the group', 'unirte al grupo');
+        values.push('join the group', 'unirte al grupo', 'rejoindre');
     } else if (type === NotificationEnums.Types.NEW_GROUP_MEMBERS) {
-        values.push('joined your group', 'se unieron a tu grupo');
+        values.push('joined your group', 'se unieron a tu grupo', 'rejoindre ton groupe');
     } else if (type === NotificationEnums.Types.NEW_AREAS_ACTIVATED) {
-        values.push('new areas(s)', 'nueva(s) área(s)');
+        values.push('new areas(s)', 'nueva(s) área(s)', 'nouveau(x) secteur(s)');
     } else if (type === NotificationEnums.Types.DISCOVERED_UNIQUE_MOMENT) {
-        values.push('activate a moment', 'activar un momento');
+        values.push('activate a moment', 'activar un momento', 'quelque chose de spécial');
     } else if (type === NotificationEnums.Types.DISCOVERED_UNIQUE_SPACE) {
-        values.push('activate a space', 'activar un espacio');
+        values.push('activate a space', 'activar un espacio', 'espace unique');
     }
 
     return values;

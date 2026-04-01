@@ -1,0 +1,218 @@
+{
+    "errorMessages": {
+        "auth": {
+            "accountNotVerified": "Compte non vérifié. Vérifie ton courriel pour la vérification ou rends-toi à /verify-account pour renvoyer le lien",
+            "noUserFound": "Aucun utilisateur trouvé avec le nom d'utilisateur ou le courriel saisi",
+            "oneTimeExpired": "Le mot de passe à usage unique a expiré",
+            "incorrectUserPass": "Combinaison nom d'utilisateur/mot de passe incorrecte",
+            "invalidPassword": "Le mot de passe est invalide"
+        },
+        "posts": {
+            "duplicatePost": "Les publications en double ne sont pas autorisées"
+        },
+        "user": {
+            "invalidUserNamePassword": "La combinaison utilisateur/mot de passe est incorrecte",
+            "maxOrgs": "Nombre maximum d'organisations atteint",
+            "misMatchUserIDs": "Les identifiants d'utilisateur ne correspondent pas",
+            "uniqueUserName": "Ce nom d'utilisateur est déjà pris"
+        },
+        "userAchievements": {
+            "invalidAchievementClass": "Classe de réalisation invalide. Rien trouvé dans la configuration.",
+            "invalidAchievementId": "Identifiant de réalisation invalide. Rien trouvé dans la configuration.",
+            "invalidAchievementTier": "Niveau de réalisation invalide. Rien trouvé dans la configuration."
+        },
+        "userConnections": {
+            "alreadyExists": "Cette connexion d'utilisateur existe déjà",
+            "noUserFound": "Aucun utilisateur trouvé avec les critères fournis",
+            "noRequestSelf": "Impossible de créer une connexion avec soi-même",
+            "mismatchTokenUserId": "Identifiant d'utilisateur demandeur invalide",
+            "locationRequired": "La localisation de l'utilisateur est requise pour ce point d'accès",
+            "noNearbyUserConnectionsFound": "Aucune connexion d'utilisateur à proximité trouvée"
+        },
+        "privacy": {
+            "restrictedMedia": "Contenu restreint"
+        }
+    },
+    "metrics": {
+        "mustBeOwner": "Tu dois être le propriétaire du contenu pour consulter les métriques"
+    },
+    "notifications": {
+        "achievementCompleted": "Tu as gagné une récompense! Appuie pour réclamer tes pièces.",
+        "connectionRequestAccepted": "{firstName} {lastName} a accepté ta demande de connexion",
+        "connectionRequestReceived": "Tu as reçu une nouvelle demande de connexion de {firstName} {lastName}",
+        "reactionLikeReceived": "{userName} a aimé ta publication",
+        "reactionSuperLikeReceived": "{userName} a super-aimé ta publication!",
+        "newThoughtReplyReceived": "{userName} a répondu à ta publication",
+        "newDmReceived": "Nouveau message de {userName} pendant ton absence",
+        "newGroupMembers": "{members} vient de rejoindre ton groupe, {groupName}",
+        "newGroupInvite": "{inviterUserName} t'a invité à rejoindre {groupName}",
+        "newAreasActivated": "Tu viens de débloquer {totalAreasActivated} nouveau(x) secteur(s) — explore ce qu'il y a à proximité!",
+        "discoveredUniqueMoment": "Tu as trouvé quelque chose de spécial! Ouvre la carte pour y jeter un coup d'œil.",
+        "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!"
+    },
+    "invites": {
+        "phone": "{name} t'a invité sur Therr — l'appli de communauté locale et de récompenses. Inscris-toi ici pour te connecter : https://therr.com"
+    },
+    "thoughts": {
+        "notFound": "Pensée non trouvée"
+    },
+    "thoughtReactions": {
+        "thoughtNotActivated": "Cet utilisateur n'est pas autorisé à accéder au contenu sans d'abord activer la pensée"
+    },
+    "validation": "Les paramètres requis n'ont pas été fournis.",
+    "emails": {
+        "verification": {
+            "subject": "Vérifie ton compte {brandShortName}",
+            "header": "Bienvenue sur {brandName}!",
+            "dearUser": "Salut {name},",
+            "body1": "Ton compte est prêt! Clique sur le lien ci-dessous pour vérifier ton courriel et commencer à explorer ta communauté locale.",
+            "buttonText": "Vérifier mon compte",
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "oneTimePassword": {
+            "subject": "Réinitialisation de ton mot de passe {brandShortName}",
+            "header": "{brandName} : Réinitialisation du mot de passe",
+            "dearUser": "Salut {name},",
+            "body1": "Pas de souci — ça arrive à tout le monde! Utilise le mot de passe temporaire ci-dessous pour te reconnecter, puis va dans les paramètres pour en créer un nouveau.",
+            "body2": "Ton mot de passe temporaire :",
+            "buttonText": "Aller à la connexion"
+        },
+        "passwordChange": {
+            "subject": "Ton mot de passe {brandShortName} a été mis à jour",
+            "header": "{brandName} : Mot de passe mis à jour",
+            "dearUser": "Salut {userName},",
+            "body1": "Ton mot de passe vient d'être changé. Si c'est bien toi, tout est beau — aucune action requise.",
+            "body2": "Tu n'as pas fait ce changement? Contacte-nous immédiatement pour que nous puissions sécuriser ton compte.",
+            "buttonText": "Aller à la connexion"
+        },
+        "ssoNewUser": {
+            "subject": "Bienvenue sur {brandShortName} — Ton compte est prêt",
+            "header": "Bienvenue sur {brandName}!",
+            "dearUser": "Salut {name},",
+            "body1": "Ton compte a été créé! Clique ci-dessous pour te connecter, choisir un nom d'utilisateur et définir ton mot de passe. Tu peux aussi continuer à te connecter avec le SSO.",
+            "body2": "Ton mot de passe temporaire :",
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "subscriberVerification": {
+            "header": "C'est fait! Bienvenue sur {brandName}",
+            "dearUser": "Bienvenue!",
+            "body1": "Tu es maintenant abonné aux mises à jour de {brandName}. On te contactera seulement pour les nouvelles importantes — nouvelles fonctionnalités, faits saillants de la communauté et événements à ne pas manquer. Si tu n'as pas encore l'appli, télécharge-la sur Google Play ou l'Apple App Store."
+        },
+        "pendingInvite": {
+            "header": "Tu as une nouvelle demande d'ami",
+            "body1": "{fromName} veut se connecter avec toi sur {brandName}. Appuie ci-dessous pour répondre!"
+        },
+        "newGroupInvite": {
+            "header": "Tu es invité à rejoindre {groupName}!",
+            "body1": "{fromUserName} t'a invité à rejoindre le groupe {groupName}.",
+            "body2": "Rejoins le groupe pour accéder au clavardage de groupe et rester au courant des prochains événements. Connecte-toi pour voir ton invitation.",
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "newGroupMembers": {
+            "header": "De nouveaux membres ont rejoint ton groupe!",
+            "body1WithMembers": "Souhaite la bienvenue aux nouveaux membres : {membersList}",
+            "body1WithoutMembers": "Souhaite la bienvenue aux nouveaux membres!",
+            "body2WithMembers": "{membersList} ont récemment rejoint ton groupe {groupName}. Connecte-toi pour réviser leurs demandes si ton groupe requiert une approbation.",
+            "body2WithoutMembers": "De nouveaux membres ont récemment rejoint ton groupe {groupName}. Connecte-toi pour réviser leurs demandes si ton groupe requiert une approbation.",
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "contactInvite": {
+            "header": "{fromName} t'a invité à te connecter!",
+            "dearUser": "Salut {toEmail}!",
+            "body1": "{fromName} te veut sur {brandName}! Tu peux aussi le joindre directement à {fromEmail}.",
+            "body2": "Clique ci-dessous pour t'inscrire et commencer à explorer ta communauté locale.",
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "newUserInvite": {
+            "header": "Ton profil t'attend!",
+            "dearUser": "Salut {toEmail}!",
+            "body1": "{fromName} t'a invité à te connecter sur {brandName}. Tu peux le joindre directement à {fromEmail}.",
+            "body2": "Clique ci-dessous pour terminer la configuration de ton profil. Utilise ce mot de passe à usage unique pour commencer :",
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "coinsReceived": {
+            "header": "Tu as gagné des pièces!",
+            "dearUser": "Beau travail, {userName}!",
+            "body1": "Tu viens de réclamer {coinTotal} TherrCoin(s) pour avoir soutenu des commerces locaux. Merci de faire partie de cette communauté!"
+        },
+        "claimApproved": {
+            "header": "Ton espace commercial est en ligne!",
+            "body1": "Bonne nouvelle — ton emplacement commercial (« {spaceName} ») a été approuvé et est maintenant visible pour les utilisateurs à proximité sur {brandName}.",
+            "body2": "Des questions? Contacte-nous en tout temps à info@therr.com.",
+            "postBody1": "Merci de faire partie de la communauté {brandName}. Des commerces locaux comme le tien rendent tout ça possible!"
+        },
+        "claimPendingReview": {
+            "header": "Ton espace commercial est en cours de révision",
+            "body1": "Nous avons reçu ta demande pour « {spaceName} » et elle est présentement en révision. Tu devrais recevoir une réponse dans les 24 à 72 heures.",
+            "body2": "Garde un œil sur ta boîte de réception pour le courriel de confirmation. Des questions? Contacte-nous à info@therr.com.",
+            "bodyBold": "Tu peux modifier ton inscription en tout temps pendant qu'elle est en révision.",
+            "postBody1": "Merci de faire partie de la communauté {brandName}. Des commerces locaux comme le tien rendent tout ça possible!",
+            "buttonText": "Aller à l'appli"
+        },
+        "campaignApproved": {
+            "header": "Ta campagne est approuvée et prête à démarrer!",
+            "body1": "Ta campagne « {campaignName} » a été approuvée et commencera à diffuser sur {integrationTargets} à l'heure prévue.",
+            "body2": "Rends-toi sur ton tableau de bord pour consulter les performances en temps réel.",
+            "body3": "Des questions? Contacte-nous en tout temps à info@therr.com."
+        },
+        "campaignPendingReview": {
+            "header": "Ta campagne est en cours de révision",
+            "body1": "Nous avons reçu ta campagne « {campaignName} » et elle est en cours de révision. Les annonces seront diffusées sur les plateformes cibles une fois approuvées.",
+            "body2": "Vérifie ta boîte de réception pour le courriel de confirmation ou visite le tableau de bord pour les mises à jour. Des questions? Contacte-nous à info@therr.com.",
+            "bodyWarning": "Attention : Cette campagne a dépassé sa date de fin prévue. Mets à jour ton calendrier pour garder tes annonces actives.",
+            "bodyBold": "Tu peux modifier ta campagne en tout temps pendant qu'elle est en révision.",
+            "postBody1": "Merci d'avoir choisi Therr for Business! Nous améliorons constamment nos outils pour t'aider à rejoindre plus de clients locaux. Tes commentaires sont toujours les bienvenus.",
+            "buttonText": "Aller au tableau de bord"
+        },
+        "unclaimedSpace": {
+            "subject": "Des gens recherchent {spaceName}",
+            "header": "Ton commerce se fait remarquer",
+            "preheaderText": "Des clients découvrent et parlent de ton commerce. Réclame ton inscription gratuite dès aujourd'hui.",
+            "dearUser": "Bonjour, {spaceName}!",
+            "body1": "Des gens de ton quartier découvrent {spaceName} sur Therr — et ils partagent ce qui se passe dans ton commerce en temps réel. Les clients publient sur leurs expériences, signalent des aubaines et informent les autres quand c'est achalandé ou quand l'ambiance est super. Ton commerce a déjà une inscription. La question est : qui contrôle l'histoire?",
+            "body2": "Quand tu réclames ta page, tu débloques des outils que Google ne peut pas offrir : consulte les rapports de clients en temps réel sur ton commerce, connecte-toi avec des commerces locaux complémentaires qui t'envoient des clients, et récompense ceux qui parlent de toi. Ce n'est pas juste une inscription — c'est une présence vivante propulsée par la communauté.",
+            "bodyBold": "Ça prend seulement 60 secondes pour commencer.",
+            "buttonText": "Voir ta page de commerce",
+            "postBody1": "Tu as déjà un compte? Connecte-toi simplement et réclame ton espace depuis la page du commerce.",
+            "missingFieldsIntro": "Ton inscription est encore incomplète — voici les détails manquants :",
+            "missingFieldLabels": {
+                "openingHours": "heures d'ouverture",
+                "phoneNumber": "numéro de téléphone",
+                "websiteUrl": "site web",
+                "menuUrl": "menu",
+                "photos": "photos",
+                "description": "une description détaillée"
+            }
+        },
+        "dashboardSubscriberIntro": {
+            "header": "Bienvenue sur {brandName}!",
+            "dearUser": "Bienvenue!",
+            "body1": "Ton commerce est maintenant configuré avec le forfait « {productPlanName} » et ton abonnement se renouvellera automatiquement après l'essai gratuit. Si tu as déjà un compte de tableau de bord, connecte-toi pour gérer ton inscription.",
+            "body2": "Tu es nouveau? Clique ci-dessous pour t'inscrire et commencer. Complète ton profil de commerce pour de meilleurs résultats — nos campagnes propulsées par l'IA sont conçues pour attirer des clients locaux chez toi.",
+            "body3": "Des questions ou tu veux changer de forfait? Écris-nous en tout temps : {feedbackEmail}",
+            "bodyBold": "Il se peut que tu doives te déconnecter et te reconnecter pour voir ton accès mis à jour.",
+            "buttonText": "Commencer",
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "dashboardSubscriberUserNotFound": {
+            "header": "Nous n'avons pas trouvé ton compte",
+            "dearUser": "Bonjour,",
+            "body1": "Le courriel que tu as utilisé pour t'abonner à Therr for Business ne correspond à aucun compte dans notre système.",
+            "body2": "Si tu n'as pas encore créé de compte de tableau de bord, fais-le maintenant — ou indique-nous le courriel avec lequel tu t'es inscrit.",
+            "body3": "Une fois ton abonnement lié, nous te notifierons pour que tu puisses accéder à toutes les fonctionnalités immédiatement.",
+            "buttonText": "Aller au tableau de bord",
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "sendEmailAndOrPush": {
+            "connectionRequestSubject": "{userName} veut se connecter avec toi",
+            "newGroupMembersSubject": "De nouveaux membres ont rejoint ton groupe!",
+            "newGroupInviteSubject": "{userName} t'a invité à rejoindre {groupName}"
+        },
+        "template": {
+            "allRightsReserved": "Tous droits réservés",
+            "unsubscribePrompt": "Tu ne veux plus recevoir ces courriels?",
+            "unsubscribeLink": "Se désabonner",
+            "unsubscribeReply": "Réponds « Se désabonner » pour ne plus recevoir de courriels de type {messageCategory}"
+        }
+    }
+}

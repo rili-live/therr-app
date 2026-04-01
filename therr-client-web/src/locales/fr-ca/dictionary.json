@@ -450,7 +450,7 @@
       },
       "pageTitle": "Vérification du compte",
       "returnToLogin": "Retour à la page de connexion",
-      "successMessage": "Votre!",
+      "successMessage": "Votre courriel a été vérifié!",
       "successVerifiedMessage": "Votre compte a été vérifié. Connectez-vous pour continuer."
     },
     "resetPassword": {
