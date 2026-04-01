@@ -473,7 +473,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onValueChange={this.onLocaleChange}
                                     buttons={[
                                         { value: 'en-us', label: 'English', icon: 'translate' },
-                                        { value: 'es', label: 'Espanol', icon: 'translate' },
+                                        { value: 'es', label: 'Español', icon: 'translate' },
+                                        { value: 'fr-ca', label: 'Français', icon: 'translate' },
                                     ]}
                                 />
                             </View>
