@@ -10,9 +10,6 @@ import {
 
 const API_KEY_PREFIX = 'therr_sk_';
 
-/**
- * Parses a raw API key to extract the prefix for cache/DB lookup.
- */
 const parseApiKeyPrefix = (rawKey: string): string | null => {
     if (!rawKey || !rawKey.startsWith(API_KEY_PREFIX)) {
         return null;
@@ -141,5 +138,6 @@ const authenticateApiKey = async (req, res, next) => {
     return next();
 };
 
+// Exported for unit testing only — do not use directly in production code
 export { parseApiKeyPrefix, validateApiKeyWithService };
 export default authenticateApiKey;

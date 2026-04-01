@@ -301,14 +301,7 @@ describe('restrictApiKeyAccess middleware', () => {
             expect(res.status.calledWith(403)).to.be.eq(true);
         });
 
-        // Note: GET /moments/search is allowed because the broad GET pattern
-        // /^\/v1\/maps-service\/moments\// matches any sub-path under moments.
-        // This is by design — GET on moment sub-resources is permitted.
-        it('should block GET to a POST-only spaces endpoint', () => {
-            req.method = 'GET';
-            req.path = '/v1/maps-service/spaces/search';
-            // GET /spaces/search matches the GET /spaces/ pattern, so it's allowed
-            // Test a truly method-mismatched case instead
+        it('should block PATCH on spaces (only GET, POST, PUT allowed)', () => {
             req.method = 'PATCH';
             req.path = '/v1/maps-service/spaces/some-uuid';
             restrictApiKeyAccess(req, res, next);
