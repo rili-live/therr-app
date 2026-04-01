@@ -107,6 +107,23 @@ export interface IPlacesAutoCompleteArgs {
     sessiontoken?: string;
 }
 
+export interface IMapboxSearchArgs {
+    longitude: string;
+    latitude: string;
+    input: string;
+    limit?: number;
+    language?: string;
+    sessionToken?: string;
+}
+
+// Normalized prediction format used by both Google and Mapbox providers
+export interface ISearchPrediction {
+    place_id: string;
+    description: string;
+    provider: 'google' | 'mapbox';
+    mapbox_id?: string;
+}
+
 export interface IPlaceDetailsArgs {
     placeId: string;
     sessiontoken?: string;
@@ -467,6 +484,35 @@ class MapsService {
             googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
         });
     };
+
+    // Mapbox Search (via server-side proxy)
+    getMapboxSearchAutoComplete = ({
+        longitude,
+        latitude,
+        input,
+        limit,
+        language,
+        sessionToken,
+    }: IMapboxSearchArgs) => axios({
+        method: 'get',
+        url: '/maps-service/mapbox/search',
+        params: {
+            q: input,
+            latitude,
+            longitude,
+            limit: limit || 5,
+            language: language || 'en',
+            sessionToken,
+        },
+        headers: {},
+    });
+
+    getMapboxRetrieve = (mapboxId: string, sessionToken?: string) => axios({
+        method: 'get',
+        url: `/maps-service/mapbox/retrieve/${encodeURIComponent(mapboxId)}`,
+        params: sessionToken ? { sessionToken } : {},
+        headers: {},
+    });
 
     // Geocoding (Nominatim via server-side proxy)
     geocodeLocation = (query: string) => axios({

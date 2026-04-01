@@ -5,8 +5,10 @@ import MapsService, {
     ICreateSpaceCheckInMetricsArgs,
     IGetSpaceEngagementArgs,
     IGetSpaceMetricsArgs,
+    IMapboxSearchArgs,
     IPlacesAutoCompleteArgs,
     ISearchAreasArgs,
+    ISearchPrediction,
 } from '../../services/MapsService';
 import { ContentActionTypes } from '../../types';
 
@@ -406,27 +408,73 @@ const Maps = {
             return response.data;
         }),
 
-    // Google API
-    getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs) => (dispatch: any) => {
+    // Search Autocomplete (supports Google Places and Mapbox providers)
+    getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs, useMapboxSearch = false) => (dispatch: any) => {
         dispatch({
             type: MapActionTypes.AUTOCOMPLETE_SEARCHING,
         });
+
+        if (useMapboxSearch) {
+            const mapboxArgs: IMapboxSearchArgs = {
+                longitude: args.longitude,
+                latitude: args.latitude,
+                input: args.input,
+            };
+
+            return MapsService.getMapboxSearchAutoComplete(mapboxArgs)
+                .then((response) => {
+                    const suggestions = response.data?.suggestions || [];
+                    const predictions: ISearchPrediction[] = suggestions.map((s: any) => ({
+                        place_id: s.mapbox_id,
+                        description: s.full_address || s.name || s.place_formatted || '',
+                        provider: 'mapbox',
+                        mapbox_id: s.mapbox_id,
+                    }));
+                    dispatch({
+                        type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                        data: { predictions },
+                    });
+                })
+                .catch((error) => {
+                    console.log('Mapbox search failed, falling back to Google Places', error);
+                    // Fallback to Google Places on Mapbox failure
+                    return MapsService.getPlacesSearchAutoComplete(args)
+                        .then((response) => {
+                            const googlePredictions = (response.data?.predictions || []).map((p: any) => ({
+                                ...p,
+                                provider: 'google',
+                            }));
+                            dispatch({
+                                type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                                data: { predictions: googlePredictions },
+                            });
+                        })
+                        .catch((fallbackError) => {
+                            console.log(fallbackError);
+                            dispatch({
+                                type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                                data: { predictions: [] },
+                            });
+                        });
+                });
+        }
+
         return MapsService.getPlacesSearchAutoComplete(args)
             .then((response) => {
+                const predictions = (response.data?.predictions || []).map((p: any) => ({
+                    ...p,
+                    provider: 'google',
+                }));
                 dispatch({
                     type: MapActionTypes.AUTOCOMPLETE_UPDATE,
-                    data: {
-                        predictions: response.data?.predictions || [],
-                    },
+                    data: { predictions },
                 });
             })
             .catch((error) => {
                 console.log(error);
                 dispatch({
                     type: MapActionTypes.AUTOCOMPLETE_UPDATE,
-                    data: {
-                        predictions: [],
-                    },
+                    data: { predictions: [] },
                 });
             });
     },
