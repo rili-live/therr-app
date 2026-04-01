@@ -34,7 +34,7 @@
         }
     },
     "metrics": {
-        "mustBeOwner": "Vous devez être le propriétaire du contenu pour consulter les métriques"
+        "mustBeOwner": "Tu dois être le propriétaire du contenu pour consulter les métriques"
     },
     "notifications": {
         "achievementCompleted": "Tu as gagné une récompense! Appuie pour réclamer tes pièces.",

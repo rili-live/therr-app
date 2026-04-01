@@ -8,6 +8,6 @@
   },
   "validation": "Les paramètres requis n'ont pas été fournis.",
   "errors": {
-    "matureText": "Texte invalide. Veuillez réessayer."
+    "matureText": "Texte invalide. Essaie de nouveau."
   }
 }
