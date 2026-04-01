@@ -1043,7 +1043,7 @@ const updateSpace = async (req, res) => {
                 effectiveFromUserId = existingSpace.fromUserId;
             }
         } catch (err) {
-            return handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' });
+            return handleHttpError({ err: err instanceof Error ? err : undefined, res, message: 'SQL:SPACES_ROUTES:ERROR' });
         }
     }
 
