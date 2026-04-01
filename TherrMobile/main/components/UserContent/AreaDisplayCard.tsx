@@ -110,16 +110,18 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                 />
                         }
                     </View>
-                    {isQuickReport && (
-                        <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
-                            <MaterialIcon name="schedule" size={12} color={theme.colors.brandingWhite} />
-                            <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
-                        </View>
-                    )}
                     <View style={[localStyles.textContent, themeViewArea.styles.textContent]}>
-                        <Text numberOfLines={2} style={themeViewArea.styles.cardTitle}>
-                            {area.notificationMsg}
-                        </Text>
+                        <View style={localStyles.titleWithBadge}>
+                            <Text numberOfLines={2} style={[themeViewArea.styles.cardTitle, localStyles.titleText]}>
+                                {area.notificationMsg}
+                            </Text>
+                            {isQuickReport && (
+                                <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                                    <MaterialIcon name="schedule" size={10} color={theme.colors.brandingWhite} />
+                                    <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                                </View>
+                            )}
+                        </View>
                         {
                             shouldDisplayRewardsBanner ?
                                 <View style={themeViewArea.styles.banner}>
@@ -158,10 +160,16 @@ const localStyles = StyleSheet.create({
     textContent: {
         padding: 0,
     },
+    titleWithBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    titleText: {
+        flexShrink: 1,
+    },
     quickReportBadge: {
-        position: 'absolute',
-        top: 6,
-        left: 6,
+        flexShrink: 0,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 6,

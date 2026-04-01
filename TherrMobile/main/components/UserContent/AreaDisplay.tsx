@@ -542,20 +542,22 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 />
                         }
                     </PresssableWithDoubleTap>
-                    {isQuickReport && (
-                        <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
-                            <Icon name="schedule" size={14} color={theme.colors.brandingWhite} />
-                            <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
-                        </View>
-                    )}
                 </View>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
-                    <Text
-                        style={themeViewArea.styles.areaContentTitle}
-                        numberOfLines={2}
-                    >
-                        {sanitizeNotificationMsg(area.notificationMsg)}
-                    </Text>
+                    <View style={localStyles.titleWithBadge}>
+                        <Text
+                            style={[themeViewArea.styles.areaContentTitle, localStyles.titleText]}
+                            numberOfLines={2}
+                        >
+                            {sanitizeNotificationMsg(area.notificationMsg)}
+                        </Text>
+                        {isQuickReport && (
+                            <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                                <Icon name="schedule" size={12} color={theme.colors.brandingWhite} />
+                                <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                            </View>
+                        )}
+                    </View>
                     {
                         <Button
                             containerStyle={themeViewArea.styles.areaReactionButtonContainer}
@@ -1121,10 +1123,17 @@ const localStyles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 8,
     },
+    titleWithBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexShrink: 1,
+        gap: 8,
+    },
+    titleText: {
+        flexShrink: 1,
+    },
     quickReportBadge: {
-        position: 'absolute',
-        top: 8,
-        left: 8,
+        flexShrink: 0,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 8,

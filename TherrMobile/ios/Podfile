@@ -79,6 +79,25 @@ target 'Therr' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Fix RCT-Folly New.h for Xcode 26+ clang compatibility
+    # __has_builtin returns 1 but Folly checks >= 201802L, forcing a library operator
+    # path that newer clang can't resolve. Patch to use builtin operators directly.
+    folly_new_h = File.join(__dir__, 'Pods', 'RCT-Folly', 'folly', 'lang', 'New.h')
+    if File.exist?(folly_new_h)
+      File.chmod(0644, folly_new_h)
+      content = File.read(folly_new_h)
+      content.gsub!(/constexpr auto op_new_builtin_ =\n\s+FOLLY_HAS_BUILTIN\(__builtin_operator_new\)[^;]*;/, 'constexpr auto op_new_builtin_ = true;')
+      content.gsub!(/constexpr auto op_del_builtin_ =\n\s+FOLLY_HAS_BUILTIN\(__builtin_operator_del[^)]*\)[^;]*;/, 'constexpr auto op_del_builtin_ = true;')
+      File.write(folly_new_h, content)
+    end
+
+    # Fix react-native-permissions __has_include with use_frameworks! :linkage => :static
+    # Permission handler headers are in separate framework modules, so RNPermissions
+    # can't find them via __has_include without explicit header search paths.
+    permissions_path = File.join(Pod::Config.instance.installation_root, '..', 'node_modules', 'react-native-permissions', 'ios')
+    permission_pods = %w[Camera LocationAccuracy LocationAlways LocationWhenInUse MediaLibrary Microphone Notifications PhotoLibrary]
+
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = IOS_VERSION
@@ -87,12 +106,14 @@ target 'Therr' do
       #  config.build_settings["ONLY_ACTIVE_ARCH"] = "YES"
       end
 
-      # case target.name
-      # when 'RCT-Folly'
-      #   target.build_configurations.each do |config|
-      #     config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '9.0'
-      #   end
-      # end
+      if target.name == 'RNPermissions'
+        target.build_configurations.each do |config|
+          permission_pods.each do |handler|
+            config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited)'
+            config.build_settings['HEADER_SEARCH_PATHS'] += " \"#{permissions_path}/#{handler}\""
+          end
+        end
+      end
     end
   end
 end

@@ -116,7 +116,7 @@
 	<key>NSPrivacyAccessedAPICategoryUserDefaults</key>
 	<string>DDA9.1: This permission allows the app to access timestamp for scheduling push notifications.</string>
 	<key>RCTNewArchEnabled</key>
-	<false/>
+	<true/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Octicons.ttf</string>
