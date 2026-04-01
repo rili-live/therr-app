@@ -5,7 +5,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
-import { blacklistToken, revokeAllUserRefreshTokens } from '../../store/redisClient';
+import { blacklistToken, invalidateApiKeyCache, revokeAllUserRefreshTokens } from '../../store/redisClient';
 import { validate } from '../../validation';
 import {
     authenticateUserValidation,
@@ -47,6 +47,7 @@ import {
     subscribeAttemptLimiter,
     unsubscribeAttemptLimiter,
 } from './limitation/auth';
+import { createApiKeyValidation, revokeApiKeyValidation } from './validation/apiKeys';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 import {
     createThoughtValidation,
@@ -57,9 +58,41 @@ import {
 import CacheStore from '../../store';
 import authorize, { AccessCheckType } from '../../middleware/authorize';
 import { createGroupLimiter } from './limitation/groups';
+import { apiKeyCreateLimiter } from './limitation/apiKeys';
 import authenticateUnsubscribe from '../../middleware/authenticateUnsubscribe';
 
 const usersServiceRouter = express.Router();
+
+// API Keys (management - requires JWT auth)
+usersServiceRouter.post('/api-keys', apiKeyCreateLimiter, createApiKeyValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.get('/api-keys', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.delete('/api-keys/:id', revokeApiKeyValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}, (response) => {
+    // Invalidate cached API key context on revocation
+    if (response?.keyPrefix) {
+        invalidateApiKeyCache(response.keyPrefix);
+    }
+}));
+
+usersServiceRouter.delete('/api-keys', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}, (response) => {
+    // Invalidate all cached API key contexts on bulk revocation
+    if (response?.revokedKeyPrefixes?.length) {
+        response.revokedKeyPrefixes.forEach((prefix) => invalidateApiKeyCache(prefix));
+    }
+}));
 
 // Achievements
 usersServiceRouter.get('/users/achievements', handleServiceRequest({

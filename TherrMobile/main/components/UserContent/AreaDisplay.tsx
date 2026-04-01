@@ -17,7 +17,7 @@ import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { showToast } from '../../utilities/toasts';
-import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
+import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { MapsService } from 'therr-react/services';
 import getConfig from '../../utilities/getConfig';
@@ -375,6 +375,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
         const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
+        const isQuickReport = Categories.QuickReportCategories.includes(area.category);
         const toggleOptions = () => toggleAreaOptions(area);
         const isEvent = area.areaType === 'events';
         const isSpace = area.areaType === 'spaces';
@@ -505,41 +506,49 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         showsHorizontalScrollIndicator={false}
                     />
                 }
-                <PresssableWithDoubleTap
-                    style={{}}
-                    onPress={inspectContent}
-                    onDoubleTap={() => this.onLikePress(area)}
-                >
-                    {/* <UserMedia
-                        viewportWidth={viewportWidth}
-                        media={areaMedia}
-                        isVisible={!!areaMedia}
-                        isSingleView={isExpanded}
-                    /> */}
-                    {
-                        areaMedia ?
-                            <Image
-                                source={{
-                                    uri: areaMedia,
-                                }}
-                                style={{
-                                    width: mediaDimensions.width,
-                                    height: mediaDimensions.height,
-                                }}
-                                resizeMode="contain"
-                                PlaceholderContent={<ActivityIndicator />}
-                            /> :
-                            placeholderMediaType && <MissingImagePlaceholder
-                                area={area}
-                                themeViewArea={themeViewArea}
-                                placeholderMediaType={placeholderMediaType}
-                                dimensions={{
-                                    height: Math.min(mediaDimensions.height, 160),
-                                    width: mediaDimensions.width,
-                                }}
-                            />
-                    }
-                </PresssableWithDoubleTap>
+                <View>
+                    <PresssableWithDoubleTap
+                        style={{}}
+                        onPress={inspectContent}
+                        onDoubleTap={() => this.onLikePress(area)}
+                    >
+                        {/* <UserMedia
+                            viewportWidth={viewportWidth}
+                            media={areaMedia}
+                            isVisible={!!areaMedia}
+                            isSingleView={isExpanded}
+                        /> */}
+                        {
+                            areaMedia ?
+                                <Image
+                                    source={{
+                                        uri: areaMedia,
+                                    }}
+                                    style={{
+                                        width: mediaDimensions.width,
+                                        height: mediaDimensions.height,
+                                    }}
+                                    resizeMode="contain"
+                                    PlaceholderContent={<ActivityIndicator />}
+                                /> :
+                                placeholderMediaType && <MissingImagePlaceholder
+                                    area={area}
+                                    themeViewArea={themeViewArea}
+                                    placeholderMediaType={placeholderMediaType}
+                                    dimensions={{
+                                        height: Math.min(mediaDimensions.height, 160),
+                                        width: mediaDimensions.width,
+                                    }}
+                                />
+                        }
+                    </PresssableWithDoubleTap>
+                    {isQuickReport && (
+                        <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                            <Icon name="schedule" size={14} color={theme.colors.brandingWhite} />
+                            <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                        </View>
+                    )}
+                </View>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <Text
                         style={themeViewArea.styles.areaContentTitle}
@@ -1111,5 +1120,22 @@ const localStyles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         marginTop: 8,
+    },
+    quickReportBadge: {
+        position: 'absolute',
+        top: 8,
+        left: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 10,
+        gap: 4,
+    },
+    quickReportBadgeText: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
 });
