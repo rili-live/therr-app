@@ -53,7 +53,7 @@ const SearchTypeAheadResults = ({
             )}
             <FlatList
                 data={searchPredictionResults}
-                keyExtractor={(item) => String(item.place_id)}
+                keyExtractor={(item) => String(item.place_id || item.mapbox_id)}
                 renderItem={({ item }) => renderListItem(item, { handleSelect, styles: themeSearch.styles })}
                 ItemSeparatorComponent={getItemSeparator}
                 keyboardShouldPersistTaps="always"

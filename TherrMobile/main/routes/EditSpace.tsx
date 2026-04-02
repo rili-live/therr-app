@@ -23,7 +23,9 @@ import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { showToast } from '../utilities/toasts';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import translator from '../services/translator';
+import getConfig from '../utilities/getConfig';
 import { isDarkTheme } from '../styles/themes';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
@@ -630,13 +632,14 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         });
 
         this.throttleAddressTimeoutId = setTimeout(() => {
+            const config = getConfig();
+            const useMapboxSearch = config.featureFlags?.[FeatureFlags.ENABLE_MAPBOX_SEARCH] === true;
             getPlacesSearchAutoComplete({
                 longitude: userLon?.toString() || longitude?.toString() || map?.longitude || DEFAULT_LONGITUDE.toString(),
                 latitude: userLat?.toString() || latitude?.toString() || map?.latitude || DEFAULT_LATITUDE.toString(),
-                // radius,
                 input: text,
                 types: 'establishment',
-            }).finally(() => {
+            }, useMapboxSearch).finally(() => {
                 this.setState({ isSearchingAddress: false });
             });
         }, 500);
@@ -660,6 +663,11 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
 
         this.setSearchDropdownVisibility(false);
 
+        if (selection?.provider === 'mapbox' && selection?.mapbox_id) {
+            this.handleMapboxSearchSelect(selection);
+            return;
+        }
+
         MapsService.getPlaceDetails({
             apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
             placeId: selection?.place_id,
@@ -670,53 +678,78 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             shouldIncludeRating: true,
         }).then((response) => {
             const result = response.data?.result;
-            const geometry = result?.geometry;
-            const formatted_address = result?.formatted_address;
-            const modifiedInputs = {
-                ...this.state.inputs,
-            };
-            if (formatted_address) {
-                modifiedInputs.address = formatted_address;
-                modifiedInputs.addressReadable = formatted_address;
-            }
-            if (!this.state.isBusinessAccount) {
-                // Always set notificationMsg to place name for non-business
-                if (result?.name) {
-                    modifiedInputs.notificationMsg = result.name;
-                }
-                if (!modifiedInputs.category) {
-                    modifiedInputs.category = 'uncategorized';
-                }
-            } else if (!modifiedInputs.notificationMsg && result?.name) {
-                modifiedInputs.notificationMsg = result.name;
-            }
-            if (geometry?.location) {
-                modifiedInputs.addressLatitude = geometry.location.lat;
-                modifiedInputs.addressLongitude = geometry.location.lng;
-            }
-            if (result?.website) {
-                modifiedInputs.addressWebsite = result?.website;
-            }
-            if (result?.rating) {
-                modifiedInputs.addressRating = {
-                    rating: result?.rating,
-                    total: result?.user_ratings_total || 0,
-                };
-            }
-            if (result?.opening_hours?.weekday_text) {
-                modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
-            }
-            if (result?.international_phone_number) {
-                modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
-            }
-            this.setState({
-                addressInputText: this.state.isBusinessAccount
-                    ? (result?.name || formatted_address)
-                    : (formatted_address || result?.name || ''),
-                inputs: modifiedInputs,
-            });
+            this.applyPlaceDetailsToInputs(result);
         }).catch((error) => {
             console.log(error);
+        });
+    };
+
+    handleMapboxSearchSelect = (selection) => {
+        MapsService.getMapboxRetrieve(selection.mapbox_id).then((response) => {
+            const feature = response.data?.features?.[0];
+            if (feature) {
+                const props = feature.properties || {};
+                const [lng, lat] = feature.geometry?.coordinates || [];
+                const result = {
+                    name: props.name || '',
+                    formatted_address: props.full_address || props.place_formatted || '',
+                    geometry: lat && lng ? { location: { lat, lng } } : undefined,
+                    website: props.metadata?.website || undefined,
+                    international_phone_number: props.metadata?.phone || undefined,
+                };
+                this.applyPlaceDetailsToInputs(result);
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
+
+    applyPlaceDetailsToInputs = (result) => {
+        if (!result) return;
+
+        const geometry = result?.geometry;
+        const formatted_address = result?.formatted_address;
+        const modifiedInputs = {
+            ...this.state.inputs,
+        };
+        if (formatted_address) {
+            modifiedInputs.address = formatted_address;
+            modifiedInputs.addressReadable = formatted_address;
+        }
+        if (!this.state.isBusinessAccount) {
+            if (result?.name) {
+                modifiedInputs.notificationMsg = result.name;
+            }
+            if (!modifiedInputs.category) {
+                modifiedInputs.category = 'uncategorized';
+            }
+        } else if (!modifiedInputs.notificationMsg && result?.name) {
+            modifiedInputs.notificationMsg = result.name;
+        }
+        if (geometry?.location) {
+            modifiedInputs.addressLatitude = geometry.location.lat;
+            modifiedInputs.addressLongitude = geometry.location.lng;
+        }
+        if (result?.website) {
+            modifiedInputs.addressWebsite = result?.website;
+        }
+        if (result?.rating) {
+            modifiedInputs.addressRating = {
+                rating: result?.rating,
+                total: result?.user_ratings_total || 0,
+            };
+        }
+        if (result?.opening_hours?.weekday_text) {
+            modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
+        }
+        if (result?.international_phone_number) {
+            modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
+        }
+        this.setState({
+            addressInputText: this.state.isBusinessAccount
+                ? (result?.name || formatted_address)
+                : (formatted_address || result?.name || ''),
+            inputs: modifiedInputs,
         });
     };
 

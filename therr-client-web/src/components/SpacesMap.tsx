@@ -35,6 +35,16 @@ const escapeHtml = (str: string): string => {
 
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
 
+// Tile provider: Carto Voyager (CDN-backed, free, no API key, proper cache headers)
+// Override via tileLayerUrl in global-config.js if needed
+import * as globalConfig from '../../../global-config';
+
+const envConfig = globalConfig[process.env.NODE_ENV || 'production'] || globalConfig.production;
+const TILE_LAYER_URL = envConfig.tileLayerUrl || 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+const TILE_ATTRIBUTION = TILE_LAYER_URL.includes('cartocdn')
+    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
 const SpacesMap: React.FC<ISpacesMapProps> = ({
     spaces,
     centerLat,
@@ -56,6 +66,26 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
     onMoveEndRef.current = onMoveEnd;
 
     const [revision, setRevision] = React.useState(0);
+    const [isVisible, setIsVisible] = React.useState(false);
+
+    // Defer map initialization until container scrolls into view
+    React.useEffect(() => {
+        if (!mapRef.current) return undefined;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '200px' }, // Start loading 200px before visible
+        );
+
+        observer.observe(mapRef.current);
+
+        return () => observer.disconnect();
+    }, []);
 
     const updateMarkers = React.useCallback((L: any, map: any, spacesList: ISpace[], prefix: string) => {
         // Clear existing markers (duck-type: has getLatLng and not getTileUrl, excluding tile layers)
@@ -87,9 +117,9 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
         return bounds;
     }, []);
 
-    // Initialize Leaflet map
+    // Initialize Leaflet map (only after container is visible via IntersectionObserver)
     React.useEffect(() => {
-        if (!mapRef.current || leafletMapRef.current) return undefined;
+        if (!isVisible || !mapRef.current || leafletMapRef.current) return undefined;
 
         let cancelled = false;
 
@@ -124,8 +154,8 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
                 zoomControl: interactive,
             }).setView([centerLat, centerLng], defaultZoom);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            L.tileLayer(TILE_LAYER_URL, {
+                attribution: TILE_ATTRIBUTION,
                 maxZoom: 19,
             }).addTo(map);
 
@@ -188,11 +218,16 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
                 resizeObserverRef.current = null;
             }
             if (leafletMapRef.current) {
-                leafletMapRef.current.remove();
+                const m = leafletMapRef.current;
+                // Stop any in-progress zoom/pan animations to prevent
+                // callbacks from accessing removed DOM elements
+                m.stop();
+                m.off();
+                m.remove();
                 leafletMapRef.current = null;
             }
         };
-    }, []);
+    }, [isVisible]);
 
     // Update center when user location changes
     React.useEffect(() => {
