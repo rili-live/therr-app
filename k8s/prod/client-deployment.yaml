@@ -5,6 +5,11 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       component: web
@@ -46,6 +51,15 @@ spec:
         ports:
         - containerPort: 7070
         - containerPort: 7071
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7070
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
         livenessProbe:
           httpGet:
             path: /healthcheck
@@ -54,6 +68,10 @@ spec:
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 15"]
         env:
           - name: USERS_SERVICE_API_PORT
             value: "7771"
