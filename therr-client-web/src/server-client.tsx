@@ -79,6 +79,8 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.googletagmanager.com',
                     // Google Sign-In
                     'https://accounts.google.com',
+                    // Map tile providers
+                    'https://api.maptiler.com',
                 ],
                 frameSrc: [
                     "'self'",
@@ -115,6 +117,7 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.googletagmanager.com',
                     // Leaflet map tiles and marker icons
                     'https://*.tile.openstreetmap.org',
+                    'https://api.maptiler.com',
                     'https://unpkg.com',
                 ],
                 workerSrc: ["'self'", 'blob:'],
