@@ -51,6 +51,13 @@ import mantineTheme from './styles/mantine-theme'; // eslint-disable-line
 // Initialize the server and configure support for handlebars templates
 const app = express();
 
+// Trust the reverse proxy (Nginx Ingress) to provide real client IP via
+// X-Forwarded-For. Value of 1 = trust one proxy hop (Nginx Ingress).
+// Increase to 2 when Cloudflare is added in front of the ingress.
+if (process.env.NODE_ENV !== 'development') {
+    app.set('trust proxy', 1);
+}
+
 // Enable gzip/deflate compression for all responses
 app.use(compression());
 
@@ -81,6 +88,8 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://accounts.google.com',
                     // Map tile providers (Carto CDN)
                     'https://*.basemaps.cartocdn.com',
+                    // Cloudflare Insights beacon
+                    'https://static.cloudflareinsights.com',
                 ],
                 frameSrc: [
                     "'self'",
@@ -95,6 +104,8 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://cdn.lr-ingest.com',
                     // Google Sign-In
                     'https://accounts.google.com',
+                    // Cloudflare Insights / Web Analytics
+                    'https://static.cloudflareinsights.com',
                 ],
                 styleSrc: [
                     "'self'",
@@ -249,6 +260,7 @@ app.get('/sitemap.xml', async (req, res) => {
     const cached = getSitemapCache('index');
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -316,6 +328,7 @@ app.get('/sitemap.xml', async (req, res) => {
 
     setSitemapCache('index', xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -324,6 +337,7 @@ app.get('/sitemap-static.xml', (req, res) => {
     const cached = getSitemapCache('static');
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -342,6 +356,7 @@ app.get('/sitemap-static.xml', (req, res) => {
 
     setSitemapCache('static', xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -356,6 +371,7 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
     const cached = getSitemapCache(cacheKey);
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -397,6 +413,7 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
 
     setSitemapCache(cacheKey, xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -411,6 +428,7 @@ app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
     const cached = getSitemapCache(cacheKey);
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -446,6 +464,7 @@ app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
 
     setSitemapCache(cacheKey, xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -460,6 +479,7 @@ app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
     const cached = getSitemapCache(cacheKey);
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -494,6 +514,7 @@ app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
 
     setSitemapCache(cacheKey, xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -1480,6 +1501,52 @@ const getLocaleVars = (req: any) => {
         pinterestVerification: process.env.PINTEREST_VERIFICATION || '',
     };
 };
+
+// ── Cloudflare CDN cache headers for SSR pages ──
+// Public, crawlable pages get edge-cached (s-maxage) with short browser cache (max-age).
+// stale-while-revalidate lets the CDN serve stale content while fetching a fresh copy.
+// Auth-dependent / private pages are never cached at the CDN.
+const publicRoutePatterns = [
+    /^\/$/,
+    /^\/login$/,
+    /^\/register$/,
+    /^\/locations(\/\d+)?$/,
+    /^\/spaces\/[^/]+$/,
+    /^\/events\/[^/]+$/,
+    /^\/groups(\/[^/]+)?$/,
+    /^\/moments\/[^/]+$/,
+    /^\/thoughts\/[^/]+$/,
+    /^\/users\/[^/]+$/,
+    /^\/invite\/[^/]+$/,
+    /^\/child-safety$/,
+    /^\/go-mobile$/,
+    /^\/app-feedback$/,
+    /^\/reset-password$/,
+    /^\/verify-account$/,
+];
+
+const isPublicRoute = (pathname: string): boolean => publicRoutePatterns.some((re) => re.test(pathname));
+
+app.use((req: any, res, next) => {
+    // Skip static assets — expressStaticGzip sets its own headers
+    // Skip sitemap/robots/healthcheck endpoints — they set their own headers
+    if (req.path.match(/\.(js|css|map|br|gz|ico|png|jpg|jpeg|svg|webp|woff2?|ttf|eot|txt|xml)$/)) {
+        return next();
+    }
+
+    const strippedPath = req.path; // locale prefix already stripped by earlier middleware
+
+    if (isPublicRoute(strippedPath)) {
+        // CDN caches for 5 min, browser caches for 60s, serve stale up to 10 min while revalidating
+        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    } else {
+        // Private/auth pages: never cache at CDN or browser
+        res.setHeader('Cache-Control', 'private, no-store');
+        res.setHeader('CDN-Cache-Control', 'no-store');
+    }
+
+    next();
+});
 
 // Universal routing and rendering for SEO
 routeConfig.forEach((config) => {
