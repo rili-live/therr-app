@@ -87,8 +87,12 @@ target 'Therr' do
     if File.exist?(folly_new_h)
       File.chmod(0644, folly_new_h)
       content = File.read(folly_new_h)
+      # Force builtin operators and redirect library invokers to builtins
+      # so both true/false template paths work with Xcode 26 clang
       content.gsub!(/constexpr auto op_new_builtin_ =\n\s+FOLLY_HAS_BUILTIN\(__builtin_operator_new\)[^;]*;/, 'constexpr auto op_new_builtin_ = true;')
       content.gsub!(/constexpr auto op_del_builtin_ =\n\s+FOLLY_HAS_BUILTIN\(__builtin_operator_del[^)]*\)[^;]*;/, 'constexpr auto op_del_builtin_ = true;')
+      content.gsub!('FOLLY_CREATE_QUAL_INVOKER(op_new_library_fn_, ::operator new);', 'FOLLY_CREATE_QUAL_INVOKER(op_new_library_fn_, __builtin_operator_new);')
+      content.gsub!('FOLLY_CREATE_QUAL_INVOKER(op_del_library_fn_, ::operator delete);', 'FOLLY_CREATE_QUAL_INVOKER(op_del_library_fn_, __builtin_operator_delete);')
       File.write(folly_new_h, content)
     end
 
