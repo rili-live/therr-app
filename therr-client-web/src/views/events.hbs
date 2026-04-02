@@ -73,8 +73,25 @@
     <link rel="mask-icon" href="/assets/images/safari-pinned-tab.svg" color="#5bbad5">
     <link rel="preload" as="image" href="{{#if metaImgUrl}}{{metaImgUrl}}{{else}}https://therr.com/assets/images/meta-image-logo.png{{/if}}">
     <script>document.documentElement.setAttribute('data-mantine-color-scheme', (document.cookie.match(/therr-color-scheme=(light|dark)/)||[])[1]||'light');</script>
-    <link rel="stylesheet" type="text/css" href="/vendor.1c9fd075f123a687e5d3.css">
-    <link rel="stylesheet" type="text/css" href="/app.6a888dc918966fbf81ab.css">
+    <style>
+      html{background:#f3f4f6}
+      html,body{color:#1f2937;font-family:'Lexend',sans-serif;font-size:16px;margin:0;padding:0}
+      [data-mantine-color-scheme="dark"]{--mantine-color-body:#1a1b1e;--mantine-color-text:#C1C2C5}
+      [data-mantine-color-scheme="dark"] html{background:#1a1b1e}
+      [data-mantine-color-scheme="dark"] html,[data-mantine-color-scheme="dark"] body{color:#C1C2C5}
+      header{z-index:90;align-items:center;background:#1C7F8A;display:flex;height:2.8rem;left:0;position:fixed;top:0;width:100%;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+      .content-container,.content-container-home{background:#fff;margin:2.8rem 0;padding:1.5rem 1rem;min-height:calc(100vh - 5.6rem);box-sizing:border-box}
+      [data-mantine-color-scheme="dark"] .content-container,[data-mantine-color-scheme="dark"] .content-container-home{background:#1a1b1e}
+      .view{min-height:100vh}
+      h1{margin:.9rem 0;font-weight:400}
+      @media(min-width:540px){header{height:3rem}.content-container,.content-container-home{margin:3rem 0}}
+    </style>
+    <link rel="stylesheet" href="/vendor.1c9fd075f123a687e5d3.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/app.6a888dc918966fbf81ab.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="/vendor.1c9fd075f123a687e5d3.css">
+        <link rel="stylesheet" href="/app.6a888dc918966fbf81ab.css">
+    </noscript>
 
     <script type="application/ld+json">{{{eventSchema}}}</script>
     <script type="application/ld+json">{{{breadcrumbSchema}}}</script>
