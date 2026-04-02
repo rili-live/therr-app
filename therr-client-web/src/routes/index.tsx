@@ -5,11 +5,10 @@ import { AccessLevels } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
 import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
-import CreateForum from './CreateForum';
-import EditGroup from './EditGroup';
+
+// SSR-rendered / public routes — keep statically imported for renderToString compatibility
 import ListGroups from './ListGroups';
 import ViewGroup from './ViewGroup';
-import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
@@ -18,29 +17,42 @@ import Home from './Home';
 import ViewSpace from './ViewSpace';
 import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
-import UserProfile from './UserProfile';
-import ChangePassword from './ChangePassword';
-import EditProfile from './EditProfile';
-import EditSpace from './EditSpace';
-import CreateSpace from './CreateSpace';
-import ManageSpaces from './ManageSpaces';
-import Bookmarks from './Bookmarks';
-import Discovered from './Discovered';
-import Explore from './Explore';
-import ExploreMoments from './Explore/ExploreMoments';
-import ExploreThoughts from './Explore/ExploreThoughts';
-import ExplorePeople from './Explore/ExplorePeople';
-import UnderConstruction from './UnderConstruction';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
-import UserLocations from './UserLocations';
-import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
 import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
+
+// Auth-only routes — lazy-loaded client-side to reduce initial bundle size.
+// These are never SSR-rendered (AuthRoute redirects unauthenticated users).
+// Server-side: returns a no-op component (renders null). Client-side: React.lazy.
+// Same typeof window guard pattern used by SpacesMap (see ListSpaces.tsx).
+const NoopComponent: React.FC = () => null;
+const lazyLoad = (importFn: () => Promise<{ default: React.ComponentType<any> }>): React.ComponentType<any> => (
+    typeof window !== 'undefined' ? React.lazy(importFn) : NoopComponent
+);
+
+const CreateForum = lazyLoad(() => import('./CreateForum'));
+const EditGroup = lazyLoad(() => import('./EditGroup'));
+const CreateProfile = lazyLoad(() => import('./CreateProfile'));
+const UserProfile = lazyLoad(() => import('./UserProfile'));
+const ChangePassword = lazyLoad(() => import('./ChangePassword'));
+const EditProfile = lazyLoad(() => import('./EditProfile'));
+const EditSpace = lazyLoad(() => import('./EditSpace'));
+const CreateSpace = lazyLoad(() => import('./CreateSpace'));
+const ManageSpaces = lazyLoad(() => import('./ManageSpaces'));
+const Bookmarks = lazyLoad(() => import('./Bookmarks'));
+const Discovered = lazyLoad(() => import('./Discovered'));
+const Explore = lazyLoad(() => import('./Explore'));
+const ExploreMoments = lazyLoad(() => import('./Explore/ExploreMoments'));
+const ExploreThoughts = lazyLoad(() => import('./Explore/ExploreThoughts'));
+const ExplorePeople = lazyLoad(() => import('./Explore/ExplorePeople'));
+const UnderConstruction = lazyLoad(() => import('./UnderConstruction'));
+const UserLocations = lazyLoad(() => import('./UserLocations'));
+const EmailPreferences = lazyLoad(() => import('./EmailPreferences'));
 
 export type IRoute = RouteObject & {
     access?: IAccess;

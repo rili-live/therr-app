@@ -14,7 +14,7 @@ const viewFiles = [
     path.join(__dirname, 'src/views/groups.hbs'),
 ];
 
-// We need to keep the css file path up to date because we use hashing in the build compilation
+// We need to keep the css and js file paths up to date because we use hashing in the build compilation
 fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
     if (err) {
         console.log(err);
@@ -25,8 +25,16 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
     const vendorCssRegex = /^vendor\.([\w]+\.)?css$/;
     const scrapJsRegex = /^theme-.*\.js$/;
 
+    // JS content-hashed filenames (e.g., app.abc123def.js, vendor.abc123def.js, runtime.abc123def.js)
+    const appJsRegex = /^app\.[\w]+\.js$/;
+    const vendorJsRegex = /^vendor\.[\w]+\.js$/;
+    const runtimeJsRegex = /^runtime\.[\w]+\.js$/;
+
     let appCssFileName = null;
     let vendorCssFileName = null;
+    let appJsFileName = null;
+    let vendorJsFileName = null;
+    let runtimeJsFileName = null;
 
     files.forEach(file => {
         // Delete the scrap javascript files that were used to bundle theme specific css files
@@ -44,6 +52,18 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
         if (vendorCssRegex.test(file)) {
             vendorCssFileName = file.toString();
         }
+
+        if (appJsRegex.test(file)) {
+            appJsFileName = file.toString();
+        }
+
+        if (vendorJsRegex.test(file)) {
+            vendorJsFileName = file.toString();
+        }
+
+        if (runtimeJsRegex.test(file)) {
+            runtimeJsFileName = file.toString();
+        }
     });
 
     // Update all view templates in a single pass to avoid race conditions
@@ -55,6 +75,7 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
 
             let result = data;
 
+            // Replace CSS filenames with hashed versions
             if (appCssFileName) {
                 result = result.replace(/app[\w.]*\.css/g, appCssFileName);
             }
@@ -63,11 +84,25 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
                 result = result.replace(/vendor[\w.]*\.css/g, vendorCssFileName);
             }
 
+            // Replace JS filenames with hashed versions
+            // Use src="..." anchoring to avoid matching lazy-loaded chunk filenames
+            if (runtimeJsFileName) {
+                result = result.replace(/src="\/runtime[\w.]*\.js"/g, `src="/${runtimeJsFileName}"`);
+            }
+
+            if (vendorJsFileName) {
+                result = result.replace(/src="\/vendor[\w.]*\.js"/g, `src="/${vendorJsFileName}"`);
+            }
+
+            if (appJsFileName) {
+                result = result.replace(/src="\/app[\w.]*\.js"/g, `src="/${appJsFileName}"`);
+            }
+
             fs.writeFile(viewFile, result, 'utf8', function (writeErr) {
                 if (writeErr) {
                     return console.log(writeErr);
                 }
-                console.log('Success: CSS paths updated in', path.basename(viewFile));
+                console.log('Success: CSS/JS paths updated in', path.basename(viewFile));
             });
         });
     });
