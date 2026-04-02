@@ -9,8 +9,8 @@ import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
 import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
-import ReactGA from 'react-ga4';
-import LogRocket from 'logrocket';
+// ReactGA removed from server — analytics should only run client-side
+// LogRocket removed from server — session replay only runs client-side
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { MantineProvider } from '@mantine/core';
@@ -1502,7 +1502,7 @@ routeConfig.forEach((config) => {
         const store = configureStore({
             reducer: rootReducer,
             preloadedState: initialState,
-            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()),
+            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare),
         });
 
         getRoutes({
@@ -1568,8 +1568,6 @@ routeConfig.forEach((config) => {
                 });
                 res.end();
             } else {
-                ReactGA.send({ hitType: 'pageview', page: req.path, title });
-
                 const localeVars = getLocaleVars(req);
 
                 if (routeView === 'thoughts') {
