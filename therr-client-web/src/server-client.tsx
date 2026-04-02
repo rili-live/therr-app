@@ -753,8 +753,8 @@ const renderSpaceView = (req, res, config, {
     const content = initialState?.content || {};
     const space = initialState?.map?.spaces[spaceId];
     const spaceNameBase = space ? space?.notificationMsg : title;
-    const locationParts = [space?.addressLocality, space?.addressRegion].filter(Boolean);
-    const spaceTitle = locationParts.length > 0 ? `${spaceNameBase} in ${locationParts.join(', ')}` : spaceNameBase;
+    const addressParts = [space?.addressStreetAddress, space?.addressLocality, space?.addressRegion].filter(Boolean);
+    const spaceTitle = addressParts.length > 0 ? `${spaceNameBase} - ${addressParts.join(', ')}` : spaceNameBase;
     // eslint-disable-next-line prefer-template
     const spaceDescription = `${space?.notificationMsg ? space.notificationMsg + ' - ' : ''}` + (space?.message || description).replace(/\\n/g, ' ')
         .replace(/\\r/g, ' ').substring(0, 300);
