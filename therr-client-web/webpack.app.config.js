@@ -65,6 +65,7 @@ const common = merge([
             },
         },
         optimization: {
+            usedExports: true,
             emitOnErrors: true,
             splitChunks: {
                 // Only split the app entry; theme entries stay isolated so their
@@ -84,6 +85,10 @@ const common = merge([
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
+            new webpack.IgnorePlugin({
+                resourceRegExp: /^\.\/locale$/,
+                contextRegExp: /moment$/,
+            }),
             new ModuleFederationPlugin({
                 shared: {
                     axios: {

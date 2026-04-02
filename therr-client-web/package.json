@@ -29,6 +29,10 @@
   ],
   "author": "Therr, Inc.",
   "license": "MIT",
+  "sideEffects": [
+    "*.css",
+    "*.scss"
+  ],
   "browserslist": [
     "defaults"
   ],
