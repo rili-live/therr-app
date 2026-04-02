@@ -809,7 +809,7 @@ const renderSpaceView = (req, res, config, {
     const spaceSchema: any = {
         '@context': 'https://schema.org',
         '@type': schemaType,
-        name: spaceTitle,
+        name: spaceNameBase,
         image: metaImgUrl || '',
         priceRange: '$'.repeat(spacePriceRange || 2),
         telephone: spacePhoneNumber || '',
@@ -872,9 +872,9 @@ const renderSpaceView = (req, res, config, {
             name: breadcrumbLocality,
             item: `https://www.therr.com/locations?locality=${encodeURIComponent(breadcrumbLocality)}`,
         });
-        breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: spaceTitle });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: spaceNameBase });
     } else {
-        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: spaceTitle });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: spaceNameBase });
     }
 
     const breadcrumbSchema = {
