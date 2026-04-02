@@ -25,8 +25,12 @@ const entry = {
 };
 
 // Only build active theme CSS bundles (unused themes waste build time)
+// Add theme names here when new themes should be included in the build
 const activeThemes = ['light', 'dark'];
 fs.readdirSync(PATHS.themes, { withFileTypes: true }).forEach((dirent) => {
+    if (dirent.isDirectory() && dirent.name !== '_sample' && !activeThemes.includes(dirent.name)) {
+        console.warn(`[webpack] Theme directory "${dirent.name}" found but not in activeThemes — skipping build`);
+    }
     if (dirent.isDirectory() && activeThemes.includes(dirent.name)) {
         entry[`theme-${dirent.name}`] = `${PATHS.themes}/${dirent.name}/index.ts`;
     }

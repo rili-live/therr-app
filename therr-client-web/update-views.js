@@ -85,16 +85,17 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
             }
 
             // Replace JS filenames with hashed versions
+            // Use src="..." anchoring to avoid matching lazy-loaded chunk filenames
             if (runtimeJsFileName) {
-                result = result.replace(/\/runtime[\w.]*\.js/g, `/${runtimeJsFileName}`);
+                result = result.replace(/src="\/runtime[\w.]*\.js"/g, `src="/${runtimeJsFileName}"`);
             }
 
             if (vendorJsFileName) {
-                result = result.replace(/\/vendor[\w.]*\.js/g, `/${vendorJsFileName}`);
+                result = result.replace(/src="\/vendor[\w.]*\.js"/g, `src="/${vendorJsFileName}"`);
             }
 
             if (appJsFileName) {
-                result = result.replace(/\/app[\w.]*\.js/g, `/${appJsFileName}`);
+                result = result.replace(/src="\/app[\w.]*\.js"/g, `src="/${appJsFileName}"`);
             }
 
             fs.writeFile(viewFile, result, 'utf8', function (writeErr) {

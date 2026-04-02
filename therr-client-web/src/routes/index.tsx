@@ -26,11 +26,13 @@ import ChildSafety from './ChildSafety';
 import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
 
-// Auth-only routes — lazy-loaded client-side to reduce initial bundle size
-// These are never SSR-rendered (they redirect unauthenticated users to /login)
-// Uses the same typeof window guard pattern as SpacesMap (see ListSpaces.tsx)
-const lazyLoad = (importFn: () => Promise<{ default: React.ComponentType<any> }>) => (
-    typeof window !== 'undefined' ? React.lazy(importFn) : (() => null) as unknown as React.LazyExoticComponent<any>
+// Auth-only routes — lazy-loaded client-side to reduce initial bundle size.
+// These are never SSR-rendered (AuthRoute redirects unauthenticated users).
+// Server-side: returns a no-op component (renders null). Client-side: React.lazy.
+// Same typeof window guard pattern used by SpacesMap (see ListSpaces.tsx).
+const NoopComponent: React.FC = () => null;
+const lazyLoad = (importFn: () => Promise<{ default: React.ComponentType<any> }>): React.ComponentType<any> => (
+    typeof window !== 'undefined' ? React.lazy(importFn) : NoopComponent
 );
 
 const CreateForum = lazyLoad(() => import('./CreateForum'));
