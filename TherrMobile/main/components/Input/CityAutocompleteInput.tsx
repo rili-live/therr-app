@@ -53,7 +53,6 @@ const CityAutocompleteInput = ({
             MapsService.getPlacesSearchAutoComplete({
                 latitude: '0',
                 longitude: '0',
-                apiKey: '',
                 input: text,
                 types: '(cities)',
             }).then((response) => {

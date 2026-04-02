@@ -20,6 +20,9 @@ enum FeatureFlags {
     // Groups Features
     ENABLE_FORUMS = 'ENABLE_FORUMS',
     ENABLE_ACTIVITY_SCHEDULER = 'ENABLE_ACTIVITY_SCHEDULER',
+
+    // Search Providers
+    ENABLE_MAPBOX_SEARCH = 'ENABLE_MAPBOX_SEARCH',
 }
 
 export {

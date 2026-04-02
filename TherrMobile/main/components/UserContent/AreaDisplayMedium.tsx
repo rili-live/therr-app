@@ -254,19 +254,15 @@ export const AreaDisplayContent = ({
 
     return (
         <View style={localStyles.rowContainer}>
-            <View>
-                <PresssableWithDoubleTap
-                    onPress={inspectContent}
-                    onDoubleTap={onDoubleTap || (() => {})}
-                    style={localStyles.mediaPressable}
-                >
-                    {/* <UserMedia
-                        viewportWidth={mediaWidth}
-                        media={areaMedia}
-                        isVisible={!!areaMedia}
-                        isSingleView={false}
-                        onLayout={onUserMediaLayout}
-                    /> */}
+            <PresssableWithDoubleTap
+                onPress={inspectContent}
+                onDoubleTap={onDoubleTap || (() => {})}
+                style={localStyles.mediaPressable}
+            >
+                <View style={[localStyles.mediaImageWrapper, {
+                    width: mediaWidth,
+                    height: mediaWidth,
+                }]}>
                     {
                         areaMedia ?
                             <Image
@@ -289,23 +285,24 @@ export const AreaDisplayContent = ({
                                 }}
                             />
                     }
-                </PresssableWithDoubleTap>
-                {isQuickReport && (
-                    <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
-                        <Icon name="schedule" size={10} color={theme.colors.brandingWhite} />
-                        <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
-                    </View>
-                )}
-            </View>
+                </View>
+            </PresssableWithDoubleTap>
             <View style={spacingStyles.flexOne}>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
-                    <Text
-                        style={themeViewArea.styles.areaContentTitleMedium
-                        }
-                        numberOfLines={2}
-                    >
-                        {sanitizeNotificationMsg(area.notificationMsg)}
-                    </Text>
+                    <View style={localStyles.titleWithBadge}>
+                        <Text
+                            style={[themeViewArea.styles.areaContentTitleMedium, localStyles.titleText]}
+                            numberOfLines={2}
+                        >
+                            {sanitizeNotificationMsg(area.notificationMsg)}
+                        </Text>
+                        {isQuickReport && (
+                            <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                                <Icon name="schedule" size={10} color={theme.colors.brandingWhite} />
+                                <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                            </View>
+                        )}
+                    </View>
                     {
                         !area.isDraft && onBookmarkPress &&
                         <>
@@ -358,23 +355,34 @@ const localStyles = StyleSheet.create({
         paddingLeft: 14,
         paddingTop: 8,
     },
+    mediaImageWrapper: {
+        overflow: 'hidden',
+        borderRadius: 7,
+    },
     mediaImage: {
         borderRadius: 7,
     },
-    quickReportBadge: {
-        position: 'absolute',
-        top: 12,
-        left: 18,
+    titleWithBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 5,
+        flexShrink: 1,
+        gap: 6,
+    },
+    titleText: {
+        flexShrink: 1,
+    },
+    quickReportBadge: {
+        flexShrink: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 6,
         paddingVertical: 2,
-        borderRadius: 6,
-        gap: 2,
+        borderRadius: 8,
+        gap: 3,
     },
     quickReportBadgeText: {
         color: '#ffffff',
-        fontSize: 9,
+        fontSize: 10,
         fontWeight: '700',
         letterSpacing: 0.5,
     },

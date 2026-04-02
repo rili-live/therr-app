@@ -1,6 +1,6 @@
 {
   "type": "email-found",
-  "updatedAt": "2026-03-31T18:03:53.323Z",
+  "updatedAt": "2026-04-01T17:56:55.379Z",
   "entries": [
     {
       "id": "9fbe963b-6e01-494c-acee-d628cc40ce01",
@@ -1251,6 +1251,141 @@
       "id": "61a7c13d-aad3-402b-95d9-3720db20d297",
       "name": "The Royale",
       "processedAt": "2026-03-31T18:03:53.323Z"
+    },
+    {
+      "id": "5936d099-f608-4b4f-8b37-e7fc58a5adc7",
+      "name": "The Last Word",
+      "processedAt": "2026-04-01T17:47:33.112Z"
+    },
+    {
+      "id": "5052a485-0289-4eee-bc06-b613a15f8305",
+      "name": "Rocky’s Pub",
+      "processedAt": "2026-04-01T17:47:36.467Z"
+    },
+    {
+      "id": "d466c064-f362-430e-a216-d1b453ae4525",
+      "name": "Tinker Street Restaurant",
+      "processedAt": "2026-04-01T17:47:39.246Z"
+    },
+    {
+      "id": "ca433261-953f-4d00-b816-1edbdd0695cd",
+      "name": "Little Red Hen",
+      "processedAt": "2026-04-01T17:47:47.860Z"
+    },
+    {
+      "id": "1b0dfe8d-f492-472c-99a6-61fb0cae1057",
+      "name": "Capitol Hill Books",
+      "processedAt": "2026-04-01T17:48:55.254Z"
+    },
+    {
+      "id": "ec57a58e-043a-4887-b67a-94688f596379",
+      "name": "JT Country Kitchen",
+      "processedAt": "2026-04-01T17:48:57.821Z"
+    },
+    {
+      "id": "90f3c4bb-82f5-4617-a3e7-0809cd1ac002",
+      "name": "Fritz & Franz Bierhaus",
+      "processedAt": "2026-04-01T17:49:02.339Z"
+    },
+    {
+      "id": "ad9c676e-22ba-4d36-a67f-ec00e1185730",
+      "name": "Mainstream Bar and Grill",
+      "processedAt": "2026-04-01T17:50:22.195Z"
+    },
+    {
+      "id": "af53d914-a761-4535-a410-21579188de67",
+      "name": "Bowlero Cerritos",
+      "processedAt": "2026-04-01T17:50:35.356Z"
+    },
+    {
+      "id": "5eaa490c-cf30-4a8b-8d00-daa1903bf13b",
+      "name": "The Barrel Tavern",
+      "processedAt": "2026-04-01T17:50:38.298Z"
+    },
+    {
+      "id": "3b401700-6e27-4c65-948d-fe37059a69b7",
+      "name": "The Ridler Piano Bar",
+      "processedAt": "2026-04-01T17:51:12.539Z"
+    },
+    {
+      "id": "4cad0e54-cedd-4753-a260-0c286bb51985",
+      "name": "La Salita Restaurant",
+      "processedAt": "2026-04-01T17:51:16.170Z"
+    },
+    {
+      "id": "fd1c3b54-699f-4b23-b2a5-56d080517d56",
+      "name": "Empire Turkish Grill",
+      "processedAt": "2026-04-01T17:51:19.115Z"
+    },
+    {
+      "id": "12a143b6-43b2-474f-ab59-c71dd584667c",
+      "name": "De Luxe Bar & Grill",
+      "processedAt": "2026-04-01T17:52:15.076Z"
+    },
+    {
+      "id": "0790f388-33ca-4c57-96c7-9f24a15e980a",
+      "name": "Foggy Tea",
+      "processedAt": "2026-04-01T17:52:35.066Z"
+    },
+    {
+      "id": "738ebbf3-858d-4fde-8dab-999cd266e4c4",
+      "name": "Sultry Sweet Burlesque",
+      "processedAt": "2026-04-01T17:52:43.341Z"
+    },
+    {
+      "id": "f9fbe767-376d-407c-b0b4-19e49aa24da1",
+      "name": "Bowlero Mar Vista",
+      "processedAt": "2026-04-01T17:53:27.773Z"
+    },
+    {
+      "id": "829f1104-6130-48b8-9fe0-bc3198391cf1",
+      "name": "Standford Shopping Center",
+      "processedAt": "2026-04-01T17:54:05.920Z"
+    },
+    {
+      "id": "e21c5b5c-4d19-46f3-b61b-8be7940a81d5",
+      "name": "Cafe Jumping Bean",
+      "processedAt": "2026-04-01T17:54:36.095Z"
+    },
+    {
+      "id": "d533a8f2-1464-4b9e-a21f-442a8830e904",
+      "name": "Harvest House",
+      "processedAt": "2026-04-01T17:54:45.525Z"
+    },
+    {
+      "id": "bcce3da5-d57c-43da-9c83-4a6d3c725cdd",
+      "name": "Morphe Life Health & Fitness",
+      "processedAt": "2026-04-01T17:55:09.505Z"
+    },
+    {
+      "id": "3b870c07-8ce9-4601-a07d-f37e633803b9",
+      "name": "AMF Richardson Lanes",
+      "processedAt": "2026-04-01T17:55:21.525Z"
+    },
+    {
+      "id": "4627551d-d40a-4ad7-b74a-bab3aab94816",
+      "name": "Relish Restaurant & Bar",
+      "processedAt": "2026-04-01T17:56:05.108Z"
+    },
+    {
+      "id": "a9f1b483-0f5c-4c33-b75b-ac0be09f030a",
+      "name": "The Mouzon House",
+      "processedAt": "2026-04-01T17:56:20.280Z"
+    },
+    {
+      "id": "3ede8f2e-fa52-415d-a265-ce7884a0cfb2",
+      "name": "Bosendorfer Lounge",
+      "processedAt": "2026-04-01T17:56:27.241Z"
+    },
+    {
+      "id": "fac6e267-bb5e-44df-a2a1-bf8713c7b418",
+      "name": "PETE'S DUELING PIANO BAR",
+      "processedAt": "2026-04-01T17:56:34.170Z"
+    },
+    {
+      "id": "cb3bc956-b476-4941-9d43-e0ec86f8a8e6",
+      "name": "Bedford Ice House",
+      "processedAt": "2026-04-01T17:56:55.379Z"
     }
   ]
 }

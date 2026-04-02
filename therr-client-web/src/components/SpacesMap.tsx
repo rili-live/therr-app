@@ -218,7 +218,12 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
                 resizeObserverRef.current = null;
             }
             if (leafletMapRef.current) {
-                leafletMapRef.current.remove();
+                const m = leafletMapRef.current;
+                // Stop any in-progress zoom/pan animations to prevent
+                // callbacks from accessing removed DOM elements
+                m.stop();
+                m.off();
+                m.remove();
                 leafletMapRef.current = null;
             }
         };
