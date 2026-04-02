@@ -1109,7 +1109,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     <div className="space-title-section">
                         <Group justify="space-between" align="flex-start" wrap="nowrap">
                             <div style={{ minWidth: 0 }}>
-                                <Title order={1}>{space.notificationMsg}</Title>
+                                <Title order={1}>
+                                    {space.notificationMsg}
+                                    {space.addressReadable && (
+                                        <span style={{ fontWeight: 300 }}>{` - ${space.addressReadable}`}</span>
+                                    )}
+                                </Title>
                                 {this.renderClaimSubtleCTA(space)}
                             </div>
                             <Group gap="xs">
@@ -1130,7 +1135,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                 </Tooltip>
                             </Group>
                         </Group>
-                        {space.addressReadable && (
+                        {space.addressReadable && !space.notificationMsg && (
                             <Title order={2} size="h4" c="dimmed" fw={400}>{space.addressReadable}</Title>
                         )}
 
