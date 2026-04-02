@@ -32,6 +32,9 @@ const featureFlags = {
     // Groups Features
     ENABLE_FORUMS: true,
     ENABLE_ACTIVITY_SCHEDULER: true,
+
+    // Search Providers
+    ENABLE_MAPBOX_SEARCH: false,
 };
 
 // TODO: Find a way to import this from global config
