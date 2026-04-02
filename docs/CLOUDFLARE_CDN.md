@@ -104,10 +104,11 @@ Public SSR pages use `stale-while-revalidate=600`, which tells Cloudflare to ser
 
 ## Real Client IP
 
-The Nginx Ingress Controller is configured to extract the real client IP from Cloudflare's `CF-Connecting-IP` header:
+The Nginx Ingress overrides for Cloudflare are in a **separate file** that should
+only be applied after Cloudflare DNS proxy is live:
 
 ```yaml
-# k8s/prod/values/nginx-ingress-controller-config.yaml
+# k8s/prod/values/nginx-ingress-cloudflare-overrides.yaml
 controller:
   config:
     forwarded-for-header: "CF-Connecting-IP"
@@ -117,19 +118,28 @@ controller:
 
 The `proxy-real-ip-cidr` restricts trusted proxy IPs to Cloudflare's published ranges, preventing IP spoofing.
 
+### Cutover Steps
+
+When enabling Cloudflare, apply the Nginx overrides and update Express trust proxy:
+
+1. **Apply Nginx Ingress overrides** (merge both value files):
+   ```bash
+   helm upgrade nginx-ingress ingress-nginx/ingress-nginx \
+     --namespace ingress-nginx \
+     -f k8s/prod/values/nginx-ingress-controller-config.yaml \
+     -f k8s/prod/values/nginx-ingress-cloudflare-overrides.yaml
+   ```
+
+2. **Update Express trust proxy** in `therr-client-web/src/server-client.tsx`:
+   Change `app.set('trust proxy', 1)` to `app.set('trust proxy', 2)` (Cloudflare + Nginx = 2 hops)
+
 ### Updating Cloudflare IP Ranges
 
 Cloudflare's IP ranges can change. Check periodically:
 - IPv4: https://www.cloudflare.com/ips-v4/
 - IPv6: https://www.cloudflare.com/ips-v6/
 
-Update `proxy-real-ip-cidr` in `nginx-ingress-controller-config.yaml` and re-apply the Helm chart:
-
-```bash
-helm upgrade nginx-ingress ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  -f k8s/prod/values/nginx-ingress-controller-config.yaml
-```
+Update `proxy-real-ip-cidr` in `nginx-ingress-cloudflare-overrides.yaml` and re-apply.
 
 ## Content Security Policy (CSP)
 

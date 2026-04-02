@@ -51,12 +51,12 @@ import mantineTheme from './styles/mantine-theme'; // eslint-disable-line
 // Initialize the server and configure support for handlebars templates
 const app = express();
 
-// Trust proxy headers from Cloudflare and Nginx Ingress.
-// Behind Cloudflare CDN -> Nginx Ingress -> Express, the real client IP
-// is forwarded via X-Forwarded-For / CF-Connecting-IP headers.
-// Using `true` trusts all proxies, which is safe since this app is only
-// reachable via K8s ClusterIP (not exposed publicly).
-app.set('trust proxy', true);
+// Trust the reverse proxy (Nginx Ingress) to provide real client IP via
+// X-Forwarded-For. Value of 1 = trust one proxy hop (Nginx Ingress).
+// Increase to 2 when Cloudflare is added in front of the ingress.
+if (process.env.NODE_ENV !== 'development') {
+    app.set('trust proxy', 1);
+}
 
 // Enable gzip/deflate compression for all responses
 app.use(compression());
