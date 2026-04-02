@@ -35,18 +35,14 @@ const escapeHtml = (str: string): string => {
 
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
 
-// Tile provider configuration
-// To use MapTiler (recommended for better cache headers and performance):
-//   1. Sign up at maptiler.com (free tier: 100K tiles/month)
-//   2. Set tileLayerUrl in global-config.js to:
-//      'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=YOUR_KEY'
-// Falls back to direct OSM tiles when not configured
+// Tile provider: Carto Voyager (CDN-backed, free, no API key, proper cache headers)
+// Override via tileLayerUrl in global-config.js if needed
 import * as globalConfig from '../../../global-config';
 
 const envConfig = globalConfig[process.env.NODE_ENV || 'production'] || globalConfig.production;
-const TILE_LAYER_URL = envConfig.tileLayerUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const TILE_ATTRIBUTION = TILE_LAYER_URL.includes('maptiler')
-    ? '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+const TILE_LAYER_URL = envConfig.tileLayerUrl || 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+const TILE_ATTRIBUTION = TILE_LAYER_URL.includes('cartocdn')
+    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 const SpacesMap: React.FC<ISpacesMapProps> = ({

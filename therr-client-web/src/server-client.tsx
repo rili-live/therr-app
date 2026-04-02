@@ -79,8 +79,8 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.googletagmanager.com',
                     // Google Sign-In
                     'https://accounts.google.com',
-                    // Map tile providers
-                    'https://api.maptiler.com',
+                    // Map tile providers (Carto CDN)
+                    'https://*.basemaps.cartocdn.com',
                 ],
                 frameSrc: [
                     "'self'",
@@ -117,7 +117,7 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.googletagmanager.com',
                     // Leaflet map tiles and marker icons
                     'https://*.tile.openstreetmap.org',
-                    'https://api.maptiler.com',
+                    'https://*.basemaps.cartocdn.com',
                     'https://unpkg.com',
                 ],
                 workerSrc: ["'self'", 'blob:'],
