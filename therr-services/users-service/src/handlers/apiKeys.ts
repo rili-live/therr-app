@@ -240,8 +240,8 @@ const validateApiKey = async (req, res) => {
         const hashedInput = hashApiKey(apiKey);
 
         // Constant-time comparison to prevent timing attacks
-        const hashBuffer = Buffer.from(hashedInput, 'hex');
-        const storedBuffer = Buffer.from(keyRecord.hashedKey, 'hex');
+        const hashBuffer = new Uint8Array(Buffer.from(hashedInput, 'hex'));
+        const storedBuffer = new Uint8Array(Buffer.from(keyRecord.hashedKey, 'hex'));
 
         if (hashBuffer.length !== storedBuffer.length
             || !crypto.timingSafeEqual(hashBuffer, storedBuffer)) {
