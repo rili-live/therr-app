@@ -103,7 +103,7 @@ export interface IPlacesAutoCompleteArgs {
     latitude: string;
     radius?: number | string;
     types?: string;
-    apiKey: string;
+    apiKey?: string;
     input: string;
     sessiontoken?: string;
 }
