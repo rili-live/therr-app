@@ -79,6 +79,10 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.googletagmanager.com',
                     // Google Sign-In
                     'https://accounts.google.com',
+                    // Map tile providers (Carto CDN)
+                    'https://*.basemaps.cartocdn.com',
+                    // Cloudflare Insights beacon
+                    'https://static.cloudflareinsights.com',
                 ],
                 frameSrc: [
                     "'self'",
@@ -93,7 +97,12 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://cdn.lr-ingest.com',
                     // Google Sign-In
                     'https://accounts.google.com',
+                    // Cloudflare Insights / Web Analytics
+                    'https://static.cloudflareinsights.com',
                 ],
+                // Disable Helmet's default script-src-attr 'none' which blocks inline
+                // event handlers from third-party scripts (Google Sign-In, analytics, etc.)
+                scriptSrcAttr: null,
                 styleSrc: [
                     "'self'",
                     "'unsafe-inline'",
@@ -115,6 +124,7 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.googletagmanager.com',
                     // Leaflet map tiles and marker icons
                     'https://*.tile.openstreetmap.org',
+                    'https://*.basemaps.cartocdn.com',
                     'https://unpkg.com',
                 ],
                 workerSrc: ["'self'", 'blob:'],
@@ -131,6 +141,7 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
     enableBrotli: true,
     orderPreference: ['br', 'gzip'],
     serveStatic: {
+        index: false,
         setHeaders: (res, filePath) => {
             if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
                 res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');

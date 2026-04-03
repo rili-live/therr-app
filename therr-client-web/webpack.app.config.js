@@ -49,6 +49,11 @@ const common = merge([
                 'therr-react': path.join(__dirname, '../therr-public-library/therr-react/lib'),
                 'therr-styles': path.join(__dirname, '../therr-public-library/therr-styles/lib'),
                 'therr-js-utilities': path.join(__dirname, '../therr-public-library/therr-js-utilities/lib'),
+                // Force single Mantine instance: therr-react's UMD bundle uses require("@mantine/core")
+                // which resolves to CJS, while app code uses import (ESM) — two separate contexts.
+                // The $ suffix makes this an exact match, so sub-path imports like
+                // '@mantine/core/styles.css' resolve normally from node_modules.
+                '@mantine/core$': path.join(__dirname, '../node_modules/@mantine/core/esm/index.mjs'),
             },
             fallback: {
                 os: false,
@@ -108,6 +113,7 @@ const buildDev = () => merge([
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
                 inject: true,
+                excludeChunks: Object.keys(entry).filter((name) => name.startsWith('theme-')),
             }),
         ],
     },
@@ -122,6 +128,9 @@ const buildProd = () => merge([
     common,
     {
         mode: 'production',
+        output: {
+            filename: '[name].[contenthash].js',
+        },
     },
     // parts.analyzeBundle(),
     parts.lintJavaScript({
