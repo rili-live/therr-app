@@ -348,15 +348,30 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         },
     },
     {
-        path: '/locations/:pageNumber',
+        path: '/locations/:categorySlug',
         element: <ListSpaces />,
         fetchData: (dispatch: any, params: any, query: any = {}) => {
             const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
             const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
             const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            const categoryKey = Categories.SlugToCategoryMap[params.categorySlug];
+            if (categoryKey) {
+                return MapActions.listSpaces({
+                    itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                    pageNumber: 1,
+                    latitude: lat,
+                    longitude: lng,
+                    filterBy: 'distance',
+                }, {
+                    category: categoryKey,
+                    distanceOverride: radius,
+                })(dispatch);
+            }
+            // Treat as page number
+            const pageNumber = parseInt(params.categorySlug || '1', 10);
+            if (Number.isNaN(pageNumber)) return Promise.resolve();
             const searchQuery = query.q || '';
             const hasCoords = !Number.isNaN(parseFloat(query.lat)) && !Number.isNaN(parseFloat(query.lng));
-            const pageNumber = parseInt(params.pageNumber || '1', 10);
             const queryParams: any = {
                 itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
                 pageNumber,
@@ -370,27 +385,6 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
                 queryParams.query = searchQuery;
             }
             return MapActions.listSpaces(queryParams, {
-                distanceOverride: radius,
-            })(dispatch);
-        },
-    },
-    {
-        path: '/locations/:categorySlug',
-        element: <ListSpaces />,
-        fetchData: (dispatch: any, params: any, query: any = {}) => {
-            const categoryKey = Categories.SlugToCategoryMap[params.categorySlug];
-            if (!categoryKey) return Promise.resolve();
-            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
-            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
-            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
-            return MapActions.listSpaces({
-                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-                pageNumber: 1,
-                latitude: lat,
-                longitude: lng,
-                filterBy: 'distance',
-            }, {
-                category: categoryKey,
                 distanceOverride: radius,
             })(dispatch);
         },
