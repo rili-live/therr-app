@@ -147,7 +147,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         document.title = searchQuery
             ? `${searchQuery} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`
             : categoryLabel
-                ? `${categoryLabel} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`
+                ? `${categoryLabel} near You | Therr`
                 : `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
 
         const parsedPage = parseInt(pageNumberStr, 10);

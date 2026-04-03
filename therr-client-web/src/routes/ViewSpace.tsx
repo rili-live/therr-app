@@ -6,7 +6,7 @@ import { NavigateFunction } from 'react-router-dom';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
-import { Content } from 'therr-js-utilities/constants';
+import { Categories, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
@@ -1083,6 +1083,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             : content?.media?.[mediaPath];
 
         const categoryLabel = formatCategoryLabel(space.category);
+        const categorySlug = Categories.CategorySlugMap[space.category];
         const hasRating = space.rating?.avgRating != null && space.rating.avgRating > 0;
 
         return (
@@ -1141,7 +1142,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
                         <Group gap="sm" mt="xs" wrap="wrap">
                             {categoryLabel && (
-                                <Badge variant="light" size="lg">{categoryLabel}</Badge>
+                                categorySlug
+                                    ? (
+                                        <Anchor href={`/locations/${categorySlug}`} underline="never">
+                                            <Badge variant="light" size="lg" style={{ cursor: 'pointer' }}>{categoryLabel}</Badge>
+                                        </Anchor>
+                                    )
+                                    : <Badge variant="light" size="lg">{categoryLabel}</Badge>
                             )}
                             {space.priceRange > 0 && (
                                 <Text fw={600} c="dimmed">{formatPriceRange(space.priceRange)}</Text>
