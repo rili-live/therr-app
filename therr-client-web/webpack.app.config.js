@@ -65,7 +65,6 @@ const common = merge([
             },
         },
         optimization: {
-            usedExports: true,
             emitOnErrors: true,
             splitChunks: {
                 // Only split the app entry; theme entries stay isolated so their
