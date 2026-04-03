@@ -55,7 +55,7 @@ describe('ListSpaces', () => {
 
         const props = {
             navigation: { navigate: mockNavigate },
-            routeParams: { pageNumber: '1' },
+            routeParams: { categorySlug: '', pageNumber: '1' },
             geocodeLocation: mockGeocodeLocation,
             listSpaces: mockListSpaces,
             updateUserCoordinates: mockUpdateUserCoordinates,
