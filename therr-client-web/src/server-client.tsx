@@ -26,7 +26,7 @@ import getUserImageUri from './utilities/getUserImageUri';
 import * as globalConfig from '../../global-config';
 import getUserContentUri from './utilities/getUserContentUri';
 
-axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
+axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
 axios.defaults.headers['x-brand-variation'] = BrandVariations.THERR;
 
@@ -688,7 +688,7 @@ const renderMomentView = (req, res, config, {
     const mediaPath = (moment.medias?.[0]?.path);
     const mediaType = (moment.medias?.[0]?.type);
     const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(moment.medias[0], 600, 600)
+        ? getUserContentUri(moment.medias?.[0], 600, 600)
         : content?.media?.[mediaPath];
 
     if (momentMediaUri) {
@@ -824,7 +824,7 @@ const renderSpaceView = (req, res, config, {
     const mediaPath = (space.medias?.[0]?.path);
     const mediaType = (space.medias?.[0]?.type);
     const spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(space?.medias[0], 600, 600)
+        ? getUserContentUri(space?.medias?.[0], 600, 600)
         : content?.media?.[mediaPath];
 
     if (spaceMediaUri) {
@@ -1055,7 +1055,7 @@ const renderEventView = (req, res, config, {
     const mediaPath = (event?.medias?.[0]?.path);
     const mediaType = (event?.medias?.[0]?.type);
     const eventMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(event.medias[0], 600, 600)
+        ? getUserContentUri(event?.medias?.[0], 600, 600)
         : content?.media?.[mediaPath];
 
     if (eventMediaUri) {
@@ -1481,7 +1481,7 @@ const renderGroupView = (req, res, config, {
     const mediaPath = group?.media?.[0]?.path;
     const mediaType = group?.media?.[0]?.type;
     const groupMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(group.media[0], 600, 600)
+        ? getUserContentUri(group?.media?.[0], 600, 600)
         : undefined;
 
     if (groupMediaUri) {
