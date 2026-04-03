@@ -139,12 +139,16 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const { categorySlug, pageNumber: pn } = routeParams;
 
         // categorySlug doubles as page number when it is not a valid category slug
-        const isCategory = !!this.getActiveCategoryKey();
+        const activeCategoryKey = this.getActiveCategoryKey();
+        const isCategory = !!activeCategoryKey;
         const pageNumberStr = pn || (!isCategory && categorySlug ? categorySlug : '1');
 
+        const categoryLabel = activeCategoryKey ? formatCategoryLabel(activeCategoryKey) : '';
         document.title = searchQuery
             ? `${searchQuery} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`
-            : `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
+            : categoryLabel
+                ? `${categoryLabel} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`
+                : `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
 
         const parsedPage = parseInt(pageNumberStr, 10);
         if (!isCategory && Number.isNaN(parsedPage)) {
@@ -174,9 +178,10 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const { categorySlug, pageNumber } = this.props.routeParams;
         const { categorySlug: prevCategorySlug, pageNumber: prevPageNumber } = prevProps.routeParams;
 
-        if (prevPageNumber !== pageNumber) {
+        const parsedPageNumber = parseInt(pageNumber, 10);
+        if (prevPageNumber !== pageNumber && !Number.isNaN(parsedPageNumber)) {
             // Category + page navigation (/locations/:categorySlug/:pageNumber)
-            this.searchPaginatedSpaces(parseInt(pageNumber, 10));
+            this.searchPaginatedSpaces(parsedPageNumber);
         } else if (prevCategorySlug !== categorySlug) {
             // Single-segment param changed — could be a category or page number change
             const isCategory = !!this.getActiveCategoryKey();
