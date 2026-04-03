@@ -17,7 +17,8 @@ import { MantineProvider } from '@mantine/core';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
-import { BrandVariations, Content } from 'therr-js-utilities/constants';
+import { BrandVariations, Categories, Content } from 'therr-js-utilities/constants';
+import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -341,11 +342,18 @@ app.get('/sitemap-static.xml', (req, res) => {
         return res.send(cached);
     }
 
+    // Category landing pages for SEO (e.g. /locations/restaurants, /locations/bars)
+    const categoryUrls = Object.values(Categories.CategorySlugMap).map((slug) => ({
+        loc: `/locations/${slug}`,
+        priority: '0.85',
+    }));
+
     const staticUrls = [
         { loc: '/', priority: '1.0' },
         { loc: '/login', priority: '0.8' },
         { loc: '/register', priority: '0.8' },
         { loc: '/locations', priority: '0.9' },
+        ...categoryUrls,
     ];
 
     const today = new Date().toISOString().split('T')[0];
@@ -405,7 +413,9 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
     const urls = publicSpaces.map((space: any) => {
         const lastmod = space.updatedAt ? new Date(space.updatedAt).toISOString().split('T')[0] : today;
-        return buildUrlSet(`/spaces/${space.id}`, lastmod, '0.7');
+        const slug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
+        const spacePath = slug ? `/spaces/${space.id}/${slug}` : `/spaces/${space.id}`;
+        return buildUrlSet(spacePath, lastmod, '0.7');
     });
 
     // eslint-disable-next-line max-len
@@ -752,6 +762,17 @@ const renderSpaceView = (req, res, config, {
     const spaceId = req.params?.spaceId;
     const content = initialState?.content || {};
     const space = initialState?.map?.spaces[spaceId];
+
+    // 301 redirect to keyword-rich slug URL if slug is missing or incorrect
+    if (space?.notificationMsg) {
+        const expectedSlug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
+        const currentSlug = req.params?.spaceSlug || '';
+        if (expectedSlug && currentSlug !== expectedSlug) {
+            const lp = localeVars.localePrefix;
+            return res.redirect(301, `${lp}/spaces/${spaceId}/${expectedSlug}`);
+        }
+    }
+
     const spaceNameBase = space ? space?.notificationMsg : title;
     const locationParts = [space?.addressLocality, space?.addressRegion].filter(Boolean);
     const spaceTitle = locationParts.length > 0 ? `${spaceNameBase} in ${locationParts.join(', ')}` : spaceNameBase;
@@ -1207,6 +1228,12 @@ const renderUserView = (req, res, config, {
     });
 };
 
+const formatCategoryLabel = (categoryKey: string): string => {
+    if (!categoryKey) return '';
+    const label = categoryKey.replace('categories.', '').replace('/', ' & ');
+    return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
 const renderLocationsView = (req, res, config, {
     markup,
     state,
@@ -1218,17 +1245,31 @@ const renderLocationsView = (req, res, config, {
     const searchQuery = req.query?.q || '';
     const hasCoords = req.query?.lat && req.query?.lng;
 
-    // Dynamic title/description when a location search is active
-    const title = searchQuery
-        ? `Spaces near ${searchQuery} - ${config.head.title}`
-        : config.head.title;
-    const description = searchQuery
+    // Category slug support for dedicated landing pages (e.g. /locations/restaurants)
+    const categorySlug = req.params?.categorySlug || '';
+    const categoryKey = categorySlug ? Categories.SlugToCategoryMap[categorySlug] : '';
+    const categoryLabel = categoryKey ? formatCategoryLabel(categoryKey) : '';
+
+    // Dynamic title/description based on category or search query
+    let title: string;
+    let description: string;
+    if (categoryLabel) {
+        title = `Best ${categoryLabel} Near You | Therr`;
+        description = `Find the best ${categoryLabel.toLowerCase()} near you. Browse listings, read reviews, see hours, and get directions on Therr.`;
+    } else if (searchQuery) {
+        title = `Spaces near ${searchQuery} - ${config.head.title}`;
         // eslint-disable-next-line max-len
-        ? `Discover local businesses, restaurants, and events near ${searchQuery}. Browse listings, read reviews, and get directions on Therr.`
-        : config.head.description || defaultDescription;
+        description = `Discover local businesses, restaurants, and events near ${searchQuery}. Browse listings, read reviews, and get directions on Therr.`;
+    } else {
+        title = config.head.title;
+        description = config.head.description || defaultDescription;
+    }
 
     const spaces = initialState?.map?.searchResults || [];
     const pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
+
+    // Build base path for pagination links (category-aware)
+    const locationsBase = categorySlug ? `/locations/${categorySlug}` : '/locations';
 
     // Build query string for pagination links (preserve search params)
     const paginationQueryParts: string[] = [];
@@ -1240,19 +1281,28 @@ const renderLocationsView = (req, res, config, {
     }
     const paginationQs = paginationQueryParts.length > 0 ? `?${paginationQueryParts.join('&')}` : '';
 
-    // ItemList schema from prefetched spaces
+    // ItemList schema from prefetched spaces (include keyword-rich slugs in URLs)
     const lp = localeVars.localePrefix;
-    const itemListElements = spaces.slice(0, 50).map((space: any, index: number) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        url: `https://www.therr.com${lp}/spaces/${space.id}`,
-        name: space.notificationMsg || space.id,
-    }));
+    const itemListElements = spaces.slice(0, 50).map((space: any, index: number) => {
+        const slug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
+        return {
+            '@type': 'ListItem',
+            position: index + 1,
+            url: `https://www.therr.com${lp}/spaces/${space.id}${slug ? `/${slug}` : ''}`,
+            name: space.notificationMsg || space.id,
+        };
+    });
 
+    let itemListName = 'Business Locations on Therr';
+    if (categoryLabel) {
+        itemListName = `${categoryLabel} on Therr`;
+    } else if (searchQuery) {
+        itemListName = `Spaces near ${searchQuery}`;
+    }
     const itemListSchema: any = {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        name: searchQuery ? `Spaces near ${searchQuery}` : 'Business Locations on Therr',
+        name: itemListName,
         numberOfItems: itemListElements.length,
         itemListElement: itemListElements,
     };
@@ -1271,23 +1321,32 @@ const renderLocationsView = (req, res, config, {
 
     // Geographic structured data for local directory SEO
     const geoSpaces = spaces.filter((s: any) => s.latitude && s.longitude).slice(0, 20);
-    const localBusinessSchemas = geoSpaces.map((space: any) => ({
-        '@type': 'LocalBusiness',
-        name: space.notificationMsg || space.id,
-        url: `https://www.therr.com${lp}/spaces/${space.id}`,
-        ...(space.addressReadable && { address: space.addressReadable }),
-        geo: {
-            '@type': 'GeoCoordinates',
-            latitude: space.latitude,
-            longitude: space.longitude,
-        },
-    }));
+    const localBusinessSchemas = geoSpaces.map((space: any) => {
+        const slug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
+        return {
+            '@type': 'LocalBusiness',
+            name: space.notificationMsg || space.id,
+            url: `https://www.therr.com${lp}/spaces/${space.id}${slug ? `/${slug}` : ''}`,
+            ...(space.addressReadable && { address: space.addressReadable }),
+            geo: {
+                '@type': 'GeoCoordinates',
+                latitude: space.latitude,
+                longitude: space.longitude,
+            },
+        };
+    });
 
+    let collectionName = 'Local Business Directory';
+    if (categoryLabel) {
+        collectionName = `${categoryLabel} Directory`;
+    } else if (searchQuery) {
+        collectionName = `Local Businesses near ${searchQuery}`;
+    }
     const localDirectorySchema = localBusinessSchemas.length > 0
         ? {
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
-            name: searchQuery ? `Local Businesses near ${searchQuery}` : 'Local Business Directory',
+            name: collectionName,
             description,
             ...(hasCoords && {
                 spatialCoverage: {
@@ -1310,7 +1369,7 @@ const renderLocationsView = (req, res, config, {
         }
         : null;
 
-    // Breadcrumb schema
+    // Breadcrumb schema (category-aware)
     const breadcrumbItems: any[] = [
         {
             '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
@@ -1319,7 +1378,11 @@ const renderLocationsView = (req, res, config, {
             '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
         },
     ];
-    if (searchQuery) {
+    if (categoryLabel) {
+        breadcrumbItems.push({
+            '@type': 'ListItem', position: 3, name: categoryLabel, item: `https://www.therr.com/locations/${categorySlug}`,
+        });
+    } else if (searchQuery) {
         breadcrumbItems.push({
             '@type': 'ListItem', position: 3, name: searchQuery,
         });
@@ -1331,11 +1394,11 @@ const renderLocationsView = (req, res, config, {
         itemListElement: breadcrumbItems,
     };
 
-    // Pagination links (include locale prefix and search params)
+    // Pagination links (include locale prefix, category slug, and search params)
     const prevPage = pageNumber > 1
-        ? `${lp}/locations${pageNumber > 2 ? `/${pageNumber - 1}` : ''}${paginationQs}`
+        ? `${lp}${locationsBase}${pageNumber > 2 ? `/${pageNumber - 1}` : ''}${paginationQs}`
         : '';
-    const nextPage = spaces.length > 0 ? `${lp}/locations/${pageNumber + 1}${paginationQs}` : '';
+    const nextPage = spaces.length > 0 ? `${lp}${locationsBase}/${pageNumber + 1}${paginationQs}` : '';
 
     return res.render(routeView, {
         title,
@@ -1511,7 +1574,9 @@ const publicRoutePatterns = [
     /^\/login$/,
     /^\/register$/,
     /^\/locations(\/\d+)?$/,
+    /^\/locations\/[a-z-]+(\/\d+)?$/,
     /^\/spaces\/[^/]+$/,
+    /^\/spaces\/[^/]+\/[^/]+$/,
     /^\/events\/[^/]+$/,
     /^\/groups(\/[^/]+)?$/,
     /^\/moments\/[^/]+$/,

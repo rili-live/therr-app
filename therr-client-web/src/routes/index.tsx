@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, Categories } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
 import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
@@ -375,6 +375,49 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         },
     },
     {
+        path: '/locations/:categorySlug',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const categoryKey = Categories.SlugToCategoryMap[params.categorySlug];
+            if (!categoryKey) return Promise.resolve();
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            return MapActions.listSpaces({
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber: 1,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
+            }, {
+                category: categoryKey,
+                distanceOverride: radius,
+            })(dispatch);
+        },
+    },
+    {
+        path: '/locations/:categorySlug/:pageNumber',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const categoryKey = Categories.SlugToCategoryMap[params.categorySlug];
+            if (!categoryKey) return Promise.resolve();
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            const pageNumber = parseInt(params.pageNumber || '1', 10);
+            return MapActions.listSpaces({
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
+            }, {
+                category: categoryKey,
+                distanceOverride: radius,
+            })(dispatch);
+        },
+    },
+    {
         path: '/events/:eventId',
         element: <ViewEvent />,
         fetchData: (dispatch: any, params: any) => MapActions.getEventDetails(params.eventId, {
@@ -385,6 +428,16 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
     {
         path: '/spaces/:spaceId',
+        element: <ViewSpace />,
+        fetchData: (dispatch: any, params: any) => MapActions.getSpaceDetails(params.spaceId, {
+            withMedia: true,
+            withUser: true,
+            withRatings: true,
+            withEvents: true,
+        })(dispatch),
+    },
+    {
+        path: '/spaces/:spaceId/:spaceSlug',
         element: <ViewSpace />,
         fetchData: (dispatch: any, params: any) => MapActions.getSpaceDetails(params.spaceId, {
             withMedia: true,

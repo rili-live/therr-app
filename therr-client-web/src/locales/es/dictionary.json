@@ -470,6 +470,7 @@
     "spaces": {
       "pageTitle": "Ubicaciones de negocios",
       "header1": "Directorio de negocios locales",
+      "categoryHeading": "{category} cerca de ti",
       "searchPlaceholder": "Buscar espacios por nombre...",
       "noResults": "No se encontraron espacios. Intenta con un término de búsqueda diferente.",
       "public": "Público",

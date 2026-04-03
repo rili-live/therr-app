@@ -145,6 +145,22 @@ export default [
         view: 'locations',
     },
     {
+        route: '/locations/:categorySlug',
+        head: {
+            title: 'Local Business Directory',
+            description: 'Browse local businesses near you. Read reviews, see hours, and get directions.',
+        },
+        view: 'locations',
+    },
+    {
+        route: '/locations/:categorySlug/:pageNumber',
+        head: {
+            title: 'Local Business Directory',
+            description: 'Browse local businesses near you. Read reviews, see hours, and get directions.',
+        },
+        view: 'locations',
+    },
+    {
         route: '/groups/:groupId',
         head: {
             title: 'Group not Found',
@@ -162,6 +178,14 @@ export default [
     },
     {
         route: '/spaces/:spaceId',
+        head: {
+            title: 'Space not Found',
+            description: 'No business space was found for the given ID.',
+        },
+        view: 'spaces',
+    },
+    {
+        route: '/spaces/:spaceId/:spaceSlug',
         head: {
             title: 'Space not Found',
             description: 'No business space was found for the given ID.',
