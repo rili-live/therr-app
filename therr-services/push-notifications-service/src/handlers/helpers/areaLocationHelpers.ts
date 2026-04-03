@@ -444,6 +444,7 @@ const activateAreasAndNotify = (
         latitude: number,
         longitude: number,
     },
+    isCheckIn = false,
 ): Promise<void | undefined> => {
     const {
         activatedMomentIds,
@@ -461,15 +462,19 @@ const activateAreasAndNotify = (
             userHasActivated: true,
         },
     }) : Promise.resolve();
+    const spaceReactionsData: any = {
+        spaceIds: activatedSpaceIds,
+        userHasActivated: true,
+    };
+    if (isCheckIn) {
+        spaceReactionsData.recordVisit = true;
+    }
     const spaceReactionsPromise: Promise<any> = activatedSpaceIds.length ? internalRestRequest({
         headers,
     }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/create-update/multiple`,
-        data: {
-            spaceIds: activatedSpaceIds,
-            userHasActivated: true,
-        },
+        data: spaceReactionsData,
     }) : Promise.resolve();
 
     // Send Metrics
@@ -479,15 +484,15 @@ const activateAreasAndNotify = (
         const spacesProspected: any = [];
         spaces.forEach((space) => {
             const distanceFromSpace = distanceTo({
-                lon: userLocation.latitude,
-                lat: userLocation.longitude,
+                lon: userLocation.longitude,
+                lat: userLocation.latitude,
             }, {
                 lon: space.longitude,
                 lat: space.latitude,
             });
 
             // If user is very close to a space, we consider it visited
-            if (distanceFromSpace > Location.AREA_PROXIMITY_METERS - 1) {
+            if (distanceFromSpace <= Location.AREA_PROXIMITY_METERS) {
                 spacesVisited.push(space);
             } else {
                 // Otherwise the user is a "prospective" customer
@@ -577,6 +582,7 @@ const selectAreasAndActivate = (
     userLocation: IUserlocation,
     filteredMoments: any[],
     filteredSpaces: any[],
+    isCheckIn = false,
 ) => {
     const momentIdsToActivate: string[] = [];
     const momentsToActivate: any[] = [];
@@ -627,6 +633,7 @@ const selectAreasAndActivate = (
             },
             userLocationCache,
             userLocation,
+            isCheckIn,
         );
 
         updateAchievements(headers, momentIdsToActivate, spaceIdsToActivate);

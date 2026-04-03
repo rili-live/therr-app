@@ -450,7 +450,7 @@
       },
       "pageTitle": "Vérification du compte",
       "returnToLogin": "Retour à la page de connexion",
-      "successMessage": "Votre!",
+      "successMessage": "Votre courriel a été vérifié!",
       "successVerifiedMessage": "Votre compte a été vérifié. Connectez-vous pour continuer."
     },
     "resetPassword": {
@@ -527,6 +527,13 @@
       },
       "noForumsMessage": "Aucun clavardage n'est actuellement actif. Cliquez sur « Créer un clavardage hébergé » pour en démarrer un nouveau.",
       "pageTitle": "Clavardages hébergés"
+    },
+    "editGroup": {
+      "buttons": {
+        "submit": "Enregistrer les modifications"
+      },
+      "pageTitle": "Modifier le groupe",
+      "notAuthorized": "Vous n'êtes pas autorisé à modifier ce groupe."
     },
     "createProfile": {
       "pageTitle": "Créer le profil",
@@ -856,6 +863,9 @@
         "upcomingEvents": "Événements à venir",
         "pastEvents": "Événements passés",
         "noEvents": "Aucun événement trouvé pour ce groupe."
+      },
+      "buttons": {
+        "editGroup": "Modifier le groupe"
       }
     },
     "viewEvent": {

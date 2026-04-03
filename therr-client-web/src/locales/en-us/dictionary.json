@@ -450,7 +450,7 @@
       },
       "pageTitle": "Account Verification",
       "returnToLogin": "Return to login page",
-      "successMessage": "Your!",
+      "successMessage": "Your email has been verified!",
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
     "resetPassword": {
@@ -527,6 +527,13 @@
       },
       "noForumsMessage": "No chats are currently active. Click 'Create Hosted Chat' to start a new one.",
       "pageTitle": "Hosted Chats"
+    },
+    "editGroup": {
+      "buttons": {
+        "submit": "Save Changes"
+      },
+      "pageTitle": "Edit Group",
+      "notAuthorized": "You are not authorized to edit this group."
     },
     "createProfile": {
       "pageTitle": "Create Profile",
@@ -764,6 +771,9 @@
         "upcomingEvents": "Upcoming Events",
         "pastEvents": "Past Events",
         "noEvents": "No events found for this group."
+      },
+      "buttons": {
+        "editGroup": "Edit Group"
       }
     },
     "viewEvent": {

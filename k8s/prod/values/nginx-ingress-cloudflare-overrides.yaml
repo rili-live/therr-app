@@ -1,0 +1,25 @@
+# Cloudflare-specific Nginx Ingress overrides.
+#
+# APPLY ONLY AFTER Cloudflare DNS proxy is enabled for all subdomains.
+# Without Cloudflare in front, these settings have no effect (the CIDR guard
+# ensures non-Cloudflare sources fall back to connection IP), but they should
+# still be applied only when Cloudflare is live to avoid confusion.
+#
+# Usage (merge with the base config):
+#   helm upgrade nginx-ingress ingress-nginx/ingress-nginx \
+#     --namespace ingress-nginx \
+#     -f k8s/prod/values/nginx-ingress-controller-config.yaml \
+#     -f k8s/prod/values/nginx-ingress-cloudflare-overrides.yaml
+#
+# Also update therr-client-web trust proxy from 1 to 2 when applying this.
+
+controller:
+  config:
+    # Use Cloudflare's real client IP header instead of X-Forwarded-For
+    # so that rate limiting, logging, and IP-based logic see the true client IP.
+    forwarded-for-header: "CF-Connecting-IP"
+    compute-full-forwarded-for: "true"
+    # Only trust forwarded headers from Cloudflare's published IPv4 ranges.
+    # See: https://www.cloudflare.com/ips-v4/
+    # Last updated: 2026-04-02
+    proxy-real-ip-cidr: "173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22"

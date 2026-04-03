@@ -9,8 +9,8 @@ import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
 import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
-import ReactGA from 'react-ga4';
-import LogRocket from 'logrocket';
+// ReactGA removed from server — analytics should only run client-side
+// LogRocket removed from server — session replay only runs client-side
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { MantineProvider } from '@mantine/core';
@@ -50,6 +50,13 @@ import mantineTheme from './styles/mantine-theme'; // eslint-disable-line
 
 // Initialize the server and configure support for handlebars templates
 const app = express();
+
+// Trust the reverse proxy (Nginx Ingress) to provide real client IP via
+// X-Forwarded-For. Value of 1 = trust one proxy hop (Nginx Ingress).
+// Increase to 2 when Cloudflare is added in front of the ingress.
+if (process.env.NODE_ENV !== 'development') {
+    app.set('trust proxy', 1);
+}
 
 // Enable gzip/deflate compression for all responses
 app.use(compression());
@@ -257,6 +264,7 @@ app.get('/sitemap.xml', async (req, res) => {
     const cached = getSitemapCache('index');
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -324,6 +332,7 @@ app.get('/sitemap.xml', async (req, res) => {
 
     setSitemapCache('index', xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -332,6 +341,7 @@ app.get('/sitemap-static.xml', (req, res) => {
     const cached = getSitemapCache('static');
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -350,6 +360,7 @@ app.get('/sitemap-static.xml', (req, res) => {
 
     setSitemapCache('static', xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -364,6 +375,7 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
     const cached = getSitemapCache(cacheKey);
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -405,6 +417,7 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
 
     setSitemapCache(cacheKey, xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -419,6 +432,7 @@ app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
     const cached = getSitemapCache(cacheKey);
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -454,6 +468,7 @@ app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
 
     setSitemapCache(cacheKey, xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -468,6 +483,7 @@ app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
     const cached = getSitemapCache(cacheKey);
     if (cached) {
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
         return res.send(cached);
     }
 
@@ -502,6 +518,7 @@ app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
 
     setSitemapCache(cacheKey, xml);
     res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
 });
 
@@ -739,9 +756,22 @@ const renderSpaceView = (req, res, config, {
     const spaceId = req.params?.spaceId;
     const content = initialState?.content || {};
     const space = initialState?.map?.spaces[spaceId];
-    const spaceNameBase = space ? space?.notificationMsg : title;
-    const locationParts = [space?.addressLocality, space?.addressRegion].filter(Boolean);
-    const spaceTitle = locationParts.length > 0 ? `${spaceNameBase} in ${locationParts.join(', ')}` : spaceNameBase;
+
+    // Return 404 status for missing/deleted spaces so search engines de-index them
+    if (!space) {
+        return res.status(404).render(routeView, {
+            title,
+            description,
+            markup,
+            routePath,
+            state,
+            ...localeVars,
+        });
+    }
+
+    const spaceNameBase = space.notificationMsg || title;
+    const addressParts = [space?.addressStreetAddress, space?.addressLocality, space?.addressRegion].filter(Boolean);
+    const spaceTitle = addressParts.length > 0 ? `${spaceNameBase} - ${addressParts.join(', ')}` : spaceNameBase;
     // eslint-disable-next-line prefer-template
     const spaceDescription = `${space?.notificationMsg ? space.notificationMsg + ' - ' : ''}` + (space?.message || description).replace(/\\n/g, ' ')
         .replace(/\\r/g, ' ').substring(0, 300);
@@ -756,6 +786,19 @@ const renderSpaceView = (req, res, config, {
     const spaceFoodGenre = space?.foodStyle || '';
 
     let metaImgUrl;
+
+    // Collect all public image URLs for schema
+    const schemaImages: string[] = [];
+    if (space.medias?.length) {
+        space.medias.forEach((media) => {
+            if (media?.path && media?.type === Content.mediaTypes.USER_IMAGE_PUBLIC) {
+                const uri = getUserContentUri(media, 600, 600);
+                if (uri && (uri.includes('.jpg') || uri.includes('.jpeg') || uri.includes('.png'))) {
+                    schemaImages.push(uri);
+                }
+            }
+        });
+    }
 
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
     const mediaPath = (space.medias?.[0]?.path);
@@ -796,8 +839,8 @@ const renderSpaceView = (req, res, config, {
     const spaceSchema: any = {
         '@context': 'https://schema.org',
         '@type': schemaType,
-        name: spaceTitle,
-        image: metaImgUrl || '',
+        name: spaceNameBase,
+        image: schemaImages.length > 0 ? schemaImages : (metaImgUrl || ''),
         priceRange: '$'.repeat(spacePriceRange || 2),
         telephone: spacePhoneNumber || '',
         address: {
@@ -811,6 +854,14 @@ const renderSpaceView = (req, res, config, {
         url: spaceWebsiteUrl || '',
         servesCuisine: spaceFoodGenre,
     };
+
+    if (space?.menuUrl) {
+        spaceSchema.hasMenu = space.menuUrl;
+    }
+
+    if (space?.reservationUrl) {
+        spaceSchema.acceptsReservations = space.reservationUrl;
+    }
 
     if (spaceLatitude && spaceLongitude) {
         spaceSchema.geo = {
@@ -833,12 +884,18 @@ const renderSpaceView = (req, res, config, {
 
     if (space?.reviews) {
         spaceSchema.review = space?.reviews.slice(0, 10).map((review) => ({
-            author: review.author,
+            '@type': 'Review',
+            author: {
+                '@type': 'Person',
+                name: review.author,
+            },
             datePublished: review.createdAt,
             reviewRating: {
+                '@type': 'Rating',
                 ratingValue: review.rating,
+                bestRating: 5,
             },
-            description: review.text,
+            reviewBody: review.text,
         }));
     }
 
@@ -859,9 +916,9 @@ const renderSpaceView = (req, res, config, {
             name: breadcrumbLocality,
             item: `https://www.therr.com/locations?locality=${encodeURIComponent(breadcrumbLocality)}`,
         });
-        breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: spaceTitle });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: spaceNameBase });
     } else {
-        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: spaceTitle });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: spaceNameBase });
     }
 
     const breadcrumbSchema = {
@@ -1489,6 +1546,52 @@ const getLocaleVars = (req: any) => {
     };
 };
 
+// ── Cloudflare CDN cache headers for SSR pages ──
+// Public, crawlable pages get edge-cached (s-maxage) with short browser cache (max-age).
+// stale-while-revalidate lets the CDN serve stale content while fetching a fresh copy.
+// Auth-dependent / private pages are never cached at the CDN.
+const publicRoutePatterns = [
+    /^\/$/,
+    /^\/login$/,
+    /^\/register$/,
+    /^\/locations(\/\d+)?$/,
+    /^\/spaces\/[^/]+$/,
+    /^\/events\/[^/]+$/,
+    /^\/groups(\/[^/]+)?$/,
+    /^\/moments\/[^/]+$/,
+    /^\/thoughts\/[^/]+$/,
+    /^\/users\/[^/]+$/,
+    /^\/invite\/[^/]+$/,
+    /^\/child-safety$/,
+    /^\/go-mobile$/,
+    /^\/app-feedback$/,
+    /^\/reset-password$/,
+    /^\/verify-account$/,
+];
+
+const isPublicRoute = (pathname: string): boolean => publicRoutePatterns.some((re) => re.test(pathname));
+
+app.use((req: any, res, next) => {
+    // Skip static assets — expressStaticGzip sets its own headers
+    // Skip sitemap/robots/healthcheck endpoints — they set their own headers
+    if (req.path.match(/\.(js|css|map|br|gz|ico|png|jpg|jpeg|svg|webp|woff2?|ttf|eot|txt|xml)$/)) {
+        return next();
+    }
+
+    const strippedPath = req.path; // locale prefix already stripped by earlier middleware
+
+    if (isPublicRoute(strippedPath)) {
+        // CDN caches for 5 min, browser caches for 60s, serve stale up to 10 min while revalidating
+        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    } else {
+        // Private/auth pages: never cache at CDN or browser
+        res.setHeader('Cache-Control', 'private, no-store');
+        res.setHeader('CDN-Cache-Control', 'no-store');
+    }
+
+    next();
+});
+
 // Universal routing and rendering for SEO
 routeConfig.forEach((config) => {
     const routePath = config.route;
@@ -1513,7 +1616,7 @@ routeConfig.forEach((config) => {
         const store = configureStore({
             reducer: rootReducer,
             preloadedState: initialState,
-            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()),
+            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare),
         });
 
         getRoutes({
@@ -1579,8 +1682,6 @@ routeConfig.forEach((config) => {
                 });
                 res.end();
             } else {
-                ReactGA.send({ hitType: 'pageview', page: req.path, title });
-
                 const localeVars = getLocaleVars(req);
 
                 if (routeView === 'thoughts') {

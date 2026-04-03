@@ -1,0 +1,1064 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Therr Public API",
+    "version": "1.0.0",
+    "description": "The Therr Public API enables business listing management agencies and developers to programmatically manage spaces (business listings), search content, and access platform data.\n\n## Authentication\n\nAll API requests require an API key passed via the `x-api-key` header.\n\n**Getting an API key:**\n1. Sign up for a dashboard subscription at [dashboard.therr.com](https://dashboard.therr.com)\n2. Navigate to Settings and generate an API key\n3. Copy the key immediately - it will only be shown once\n\n**Using the key:**\n```\ncurl -H 'x-api-key: therr_sk_...' https://api.therr.com/v1/maps-service/spaces/search\n```\n\n## Rate Limits\n\n- **100 requests per minute** per API key\n- Rate limit headers are returned with every response: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`\n- When exceeded, the API returns `429 Too Many Requests`\n\n## Organization-Based Access\n\nAPI keys inherit the permissions of the user who created them. If you belong to an organization with admin or manager access, you can create and update spaces belonging to that organization.\n\n## Errors\n\nThe API uses standard HTTP status codes:\n- `200` - Success\n- `201` - Created\n- `400` - Bad request (validation error)\n- `401` - Invalid or missing API key\n- `403` - Insufficient permissions\n- `404` - Resource not found\n- `429` - Rate limit exceeded\n- `500` - Internal server error",
+    "contact": {
+      "name": "Therr Support",
+      "url": "https://www.therr.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.therr.com/v1",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Spaces",
+      "description": "Business listings and location pages. Spaces represent persistent locations such as restaurants, shops, offices, or points of interest."
+    },
+    {
+      "name": "Moments",
+      "description": "Location-tagged posts and ephemeral content."
+    },
+    {
+      "name": "Events",
+      "description": "Time-bound events at locations."
+    },
+    {
+      "name": "Users",
+      "description": "User profiles and search."
+    },
+    {
+      "name": "Reactions",
+      "description": "Engagement data such as likes, ratings, and check-ins."
+    },
+    {
+      "name": "API Keys",
+      "description": "Manage your API keys."
+    }
+  ],
+  "paths": {
+    "/maps-service/spaces": {
+      "post": {
+        "tags": ["Spaces"],
+        "summary": "Create a space",
+        "description": "Creates a new business listing / space. Requires latitude, longitude, and a message. Optionally link it to your organization via `organizationId`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSpaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Space created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Space"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or duplicate post"
+          },
+          "403": {
+            "description": "Insufficient permissions for the specified organization"
+          }
+        }
+      }
+    },
+    "/maps-service/spaces/{spaceId}": {
+      "put": {
+        "tags": ["Spaces"],
+        "summary": "Update a space",
+        "description": "Updates an existing space. You must be the space owner, or have ORGANIZATIONS_ADMIN/ORGANIZATIONS_MANAGER access to the space's organization.",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSpaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Space updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Space"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not authorized to update this space"
+          },
+          "404": {
+            "description": "Space not found"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Spaces"],
+        "summary": "Get a space by ID",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Space details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Space"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Space not found"
+          }
+        }
+      }
+    },
+    "/maps-service/spaces/{spaceId}/details": {
+      "post": {
+        "tags": ["Spaces"],
+        "summary": "Get full space details",
+        "description": "Returns space details with optional media and user information.",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "withMedia": {
+                    "type": "boolean",
+                    "description": "Include associated media"
+                  },
+                  "withUser": {
+                    "type": "boolean",
+                    "description": "Include owner user information"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full space details with media and user data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maps-service/spaces/search": {
+      "post": {
+        "tags": ["Spaces"],
+        "summary": "Search spaces",
+        "description": "Search for spaces by location. Returns spaces within proximity of the given coordinates.",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "itemsPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceSearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maps-service/spaces/search/me": {
+      "post": {
+        "tags": ["Spaces"],
+        "summary": "Search your spaces",
+        "description": "Returns spaces owned by you or belonging to your organizations.",
+        "parameters": [
+          {
+            "name": "itemsPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Your spaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceSearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maps-service/spaces/list": {
+      "post": {
+        "tags": ["Spaces"],
+        "summary": "List public spaces",
+        "description": "Returns a paginated list of public spaces.",
+        "responses": {
+          "200": {
+            "description": "List of public spaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceSearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maps-service/moments/search": {
+      "post": {
+        "tags": ["Moments"],
+        "summary": "Search moments",
+        "description": "Search for moments by location.",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "itemsPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maps-service/moments/{momentId}/details": {
+      "post": {
+        "tags": ["Moments"],
+        "summary": "Get moment details",
+        "parameters": [
+          {
+            "name": "momentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "withMedia": {
+                    "type": "boolean"
+                  },
+                  "withUser": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Moment details"
+          }
+        }
+      }
+    },
+    "/maps-service/events/search": {
+      "post": {
+        "tags": ["Events"],
+        "summary": "Search events",
+        "description": "Search for events by location.",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "itemsPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maps-service/events/{eventId}/details": {
+      "post": {
+        "tags": ["Events"],
+        "summary": "Get event details",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "withMedia": {
+                    "type": "boolean"
+                  },
+                  "withUser": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event details"
+          }
+        }
+      }
+    },
+    "/users-service/users/me": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get current user",
+        "description": "Returns the profile of the authenticated user (API key owner).",
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users-service/users/search": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Search users",
+        "description": "Search for users by name or other criteria.",
+        "responses": {
+          "200": {
+            "description": "User search results"
+          }
+        }
+      }
+    },
+    "/users-service/users/{userId}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get user by ID",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users-service/api-keys": {
+      "get": {
+        "tags": ["API Keys"],
+        "summary": "List your API keys",
+        "description": "Returns all API keys for the authenticated user. The key secret is never returned - only metadata like prefix, name, and status.",
+        "responses": {
+          "200": {
+            "description": "List of API keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKey"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reactions-service/{contentType}/{contentId}": {
+      "get": {
+        "tags": ["Reactions"],
+        "summary": "Get reactions for content",
+        "description": "Returns reaction data (likes, ratings) for a specific piece of content.",
+        "parameters": [
+          {
+            "name": "contentType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["space-reactions", "moment-reactions", "event-reactions"]
+            }
+          },
+          {
+            "name": "contentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reaction data"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key obtained from the Therr dashboard. Format: `therr_sk_<prefix>_<secret>`"
+      }
+    },
+    "schemas": {
+      "CreateSpaceRequest": {
+        "type": "object",
+        "required": ["fromUserId", "message", "latitude", "longitude"],
+        "properties": {
+          "fromUserId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Your user ID"
+          },
+          "message": {
+            "type": "string",
+            "description": "Space description / about text"
+          },
+          "notificationMsg": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Short notification message (displayed in feeds)"
+          },
+          "latitude": {
+            "type": "number",
+            "description": "Latitude of the space location"
+          },
+          "longitude": {
+            "type": "number",
+            "description": "Longitude of the space location"
+          },
+          "radius": {
+            "type": "number",
+            "description": "Radius in meters (default: 10). Required if polygonCoords not provided."
+          },
+          "polygonCoords": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "description": "Array of [latitude, longitude] pairs defining the space boundary. Required if radius not provided."
+          },
+          "category": {
+            "type": "string",
+            "description": "Business category (e.g., 'restaurant', 'bar', 'shop')"
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the space is publicly visible"
+          },
+          "isDraft": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this is a draft listing"
+          },
+          "organizationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Link space to an organization. You must have admin or manager access to the organization."
+          },
+          "addressReadable": {
+            "type": "string",
+            "description": "Human-readable address"
+          },
+          "addressStreetAddress": {
+            "type": "string"
+          },
+          "addressRegion": {
+            "type": "string"
+          },
+          "addressLocality": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "integer"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "businessEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "menuUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "orderUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "reservationUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "priceRange": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Price range (1-5)"
+          },
+          "openingHours": {
+            "type": "object",
+            "description": "Opening hours by day of week"
+          },
+          "hashTags": {
+            "type": "string",
+            "description": "Comma-separated hash tags"
+          },
+          "medias": {
+            "type": "array",
+            "description": "Array of media objects to attach",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "UpdateSpaceRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Space description / about text"
+          },
+          "notificationMsg": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "category": {
+            "type": "string"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "isDraft": {
+            "type": "boolean"
+          },
+          "addressReadable": {
+            "type": "string"
+          },
+          "addressStreetAddress": {
+            "type": "string"
+          },
+          "addressRegion": {
+            "type": "string"
+          },
+          "addressLocality": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "integer"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "businessEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "menuUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "orderUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "reservationUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "priceRange": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "openingHours": {
+            "type": "object"
+          },
+          "thirdPartyRatings": {
+            "type": "object",
+            "description": "Third-party rating data (e.g., Google, Yelp)"
+          },
+          "hashTags": {
+            "type": "string"
+          },
+          "medias": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "Space": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "organizationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "notificationMsg": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "radius": {
+            "type": "number"
+          },
+          "region": {
+            "type": "string",
+            "description": "Country code"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "isDraft": {
+            "type": "boolean"
+          },
+          "addressReadable": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "businessEmail": {
+            "type": "string"
+          },
+          "websiteUrl": {
+            "type": "string"
+          },
+          "menuUrl": {
+            "type": "string"
+          },
+          "orderUrl": {
+            "type": "string"
+          },
+          "reservationUrl": {
+            "type": "string"
+          },
+          "priceRange": {
+            "type": "integer"
+          },
+          "openingHours": {
+            "type": "object"
+          },
+          "hashTags": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SpaceDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Space"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "media": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "userName": {
+                    "type": "string"
+                  }
+                }
+              },
+              "rating": {
+                "type": "object"
+              }
+            }
+          }
+        ]
+      },
+      "SpaceSearchResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Space"
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "itemsPerPage": {
+                "type": "integer"
+              },
+              "pageNumber": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "itemsPerPage": {
+                "type": "integer"
+              },
+              "pageNumber": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "isBusinessAccount": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "keyPrefix": {
+            "type": "string",
+            "description": "First 8 characters of the key (for identification)"
+          },
+          "name": {
+            "type": "string",
+            "description": "User-assigned label",
+            "nullable": true
+          },
+          "accessLevels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isValid": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastAccessed": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}

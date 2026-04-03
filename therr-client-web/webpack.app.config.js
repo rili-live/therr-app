@@ -24,9 +24,14 @@ const entry = {
     app: path.join(PATHS.app, 'index.tsx'),
 };
 
-// This allows us to output multiple css theme files
+// Only build active theme CSS bundles (unused themes waste build time)
+// Add theme names here when new themes should be included in the build
+const activeThemes = ['light', 'dark'];
 fs.readdirSync(PATHS.themes, { withFileTypes: true }).forEach((dirent) => {
-    if (dirent.isDirectory() && dirent.name !== '_sample') {
+    if (dirent.isDirectory() && dirent.name !== '_sample' && !activeThemes.includes(dirent.name)) {
+        console.warn(`[webpack] Theme directory "${dirent.name}" found but not in activeThemes — skipping build`);
+    }
+    if (dirent.isDirectory() && activeThemes.includes(dirent.name)) {
         entry[`theme-${dirent.name}`] = `${PATHS.themes}/${dirent.name}/index.ts`;
     }
 });
@@ -36,7 +41,7 @@ const common = merge([
         entry,
         output: {
             path: PATHS.build,
-            filename: '[name].js',
+            filename: '[name].[contenthash].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
         },
@@ -84,6 +89,10 @@ const common = merge([
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
+            new webpack.IgnorePlugin({
+                resourceRegExp: /^\.\/locale$/,
+                contextRegExp: /moment$/,
+            }),
             new ModuleFederationPlugin({
                 shared: {
                     axios: {
@@ -100,7 +109,7 @@ const common = merge([
     parts.loadSvg(),
     parts.processReact([PATHS.app, PATHS.reactComponents, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),
-    parts.generateSourcemaps('source-map'),
+    parts.generateSourcemaps('hidden-source-map'),
     parts.deDupe(),
     parts.copyDir(PATHS.assets, PATHS.build), // Copies static assets
 ]);

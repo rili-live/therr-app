@@ -279,6 +279,7 @@
     "addDetails": "Add details (optional)",
     "submitSuccess": "Report submitted!",
     "submitError": "Failed to submit report",
+    "duplicateReport": "This report has already been posted",
     "stillTrue": "Still true",
     "notAnymore": "Not anymore",
     "confirmCount": "{{count}} confirmed"
@@ -609,7 +610,7 @@
         }
       },
       "deleteConfirmation": "Are you sure you want to delete this event?",
-      "backendSuccessMessage": "Your moment was successfully saved!",
+      "backendSuccessMessage": "Your event was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "editSpace": {
@@ -1303,6 +1304,9 @@
         "creator": "Group Creator",
         "admin": "Admin / Moderator",
         "eventHost": "Event Host"
+      },
+      "buttons": {
+        "createEvent": "Create Event"
       }
     },
     "viewSpace": {
@@ -1377,7 +1381,7 @@
       "headerTitle": "Account Verification",
       "pageHeader": "Verify Email",
       "returnToLogin": "Return to login page",
-      "successMessage": "Your!",
+      "successMessage": "Your email has been verified!",
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
     "exchangePointsDisclaimer": {

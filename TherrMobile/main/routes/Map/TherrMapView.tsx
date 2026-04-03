@@ -87,6 +87,8 @@ export interface ITherrMapViewProps extends IStoreProps {
     filteredMoments: any;
     filteredSpaces: any;
     hideCreateActions: () => any;
+    isQuickReportOpen: boolean;
+    closeQuickReport: () => void;
     isScrollEnabled: boolean;
     onPreviewBottomSheetClose: any;
     onPreviewBottomSheetOpen: any;
@@ -317,6 +319,11 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
      * On press handler for any map press. Handles pressing an area, and determines when view or bottom-sheet menu to open
      */
     handleMapPress = (event: MapPressEvent | MarkerPressEvent, shouldToggleOnly = false, restoreScrollIndex = 0) => {
+        if (this.props.isQuickReportOpen) {
+            this.props.closeQuickReport();
+            return;
+        }
+
         const { nativeEvent } = event;
         const {
             circleCenter,
@@ -425,7 +432,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             });
 
             // TODO: Allow viewing public moments?
-            if (pressedMoments.length) {
+            if (pressedMoments.length > 1) {
+                // Multiple overlapping moments: show preview bottom sheet for user to pick
+                ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+                this.setState({
+                    activeMoment: {},
+                    activeMomentDetails: {},
+                });
+                this.togglePreviewBottomSheet(nativeEvent.coordinate, undefined, 0, pressedMoments);
+            } else if (pressedMoments.length === 1) {
                 const selectedMoment = pressedMoments[0];
 
                 // this.props.expandBottomSheet();
@@ -485,7 +500,10 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         }, () => this.togglePreviewBottomSheet(pressedCoords, undefined, restoreScrollIndex));
     };
 
-    togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any, restoreScrollIndex = 0) => {
+    togglePreviewBottomSheet = (
+        pressedCoords: { latitude: number, longitude: number },
+        pressedAreaId?: any, restoreScrollIndex = 0, overlappingAreas?: any[],
+    ) => {
         const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
         // Reset to zero to review marker highlight
         this.removeAnimation();
@@ -503,8 +521,13 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             // TODO: Fetch media
             const { content, filteredEvents, filteredSpaces, location } = this.props;
 
+            // When overlapping areas are provided (e.g. multiple moments at same location), use them directly
+            const baseAreas = overlappingAreas?.length
+                ? overlappingAreas
+                : Object.values(filteredSpaces).concat(Object.values(filteredEvents));
+
             // Label with user's location if available, but sort by distance from pressedCoord
-            const sortedAreasWithDistance = Object.values(filteredSpaces).concat(Object.values(filteredEvents))
+            const sortedAreasWithDistance = baseAreas
                 .filter((a: any) => a.latitude && a.longitude).map((area: any) => {
                     const milesFromPress = distanceTo({
                         lon: pressedCoords.longitude,
@@ -821,7 +844,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     };
 
     goToArea = (area: any) => {
-        const { navigation, user } = this.props;
+        const { circleCenter, createOrUpdateMomentReaction, navigation, user } = this.props;
 
         // TODO: Activate spaces on click
         this.getAreaDetails(area)
@@ -843,6 +866,37 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         space: area,
                         spaceDetails: details,
                     });
+                } else if (area?.areaType === 'moments') {
+                    const distToCenter = distanceTo({
+                        lon: circleCenter.longitude,
+                        lat: circleCenter.latitude,
+                    }, {
+                        lon: area.longitude,
+                        lat: area.latitude,
+                    });
+                    const isProximitySatisfied = distToCenter - area.radius <= area.maxProximity;
+                    if (!isProximitySatisfied
+                        && !isMyContent(area, user)
+                        && !(this.isAreaActivated('moments', area) && !area.doesRequireProximityToView)) {
+                        this.props.showAreaAlert();
+                    } else if (isUserAuthenticated(user)) {
+                        createOrUpdateMomentReaction(area.id, {
+                            userViewCount: 1,
+                            userHasActivated: true,
+                        }, area.fromUserId, user.details.userName);
+                        this.setState({
+                            activeMoment: area,
+                            activeMomentDetails: details,
+                        }, () => {
+                            navigation.navigate('ViewMoment', {
+                                isMyContent: isMyContent(area, user),
+                                previousView: 'Map',
+                                previewScrollIndex,
+                                moment: area,
+                                momentDetails: details,
+                            });
+                        });
+                    }
                 }
             })
             .catch(() => {

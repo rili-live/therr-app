@@ -450,7 +450,7 @@
       },
       "pageTitle": "Verificación de cuenta",
       "returnToLogin": "Volver a la página de inicio de sesión",
-      "successMessage": "¡Listo!",
+      "successMessage": "¡Tu correo ha sido verificado!",
       "successVerifiedMessage": "Tu cuenta ha sido verificada. Inicia sesión para continuar."
     },
     "resetPassword": {
@@ -527,6 +527,13 @@
       },
       "noForumsMessage": "No hay chats activos actualmente. Haz clic en 'Crear chat grupal' para iniciar uno nuevo.",
       "pageTitle": "Chats grupales"
+    },
+    "editGroup": {
+      "buttons": {
+        "submit": "Guardar cambios"
+      },
+      "pageTitle": "Editar grupo",
+      "notAuthorized": "No tienes autorización para editar este grupo."
     },
     "createProfile": {
       "pageTitle": "Crear perfil",
@@ -767,6 +774,9 @@
         "upcomingEvents": "Próximos Eventos",
         "pastEvents": "Eventos Pasados",
         "noEvents": "No se encontraron eventos para este grupo."
+      },
+      "buttons": {
+        "editGroup": "Editar grupo"
       }
     },
     "viewEvent": {

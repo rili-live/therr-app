@@ -1324,44 +1324,76 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         setSearchDropdownVisibility(false);
 
+        if (selection?.provider === 'mapbox' && selection?.mapbox_id) {
+            this.handleMapboxSearchSelect(selection, shouldTogglePreview);
+            return;
+        }
+
         MapsService.getPlaceDetails({
             apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
             placeId: selection?.place_id,
         }).then((response) => {
             const geometry = response.data?.result?.geometry;
             if (geometry) {
-                const latDelta = geometry.viewport.northeast.lat - geometry.viewport.southwest.lat;
-                const lngDelta = geometry.viewport.northeast.lng - geometry.viewport.southwest.lng;
-                const loc = {
-                    latitude: geometry.location.lat,
-                    longitude: geometry.location.lng,
-                    latitudeDelta: Math.max(latDelta, PRIMARY_LATITUDE_DELTA),
-                    longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
-                };
-                const searchRadiusMeters = this.getSearchRadius(loc, {
-                    longitude: geometry.viewport.northeast.lng,
-                    latitude: geometry.viewport.northeast.lat,
-                });
-                this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
-                this.handleSearchThisLocation(searchRadiusMeters, geometry.location.lat, geometry.location.lng)
-                    .finally(() => {
-                        // TODO: Determine if this needs to be canceled when navigating to a new view
-                        // We must wait for search to complete so new spaces are available for rendering the preview overlay
-                        if (shouldTogglePreview) {
-                            this.mapRef.props.onPress({
-                                nativeEvent: {
-                                    coordinate: {
-                                        latitude: geometry.location.lat,
-                                        longitude: geometry.location.lng,
-                                    },
-                                },
-                            }, true);
-                        }
-                    });
+                this.animateToSearchResult(
+                    geometry.location.lat,
+                    geometry.location.lng,
+                    geometry.viewport,
+                    shouldTogglePreview
+                );
             }
         }).catch((error) => {
             console.log(error);
         });
+    };
+
+    handleMapboxSearchSelect = (selection, shouldTogglePreview = false) => {
+        MapsService.getMapboxRetrieve(selection.mapbox_id).then((response) => {
+            const feature = response.data?.features?.[0];
+            if (feature?.geometry?.coordinates) {
+                const [lng, lat] = feature.geometry.coordinates;
+                const bbox = feature.properties?.bbox;
+                const viewport = bbox ? {
+                    northeast: { lat: bbox[3], lng: bbox[2] },
+                    southwest: { lat: bbox[1], lng: bbox[0] },
+                } : undefined;
+                this.animateToSearchResult(lat, lng, viewport, shouldTogglePreview);
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
+
+    animateToSearchResult = (lat: number, lng: number, viewport: any, shouldTogglePreview = false) => {
+        let latDelta = PRIMARY_LATITUDE_DELTA;
+        let lngDelta = PRIMARY_LONGITUDE_DELTA;
+
+        if (viewport) {
+            latDelta = viewport.northeast.lat - viewport.southwest.lat;
+            lngDelta = viewport.northeast.lng - viewport.southwest.lng;
+        }
+
+        const loc = {
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: Math.max(latDelta, PRIMARY_LATITUDE_DELTA),
+            longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
+        };
+        const searchRadiusMeters = viewport
+            ? this.getSearchRadius(loc, { longitude: viewport.northeast.lng, latitude: viewport.northeast.lat })
+            : this.getSearchRadius(loc, { longitude: lng + lngDelta / 2, latitude: lat + latDelta / 2 });
+
+        this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
+        this.handleSearchThisLocation(searchRadiusMeters, lat, lng)
+            .finally(() => {
+                if (shouldTogglePreview && this.mapRef) {
+                    this.mapRef.props.onPress({
+                        nativeEvent: {
+                            coordinate: { latitude: lat, longitude: lng },
+                        },
+                    }, true);
+                }
+            });
     };
 
     handleQuickFilterSelect = (index: string) => {
@@ -1709,10 +1741,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
+    closeBottomSheet = () => {
+        this.bottomSheetRef?.current?.close();
+    };
+
     onBottomSheetClose = () => {
         this.setState({
             areButtonsVisible: true,
             areLayersVisible: false,
+            bottomSheetContentType: 'nearby',
+            bottomSheetSnapPoints: defaultSnapPoints,
             shouldFollowUserLocation: false,
             isScrollEnabled: true,
         });
@@ -1906,6 +1944,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 onPreviewBottomSheetOpen={this.onPreviewBottomSheetOpen}
                                 shouldFollowUserLocation={shouldFollowUserLocation}
                                 shouldRenderMapCircles={shouldRenderMapCircles}
+                                isQuickReportOpen={bottomSheetContentType === 'quick-report'}
+                                closeQuickReport={this.closeBottomSheet}
                                 hideCreateActions={this.hideCreateActions}
                                 isScrollEnabled={isScrollEnabled}
                                 onMapLayout={this.onMapLayout}
@@ -2025,7 +2065,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             createMoment={createMoment}
                             navigation={navigation}
                             nearbySpaces={nearbySpaces}
-                            onClose={this.onBottomSheetClose}
+                            onClose={this.closeBottomSheet}
                             theme={this.theme}
                             user={user}
                             themeBottomSheet={this.themeBottomSheet}

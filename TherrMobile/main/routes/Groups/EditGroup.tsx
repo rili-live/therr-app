@@ -517,6 +517,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                         ? (
                                             <Image
                                                 source={{ uri: imagePreviewPath }}
+                                                containerStyle={{ alignSelf: 'stretch' }}
                                                 style={{
                                                     width: '100%',
                                                     aspectRatio: 16 / 9,

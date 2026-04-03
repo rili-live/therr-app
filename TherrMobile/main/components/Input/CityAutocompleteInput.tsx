@@ -1,7 +1,11 @@
-import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
+import React, { useCallback, useRef, useState } from 'react';
+import { Dimensions, Keyboard, View } from 'react-native';
+import { MapsService } from 'therr-react/services';
+import RoundInput from './';
+import SearchTypeAheadResults from '../SearchTypeAheadResults';
+import { buildStyles as buildSearchStyles } from '../../styles/modal/typeAhead';
+
+const { height: viewPortHeight } = Dimensions.get('window');
 
 interface ICityAutocompleteInputProps {
     placeholder?: string;
@@ -9,6 +13,7 @@ interface ICityAutocompleteInputProps {
     onCitySelect: (city: string, region: string) => void;
     theme: any;
     themeForms: any;
+    themeSearch?: any;
     containerStyle?: any;
 }
 
@@ -16,93 +21,93 @@ const CityAutocompleteInput = ({
     placeholder = 'City',
     initialValue = '',
     onCitySelect,
-    theme,
+    theme: _theme,
     themeForms,
+    themeSearch: themeSearchOverride,
     containerStyle,
 }: ICityAutocompleteInputProps) => {
-    const apiKey = Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY;
+    const [inputText, setInputText] = useState(initialValue);
+    const [predictions, setPredictions] = useState<any[]>([]);
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+    const throttleTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const themeSearch = themeSearchOverride || buildSearchStyles({ viewPortHeight });
+
+    const handleTextChange = useCallback((text: string) => {
+        setInputText(text);
+
+        if (throttleTimeoutId.current) {
+            clearTimeout(throttleTimeoutId.current);
+        }
+
+        if (!text || text.length < 2) {
+            setPredictions([]);
+            setIsDropdownVisible(false);
+            return;
+        }
+
+        setIsSearching(true);
+        setIsDropdownVisible(true);
+
+        throttleTimeoutId.current = setTimeout(() => {
+            MapsService.getPlacesSearchAutoComplete({
+                latitude: '0',
+                longitude: '0',
+                input: text,
+                types: '(cities)',
+            }).then((response) => {
+                setPredictions(response.data?.predictions || []);
+            }).catch(() => {
+                setPredictions([]);
+            }).finally(() => {
+                setIsSearching(false);
+            });
+        }, 400);
+    }, []);
+
+    const handleSelect = useCallback((item: any) => {
+        Keyboard.dismiss();
+        setIsDropdownVisible(false);
+
+        const description = item.description || '';
+        const parts = description.split(',');
+        const city = parts[0]?.trim() || '';
+        const region = parts.length > 1 ? parts[1]?.trim() : '';
+
+        setInputText(city);
+        onCitySelect(city, region);
+    }, [onCitySelect]);
 
     return (
         <View style={[{ zIndex: 10 }, containerStyle]}>
-            <GooglePlacesAutocomplete
+            <RoundInput
                 placeholder={placeholder}
-                textInputProps={{
-                    defaultValue: initialValue,
-                    placeholderTextColor: theme.colors.placeholderTextColor,
-                }}
-                onPress={(data, details) => {
-                    let city = '';
-                    let region = '';
-
-                    if (details?.address_components) {
-                        for (const component of details.address_components) {
-                            if (component.types.includes('locality')) {
-                                city = component.long_name;
-                            }
-                            if (component.types.includes('administrative_area_level_1')) {
-                                region = component.long_name;
-                            }
-                        }
+                value={inputText}
+                onChangeText={handleTextChange}
+                onFocus={() => {
+                    if (inputText && inputText.length >= 2) {
+                        setIsDropdownVisible(true);
                     }
-
-                    if (!city && data?.description) {
-                        const parts = data.description.split(',');
-                        city = parts[0]?.trim() || '';
-                    }
-
-                    onCitySelect(city, region);
                 }}
-                query={{
-                    key: apiKey,
-                    language: 'en',
-                    types: '(cities)',
+                onBlur={() => {
+                    // Delay to allow press events on dropdown items
+                    setTimeout(() => setIsDropdownVisible(false), 200);
                 }}
-                fetchDetails
-                enablePoweredByContainer={false}
-                keyboardShouldPersistTaps="handled"
-                debounce={400}
-                minLength={2}
-                styles={{
-                    container: {
-                        flex: 0,
-                        position: 'relative',
-                        zIndex: 10,
-                    },
-                    textInputContainer: {
-                        backgroundColor: 'transparent',
-                    },
-                    textInput: {
-                        ...StyleSheet.flatten(themeForms.styles.inputContainerRound),
-                        color: theme.colors.textWhite,
-                        fontSize: 16,
-                        height: 59,
-                    },
-                    listView: {
-                        backgroundColor: theme.colors.backgroundWhite,
-                        borderRadius: 8,
-                        marginTop: 2,
-                        position: 'absolute',
-                        top: 60,
-                        left: 0,
-                        right: 0,
-                        zIndex: 1000,
-                        elevation: 5,
-                    },
-                    row: {
-                        backgroundColor: theme.colors.backgroundWhite,
-                        paddingVertical: 12,
-                        paddingHorizontal: 14,
-                    },
-                    separator: {
-                        backgroundColor: theme.colors.accentDivider,
-                        height: 1,
-                    },
-                    description: {
-                        color: theme.colors.textWhite,
-                        fontSize: 14,
-                    },
-                }}
+                themeForms={themeForms}
             />
+            {
+                isDropdownVisible &&
+                <SearchTypeAheadResults
+                    containerStyles={{
+                        top: themeForms.styles.inputContainerRound?.height || 59,
+                    }}
+                    handleSelect={handleSelect}
+                    isSearching={isSearching}
+                    searchPredictionResults={predictions}
+                    themeSearch={themeSearch}
+                    disableScroll
+                />
+            }
         </View>
     );
 };

@@ -31,6 +31,7 @@ const handleServiceRequest = ({
             'x-user-access-levels': req.headers['x-user-access-levels'] || req['x-user-access-levels'] || '',
             'x-organizations': req.headers['x-organizations'] || req['x-organizations'] || '',
             'x-therr-origin-host': req.headers.origin?.match(hostRegex)?.[1] || '',
+            'x-auth-type': req['x-auth-type'] || '',
         },
         method,
         url: `${basePath}${overrideUrl || req.url}`,

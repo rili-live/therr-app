@@ -8,11 +8,13 @@ import 'react-native-gesture-handler';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState as IMapReduxState } from 'therr-react/types';
 import DeviceInfo from 'react-native-device-info';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import RoundInput from './';
 import translator from '../../services/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../../constants';
+import getConfig from '../../utilities/getConfig';
 
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -105,12 +107,13 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         setSearchDropdownVisibility(!!text?.length);
 
         this.throttleTimeoutId = setTimeout(() => {
+            const config = getConfig();
+            const useMapboxSearch = config.featureFlags?.[FeatureFlags.ENABLE_MAPBOX_SEARCH] === true;
             getPlacesSearchAutoComplete({
                 longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
                 latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
-                // radius,
                 input: text,
-            });
+            }, useMapboxSearch);
         }, 300);
     };
 

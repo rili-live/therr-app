@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, SafeAreaView, Text, View } from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -214,9 +215,71 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
     };
 
+    getMapRegion = () => {
+        const { activatedData } = this.state;
+        const validAreas = activatedData.filter((a) => a.latitude && a.longitude);
+
+        if (validAreas.length === 0) {
+            return null;
+        }
+
+        const lats = validAreas.map((a) => a.latitude);
+        const lngs = validAreas.map((a) => a.longitude);
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs);
+        const maxLng = Math.max(...lngs);
+
+        const latDelta = Math.max((maxLat - minLat) * 1.5, 0.01);
+        const lngDelta = Math.max((maxLng - minLng) * 1.5, 0.01);
+
+        return {
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLng + maxLng) / 2,
+            latitudeDelta: latDelta,
+            longitudeDelta: lngDelta,
+        };
+    };
+
     renderHeader = () => {
+        const { activatedData } = this.state;
+        const region = this.getMapRegion();
+
         return (
             <View style={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 6 }}>
+                {region && (
+                    <View style={{
+                        height: 180,
+                        borderRadius: 12,
+                        overflow: 'hidden',
+                        marginBottom: 10,
+                    }}>
+                        <MapView
+                            provider={PROVIDER_GOOGLE}
+                            style={{ flex: 1 }}
+                            region={region}
+                            scrollEnabled={false}
+                            zoomEnabled={false}
+                            rotateEnabled={false}
+                            pitchEnabled={false}
+                            toolbarEnabled={false}
+                            liteMode={true}
+                        >
+                            {activatedData
+                                .filter((a) => a.latitude && a.longitude)
+                                .map((area) => (
+                                    <Marker
+                                        key={area.id}
+                                        coordinate={{
+                                            latitude: area.latitude,
+                                            longitude: area.longitude,
+                                        }}
+                                        title={area.notificationMsg}
+                                    />
+                                ))}
+                        </MapView>
+                    </View>
+                )}
                 <Text style={{
                     fontSize: 16,
                     color: this.theme.colors.textWhite,

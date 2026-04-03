@@ -105,6 +105,7 @@ Read these files when relevant to the task:
 - `docs/LOCALE_URL_ROUTING.md` - Locale-prefixed URL routing, i18n architecture, SEO strategy
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
 - `docs/TARGET_MARKETS.md` - Consumer and business target market definitions (core Therr App)
+- `docs/FEATURES.md` - **High-level feature list for mobile & web clients. Update this file when adding or removing features.**
 
 ## Monorepo Structure
 
@@ -239,15 +240,16 @@ When adding or modifying user-facing text, always maintain translation strings i
 
 Use the `useTranslation` hook (or `withTranslation` HOC for class components) instead of hardcoded strings.
 
-### TherrMobile (2 locales)
+### TherrMobile (3 locales)
 - `TherrMobile/main/locales/en-us/dictionary.json` (English)
 - `TherrMobile/main/locales/es/dictionary.json` (Spanish)
+- `TherrMobile/main/locales/fr-ca/dictionary.json` (Canadian French)
 
 Use the `translator` utility imported from `../../services/translator` instead of hardcoded strings.
 
 ### Hardcoded Locale Strings in Frontend Code
 
-When frontend or mobile code contains hardcoded strings that are matched against locale-translated text (e.g., keyword highlighting, substring matching, pattern detection), **always include variants for all supported locales** (currently `en-us` and `es`). The translated message from the server may be in any supported language, so matching only English strings will silently fail for other locales.
+When frontend or mobile code contains hardcoded strings that are matched against locale-translated text (e.g., keyword highlighting, substring matching, pattern detection), **always include variants for all supported locales** (currently `en-us`, `es`, and `fr-ca`). The translated message from the server may be in any supported language, so matching only English strings will silently fail for other locales.
 
 Affected locations:
 - `TherrMobile/main/routes/Notifications/Notification.tsx` — `getHighlightValues()` uses keyword matching against translated notification messages
@@ -255,7 +257,9 @@ Affected locations:
 Backend locale dictionaries to reference (in-app notifications use users-service strings; push notifications use push-notifications-service strings):
 - `therr-services/users-service/src/locales/en-us/dictionary.json` (in-app notification list)
 - `therr-services/users-service/src/locales/es/dictionary.json` (in-app notification list)
+- `therr-services/users-service/src/locales/fr-ca/dictionary.json` (in-app notification list)
 - `therr-services/push-notifications-service/src/locales/en-us/dictionary.json` (push notifications only)
+- `therr-services/push-notifications-service/src/locales/fr-ca/dictionary.json` (push notifications only)
 
 ## Notes
 
