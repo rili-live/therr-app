@@ -8,6 +8,7 @@
  * The axios call to users-service is tested indirectly via the middleware behavior
  * with cache stubs (cache hit path), and format validation is tested directly.
  */
+import axios from 'axios';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as redisClient from '../../../src/store/redisClient';
@@ -280,9 +281,17 @@ describe('authenticateApiKey middleware', () => {
     });
 
     describe('authenticateApiKey middleware - cache miss, service error', () => {
+        let originalAdapter: any;
+
         beforeEach(() => {
             sandbox.stub(redisClient, 'getCachedApiKeyContext').resolves(null);
             sandbox.stub(redisClient, 'cacheApiKeyContext').resolves();
+            originalAdapter = axios.defaults.adapter;
+            axios.defaults.adapter = () => Promise.reject(new Error('connect ECONNREFUSED'));
+        });
+
+        afterEach(() => {
+            axios.defaults.adapter = originalAdapter;
         });
 
         it('should return 503 when users-service is unreachable (no cache)', async () => {
