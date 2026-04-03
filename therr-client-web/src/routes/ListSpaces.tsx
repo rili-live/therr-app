@@ -136,18 +136,21 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     componentDidMount() { // eslint-disable-line class-methods-use-this
         const { map, routeParams } = this.props;
         const { searchQuery, searchLat, searchLng } = this.state;
-        const { pageNumber: pn } = routeParams;
-        const pageNumberStr = pn || '1';
+        const { categorySlug, pageNumber: pn } = routeParams;
+
+        // categorySlug doubles as page number when it is not a valid category slug
+        const isCategory = !!this.getActiveCategoryKey();
+        const pageNumberStr = pn || (!isCategory && categorySlug ? categorySlug : '1');
 
         document.title = searchQuery
             ? `${searchQuery} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`
             : `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
 
-        const isValidPage = !Number.isNaN(pageNumberStr) && !Number.isNaN(parseInt(pageNumberStr, 10));
-        if (!isValidPage) {
+        const parsedPage = parseInt(pageNumberStr, 10);
+        if (!isCategory && Number.isNaN(parsedPage)) {
             setTimeout(() => this.props.navigation.navigate('/locations'));
         } else {
-            const pageNumber = parseInt(pageNumberStr, 10);
+            const pageNumber = Number.isNaN(parsedPage) ? 1 : parsedPage;
 
             // If URL has coordinates from a previous search, use them directly
             if (searchLat != null && searchLng != null) {
@@ -168,8 +171,17 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     }
 
     componentDidUpdate(prevProps: Readonly<IListSpacesProps>): void {
-        if (prevProps.routeParams.pageNumber !== this.props.routeParams.pageNumber) {
-            this.searchPaginatedSpaces(parseInt(this.props.routeParams.pageNumber, 10));
+        const { categorySlug, pageNumber } = this.props.routeParams;
+        const { categorySlug: prevCategorySlug, pageNumber: prevPageNumber } = prevProps.routeParams;
+
+        if (prevPageNumber !== pageNumber) {
+            // Category + page navigation (/locations/:categorySlug/:pageNumber)
+            this.searchPaginatedSpaces(parseInt(pageNumber, 10));
+        } else if (prevCategorySlug !== categorySlug) {
+            // Single-segment param changed — could be a category or page number change
+            const isCategory = !!this.getActiveCategoryKey();
+            const pageNum = isCategory ? 1 : parseInt(categorySlug || '1', 10);
+            this.searchPaginatedSpaces(pageNum);
         }
     }
 
