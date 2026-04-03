@@ -14,7 +14,7 @@ const viewFiles = [
     path.join(__dirname, 'src/views/groups.hbs'),
 ];
 
-// We need to keep the css and js file paths up to date because we use hashing in the build compilation
+// We need to keep the css/js file paths up to date because we use content hashing in the build compilation
 fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
     if (err) {
         console.log(err);
@@ -23,23 +23,21 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
 
     const appCssRegex = /^app\.([\w]+\.)?css$/;
     const vendorCssRegex = /^vendor\.([\w]+\.)?css$/;
-    const scrapJsRegex = /^theme-.*\.js$/;
-
-    // JS content-hashed filenames (e.g., app.abc123def.js, vendor.abc123def.js, runtime.abc123def.js)
-    const appJsRegex = /^app\.[\w]+\.js$/;
-    const vendorJsRegex = /^vendor\.[\w]+\.js$/;
-    const runtimeJsRegex = /^runtime\.[\w]+\.js$/;
+    const runtimeJsRegex = /^runtime\.([\w]+\.)?js$/;
+    const vendorJsRegex = /^vendor\.([\w]+\.)?js$/;
+    const appJsRegex = /^app\.([\w]+\.)?js$/;
+    const scrapJsRegex = /^theme-.*\.js(\.gz|\.br|\.map)?$/;
 
     let appCssFileName = null;
     let vendorCssFileName = null;
-    let appJsFileName = null;
-    let vendorJsFileName = null;
     let runtimeJsFileName = null;
+    let vendorJsFileName = null;
+    let appJsFileName = null;
 
     files.forEach(file => {
         // Delete the scrap javascript files that were used to bundle theme specific css files
         if (scrapJsRegex.test(file)) {
-            console.log('FILE', file);
+            console.log('Deleting scrap theme JS:', file);
             fs.unlink(path.join(__dirname, `build/static/${file}`), (unlinkErr) => {
                 if (unlinkErr) throw unlinkErr;
             });
@@ -53,16 +51,16 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
             vendorCssFileName = file.toString();
         }
 
-        if (appJsRegex.test(file)) {
-            appJsFileName = file.toString();
+        if (runtimeJsRegex.test(file)) {
+            runtimeJsFileName = file.toString();
         }
 
         if (vendorJsRegex.test(file)) {
             vendorJsFileName = file.toString();
         }
 
-        if (runtimeJsRegex.test(file)) {
-            runtimeJsFileName = file.toString();
+        if (appJsRegex.test(file)) {
+            appJsFileName = file.toString();
         }
     });
 
@@ -75,7 +73,6 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
 
             let result = data;
 
-            // Replace CSS filenames with hashed versions
             if (appCssFileName) {
                 result = result.replace(/app[\w.]*\.css/g, appCssFileName);
             }
@@ -85,7 +82,7 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
             }
 
             // Replace JS filenames with hashed versions
-            // Use src="..." anchoring to avoid matching lazy-loaded chunk filenames
+            // Use src="..." anchoring to avoid matching unrelated filenames
             if (runtimeJsFileName) {
                 result = result.replace(/src="\/runtime[\w.]*\.js"/g, `src="/${runtimeJsFileName}"`);
             }
@@ -102,7 +99,7 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
                 if (writeErr) {
                     return console.log(writeErr);
                 }
-                console.log('Success: CSS/JS paths updated in', path.basename(viewFile));
+                console.log('Success: asset paths updated in', path.basename(viewFile));
             });
         });
     });

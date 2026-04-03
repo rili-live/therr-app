@@ -108,6 +108,9 @@ if (process.env.NODE_ENV !== 'development') {
                     // Cloudflare Insights / Web Analytics
                     'https://static.cloudflareinsights.com',
                 ],
+                // Disable Helmet's default script-src-attr 'none' which blocks inline
+                // event handlers from third-party scripts (Google Sign-In, analytics, etc.)
+                scriptSrcAttr: null,
                 styleSrc: [
                     "'self'",
                     "'unsafe-inline'",
@@ -146,6 +149,7 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
     enableBrotli: true,
     orderPreference: ['br', 'gzip'],
     serveStatic: {
+        index: false,
         setHeaders: (res, filePath) => {
             if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
                 res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
@@ -763,8 +767,20 @@ const renderSpaceView = (req, res, config, {
     const content = initialState?.content || {};
     const space = initialState?.map?.spaces[spaceId];
 
+    // Return 404 status for missing/deleted spaces so search engines de-index them
+    if (!space) {
+        return res.status(404).render(routeView, {
+            title,
+            description,
+            markup,
+            routePath,
+            state,
+            ...localeVars,
+        });
+    }
+
     // 301 redirect to keyword-rich slug URL if slug is missing or incorrect
-    if (space?.notificationMsg) {
+    if (space.notificationMsg) {
         const expectedSlug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
         const currentSlug = req.params?.spaceSlug || '';
         if (expectedSlug && currentSlug !== expectedSlug) {
@@ -773,7 +789,7 @@ const renderSpaceView = (req, res, config, {
         }
     }
 
-    const spaceNameBase = space ? space?.notificationMsg : title;
+    const spaceNameBase = space.notificationMsg || title;
     const locationParts = [space?.addressLocality, space?.addressRegion].filter(Boolean);
     const spaceTitle = locationParts.length > 0 ? `${spaceNameBase} in ${locationParts.join(', ')}` : spaceNameBase;
     // eslint-disable-next-line prefer-template
@@ -790,6 +806,19 @@ const renderSpaceView = (req, res, config, {
     const spaceFoodGenre = space?.foodStyle || '';
 
     let metaImgUrl;
+
+    // Collect all public image URLs for schema
+    const schemaImages: string[] = [];
+    if (space.medias?.length) {
+        space.medias.forEach((media) => {
+            if (media?.path && media?.type === Content.mediaTypes.USER_IMAGE_PUBLIC) {
+                const uri = getUserContentUri(media, 600, 600);
+                if (uri && (uri.includes('.jpg') || uri.includes('.jpeg') || uri.includes('.png'))) {
+                    schemaImages.push(uri);
+                }
+            }
+        });
+    }
 
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
     const mediaPath = (space.medias?.[0]?.path);
@@ -830,8 +859,8 @@ const renderSpaceView = (req, res, config, {
     const spaceSchema: any = {
         '@context': 'https://schema.org',
         '@type': schemaType,
-        name: spaceTitle,
-        image: metaImgUrl || '',
+        name: spaceNameBase,
+        image: schemaImages.length > 0 ? schemaImages : (metaImgUrl || ''),
         priceRange: '$'.repeat(spacePriceRange || 2),
         telephone: spacePhoneNumber || '',
         address: {
@@ -845,6 +874,14 @@ const renderSpaceView = (req, res, config, {
         url: spaceWebsiteUrl || '',
         servesCuisine: spaceFoodGenre,
     };
+
+    if (space?.menuUrl) {
+        spaceSchema.hasMenu = space.menuUrl;
+    }
+
+    if (space?.reservationUrl) {
+        spaceSchema.acceptsReservations = space.reservationUrl;
+    }
 
     if (spaceLatitude && spaceLongitude) {
         spaceSchema.geo = {
@@ -867,12 +904,18 @@ const renderSpaceView = (req, res, config, {
 
     if (space?.reviews) {
         spaceSchema.review = space?.reviews.slice(0, 10).map((review) => ({
-            author: review.author,
+            '@type': 'Review',
+            author: {
+                '@type': 'Person',
+                name: review.author,
+            },
             datePublished: review.createdAt,
             reviewRating: {
+                '@type': 'Rating',
                 ratingValue: review.rating,
+                bestRating: 5,
             },
-            description: review.text,
+            reviewBody: review.text,
         }));
     }
 
@@ -893,9 +936,9 @@ const renderSpaceView = (req, res, config, {
             name: breadcrumbLocality,
             item: `https://www.therr.com/locations?locality=${encodeURIComponent(breadcrumbLocality)}`,
         });
-        breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: spaceTitle });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: spaceNameBase });
     } else {
-        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: spaceTitle });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: spaceNameBase });
     }
 
     const breadcrumbSchema = {
