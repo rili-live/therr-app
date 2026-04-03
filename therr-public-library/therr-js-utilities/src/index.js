@@ -42,6 +42,7 @@ const utilities = [
     'normalize-phone-number',
     'print-logs',
     'log-or-update-span',
+    'slugify',
 ];
 
 module.exports = utilities;
