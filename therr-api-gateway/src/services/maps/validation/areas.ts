@@ -82,6 +82,7 @@ export const updateAreaValidation = [
 export const searchAreasValidation = [
     query('longitude').exists(),
     query('latitude').exists(),
+    body('category').isString().optional(),
 ];
 
 export const searchMyAreasValidation = [

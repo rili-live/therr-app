@@ -470,6 +470,7 @@
     "spaces": {
       "pageTitle": "Business Locations",
       "header1": "Local Business Directory",
+      "categoryHeading": "{category} Near You",
       "searchPlaceholder": "Search spaces by name...",
       "noResults": "No spaces found. Try a different search term.",
       "public": "Public",

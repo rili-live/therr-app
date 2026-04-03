@@ -377,14 +377,43 @@ const QuickReportExpiryHoursMap: { [key: string]: number } = {
     [CategoriesMap[35]]: 4, // localDeal - 4h
 };
 
+// URL-friendly slugs for category landing pages (SEO)
+const CategorySlugMap: Record<string, string> = {
+    [CategoriesMap[3]]: 'restaurants',
+    [CategoriesMap[4]]: 'bars',
+    [CategoriesMap[2]]: 'shops',
+    [CategoriesMap[7]]: 'music-concerts',
+    [CategoriesMap[8]]: 'parks-nature',
+    [CategoriesMap[9]]: 'hotels',
+    [CategoriesMap[10]]: 'event-spaces',
+    [CategoriesMap[5]]: 'marketplaces-festivals',
+    [CategoriesMap[6]]: 'art',
+    [CategoriesMap[28]]: 'fitness-sports',
+    [CategoriesMap[29]]: 'museums',
+    [CategoriesMap[26]]: 'nightlife',
+    [CategoriesMap[16]]: 'deals',
+    [CategoriesMap[12]]: 'gaming',
+    [CategoriesMap[22]]: 'travel',
+    [CategoriesMap[34]]: 'hidden-gems',
+    [CategoriesMap[35]]: 'local-deals',
+    [CategoriesMap[32]]: 'live-entertainment',
+};
+
+// Reverse lookup: slug → category key
+const SlugToCategoryMap: Record<string, string> = Object.fromEntries(
+    Object.entries(CategorySlugMap).map(([k, v]) => [v, k]),
+);
+
 export default {
     CategoriesMap,
+    CategorySlugMap,
     CategoryToInterestsMap,
     ComplementaryCategoriesMap,
     EventCategories,
     MomentCategories,
     QuickReportCategories,
     QuickReportExpiryHoursMap,
+    SlugToCategoryMap,
     SpaceCategories,
     ThoughtCategories,
 };

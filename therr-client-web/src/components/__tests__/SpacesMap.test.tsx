@@ -1,6 +1,18 @@
 /**
  * @jest-environment jsdom
  */
+
+// Mock IntersectionObserver which is not available in jsdom
+global.IntersectionObserver = class IntersectionObserver {
+    constructor(private callback: IntersectionObserverCallback) {}
+    observe() {
+        // Immediately report the element as visible
+        this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as any);
+    }
+    unobserve() { return null; }
+    disconnect() { return null; }
+} as any;
+
 import * as React from 'react';
 import { mount } from 'enzyme';
 import { act } from 'react-test-renderer';
@@ -16,6 +28,10 @@ const mockMarker = {
     bindPopup: jest.fn().mockReturnThis(),
     getLatLng: jest.fn().mockReturnValue([0, 0]),
 };
+const mockBounds = {
+    getNorthEast: jest.fn().mockReturnValue({ lat: 1, lng: 1 }),
+    getSouthWest: jest.fn().mockReturnValue({ lat: 0, lng: 0 }),
+};
 const mockMap = {
     setView: jest.fn().mockReturnThis(),
     fitBounds: jest.fn().mockReturnThis(),
@@ -27,6 +43,10 @@ const mockMap = {
     getZoom: jest.fn().mockReturnValue(10),
     invalidateSize: jest.fn(),
     remove: jest.fn(),
+    on: jest.fn(),
+    getCenter: jest.fn().mockReturnValue({ lat: 0.5, lng: 0.5 }),
+    getBounds: jest.fn().mockReturnValue(mockBounds),
+    distance: jest.fn().mockReturnValue(1000),
 };
 const mockTileLayer = {
     addTo: jest.fn(),
@@ -119,7 +139,7 @@ describe('SpacesMap', () => {
 
         expect(L.map).toHaveBeenCalled();
         expect(L.tileLayer).toHaveBeenCalledWith(
-            expect.stringContaining('openstreetmap.org'),
+            expect.stringContaining('cartocdn.com'),
             expect.any(Object),
         );
     });

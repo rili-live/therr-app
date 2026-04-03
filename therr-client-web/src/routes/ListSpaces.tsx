@@ -5,7 +5,8 @@ import { bindActionCreators } from 'redux';
 import { Link, NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
-import { Content } from 'therr-js-utilities/constants';
+import { Categories, Content } from 'therr-js-utilities/constants';
+import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import {
     Stack, Group, Title, Text, Badge, Anchor,
     Paper, Skeleton, Button, Image, Avatar, Loader, Center,
@@ -47,6 +48,7 @@ interface IListSpacesRouterProps {
         navigate: NavigateFunction;
     };
     routeParams: {
+        categorySlug: string;
         pageNumber: string;
     }
 }
@@ -198,6 +200,13 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         return searchRadius || DEFAULT_DISTANCE_OVERRIDE;
     };
 
+    getActiveCategoryKey = (): string | undefined => {
+        const { routeParams } = this.props;
+        return routeParams.categorySlug
+            ? Categories.SlugToCategoryMap[routeParams.categorySlug]
+            : undefined;
+    };
+
     searchPaginatedSpaces = (
         pageNumber: number,
         itemsPerPage: number = DEFAULT_ITEMS_PER_PAGE,
@@ -223,7 +232,10 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             queryParams.query = searchQuery.trim();
         }
 
+        const categoryKey = this.getActiveCategoryKey();
+
         return listSpaces(queryParams, {
+            category: categoryKey,
             distanceOverride: this.getDistanceOverride(),
         }).catch((err) => {
             console.log(err);
@@ -280,10 +292,20 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         return str ? `?${str}` : '';
     };
 
+    getLocationsBasePath = (pageNumber?: number): string => {
+        const { routeParams } = this.props;
+        const { categorySlug } = routeParams;
+        const page = pageNumber ?? parseInt(routeParams.pageNumber || '1', 10);
+
+        if (categorySlug) {
+            return page > 1 ? `/locations/${categorySlug}/${page}` : `/locations/${categorySlug}`;
+        }
+        return page > 1 ? `/locations/${page}` : '/locations';
+    };
+
     updateSearchUrl = () => {
-        const { navigation, routeParams } = this.props;
-        const pageNumber = parseInt(routeParams.pageNumber || '1', 10);
-        const basePath = pageNumber > 1 ? `/locations/${pageNumber}` : '/locations';
+        const { navigation } = this.props;
+        const basePath = this.getLocationsBasePath();
         const search = this.buildSearchParams();
 
         navigation.navigate(`${basePath}${search}`, { replace: true });
@@ -526,7 +548,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     )}
                     <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
                         <Group gap="xs" wrap="wrap">
-                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="md" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
+                            <Anchor component={Link} to={`/spaces/${space.id}/${buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion)}`} fw={600} size="md" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
                                 {space.notificationMsg}
                             </Anchor>
                             {this.renderVisibilityBadge(space)}
@@ -589,7 +611,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                 <Stack gap="lg" p={{ base: 'sm', sm: 'xl' }} maw={800} mx="auto">
                     <div>
                         <Title order={1} mb="xs">
-                            {this.props.translate('pages.spaces.header1')}
+                            {this.getActiveCategoryKey()
+                                ? this.props.translate('pages.spaces.categoryHeading', {
+                                    category: formatCategoryLabel(this.getActiveCategoryKey() || ''),
+                                })
+                                : this.props.translate('pages.spaces.header1')}
                         </Title>
                         {!isAuthenticated && (
                             <Text size="sm" c="dimmed">
@@ -709,7 +735,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         {pageNumber > 1 && (
                             <Button
                                 component={Link}
-                                to={`/locations/${pageNumber - 1}${paginationSearch}`}
+                                to={`${this.getLocationsBasePath(pageNumber - 1)}${paginationSearch}`}
                                 variant="outline"
                                 size="sm"
                             >
@@ -719,7 +745,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         {spacesArray.length >= itemsPerPage && (
                             <Button
                                 component={Link}
-                                to={`/locations/${pageNumber + 1}${paginationSearch}`}
+                                to={`${this.getLocationsBasePath(pageNumber + 1)}${paginationSearch}`}
                                 variant="outline"
                                 size="sm"
                             >

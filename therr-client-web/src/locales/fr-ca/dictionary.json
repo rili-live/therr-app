@@ -470,6 +470,7 @@
     "spaces": {
       "pageTitle": "Emplacements d'entreprise",
       "header1": "Répertoire des entreprises locales",
+      "categoryHeading": "{category} près de chez vous",
       "searchPlaceholder": "Rechercher des espaces par nom...",
       "noResults": "Aucun espace trouvé. Essayez un terme de recherche différent.",
       "public": "Public",
