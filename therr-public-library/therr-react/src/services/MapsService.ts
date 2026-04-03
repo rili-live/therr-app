@@ -9,6 +9,7 @@ let googleDynamicSessionToken = uuid.v4(); // This gets stored in the local stat
 let mapboxSessionToken = uuid.v4(); // Session token for Mapbox Search Box API (groups suggest + retrieve into one billing session)
 
 export interface ISearchAreasArgs {
+    category?: string;
     distanceOverride?: number;
     userLatitude?: number;
     userLongitude?: number;

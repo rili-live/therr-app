@@ -331,6 +331,8 @@ export default class SpacesStore {
                 'areaType',
                 'locale',
                 'addressReadable',
+                'addressLocality',
+                'addressRegion',
                 'category',
                 'websiteUrl',
                 'notificationMsg',
@@ -377,6 +379,11 @@ export default class SpacesStore {
                 .andWhere(firstWhere);
         } else {
             queryString = queryString.where(firstWhere);
+        }
+
+        // Category filter for directory landing pages (e.g. /locations/restaurants)
+        if (overrides?.category) {
+            queryString = queryString.andWhere('category', overrides.category);
         }
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq

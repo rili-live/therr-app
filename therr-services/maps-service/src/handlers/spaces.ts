@@ -418,6 +418,7 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         pageNumber,
     } = req.query;
     const {
+        category,
         distanceOverride,
     } = req.body;
 
@@ -475,7 +476,9 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         searchArgs[0],
         searchArgs[1],
         fromUserIds,
-        { distanceOverride, shouldLimitDetail, isRequestAuthorized },
+        {
+            category, distanceOverride, shouldLimitDetail, isRequestAuthorized,
+        },
         includePublicResults,
     );
     // const countPromise = Store.spaces.countRecords({
