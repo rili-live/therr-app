@@ -144,11 +144,13 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const pageNumberStr = pn || (!isCategory && categorySlug ? categorySlug : '1');
 
         const categoryLabel = activeCategoryKey ? formatCategoryLabel(activeCategoryKey) : '';
-        document.title = searchQuery
-            ? `${searchQuery} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`
-            : categoryLabel
-                ? `${categoryLabel} near You | Therr`
-                : `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
+        if (searchQuery) {
+            document.title = `${searchQuery} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`;
+        } else if (categoryLabel) {
+            document.title = `${categoryLabel} near You | Therr`;
+        } else {
+            document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
+        }
 
         const parsedPage = parseInt(pageNumberStr, 10);
         if (!isCategory && Number.isNaN(parsedPage)) {

@@ -17,7 +17,9 @@ import { MantineProvider } from '@mantine/core';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
-import { BrandVariations, Categories, Cities, Content } from 'therr-js-utilities/constants';
+import {
+    BrandVariations, Categories, Cities, Content,
+} from 'therr-js-utilities/constants';
 import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
