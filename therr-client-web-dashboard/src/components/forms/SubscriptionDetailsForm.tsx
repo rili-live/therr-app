@@ -54,6 +54,9 @@ const SubscriptionDetailsForm = ({
             .then((response) => {
                 if (response.data?.url) {
                     window.location.href = response.data.url;
+                } else {
+                    setIsLoading(false);
+                    setError('Failed to load subscription management. Please try again.');
                 }
             })
             .catch(() => {

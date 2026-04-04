@@ -221,6 +221,13 @@ const restoreDashboardAccess = async (event) => {
         await Store.users.updateUser({
             accessLevels: JSON.stringify([...userAccessLevels]),
         }, { id: user.id });
+    } else {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: ['User not found for subscription restoration'],
+            traceArgs: { 'webhook.email': normedEmail, 'webhook.eventType': event.type },
+        });
     }
 };
 
