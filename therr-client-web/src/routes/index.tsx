@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
-import { AccessLevels, Categories } from 'therr-js-utilities/constants';
+import { AccessLevels, Categories, Cities } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
 import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
@@ -345,6 +345,74 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             return MapActions.listSpaces(queryParams, {
                 distanceOverride: radius,
             })(dispatch);
+        },
+    },
+    {
+        path: '/locations/city/:citySlug',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const city = Cities.CitySlugMap[params.citySlug];
+            if (!city) return Promise.resolve();
+            const radius = parseFloat(query.r) || 50000; // 50 km metro radius
+            return MapActions.listSpaces({
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber: 1,
+                latitude: city.lat,
+                longitude: city.lng,
+                filterBy: 'distance',
+            }, { distanceOverride: radius })(dispatch);
+        },
+    },
+    {
+        // Dual-purpose: city+category (e.g. /locations/city/denver-co/restaurants)
+        // or city page number (e.g. /locations/city/denver-co/2)
+        path: '/locations/city/:citySlug/:categorySlug',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const city = Cities.CitySlugMap[params.citySlug];
+            if (!city) return Promise.resolve();
+            const radius = parseFloat(query.r) || 50000;
+            const categoryKey = Categories.SlugToCategoryMap[params.categorySlug];
+            if (categoryKey) {
+                // City + category landing page
+                return MapActions.listSpaces({
+                    itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                    pageNumber: 1,
+                    latitude: city.lat,
+                    longitude: city.lng,
+                    filterBy: 'distance',
+                }, { category: categoryKey, distanceOverride: radius })(dispatch);
+            }
+            // Treat as city page number
+            const pageNumber = parseInt(params.categorySlug || '1', 10);
+            if (Number.isNaN(pageNumber)) return Promise.resolve();
+            return MapActions.listSpaces({
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber,
+                latitude: city.lat,
+                longitude: city.lng,
+                filterBy: 'distance',
+            }, { distanceOverride: radius })(dispatch);
+        },
+    },
+    {
+        path: '/locations/city/:citySlug/:categorySlug/:pageNumber',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const city = Cities.CitySlugMap[params.citySlug];
+            if (!city) return Promise.resolve();
+            const categoryKey = Categories.SlugToCategoryMap[params.categorySlug];
+            if (!categoryKey) return Promise.resolve();
+            const pageNumber = parseInt(params.pageNumber || '1', 10);
+            if (Number.isNaN(pageNumber)) return Promise.resolve();
+            const radius = parseFloat(query.r) || 50000;
+            return MapActions.listSpaces({
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber,
+                latitude: city.lat,
+                longitude: city.lng,
+                filterBy: 'distance',
+            }, { category: categoryKey, distanceOverride: radius })(dispatch);
         },
     },
     {
