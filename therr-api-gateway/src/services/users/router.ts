@@ -192,6 +192,10 @@ usersServiceRouter.post('/payments/checkout/sessions/:id', validate, handleServi
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
+usersServiceRouter.post('/payments/customer-portal/sessions', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
 usersServiceRouter.post('/payments/webhook', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
