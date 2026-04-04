@@ -1359,11 +1359,17 @@ const renderLocationsView = (req, res, config, {
     }
 
     const spaces = initialState?.map?.searchResults || [];
-    const pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
+
+    // For city routes, :categorySlug is dual-purpose: may be a category slug or a page number.
+    // Detect which it is so pagination links and page number extraction are correct.
+    const categorySlugIsPageNumber = citySlug && categorySlug && !categoryLabel;
+    const pageNumber = parseInt(req.params?.pageNumber, 10)
+        || (categorySlugIsPageNumber ? parseInt(categorySlug, 10) : NaN)
+        || 1;
 
     // Build base path for pagination links (city + category aware)
     let locationsBase: string;
-    if (citySlug && categorySlug) {
+    if (citySlug && categorySlug && !categorySlugIsPageNumber) {
         locationsBase = `/locations/city/${citySlug}/${categorySlug}`;
     } else if (citySlug) {
         locationsBase = `/locations/city/${citySlug}`;

@@ -153,14 +153,6 @@ export default [
         view: 'locations',
     },
     {
-        route: '/locations/city/:citySlug/:pageNumber',
-        head: {
-            title: 'Local Business Directory',
-            description: 'Browse local businesses near you. Read reviews, see hours, and get directions.',
-        },
-        view: 'locations',
-    },
-    {
         route: '/locations/city/:citySlug/:categorySlug',
         head: {
             title: 'Local Business Directory',
