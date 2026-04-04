@@ -198,7 +198,7 @@ const Sidebar = (props: ISidebarProps) => {
                             {/* <AccessControl isAuthorized={isSuperAdmin}>
                                 <NavItem title="Admin Campaigns" link={'/campaigns-admin/overview'} icon={faTasks} />
                             </AccessControl> */}
-                            <NavItem title="Influencer Pairings" icon={faPeopleArrows} link={'/influencer-pairings'} />
+                            <NavItem title="Local Advocates" icon={faPeopleArrows} link={'/influencer-pairings'} />
 
                             {/* <CollapsableNavItem eventKey="tables/" title="Tables" icon={faTable}>
                                 <NavItem title="Bootstrap Table" link={'/'} />
@@ -216,7 +216,7 @@ const Sidebar = (props: ISidebarProps) => {
 
                             <Dropdown.Divider className="my-3 border-indigo" />
 
-                            <CollapsableNavItem eventKey="acquisition/" title="Customer Acquisition" icon={faBullseye}>
+                            <CollapsableNavItem eventKey="acquisition/" title="Your Customers" icon={faBullseye}>
                                 <NavItem title="Overview" link={'/customer-acquisition/overview'} />
                                 {/* <NavItem title="Awareness" link={'/'} icon={faChartLine} />
                                 <NavItem title="Engagement" link={'/'} icon={faHandHoldingHeart} /> */}
