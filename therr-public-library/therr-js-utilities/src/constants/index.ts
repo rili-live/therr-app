@@ -8,6 +8,7 @@ import {
     CurrentSocialValuations,
     CurrentMomentValuations,
     CurrentCheckInValuations,
+    ReferralRewards,
 } from './Currencies';
 import OAuthIntegrationProviders from './OAuthIntegrationProviders';
 import {
@@ -77,6 +78,7 @@ export {
     CurrentSocialValuations,
     CurrentMomentValuations,
     CurrentCheckInValuations,
+    ReferralRewards,
     DefaultUserResources,
     ResourceExchangeRates,
     SocketClientActionTypes,

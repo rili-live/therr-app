@@ -19,6 +19,11 @@ const notifications = StyleSheet.create({
     container: {
         marginTop: 20,
     },
+    markAllReadContainer: {
+        alignItems: 'flex-end',
+        paddingRight: 14,
+        paddingBottom: 14,
+    },
     firstChildNotification: {
         borderTopWidth: 1,
         display: 'flex',
@@ -64,7 +69,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginLeft: 5,
         },
         actionButtonText: {
-            color: 'black',
+            color: therrTheme.colors.textWhite,
             paddingLeft: 5,
         },
         messageContainerUnread: {
@@ -88,6 +93,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         read: {
             ...notificationStyle,
             color: therrTheme.colors.textWhite,
+        },
+        highlightUnread: {
+            ...notificationStyle,
+            color: therrTheme.colors.hyperlink,
+            fontWeight: 'bold' as const,
+        },
+        highlightRead: {
+            ...notificationStyle,
+            color: therrTheme.colors.hyperlink,
+            fontWeight: 'bold' as const,
         },
         iconContainerStyle: {
             position: 'absolute',

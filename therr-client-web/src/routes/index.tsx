@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, Categories } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
-import { MapsService } from 'therr-react/services';
-import { MapActions } from 'therr-react/redux/actions';
+import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
-import Forum from './Forum';
-import CreateForum from './CreateForum';
-import CreateProfile from './CreateProfile';
+
+// SSR-rendered / public routes — keep statically imported for renderToString compatibility
+import ListGroups from './ListGroups';
+import ViewGroup from './ViewGroup';
 import EmailVerification from './EmailVerification';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
@@ -17,21 +17,49 @@ import Home from './Home';
 import ViewSpace from './ViewSpace';
 import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
-import UserProfile from './UserProfile';
-import ChangePassword from './ChangePassword';
-import Discovered from './Discovered';
-import UnderConstruction from './UnderConstruction';
+import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
+import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
-import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
+import ChildSafety from './ChildSafety';
+import DeleteAccount from './DeleteAccount';
+import InviteLanding from './InviteLanding';
 
-export interface IRoute extends RouteObject {
+// Auth-only routes — lazy-loaded client-side to reduce initial bundle size.
+// These are never SSR-rendered (AuthRoute redirects unauthenticated users).
+// Server-side: returns a no-op component (renders null). Client-side: React.lazy.
+// Same typeof window guard pattern used by SpacesMap (see ListSpaces.tsx).
+const NoopComponent: React.FC = () => null;
+const lazyLoad = (importFn: () => Promise<{ default: React.ComponentType<any> }>): React.ComponentType<any> => (
+    typeof window !== 'undefined' ? React.lazy(importFn) : NoopComponent
+);
+
+const CreateForum = lazyLoad(() => import('./CreateForum'));
+const EditGroup = lazyLoad(() => import('./EditGroup'));
+const CreateProfile = lazyLoad(() => import('./CreateProfile'));
+const UserProfile = lazyLoad(() => import('./UserProfile'));
+const ChangePassword = lazyLoad(() => import('./ChangePassword'));
+const EditProfile = lazyLoad(() => import('./EditProfile'));
+const EditSpace = lazyLoad(() => import('./EditSpace'));
+const CreateSpace = lazyLoad(() => import('./CreateSpace'));
+const ManageSpaces = lazyLoad(() => import('./ManageSpaces'));
+const Bookmarks = lazyLoad(() => import('./Bookmarks'));
+const Discovered = lazyLoad(() => import('./Discovered'));
+const Explore = lazyLoad(() => import('./Explore'));
+const ExploreMoments = lazyLoad(() => import('./Explore/ExploreMoments'));
+const ExploreThoughts = lazyLoad(() => import('./Explore/ExploreThoughts'));
+const ExplorePeople = lazyLoad(() => import('./Explore/ExplorePeople'));
+const UnderConstruction = lazyLoad(() => import('./UnderConstruction'));
+const UserLocations = lazyLoad(() => import('./UserLocations'));
+const EmailPreferences = lazyLoad(() => import('./EmailPreferences'));
+
+export type IRoute = RouteObject & {
     access?: IAccess;
-    fetchData?: (dispatch: any, params?: { [key: string]: any }) => Promise<any>;
+    fetchData?: (dispatch: any, params?: { [key: string]: any }, query?: { [key: string]: any }) => Promise<any>;
     // Overriding this property allows us to add custom paramaters to React components
     redirectPath?: string;
-}
+};
 
 export interface IRoutePropsConfig {
     onInitMessaging?: any;
@@ -44,16 +72,30 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <Home />,
     },
     {
-        path: '/forums/:roomId',
+        path: '/groups',
+        element: <ListGroups />,
+        fetchData: (dispatch: any) => ForumActions.searchForums({
+            itemsPerPage: 50,
+            pageNumber: 1,
+            order: 'desc',
+        }, {})(dispatch),
+    },
+    {
+        path: '/groups/:groupId/edit',
         element: <AuthRoute
-            component={Forum}
+            component={EditGroup}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             })}
-            path={'/forums/:roomId'}
             redirectPath={'/create-profile'}
         />,
+        fetchData: (dispatch: any, params: any) => ForumActions.getForumDetails(params.groupId)(dispatch),
+    },
+    {
+        path: '/groups/:groupId',
+        element: <ViewGroup />,
+        fetchData: (dispatch: any, params: any) => ForumActions.getForumDetails(params.groupId)(dispatch),
     },
     {
         path: '/create-forum',
@@ -109,6 +151,14 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <AppFeedback />,
     },
     {
+        path: '/child-safety',
+        element: <ChildSafety />,
+    },
+    {
+        path: '/delete-account',
+        element: <DeleteAccount />,
+    },
+    {
         path: '/achievements',
         element: <Home />,
     },
@@ -121,9 +171,112 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <Register />,
     },
     {
+        path: '/invite/:username',
+        element: <InviteLanding />,
+    },
+    {
         path: '/user/profile',
         element: <AuthRoute
-            render={() => <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} />}
+            render={() => <UserProfile />}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/user/edit-profile',
+        element: <AuthRoute
+            render={() => <EditProfile />}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/manage',
+        element: <AuthRoute
+            component={ManageSpaces}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/new',
+        element: <AuthRoute
+            component={CreateSpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/:spaceId/edit',
+        element: <AuthRoute
+            component={EditSpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/explore',
+        element: <AuthRoute
+            component={Explore}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/posts/moments',
+        element: <AuthRoute
+            component={ExploreMoments}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/posts/thoughts',
+        element: <AuthRoute
+            component={ExploreThoughts}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/users',
+        element: <AuthRoute
+            component={ExplorePeople}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/bookmarks',
+        element: <AuthRoute
+            component={Bookmarks}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -154,6 +307,12 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/thoughts/:thoughtId',
+        element: <ViewThought />,
+        // TODO: Add fetchData once getThoughtDetails API supports unauthenticated access (like moments/spaces)
+        // The SSR template (thoughts.hbs) and renderThoughtView are ready for when the endpoint is public
+    },
+    {
         path: '/moments/:momentId',
         element: <ViewMoment />,
         fetchData: (dispatch: any, params: any) => MapActions.getMomentDetails(params.momentId, {
@@ -164,29 +323,107 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/locations',
         element: <ListSpaces />,
-        fetchData: (dispatch: any, params: any) => MapActions.listSpaces({
-            // query: '',
-            itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-            pageNumber: 1,
-            filterBy: 'distance',
-            latitude: DEFAULT_LATITUDE,
-            longitude: DEFAULT_LONGITUDE,
-        }, {
-            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
-        })(dispatch),
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            const searchQuery = query.q || '';
+            const hasCoords = !Number.isNaN(parseFloat(query.lat)) && !Number.isNaN(parseFloat(query.lng));
+            const queryParams: any = {
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber: 1,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
+            };
+            // Only use text search when there's a query but no geocoded coordinates
+            if (searchQuery && !hasCoords) {
+                queryParams.filterBy = 'notificationMsg';
+                queryParams.filterOperator = 'ilike';
+                queryParams.query = searchQuery;
+            }
+            return MapActions.listSpaces(queryParams, {
+                distanceOverride: radius,
+            })(dispatch);
+        },
     },
     {
         path: '/locations/:pageNumber',
         element: <ListSpaces />,
-        fetchData: (dispatch: any, params: any) => MapActions.listSpaces({
-            // query: '',
-            itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-            pageNumber: 1,
-            filterBy: 'distance',
-            latitude: DEFAULT_LATITUDE,
-            longitude: DEFAULT_LONGITUDE,
-        }, {
-            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            const searchQuery = query.q || '';
+            const hasCoords = !Number.isNaN(parseFloat(query.lat)) && !Number.isNaN(parseFloat(query.lng));
+            const pageNumber = parseInt(params.pageNumber || '1', 10);
+            const queryParams: any = {
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
+            };
+            if (searchQuery && !hasCoords) {
+                queryParams.filterBy = 'notificationMsg';
+                queryParams.filterOperator = 'ilike';
+                queryParams.query = searchQuery;
+            }
+            return MapActions.listSpaces(queryParams, {
+                distanceOverride: radius,
+            })(dispatch);
+        },
+    },
+    {
+        path: '/locations/:categorySlug',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const categoryKey = Categories.SlugToCategoryMap[params.categorySlug];
+            if (!categoryKey) return Promise.resolve();
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            return MapActions.listSpaces({
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber: 1,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
+            }, {
+                category: categoryKey,
+                distanceOverride: radius,
+            })(dispatch);
+        },
+    },
+    {
+        path: '/locations/:categorySlug/:pageNumber',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const categoryKey = Categories.SlugToCategoryMap[params.categorySlug];
+            if (!categoryKey) return Promise.resolve();
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            const pageNumber = parseInt(params.pageNumber || '1', 10);
+            return MapActions.listSpaces({
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
+            }, {
+                category: categoryKey,
+                distanceOverride: radius,
+            })(dispatch);
+        },
+    },
+    {
+        path: '/events/:eventId',
+        element: <ViewEvent />,
+        fetchData: (dispatch: any, params: any) => MapActions.getEventDetails(params.eventId, {
+            withMedia: true,
+            withUser: true,
+            withRatings: true,
         })(dispatch),
     },
     {
@@ -195,11 +432,28 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         fetchData: (dispatch: any, params: any) => MapActions.getSpaceDetails(params.spaceId, {
             withMedia: true,
             withUser: true,
+            withRatings: true,
+            withEvents: true,
         })(dispatch),
     },
     {
+        path: '/spaces/:spaceId/:spaceSlug',
+        element: <ViewSpace />,
+        fetchData: (dispatch: any, params: any) => MapActions.getSpaceDetails(params.spaceId, {
+            withMedia: true,
+            withUser: true,
+            withRatings: true,
+            withEvents: true,
+        })(dispatch),
+    },
+    {
+        path: '/users/:userId/locations',
+        element: <UserLocations />,
+        fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
+    },
+    {
         path: '/users/:userId',
-        element: <ViewUser />,
+        element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
         fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
 

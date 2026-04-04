@@ -114,7 +114,7 @@ button.primary:hover:not([disabled]) {
 }
 .radio-group .radio-option label {
   background: #dee1e4;
-  border: 1px solid #dee1e4;
+  border: 1px solid #cdcdcd;
   border-radius: 50%;
   box-sizing: content-box;
   cursor: pointer;
@@ -537,7 +537,7 @@ select button::before,
 select .options-list,
 .select-box .options-list {
   background: #dee1e4;
-  border: 1px solid #ccc;
+  border: 1px solid #cdcdcd;
   border-radius: 0.125rem;
   box-shadow: 0 0 0 0.25rem rgba(38, 38, 38, 0.075);
   left: -0.125rem;

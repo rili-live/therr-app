@@ -198,11 +198,11 @@ describe('ForumsStore', () => {
                     order: 'desc',
                 },
                 [],
-                { forumIds: [1, 2, 3] },
+                { forumIds: ['1', '2', '3'] },
             );
 
             const queryString = mockStore.read.query.args[0][0];
-            expect(queryString).to.include('"id" in (1, 2, 3)');
+            expect(queryString).to.include('"id" in (\'1\', \'2\', \'3\')');
         });
 
         it('applies filter conditions with ilike operator', async () => {

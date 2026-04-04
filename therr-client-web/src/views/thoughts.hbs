@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="{{htmlLang}}">
+
+<head>
+    <meta charset="utf-8" />
+    <title>{{title}} | Therr App</title>
+    <link rel="canonical" href="https://www.therr.com{{canonicalPath}}" />
+    <link rel="alternate" hreflang="en-US" href="https://www.therr.com{{hreflangEn}}" />
+    <link rel="alternate" hreflang="es-MX" href="https://www.therr.com{{hreflangEs}}" />
+    <link rel="alternate" hreflang="fr-CA" href="https://www.therr.com{{hreflangFr}}" />
+    <link rel="alternate" hreflang="x-default" href="https://www.therr.com{{hreflangEn}}" />
+
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://ik.imagekit.io">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://ik.imagekit.io" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@200;400;600;800&display=swap" media="print" id="google-fonts-link">
+    <script>document.getElementById('google-fonts-link').addEventListener('load',function(){this.media='all'});</script>
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@200;400;600;800&display=swap"></noscript>
+    <link rel="preload" as="style" href="/vendor.css" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" as="style" href="/app.css" onload="this.onload=null;this.rel='stylesheet'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{description}}">
+    <meta name="author" content="{{#if authorName}}{{authorName}}{{else}}Therr{{/if}}">
+    <meta name="keywords" content="therr, therr app, social network, thoughts, posts, community, local businesses, mobile, social platform">
+
+    <meta property="og:site_name" content="Therr" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="{{ogLocale}}" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="es_MX" />
+    <meta property="og:locale:alternate" content="fr_CA" />
+    <meta property="og:url" content="https://www.therr.com{{canonicalPath}}" />
+    <meta property="og:title" content="{{title}} | Therr App" />
+    <meta property="og:image" content="https://therr.com/assets/images/meta-image-logo.png" />
+    <meta property="og:description" content="{{description}}" />
+    {{#if datePublished}}
+    <meta property="article:published_time" content="{{datePublished}}" />
+    {{/if}}
+    {{#if authorName}}
+    <meta property="article:author" content="{{authorName}}" />
+    {{/if}}
+    {{#if thoughtCategory}}
+    <meta property="article:section" content="{{thoughtCategory}}" />
+    {{/if}}
+    <meta name="twitter:image" content="https://therr.com/assets/images/meta-image-logo.png" />
+    <meta name="twitter:title" content="{{title}} | Therr App" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@therr_app" />
+
+    {{#if googleSiteVerification}}<meta name="google-site-verification" content="{{googleSiteVerification}}" />{{/if}}
+    {{#if bingSiteVerification}}<meta name="msvalidate.01" content="{{bingSiteVerification}}" />{{/if}}
+    {{#if pinterestVerification}}<meta name="p:domain_verify" content="{{pinterestVerification}}" />{{/if}}
+    <link rel="search" type="application/opensearchdescription+xml" title="Therr" href="/opensearch.xml" />
+    <meta name="apple-itunes-app" content="app-id=1569988763">
+    <link rel="icon" href="/assets/images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png">
+    <link rel="mask-icon" href="/assets/images/safari-pinned-tab.svg" color="#5bbad5">
+    <script>document.documentElement.setAttribute('data-mantine-color-scheme', (document.cookie.match(/therr-color-scheme=(light|dark)/)||[])[1]||'light');</script>
+    <style>
+      html{background:#f3f4f6}
+      html,body{color:#1f2937;font-family:'Lexend',sans-serif;font-size:16px;margin:0;padding:0}
+      [data-mantine-color-scheme="dark"]{--mantine-color-body:#1E1E1E;--mantine-color-text:#E0E0E0}
+      [data-mantine-color-scheme="dark"] html{background:#121212}
+      [data-mantine-color-scheme="dark"] html,[data-mantine-color-scheme="dark"] body{color:#E0E0E0}
+      header{z-index:90;align-items:center;background:var(--therr-header-bg,#1C7F8A);display:flex;height:2.8rem;left:0;position:fixed;top:0;width:100%;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+      .content-container,.content-container-home{background:#fff;margin:2.8rem 0;padding:1.5rem 1rem;min-height:calc(100vh - 5.6rem);box-sizing:border-box}
+      [data-mantine-color-scheme="dark"] .content-container,[data-mantine-color-scheme="dark"] .content-container-home{background:#1E1E1E}
+      .view{min-height:100vh}
+      h1{margin:.9rem 0;font-weight:400}
+      @media(min-width:540px){header{height:3rem}.content-container,.content-container-home{margin:3rem 0}}
+    </style>
+    <noscript>
+        <link rel="stylesheet" href="/vendor.css">
+        <link rel="stylesheet" href="/app.css">
+    </noscript>
+
+    <script type="application/ld+json">{{{thoughtSchema}}}</script>
+    <script type="application/ld+json">{{{breadcrumbSchema}}}</script>
+</head>
+
+<body>
+    <div id="app" class="view">{{{markup}}}</div>
+    <script>
+        window.__PRELOADED_STATE__ = "{{state}}"
+    </script>
+    <script defer src="/runtime.155354f827570ecde8c5.js"></script>
+    <script defer src="/vendor.8e197b644a36c40b52ab.js"></script>
+    <script defer src="/app.20da433636d242f1e1af.js"></script>
+</body>
+
+</html>

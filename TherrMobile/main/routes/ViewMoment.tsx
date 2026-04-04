@@ -3,41 +3,62 @@ import {
     Dimensions,
     SafeAreaView,
     Share,
+    StyleSheet,
     View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button as PaperButton } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button }  from 'react-native-elements';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
-import { Content } from 'therr-js-utilities/constants';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import { Categories, Content } from 'therr-js-utilities/constants';
 import YoutubePlayer from 'react-native-youtube-iframe';
-// import Alert from '../components/Alert';
 import translator from '../services/translator';
+import { buildMomentUrl } from '../utilities/shareUrls';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
+import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
+import ConfirmModal from '../components/Modals/ConfirmModal';
 import { isMyContent as checkIsMyMoment, getUserContentUri } from '../utilities/content';
-import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
-import TherrIcon from '../components/TherrIcon';
-// import AccentInput from '../components/Input/Accent';
-
 const { width: screenWidth } = Dimensions.get('window');
+
+const localStyles = StyleSheet.create({
+    footer: {
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 4,
+    },
+    validationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        marginTop: 8,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: 'rgba(0,0,0,0.1)',
+    },
+    validationButton: {
+        flex: 1,
+        marginHorizontal: 6,
+    },
+});
 
 interface IViewMomentDispatchProps {
     getMomentDetails: Function;
@@ -57,15 +78,11 @@ export interface IViewMomentProps extends IStoreProps {
 }
 
 interface IViewMomentState {
-    areAreaOptionsVisible: boolean;
-    errorMsg: string;
-    successMsg: string;
     isDeleting: boolean;
-    isVerifyingDelete: boolean;
+    isDeleteDialogVisible: boolean;
     fetchedMoment: any;
     previewLinkId?: string;
     previewStyleState: any;
-    selectedMoment: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -88,11 +105,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     private unsubscribeNavListener;
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeButtons = buildButtonsStyles();
     private themeArea = buildMomentStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
-    private themeAccentForms = buildAccentFormStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildButtonsStyles();
+    private isDarkMode = false;
 
     constructor(props) {
         super(props);
@@ -103,25 +120,21 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const youtubeMatches = (moment.message || '').match(youtubeLinkRegex);
 
         this.state = {
-            areAreaOptionsVisible: false,
-            errorMsg: '',
-            successMsg: '',
             isDeleting: false,
-            isVerifyingDelete: false,
+            isDeleteDialogVisible: false,
             fetchedMoment: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedMoment: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeArea = buildMomentStyles(props.user.settings?.mobileThemeName, true);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.isDarkMode = isDarkTheme(props.user.settings?.mobileThemeName);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
         this.hashtags = moment.hashTags ? moment.hashTags.split(',') : [];
@@ -169,18 +182,6 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.unsubscribeNavListener();
     }
 
-    renderHashtagPill = (tag, key) => {
-        return (
-            <Button
-                key={key}
-                buttonStyle={this.themeForms.styles.buttonPill}
-                containerStyle={this.themeForms.styles.buttonPillContainer}
-                titleStyle={this.themeForms.styles.buttonPillTitle}
-                title={`#${tag}`}
-            />
-        );
-    };
-
     handlePreviewFullScreen = (isFullScreen) => {
         const previewStyleState = isFullScreen ? {
             top: 0,
@@ -192,18 +193,6 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         } : {};
         this.setState({
             previewStyleState,
-        });
-    };
-
-    onDelete = () => {
-        this.setState({
-            isVerifyingDelete: true,
-        });
-    };
-
-    onDeleteCancel = () => {
-        this.setState({
-            isVerifyingDelete: false,
         });
     };
 
@@ -224,30 +213,36 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 .catch((err) => {
                     console.log('Error deleting moment', err);
                     this.setState({
-                        isDeleting: true,
-                        isVerifyingDelete: false,
+                        isDeleting: false,
+                        isDeleteDialogVisible: false,
                     });
                 });
+        } else {
+            this.setState({
+                isDeleting: false,
+                isDeleteDialogVisible: false,
+            });
         }
     };
 
-    onMomentOptionSelect = (type: ISelectionType) => {
-        const { selectedMoment } = this.state;
-
+    onMomentOptionSelect = (type: IContentSelectionType, moment: any) => {
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedMoment.latitude,
-                longitude: selectedMoment.longitude,
-                title: selectedMoment.notificationMsg,
+                latitude: moment.latitude,
+                longitude: moment.longitude,
+                title: moment.notificationMsg,
             });
         } else if (type === 'shareALink') {
+            const locale = this.props.user?.settings?.locale || 'en-us';
+            const shareUrl = buildMomentUrl(locale, moment.id);
             Share.share({
                 message: this.translate('modals.contentOptions.shareLink.messageMoment', {
-                    momentId: selectedMoment.id,
+                    momentId: moment.id,
+                    shareUrl,
                 }),
-                url: `https://www.therr.com/moments/${selectedMoment.id}`,
+                url: shareUrl,
                 title: this.translate('modals.contentOptions.shareLink.titleMoment', {
-                    momentTitle: selectedMoment.notificationMsg,
+                    momentTitle: moment.notificationMsg,
                 }),
             }).then((response) => {
                 if (response.action === Share.sharedAction) {
@@ -265,9 +260,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         } else {
             const requestArgs: any = getReactionUpdateArgs(type);
 
-            this.onUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
-                this.toggleAreaOptions();
-            });
+            this.onUpdateMomentReaction(moment.id, requestArgs);
         }
     };
 
@@ -337,25 +330,29 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     };
 
     toggleAreaOptions = (displayArea?: any) => {
-        const { areAreaOptionsVisible, fetchedMoment } = this.state;
+        const { fetchedMoment } = this.state;
         const { moment } = this.props.route.params;
-        const area = {
+        const area = displayArea || {
             ...moment,
             ...fetchedMoment,
         };
 
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedMoment: areAreaOptionsVisible ? {} : (area || displayArea),
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                shouldIncludeShareButton: true,
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onMomentOptionSelect(type, area),
+            },
         });
     };
 
     render() {
         const {
-            areAreaOptionsVisible,
             fetchedMoment,
             isDeleting,
-            isVerifyingDelete,
+            isDeleteDialogVisible,
             previewLinkId,
             previewStyleState,
         } = this.state;
@@ -392,7 +389,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 translate={this.translate}
                                 toggleAreaOptions={this.toggleAreaOptions}
                                 hashtags={this.hashtags}
-                                isDarkMode={user.settings?.mobileThemeName === 'retro'}
+                                isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
                                 isExpanded={true}
                                 inspectContent={() => null}
                                 area={momentInView}
@@ -424,92 +421,75 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 />
                             </View>
                         }
+                        {
+                            Categories.QuickReportCategories.includes(momentInView.category) && !isMyContent &&
+                            <View style={localStyles.validationContainer}>
+                                <PaperButton
+                                    mode={momentInView.reaction?.userHasLiked ? 'contained' : 'outlined'}
+                                    onPress={() => this.onUpdateMomentReaction(momentInView.id, { userHasLiked: true, userHasDisliked: false })}
+                                    icon="thumb-up"
+                                    buttonColor={momentInView.reaction?.userHasLiked ? this.theme.colors.brandingBlueGreen : undefined}
+                                    textColor={momentInView.reaction?.userHasLiked ? this.theme.colors.brandingWhite : this.theme.colors.brandingBlueGreen}
+                                    style={localStyles.validationButton}
+                                    compact
+                                >
+                                    {this.translate('quickReports.stillTrue')}
+                                </PaperButton>
+                                <PaperButton
+                                    mode={momentInView.reaction?.userHasDisliked ? 'contained' : 'outlined'}
+                                    onPress={() => this.onUpdateMomentReaction(momentInView.id, { userHasDisliked: true, userHasLiked: false })}
+                                    icon="thumb-down"
+                                    buttonColor={momentInView.reaction?.userHasDisliked ? this.theme.colors.accentRed : undefined}
+                                    textColor={momentInView.reaction?.userHasDisliked ? this.theme.colors.brandingWhite : this.theme.colors.accentRed}
+                                    style={localStyles.validationButton}
+                                    compact
+                                >
+                                    {this.translate('quickReports.notAnymore')}
+                                </PaperButton>
+                            </View>
+                        }
                     </KeyboardAwareScrollView>
-                    {
-                        <View style={[this.themeAccentLayout.styles.footer, this.themeArea.styles.footer]}>
-                            <Button
-                                containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                                buttonStyle={this.themeAccentForms.styles.backButton}
-                                onPress={() => this.goBack()}
-                                icon={
-                                    <TherrIcon
-                                        name="go-back"
-                                        size={25}
-                                        color={'black'}
-                                    />
-                                }
-                                type="clear"
-                            />
-                            {
-                                isMyContent &&
-                                <>
-                                    {
-                                        !isVerifyingDelete &&
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitDeleteButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editMoment.buttons.delete'
-                                                )}
-                                                icon={
-                                                    <FontAwesome5Icon
-                                                        name="trash-alt"
-                                                        size={22}
-                                                        color={'black'}
-                                                        style={this.themeAccentForms.styles.submitButtonIcon}
-                                                    />
-                                                }
-                                                onPress={this.onDelete}
-                                                raised={true}
-                                            />
-                                    }
-                                    {
-                                        isVerifyingDelete &&
-                                        <View style={this.themeAccentForms.styles.submitConfirmContainer}>
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitCancelButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitCancelButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editMoment.buttons.cancel'
-                                                )}
-                                                onPress={this.onDeleteCancel}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitConfirmButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitleLight}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editMoment.buttons.confirm'
-                                                )}
-                                                onPress={this.onDeleteConfirm}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                        </View>
-                                    }
-                                </>
-                            }
-                        </View>
-                    }
+                    {/* Footer */}
+                    <View style={[this.themeAccentLayout.styles.footer, localStyles.footer]}>
+                        <PaperButton
+                            mode="outlined"
+                            onPress={() => this.goBack()}
+                            icon="arrow-left"
+                            textColor={this.isDarkMode ? this.theme.colors.textWhite : this.theme.colors.brandingBlueGreen}
+                            style={localStyles.footerButton}
+                        >
+                            {this.translate('forms.editMoment.buttons.back')}
+                        </PaperButton>
+                        {isMyContent && (
+                            <PaperButton
+                                mode="contained"
+                                onPress={() => this.setState({ isDeleteDialogVisible: true })}
+                                icon="trash-can-outline"
+                                buttonColor={this.theme.colors.accentRed}
+                                textColor={this.theme.colors.brandingWhite}
+                                style={localStyles.footerButton}
+                                disabled={isDeleting}
+                                loading={isDeleting}
+                            >
+                                {this.translate('forms.editMoment.buttons.delete')}
+                            </PaperButton>
+                        )}
+                    </View>
                 </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={this.toggleAreaOptions}
+
+                {/* Delete confirmation modal */}
+                <ConfirmModal
+                    isConfirming={isDeleting}
+                    isVisible={isDeleteDialogVisible}
+                    onCancel={() => this.setState({ isDeleteDialogVisible: false })}
+                    onConfirm={this.onDeleteConfirm}
+                    text={this.translate('forms.editMoment.deleteConfirmation')}
+                    textConfirm={this.translate('forms.editMoment.buttons.confirm')}
+                    textCancel={this.translate('forms.editMoment.buttons.cancel')}
                     translate={this.translate}
-                    onSelect={this.onMomentOptionSelect}
+                    theme={this.theme}
+                    themeModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                    shouldIncludeShareButton={true}
                 />
             </>
         );

@@ -10,6 +10,7 @@ import {
     searchForumsValidation,
     updateForumValidation,
 } from './validation/forums';
+import authenticateOptional from '../../middleware/authenticateOptional';
 import checkResources from '../../middleware/checkResources';
 
 const messagesServiceRouter = express.Router();
@@ -48,7 +49,7 @@ messagesServiceRouter.get('/forums-messages/:forumId', handleServiceRequest({
 }));
 
 // Forums
-messagesServiceRouter.get('/forums/:forumId', validate, handleServiceRequest({
+messagesServiceRouter.get('/forums/:forumId', authenticateOptional, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'get',
 }));
@@ -63,7 +64,7 @@ messagesServiceRouter.post('/forums/activities', createActivityValidation, valid
     method: 'post',
 }));
 
-messagesServiceRouter.post('/forums/search', searchForumsValidation, validate, handleServiceRequest({
+messagesServiceRouter.post('/forums/search', authenticateOptional, searchForumsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
 }));

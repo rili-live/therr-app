@@ -4,6 +4,7 @@
 // Root level components
 const miscellaneousComponents = [
     'components/index',
+    'components/mantine/index',
 ];
 
 // Forms

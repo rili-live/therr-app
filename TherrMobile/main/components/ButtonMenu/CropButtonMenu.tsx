@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../BaseButton';
 import 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';

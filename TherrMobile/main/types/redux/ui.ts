@@ -1,5 +1,3 @@
-import Immutable from 'seamless-immutable';
-
 export interface IPrefetchState {
     isLoadingActiveEvents?: boolean;
     isLoadingActiveMoments?: boolean;
@@ -10,7 +8,7 @@ export interface IPrefetchState {
     isLoadingGroups?: boolean;
 }
 
-export interface IUIState extends Immutable.ImmutableObject<any>{
+export interface IUIState {
     prefetch: IPrefetchState;
 }
 

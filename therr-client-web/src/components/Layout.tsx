@@ -2,12 +2,14 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Location, NavigateFunction } from 'react-router-dom';
+import { Link, Location, NavigateFunction } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
+import { Tooltip } from '@mantine/core';
 import ReactGA from 'react-ga4';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
     AccessControl,
+    InlineSvg,
     SvgButton,
 } from 'therr-react/components';
 import { NotificationActions, SocketActions, MessageActions } from 'therr-react/redux/actions';
@@ -26,6 +28,7 @@ import { IMessagingContext } from './footer/MessagingContainer';
 import UsersActions from '../redux/actions/UsersActions';
 import { routeAfterLogin } from '../routes/Login';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 import AppRoutes from './AppRoutes';
 
 interface ILayoutRouterProps {
@@ -38,6 +41,7 @@ interface ILayoutRouterProps {
 interface ILayoutDispatchProps {
     // Add your dispatcher properties here
     logout: Function;
+    markDmsRead: Function;
     refreshConnection: Function;
     searchDms: Function;
     searchNotifications: Function;
@@ -49,7 +53,7 @@ interface IStoreProps extends ILayoutDispatchProps {
 }
 
 interface ILayoutProps extends ILayoutRouterProps, IStoreProps {
-    // Add your regular properties here
+    translate: (key: string, params?: any) => string;
 }
 
 interface ILayoutState {
@@ -71,6 +75,7 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
     logout: UsersActions.logout,
+    markDmsRead: MessageActions.markDmsRead,
     searchDms: MessageActions.searchDMs,
     refreshConnection: SocketActions.refreshConnection,
     searchNotifications: NotificationActions.search,
@@ -78,6 +83,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
 
 // TODO: Animation between view change is not working when wrapped around a Switch
 export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
+    private handleReconnectAttempt: (() => void) | undefined;
+
+    private handleReconnect: (() => void) | undefined;
+
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
@@ -120,17 +129,19 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             });
         }
 
-        socketIO.on('reconnect_attempt', () => {
+        this.handleReconnectAttempt = () => {
             // Only send event when user is already logged in and refreshes the page
             updateSocketToken(user);
-        });
+        };
+        socketIO.on('reconnect_attempt', this.handleReconnectAttempt);
 
-        socketIO.on('reconnect', () => {
+        this.handleReconnect = () => {
             // Only send event when user is already logged in and refreshes the page
             if (user && user.isAuthenticated) {
                 refreshConnection(user);
             }
-        });
+        };
+        socketIO.on('reconnect', this.handleReconnect);
     }
 
     componentDidUpdate() {
@@ -152,14 +163,21 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     componentWillUnmount() { // eslint-disable-line
         document.removeEventListener('click', this.handleClick);
+        if (this.handleReconnectAttempt) {
+            socketIO.off('reconnect_attempt', this.handleReconnectAttempt);
+        }
+        if (this.handleReconnect) {
+            socketIO.off('reconnect', this.handleReconnect);
+        }
     }
 
     handleClick = (event: any) => {
         if (this.state.isNavMenuOpen) {
             const navMenuEl = document.getElementById('nav_menu');
-            const isClickInsideNavMenu = navMenuEl.contains(event.target)
-                || document.getElementById('footer_messages').contains(event.target)
-                || document.getElementById('header_account_button').contains(event.target);
+            const isClickInsideNavMenu = navMenuEl?.contains(event.target)
+                || document.getElementById('footer_messages')?.contains(event.target)
+                || document.getElementById('header_account_button')?.contains(event.target)
+                || event.target.closest('[data-portal]');
 
             if (!isClickInsideNavMenu) {
                 this.toggleNavMenu(event);
@@ -183,13 +201,16 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         if (context) {
             newState.navMenuContext = context;
         }
+        if (context === INavMenuContext.FOOTER_MESSAGES) {
+            this.props.markDmsRead();
+        }
         const navMenuEl = document.getElementById('nav_menu');
         this.setState(newState, () => {
             if (this.state.isNavMenuOpen) {
-                const activeTabEl = navMenuEl && navMenuEl
-                    .getElementsByClassName('nav-menu-header')[0]
-                    .getElementsByClassName('menu-tab-button active')[0] as HTMLElement;
-                activeTabEl.focus();
+                const activeTabEl = navMenuEl
+                    ?.getElementsByClassName('nav-menu-header')[0]
+                    ?.getElementsByClassName('menu-tab-button active')[0] as HTMLElement | undefined;
+                activeTabEl?.focus();
             }
         });
     };
@@ -224,7 +245,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const { logout, user } = this.props;
 
         this.toggleNavMenu(e);
-        logout(user.details);
+        logout(user.details).then(() => {
+            this.props.navigation.navigate('/login');
+        });
     };
 
     initMessaging = (e, connectionDetails, context) => {
@@ -325,7 +348,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     };
 
     renderFooter = (isLandingStylePage?: boolean) => {
-        const { isMessagingOpen, isMsgContainerOpen, messagingContext } = this.state;
+        const { isMsgContainerOpen, messagingContext } = this.state;
 
         return (
             <Footer
@@ -340,9 +363,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         this.props.user,
                     )
                 }
-                isMessagingOpen={isMessagingOpen}
                 isMsgContainerOpen={isMsgContainerOpen}
                 messagingContext={messagingContext}
+                onInitMessaging={this.initMessaging}
                 toggleNavMenu={this.toggleNavMenu}
                 toggleMessaging={this.toggleMessaging}
                 isLandingStylePage={isLandingStylePage}
@@ -362,7 +385,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             || location.pathname === '/login'
             || location.pathname.includes('/locations')
             || location.pathname.includes('/spaces')
-            || location.pathname.includes('/users')
+            || location.pathname.startsWith('/users/')
             || location.pathname === '/register'
             || location.pathname === '/verify-account'
             || location.pathname === '/app-feedback'
@@ -382,7 +405,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         appear
                         enter
                         exit
-                        component="div"
+                        component="main"
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
                         <AppRoutes
@@ -393,6 +416,24 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}
+
+                    <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
+                        <Tooltip label={this.props.translate('components.layout.floatingButton.tooltip')} position="left" withArrow>
+                            <Link
+                                to="/posts/thoughts"
+                                className="floating-create-button"
+                                aria-label="Create a thought"
+                                onClick={(e) => {
+                                    if (this.props.location?.pathname === '/posts/thoughts') {
+                                        e.preventDefault();
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }
+                                }}
+                            >
+                                <InlineSvg name="lightbulb" />
+                            </Link>
+                        </Tooltip>
+                    </AccessControl>
 
                     { this.renderFooter(isLandingStylePage) }
                 </>
@@ -408,4 +449,4 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 }
 
 // export default Layout;
-export default withNavigation(connect<any, IStoreProps, {}>(mapStateToProps, mapDispatchToProps)(LayoutComponent as any));
+export default withNavigation(withTranslation(connect<any, IStoreProps, {}>(mapStateToProps, mapDispatchToProps)(LayoutComponent as any)));

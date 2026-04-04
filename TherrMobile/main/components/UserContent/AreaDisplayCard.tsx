@@ -4,11 +4,13 @@ import {
     ActivityIndicator,
     Dimensions,
     Pressable,
+    StyleSheet,
     Text,
     View,
 } from 'react-native';
-import { Image } from 'react-native-elements';
-import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { Image } from '../BaseImage';
+import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { ITherrThemeColors } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
@@ -68,6 +70,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
             themeViewArea,
             translate,
         } = this.props;
+        const isQuickReport = Categories.QuickReportCategories.includes(area.category);
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
@@ -82,28 +85,21 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                 height: cardHeight,
                 width: cardWidth,
             }]}>
-                <Pressable onPress={() => onPress(area)} style={[
-                    isFocused ? themeViewArea.styles.cardFocused : themeViewArea.styles.card,
-                    featuredStyle,
-                ]}>
+                <Pressable
+                    onPress={() => onPress(area)}
+                    style={[
+                        isFocused ? themeViewArea.styles.cardFocused : themeViewArea.styles.card,
+                        featuredStyle,
+                    ]}
+                >
                     <View style={[themeViewArea.styles.cardImageContainer]}>
                         {
                             areaMedia ?
-                                // <UserMedia
-                                //     onPress={() => onPress(area)}
-                                //     viewportWidth={mediaWidth}
-                                //     media={areaMedia}
-                                //     isVisible={!!areaMedia}
-                                //     isSingleView={false}
-                                //     viewContainerStyles={{
-                                //         flex: 1,
-                                //     }}
-                                //     onLayout={this.onUserMediaLayout}
-                                // /> :
                                 <Image
                                     source={{
                                         uri: areaMedia,
                                     }}
+                                    containerStyle={localStyles.imageContainer}
                                     style={[themeViewArea.styles.cardImage]}
                                     resizeMode="cover"
                                     PlaceholderContent={<ActivityIndicator />}
@@ -114,10 +110,18 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                 />
                         }
                     </View>
-                    <View style={themeViewArea.styles.textContent}>
-                        <Text numberOfLines={2} style={themeViewArea.styles.cardTitle}>
-                            {area.notificationMsg}
-                        </Text>
+                    <View style={[localStyles.textContent, themeViewArea.styles.textContent]}>
+                        <View style={localStyles.titleWithBadge}>
+                            <Text numberOfLines={2} style={[themeViewArea.styles.cardTitle, localStyles.titleText]}>
+                                {area.notificationMsg}
+                            </Text>
+                            {isQuickReport && (
+                                <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                                    <MaterialIcon name="schedule" size={10} color={theme.colors.brandingWhite} />
+                                    <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                                </View>
+                            )}
+                        </View>
                         {
                             shouldDisplayRewardsBanner ?
                                 <View style={themeViewArea.styles.banner}>
@@ -140,7 +144,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                         }
                         {
                             area.distance != null &&
-                            <Text  style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
+                            <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                         }
                     </View>
                 </Pressable>
@@ -148,3 +152,35 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    imageContainer: {
+        flex: 1,
+    },
+    textContent: {
+        padding: 0,
+    },
+    titleWithBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    titleText: {
+        flexShrink: 1,
+    },
+    quickReportBadge: {
+        flexShrink: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 8,
+        gap: 3,
+    },
+    quickReportBadgeText: {
+        color: '#ffffff',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+});

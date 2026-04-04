@@ -1,9 +1,9 @@
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { Theme } from '@react-navigation/native';
-import DeviceInfo from 'react-native-device-info';
+import { initialWindowMetrics } from 'react-native-safe-area-context';
 import { buttonMenuHeight } from './navigation/buttonMenu';
-import { getTheme, ITherrTheme } from './themes';
+import { getTheme, isDarkTheme, ITherrTheme } from './themes';
 import { therrFontFamily } from './font';
 
 
@@ -66,34 +66,20 @@ const addMargins = (marginStyles) => {
     return marginStyles;
 };
 
-/**
- * These devices have a punchout camera so the header needs an offset
- * @returns boolean
- */
-const hasCutoutCamera = (): boolean => {
-    const model = DeviceInfo.getModel();
-
-    if (model?.includes('Pixel 6') || model?.includes('Pixel 7') || model?.includes('Pixel 8') || model?.includes('Pixel 9')) {
-        return true;
-    }
-
-    return false;
-};
-
 const getHeaderHeight = () => {
-    const model = DeviceInfo.getModel();
-    if (model === 'iPhone SE') {
-        return IOS_STATUS_HEIGHT + HEADER_HEIGHT;
-    }
     if (Platform.OS === 'ios') {
-        return (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT);
+        // Use safe area insets for accurate notch/Dynamic Island handling across all iOS devices,
+        // falling back to hardcoded values for older devices
+        const safeAreaTop = initialWindowMetrics?.insets?.top;
+        const statusBarOffset = safeAreaTop || (IOS_STATUS_HEIGHT + IOS_TOP_GAP);
+        return statusBarOffset + HEADER_HEIGHT;
     }
 
-    if (DeviceInfo.hasNotch() || hasCutoutCamera()) {
-        return (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + ANDROID_TOP_GAP + 20);
-    }
-
-    return (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20);
+    // Use safe area insets for accurate cutout/notch handling across all Android devices,
+    // falling back to StatusBar.currentHeight or a default gap
+    const safeAreaTop = initialWindowMetrics?.insets?.top;
+    const statusBarHeight = safeAreaTop || StatusBar.currentHeight || ANDROID_TOP_GAP;
+    return HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + statusBarHeight;
 };
 
 const getHeaderStyles = (theme: ITherrTheme) => ({
@@ -121,9 +107,9 @@ const getAreaContainerButtonStyles = (): any => ({
 });
 
 
-const buildNavTheme = (theme: ITherrTheme): Theme => {
+const buildNavTheme = (theme: ITherrTheme, themeName?: IMobileThemeName): Theme => {
     return ({
-        dark: true,
+        dark: isDarkTheme(themeName),
         colors: {
             primary: theme.colors.primary,
             background: theme.colors.primary,
@@ -144,6 +130,32 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         areaContainerButton: {
             ...getAreaContainerButtonStyles(),
+        },
+        stepSectionHeader: {
+            paddingHorizontal: 15,
+            paddingVertical: 8,
+            gap: 10,
+        },
+        stepCircle: {
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            backgroundColor: therrTheme.colors.accentDivider,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        stepCircleActive: {
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            backgroundColor: therrTheme.colors.primary3,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        stepCircleText: {
+            color: '#FFFFFF',
+            fontSize: 14,
+            fontWeight: '600',
         },
         areaContainerButtonSelected: {
             ...getAreaContainerButtonStyles(),
@@ -214,19 +226,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         logoIcon: {
             color: therrTheme.colors.accentLogo,
-            marginLeft: 2,
+            marginLeft: 10,
         },
         logoIconDark: {
             ...logoStyles,
             color: therrTheme.colorVariations.primary2Darken,
-            marginLeft: 2,
+            marginLeft: 10,
             height: 32,
             width: 32,
         },
         logoIconBlack: {
             ...logoStyles,
             color: therrTheme.colors.accentTextBlack,
-            marginLeft: 2,
+            marginLeft: 10,
             height: 32,
             width: 32,
         },
@@ -377,10 +389,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginBottom: (Platform.OS === 'ios' && Platform.isPad) ? HEADER_PADDING_BOTTOM : HEADER_PADDING_BOTTOM / 2,
         },
         headerSearchInputContainer: {
-            height: HEADER_HEIGHT - HEADER_PADDING_BOTTOM,
+            height: 36,
             margin: 0,
             padding: 0,
-            borderRadius: 8,
+            paddingVertical: 0,
+            borderRadius: 18,
+            borderBottomWidth: 0,
         },
         highlight: {
             fontWeight: '700',

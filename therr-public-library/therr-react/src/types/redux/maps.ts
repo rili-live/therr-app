@@ -1,9 +1,13 @@
-import * as Immutable from 'seamless-immutable';
-
-export interface IMapState extends Immutable.ImmutableObject<any> {
+export interface IMapState {
     hasUserLocationLoaded?: boolean;
     longitude?: number;
     latitude?: number;
+    longitudeDelta?: number;
+    latitudeDelta?: number;
+    prevLongitude?: number;
+    prevLatitude?: number;
+    prevLongitudeDelta?: number;
+    prevLatitudeDelta?: number;
     activities: { [id: string]: any };
     activityGeneration: { [id: string]: any };
     events: { [id: string]: any };
@@ -60,6 +64,7 @@ export enum MapActionTypes {
     UPDATE_RECENT_ENGAGEMENTS = 'UPDATE_RECENT_ENGAGEMENTS',
 
     // Google API
+    AUTOCOMPLETE_SEARCHING = 'AUTOCOMPLETE_SEARCHING',
     AUTOCOMPLETE_UPDATE = 'AUTOCOMPLETE_UPDATE',
     SET_DROPDOWN_VISIBILITY = 'SET_DROPDOWN_VISIBILITY',
 }

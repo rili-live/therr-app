@@ -18,6 +18,7 @@ enum AccessLevels {
   ORGANIZATIONS_READ = 'user.organizations.read', // Assigned by organization admin when adding a read only user
   // eslint-disable-next-line max-len
   ORGANIZATIONS_SUBSCRIBER = 'user.organizations.subscriber', // Assigned by white-label organization admin when adding a subscriber/customer
+  API_ACCESS = 'user.api.access', // Granted to dashboard subscribers to enable API key management
 }
 
 export default AccessLevels;

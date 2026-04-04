@@ -5,8 +5,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
-import Toast from 'react-native-toast-message';
-import analytics from '@react-native-firebase/analytics';
+import { showToast } from '../../utilities/toasts';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
@@ -76,7 +76,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
@@ -140,24 +140,24 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             interests,
         })
             .then(() => {
-                analytics().logEvent('account_update_interests', {
+                logEvent(getAnalytics(),'account_update_interests', {
                     userId: this.props.user.details.id,
                 }).catch((err) => console.log(err));
-                Toast.show({
-                    type: 'successBig',
+                showToast.success({
                     text1: this.translate('pages.managePreferences.alertTitles.preferenceSettingsUpdated'),
                     text2: this.translate('pages.managePreferences.alertMessages.preferenceSettingsUpdated'),
-                    visibilityTime: 3000,
                     onHide: () => {
-                        this.props.navigation.navigate('Settings');
+                        if (this.props.navigation.canGoBack()) {
+                            this.props.navigation.goBack();
+                        } else {
+                            this.props.navigation.navigate('Settings');
+                        }
                     },
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('pages.manageNotifications.alertTitles.accountError'),
                     text2: this.translate('pages.manageNotifications.alertMessages.preferenceSettingsUpdatedError'),
-                    visibilityTime: 3000,
                 });
             }).finally(() => {
                 this.setState({

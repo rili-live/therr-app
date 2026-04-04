@@ -1,17 +1,20 @@
 import React from 'react';
-import { Dimensions, Platform } from 'react-native';
+import { Dimensions, Platform, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Badge, InputProps } from 'react-native-elements';
+import { Badge } from 'react-native-paper';
+import { TextInputProps } from 'react-native';
 import 'react-native-gesture-handler';
 import { MapActions } from 'therr-react/redux/actions';
-import { IMapState as IMapReduxState } from 'therr-react/types';
+import { IContentState, IMapState as IMapReduxState } from 'therr-react/types';
 import DeviceInfo from 'react-native-device-info';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import RoundInput from './';
 import translator from '../../services/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../../constants';
+import getConfig from '../../utilities/getConfig';
 
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -24,13 +27,15 @@ interface IHeaderSearchInputState {
     overlayLeftOffset: number;
     shouldEvaluateClickaway: boolean;
 }
-interface IHeaderSearchInputDispatchProps extends Omit<InputProps, 'ref'> {
+interface IHeaderSearchInputDispatchProps extends Omit<TextInputProps, 'ref'> {
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
 }
 
 interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
+    content: IContentState;
     map: IMapReduxState;
+    user: any;
     theme: {
         colors: ITherrThemeColors;
         colorVariations: ITherrThemeColorVariations;
@@ -40,6 +45,7 @@ interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
         colors: ITherrThemeColors;
         styles: any;
     };
+    placeholderText: string;
 }
 
 interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
@@ -48,7 +54,9 @@ interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
 }
 
 const mapStateToProps = (state: any) => ({
+    content: state.content,
     map: state.map,
+    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -77,7 +85,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
             shouldEvaluateClickaway: false,
         };
 
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user?.settings?.locale || 'en-us', key, params);
     }
 
     componentWillUnmount = () => {
@@ -93,19 +101,20 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
             inputText: text,
         });
 
-        this.throttleTimeoutId = setTimeout(() => {
-            getPlacesSearchAutoComplete({
-                longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
-                latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
-                // radius,
-                input: text,
-            });
-        }, 500);
-
         if (invoker === 'input' && text === inputText) {
             return;
         }
         setSearchDropdownVisibility(!!text?.length);
+
+        this.throttleTimeoutId = setTimeout(() => {
+            const config = getConfig();
+            const useMapboxSearch = config.featureFlags?.[FeatureFlags.ENABLE_MAPBOX_SEARCH] === true;
+            getPlacesSearchAutoComplete({
+                longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
+                latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
+                input: text,
+            }, useMapboxSearch);
+        }, 300);
     };
 
     handlePress = (invoker: string) => {
@@ -125,7 +134,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
     // TODO: Display red dot to show filters enabled
     render() {
         const { inputText } = this.state;
-        const { isAdvancedSearch, map, theme, themeForms } = this.props;
+        const { content, isAdvancedSearch, map, theme, themeForms, placeholderText } = this.props;
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
@@ -143,11 +152,14 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 filterCount += 1;
             }
         });
+        if (content.activeAreasFilters?.contentType && content.activeAreasFilters.contentType !== 'all') {
+            filterCount += 1;
+        }
 
         return (
             <>
                 <RoundInput
-                    errorStyle={{ display: 'none' }}
+                    errorStyle={localStyles.hidden}
                     style={textStyle}
                     containerStyle={[theme.styles.headerSearchContainer, { width: containerWidth }]}
                     inputStyle={
@@ -155,14 +167,20 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                             Platform.OS !== 'ios'
                                 ? themeForms.styles.input
                                 : themeForms.styles.inputAlt,
-                            { fontSize: Platform.OS !== 'ios' ? 16 : 19 },
+                            Platform.OS !== 'ios'
+                                ? localStyles.fontSizeDefault
+                                : localStyles.fontSizeIos,
                         ]
                     }
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
+                    roundness={18}
                     onChangeText={this.onInputChange}
                     onFocus={() => this.handlePress('onfocus')}
-                    placeholder={this.translate('components.header.searchInput.placeholder')}
+                    placeholder={placeholderText}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
+                    underlineColor="transparent"
+                    activeUnderlineColor="transparent"
+                    dense
                     rightIcon={
                         <TherrIcon
                             name={isAdvancedSearch ? 'filters' : 'search'}
@@ -176,15 +194,27 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 />
                 {
                     isAdvancedSearch && filterCount > 0 &&
-                    <Badge
-                        value={filterCount}
-                        badgeStyle={themeForms.styles.headerInputBadge}
-                        containerStyle={themeForms.styles.headerInputBadgeContainer}
-                    />
+                    <View style={themeForms.styles.headerInputBadgeContainer}>
+                        <Badge style={themeForms.styles.headerInputBadge}>
+                            {filterCount}
+                        </Badge>
+                    </View>
                 }
             </>
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    hidden: {
+        display: 'none',
+    },
+    fontSizeDefault: {
+        fontSize: 16,
+    },
+    fontSizeIos: {
+        fontSize: 19,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HeaderSearchInput);

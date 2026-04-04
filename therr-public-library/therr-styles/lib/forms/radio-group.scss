@@ -36,8 +36,8 @@
         }
 
         label {
-            background: $therr-white;
-            border: 1px solid $therr-white;
+            background: $therr-input-bg-color;
+            border: 1px solid $therr-input-border-color;
             border-radius: 50%;
             box-sizing: content-box;
             cursor: pointer;

@@ -1,11 +1,11 @@
 import React from 'react';
 import { Platform, Share, View, KeyboardAvoidingView, Text } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../../components/BaseButton';
 // import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { FlatList } from 'react-native-gesture-handler';
@@ -14,6 +14,7 @@ import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../../../components/Alert';
 import UsersActions from '../../../redux/actions/UsersActions';
 import translator from '../../../services/translator';
+import { buildInviteUrl } from '../../../utilities/shareUrls';
 // import SquareInput from '../../../components/Input/Square';
 import RoundInput from '../../../components/Input/Round';
 import PhoneNumberInput from '../../../components/Input/PhoneNumberInput';
@@ -38,6 +39,7 @@ interface IStoreProps extends ICreateConnectionDispatchProps {
 
 // Regular component props
 export interface ICreateConnectionProps extends IStoreProps {
+    didIgnoreNameConfirm: boolean;
     shouldLaunchContacts: boolean;
     navigation: any;
     toggleNameConfirmModal: () => any;
@@ -45,7 +47,6 @@ export interface ICreateConnectionProps extends IStoreProps {
 
 interface ICreateConnectionState {
     connectionContext: any;
-    didIgnoreNameConfirm: boolean;
     emailErrorMessage: string;
     inputs: any;
     isPhoneNumberValid: boolean;
@@ -81,7 +82,6 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
         this.state = {
             connectionContext: 'email',
-            didIgnoreNameConfirm: false,
             emailErrorMessage: '',
             inputs: {},
             prevConnReqError: '',
@@ -95,7 +95,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -211,8 +211,8 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
     };
 
     onSubmit = () => {
-        const { connectionContext, didIgnoreNameConfirm, inputs, isPhoneNumberValid } = this.state;
-        const { createUserConnection, user } = this.props;
+        const { connectionContext, inputs, isPhoneNumberValid } = this.state;
+        const { createUserConnection, didIgnoreNameConfirm, user } = this.props;
 
         if (!didIgnoreNameConfirm && this.isUserNameAnonymous()) {
             this.onToggleNameConfirmModal();
@@ -240,9 +240,11 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
             reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
         }
 
+        this.setState({ isSubmitting: true });
+
         createUserConnection(reqBody, user.details)
             .then(() => {
-                analytics().logEvent('connection_invites_sent', {
+                logEvent(getAnalytics(),'connection_invites_sent', {
                     userId: user.details.id,
                 }).catch((err) => console.log(err));
                 this.setState({
@@ -259,6 +261,9 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                         prevConnReqError: error.message,
                     });
                 }
+            })
+            .finally(() => {
+                this.setState({ isSubmitting: false });
             });
     };
 
@@ -276,14 +281,10 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
     onToggleNameConfirmModal = () => {
         this.props.toggleNameConfirmModal();
-        this.setState({
-            didIgnoreNameConfirm: true,
-        });
     };
 
     onGetPhoneContacts = () => {
-        const { navigation, user } = this.props;
-        const { didIgnoreNameConfirm } = this.state;
+        const { didIgnoreNameConfirm, navigation, user } = this.props;
         // TODO: Store permissions in redux
         const storePermissions = () => {};
 
@@ -295,20 +296,24 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         return synceMobileContacts({
             storePermissions,
             user,
-        }).then((contacts) => {
+        }).then((result) => {
             navigation.navigate('PhoneContacts', {
-                allContacts: contacts,
+                allContacts: result.contacts,
+                matchedUsers: result.matchedUsers,
             });
         });
     };
 
     onShareALink = () => {
         const { user } = this.props;
+        const locale = user.settings?.locale || 'en-us';
+        const shareUrl = buildInviteUrl(locale, user.details.userName);
         Share.share({
             message: this.translate('forms.createConnection.shareLink.message', {
                 inviteCode: user.details.userName,
+                shareUrl,
             }),
-            url: `https://www.therr.com/register?invite-code=${user.details.userName}`,
+            url: shareUrl,
             title: this.translate('forms.createConnection.shareLink.title'),
         }).then((response) => {
             if (response.action === Share.sharedAction) {
@@ -330,6 +335,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
             connectionContext,
             emailErrorMessage,
             inputs,
+            isSubmitting,
             prevConnReqError,
             prevConnReqSuccess,
         } = this.state;
@@ -439,16 +445,17 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                                         />
                                     }
                                     <Button
+                                        containerStyle={{ marginTop: 20 }}
                                         buttonStyle={this.themeForms.styles.buttonPrimary}
-                                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                        disabledStyle={this.themeForms.styles.buttonDisabled}
                                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                         titleStyle={this.themeForms.styles.buttonTitle}
                                         title={this.translate(
                                             'forms.createConnection.buttons.submit'
                                         )}
                                         onPress={this.onSubmit}
-                                        disabled={this.isConnReqFormDisabled()}
+                                        disabled={this.isConnReqFormDisabled() || isSubmitting}
+                                        loading={isSubmitting}
                                         raised={false}
                                     />
                                     <Alert

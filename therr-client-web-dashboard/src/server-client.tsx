@@ -2,6 +2,7 @@ import beeline from './beeline'; // eslint-disable-line import/order
 import axios from 'axios';
 import * as path from 'path';
 import express from 'express';
+import expressStaticGzip from 'express-static-gzip';
 import helmet from 'helmet';
 import * as React from 'react';
 import * as url from 'url';
@@ -47,13 +48,72 @@ import getRoutes, { IRoute } from './routes'; // eslint-disable-line
 const app = express();
 
 if (process.env.NODE_ENV !== 'development') {
-    app.use(helmet());
+    app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                connectSrc: [
+                    "'self'",
+                    'https://*.therr.com',
+                    'wss://*.therr.com',
+                    // LogRocket
+                    'https://*.lr-in-prod.com',
+                    'https://*.lr-ingest.com',
+                    'https://*.logrocket.io',
+                    'https://*.logrocket.com',
+                    // Google Analytics
+                    'https://*.google-analytics.com',
+                    'https://*.analytics.google.com',
+                    'https://*.googletagmanager.com',
+                ],
+                scriptSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://*.googletagmanager.com',
+                    'https://*.google-analytics.com',
+                    'https://cdn.lr-in-prod.com',
+                    'https://cdn.lr-ingest.com',
+                ],
+                styleSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://fonts.googleapis.com',
+                ],
+                fontSrc: [
+                    "'self'",
+                    'https://fonts.gstatic.com',
+                ],
+                imgSrc: [
+                    "'self'",
+                    'data:',
+                    'https://*.therr.com',
+                    'https://ik.imagekit.io',
+                    'https://*.google-analytics.com',
+                    'https://*.googletagmanager.com',
+                ],
+                workerSrc: ["'self'", 'blob:'],
+            },
+        },
+    }));
 }
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Define the folder that will be used for static assets
-app.use(express.static(path.join(__dirname, '/../build/static/')));
+// Serves pre-compressed .br and .gz files when the client supports them
+app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
+    enableBrotli: true,
+    orderPreference: ['br', 'gzip'],
+    serveStatic: {
+        setHeaders: (res, filePath) => {
+            if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            } else {
+                res.setHeader('Cache-Control', 'public, max-age=86400');
+            }
+        },
+    },
+}));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 
 // Universal routing and rendering for SEO
@@ -75,7 +135,7 @@ routeConfig.forEach((config) => {
         description = description.replace('Therr for Business', brandName); // See views/index.hbs
         const promises: any = [];
         const staticContext: any = {};
-        const initialState = {
+        const initialState: any = {
             user: {
                 details: {},
             },

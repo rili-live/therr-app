@@ -1,0 +1,23 @@
+#page_under_construction {
+    .explore-link-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        background: var(--therr-primary-1, $therr-primary-1);
+        color: var(--therr-white, $therr-white);
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: var(--therr-secondary-1, $therr-secondary-1);
+        }
+
+        svg {
+            flex-shrink: 0;
+        }
+    }
+}

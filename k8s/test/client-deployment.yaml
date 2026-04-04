@@ -43,3 +43,15 @@ spec:
             value: "info"
           - name: SOCKET_PORT
             value: "7743"
+<<<<<<< HEAD
+=======
+          # SEO verification codes (leave empty in test; set in prod)
+          - name: GOOGLE_SITE_VERIFICATION
+            value: ""
+          - name: BING_SITE_VERIFICATION
+            value: ""
+          - name: PINTEREST_VERIFICATION
+            value: ""
+          - name: INDEXNOW_API_KEY
+            value: ""
+>>>>>>> origin/general

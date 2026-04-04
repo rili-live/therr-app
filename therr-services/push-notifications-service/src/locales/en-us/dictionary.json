@@ -1,96 +1,100 @@
 {
   "notifications": {
     "achievementCompleted": {
-      "title": "New Unclaimed Rewards",
-      "body": "You completed an achievement! Go claim your reward to collect coins."
+      "title": "You Earned a Reward!",
+      "body": "Nice work! You just completed an achievement. Tap to claim your coins before they expire."
     },
     "connectionRequestAccepted": {
-      "title": "New Connection",
-      "body": "Your connection request was accepted! Check the app to start a new conversation",
+      "title": "You're Connected!",
+      "body": "{userName} accepted your request — say hello and start a conversation!",
       "pressActionMessage": "Message",
       "pressActionView": "View"
     },
     "createAMomentReminder": {
-      "title": "Create a Moment to Make Connections",
-      "body": "The first step to making new connections is to share a moment while you're on the go. It could be a review, observation, fun fact, or just something funny."
+      "title": "Share What You're Up To",
+      "body": "Drop a moment at your favorite spot — a quick review, a photo, or something fun. Your friends nearby will discover it later!"
     },
     "createYourProfileReminder": {
-      "title": "Login to Create Your Profile",
-      "body": "Your profile is incomplete. Login to choose your username and set a profile picture."
+      "title": "Finish Setting Up Your Profile",
+      "body": "You're almost there! Pick a username and add a photo so people in your area can find you."
     },
     "discoveredUniqueMoment": {
-      "title": "You found a unique moment!",
-      "body": "Check the map to activate a moment with special attributes"
+      "title": "You Found Something Special!",
+      "body": "There's a rare moment nearby — open the map to check it out."
     },
     "discoveredUniqueSpace": {
-      "title": "You found a unique space!",
-      "body": "Check the map to activate a space with special attributes"
+      "title": "Hidden Gem Alert!",
+      "body": "You're near a unique space — tap to explore what makes it special."
     },
     "latestPostLikesStats": {
-      "title": "New Likes",
-      "body": "Your latest post has {likeCount} total likes. Share moments to earn achievements, make connections, and grow a following."
+      "title": "Your Post Is Getting Love",
+      "body": "Your latest post just hit {likeCount} likes! Keep sharing to grow your local following."
     },
     "latestPostViewcountStats": {
-      "title": "Your Post Has New Views",
-      "body": "Your latest post has {viewCount} total views."
+      "title": "People Are Watching",
+      "body": "Your latest post has reached {viewCount} views — your community is paying attention."
     },
     "newConnectionRequest": {
-      "title": "New Connection Request",
-      "body": "You have a new connection request from {userName}",
+      "title": "Someone Wants to Connect",
+      "body": "{userName} sent you a connection request",
       "pressActionAccept": "Accept",
       "pressActionView": "View"
     },
     "newDirectMessage": {
-      "title": "New Unread Messages",
-      "body": "You have unread messages from {userName}",
+      "title": "New Message",
+      "body": "You have unread messages from {userName} — tap to reply",
       "pressActionReply": "Reply",
       "pressActionView": "View"
     },
     "newGroupMessage": {
-      "title": "New Group Messages",
-      "body": "You have unread messages in group {groupName}",
+      "title": "New Group Message",
+      "body": "You have unread messages in {groupName} — jump in and join the conversation",
       "pressActionReply": "Reply",
       "pressActionView": "View"
     },
     "newGroupMembers": {
-      "title": "New Group Members",
-      "body": "New member(s) {members} joined your group, {groupName}"
+      "title": "Your Group Is Growing!",
+      "body": "{members} just joined {groupName} — welcome them!"
     },
     "newGroupInvite": {
-      "title": "New Group Invite",
-      "body": "{fromUserName} invited you to join the group, {groupName}"
+      "title": "You're Invited!",
+      "body": "{fromUserName} invited you to join {groupName} — tap to check it out"
     },
     "newLikeReceived": {
-      "title": "New Reaction",
+      "title": "Someone Liked Your Post",
       "body": "{userName} liked your post",
       "pressActionView": "View Post"
     },
     "newSuperLikeReceived": {
-      "title": "New Reaction",
-      "body": "{userName} super-liked your post",
+      "title": "You Got a Super Like!",
+      "body": "{userName} super-liked your post — they really love it!",
       "pressActionView": "View Post"
     },
     "newThoughtReplyReceived": {
-      "title": "New Post Reply",
-      "body": "{userName} replied to your post",
+      "title": "New Reply to Your Post",
+      "body": "{userName} replied to your post — see what they said",
       "pressActionView": "View Reply"
     },
     "newAreasActivated": {
-      "title": "New Areas Activated",
-      "body": "You recently activated {totalAreasActivated} new areas(s)"
+      "title": "New Spots Unlocked!",
+      "body": "You just unlocked {totalAreasActivated} new area(s) — explore what's been shared nearby"
     },
     "nudgeSpaceEngagement": {
-      "title": "Claim cash back rewards?",
-      "body": "Check in or complete a quick action to claim cash back and discounts",
-      "pressActionCheckIn": "Check-In?"
+      "title": "Earn Rewards Right Now",
+      "body": "You're near a spot with rewards — check in to claim cash back and discounts!",
+      "pressActionCheckIn": "Check In"
     },
     "unclaimedAchievementsReminder": {
-      "title": "You have unclaimed achievements",
-      "body": "You have {achievementsCount} unclaimed achievements"
+      "title": "Rewards Waiting for You",
+      "body": "You have {achievementsCount} unclaimed reward(s) — don't let them go to waste!"
     },
     "unreadNotificationsReminder": {
-      "title": "You have unread notifications",
-      "body": "You have {notificationsCount} unread notifications"
+      "title": "You've Got Updates",
+      "body": "You have {notificationsCount} new notification(s) — tap to catch up"
+    },
+    "inviteFriendsReminder": {
+      "title": "Bring Your Crew Along",
+      "body": "Share your invite link and you'll both earn rewards when your friends join!"
     }
   },
   "validation": "The required parameters were not provided."

@@ -1,0 +1,101 @@
+{
+  "notifications": {
+    "achievementCompleted": {
+      "title": "Tu as gagné une récompense!",
+      "body": "Beau travail! Tu viens de compléter une réalisation. Appuie pour réclamer tes pièces avant qu'elles expirent."
+    },
+    "connectionRequestAccepted": {
+      "title": "Vous êtes connectés!",
+      "body": "{userName} a accepté ta demande — dis bonjour et commence une conversation!",
+      "pressActionMessage": "Message",
+      "pressActionView": "Voir"
+    },
+    "createAMomentReminder": {
+      "title": "Partage ce que tu fais",
+      "body": "Laisse un moment à ton endroit préféré — un avis, une photo ou quelque chose de fun. Tes amis à proximité le découvriront plus tard!"
+    },
+    "createYourProfileReminder": {
+      "title": "Termine la configuration de ton profil",
+      "body": "Tu y es presque! Choisis un nom d'utilisateur et ajoute une photo pour que les gens de ton quartier puissent te trouver."
+    },
+    "discoveredUniqueMoment": {
+      "title": "Tu as trouvé quelque chose de spécial!",
+      "body": "Il y a un moment rare à proximité — ouvre la carte pour y jeter un coup d'œil."
+    },
+    "discoveredUniqueSpace": {
+      "title": "Alerte trésor caché!",
+      "body": "Tu es près d'un espace unique — appuie pour explorer ce qui le rend spécial."
+    },
+    "latestPostLikesStats": {
+      "title": "Ta publication reçoit de l'amour",
+      "body": "Ta dernière publication vient d'atteindre {likeCount} j'aime! Continue de partager pour faire grandir ta communauté locale."
+    },
+    "latestPostViewcountStats": {
+      "title": "Les gens regardent",
+      "body": "Ta dernière publication a atteint {viewCount} vues — ta communauté te suit de près."
+    },
+    "newConnectionRequest": {
+      "title": "Quelqu'un veut se connecter",
+      "body": "{userName} t'a envoyé une demande de connexion",
+      "pressActionAccept": "Accepter",
+      "pressActionView": "Voir"
+    },
+    "newDirectMessage": {
+      "title": "Nouveau message",
+      "body": "Tu as des messages non lus de {userName} — appuie pour répondre",
+      "pressActionReply": "Répondre",
+      "pressActionView": "Voir"
+    },
+    "newGroupMessage": {
+      "title": "Nouveau message de groupe",
+      "body": "Tu as des messages non lus dans {groupName} — rejoins la conversation",
+      "pressActionReply": "Répondre",
+      "pressActionView": "Voir"
+    },
+    "newGroupMembers": {
+      "title": "Ton groupe grandit!",
+      "body": "{members} vient de rejoindre {groupName} — souhaite-leur la bienvenue!"
+    },
+    "newGroupInvite": {
+      "title": "Tu es invité!",
+      "body": "{fromUserName} t'a invité à rejoindre {groupName} — appuie pour y jeter un coup d'œil"
+    },
+    "newLikeReceived": {
+      "title": "Quelqu'un a aimé ta publication",
+      "body": "{userName} a aimé ta publication",
+      "pressActionView": "Voir la publication"
+    },
+    "newSuperLikeReceived": {
+      "title": "Tu as reçu un super j'aime!",
+      "body": "{userName} a super-aimé ta publication — il adore vraiment!",
+      "pressActionView": "Voir la publication"
+    },
+    "newThoughtReplyReceived": {
+      "title": "Nouvelle réponse à ta publication",
+      "body": "{userName} a répondu à ta publication — regarde ce qu'il a dit",
+      "pressActionView": "Voir la réponse"
+    },
+    "newAreasActivated": {
+      "title": "Nouveaux secteurs débloqués!",
+      "body": "Tu viens de débloquer {totalAreasActivated} nouveau(x) secteur(s) — explore ce qui a été partagé à proximité"
+    },
+    "nudgeSpaceEngagement": {
+      "title": "Gagne des récompenses maintenant",
+      "body": "Tu es près d'un endroit avec des récompenses — enregistre-toi pour obtenir des remises en argent et des rabais!",
+      "pressActionCheckIn": "S'enregistrer"
+    },
+    "unclaimedAchievementsReminder": {
+      "title": "Des récompenses t'attendent",
+      "body": "Tu as {achievementsCount} récompense(s) non réclamée(s) — ne les laisse pas passer!"
+    },
+    "unreadNotificationsReminder": {
+      "title": "Tu as des nouveautés",
+      "body": "Tu as {notificationsCount} nouvelle(s) notification(s) — appuie pour te mettre à jour"
+    },
+    "inviteFriendsReminder": {
+      "title": "Amène tes amis",
+      "body": "Partage ton lien d'invitation et vous gagnerez tous les deux des récompenses quand tes amis s'inscriront!"
+    }
+  },
+  "validation": "Les paramètres requis n'ont pas été fournis."
+}

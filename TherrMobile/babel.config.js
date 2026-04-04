@@ -20,33 +20,22 @@ module.exports = {
                 alias: {
                     shared: '../node_modules',
                 },
-                resolvePath(sourcePath, currentFile, opts) {
+                resolvePath(sourcePath, currentFile) {
+                    // Redirect react-native imports to our resolver that provides deprecated prop types
                     if (
                         sourcePath === 'react-native' &&
-                        !(
-                            (
-                                currentFile.includes('node_modules/react-native/') || // macos/linux paths
-                                currentFile.includes('node_modules\\react-native\\')
-                            ) // windows path
-                        ) &&
-                        !(
-                            currentFile.includes('resolver/react-native/') ||
-                            currentFile.includes('resolver\\react-native\\')
-                        )
+                        !currentFile.includes('node_modules/react-native/') &&
+                        !currentFile.includes('node_modules\\react-native\\') &&
+                        !currentFile.includes('resolver/react-native/') &&
+                        !currentFile.includes('resolver\\react-native\\')
                     ) {
                         return path.resolve(__dirname, 'resolver/react-native');
                     }
-                    /**
-                     * The `opts` argument is the options object that is passed through the Babel config.
-                     * opts = {
-                     *   extensions: [".js"],
-                     *   resolvePath: ...,
-                     * }
-                     */
                     return undefined;
                 },
             },
         ],
+        'react-native-paper/babel',
         'react-native-reanimated/plugin', // Should always be last
     ],
 };

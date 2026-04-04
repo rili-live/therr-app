@@ -1,50 +1,65 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Keyboard,
     Platform,
     SafeAreaView,
+    StyleSheet,
     View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button }  from 'react-native-elements';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import analytics from '@react-native-firebase/analytics';
-// import YoutubePlayer from 'react-native-youtube-iframe';
-// import Alert from '../components/Alert';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import { buildStyles as buildThoughtStyles } from '../styles/user-content/thoughts/viewing';
-// import userContentStyles from '../styles/user-content';
-// import { youtubeLinkRegex } from '../constants';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
+import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import ThoughtDisplay from '../components/UserContent/ThoughtDisplay';
+import ConfirmModal from '../components/Modals/ConfirmModal';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyContent as checkIsMyContent } from '../utilities/content';
-import ThoughtOptionsModal, { ISelectionType } from '../components/Modals/ThoughtOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import TherrIcon from '../components/TherrIcon';
-import RoundTextInput from '../components/Input/TextInput/Round';
 import { HAPTIC_FEEDBACK_TYPE } from '../constants';
-import spacingStyles from '../styles/layouts/spacing';
 import { navToViewContent } from '../utilities/postViewHelpers';
-// import AccentInput from '../components/Input/Accent';
+
+const localStyles = StyleSheet.create({
+    contentContainer: {
+        paddingHorizontal: 10,
+    },
+    replyInput: {
+        flex: 1,
+        fontSize: 16,
+        backgroundColor: 'transparent',
+    },
+    replyInputOutline: {
+        borderRadius: 20,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 6,
+    },
+});
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
 };
+
+const SendIcon = ({ disabled, colors }: { disabled: boolean; colors: { active: string; inactive: string } }) => (
+    <TherrIcon name="send" size={22} color={disabled ? colors.inactive : colors.active} />
+);
 
 interface IViewThoughtDispatchProps {
     getThoughtDetails: Function;
@@ -58,25 +73,9 @@ interface IStoreProps extends IViewThoughtDispatchProps {
     user: IUserState;
 }
 
-// Regular component props
 export interface IViewThoughtProps extends IStoreProps {
     navigation: any;
     route: any;
-}
-
-interface IViewThoughtState {
-    areThoughtOptionsVisible: boolean;
-    errorMsg: string;
-    successMsg: string;
-    replies: any[],
-    inputs: any;
-    isSubmitting: boolean;
-    isDeleting: boolean;
-    isVerifyingDelete: boolean;
-    fetchedThought: any;
-    // previewLinkId?: string;
-    // previewStyleState: any;
-    selectedThought: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -91,290 +90,87 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
 }, dispatch);
 
-export class ViewThought extends React.Component<IViewThoughtProps, IViewThoughtState> {
-    private date;
-    private hashtags;
-    private scrollViewRef;
-    private translate: Function;
-    private unsubscribeNavListener;
-    private replyInput;
-    private theme = buildStyles();
-    private themeAccentLayout = buildAccentStyles();
-    private themeButtons = buildButtonsStyles();
-    private themeThought = buildThoughtStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
-    private themeForms = buildFormStyles();
-    private themeAccentForms = buildAccentFormStyles();
+const ViewThought = ({
+    user,
+    navigation,
+    route,
+    createThought,
+    getThoughtDetails,
+    deleteThought,
+    createOrUpdateThoughtReaction,
+}: IViewThoughtProps) => {
+    const translate = useCallback(
+        (key: string, params?: any) => translator(user.settings?.locale || 'en-us', key, params),
+        [user.settings?.locale]
+    );
 
-    constructor(props) {
-        super(props);
+    // State
+    const [replies, setReplies] = useState<any[]>([]);
+    const [inputMessage, setInputMessage] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
+    const [fetchedThought, setFetchedThought] = useState<any>({});
 
-        const { route } = props;
-        const { thought } = route.params;
+    // Refs
+    const scrollViewRef = useRef<any>(null);
+    const replyInputRef = useRef<any>(null);
 
-        // const youtubeMatches = (thought.message || '').match(youtubeLinkRegex);
+    // Themes
+    const theme = buildStyles(user.settings?.mobileThemeName);
+    const themeAccentLayout = buildAccentStyles(user.settings?.mobileThemeName);
+    const themeThought = buildThoughtStyles(user.settings?.mobileThemeName, true);
+    const themeForms = buildFormStyles(user.settings?.mobileThemeName);
+    const themeConfirmModal = buildConfirmModalStyles(user.settings?.mobileThemeName);
+    const themeButtons = buildButtonsStyles(user.settings?.mobileThemeName);
+    const isDarkMode = isDarkTheme(user.settings?.mobileThemeName);
 
-        this.state = {
-            areThoughtOptionsVisible: false,
-            errorMsg: '',
-            replies: [],
-            successMsg: '',
-            isDeleting: false,
-            isSubmitting: false,
-            isVerifyingDelete: false,
-            inputs: {
-                message: '',
-            },
-            fetchedThought: {},
-            // previewStyleState: {},
-            // previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedThought: {},
-        };
+    // Derived values
+    const { thought, isMyContent, previousView } = route.params;
+    const thoughtUserName = isMyContent ? user.details.userName : thought.fromUserName;
+    const thoughtInView = useMemo(() => ({
+        ...thought,
+        ...fetchedThought,
+    }), [thought, fetchedThought]);
+    const hashtags = useMemo(
+        () => (thought.hashTags ? thought.hashTags.split(',') : []),
+        [thought.hashTags]
+    );
+    const isFormDisabled = !inputMessage || isSubmitting;
+    const brandColor = isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen;
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
-        this.themeThought = buildThoughtStyles(props.user.settings?.mobileThemeName, true);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
-
-        this.hashtags = thought.hashTags ? thought.hashTags.split(',') : [];
-
-        // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
-    }
-
-    componentDidMount() {
-        const { getThoughtDetails, navigation, route } = this.props;
-        const { thought } = route.params;
-
-        // Move thought details out of route params and into redux
+    // Fetch thought details and set up nav listener
+    useEffect(() => {
         getThoughtDetails(thought.id, {
-            withUser: true, // This will also get reply users
+            withUser: true,
             withReplies: true,
         }).then((response) => {
-            this.setState({
-                fetchedThought: response?.thought,
-                replies: response?.thought?.replies?.sort((a, b) => new Date(b.createdAt).getTime()  - new Date(a.createdAt).getTime()) || [],
-            });
+            setFetchedThought(response?.thought || {});
+            setReplies(
+                response?.thought?.replies?.sort(
+                    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                ) || []
+            );
         }).catch(() => {
             navigation.goBack();
         });
 
         navigation.setOptions({
-            title: this.translate('pages.viewThought.headerTitle'),
+            title: translate('pages.viewThought.headerTitle'),
         });
 
-        this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
-            // changeNavigationBarColor(therrTheme.colors.primary, false, true);
+        const unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
+            // Placeholder for future nav bar color changes
         });
-    }
 
-    componentWillUnmount() {
-        this.unsubscribeNavListener();
-    }
-
-    renderHashtagPill = (tag, key) => {
-        return (
-            <Button
-                key={key}
-                buttonStyle={this.themeForms.styles.buttonPill}
-                containerStyle={this.themeForms.styles.buttonPillContainer}
-                titleStyle={this.themeForms.styles.buttonPillTitle}
-                title={`#${tag}`}
-            />
-        );
-    };
-
-    isFormDisabled() {
-        const { inputs, isSubmitting } = this.state;
-
-        return (
-            !inputs.message ||
-            isSubmitting
-        );
-    }
-
-    // handlePreviewFullScreen = (isFullScreen) => {
-    //     const previewStyleState = isFullScreen ? {
-    //         top: 0,
-    //         left: 0,
-    //         padding: 0,
-    //         margin: 0,
-    //         position: 'absolute',
-    //         zIndex: 20,
-    //     } : {};
-    //     this.setState({
-    //         previewStyleState,
-    //     });
-    // }
-
-    onDelete = () => {
-        this.setState({
-            isVerifyingDelete: true,
-        });
-    };
-
-    onDeleteCancel = () => {
-        this.setState({
-            isVerifyingDelete: false,
-        });
-    };
-
-    onDeleteConfirm = () => {
-        const { deleteThought, navigation, route, user } = this.props;
-        const { thought } = route.params;
-
-        this.setState({
-            isDeleting: true,
-        });
-        if (checkIsMyContent(thought, user)) {
-            deleteThought({ ids: [thought.id] })
-                .then(() => {
-                    navigation.navigate('Areas');
-                })
-                .catch((err) => {
-                    console.log('Error deleting thought', err);
-                    this.setState({
-                        isDeleting: true,
-                        isVerifyingDelete: false,
-                    });
-                });
-        }
-    };
-
-    onThoughtOptionSelect = (type: ISelectionType) => {
-        const { selectedThought } = this.state;
-
-        const requestArgs: any = getReactionUpdateArgs(type);
-
-        this.onUpdateThoughtReaction(selectedThought.id, requestArgs).finally(() => {
-            this.toggleThoughtOptions(selectedThought);
-        });
-    };
-
-    onInputChange = (name: string, value: string) => {
-        // const { hashtags } = this.state;
-        // let modifiedHashtags = [ ...hashtags ];
-        let modifiedValue = value;
-        const newInputChanges = {
-            [name]: modifiedValue,
+        return () => {
+            unsubscribeNavListener();
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                ...newInputChanges,
-            },
-            isSubmitting: false,
-        });
-    };
-
-    onSubmitReply = (e) => {
-        e.preventDefault();
-        const {
-            category,
-            message,
-        } = this.state.inputs;
-        const {
-            route,
-            user,
-        } = this.props;
-        const { thought } = route.params;
-
-        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
-        const parentId = thought.id;
-        const hashTagsString = [
-            ...new Set(hashTags
-                .map((t) => t.replace(/#/g, ''))),
-        ].join(',');
-        const isDraft = false;
-        const isPublic = false;
-
-        const createArgs: any = {
-            parentId,
-            category,
-            fromUserId: user.details.id,
-            isPublic,
-            message,
-            hashTags: hashTagsString,
-            isDraft,
-        };
-
-        if (!this.isFormDisabled()) {
-            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
-
-            this.setState({
-                isSubmitting: true,
-            });
-
-            this.props.createThought(createArgs)
-                .then((newReply) => {
-                    const { replies } = this.state;
-                    const newReplies = [ newReply, ...replies ];
-                    this.setState({
-                        replies: newReplies,
-                        successMsg: this.translate('forms.editThought.backendSuccessMessage'),
-                    });
-
-                    analytics().logEvent('thought_reply_create', {
-                        parentId,
-                        category,
-                        fromUserId: user.details.id,
-                        isPublic,
-                        message,
-                        hashTags: hashTagsString,
-                        isDraft,
-                    }).catch((err) => console.log(err));
-                })
-                .catch((error: any) => {
-                    if (
-                        error.statusCode === 400 ||
-                        error.statusCode === 401 ||
-                        error.statusCode === 404
-                    ) {
-                        this.setState({
-                            errorMsg: `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
-                        });
-                    } else if (error.statusCode >= 500) {
-                        this.setState({
-                            errorMsg: this.translate('forms.editThought.backendErrorMessage'),
-                        });
-                    }
-                })
-                .finally(() => {
-                    this.onInputChange('message', '');
-                    if (this.replyInput && Platform.OS === 'android') {
-                        this.replyInput?.clear();
-                    }
-                    this.setState({
-                        isSubmitting: false,
-                    });
-                    Keyboard.dismiss();
-                    this.scrollViewRef?.scrollToOffset?.({ animated: true, offset: 0 });
-                });
-        }
-    };
-
-    getReplyUserName = (reply) => {
-        const { user } = this.props;
-        return checkIsMyContent(reply, user) ? user.details.userName : reply.fromUserName;
-    };
-
-    getReplyUserMedia = (reply) => {
-        const { user } = this.props;
-        return checkIsMyContent(reply, user) ? user.details.media : reply.fromUserMedia;
-    };
-
-    goBack = () => {
-        const { navigation, route, user } = this.props;
-        const { previousView } = route.params;
-        const { fetchedThought } = this.state;
+    // Handlers
+    const handleGoBack = useCallback(() => {
         if (fetchedThought?.parentId) {
             navToViewContent({
                 id: fetchedThought.parentId,
@@ -390,27 +186,21 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                 shouldShowPreview: false,
             });
         }
-    };
+    }, [fetchedThought, previousView, user, navigation]);
 
-    goToViewUser = (userId) => {
-        const { navigation } = this.props;
-
+    const handleGoToViewUser = useCallback((userId) => {
         navigation.navigate('ViewUser', {
             userInView: {
                 id: userId,
             },
         });
-    };
+    }, [navigation]);
 
-    goToContent = (content) => {
-        const { navigation, user } = this.props;
-
+    const handleGoToContent = useCallback((content) => {
         navToViewContent(content, user, navigation.replace);
-    };
+    }, [user, navigation]);
 
-    onUpdateThoughtReaction = (thoughtId, data) => {
-        const { createOrUpdateThoughtReaction, navigation, route, user } = this.props;
-        const { thought } = route.params;
+    const handleUpdateThoughtReaction = useCallback((thoughtId, data) => {
         navigation.setParams({
             thought: {
                 ...thought,
@@ -421,229 +211,259 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             },
         });
         return createOrUpdateThoughtReaction(thoughtId, data, thought.fromUserId, user.details.userName);
-    };
+    }, [thought, navigation, createOrUpdateThoughtReaction, user.details.userName]);
 
-    toggleThoughtOptions = (area) => {
-        const { areThoughtOptionsVisible } = this.state;
+    const handleThoughtOptionSelect = useCallback((type: IContentSelectionType, selectedThought: any) => {
+        const requestArgs: any = getReactionUpdateArgs(type);
+        handleUpdateThoughtReaction(selectedThought.id, requestArgs);
+    }, [handleUpdateThoughtReaction]);
 
-        this.setState({
-            areThoughtOptionsVisible: !areThoughtOptionsVisible,
-            selectedThought: areThoughtOptionsVisible ? {} : area,
+    const handleToggleThoughtOptions = useCallback((selectedThought: any) => {
+        const thoughtForOptions = selectedThought || {};
+
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'thought',
+                translate,
+                themeForms,
+                onSelect: (type: IContentSelectionType) => handleThoughtOptionSelect(type, thoughtForOptions),
+            },
         });
-    };
+    }, [translate, themeForms, handleThoughtOptionSelect]);
 
-    render() {
-        const {
-            areThoughtOptionsVisible,
-            inputs,
-            isDeleting,
-            isSubmitting,
-            isVerifyingDelete,
-            replies,
-            fetchedThought,
-            // previewLinkId,
-            // previewStyleState,
-            selectedThought,
-        } = this.state;
-        const { route, user } = this.props;
-        const { thought, isMyContent } = route.params;
-        // TODO: Fetch thought media
-        const thoughtUserName = isMyContent ? user.details.userName : thought.fromUserName;
-        const thoughtInView = {
-            ...thought,
-            ...fetchedThought,
+    const handleDeleteConfirm = useCallback(() => {
+        setIsDeleting(true);
+        if (checkIsMyContent(thought, user)) {
+            deleteThought({ ids: [thought.id] })
+                .then(() => {
+                    navigation.navigate('Areas');
+                })
+                .catch((err) => {
+                    console.log('Error deleting thought', err);
+                    setIsDeleting(false);
+                    setIsDeleteDialogVisible(false);
+                });
+        }
+    }, [thought, user, deleteThought, navigation]);
+
+    const handleSubmitReply = useCallback(() => {
+        if (isFormDisabled) {
+            return;
+        }
+
+        const hashTags = inputMessage.match(/#[a-z0-9_]+/g) || [];
+        const parentId = thought.id;
+        const hashTagsString = [
+            ...new Set(hashTags.map((t) => t.replace(/#/g, ''))),
+        ].join(',');
+        const isDraft = false;
+        const isPublic = false;
+
+        const createArgs: any = {
+            parentId,
+            fromUserId: user.details.id,
+            isPublic,
+            message: inputMessage,
+            hashTags: hashTagsString,
+            isDraft,
         };
 
-        return (
-            <>
-                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
-                    <KeyboardAwareScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyView]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyViewScroll]}
+        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+        setIsSubmitting(true);
+
+        createThought(createArgs)
+            .then((newReply) => {
+                setReplies((prev) => [newReply, ...prev]);
+
+                logEvent(getAnalytics(), 'thought_reply_create', {
+                    parentId,
+                    fromUserId: user.details.id,
+                    isPublic,
+                    message: inputMessage,
+                    hashTags: hashTagsString,
+                    isDraft,
+                }).catch((err) => console.log(err));
+            })
+            .catch((error: any) => {
+                if (error.statusCode === 400 || error.statusCode === 401 || error.statusCode === 404) {
+                    console.log(`${error.message}${error.parameters ? '(' + error.parameters.toString() + ')' : ''}`);
+                } else if (error.statusCode >= 500) {
+                    console.log(translate('forms.editThought.backendErrorMessage'));
+                }
+            })
+            .finally(() => {
+                setInputMessage('');
+                if (replyInputRef.current && Platform.OS === 'android') {
+                    replyInputRef.current?.clear();
+                }
+                setIsSubmitting(false);
+                Keyboard.dismiss();
+                scrollViewRef.current?.scrollToEnd?.({ animated: true });
+            });
+    }, [isFormDisabled, inputMessage, thought.id, user.details.id, createThought, translate]);
+
+    const getReplyUserName = useCallback((reply) => {
+        return checkIsMyContent(reply, user) ? user.details.userName : reply.fromUserName;
+    }, [user]);
+
+    const getReplyUserMedia = useCallback((reply) => {
+        return checkIsMyContent(reply, user) ? user.details.media : reply.fromUserMedia;
+    }, [user]);
+
+    const renderSendIcon = useCallback(() => (
+        <SendIcon
+            disabled={isFormDisabled}
+            colors={{ active: theme.colors.primary3, inactive: theme.colors.textGray }}
+        />
+    ), [isFormDisabled, theme.colors.primary3, theme.colors.textGray]);
+
+    return (
+        <>
+            <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
+            <SafeAreaView style={theme.styles.safeAreaView}>
+                <KeyboardAwareScrollView
+                    contentInsetAdjustmentBehavior="automatic"
+                    ref={scrollViewRef}
+                    style={[theme.styles.bodyFlex, themeAccentLayout.styles.bodyView]}
+                    contentContainerStyle={[theme.styles.bodyScroll, themeAccentLayout.styles.bodyViewScroll]}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={[themeAccentLayout.styles.container, themeThought.styles.inspectThoughtContainer, localStyles.contentContainer]}>
+                        {/* Main thought */}
+                        <ThoughtDisplay
+                            translate={translate}
+                            toggleThoughtOptions={() => handleToggleThoughtOptions(thoughtInView)}
+                            hashtags={hashtags}
+                            isDarkMode={isDarkMode}
+                            isExpanded={true}
+                            isRepliable={true}
+                            inspectThought={() => null}
+                            thought={thoughtInView}
+                            goToViewUser={handleGoToViewUser}
+                            updateThoughtReaction={handleUpdateThoughtReaction}
+                            user={user}
+                            contentUserDetails={{
+                                userName: thoughtUserName || thoughtInView.fromUserId,
+                                isSuperUser: thoughtInView.fromUserIsSuperUser,
+                            }}
+                            theme={theme}
+                            themeForms={themeForms}
+                            themeViewContent={themeThought}
+                        />
+
+                        {/* Replies section */}
+                        {replies.length > 0 && (
+                            <>
+                                <Divider style={themeThought.styles.repliesDivider} />
+                                <PaperText
+                                    variant="titleSmall"
+                                    style={themeThought.styles.repliesHeader}
+                                >
+                                    {`${replies.length} ${replies.length === 1
+                                        ? translate('pages.viewThought.reply')
+                                        : translate('pages.viewThought.replies')}`}
+                                </PaperText>
+                            </>
+                        )}
+
+                        {replies.map((reply) => {
+                            const replyHashtags = reply.hashTags ? reply.hashTags.split(',') : [];
+                            return (
+                                <ThoughtDisplay
+                                    key={reply.id}
+                                    translate={translate}
+                                    toggleThoughtOptions={() => handleToggleThoughtOptions(reply)}
+                                    hashtags={replyHashtags}
+                                    isDarkMode={isDarkMode}
+                                    isExpanded={false}
+                                    inspectThought={handleGoToContent}
+                                    thought={reply}
+                                    goToViewUser={handleGoToViewUser}
+                                    updateThoughtReaction={handleUpdateThoughtReaction}
+                                    user={user}
+                                    contentUserDetails={{
+                                        userName: getReplyUserName(reply),
+                                        media: getReplyUserMedia(reply),
+                                        isSuperUser: reply.fromUserIsSuperUser,
+                                    }}
+                                    theme={theme}
+                                    themeForms={themeForms}
+                                    themeViewContent={themeThought}
+                                />
+                            );
+                        })}
+                    </View>
+                </KeyboardAwareScrollView>
+
+                {/* Sticky reply input */}
+                <View style={[themeThought.styles.replyInputContainer]}>
+                    <PaperTextInput
+                        ref={replyInputRef}
+                        mode="outlined"
+                        placeholder={translate('forms.editThought.labels.messageReply')}
+                        value={inputMessage}
+                        onChangeText={setInputMessage}
+                        onSubmitEditing={handleSubmitReply}
+                        maxLength={255}
+                        dense
+                        style={localStyles.replyInput}
+                        outlineStyle={localStyles.replyInputOutline}
+                        outlineColor={isDarkMode ? theme.colors.accentDivider : theme.colors.tertiary}
+                        activeOutlineColor={theme.colors.primary3}
+                        textColor={isDarkMode ? theme.colors.accentTextWhite : theme.colors.tertiary}
+                        placeholderTextColor={isDarkMode ? theme.colorVariations?.accentTextWhiteFade : theme.colors.textGray}
+                        right={
+                            <PaperTextInput.Icon
+                                icon={renderSendIcon}
+                                onPress={handleSubmitReply}
+                                disabled={isFormDisabled}
+                            />
+                        }
+                    />
+                </View>
+
+                {/* Footer */}
+                <View style={themeThought.styles.footer}>
+                    <PaperButton
+                        mode="outlined"
+                        onPress={handleGoBack}
+                        icon="arrow-left"
+                        textColor={brandColor}
+                        style={localStyles.footerButton}
                     >
-                        <View style={[this.themeAccentLayout.styles.container, this.themeThought.styles.inspectThoughtContainer, spacingStyles.padHorizSm]}>
-                            <ThoughtDisplay
-                                translate={this.translate}
-                                toggleThoughtOptions={() => this.toggleThoughtOptions(thoughtInView)}
-                                hashtags={this.hashtags}
-                                isDarkMode={user.settings?.mobileThemeName === 'retro'}
-                                isExpanded={true}
-                                isRepliable={true}
-                                inspectThought={() => null}
-                                thought={thoughtInView}
-                                goToViewUser={this.goToViewUser}
-                                updateThoughtReaction={this.onUpdateThoughtReaction}
-                                // TODO: User Username from response
-                                user={user}
-                                contentUserDetails={{
-                                    userName: thoughtUserName || thoughtInView.fromUserId,
-                                    isSuperUser: thoughtInView.fromUserIsSuperUser,
-                                }}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                themeViewContent={this.themeThought}
-                            />
-                            <View style={this.themeThought.styles.sendInputsContainer}>
-                                <RoundTextInput
-                                    ref={input => { this.replyInput = input; }}
-                                    clearButtonMode="always"
-                                    autoFocus
-                                    autoCorrect={false}
-                                    placeholder={this.translate(
-                                        'forms.editThought.labels.messageReply'
-                                    )}
-                                    value={inputs.message}
-                                    onSubmitEditing={this.onSubmitReply}
-                                    onChangeText={(text) =>
-                                        this.onInputChange('message', text)
-                                    }
-                                    minHeight={40}
-                                    numberOfLines={1}
-                                    maxLength={255}
-                                    themeForms={this.themeForms}
-                                    style={[this.themeForms.styles.textInputRound, this.themeThought.styles.sendBtnInput]}
-                                />
-                                <Button
-                                    icon={<TherrIcon name="send" size={26} style={this.themeThought.styles.sendBtnIcon} />}
-                                    buttonStyle={this.themeThought.styles.sendBtn}
-                                    containerStyle={[this.themeThought.styles.sendBtnContainer]}
-                                    onPress={this.onSubmitReply}
-                                    disabled={isSubmitting}
-                                />
-                            </View>
-                            {
-                                replies?.map((reply) => {
-                                    const hashtags = reply.hashTags ? reply.hashTags.split(',') : [];
-                                    return (
-                                        <ThoughtDisplay
-                                            translate={this.translate}
-                                            toggleThoughtOptions={() => this.toggleThoughtOptions(reply)}
-                                            hashtags={hashtags}
-                                            isDarkMode={user.settings?.mobileThemeName === 'retro'}
-                                            isExpanded={false}
-                                            inspectThought={this.goToContent} // Links to child/nested thought
-                                            key={reply.id}
-                                            thought={reply}
-                                            goToViewUser={this.goToViewUser}
-                                            updateThoughtReaction={(thoughtId, data) => this.onUpdateThoughtReaction(thoughtId, data)}
-                                            // TODO: User Username from response
-                                            user={user}
-                                            contentUserDetails={{
-                                                userName: this.getReplyUserName(reply),
-                                                media: this.getReplyUserMedia(reply),
-                                                isSuperUser: reply.fromUserIsSuperUser,
-                                            }}
-                                            theme={this.theme}
-                                            themeForms={this.themeForms}
-                                            themeViewContent={this.themeThought}
-                                        />
-                                    );
-                                })
-                            }
-                        </View>
-                        {/* {
-                            previewLinkId
-                            && <View style={[userContentStyles.preview, previewStyleState]}>
-                                <YoutubePlayer
-                                    height={260}
-                                    play={false}
-                                    videoId={previewLinkId}
-                                    onFullScreenChange={this.handlePreviewFullScreen}
-                                />
-                            </View>
-                        } */}
-                    </KeyboardAwareScrollView>
-                    {
-                        <View style={[this.themeAccentLayout.styles.footer, this.themeThought.styles.footer]}>
-                            <Button
-                                containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                                buttonStyle={this.themeAccentForms.styles.backButton}
-                                onPress={() => this.goBack()}
-                                icon={
-                                    <TherrIcon
-                                        name="go-back"
-                                        size={25}
-                                        color={'black'}
-                                    />
-                                }
-                                type="clear"
-                            />
-                            {
-                                isMyContent &&
-                                <>
-                                    {
-                                        !isVerifyingDelete &&
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitDeleteButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editThought.buttons.delete'
-                                                )}
-                                                icon={
-                                                    <FontAwesome5Icon
-                                                        name="trash-alt"
-                                                        size={22}
-                                                        color={'black'}
-                                                        style={this.themeAccentForms.styles.submitButtonIcon}
-                                                    />
-                                                }
-                                                onPress={this.onDelete}
-                                                raised={true}
-                                            />
-                                    }
-                                    {
-                                        isVerifyingDelete &&
-                                        <View style={this.themeAccentForms.styles.submitConfirmContainer}>
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitCancelButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitCancelButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editThought.buttons.cancel'
-                                                )}
-                                                onPress={this.onDeleteCancel}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitConfirmButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitleLight}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editThought.buttons.confirm'
-                                                )}
-                                                onPress={this.onDeleteConfirm}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                        </View>
-                                    }
-                                </>
-                            }
-                        </View>
-                    }
-                </SafeAreaView>
-                <ThoughtOptionsModal
-                    isVisible={areThoughtOptionsVisible}
-                    onRequestClose={() => this.toggleThoughtOptions(selectedThought)}
-                    translate={this.translate}
-                    onSelect={this.onThoughtOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                />
-            </>
-        );
-    }
-}
+                        {translate('forms.editThought.buttons.back')}
+                    </PaperButton>
+                    {isMyContent && (
+                        <PaperButton
+                            mode="contained"
+                            onPress={() => setIsDeleteDialogVisible(true)}
+                            icon="trash-can-outline"
+                            buttonColor={theme.colors.accentRed}
+                            textColor={theme.colors.brandingWhite}
+                            style={localStyles.footerButton}
+                            disabled={isDeleting}
+                        >
+                            {translate('forms.editThought.buttons.delete')}
+                        </PaperButton>
+                    )}
+                </View>
+            </SafeAreaView>
+
+            {/* Delete confirmation modal */}
+            <ConfirmModal
+                isVisible={isDeleteDialogVisible}
+                onCancel={() => setIsDeleteDialogVisible(false)}
+                onConfirm={handleDeleteConfirm}
+                text={translate('forms.editThought.deleteConfirmation')}
+                textConfirm={translate('forms.editThought.buttons.confirm')}
+                textCancel={translate('forms.editThought.buttons.cancel')}
+                translate={translate}
+                theme={theme}
+                themeModal={themeConfirmModal}
+                themeButtons={themeButtons}
+            />
+        </>
+    );
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewThought);

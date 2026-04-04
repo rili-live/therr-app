@@ -26,30 +26,31 @@ const messageStyle: any = {
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
+    const isDark = themeName !== 'light';
     const styles = StyleSheet.create({
         containerSuccess: {
             ...containerStyle,
-            backgroundColor: 'rgba(242, 251, 246, .75)',
+            backgroundColor: isDark ? 'rgba(0, 140, 61, .2)' : 'rgba(242, 251, 246, .75)',
         },
         containerError: {
             ...containerStyle,
-            backgroundColor: 'rgba(251, 243, 242, .75)',
+            backgroundColor: isDark ? 'rgba(170, 0, 66, .2)' : 'rgba(251, 243, 242, .75)',
         },
         error: {
             ...messageStyle,
-            color: '#780e0e',
+            color: isDark ? '#ff6b6b' : '#780e0e',
         },
         success: {
             ...messageStyle,
-            color: '#008C3D',
+            color: isDark ? '#4cdf82' : '#008C3D',
         },
         iconError: {
             ...getIconStyle(therrTheme),
-            color: '#AA0042',
+            color: isDark ? '#ff6b6b' : '#AA0042',
         },
         iconSuccess: {
             ...getIconStyle(therrTheme),
-            color: '#008C3D',
+            color: isDark ? '#4cdf82' : '#008C3D',
         },
     });
 

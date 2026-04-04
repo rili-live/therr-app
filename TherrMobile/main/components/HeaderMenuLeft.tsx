@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'react-native-elements';
+import { Button } from './BaseButton';
 import 'react-native-gesture-handler';
 import TherrIcon from '../components/TherrIcon';
 

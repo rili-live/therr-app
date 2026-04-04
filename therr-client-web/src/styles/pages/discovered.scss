@@ -1,7 +1,38 @@
 #page_discovered {
+  min-height: calc(100vh - 200px);
 }
 
-#page_discovered_content {
-  display: flex;
-  flex-wrap: wrap;
+.discovered-tile {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--therr-box-shadow-tile);
+  }
+}
+
+.discovered-tile-icon {
+  min-width: 1.25rem;
+  width: 1.25rem;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+
+  &.discovered-tile-icon-liked {
+    svg {
+      fill: #e03131;
+    }
+  }
+
+  &.discovered-tile-icon-bookmarked {
+    svg {
+      fill: #343a40;
+    }
+
+    [data-mantine-color-scheme="dark"] & {
+      svg {
+        fill: #fff;
+      }
+    }
+  }
 }

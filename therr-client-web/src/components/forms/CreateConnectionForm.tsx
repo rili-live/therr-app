@@ -1,13 +1,14 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import {
-    Input,
-    SelectBox,
-    SvgButton,
-} from 'therr-react/components';
+import { Alert, Stack } from '@mantine/core';
 import PhoneInput, { flags, isValidPhoneNumber } from 'react-phone-number-input';
 import { IUserState } from 'therr-react/types';
-import translator from '../../services/translator';
+import {
+    MantineButton,
+    MantineInput,
+    MantineSelect,
+} from 'therr-react/components/mantine';
+import withTranslation from '../../wrappers/withTranslation';
 
 interface ICreateConnectionFormState {
     inputs: any;
@@ -20,11 +21,10 @@ interface ICreateConnectionFormState {
 interface ICreateConnectionFormProps {
     createUserConnection: Function;
     user: IUserState;
+    translate: (key: string, params?: any) => string;
 }
 
-class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, ICreateConnectionFormState> {
-    private translate;
-
+export class CreateConnectionFormComponent extends React.Component<ICreateConnectionFormProps, ICreateConnectionFormState> {
     constructor(props: ICreateConnectionFormProps) {
         super(props);
 
@@ -38,8 +38,6 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
             prevRequestSuccess: '',
             isPhoneNumberValid: false,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     isFormValid() {
@@ -84,8 +82,8 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
         });
     };
 
-    onValidateInput = (validations: any) => {
-        const hasValidationErrors = !!Object.keys(validations).filter((key) => validations[key].length).length;
+    onValidateInput = (validations: Record<string, string>) => {
+        const hasValidationErrors = Object.values(validations).some((msg) => !!msg);
         this.setState({
             hasValidationErrors,
         });
@@ -115,7 +113,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                             connectionIdentifier: '',
                             phoneNumber: '',
                         },
-                        prevRequestSuccess: this.translate('pages.userProfile.connectionSent'),
+                        prevRequestSuccess: this.props.translate('pages.userProfile.connectionSent'),
                     });
                 })
                 .catch((error) => {
@@ -128,6 +126,10 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
         }
     };
 
+    onSelectChange = (value: string | null) => {
+        this.onInputChange('connectionIdentifier', value || '');
+    };
+
     render() {
         const {
             inputs,
@@ -136,32 +138,30 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
         } = this.state;
 
         return (
-            <>
-                <SelectBox
-                    type="text"
+            <Stack gap="sm">
+                <MantineSelect
                     id="connection_identifier"
                     name="connectionIdentifier"
-                    value={inputs.connectionIdentifier}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    options={[
+                    value={inputs.connectionIdentifier || null}
+                    onChange={this.onSelectChange}
+                    translateFn={this.props.translate}
+                    required
+                    placeholder="Choose an identifier..."
+                    data={[
                         {
-                            text: this.translate('pages.userProfile.labels.phoneNumber'),
+                            label: this.props.translate('pages.userProfile.labels.phoneNumber'),
                             value: 'acceptingUserPhoneNumber',
                         },
                         {
-                            text: this.translate('pages.userProfile.labels.email'),
+                            label: this.props.translate('pages.userProfile.labels.email'),
                             value: 'acceptingUserEmail',
                         },
                     ]}
-                    placeHolderText="Choose an identifier..."
-                    validations={['isRequired']}
                 />
                 {
                     inputs.connectionIdentifier === 'acceptingUserPhoneNumber'
                     && <>
-                        <label className="required" htmlFor="phone_number">{this.translate('pages.userProfile.labels.phoneNumber')}:</label>
+                        <label className="required" htmlFor="phone_number">{this.props.translate('pages.userProfile.labels.phoneNumber')}:</label>
                         <div className="form-field">
                             <PhoneInput
                                 defaultCountry="US"
@@ -175,7 +175,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                                 && <div className="validation-errors phone">
                                     <div className="message-container icon-small attention-alert">
                                         <em className="message">
-                                            {this.translate('pages.userProfile.validationErrors.phoneNumber')}
+                                            {this.props.translate('pages.userProfile.validationErrors.phoneNumber')}
                                         </em>
                                     </div>
                                 </div>
@@ -185,38 +185,39 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                 }
                 {
                     inputs.connectionIdentifier === 'acceptingUserEmail'
-                    && <>
-                        <label className="required" htmlFor="email">{this.translate('pages.userProfile.labels.email')}:</label>
-                        <Input
-                            type="text"
-                            id="email"
-                            name="email"
-                            value={inputs.email}
-                            onChange={this.onInputChange}
-                            onEnter={this.onSubmit}
-                            translate={this.translate}
-                            validations={['isRequired', 'email']}
-                            onValidate={this.onValidateInput}
-                        />
-                    </>
+                    && <MantineInput
+                        type="text"
+                        id="email"
+                        name="email"
+                        value={inputs.email}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translateFn={this.props.translate}
+                        validations={['isRequired', 'email']}
+                        onValidate={this.onValidateInput}
+                        label={this.props.translate('pages.userProfile.labels.email')}
+                    />
                 }
                 {
                     prevRequestSuccess
-                    && <div className="text-center alert-success">{prevRequestSuccess}</div>
+                    && <Alert color="green" variant="light">{prevRequestSuccess}</Alert>
                 }
                 {
                     prevRequestError
-                    && <div className="text-center alert-error backed padding-sm margin-bot-sm">{prevRequestError}</div>
+                    && <Alert color="red" variant="light">{prevRequestError}</Alert>
                 }
                 <div className="form-field text-right">
-                    <SvgButton
+                    <MantineButton
                         id="send_request"
-                        name="send"
-                        onClick={this.onSubmit} disabled={!this.isFormValid()} />
+                        text={this.props.translate('pages.userProfile.buttons.sendRequest')}
+                        onClick={this.onSubmit}
+                        disabled={!this.isFormValid()}
+                        fullWidth
+                    />
                 </div>
-            </>
+            </Stack>
         );
     }
 }
 
-export default CreateConnectionForm;
+export default withTranslation(CreateConnectionFormComponent);

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, Button, ListItem } from 'react-native-elements';
+import { Button } from '../../../components/BaseButton';
+import { Avatar } from '../../../components/BaseAvatar';
+import { ListItem } from '../../../components/BaseListItem';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import { getUserImageUri } from '../../../utilities/content';
@@ -34,7 +36,11 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
     themeButtons,
     translate,
 }) => {
-    const handleConnectionRequest = () => onSendConnectRequest(userDetails);
+    const [isConnecting, setIsConnecting] = React.useState(false);
+    const handleConnectionRequest = () => {
+        setIsConnecting(true);
+        onSendConnectRequest(userDetails);
+    };
     const isMe = user.details?.id === userDetails.id;
 
     return (
@@ -68,6 +74,8 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
                             buttonStyle={themeButtons.styles.buttonPill}
                             titleStyle={themeButtons.styles.buttonPillTitle}
                             title={translate('menus.connections.buttons.connect')}
+                            loading={isConnecting}
+                            disabled={isConnecting}
                         />
                 }
             </View>

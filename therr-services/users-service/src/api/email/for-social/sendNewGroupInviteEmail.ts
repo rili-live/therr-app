@@ -2,9 +2,11 @@
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
+import translate from '../../../utilities/translator';
 
 export interface ISendNewGroupInviteEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -22,21 +24,22 @@ export interface ITemplateParams {
     fromUserName: string;
 }
 
-// TODO: Localize email
 export default (emailParams: ISendNewGroupInviteEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     if (!emailParams.recipientIdentifiers.settingsEmailInvites) {
         return Promise.resolve({});
     }
 
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
+    const linkUrl = `${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`;
 
     const htmlConfig = {
-        header: 'New Group Invite',
-        body1: `${templateParams.fromUserName} invited you to join the group, ${templateParams.groupName}`,
-        body2: 'Joining a group grants access to group chat and upcoming events. Login to check your notifications and reply to the invite.',
-        buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`,
+        header: translate(locale, 'emails.newGroupInvite.header', { groupName: templateParams.groupName }),
+        body1: translate(locale, 'emails.newGroupInvite.body1', { fromUserName: templateParams.fromUserName, groupName: templateParams.groupName }),
+        body2: translate(locale, 'emails.newGroupInvite.body2'),
+        buttonHref: linkUrl,
         buttonText: contextConfig.brandGoLinkText,
-        postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`,
+        postBody1: translate(locale, 'emails.newGroupInvite.postBody1', { linkUrl }),
     };
 
     return sendEmail({

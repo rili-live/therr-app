@@ -1,4 +1,5 @@
 # maps-service
+<!-- Updated: 2026-03-26 -->
 Provides endpoints to query data from maps database, including moments and spaces
 
 ## Setting up therr_dev_maps database
@@ -25,5 +26,3 @@ Follow below steps with provided commands to configure database locally
 
 6. Now Run the migration script found in package.json.
 `npm run migrations:run`
-
-..

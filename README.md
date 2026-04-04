@@ -96,6 +96,7 @@ See each microservice README.md for detailed steps.
 Documentation is mantained within the repo to align with a mentality of inline documentation,
 knowledge share, self documenting code, and consolidation of information/configrations.
 * [Architecture Overview](./docs/ARCHITECTURE.md) - System design, patterns, and technical decisions
+* [Locale URL Routing](./docs/LOCALE_URL_ROUTING.md) - Multilingual URL structure and i18n/SEO strategy
 * [General Documentation & Best Practices](./docs/#readme)
 * [CI/CD Documentation](./docs/#readme)
 
@@ -124,3 +125,6 @@ layer of abstraction along with security and validations.*
 * [Therr Client Web Dashbaord Documentation](./therr-client-web-dashboard/#readme)
 
 ...
+
+...
+

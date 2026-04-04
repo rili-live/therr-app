@@ -1,0 +1,52 @@
+label {
+    color: var(--therr-label-color, $therr-label-color);
+    font-weight: 400;
+
+    &.required {
+        &::before {
+            display: none;
+        }
+    }
+}
+
+// Ensure Mantine input labels use theme colors
+.mantine-TextInput-label,
+.mantine-PasswordInput-label,
+.mantine-Select-label {
+    color: var(--therr-label-color, $therr-label-color);
+}
+
+// Remove therr-styles global margin-bottom on inputs inside Mantine wrappers
+// (Mantine handles its own spacing via Stack gap; the global rule reserves space for legacy validation messages)
+.mantine-TextInput-root,
+.mantine-PasswordInput-root,
+.mantine-Select-root {
+    // Allow inputs to respect container width in flex layouts
+    // (prevents validation error text from expanding the form)
+    min-width: 0;
+
+    input {
+        margin-bottom: 0;
+    }
+}
+
+// Ensure Mantine inputs use theme colors
+.mantine-TextInput-input,
+.mantine-PasswordInput-input,
+.mantine-Select-input {
+    background-color: var(--therr-input-bg-color, $therr-input-bg-color);
+    border-color: var(--therr-input-border-color, $therr-input-border-color);
+    color: var(--therr-input-text-color, $therr-input-text-color);
+
+    &:focus,
+    &:focus-within {
+        border-color: var(--therr-input-focus-color, $therr-input-focus-color);
+    }
+}
+
+// Ensure pagination text is visible on light backgrounds
+.pagination-controls {
+    .pages-info {
+        color: $therr-very-dark-grey;
+    }
+}

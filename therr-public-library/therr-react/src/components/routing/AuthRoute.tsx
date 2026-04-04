@@ -8,14 +8,13 @@ import withNavigation from '../../wrappers/withNavigation';
 
 // interface IAuthRouteRouterProps {
 // }
-// eslint-disable-next-line @typescript-eslint/ban-types
-interface IAuthRouteProps extends RouteProps {
+type IAuthRouteProps = RouteProps & {
     component?: any;
     isAuthorized: boolean;
     location: string;
     redirectPath: string;
     render?: any;
-}
+};
 
 const mapStateToProps = (state: any) => ({
 });

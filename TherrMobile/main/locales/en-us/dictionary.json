@@ -1,1896 +1,2064 @@
 {
-  "actionSheets": {
-    "group": {
-      "header": "Group Actions: {groupName}",
-      "buttons": {
-        "archive": "Archive",
-        "edit": "Edit Group",
-        "join": "Join Group",
-        "leave": "Leave Group",
-        "share": "Share Link"
-      }
+    "actionSheets": {
+        "group": {
+            "header": "Group Actions: {groupName}",
+            "buttons": {
+                "archive": "Archive",
+                "edit": "Edit Group",
+                "join": "Join Group",
+                "leave": "Leave Group",
+                "share": "Share Link"
+            }
+        },
+        "user": {
+            "header": "Connection Type: {userName}",
+            "buttons": {
+                "type1": "Online Connection",
+                "type2": "In-Person Connection",
+                "type3": "Friend",
+                "type4": "Family",
+                "type5": "Close Friend"
+            }
+        }
+    },
+    "alertActions": {
+        "acceptBackgroundLocation": "Allow all the time",
+        "checkIn": "Check-In?",
+        "exchange": "Exchange",
+        "edit": "Edit"
+    },
+    "alertTitles": {
+        "activityCreated": "Activity Created",
+        "backgroundLocation": "Allow limited access to device location in the background?",
+        "backgroundLocationNotification": "Searching for local deals that match your lifestyle trends",
+        "backgroundLocationNotificationChannel": "Local rewards finder",
+        "codeSent": "New Code Sent",
+        "coinsReceived": "You Received Coins",
+        "connectionAccepted": "Connection request accepted!",
+        "invalidCode": "Invalid Code",
+        "invalidRegionCode": "Invalid Region",
+        "phoneVerifiedSuccess": "Phone Verification Success",
+        "backendErrorMessage": "Oops! Something went wrong.",
+        "permissionsDenied": "Permissions Denied",
+        "phoneNumberAlreadyInUse": "Invalid Phone Number",
+        "loginError": "Login Failed",
+        "registrationError": "Registration Error",
+        "errorWithAppleSSO": "Error With Apple SSO",
+        "errorWithGoogleSSO": "Error With Google SSO",
+        "eventCreatedSuccess": "Event Created  🎉",
+        "areaUpdatedSuccess": "Update Success!",
+        "eventDraftSuccess": "Event Saved as Draft",
+        "loginRequired": "Login To Continue",
+        "momentCreatedSuccess": "Moment Created  🎉",
+        "momentDraftSuccess": "Moment Saved as Draft",
+        "spaceCreatedSuccess": "You Claimed a Space",
+        "spaceRequestSuccess": "Request Sent",
+        "ssoLoginError": "Error With Single Sign-On",
+        "startDateAfterEndDate": "Invalid Start/End Dates",
+        "walkCloser": "Too Far Away",
+        "nameUnknown": "Anonymous User",
+        "newAreasActivated": "New Areas Activated",
+        "draftReminder": "✏️ Don't Forget Drafts ✏️",
+        "requestClaimSent": "Request Sent",
+        "updated": "Updated!",
+        "exitedGroup": "You have left the group",
+        "joinedGroup": "You joined the group",
+        "waitlistSuccess": "Registration Success!",
+        "reactionSent": "Reaction Sent!",
+        "reactionFailed": "Reaction Failed"
+    },
+    "alertMessages": {
+        "activityCreated": "A new group and event was created. Invites sent to each group member.",
+        "backgroundLocation": "In order to earn rewards and local discounts, please enable 'Allow all the time' permission",
+        "codeSent": "Check your phone for a new verification code.",
+        "coinsReceived": "🎁 You earned {total} TherrCoin(s) 🎁",
+        "invalidCode": "Code is invalid or expired. Try again or resend.",
+        "invalidRegionCode": "The app is not yet available in this region",
+        "backendErrorMessage": "Please try again later.",
+        "duplicatePost": "Duplicate post",
+        "cameraOrFilePermissionsDenied": "Camera or File permissions were denied. Please enable them in your device settings.",
+        "createRequiresLogin": "Login to post a moment, share an event, or claim a business space",
+        "discoverRequiresLogin": "View recently discovered content and thoughts from people worldwide",
+        "groupsRequireLogin": "Join groups for events, topic discussions, and more",
+        "matchupRequiresLogin": "Login to match up with friends, group chat, and plan social events",
+        "nearbyRequiresLogin": "Login to discover content posted near your current location",
+        "phoneNumberAlreadyInUse": "Phone Number Already In Use For This Account Type",
+        "errorWithAppleSSO": "An unknown Apple SSO error occurred. Please Try another login method.",
+        "errorWithGoogleSSO": "An unknown Google SSO error occurred. Please Try another login method.",
+        "ssoLoginError": "Please try logging in with you account username/password",
+        "eventCreatedSuccess": "You have successfully updated this event!",
+        "eventUpdatedSuccess": "Your event was successfully updated!",
+        "eventDraftSuccess": "Your event was successfully saved as a draft. Continue editing?",
+        "momentCreatedSuccess": "Your moment was successfully posted!",
+        "momentDraftSuccess": "Your moment was successfully saved as a draft. Continue editing?",
+        "spaceCreatedSuccess": "You have successfully claimed this space!",
+        "spaceUpdatedSuccess": "Your space was successfully updated!",
+        "spaceRequestSuccess": "You have successfully requested to add a new business space!",
+        "pleaseTryAgain": "Connection error. Please try again later.",
+        "startDateAfterEndDate": "End date must occur after start date.",
+        "walkCloser": "Walk closer to claim rewards. Check the map for details.",
+        "newAreasActivated": "You recently activated {total} new moments/spaces.",
+        "draftReminder": "Did you remember to finish your drafted post?",
+        "requestClaimSent": "Check your e-mail for confirmation and next steps",
+        "waitlistSuccess": "Check your e-mail to verify your account"
+    },
+    "dateTime": {
+        "lessThanHours": "< 1h",
+        "hoursSinceDate": "{count}h",
+        "daysSinceDate": "{count}d",
+        "yearsSinceDate": "{count}y"
+    },
+    "quoteOfTheDay": "Quote of the Day",
+    "dailyQuotes": [
+        {
+            "quote": "Over every mountain there is a path, although it may not be seen from the valley.",
+            "author": "Theodore Roethke"
+        },
+        {
+            "quote": "Someday is not a day of the week.",
+            "author": "Denise Brennan-Nelson"
+        },
+        {
+            "quote": "Your time is limited, so don't waste it living someone else's life.",
+            "author": "Steve Jobs"
+        },
+        {
+            "quote": "If you cannot do great things, do small things in a great way.",
+            "author": "Napoleon Hill"
+        },
+        {
+            "quote": "Without hustle, talent will only carry you so far.",
+            "author": "Gary Vaynerchuk"
+        },
+        {
+            "quote": "You always pass failure on the way to success.",
+            "author": "Mickey Rooney"
+        },
+        {
+            "quote": "No one is perfect. That’s why pencils have erasers.",
+            "author": "Wolfgang Riebe"
+        },
+        {
+            "quote": "A journey of a thousand miles begins with a single step.",
+            "author": "Chinese Proverb"
+        },
+        {
+            "quote": "Be not afraid of growing slowly, be afraid only of standing still.",
+            "author": "Chinese Proverb"
+        },
+        {
+            "quote": "Better a diamond with a flaw than a pebble without one.",
+            "author": "Chinese Proverb"
+        },
+        {
+            "quote": "A closed mind is like a closed book; just a block of wood.",
+            "author": "Chinese Proverb"
+        },
+        {
+            "quote": "Better to light a candle than to curse the darkness.",
+            "author": "Chinese Proverb"
+        },
+        {
+            "quote": "He who cheats the earth will be cheated by the earth.",
+            "author": "Chinese Proverb"
+        },
+        {
+            "quote": "Nobody can make you feel inferior without your permission.",
+            "author": "Eleanor Roosevelt"
+        },
+        {
+            "quote": "The two most important days in your life are the day you are born and the day you find out why.",
+            "author": "Mark Twain"
+        },
+        {
+            "quote": "Educating the mind without educating the heart is no education at all.",
+            "author": "Aristotle"
+        },
+        {
+            "quote": "In the end, it’s not the years in your life that count. It’s the life in your years.",
+            "author": "Abraham Lincoln"
+        },
+        {
+            "quote": "Life is not a problem to be solved, but a reality to be experienced.",
+            "author": "Soren Kierkegaard"
+        },
+        {
+            "quote": "Life is ten percent what happens to you and ninety percent how you respond to it.",
+            "author": "Lou Holtz"
+        },
+        {
+            "quote": "The only disability in life is a bad attitude.",
+            "author": "Scott Hamilton"
+        },
+        {
+            "quote": "There is more to life than increasing its speed.",
+            "author": "Mahatma Gandhi"
+        },
+        {
+            "quote": "Life is really simple, but we insist on making it complicated.",
+            "author": "Confucius"
+        },
+        {
+            "quote": "Only a life lived for others is a life worthwhile.",
+            "author": "Albert Einstein"
+        },
+        {
+            "quote": "Many of life's failures are people who did not realize how close they were to success when they gave up.",
+            "author": "Thomas A. Edison"
+        },
+        {
+            "quote": "Each person must live their life as a model for others.",
+            "author": "Rosa Parks"
+        },
+        {
+            "quote": "Life is not about how fast you run or how high you climb, but how well you bounce.",
+            "author": "Vivian Komori"
+        },
+        {
+            "quote": "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",
+            "author": "Buddha"
+        },
+        {
+            "quote": "Don't find fault. Find a remedy.",
+            "author": "Henry Ford"
+        },
+        {
+            "quote": "Science without religion is lame, religion without science is blind.",
+            "author": "Albert Einstein"
+        },
+        {
+            "quote": "Winning is fun, but those moments that you can touch someone’s life in a very positive way are better.",
+            "author": "Tim Howard"
+        }
+    ],
+    "categories": {
+        "uncategorized": "Select a Category",
+        "storefront/shop": "Shop/ Storefront",
+        "restaurant/food": "Restaurant / Food",
+        "bar/drinks": "Bar / Drinks",
+        "marketplace/festival": "Marketplace / Festival",
+        "artwork/expression": "Artwork / Expression",
+        "music/concerts": "Music / Concerts",
+        "nature/parks": "Nature / Parks",
+        "hotels/lodging": "Hotels / Lodging",
+        "museum/academia": "Museum / Academia",
+        "event/space": "Events Space",
+        "art": "Art",
+        "fitness/sports": "Fitness / Sports",
+        "gaming": "Gaming",
+        "geocache": "Geocache",
+        "menu": "Menu",
+        "music": "Music",
+        "deals": "Deals / Coupons",
+        "fitness": "Sports / Fitness",
+        "storefront": "Storefront Promotion",
+        "idea": "Idea / Observation",
+        "food": "Food",
+        "nature": "Nature / Park",
+        "travel": "Travel / Tourism",
+        "warning": "Warning / Alert",
+        "seasonal": "Seasonal / Holidays",
+        "drinks": "Happy Hour / Drinks",
+        "nightLife": "Night Life / Social",
+        "sports": "Sports",
+        "happeningNow": "Happening Now",
+        "longWait": "Long Wait",
+        "liveEntertainment": "Live Entertainment",
+        "crowdAlert": "Crowded",
+        "hiddenGem": "Hidden Gem",
+        "localDeal": "Great Deal"
+    },
+    "quickReports": {
+        "title": "What's happening here?",
+        "happeningNow": "Happening Now",
+        "longWait": "Long Wait",
+        "liveEntertainment": "Live Entertainment",
+        "crowdAlert": "Crowded",
+        "hiddenGem": "Hidden Gem",
+        "localDeal": "Great Deal",
+        "addDetails": "Add details (optional)",
+        "submitSuccess": "Report submitted!",
+        "submitError": "Failed to submit report",
+        "duplicateReport": "This report has already been posted",
+        "stillTrue": "Still true",
+        "notAnymore": "Not anymore",
+        "confirmCount": "{{count}} confirmed"
+    },
+    "components": {
+        "activeConnections": {
+            "noActiveConnections": "There are currently no active connections in your network",
+            "title": "Active Contacts"
+        },
+        "myDMsSearch": {
+            "noDMsFound": "No DMs found. Create a connection to get started",
+            "noGroupsFound": "No groups found. Create new connections to discover more",
+            "noUsersFound": "No users found",
+            "title": "All Contacts"
+        },
+        "contactsSearch": {
+            "noContactsFound": "No contacts found. Create a connection to get started",
+            "noGroupsFound": "No groups found. Create new connections to discover more",
+            "noUsersFound": "No users found",
+            "title": "All Contacts"
+        },
+        "referralStats": {
+            "title": "Your Referrals",
+            "friendsJoined": "{count} friend(s) joined with your invite code",
+            "friendsLabel": "Friends Joined",
+            "coinsEarned": "You've earned {count} TherrCoin(s) from referrals",
+            "coinsLabel": "Coins Earned",
+            "shareLink": "Share Your Invite Link"
+        },
+        "header": {
+            "buttons": {
+                "login": "Login"
+            },
+            "searchInput": {
+                "placeholder": "Search a location..."
+            },
+            "searchContentInput": {
+                "placeholder": "Search content..."
+            },
+            "searchUsersInput": {
+                "placeholder": "Search users..."
+            }
+        },
+        "headerLinkRight": {
+            "signIn": "Sign in?",
+            "signUp": "Sign up?"
+        },
+        "headerMenuRight": {
+            "buttons": {
+                "exchange": "Exchange?"
+            },
+            "menuItems": {
+                "achievements": "Achievements",
+                "account": "Account Settings",
+                "addConnection": "Add/Invite Connections",
+                "bookmarks": "Bookmarks",
+                "chat": "Messages",
+                "connections": "View Connections",
+                "home": "Home",
+                "feedback": "Share Feedback",
+                "groups": "Groups",
+                "logout": "Log Out",
+                "map": "Map",
+                "moments": "Moments",
+                "myDrafts": "My Drafts",
+                "notifications": "Notifications",
+                "tour": "Take a Tour",
+                "wallet": "Wallet"
+            }
+        },
+        "imagePicker": {
+            "camera": "Camera",
+            "title": "Select an Image"
+        },
+        "messagingContainer": {
+            "conversation": {
+                "to": "To: {firstName} {lastName}"
+            },
+            "inputPlaceholder": "Enter a message",
+            "welcome": "This is the start of a new conversation..."
+        },
+        "nearbyBottomSheet": {
+            "title": "Moments & Events Near You"
+        },
+        "notification": {
+            "buttons": {
+                "accept": "Accept",
+                "reject": "Reject",
+                "view": "View"
+            }
+        },
+        "userMenu": {
+            "buttons": {
+                "viewProfile": "View Profile",
+                "editProfile": "Edit Profile"
+            },
+            "h2": {
+                "accountSettings": "Account Settings",
+                "notifications": "Notifications",
+                "profileSettings": "Profile Settings"
+            }
+        }
+    },
+    "forms": {
+        "dividerOr": "or",
+        "createConnection": {
+            "buttons": {
+                "submit": "Send",
+                "invitePhoneContacts": "Invite Phone Contacts",
+                "shareALink": "Share my Link",
+                "findFriends": "Find Friends"
+            },
+            "errorMessages": {
+                "invalidEmail": "Invalid e-mail",
+                "invalidPhoneNumber": "Phone number is invalid."
+            },
+            "modal": {
+                "nameConfirm": "Connection requests display your full name in notifications. Would you like to update your name from the default/anonymous values?",
+                "noThanks": "No Thanks"
+            },
+            "successMessages": {
+                "connectionSent": "You connection request is on the way!"
+            },
+            "labels": {
+                "phone": "By Phone",
+                "email": "By E-mail"
+            },
+            "placeholders": {
+                "phone": "Invitee's Phone #",
+                "email": "Invitee's E-mail"
+            },
+            "shareLink": {
+                "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 {shareUrl}",
+                "title": "Therr App | Local Community & Rewards App"
+            }
+        },
+        "createProfile": {
+            "buttons": {
+                "skip": "Skip",
+                "submit": "Next",
+                "verifyNow": "Send Verification",
+                "resendCode": "Resend Code?",
+                "submitCode": "Submit",
+                "verifyLater": "Save & Continue"
+            },
+            "errorMessages": {
+                "repeatPassword": "Passwords do not match"
+            },
+            "backendSuccessMessage": "User settings successfully updated!",
+            "backendErrorMessage": "Connection error. Please try again later."
+        },
+        "emailVerification": {
+            "buttons": {
+                "send": "Resend E-mail"
+            },
+            "labels": {
+                "email": "E-mail"
+            }
+        },
+        "groups": {
+            "noResultsFound": "No results found...",
+            "searchPlaceholder": "Search by name...",
+            "cityPlaceholder": "Filter by city..."
+        },
+        "loginForm": {
+            "buttons": {
+                "login": "Sign In",
+                "signUp": "Create an Account?",
+                "forgotPassword": "Forgot Password?"
+            },
+            "defaultTitle": "Login",
+            "labels": {
+                "password": "Password",
+                "userName": "Email/Phone/Username"
+            },
+            "backendErrorMessage": "Connection error. Please try again later.",
+            "invalidUsernamePassword": "Invalid username/password combination.",
+            "missingEmail": "Please enter a valid email, phone, or username.",
+            "missingPassword": "Please enter your password.",
+            "sso": {
+                "appleButtonTitle": "Sign in with Apple",
+                "googleButtonTitleContinue": "Continue with Google",
+                "googleButtonTitleSignIn": "Sign in with Google"
+            }
+        },
+        "nearbyForm": {
+            "buttons": {
+                "enableLocation": "Turn On"
+            },
+            "labels": {
+                "radiusOfAwareness": "Awareness Radius: {miles} miles",
+                "radiusOfInfluence": "Influence Radius: {miles} miles"
+            }
+        },
+        "editGroup": {
+            "buttons": {
+                "submit": "Send",
+                "delete": "Delete?",
+                "confirm": "Delete",
+                "back": "Back",
+                "cancel": "Cancel",
+                "addImage": "Attach an Image",
+                "replaceImage": "Replace Image",
+                "removeImage": "Remove Image",
+                "captureNew": "Capture a New Photo",
+                "selectExisting": "Select an Existing Photo"
+            },
+            "labels": {
+                "addImageNote": "Add a group cover image"
+            },
+            "placeholders": {
+                "title": "A searchable title...",
+                "subtitle": "Headline (optional)",
+                "description": "A brief summary of the group...",
+                "hashTags": "Tags (ie. my_tag, myTag)",
+                "maxComments": "Max comments (per minute)",
+                "expiresAt": "Countdown",
+                "city": "City (e.g. Austin)",
+                "region": "State/Region (e.g. Texas)"
+            },
+            "archiveSuccess": "Successfully archived",
+            "backendSuccessHeader": "Success!",
+            "backendSuccessMessage": "Your group was successfully saved!",
+            "backendErrorMessage": "Connection error. Please try again later."
+        },
+        "editMoment": {
+            "buttons": {
+                "addImage": "Attach an Image",
+                "replaceImage": "Replace Image",
+                "removeImage": "Remove Image",
+                "captureNew": "Capture a New Photo",
+                "selectExisting": "Select an Existing Photo",
+                "back": "Back",
+                "draft": "Draft",
+                "next": "Next",
+                "continue": "Continue",
+                "submit": "Send",
+                "delete": "Delete?",
+                "confirm": "Delete",
+                "cancel": "Cancel",
+                "visibilityPublic": "Visibility: Public",
+                "visibilityPrivate": "Visibility: Friends Only"
+            },
+            "labels": {
+                "addNearbySpaceNote": "Is this moment related to a nearby space?",
+                "addImageNote": "Select an existing image or capture a new one!",
+                "message": "Share something unique...",
+                "notificationMsg": "Tagline or Title",
+                "hashTags": "Hashtags (ie. my_tag, myTag)",
+                "maxViews": "Max views (per person)",
+                "expiresAt": "Countdown",
+                "radius": "Radius: {meters} meters",
+                "radiusPlaceholder": "Radius ({min}-{max} meters)",
+                "unselected": "Select a Space"
+            },
+            "headers": {
+                "rating": "Rating / Review"
+            },
+            "modal": {
+                "insufficientFundsTitle": "No TherrCoins Available",
+                "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
+                "insufficientFundsMessage2": "Continue creating content without rewards?"
+            },
+            "backendSuccessMessage": "Your moment was successfully saved!",
+            "backendErrorMessage": "Connection error. Please try again later."
+        },
+        "editEvent": {
+            "buttons": {
+                "addImage": "Attach an Image",
+                "replaceImage": "Replace Image",
+                "removeImage": "Remove Image",
+                "captureNew": "Capture a New Photo",
+                "selectExisting": "Select an Existing Photo",
+                "draft": "Draft",
+                "goToGroups": "Go to Groups Listing",
+                "next": "Next",
+                "back": "Back",
+                "continue": "Continue",
+                "submit": "Publish",
+                "update": "Update",
+                "edit": "Edit?",
+                "delete": "Delete?",
+                "confirm": "Delete",
+                "cancel": "Cancel",
+                "startsAt": "Start: ",
+                "endsAt": "End: ",
+                "visibilityPublic": "Visibility: Public",
+                "visibilityPrivate": "Visibility: Members Only"
+            },
+            "labels": {
+                "address": "Event location...",
+                "addNearbySpaceNote": "Is this moment related to a nearby space?",
+                "addImageNote": "Select an existing image or capture a new one to represent the event.",
+                "groupName": "Group Name",
+                "selectAGroup": "Select a Group",
+                "noUserGroups": "You must be a group owner, admin, or event host to create events. Join a group or request group role promotion.",
+                "message": "Add an event description...",
+                "notificationMsg": "Event Name",
+                "hashTags": "Hashtags (ie. my_tag, myTag)",
+                "maxViews": "Max views (per person)",
+                "expiresAt": "Countdown",
+                "radius": "Radius: {meters} meters",
+                "unselected": "Select a Space",
+                "incentiveRequirement": "Reward Requirement",
+                "unselectedIncentiveRequirement": "Select a Requirement",
+                "incentiveReward": "Reward for Attending",
+                "unselectedIncentiveReward": "Select an Incentive"
+            },
+            "headers": {
+                "rating": "Rating / Review"
+            },
+            "modal": {
+                "insufficientFundsTitle": "No TherrCoins Available",
+                "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
+                "insufficientFundsMessage2": "Continue creating content without rewards?",
+                "attendingModal": {
+                    "title": "Attend this Event?",
+                    "buttons": {
+                        "save": "Save",
+                        "update": "Update"
+                    },
+                    "labels": {
+                        "bringingGuests": "Bringing Guests?",
+                        "guests": "Guest Count",
+                        "no": "No",
+                        "yes": "Yes"
+                    }
+                }
+            },
+            "deleteConfirmation": "Are you sure you want to delete this event?",
+            "backendSuccessMessage": "Your event was successfully saved!",
+            "backendErrorMessage": "Connection error. Please try again later."
+        },
+        "editSpace": {
+            "buttons": {
+                "addImage": "Attach an Image",
+                "replaceImage": "Replace Image",
+                "removeImage": "Remove Image",
+                "captureNew": "Capture a New Photo",
+                "next": "Next",
+                "back": "Back",
+                "selectExisting": "Select an Existing Photo",
+                "submit": "Send",
+                "edit": "Edit?",
+                "delete": "Delete?",
+                "confirm": "Delete",
+                "cancel": "Cancel"
+            },
+            "incentiveRequirementKeys": {
+                "shareAMoment": "Share a Moment",
+                "visitSpace": "Visit the Space",
+                "makeAPurchase": "Make a Purchase"
+            },
+            "incentiveRewardKeys": {
+                "coinReward": "TherrCoin Reward",
+                "currencyDiscount": "Currency Discount",
+                "percentageDiscount": "Percent Discount"
+            },
+            "labels": {
+                "address": "Search address...",
+                "additionalDetails": "Add more details (optional)",
+                "addressRequest": "Search for a business nearby...",
+                "requestNote": "Search for a business to request it be added to the map.",
+                "addIncentivesNote": "Add incentives to encourage people to visit your space.",
+                "addIncentivesNote2": "*Unlock customer metrics from each visit or point-of-sale transaction.",
+                "addIncentivesNoteEx": "(ie. free coffee, $2 off, 10% off, etc...)",
+                "addImageNote": "Select an existing image or capture a new one to represent your space.",
+                "cost": "Cost: {pointCost} coins",
+                "featuredIncentiveValue": "Requirement (# of times)",
+                "featuredIncentiveRewardValue": "Reward Amount",
+                "featuredIncentiveValuePlaceholder": "ex. 1",
+                "featuredIncentiveRewardValuePlaceholder": "ex. 5.00",
+                "featuredIncentiveCurrencyId": "Reward Currency",
+                "featuredIncentiveCurrencyIdPlaceholder": "ex. USD",
+                "message": "Describe the location, business, promotion, etc...",
+                "notificationMsg": "Title or Location Name",
+                "hashTags": "Hashtags (ie. my_tag, myTag)",
+                "maxViews": "Max views (per person)",
+                "expiresAt": "Countdown",
+                "radius": "Radius: {meters} meters",
+                "radiusPlaceholder": "Radius ({min}-{max} meters)",
+                "incentiveRequirement": "Reward Requirement",
+                "unselectedIncentiveRequirement": "Select a Requirement",
+                "incentiveReward": "Reward for Participation",
+                "unselectedIncentiveReward": "Select an Incentive"
+            },
+            "deleteConfirmation": "Are you sure you want to delete this space?",
+            "backendSuccessMessage": "You have successfully claimed this space!",
+            "backendErrorMessage": "Connection error. Please try again later."
+        },
+        "editThought": {
+            "buttons": {
+                "addImage": "Attach an Image",
+                "captureNew": "Capture a New Photo",
+                "selectExisting": "Select an Existing Photo",
+                "submit": "Send",
+                "delete": "Delete?",
+                "confirm": "Delete",
+                "cancel": "Cancel",
+                "back": "Back",
+                "visibilityPublic": "Visibility: Public",
+                "visibilityPrivate": "Visibility: Friends Only"
+            },
+            "labels": {
+                "addImageNote": "Select an existing image or capture a new one to represent your thought.",
+                "cost": "Cost: {pointCost} coins",
+                "message": "Have an idea...?",
+                "messageReply": "Share your reply",
+                "notificationMsg": "Title or Location Name",
+                "hashTags": "Hashtags (ie. my_tag, myTag)",
+                "maxViews": "Max views (per person)",
+                "expiresAt": "Countdown",
+                "radius": "Radius: {meters} meters"
+            },
+            "deleteConfirmation": "Are you sure you want to delete this thought?",
+            "backendSuccessMessage": "You have shared a thought!",
+            "backendErrorMessage": "Connection error. Please try again later."
+        },
+        "forgotPassword": {
+            "buttons": {
+                "submit": "Send E-mail"
+            },
+            "labels": {
+                "email": "E-mail"
+            },
+            "backendSuccessMessage": "Check your e-mail for further instructions to reset your password.",
+            "backendErrorMessage": "Connection error. Please try again later."
+        },
+        "registerForm": {
+            "buttons": {
+                "backToLogin": "Back to Login",
+                "register": "Sign Up",
+                "eula": "Terms of Use",
+                "privacyPolicy": "Privacy Policy"
+            },
+            "defaultTitle": "Create an Account",
+            "errorMessages": {
+                "invalidPhoneNumber": "Phone number is invalid.",
+                "repeatPassword": "Passwords do not match",
+                "passwordInsecure": "Password does not meet minimum security requirements"
+            },
+            "labels": {
+                "email": "E-mail",
+                "firstName": "First Name",
+                "lastName": "Last Name",
+                "mobilePhone": "Mobile Phone #",
+                "password": "Password",
+                "repeatPassword": "Repeat Password",
+                "userName": "Username",
+                "inviteCode": "Invite Code (optional)"
+            },
+            "backendErrorMessage": "Connection error. Please try again later.",
+            "missingEmail": "Please enter a valid email address.",
+            "missingPassword": "Please enter a password.",
+            "missingRepeatPassword": "Please confirm your password.",
+            "subtitles": {
+                "disclaimer": "By creating an account, you agree to our ",
+                "and": " and ",
+                "inviteCodeHint": "Enter a friend's invite code - they earn 10 coins and you earn 5!"
+            },
+            "validationErrors": {
+                "phoneNumber": "Invalid phone number"
+            }
+        },
+        "rewards": {
+            "buttons": {
+                "submit": "Exchange Now"
+            }
+        },
+        "settings": {
+            "alertTitles": {
+                "accountUpdated": "Account Updated",
+                "backendErrorMessage": "Oops! Something went wrong.",
+                "insecurePassword": "Insecure Password"
+            },
+            "alertMessages": {
+                "accountUpdated": "Successfully updated."
+            },
+            "backendSuccessMessage": "User settings successfully updated!",
+            "backendErrorMessage": "Connection error. Please try again later.",
+            "buttons": {
+                "submit": "Save",
+                "manageAccount": "Manage Account",
+                "managePreferences": "Manage Interests & Content Algorithms",
+                "manageNotifications": "Manage Email Settings",
+                "deleteAccount": "Delete Account?",
+                "settingsEmailBusMarketing": "Business Insights marketing e-mails",
+                "settingsEmailMarketing": "Social App marketing e-mails",
+                "settingsEmailLikes": "User 'likes' e-mails",
+                "settingsEmailInvites": "User or group invite e-mails",
+                "settingsEmailMentions": "User 'mentions' e-mails",
+                "settingsEmailMessages": "User 'messages' e-mails",
+                "settingsEmailReminders": "Social App reminder e-mails",
+                "settingsEmailBackground": "Social App automated e-mails",
+                "on": "On",
+                "off": "Off"
+            },
+            "errorMessages": {
+                "repeatPassword": "Passwords do not match",
+                "passwordInsecure": "New password does not meet minimum security requirements"
+            },
+            "labels": {
+                "accountTypeLabel": "Account Type: ",
+                "code": "Verification Code",
+                "email": "E-mail",
+                "phoneNumber": "Phone #",
+                "password": "Password",
+                "newPassword": "New Password",
+                "repeatPassword": "Repeat Password",
+                "firstName": "Firstname",
+                "lastName": "Lastname",
+                "businessName": "Business Name",
+                "businessSuffix": "Business Suffix (ex. Inc., LLC)",
+                "userName": "Username",
+                "hideReportedContent": "Hide Mature Content",
+                "showReportedContent": "Show Mature Content",
+                "bio": "Your bio...",
+                "bioHeader": "Bio",
+                "businessAccount": "Business",
+                "creatorAccount": "Creator",
+                "personalAccount": "Personal"
+            },
+            "giftCardProviders": {
+                "unselected": "Select a gift card...",
+                "amazon": "Amazon",
+                "lyft": "Lyft",
+                "doorDash": "DoorDash",
+                "uberEats": "Uber Eats",
+                "chewy": "Chewy",
+                "starbucks": "Starbucks",
+                "grubHub": "GrubHub"
+            }
+        },
+        "socialSync": {
+            "buttons": {
+                "backToProfile": "Back to Profile",
+                "resync": "Resync?",
+                "syncNow": "Sync Now",
+                "sync": "Sync?",
+                "syncInstagram": "Sync Instagram",
+                "syncTikTok": "Sync TikTok"
+            },
+            "successAlerts": {
+                "syncSuccess": "Successfully synced: {providers}"
+            },
+            "successTitles": {
+                "success": "Success!"
+            },
+            "errorAlerts": {
+                "igNoBusinessAccounts": "Be sure to select 'Business/Creator' to sync this account type",
+                "twitterNotFound": "Could not find Twitter handle",
+                "unknownError": "An unknown error occured. Please try again later."
+            },
+            "errorTitles": {
+                "oops": "Oops!"
+            },
+            "labels": {
+                "instagramHandle": "Instagram Handle",
+                "twitterHandle": "Twitter Handle"
+            },
+            "placeholders": {
+                "instagramHandle": "username",
+                "twitterHandle": "username",
+                "youtubeChannelId": "channel ID"
+            }
+        }
+    },
+    "interests": {
+        "arts": {
+            "anime": "Animation/Anime",
+            "painting": "Painting",
+            "visualArts": "Visual Arts",
+            "photography": "Photography",
+            "crafts": "Crafts",
+            "drawing": "Drawing",
+            "digitalArt": "Digital Arts",
+            "textileArt": "Textile Arts",
+            "dance": "Dance",
+            "instruments": "Instruments",
+            "liveMusic": "Live Music",
+            "singing": "Singing",
+            "comedy": "Comedy",
+            "reading": "Books & Reading"
+        },
+        "business": {
+            "localBusiness": "Local Business",
+            "restaurant": "Restaurants",
+            "entrepreneurship": "Entrepreneurship",
+            "careerDevelopment": "Career Development",
+            "financialMarkets": "Financial Markets",
+            "jobSearch": "Job Search",
+            "teaching": "Teaching",
+            "collegeLife": "College Life",
+            "schoolClubs": "School Clubs",
+            "languageSkills": "Language Skills",
+            "businessTravel": "Business Travel"
+        },
+        "foodDrink": {
+            "bbqGrilling": "BBQ & Grilling",
+            "cocktails": "Cocktails",
+            "coffee": "Coffee & Tea",
+            "desserts": "Desserts",
+            "dining": "Dining",
+            "foodTrucks": "Food Trucks",
+            "happyHour": "Happy Hour",
+            "juiceSmoothies": "Juice & Smoothies",
+            "ramen": "Ramen",
+            "veganFood": "Vegan Food"
+        },
+        "fashion": {
+            "styleTrends": "Style & Trends",
+            "clothingAccessories": "Clothing & Accessories",
+            "makeup": "Makeup",
+            "hairCare": "Hair Care",
+            "skinCare": "Skin Care",
+            "footwear": "Foot Wear",
+            "nailCare": "Nail Care",
+            "bodyArtCostume": "Costumes & Body Art",
+            "activeWear": "Active Wear",
+            "swimWear": "Swim Wear"
+        },
+        "games": {
+            "videoGamesConsole": "Video Games (console)",
+            "videoGamesComputer": "Video Games (pc)",
+            "tableTopGames": "Table Top Games",
+            "boardGames": "Board Games & Game Night"
+        },
+        "homeGarden": {},
+        "nature": {},
+        "sports": {
+            "basketball": "Basketball",
+            "baseball": "Baseball",
+            "billiards": "Billiards",
+            "bowling": "Bowling",
+            "Climbing": "Rock Climbing",
+            "rockClimbing": "Rock Climbing",
+            "cycling": "Cycling",
+            "football": "Football",
+            "golf": "Golf",
+            "gymWorkouts": "Gym Workouts",
+            "gymnastics": "Gymnastics",
+            "hockey": "Hockey",
+            "running": "Running",
+            "soccer": "Soccer",
+            "tennis": "Tennis",
+            "volleyball": "Volleyball"
+        },
+        "scienceTech": {
+            "science": "Science",
+            "software": "Software Engineering",
+            "hardware": "Hardware Engineering"
+        },
+        "travelTransport": {
+            "travel": "Traveling",
+            "cars": "Cars",
+            "bikes": "Motor Bikes & Motorcycles"
+        },
+        "tv": {}
+    },
+    "interestsCategories": {
+        "arts": "Arts & Creativity",
+        "business": "Business & Academics",
+        "foodDrink": "Food & Drink",
+        "fashion": "Fashion & Style",
+        "games": "Games",
+        "homeGarden": "Home & Garden",
+        "nature": "Nature & Outdoors",
+        "sports": "Sports",
+        "scienceTech": "Science & Tech",
+        "travelTransport": "Travel & Transportation",
+        "tv": "TV & Movies"
+    },
+    "menus": {
+        "crop": {
+            "buttons": {
+                "aspectRatio": "1:1",
+                "cancel": "Cancel",
+                "done": "Done",
+                "rotate": "Rotate"
+            }
+        },
+        "headerTabs": {
+            "discoveries": "Discovered Posts",
+            "members": "Members",
+            "messages": "DMs",
+            "moments": "Moments",
+            "chat": "Chat",
+            "connections": "Connections",
+            "groupsPublic": "Public Groups",
+            "groupsJoined": "Your Groups",
+            "groups": "Groups",
+            "people": "People",
+            "search": "Search",
+            "social": "Social",
+            "events": "Upcoming Events",
+            "invite": "+",
+            "media": "Media",
+            "news": "News",
+            "thoughts": "Thoughts",
+            "groupsDiscover": "Discover"
+        },
+        "mapActions": {
+            "create": "Create",
+            "claimASpace": "Claim a Space",
+            "createEvent": "Create an Event",
+            "addACheckIn": "Check In",
+            "quickReport": "Quick Report",
+            "requestASpace": "Request a Space",
+            "shareAThought": "Share a Thought",
+            "uploadAMoment": "Create a Moment",
+            "captureAMoment": "Capture a Moment"
+        },
+        "filterActions": {
+            "applyFilters": "Apply",
+            "resetFilters": "Reset"
+        },
+        "main": {
+            "buttons": {
+                "account": "Account",
+                "connect": "Connects",
+                "bookmarked": "Saved",
+                "goToTop": "Go To Top",
+                "groups": "Groups",
+                "list": "Discovered",
+                "map": "Map",
+                "messages": "Messages",
+                "nearby": "Nearby",
+                "moments": "Moments",
+                "refresh": "Refresh",
+                "settings": "Settings",
+                "toggle": "Toggle",
+                "notifications": "Notifications",
+                "profile": "Profile"
+            }
+        },
+        "connections": {
+            "buttons": {
+                "add": "Invite",
+                "create": "Create",
+                "activeConnections": "Active Connections",
+                "invite": "Invite",
+                "searchContacts": "Search Contacts",
+                "createConnection": "Add Connection",
+                "connect": "Connect",
+                "accept": "Accept",
+                "join": "Join"
+            }
+        },
+        "filters": {
+            "title": "Filters"
+        },
+        "searchThisArea": {
+            "title": "Search this area"
+        },
+        "habits": {
+            "buttons": {
+                "habits": "Habits",
+                "pacts": "Pacts",
+                "partners": "Partners",
+                "profile": "Profile"
+            }
+        }
+    },
+    "pages": {
+        "activityGenerator": {
+            "headerTitle": "Plan a Hangout",
+            "pageHeader": "Plan a Hangout",
+            "headers": {
+                "socialRecommendations": "Local Social Recommendations",
+                "topConnections": "People Nearby",
+                "topSharedInterests": "Shared Interests",
+                "topSpaces": "Pick a Spot",
+                "yourTopInterests": "Your Top Interests",
+                "scheduleDetails": "Schedule Details"
+            },
+            "buttons": {
+                "generate": "Generate",
+                "scheduleAndInvite": "Schedule & Invite",
+                "showLess": "Show Less",
+                "showMore": "Show More"
+            },
+            "placeholders": {
+                "groupName": "Group Name"
+            },
+            "locationPrompt": {
+                "title": "Enable Location",
+                "description": "Turn on location services to find people nearby, discover shared interests, and get spot recommendations for your hangout."
+            },
+            "messages": {
+                "noNearbyConnections": "No connections found nearby. Invite some local friends to get started or try again in a new location.",
+                "noSharedInterests": "No shared interests with people nearby. Go to profile settings to select your interests.",
+                "noRecommendedSpaces": "No spaces nearby that match your interests. Try requesting new spaces from the map view."
+            },
+            "validation": {
+                "noConnections": "Select at least one person",
+                "noConnectionsDetail": "Choose who you'd like to invite to this hangout.",
+                "noSpace": "Choose a spot",
+                "noSpaceDetail": "Pick a location for your hangout from the list above.",
+                "noGroupName": "Name your group",
+                "noGroupNameDetail": "Give your hangout group a name so everyone knows what it's about.",
+                "noEventName": "Add an event name",
+                "noEventNameDetail": "Give your event a name so invitees know what to expect."
+            }
+        },
+        "activityScheduler": {
+            "headerTitle": "Activity Scheduler",
+            "pageHeader": "Activity Scheduler",
+            "headers": {
+                "schedulerExplained": "Customize your social event, create a group, and invite members.",
+                "groupMembers": "Group Members",
+                "chooseALocation": "Choose a Location",
+                "yourTopInterests": "Your Top Interests"
+            },
+            "buttons": {
+                "createAndSend": "Schedule & Invite",
+                "showLess": "Show Less",
+                "showMore": "Show More"
+            },
+            "placeholders": {
+                "groupName": "Group Name"
+            },
+            "messages": {
+                "noNearbyConnections": "No connections found nearby. Invite some local friends to get started or try again in a new location.",
+                "noSharedInterests": "No shared interests with people nearby. Go to profile settings to select your interests.",
+                "noRecommendedSpaces": "No spaces nearby that match your interests. Try requesting new spaces from the map view."
+            }
+        },
+        "achievements": {
+            "headerTitle": "Achievements",
+            "pageHeader": "Achievements",
+            "labels": {
+                "coinValue": "Coin Value",
+                "xpValue": "Experience Value"
+            },
+            "info": {
+                "claimRewards": "Claim Rewards",
+                "congratulations": "Congratulations! You've earned the following rewards.",
+                "congratulationsInfluencer": "Congratulations! The higher your influencer level, the greater your visibility to potential businesses that will want to work with you! You've also earned the following rewards.",
+                "completed": "Completed!",
+                "noAchievementsFound": "Start using the app to activate new achievements and rewards.",
+                "numberOfCoins": "{pointReward} coin(s)",
+                "numberOfXp": "{pointReward} xp",
+                "claimTitle": "{achievementClass} Level Up!",
+                "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
+                "alreadyClaimed": "You have already claimed rewards for this achievement",
+                "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
+                "inProgressDescription": "You're almost there! Keep on keepin' on!"
+            },
+            "sections": {
+                "unclaimed": "Claim Your Rewards",
+                "inProgress": "In Progress"
+            }
+        },
+        "activeConnections": {
+            "headerTitle": "Connections"
+        },
+        "advancedSearch": {
+            "headerTitle": "Advanced Search",
+            "labels": {
+                "asc": "Oldest to Newest",
+                "desc": "Newest to Oldest",
+                "categories": "Category Filters",
+                "searchOrder": "Order Results By: Date",
+                "contentType": "Content Type",
+                "all": "All",
+                "moments": "Moments",
+                "thoughts": "Thoughts"
+            }
+        },
+        "advancedSettings": {
+            "headerTitle": "Manage Account",
+            "pageHeaderAccountActions": "Account Actions",
+            "alertTitles": {
+                "accountDeactived": "Account Deactivated",
+                "accountError": "Unknown Error",
+                "accountDeleted": "Account Deleted"
+            },
+            "alertMessages": {
+                "accountDeactived": "Your account has been deactivated.",
+                "accountDeactivedError": "Oops! Something went wrong.",
+                "accountDeleted": "Your account has been successfully deleted. Logging out."
+            }
+        },
+        "areas": {
+            "headerTitle": "Area",
+            "pageTitle": "Areas",
+            "noEventsAreasFound": "No current or upcoming events found. Invite friends and grow your connections to increase visibility and receive invites to exclusive events.",
+            "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
+            "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
+            "noNewsAreasFound": "Local News stream coming soon!",
+            "noSocialAreasFound": "Discoveries use your past location to activate content. Enable location from the map to start collecting 'moments' (or reset filters), and activated content will start to appear in this view as you travel.",
+            "noThoughtsFound": "You have not yet activated any global thoughts. Continue using the app (or reset filters) to activate new thoughts."
+        },
+        "bookmarked": {
+            "headerTitle": "Favorited",
+            "noSocialBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post.",
+            "noEventsBookmarksFound": "No bookmarks to display. Bookmark an event by clicking the bookmark icon on an invite.",
+            "noHireBookmarksFound": "No bookmarks to display. Bookmark a freelancer by clicking the bookmark icon on a listing.",
+            "noNewsBookmarksFound": "No bookmarks to display. Bookmark news posts by clicking the bookmark icon on an article."
+        },
+        "chatForum": {
+            "pageTitle": "Forums",
+            "welcome": "Welcome!",
+            "inputPlaceholder": "Enter a message"
+        },
+        "contacts": {
+            "headerTitle": "Connect",
+            "buttons": {
+                "syncSuccess": "Sync Success!",
+                "syncFailed": "Failed to Sync",
+                "syncContacts": "Sync Your Contacts?"
+            },
+            "labels": {
+                "allUsers": "All Users",
+                "peopleYouMightKnow": "People You Might Know",
+                "noContactsFound": "No users found."
+            }
+        },
+        "createForum": {
+            "labels": {
+                "forum": "Forum Name",
+                "activeForums": "Active Forums"
+            },
+            "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
+            "pageTitle": "Forums"
+        },
+        "createProfile": {
+            "headerTitle": "Therr",
+            "pageHeaderDetails": "Create your profile",
+            "pageSubHeaderDetails": "You can change your username at any time",
+            "pageHeaderPhone": "Keep it secure",
+            "pageSubHeaderPhone": "2-Factor-Auth also prevents fake accounts",
+            "pageHeaderPicture": "Profile Picture",
+            "pageSubHeaderPicture": "Skipping this step defaults to a random robo-image.",
+            "pageHeaderInterests": "Choose your interests",
+            "pageSubHeaderInterests": "Your shared interests determine content discovery and friendships",
+            "pageHeaderInvite": "Invite Friends",
+            "pageSubHeaderInvite": "Invite friends to get started together!",
+            "inviteFriends": {
+                "description": "Invite 3 friends to earn the Socialite achievement and unlock rewards!",
+                "shareLink": "Share a Link",
+                "syncContacts": "Sync Contacts",
+                "skip": "Skip for Now"
+            }
+        },
+        "cropImage": {
+            "headerTitle": "Crop Image"
+        },
+        "directMessage": {
+            "inputPlaceholder": "Enter a message...",
+            "noMessagesFound": "This is the start of your conversations with {userName}"
+        },
+        "editChat": {
+            "headerTitleCreate": "Create a Group",
+            "headerTitleEdit": "Edit Group",
+            "pageTitle": "Create a Group"
+        },
+        "editMoment": {
+            "headerTitle": "Create a Moment",
+            "previewHeader": "Preview:"
+        },
+        "editEvent": {
+            "headerTitle": "Create an Event",
+            "headerTitleEditing": "Edit Event",
+            "previewHeader": "Preview:"
+        },
+        "editSpace": {
+            "headerTitle": "Claim a Space",
+            "headerTitleEditing": "Edit Space",
+            "previewHeader": "Preview:"
+        },
+        "groups": {
+            "headerTitle": "Groups",
+            "pageTitle": "Groups",
+            "categories": {
+                "title": "Categories"
+            },
+            "labels": {
+                "description": "Description:",
+                "subtitle": "Headline:",
+                "memberCount": "{count} members"
+            },
+            "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here.",
+            "discoverGroups": "Discover Groups"
+        },
+        "invite": {
+            "headerTitle": "Invite"
+        },
+        "manageNotifications": {
+            "headerTitle": "Email & Alert Settings",
+            "pageHeaderEmailSettings": "Email Preferences",
+            "alertTitles": {
+                "notificationSettingsUpdated": "Account Updated",
+                "accountError": "Unknown Error"
+            },
+            "alertMessages": {
+                "notificationSettingsUpdated": "Your notification & alert settings have been updated.",
+                "notificationSettingsUpdatedError": "Oops! Something went wrong."
+            }
+        },
+        "managePreferences": {
+            "headerTitle": "Content Settings",
+            "pageHeaderEmailSettings": "Content Preferences & Algorithm Settings",
+            "pageSubHeaderInterests": "Your Interests",
+            "alertTitles": {
+                "preferenceSettingsUpdated": "Account Updated",
+                "accountError": "Unknown Error"
+            },
+            "alertMessages": {
+                "preferenceSettingsUpdated": "Your account & content preferences have been updated.",
+                "preferenceSettingsUpdatedError": "Oops! Something went wrong."
+            }
+        },
+        "requestSpace": {
+            "headerTitle": "Request a Space",
+            "previewHeader": "Preview:"
+        },
+        "viewGroup": {
+            "noChatsFound": "No messages found",
+            "welcomeDialogTitle": "Welcome to Your New Group!",
+            "welcomeDialogMessage": "Write a welcome message to get the conversation started and let members know what this group is about.",
+            "welcomeDialogDismiss": "Maybe Later",
+            "noEventsFound": "No current or upcoming events found. This group has not posted any events. Ask a moderator to nominate you as an event host.",
+            "noMembersFound": "No group members found",
+            "membershipStatuses": {
+                "pending": "(Invite Pending)"
+            },
+            "membershipRoles": {
+                "default": "Member",
+                "creator": "Group Creator",
+                "admin": "Admin / Moderator",
+                "eventHost": "Event Host"
+            },
+            "buttons": {
+                "createEvent": "Create Event"
+            }
+        },
+        "viewSpace": {
+            "actionLinks": {
+                "website": "Website",
+                "menu": "Menu",
+                "order": "Order",
+                "phone": "Call",
+                "reserve": "Reserve",
+                "share": "Share"
+            },
+            "buttons": {
+                "attendThisEvent": "Attend this Event?",
+                "attendingConfirmed": "You have already RSVP'd",
+                "editRSVP": "Edit",
+                "claimRewards": "Claim Rewards?",
+                "coinReward": "Earn {count} TherrCoin(s)",
+                "coinRewardDollars": "Earn ~${amount}",
+                "claimThisBusiness": "Claim This Business?"
+            },
+            "h2": {
+                "claimRewards": "Claim Your Rewards",
+                "requirements": "Steps",
+                "hours": "Hours",
+                "contactAndLocation": "Contact & Location",
+                "events": "Upcoming Events",
+                "moments": "Guest Posts"
+            },
+            "labels": {
+                "viewOnGoogleMaps": "View on Google Maps"
+            },
+            "info": {
+                "shareAMoment": {
+                    "claimRewards": "Earn rewards for visiting this space.",
+                    "alreadyClaimed": "You have already claimed rewards for this space.",
+                    "unClaimed": "This space is complete! Go back and press 'claim rewards' to continue.",
+                    "stepOne": "Walk into the space (within {maxDistance} feet)",
+                    "stepTwo": "Create a moment and select the nearby space",
+                    "stepThree": "Press send and get coins!",
+                    "protip": "Protip: Start a draft with location, then edit later without location"
+                },
+                "walkCloser": "Walk closer to the space to claim rewards."
+            },
+            "pairings": {
+                "youMightAlsoLike": "Local Pairings",
+                "pairingsDescription": "Perfect spots nearby to complete your outing at {spaceName}",
+                "helpful": "Helpful",
+                "notHelpful": "Not helpful"
+            }
+        },
+        "viewMoment": {
+            "buttons": {
+                "viewNearbySpace": "View Space?"
+            }
+        },
+        "editThought": {
+            "headerTitle": "Share a Thought"
+        },
+        "emailVerification": {
+            "buttons": {
+                "send": "Send E-mail"
+            },
+            "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
+            "failedMessageExpired": "Failed to verify your e-mail. Verification code has expired.",
+            "failedMessageAlreadyVerified": "Your e-mail is already verified. Log in to continue.",
+            "failedMessageVerificationResent": "A new verification code has been sent to {email}.",
+            "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
+            "labels": {
+                "email": "E-mail"
+            },
+            "pageTitle": "Account Verification",
+            "headerTitle": "Account Verification",
+            "pageHeader": "Verify Email",
+            "returnToLogin": "Return to login page",
+            "successMessage": "Your email has been verified!",
+            "successVerifiedMessage": "Your account has been verified. Log in to continue."
+        },
+        "exchangePointsDisclaimer": {
+            "headerTitle": "Therr Rewards",
+            "pageHeader": "Exchange Coins",
+            "pageHeaderHow": "How It Works",
+            "pageHeaderYourWallet": "Your Wallet",
+            "pageHeaderExchangeRate": "Exchange Rate",
+            "info": {
+                "earlyAccess": "Claim coins from local business offers and app achievements.",
+                "stepOne": "Complete achievements and local activities to earn coins.",
+                "stepTwo": "After you have at least ${minimum} in coins, you are eligible to exchange.",
+                "stepThree": "Click 'Exchange Now' below and you will receive an eGift Card to your account e-mail within 24-72 hours.",
+                "stepFour": "More reward options coming soon!"
+            },
+            "labels": {
+                "coinsSuffix": "{total} TherrCoin",
+                "dollarsPrefix": "~${total}",
+                "exchangeRatePrefix": "1 Coin = ${exchangeRate}"
+            },
+            "alertTitles": {
+                "requestSent": "Successfully Sent!",
+                "requestFailed": "Oops Something Went Wrong"
+            },
+            "alertMessages": {
+                "requestSent": "Your request has been sent. Please allow a few days for a response.",
+                "requestFailed": "Please try again later."
+            }
+        },
+        "forgotPassword": {
+            "headerTitle": "Password Reset",
+            "instructions": "Enter your account e-mail below, and we'll send you a temporary password.",
+            "pageHeader": "Forgot Your Password?"
+        },
+        "home": {
+            "headerTitle": "Home",
+            "pageTitle": "Home"
+        },
+        "landing": {
+            "background": {
+                "shareYourInterests": "Share Your Interests",
+                "inviteFriends": "Invite Your Friends",
+                "getMatched": "Match with people & places for your next hangout"
+            },
+            "headerTitle": "Welcome",
+            "buttons": {
+                "continue": "Continue",
+                "next": "Next",
+                "getStarted": "Get Started",
+                "signIn": "Sign In"
+            },
+            "carousel": {
+                "discoverTitle": "Discover Content",
+                "discoverDescription": "on the move, find hidden gems, and plan hangouts",
+                "momentTitle": "Share Moments",
+                "momentDescription": "with friends or earn bonus points as a local influencer",
+                "claimTitle": "Claim Rewards",
+                "claimDescription": "by checking in at local businesses, posting content, or leaving a review"
+            }
+        },
+        "login": {
+            "headerTitle": "Therr",
+            "pageTitle": "Welcome",
+            "pageSubtitle": "Sign in to Therr to see what you missed",
+            "userAlerts": {
+                "registerSuccess": "Registration success! Check your e-mail for verification."
+            }
+        },
+        "map": {
+            "headerTitle": " ",
+            "areaAlerts": {
+                "enableEventLocation": "Enable location to create an event",
+                "enableSpaceLocation": "Enable location to claim a space",
+                "requestSpaceLocation": "Enable location to suggest a space",
+                "enableMomentLocation": "Enable location to create a moment",
+                "tooManyCheckIns": "Too Many Check-Ins: Try again later",
+                "unknownError": "Oops! Something went wrong. Try again later",
+                "ownSpaceCheckIn": "Cannot check in to own spaces",
+                "lowFunds": "Business owner has insufficient funds. We will contact them to request refill",
+                "walkCloser": "Some content is location activated. Enable location and travel to unlock this post."
+            },
+            "bottomSheet": {
+                "noResults": "No Results"
+            },
+            "filterButtons": {
+                "all": "All",
+                "people": "People",
+                "places": "Places",
+                "events": "Events",
+                "music": "Music"
+            }
+        },
+        "mapFilteredSearch": {
+            "headerTitle": "Map Search Filters",
+            "h2": {
+                "authorFilters": "Author Filters",
+                "visibilityFilters": "Visibility Filters",
+                "categoryFilters": "Category Filters"
+            },
+            "labels": {
+                "public": "Public",
+                "private": "Private",
+                "events": "Events",
+                "moments": "Moments",
+                "spaces": "Spaces",
+                "showAll": "Show All Categories",
+                "selectAll": "Select All",
+                "unSelectAll": "Unselect All",
+                "uncategorized": "Uncategorized",
+                "me": "My Posts",
+                "notMe": "Not My Posts"
+            }
+        },
+        "myDrafts": {
+            "headerTitle": "My Drafts",
+            "noDraftsFound": "No drafts found. Save an in-progress post as a draft to edit later."
+        },
+        "nearby": {
+            "headerTitle": "Local Community & Rewards App",
+            "locationDescription1": "See posts from nearby users in the local community where you currently are.",
+            "locationDescription2": "Use the awareness and influence sliders to control content distance and your own visibility.",
+            "locationDescription3": "Enable location services to activate this feature."
+        },
+        "activatedAreas": {
+            "headerTitle": "Recently Activated",
+            "description": "These are the moments and spaces you recently activated.",
+            "noAreasFound": "No activated areas found",
+            "backToNotifications": "Back to Notifications",
+            "discoverMore": "Discover more moments and spaces nearby"
+        },
+        "notifications": {
+            "headerTitle": "Notifications",
+            "pageTitle": "Notifications",
+            "noNotifications": "You have no notifications at this time",
+            "markAllRead": "Mark all read"
+        },
+        "pageNotFound": {
+            "pageTitle": "Page Not Found"
+        },
+        "phoneContacts": {
+            "headerTitle": "Phone Contacts",
+            "pageTitle": "Phone Contacts",
+            "sections": {
+                "onApp": "Friends Already on Therr",
+                "notOnApp": "Invite to Therr"
+            },
+            "buttons": {
+                "connect": "Connect",
+                "invite": "Invite",
+                "inviteSelected": "Invite Selected"
+            },
+            "empty": {
+                "onApp": "None of your contacts are on Therr yet",
+                "notOnApp": "All your contacts are already on Therr!"
+            },
+            "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: {shareUrl}",
+            "inviteSubject": "Join me on Therr!",
+            "alertTitles": {
+                "contactInvitesSent": "Invite Success",
+                "connectRequestSent": "Connect Request Sent",
+                "noContactsSelected": "No Contacts Selected"
+            },
+            "alertMessages": {
+                "contactInvitesSent": "Your invites are on the way",
+                "connectRequestSent": "Your connection request has been sent",
+                "noContactsSelected": "Please select at least one contact to invite"
+            }
+        },
+        "register": {
+            "headerTitle": "Therr",
+            "pageTitle": "Sign Up",
+            "pageSubtitle": "Create a profile and see what you are missing or view the",
+            "pageSubtitleMapPreviewLink": "public map",
+            "passwordRequirements1": "Contains a mixture of letters and numbers",
+            "passwordRequirements2": "At least one capital letter",
+            "passwordRequirements3": "At least one special character !@#$%^&*",
+            "passwordRequirements4": "At least 8 characters"
+        },
+        "settings": {
+            "headerTitle": "Settings",
+            "pageHeaderDisplaySettings": "Display",
+            "pageHeaderRewardsSettings": "Therr Rewards",
+            "pageHeaderPrivacySettings": "Privacy Settings",
+            "pageHeaderUser": "User Profile",
+            "pageHeaderPassword": "Update Password",
+            "pageHeaderAdvancedSettings": "Advanced Settings",
+            "pageHeaderContentSettings": "Content Settings",
+            "pageHeaderNotificationSettings": "Emails & Alert Settings",
+            "pageHeaderLanguageSettings": "Language",
+            "labels": {
+                "nightMode": "Night Mode?",
+                "themeLight": "Light",
+                "themeDark": "Dark",
+                "themeRetro": "Retro",
+                "enableRewards": "Opt-In?",
+                "isPublic": "Public Profile?"
+            },
+            "alertTitles": {
+                "accountUpdated": "Account Updated",
+                "backendErrorMessage": "Oops! Something went wrong.",
+                "insecurePassword": "Insecure Password"
+            },
+            "alertMessages": {
+                "accountUpdated": "Successfully updated."
+            }
+        },
+        "socialSync": {
+            "headerTitle": "Social Sync",
+            "pageHeaderSyncList": "Sync Your Social Accounts",
+            "description": "...and get recommended to local businesses for collaboration and partnerships",
+            "buttons": {
+                "personalAccount": "Log in With Instagram",
+                "businessAccount": "Log in With Facebook"
+            },
+            "labels": {
+                "creatorAccount": "Creator",
+                "personalAccount": "Personal",
+                "businessAccount": "Business"
+            },
+            "modals": {
+                "accountTypeModalTitle": "Instagram Account Type"
+            }
+        },
+        "template": {
+            "pageTitle": "Template",
+            "helloTemplate": "Hello, Template!"
+        },
+        "userProfile": {
+            "anonymous": "Anonymous",
+            "buttons": {
+                "createAForum": "Create a Forum",
+                "sendRequest": "Send Request",
+                "send": "Send"
+            },
+            "connectionSent": "You connection request is on the way!",
+            "h2": {
+                "accountDetails": "Account Details",
+                "connections": "Connections",
+                "createConnection": "Create a Connection",
+                "quoteOfTheDay": "Daily Words of Wisdom",
+                "howItWorks": "Welcome back!",
+                "shareFeedback": "Share Feedback"
+            },
+            "subtitles": {
+                "createConnection": "Send a connection request or invite someone to join Therr!",
+                "whoInviteDisclaimer": "Choose who and how you would like to invite."
+            },
+            "labels": {
+                "email": "E-mail",
+                "firstName": "Firstname",
+                "feedbackPlaceholder": "Tell us what you love or hate about the app...",
+                "lastName": "Lastname",
+                "phone": "Phone",
+                "phoneNumber": "Phone Number",
+                "userName": "Username"
+            },
+            "pageTitle": "User Profile",
+            "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
+            "siteDescription2": "So how does it work?",
+            "siteDescription3": "Content on the map is proximity activated. Share a moment with your connections on the map. Discover spaces nearby, and claim TherrCoins for actions (posting, reviewing, visiting, etc).",
+            "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby. Just tap anywhere on the map to start exploring.",
+            "noActiveConnections": "There are currently no active connections in your network",
+            "requestRecommendation": "Send a request to make connections and build a network",
+            "validationErrors": {
+                "phoneNumber": "Invalid phone number"
+            },
+            "messages": {
+                "error": "An error occured while trying to send your feedback. Please try again later.",
+                "success": "Your feedback has been received. Thank you!"
+            }
+        },
+        "viewUser": {
+            "headerTitle": "View User"
+        },
+        "viewThought": {
+            "headerTitle": "Thoughts",
+            "reply": "Reply",
+            "replies": "Replies"
+        },
+        "habits": {
+            "headerTitle": "My Habits",
+            "detailTitle": "Habit Details",
+            "greetingMorning": "Good morning!",
+            "greetingAfternoon": "Good afternoon!",
+            "greetingEvening": "Good evening!",
+            "dashboardSubtitle": "Track your daily habits",
+            "yourHabits": "Your Habits",
+            "todayProgress": "Today",
+            "bestStreak": "Best Streak",
+            "currentStreak": "Current Streak",
+            "longestStreak": "Longest Streak",
+            "graceDays": "Grace Days Left",
+            "stats": "Statistics",
+            "checkin": "Check In",
+            "completed": "Completed!",
+            "noHabitsTitle": "No habits yet",
+            "noHabitsSubtitle": "Create a habit to start tracking your progress",
+            "habitNotFound": "Habit not found"
+        },
+        "pacts": {
+            "headerTitle": "My Pacts",
+            "detailTitle": "Pact Details",
+            "title": "Accountability Pacts",
+            "subtitle": "Stay accountable with friends",
+            "defaultTitle": "Habit Pact",
+            "you": "You",
+            "comparison": "Progress Comparison",
+            "timeline": "Timeline",
+            "accept": "Accept Pact",
+            "decline": "Decline",
+            "abandon": "Abandon Pact",
+            "noPactsTitle": "No pacts yet",
+            "noPactsSubtitle": "Create a pact with a friend to stay accountable",
+            "pactNotFound": "Pact not found",
+            "acceptedTitle": "Pact Accepted!",
+            "acceptedMessage": "You have joined this accountability pact",
+            "successTitle": "Success",
+            "declinedMessage": "You have declined this pact",
+            "abandonedMessage": "You have left this pact",
+            "errorTitle": "Error",
+            "acceptError": "Failed to accept pact. Please try again.",
+            "declineError": "Failed to decline pact. Please try again.",
+            "abandonError": "Failed to abandon pact. Please try again.",
+            "confirmDecline": "Are you sure you want to decline this pact invitation?",
+            "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
+            "onboarding": {
+                "title": "Find Your Accountability Partner",
+                "subtitle": "Habits stick better when you have someone to keep you accountable. Create or join a pact to get started.",
+                "createPact": "Create a Pact",
+                "viewInvites": "View {count} Pending Invite(s)",
+                "findPartner": "Find a Partner",
+                "whyPacts": "Why accountability partners work:",
+                "benefit1": "2x more likely to achieve your goals",
+                "benefit2": "Daily check-ins keep you motivated",
+                "benefit3": "Celebrate milestones together"
+            }
+        }
+    },
+    "modals": {
+        "confirmModal": {
+            "agree": "Agree",
+            "confirm": "Yes",
+            "checkIn": "Check In",
+            "continue": "Continue",
+            "cancel": "Cancel",
+            "notNow": "Not Now",
+            "blockUser": "Are you sure you want to block {userName}?",
+            "connect": "Send connection request to {userName}?",
+            "reportUser": "Are you sure you want to report {userName}?",
+            "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
+            "header": {
+                "checkIn": "Check In",
+                "claimSpace": "Claim a Space",
+                "requestSpace": "Request a Space",
+                "eula": "End-User License Agreement (EULA)"
+            },
+            "body": {
+                "checkIn": "Check in at a local business to earn rewards:",
+                "checkInVisiting": "{spaceName}",
+                "claimSpace": "Spaces are public business locations. Claiming a space on the map allows you to declare location ownership, incentivize customer loyalty, and moderate content.",
+                "requestSpace": "Request a public business space and earn points per request! We'll connect with the owner to add it to the map so they can start offering loyalty rewards."
+            }
+        },
+        "contentOptions": {
+            "buttons": {
+                "getDirections": "Get Directions",
+                "superLike": "'Super-Like' this",
+                "delete": "Delete?",
+                "dislike": "'Dislike' this",
+                "superDislike": "'Super-Dislike' this",
+                "report": "Report this content...",
+                "shareALink": "Share a Link"
+            },
+            "shareLink": {
+                "message": "You can find this location on Therr App: {shareUrl}",
+                "messageEvent": "You can find this event on Therr App: {shareUrl}",
+                "messageMoment": "You can find this moment on Therr App: {shareUrl}",
+                "title": "{spaceTitle} | Therr App",
+                "titleEvent": "{eventTitle} | Therr App",
+                "titleMoment": "{momentTitle} | Therr App",
+                "titleUser": "{userName} | Therr App"
+            }
+        },
+        "deleteAccountModal": {
+            "exit": "Exit",
+            "cancel": "Cancel",
+            "confirm": "Confirm",
+            "continue": "Continue",
+            "deactivate": "Deactivate",
+            "delete": "Delete",
+            "close": "Close",
+            "back": "Back",
+            "header1": "Delete Account?",
+            "header2": "Deactivate Account?",
+            "header3": "Confirm Permanent Deletion",
+            "deleteAccountMessage": "Deleting your account is permanent and cannot be undone.",
+            "deactivateAccountMessage": "Would you like to deactivate your account instead? Your profile and content will no longer be searchable, but you can reactivate your account at any time.",
+            "confirmDelete": "Please confirm that you would like to permanently delete your account. You will be logged out immediately and your account will be deleted."
+        },
+        "infoModalPoints": {
+            "header": "What are coins?",
+            "description": "Earn coins by sharing moments, checking in at local spots, inviting friends, and unlocking achievements. Redeem your coins for gift cards right from the main menu — with more reward options coming soon! Turn on nearby notifications to never miss a chance to earn. Prefer a quieter experience? Opt out anytime and enjoy the app ad-free.",
+            "done": "close"
+        },
+        "touringModal": {
+            "exit": "Exit",
+            "close": "Close",
+            "back": "Back",
+            "next": "Next",
+            "done": "Done",
+            "header1": "Welcome: Earn Rewards",
+            "header2": "Welcome: Create a Moment",
+            "header3": "Welcome: Explore the World",
+            "header4": "Welcome: Find Friends",
+            "header5": "Welcome: Match Up",
+            "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first interactions.",
+            "createAMoment2": "Too in the moment? Drop a pin and edit your post later.",
+            "claimYourSpaces": "Businesses and promoters can claim spaces on the map and offer rewards. Visit a space to earn rewards, then exchange coins/points for cash!",
+            "claimYourSpaces2": "Support local business and share the love.",
+            "exploreTheWorld": "Start discovering content by enabling location and walking around. Content nearby gets prioritized and activated. The 'Discovered' page shows all activated content.",
+            "exploreTheWorld2": "Let travel be your algorithm. You decide.",
+            "findFriends": "We'll send you invites to curated social activities each week! Wherever you go, get matched with the best hangout spots nearby and the friends with the most common interests.",
+            "findFriends2": "Find your vibe! Organize connections by 'close friends', 'family', 'acquaintances', etc.",
+            "matchUp": "Therr app matches you with current friends and potential new friends. We recommend curated social activities based on your interests and nearby restaurants/businesses.",
+            "matchUp2": "“Can't start a fire without a spark”"
+        },
+        "touringNavigationModal": {
+            "done": "Done",
+            "exit": "Exit",
+            "next": "Next",
+            "previous": "Previous",
+            "skip": "Skip Tour",
+            "headers": {
+                "create": "Create 🎨",
+                "connect": "Connect 🌐",
+                "discovered": "Discovered 🏞️",
+                "gps": "Location 📍",
+                "map": "Map 🌎",
+                "matchUp": "Match Up 🔥",
+                "menu": "Menu 💬"
+            },
+            "tips": {
+                "create1": "Tap here to share what's happening around you! Create local content that others nearby can discover.",
+                "create2": "Post a 'moment' to share your experience, or claim a 'space' to put your favorite spots on the map.",
+                "connect": "Invite friends, join groups, and grow your local network. See who's nearby and stay connected.",
+                "discovered": "Moments and local events appear here as you explore. The more you move, the more you discover!",
+                "gps": "Turn on location to unlock the full experience. Find nearby food, fun, events, and exclusive local rewards.",
+                "map": "Tap anywhere on the map to explore nearby spaces. Check in, share moments, and earn rewards at participating locations!",
+                "matchUp": "Ready for something new? \"Match Up\" pairs you with nearby friends and suggests great local spots for your next outing.",
+                "menu": "Track your achievements, redeem points for real rewards, and access messages, drafts, and account settings."
+            }
+        },
+        "sharePrompt": {
+            "share": "Share",
+            "notNow": "Not Now",
+            "momentCreated": {
+                "header": "Moment Created!",
+                "message": "Share this moment with friends and invite them to join you on Therr!"
+            },
+            "achievementEarned": {
+                "header": "Achievement Earned!",
+                "message": "Share your achievement with friends!"
+            }
+        }
+    },
+    "permissions": {
+        "accessFineLocation": {
+            "title": "Therr Mobile",
+            "message": "Allow Therr to acces this device's location?",
+            "buttonNeutral": "Only this time",
+            "buttonNegative": "Deny",
+            "buttonPositive": "While using the app"
+        },
+        "locationGps": {
+            "header": "User Location?",
+            "description1": "This app wants to change your device settings: Use GPS, Wi-Fi, and cell network for location",
+            "description2": "This app collects location data in the background to enable content discovery by proximity and to send related notifications. Location is required in the foreground to enable content posting and prevent location spoofing.",
+            "link": "Learn more",
+            "no": "NO",
+            "yes": "YES",
+            "close": "Close"
+        }
+    },
+    "validations": {
+        "email": "Invalid email address",
+        "isRequired": "This is a required field",
+        "lettersOnly": "Input only accepts alphabetic values",
+        "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
+        "numbersOnly": "Input only accepts numeric values"
     },
     "user": {
-      "header": "Connection Type: {userName}",
-      "buttons": {
-        "type1": "Online Connection",
-        "type2": "In-Person Connection",
-        "type3": "Friend",
-        "type4": "Family",
-        "type5": "Close Friend"
-      }
-    }
-  },
-  "alertActions": {
-    "acceptBackgroundLocation": "Allow all the time",
-    "checkIn": "Check-In?",
-    "exchange": "Exchange",
-    "edit": "Edit"
-  },
-  "alertTitles": {
-    "activityCreated": "Activity Created",
-    "backgroundLocation": "Allow limited access to device location in the background?",
-    "backgroundLocationNotification": "Searching for local deals that match your lifestyle trends",
-    "backgroundLocationNotificationChannel": "Local rewards finder",
-    "codeSent": "New Code Sent",
-    "coinsReceived": "You Received Coins",
-    "connectionAccepted": "Connection request accepted!",
-    "invalidCode": "Invalid Code",
-    "invalidRegionCode": "Invalid Region",
-    "phoneVerifiedSuccess": "Phone Verification Success",
-    "backendErrorMessage": "Oops! Something went wrong.",
-    "permissionsDenied": "Permissions Denied",
-    "phoneNumberAlreadyInUse": "Invalid Phone Number",
-    "errorWithAppleSSO": "Error With Apple SSO",
-    "errorWithGoogleSSO": "Error With Google SSO",
-    "eventCreatedSuccess": "Event Created  🎉",
-    "areaUpdatedSuccess": "Update Success!",
-    "eventDraftSuccess": "Event Saved as Draft",
-    "loginRequired": "Login To Continue",
-    "momentCreatedSuccess": "Moment Created  🎉",
-    "momentDraftSuccess": "Moment Saved as Draft",
-    "spaceCreatedSuccess": "You Claimed a Space",
-    "spaceRequestSuccess": "Request Sent",
-    "ssoLoginError": "Error With Single Sign-On",
-    "startDateAfterEndDate" : "Invalid Start/End Dates",
-    "walkCloser": "Too Far Away",
-    "nameUnknown": "Anonymous User",
-    "newAreasActivated": "New Areas Activated",
-    "draftReminder": "✏️ Don't Forget Drafts ✏️",
-    "requestClaimSent": "Request Sent",
-    "updated": "Updated!",
-    "exitedGroup": "You have left the group",
-    "joinedGroup": "You joined the group",
-    "waitlistSuccess": "Registration Success!"
-  },
-  "alertMessages": {
-    "activityCreated": "A new group and event was created. Invites sent to each group member.",
-    "backgroundLocation": "In order to earn rewards and local discounts, please enable 'Allow all the time' permission",
-    "codeSent": "Check your phone for a new verification code.",
-    "coinsReceived": "🎁 You earned {total} TherrCoin(s) 🎁",
-    "invalidCode": "Code is invalid or expired. Try again or resend.",
-    "invalidRegionCode": "The app is not yet available in this region",
-    "backendErrorMessage": "Please try again later.",
-    "duplicatePost": "Duplicate post",
-    "cameraOrFilePermissionsDenied": "Camera or File permissions were denied. Please enable them in your device settings.",
-    "createRequiresLogin": "Login to post a moment, share an event, or claim a business space",
-    "discoverRequiresLogin": "View recently discovered content and thoughts from people worldwide",
-    "groupsRequireLogin": "Join groups for events, topic discussions, and more",
-    "matchupRequiresLogin": "Login to match up with friends, group chat, and plan social events",
-    "nearbyRequiresLogin": "Login to discover content posted near your current location",
-    "phoneNumberAlreadyInUse": "Phone Number Already In Use For This Account Type",
-    "errorWithAppleSSO": "An unknown Apple SSO error occurred. Please Try another login method.",
-    "errorWithGoogleSSO": "An unknown Google SSO error occurred. Please Try another login method.",
-    "ssoLoginError": "Please try logging in with you account username/password",
-    "eventCreatedSuccess": "You have successfully updated this event!",
-    "eventUpdatedSuccess": "Your event was successfully updated!",
-    "eventDraftSuccess": "Your event was successfully saved as a draft. Continue editing?",
-    "momentCreatedSuccess": "Your moment was successfully posted!",
-    "momentDraftSuccess": "Your moment was successfully saved as a draft. Continue editing?",
-    "spaceCreatedSuccess": "You have successfully claimed this space!",
-    "spaceUpdatedSuccess": "Your space was successfully updated!",
-    "spaceRequestSuccess": "You have successfully requested to add a new business space!",
-    "pleaseTryAgain": "Connection error. Please try again later.",
-    "startDateAfterEndDate" : "End date must occur after start date.",
-    "walkCloser": "Walk closer to claim rewards. Check the map for details.",
-    "newAreasActivated": "You recently activated {total} new moments/spaces.",
-    "draftReminder": "Did you remember to finish your drafted post?",
-    "requestClaimSent": "Check your e-mail for confirmation and next steps",
-    "waitlistSuccess": "Check your e-mail to verify your account"
-  },
-  "dateTime": {
-    "lessThanHours": "< 1h",
-    "hoursSinceDate": "{count}h",
-    "daysSinceDate": "{count}d",
-    "yearsSinceDate": "{count}y"
-  },
-  "quoteOfTheDay": "Quote of the Day",
-  "dailyQuotes": [
-    {
-      "quote": "Over every mountain there is a path, although it may not be seen from the valley.",
-      "author": "Theodore Roethke"
-    },
-    {
-      "quote": "Someday is not a day of the week.",
-      "author": "Denise Brennan-Nelson"
-    },
-    {
-      "quote": "Your time is limited, so don't waste it living someone else's life.",
-      "author": "Steve Jobs"
-    },
-    {
-      "quote": "If you cannot do great things, do small things in a great way.",
-      "author": "Napoleon Hill"
-    },
-    {
-      "quote": "Without hustle, talent will only carry you so far.",
-      "author": "Gary Vaynerchuk"
-    },
-    {
-      "quote": "You always pass failure on the way to success.",
-      "author": "Mickey Rooney"
-    },
-    {
-      "quote": "No one is perfect. That’s why pencils have erasers.",
-      "author": "Wolfgang Riebe"
-    },
-    {
-      "quote": "A journey of a thousand miles begins with a single step.",
-      "author": "Chinese Proverb"
-    },
-    {
-      "quote": "Be not afraid of growing slowly, be afraid only of standing still.",
-      "author": "Chinese Proverb"
-    },
-    {
-      "quote": "Better a diamond with a flaw than a pebble without one.",
-      "author": "Chinese Proverb"
-    },
-    {
-      "quote": "A closed mind is like a closed book; just a block of wood.",
-      "author": "Chinese Proverb"
-    },
-    {
-      "quote": "Better to light a candle than to curse the darkness.",
-      "author": "Chinese Proverb"
-    },
-    {
-      "quote": "He who cheats the earth will be cheated by the earth.",
-      "author": "Chinese Proverb"
-    },
-    {
-      "quote": "Nobody can make you feel inferior without your permission.",
-      "author": "Eleanor Roosevelt"
-    },
-    {
-      "quote": "The two most important days in your life are the day you are born and the day you find out why.",
-      "author": "Mark Twain"
-    },
-    {
-      "quote": "Educating the mind without educating the heart is no education at all.",
-      "author": "Aristotle"
-    },
-    {
-      "quote": "In the end, it’s not the years in your life that count. It’s the life in your years.",
-      "author": "Abraham Lincoln"
-    },
-    {
-      "quote": "Life is not a problem to be solved, but a reality to be experienced.",
-      "author": "Soren Kierkegaard"
-    },
-    {
-      "quote": "Life is ten percent what happens to you and ninety percent how you respond to it.",
-      "author": "Lou Holtz"
-    },
-    {
-      "quote": "The only disability in life is a bad attitude.",
-      "author": "Scott Hamilton"
-    },
-    {
-      "quote": "There is more to life than increasing its speed.",
-      "author": "Mahatma Gandhi"
-    },
-    {
-      "quote": "Life is really simple, but we insist on making it complicated.",
-      "author": "Confucius"
-    },
-    {
-      "quote": "Only a life lived for others is a life worthwhile.",
-      "author": "Albert Einstein"
-    },
-    {
-      "quote": "Many of life's failures are people who did not realize how close they were to success when they gave up.",
-      "author": "Thomas A. Edison"
-    },
-    {
-      "quote": "Each person must live their life as a model for others.",
-      "author": "Rosa Parks"
-    },
-    {
-      "quote": "Life is not about how fast you run or how high you climb, but how well you bounce.",
-      "author": "Vivian Komori"
-    },
-    {
-      "quote": "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",
-      "author": "Buddha"
-    },
-    {
-      "quote": "Don't find fault. Find a remedy.",
-      "author": "Henry Ford"
-    },
-    {
-      "quote": "Science without religion is lame, religion without science is blind.",
-      "author": "Albert Einstein"
-    },
-    {
-      "quote": "Winning is fun, but those moments that you can touch someone’s life in a very positive way are better.",
-      "author": "Tim Howard"
-    }
-  ],
-  "categories": {
-    "uncategorized": "Select a Category",
-    "storefront/shop": "Shop/ Storefront",
-    "restaurant/food": "Restaurant / Food",
-    "bar/drinks": "Bar / Drinks",
-    "marketplace/festival": "Marketplace / Festival",
-    "artwork/expression": "Artwork / Expression",
-    "music/concerts": "Music / Concerts",
-    "nature/parks": "Nature / Parks",
-    "hotels/lodging": "Hotels / Lodging",
-    "museum/academia": "Museum / Academia",
-    "event/space": "Events Space",
-    "art": "Art",
-    "fitness/sports": "Fitness / Sports",
-    "gaming": "Gaming",
-    "geocache": "Geocache",
-    "menu": "Menu",
-    "music": "Music",
-    "deals": "Deals / Coupons",
-    "fitness": "Sports / Fitness",
-    "storefront": "Storefront Promotion",
-    "idea": "Idea / Observation",
-    "food": "Food",
-    "nature": "Nature / Park",
-    "travel": "Travel / Tourism",
-    "warning": "Warning / Alert",
-    "seasonal": "Seasonal / Holidays",
-    "drinks": "Happy Hour / Drinks",
-    "nightLife": "Night Life / Social",
-    "sports": "Sports"
-  },
-  "components": {
-    "activeConnections": {
-      "noActiveConnections": "There are currently no active connections in your network",
-      "title": "Active Contacts"
-    },
-    "myDMsSearch": {
-      "noDMsFound": "No DMs found. Create a connection to get started",
-      "noGroupsFound": "No groups found. Create new connections to discover more",
-      "noUsersFound": "No users found",
-      "title": "All Contacts"
-    },
-    "contactsSearch": {
-      "noContactsFound": "No contacts found. Create a connection to get started",
-      "noGroupsFound": "No groups found. Create new connections to discover more",
-      "noUsersFound": "No users found",
-      "title": "All Contacts"
-    },
-    "header": {
-      "buttons": {
-        "login": "Login"
-      },
-      "searchInput": {
-        "placeholder": "Search a location..."
-      },
-      "searchUsersInput": {
-        "placeholder": "Search users..."
-      }
-    },
-    "headerLinkRight": {
-      "signIn": "Sign in?",
-      "signUp": "Sign up?"
-    },
-    "headerMenuRight": {
-      "buttons": {
-        "exchange": "Exchange?"
-      },
-      "menuItems": {
-        "achievements": "Achievements",
-        "account": "Account Settings",
-        "addConnection": "Add/Invite Connections",
-        "bookmarks": "Bookmarks",
-        "chat": "Messages",
-        "connections": "View Connections",
-        "home": "Home",
-        "feedback": "Share Feedback",
-        "groups": "Groups",
-        "logout": "Log Out",
-        "map": "Map",
-        "moments": "Moments",
-        "myDrafts": "My Drafts",
-        "notifications": "Notifications",
-        "tour": "Take a Tour",
-        "wallet": "Wallet"
-      }
-    },
-    "imagePicker": {
-      "camera": "Camera",
-      "title": "Select an Image"
-    },
-    "messagingContainer": {
-      "conversation": {
-        "to": "To: {firstName} {lastName}"
-      },
-      "inputPlaceholder": "Enter a message",
-      "welcome": "This is the start of a new conversation..."
-    },
-    "nearbyBottomSheet": {
-      "title": "Moments & Events Near You"
-    },
-    "notification": {
-      "buttons": {
-        "accept": "Accept",
-        "reject": "Reject",
-        "view": "View"
-      }
-    },
-    "userMenu": {
-      "buttons": {
-        "viewProfile": "View Profile",
-        "editProfile": "Edit Profile"
-      },
-      "h2": {
-        "accountSettings": "Account Settings",
-        "notifications": "Notifications",
-        "profileSettings": "Profile Settings"
-      }
-    }
-  },
-  "forms": {
-    "dividerOr": "or",
-    "createConnection": {
-      "buttons": {
-        "submit": "Send",
-        "invitePhoneContacts": "Invite Phone Contacts",
-        "shareALink": "Share my Link",
-        "findFriends": "Find Friends"
-      },
-      "errorMessages": {
-        "invalidEmail": "Invalid e-mail",
-        "invalidPhoneNumber": "Phone number is invalid."
-      },
-      "modal": {
-        "nameConfirm": "Connection requests display your full name in notifications. Would you like to update your name from the default/anonymous values?",
-        "noThanks": "No Thanks"
-      },
-      "successMessages": {
-        "connectionSent": "You connection request is on the way!"
-      },
-      "labels": {
-        "phone": "By Phone",
-        "email": "By E-mail"
-      },
-      "placeholders": {
-        "phone": "Invitee's Phone #",
-        "email": "Invitee's E-mail"
-      },
-      "shareLink": {
-        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/register?invite-code={inviteCode}",
-        "title": "Therr App | Local Community & Rewards App"
-      }
-    },
-    "createProfile": {
-      "buttons": {
-        "skip": "Skip",
-        "submit": "Next",
-        "verifyNow": "Send Verification",
-        "resendCode": "Resend Code?",
-        "submitCode": "Submit",
-        "verifyLater": "Save & Continue"
-      },
-      "errorMessages": {
-        "repeatPassword": "Passwords do not match"
-      },
-      "backendSuccessMessage": "User settings successfully updated!",
-      "backendErrorMessage": "Connection error. Please try again later."
-    },
-    "emailVerification": {
-      "buttons": {
-        "send": "Resend E-mail"
-      },
-      "labels": {
-        "email": "E-mail"
-      }
-    },
-    "groups": {
-      "noResultsFound": "No results found...",
-      "searchPlaceholder": "Search by name..."
-    },
-    "loginForm": {
-      "buttons": {
-        "login": "Sign In",
-        "signUp": "Create an Account?",
-        "forgotPassword": "Forgot Password?"
-      },
-      "defaultTitle": "Login",
-      "labels": {
-        "password": "Password",
-        "userName": "Email/Phone/Username"
-      },
-      "backendErrorMessage": "Connection error. Please try again later.",
-      "invalidUsernamePassword": "Invalid username/password combination.",
-      "sso": {
-        "appleButtonTitle": "Sign in with Apple",
-        "googleButtonTitleContinue": "Continue with Google",
-        "googleButtonTitleSignIn": "Sign in with Google"
-      }
-    },
-    "nearbyForm": {
-      "buttons": {
-        "enableLocation": "Turn On"
-      },
-      "labels": {
-        "radiusOfAwareness": "Awareness Radius: {miles} miles",
-        "radiusOfInfluence": "Influence Radius: {miles} miles"
-      }
-    },
-    "editGroup": {
-      "buttons": {
-        "submit": "Send",
-        "delete": "Delete?",
-        "confirm": "Delete",
-        "cancel": "Cancel"
-      },
-      "placeholders": {
-        "title": "A searchable title...",
-        "subtitle": "Headline (optional)",
-        "description": "A brief summary of the group...",
-        "hashTags": "Tags (ie. my_tag, myTag)",
-        "maxComments": "Max comments (per minute)",
-        "expiresAt": "Countdown"
-      },
-      "archiveSuccess": "Successfully archived",
-      "backendSuccessHeader": "Success!",
-      "backendSuccessMessage": "Your group was successfully saved!",
-      "backendErrorMessage": "Connection error. Please try again later."
-    },
-    "editMoment": {
-      "buttons": {
-        "addImage": "Attach an Image",
-        "replaceImage": "Replace Image",
-        "captureNew": "Capture a New Photo",
-        "selectExisting": "Select an Existing Photo",
-        "draft": "Draft",
-        "next": "Next",
-        "continue": "Continue",
-        "submit": "Send",
-        "delete": "Delete?",
-        "confirm": "Delete",
-        "cancel": "Cancel",
-        "visibilityPublic": "Visibility: Public",
-        "visibilityPrivate": "Visibility: Friends Only"
-      },
-      "labels": {
-        "addNearbySpaceNote": "Is this moment related to a nearby space?",
-        "addImageNote": "Select an existing image or capture a new one!",
-        "message": "Share something unique...",
-        "notificationMsg": "Tagline or Title",
-        "hashTags": "Hashtags (ie. my_tag, myTag)",
-        "maxViews": "Max views (per person)",
-        "expiresAt": "Countdown",
-        "radius": "Radius: {meters} meters",
-        "unselected": "Select a Space"
-      },
-      "headers": {
-        "rating": "Rating / Review"
-      },
-      "modal": {
-        "insufficientFundsTitle": "No TherrCoins Available",
-        "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
-        "insufficientFundsMessage2": "Continue creating content without rewards?"
-      },
-      "backendSuccessMessage": "Your moment was successfully saved!",
-      "backendErrorMessage": "Connection error. Please try again later."
-    },
-    "editEvent": {
-      "buttons": {
-        "addImage": "Attach an Image",
-        "replaceImage": "Replace Image",
-        "captureNew": "Capture a New Photo",
-        "selectExisting": "Select an Existing Photo",
-        "draft": "Draft",
-        "goToGroups": "Go to Groups Listing",
-        "next": "Next",
-        "continue": "Continue",
-        "submit": "Publish",
-        "update": "Update",
-        "edit": "Edit?",
-        "delete": "Delete?",
-        "confirm": "Delete",
-        "cancel": "Cancel",
-        "startsAt": "Start: ",
-        "endsAt": "End: ",
-        "visibilityPublic": "Visibility: Public",
-        "visibilityPrivate": "Visibility: Members Only"
-      },
-      "labels": {
-        "address": "Event location...",
-        "addNearbySpaceNote": "Is this moment related to a nearby space?",
-        "addImageNote": "Select an existing image or capture a new one to represent the event.",
-        "groupName": "Group Name",
-        "selectAGroup": "Select a Group",
-        "noUserGroups": "You must be a group owner, admin, or event host to create events. Join a group or request group role promotion.",
-        "message": "Add an event description...",
-        "notificationMsg": "Event Name",
-        "hashTags": "Hashtags (ie. my_tag, myTag)",
-        "maxViews": "Max views (per person)",
-        "expiresAt": "Countdown",
-        "radius": "Radius: {meters} meters",
-        "unselected": "Select a Space",
-        "incentiveRequirement": "Reward Requirement",
-        "unselectedIncentiveRequirement": "Select a Requirement",
-        "incentiveReward": "Reward for Attending",
-        "unselectedIncentiveReward": "Select an Incentive"
-      },
-      "headers": {
-        "rating": "Rating / Review"
-      },
-      "modal": {
-        "insufficientFundsTitle": "No TherrCoins Available",
-        "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
-        "insufficientFundsMessage2": "Continue creating content without rewards?",
-        "attendingModal": {
-          "title": "Attend this Event?",
-          "buttons": {
-            "save": "Save",
-            "update": "Update"
-          },
-          "labels": {
-            "bringingGuests": "Bringing Guests?",
-            "guests": "Guest Count",
-            "no": "No",
-            "yes": "Yes"
-          }
-        }
-      },
-      "backendSuccessMessage": "Your moment was successfully saved!",
-      "backendErrorMessage": "Connection error. Please try again later."
-    },
-    "editSpace": {
-      "buttons": {
-        "addImage": "Attach an Image",
-        "replaceImage": "Replace Image",
-        "captureNew": "Capture a New Photo",
-        "next": "Next",
-        "selectExisting": "Select an Existing Photo",
-        "submit": "Send",
-        "edit": "Edit?",
-        "delete": "Delete?",
-        "confirm": "Delete",
-        "cancel": "Cancel"
-      },
-      "incentiveRequirementKeys": {
-        "shareAMoment": "Share a Moment",
-        "visitSpace": "Visit the Space",
-        "makeAPurchase": "Make a Purchase"
-      },
-      "incentiveRewardKeys": {
-        "coinReward": "TherrCoin Reward",
-        "currencyDiscount": "Currency Discount",
-        "percentageDiscount": "Percent Discount"
-      },
-      "labels": {
-        "address": "Search address...",
-        "addIncentivesNote": "Add incentives to encourage people to visit your space.",
-        "addIncentivesNote2": "*Unlock customer metrics from each visit or point-of-sale transaction.",
-        "addIncentivesNoteEx": "(ie. free coffee, $2 off, 10% off, etc...)",
-        "addImageNote": "Select an existing image or capture a new one to represent your space.",
-        "cost": "Cost: {pointCost} coins",
-        "featuredIncentiveValue": "Requirement (# of times)",
-        "featuredIncentiveRewardValue": "Reward Amount",
-        "featuredIncentiveValuePlaceholder": "ex. 1",
-        "featuredIncentiveRewardValuePlaceholder": "ex. 5.00",
-        "featuredIncentiveCurrencyId": "Reward Currency",
-        "featuredIncentiveCurrencyIdPlaceholder": "ex. USD",
-        "message": "Describe the location, business, promotion, etc...",
-        "notificationMsg": "Title or Location Name",
-        "hashTags": "Hashtags (ie. my_tag, myTag)",
-        "maxViews": "Max views (per person)",
-        "expiresAt": "Countdown",
-        "radius": "Radius: {meters} meters",
-        "incentiveRequirement": "Reward Requirement",
-        "unselectedIncentiveRequirement": "Select a Requirement",
-        "incentiveReward": "Reward for Participation",
-        "unselectedIncentiveReward": "Select an Incentive"
-      },
-      "backendSuccessMessage": "You have successfully claimed this space!",
-      "backendErrorMessage": "Connection error. Please try again later."
-    },
-    "editThought": {
-      "buttons": {
-        "addImage": "Attach an Image",
-        "captureNew": "Capture a New Photo",
-        "selectExisting": "Select an Existing Photo",
-        "submit": "Send",
-        "delete": "Delete?",
-        "confirm": "Delete",
-        "cancel": "Cancel",
-        "visibilityPublic": "Visibility: Public",
-        "visibilityPrivate": "Visibility: Friends Only"
-      },
-      "labels": {
-        "addImageNote": "Select an existing image or capture a new one to represent your thought.",
-        "cost": "Cost: {pointCost} coins",
-        "message": "Have an idea...?",
-        "messageReply": "Share your reply",
-        "notificationMsg": "Title or Location Name",
-        "hashTags": "Hashtags (ie. my_tag, myTag)",
-        "maxViews": "Max views (per person)",
-        "expiresAt": "Countdown",
-        "radius": "Radius: {meters} meters"
-      },
-      "backendSuccessMessage": "You have shared a thought!",
-      "backendErrorMessage": "Connection error. Please try again later."
-    },
-    "forgotPassword": {
-      "buttons": {
-        "submit": "Send E-mail"
-      },
-      "labels": {
-        "email": "E-mail"
-      },
-      "backendSuccessMessage": "Check your e-mail for further instructions to reset your password.",
-      "backendErrorMessage": "Connection error. Please try again later."
-    },
-    "registerForm": {
-      "buttons": {
-        "backToLogin": "Back to Login",
-        "register": "Sign Up",
-        "eula": "Terms of Use",
-        "privacyPolicy": "Privacy Policy"
-      },
-      "defaultTitle": "Create an Account",
-      "errorMessages": {
-        "invalidPhoneNumber": "Phone number is invalid.",
-        "repeatPassword": "Passwords do not match",
-        "passwordInsecure": "Password does not meet minimum security requirements"
-      },
-      "labels": {
-        "email": "E-mail",
-        "firstName": "First Name",
-        "lastName": "Last Name",
-        "mobilePhone": "Mobile Phone #",
-        "password": "Password",
-        "repeatPassword": "Repeat Password",
-        "userName": "Username",
-        "inviteCode": "Invite Code (optional)"
-      },
-      "backendErrorMessage": "Connection error. Please try again later.",
-      "subtitles": {
-        "disclaimer": "By creating an account, you agree to our ",
-        "and": " and "
-      },
-      "validationErrors": {
-        "phoneNumber": "Invalid phone number"
-      }
-    },
-    "rewards": {
-      "buttons": {
-        "submit": "Exchange Now"
-      }
-    },
-    "settings": {
-      "alertTitles": {
-        "accountUpdated": "Account Updated",
-        "backendErrorMessage": "Oops! Something went wrong.",
-        "insecurePassword": "Insecure Password" 
-      },
-      "alertMessages": {
-        "accountUpdated": "Successfully updated."
-      },
-      "backendSuccessMessage": "User settings successfully updated!",
-      "backendErrorMessage": "Connection error. Please try again later.",
-      "buttons": {
-        "submit": "Save",
-        "manageAccount": "Manage Account",
-        "managePreferences": "Manage Interests & Content Algorithms",
-        "manageNotifications": "Manage Email Settings",
-        "deleteAccount": "Delete Account?",
-        "settingsEmailBusMarketing": "Business Insights marketing e-mails",
-        "settingsEmailMarketing": "Social App marketing e-mails",
-        "settingsEmailLikes": "User 'likes' e-mails",
-        "settingsEmailInvites": "User or group invite e-mails",
-        "settingsEmailMentions": "User 'mentions' e-mails",
-        "settingsEmailMessages": "User 'messages' e-mails",
-        "settingsEmailReminders": "Social App reminder e-mails",
-        "settingsEmailBackground": "Social App automated e-mails",
-        "on": "On",
-        "off": "Off"
-      },
-      "errorMessages": {
-        "repeatPassword": "Passwords do not match",
-        "passwordInsecure": "New password does not meet minimum security requirements"
-      },
-      "labels": {
-        "accountTypeLabel": "Account Type: ",
-        "code": "Verification Code",
-        "email": "E-mail",
-        "phoneNumber": "Phone #",
-        "password": "Password",
-        "newPassword": "New Password",
-        "repeatPassword": "Repeat Password",
-        "firstName": "Firstname",
-        "lastName": "Lastname",
-        "userName": "Username",
-        "hideReportedContent": "Hide Mature Content",
-        "showReportedContent": "Show Mature Content",
-        "bio": "Your bio...",
-        "businessAccount": "Business",
-        "creatorAccount": "Creator",
-        "personalAccount": "Personal"
-      },
-      "giftCardProviders": {
-        "unselected": "Select a gift card...",
-        "amazon": "Amazon",
-        "lyft": "Lyft",
-        "doorDash": "DoorDash",
-        "uberEats": "Uber Eats",
-        "chewy": "Chewy",
-        "starbucks": "Starbucks",
-        "grubHub": "GrubHub"
-      }
-    },
-    "socialSync": {
-      "buttons": {
-        "backToProfile": "Back to Profile",
-        "resync": "Resync?",
-        "syncNow": "Sync Now",
-        "sync": "Sync?",
-        "syncInstagram": "Sync Instagram",
-        "syncTikTok": "Sync TikTok"
-      },
-      "successAlerts": {
-        "syncSuccess": "Successfully synced: {providers}"
-      },
-      "successTitles": {
-        "success": "Success!"
-      },
-      "errorAlerts": {
-        "igNoBusinessAccounts": "Be sure to select 'Business/Creator' to sync this account type",
-        "twitterNotFound": "Could not find Twitter handle",
-        "unknownError": "An unknown error occured. Please try again later."
-      },
-      "errorTitles": {
-        "oops": "Oops!"
-      },
-      "labels": {
-        "instagramHandle": "Instagram Handle",
-        "twitterHandle": "Twitter Handle"
-      },
-      "placeholders": {
-        "instagramHandle": "username",
-        "twitterHandle": "username",
-        "youtubeChannelId": "channel ID"
-      }
-    }
-  },
-  "interests": {
-    "arts": {
-      "anime": "Animation/Anime",
-      "painting": "Painting",
-      "visualArts": "Visual Arts",
-      "photography": "Photography",
-      "crafts": "Crafts",
-      "drawing": "Drawing",
-      "digitalArt": "Digital Arts",
-      "textileArt": "Textile Arts",
-      "dance": "Dance",
-      "instruments": "Instruments",
-      "liveMusic": "Live Music",
-      "singing": "Singing",
-      "comedy": "Comedy",
-      "reading": "Books & Reading"
-    },
-    "business": {
-      "localBusiness": "Local Business",
-      "restaurant": "Restaurants",
-      "entrepreneurship": "Entrepreneurship",
-      "careerDevelopment": "Career Development",
-      "financialMarkets": "Financial Markets",
-      "jobSearch": "Job Search",
-      "teaching": "Teaching",
-      "collegeLife": "College Life",
-      "schoolClubs": "School Clubs",
-      "languageSkills": "Language Skills",
-      "businessTravel": "Business Travel"
-    },
-    "foodDrink": {
-      "bbqGrilling": "BBQ & Grilling",
-      "cocktails": "Cocktails",
-      "coffee": "Coffee & Tea",
-      "desserts": "Desserts",
-      "dining": "Dining",
-      "foodTrucks": "Food Trucks",
-      "happyHour": "Happy Hour",
-      "juiceSmoothies": "Juice & Smoothies",
-      "ramen": "Ramen",
-      "veganFood": "Vegan Food"
-    },
-    "fashion": {
-      "styleTrends": "Style & Trends",
-      "clothingAccessories": "Clothing & Accessories",
-      "makeup": "Makeup",
-      "hairCare": "Hair Care",
-      "skinCare": "Skin Care",
-      "footwear": "Foot Wear",
-      "nailCare": "Nail Care",
-      "bodyArtCostume": "Costumes & Body Art",
-      "activeWear": "Active Wear",
-      "swimWear": "Swim Wear"
-    },
-    "games": {
-      "videoGamesConsole": "Video Games (console)",
-      "videoGamesComputer": "Video Games (pc)",
-      "tableTopGames": "Table Top Games",
-      "boardGames": "Board Games & Game Night"
-    },
-    "homeGarden": {
-
-    },
-    "nature": {
-
-    },
-    "sports": {
-      "basketball": "Basketball",
-      "baseball": "Baseball",
-      "billiards": "Billiards",
-      "bowling": "Bowling",
-      "Climbing": "Rock Climbing",
-      "rockClimbing": "Rock Climbing",
-      "cycling": "Cycling",
-      "football": "Football",
-      "golf": "Golf",
-      "gymWorkouts": "Gym Workouts",
-      "gymnastics": "Gymnastics",
-      "hockey": "Hockey",
-      "running": "Running",
-      "soccer": "Soccer",
-      "tennis": "Tennis",
-      "volleyball": "Volleyball"
-    },
-    "scienceTech": {
-      "science": "Science",
-      "software": "Software Engineering",
-      "hardware": "Hardware Engineering"
-    },
-    "travelTransport": {
-      "travel": "Traveling",
-      "cars": "Cars",
-      "bikes": "Motor Bikes & Motorcycles"
-    },
-    "tv": {
-
-    }
-  },
-  "interestsCategories": {
-    "arts": "Arts & Creativity",
-    "business": "Business & Academics",
-    "foodDrink": "Food & Drink",
-    "fashion": "Fashion & Style",
-    "games": "Games",
-    "homeGarden": "Home & Garden",
-    "nature": "Nature & Outdoors",
-    "sports": "Sports",
-    "scienceTech": "Science & Tech",
-    "travelTransport": "Travel & Transportation",
-    "tv": "TV & Movies"
-  },
-  "menus": {
-    "crop": {
-      "buttons": {
-        "aspectRatio": "1:1",
-        "cancel": "Cancel",
-        "done": "Done",
-        "rotate": "Rotate"
-      }
-    },
-    "headerTabs": {
-      "discoveries": "Discovered Posts",
-      "members": "Members",
-      "messages": "DMs",
-      "moments": "Moments",
-      "chat": "Chat",
-      "connections": "Connections",
-      "groupsPublic": "Public Groups",
-      "groupsJoined": "Your Groups",
-      "groups": "Groups",
-      "people": "People",
-      "search": "Search",
-      "social": "Social",
-      "events": "Upcoming Events",
-      "invite": "+",
-      "media": "Media",
-      "news": "News",
-      "thoughts": "Thoughts"
-    },
-    "mapActions": {
-      "create": "Create",
-      "claimASpace": "Claim a Space",
-      "createEvent": "Create an Event",
-      "addACheckIn": "Check In",
-      "requestASpace": "Request a Space",
-      "shareAThought": "Share a Thought",
-      "uploadAMoment": "Create a Moment",
-      "captureAMoment": "Capture a Moment"
-    },
-    "filterActions": {
-      "applyFilters": "Apply",
-      "resetFilters": "Reset"
-    },
-    "main": {
-      "buttons": {
-        "account": "Account",
-        "connect": "Connects",
-        "bookmarked": "Saved",
-        "goToTop": "Go To Top",
-        "groups": "Groups",
-        "list": "Discovered",
-        "map": "Map",
-        "messages": "Messages",
-        "nearby": "Nearby",
-        "moments": "Moments",
-        "refresh": "Refresh",
-        "settings": "Settings",
-        "toggle": "Toggle",
-        "notifications": "Notifications",
-        "profile": "Profile"
-      }
-    },
-    "habits": {
-      "buttons": {
-        "habits": "Habits",
-        "pacts": "Pacts",
-        "partners": "Partners",
-        "profile": "Profile"
-      }
-    },
-    "connections": {
-      "buttons": {
-        "add": "Invite",
-        "create": "Create",
-        "activeConnections": "Active Connections",
-        "invite": "Invite",
-        "searchContacts": "Search Contacts",
-        "createConnection": "Add Connection",
-        "connect": "Connect",
-        "accept": "Accept",
-        "join": "Join"
-      }
-    },
-    "filters": {
-      "title": "Filters"
-    },
-    "searchThisArea": {
-      "title": "Search this area"
-    }
-  },
-  "pages": {
-    "activityGenerator": {
-      "headerTitle": "Activity Generator",
-      "pageHeader": "Activity Generator",
-      "headers": {
-        "socialRecommendations": "Local Social Recommendations",
-        "topConnections": "Top Connections Nearby",
-        "topSharedInterests": "Top Shared Interests",
-        "topSpaces": "Recommended Spaces for Local Hangouts",
-        "yourTopInterests": "Your Top Interests"
-      },
-      "buttons": {
-        "generate": "Generate",
-        "scheduleAndInvite": "Schedule & Invite",
-        "showLess": "Show Less",
-        "showMore": "Show More"
-      },
-      "messages": {
-        "noNearbyConnections": "No connections found nearby. Invite some local friends to get started or try again in a new location.",
-        "noSharedInterests": "No shared interests with people nearby. Go to profile settings to select your interests.",
-        "noRecommendedSpaces": "No spaces nearby that match your interests. Try requesting new spaces from the map view."
-      }
-    },
-    "activityScheduler": {
-      "headerTitle": "Activity Scheduler",
-      "pageHeader": "Activity Scheduler",
-      "headers": {
-        "schedulerExplained": "Customize your social event, create a group, and invite members.",
-        "groupMembers": "Group Members",
-        "chooseALocation": "Choose a Location",
-        "yourTopInterests": "Your Top Interests"
-      },
-      "buttons": {
-        "createAndSend": "Create & Send",
-        "showLess": "Show Less",
-        "showMore": "Show More"
-      },
-      "placeholders": {
-        "groupName": "Group Name"
-      },
-      "messages": {
-        "noNearbyConnections": "No connections found nearby. Invite some local friends to get started or try again in a new location.",
-        "noSharedInterests": "No shared interests with people nearby. Go to profile settings to select your interests.",
-        "noRecommendedSpaces": "No spaces nearby that match your interests. Try requesting new spaces from the map view."
-      }
-    },
-    "achievements": {
-      "headerTitle": "Achievements",
-      "pageHeader": "Achievements",
-      "labels":{
-        "coinValue": "Coin Value",
-        "xpValue": "Experience Value"
-      },
-      "info": {
-        "claimRewards": "Claim Rewards",
-        "congratulations": "Congratulations! You've earned the following rewards.",
-        "congratulationsInfluencer": "Congratulations! The higher your influencer level, the greater your visibility to potential businesses that will want to work with you! You've also earned the following rewards.",
-        "completed": "Completed!",
-        "noAchievementsFound": "Start using the app to activate new achievements and rewards.",
-        "numberOfCoins": "{pointReward} coin(s)",
-        "numberOfXp": "{pointReward} xp",
-        "claimTitle": "{achievementClass} Level Up!",
-        "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
-        "alreadyClaimed": "You have already claimed rewards for this achievement",
-        "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
-        "inProgressDescription": "You're almost there! Keep on keepin' on!"
-      }
-    },
-    "activeConnections": {
-      "headerTitle": "Connections"
-    },
-    "advancedSearch": {
-      "headerTitle": "Advanced Search",
-      "labels": {
-        "asc": "Oldest to Newest",
-        "desc": "Newest to Oldest",
-        "categories": "Category Filters",
-        "searchOrder": "Order Results By: Date"
-      }
-    },
-    "advancedSettings": {
-      "headerTitle": "Manage Account",
-      "pageHeaderAccountActions": "Account Actions",
-      "alertTitles": {
-        "accountDeactived": "Account Deactivated",
-        "accountError": "Unknown Error",
-        "accountDeleted": "Account Deleted"
-      },
-      "alertMessages": {
-        "accountDeactived": "Your account has been deactivated.",
-        "accountDeactivedError": "Oops! Something went wrong.",
-        "accountDeleted": "Your account has been successfully deleted. Logging out."
-      }
-    },
-    "areas": {
-      "headerTitle": "Area",
-      "pageTitle": "Areas",
-      "noEventsAreasFound": "No current or upcoming events found. Invite friends and grow your connections to increase visibility and receive invites to exclusive events.",
-      "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
-      "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
-      "noNewsAreasFound": "Local News stream coming soon!",
-      "noSocialAreasFound": "Discoveries use your past location to activate content. Enable location from the map to start collecting 'moments' (or reset filters), and activated content will start to appear in this view as you travel.",
-      "noThoughtsFound": "You have not yet activated any global thoughts. Continue using the app (or reset filters) to activate new thoughts."
-    },
-    "bookmarked": {
-      "headerTitle": "Favorited",
-      "noSocialBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post.",
-      "noEventsBookmarksFound": "No bookmarks to display. Bookmark an event by clicking the bookmark icon on an invite.",
-      "noHireBookmarksFound": "No bookmarks to display. Bookmark a freelancer by clicking the bookmark icon on a listing.",
-      "noNewsBookmarksFound": "No bookmarks to display. Bookmark news posts by clicking the bookmark icon on an article."
-    },
-    "chatForum": {
-      "pageTitle": "Forums",
-      "welcome": "Welcome!",
-      "inputPlaceholder": "Enter a message"
-    },
-    "contacts": {
-      "headerTitle": "Connect",
-      "buttons": {
-        "syncSuccess": "Sync Success!",
-        "syncFailed": "Failed to Sync",
-        "syncContacts": "Sync Your Contacts?"
-      },
-      "labels": {
-        "allUsers": "All Users",
-        "peopleYouMightKnow": "People You Might Know",
-        "noContactsFound": "No users found."
-      }
-    },
-    "createForum": {
-      "labels": {
-        "forum": "Forum Name",
-        "activeForums": "Active Forums"
-      },
-      "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
-      "pageTitle": "Forums"
-    },
-    "createProfile": {
-      "headerTitle": "Therr",
-      "pageHeaderDetails": "Create your profile",
-      "pageSubHeaderDetails": "You can change your username at any time",
-      "pageHeaderPhone": "Keep it secure",
-      "pageSubHeaderPhone": "2-Factor-Auth also prevents fake accounts",
-      "pageHeaderPicture": "Profile Picture",
-      "pageSubHeaderPicture": "Skipping this step defaults to a random robo-image.",
-      "pageHeaderInterests": "Choose your interests",
-      "pageSubHeaderInterests": "Your shared interests determine content discovery and friendships"
-    },
-    "cropImage": {
-      "headerTitle": "Crop Image"
-    },
-    "directMessage": {
-      "inputPlaceholder": "Enter a message...",
-      "noMessagesFound": "This is the start of your conversations with {userName}"
-    },
-    "editChat": {
-      "headerTitleCreate": "Create a Group",
-      "headerTitleEdit": "Edit Group",
-      "pageTitle": "Create a Group"
-    },
-    "editMoment": {
-      "headerTitle": "Create a Moment",
-      "previewHeader": "Preview:"
-    },
-    "editEvent": {
-      "headerTitle": "Create an Event",
-      "headerTitleEditing": "Edit Event",
-      "previewHeader": "Preview:"
-    },
-    "editSpace": {
-      "headerTitle": "Claim a Space",
-      "headerTitleEditing": "Edit Space",
-      "previewHeader": "Preview:"
-    },
-    "groups": {
-      "headerTitle": "Groups",
-      "pageTitle": "Groups",
-      "categories": {
-        "title": "Categories"
-      },
-      "labels": {
-        "description": "Description:",
-        "subtitle": "Headline:",
-        "memberCount": "{count} members"
-      }
-    },
-    "invite": {
-      "headerTitle": "Invite"
-    },
-    "manageNotifications": {
-      "headerTitle": "Email & Alert Settings",
-      "pageHeaderEmailSettings": "Email Preferences",
-      "alertTitles": {
-        "notificationSettingsUpdated": "Account Updated",
-        "accountError": "Unknown Error"
-      },
-      "alertMessages": {
-        "notificationSettingsUpdated": "Your notification & alert settings have been updated.",
-        "notificationSettingsUpdatedError": "Oops! Something went wrong."
-      }
-    },
-    "managePreferences": {
-      "headerTitle": "Preferences & Algorithm Settings",
-      "pageHeaderEmailSettings": "Content Preferences & Algorithm Settings",
-      "pageSubHeaderInterests": "Your Interests",
-      "alertTitles": {
-        "preferenceSettingsUpdated": "Account Updated",
-        "accountError": "Unknown Error"
-      },
-      "alertMessages": {
-        "preferenceSettingsUpdated": "Your account & content preferences have been updated.",
-        "preferenceSettingsUpdatedError": "Oops! Something went wrong."
-      }
-    },
-    "requestSpace": {
-      "headerTitle": "Request a Space",
-      "previewHeader": "Preview:"
-    },
-    "viewGroup": {
-      "noChatsFound": "No messages found",
-      "noEventsFound": "No current or upcoming events found. This group has not posted any events. Ask a moderator to nominate you as an event host.",
-      "noMembersFound": "No group members found",
-      "membershipStatuses": {
-        "pending": "(Invite Pending)"
-      },
-      "membershipRoles": {
-        "default": "Member",
-        "creator": "Group Creator",
-        "admin": "Admin / Moderator",
-        "eventHost": "Event Host"
-      }
-    },
-    "viewSpace": {
-      "actionLinks": {
-        "website": "Website",
-        "menu": "Menu",
-        "order": "Order",
-        "phone": "Call",
-        "reserve": "Reserve",
-        "share": "Share"
-      },
-      "buttons": {
-        "attendThisEvent": "Attend this Event?",
-        "attendingConfirmed": "You have already RSVP'd",
-        "editRSVP": "Edit",
-        "claimRewards": "Claim Rewards?",
-        "coinReward": "Earn {count} TherrCoin(s)",
-        "coinRewardDollars": "Earn ~${amount}",
-        "claimThisBusiness": "Claim This Business?"
-      },
-      "h2": {
-        "claimRewards": "Claim Your Rewards",
-        "requirements": "Steps",
-        "events": "Upcoming Events",
-        "moments": "Guest Posts"
-      },
-      "info": {
-        "shareAMoment": {
-          "claimRewards": "Earn rewards for visiting this space.",
-          "alreadyClaimed": "You have already claimed rewards for this space.",
-          "unClaimed": "This space is complete! Go back and press 'claim rewards' to continue.",
-          "stepOne": "Walk into the space (within {maxDistance} feet)",
-          "stepTwo": "Create a moment and select the nearby space",
-          "stepThree": "Press send and get coins!",
-          "protip": "Protip: Start a draft with location, then edit later without location"
+        "achievements": {
+            "explorer_1_1": {
+                "title": "Explore",
+                "description": "Activate 10 Moments"
+            },
+            "explorer_1_1_1": {
+                "title": "Discover",
+                "description": "Activate 100 Moments"
+            },
+            "explorer_1_1_2": {
+                "title": "Gather",
+                "description": "Activate 500 Moments"
+            },
+            "explorer_1_1_3": {
+                "title": "Branch Out",
+                "description": "Activate 1,000 Moments"
+            },
+            "explorer_1_1_4": {
+                "title": "New Perspectives",
+                "description": "Activate 2,500 Moments"
+            },
+            "explorer_1_1_5": {
+                "title": "The Great Expansion",
+                "description": "Activate 5,000 Moments"
+            },
+            "explorer_1_1_6": {
+                "title": "Explore the World",
+                "description": "Activate 10,000 Moments"
+            },
+            "explorer_1_2": {
+                "title": "New Discoveries",
+                "description": "Discover 5 Moment Categories"
+            },
+            "explorer_1_2_1": {
+                "title": "Diversity of Mind",
+                "description": "Discover 5 Moment Categories"
+            },
+            "explorer_1_3": {
+                "title": "Network",
+                "description": "Activate 5 Spaces"
+            },
+            "explorer_1_3_1": {
+                "title": "Network Developer",
+                "description": "Activate 15 Spaces"
+            },
+            "explorer_1_3_2": {
+                "title": "Network Expansion",
+                "description": "Activate 50 Spaces"
+            },
+            "explorer_1_3_3": {
+                "title": "Networking Leader",
+                "description": "Activate 100 Spaces"
+            },
+            "explorer_1_3_4": {
+                "title": "Space Wizard",
+                "description": "Activate 500 Spaces"
+            },
+            "explorer_1_4": {
+                "title": "Eventful",
+                "description": "Activate 1 Event"
+            },
+            "explorer_1_4_1": {
+                "title": "Face in the Crowd",
+                "description": "Activate 3 Events"
+            },
+            "explorer_1_4_2": {
+                "title": "Have we met?",
+                "description": "Activate 10 Events"
+            },
+            "explorer_1_4_3": {
+                "title": "Right Place, Right Time",
+                "description": "Activate 100 Events"
+            },
+            "explorer_1_4_4": {
+                "title": "See You Therr",
+                "description": "Activate 250 Events"
+            },
+            "influencer_1_1": {
+                "title": "Likable",
+                "description": "Get 5 likes"
+            },
+            "influencer_1_1_1": {
+                "title": "Very Likable",
+                "description": "Get 20 likes"
+            },
+            "influencer_1_1_2": {
+                "title": "Intriguing",
+                "description": "Get 50 likes"
+            },
+            "influencer_1_1_3": {
+                "title": "Too Cool",
+                "description": "Get 100 likes"
+            },
+            "influencer_1_1_4": {
+                "title": "So Very Likable",
+                "description": "Get 500 likes"
+            },
+            "influencer_1_1_5": {
+                "title": "Regally Liked",
+                "description": "Get 2,500 likes"
+            },
+            "influencer_1_2": {
+                "title": "Super Liked",
+                "description": "Get 1 superlike on a post"
+            },
+            "influencer_1_2_1": {
+                "title": "Super Creative",
+                "description": "Get 5 superlike"
+            },
+            "influencer_1_2_2": {
+                "title": "Super Influencer",
+                "description": "Get 15 superlike"
+            },
+            "influencer_1_2_3": {
+                "title": "Superhuman",
+                "description": "Get 50 superlike"
+            },
+            "influencer_1_3": {
+                "title": "Creator",
+                "description": "Create 1 moment"
+            },
+            "influencer_1_3_1": {
+                "title": "Content Creator",
+                "description": "Create 5 moments"
+            },
+            "influencer_1_3_2": {
+                "title": "In the Moment",
+                "description": "Create 10 moments"
+            },
+            "influencer_1_3_3": {
+                "title": "Expressive",
+                "description": "Create 50 moments"
+            },
+            "influencer_1_3_4": {
+                "title": "Magic Maker",
+                "description": "Create 100 moments"
+            },
+            "influencer_1_3_5": {
+                "title": "Professional Creator",
+                "description": "Create 250 moments"
+            },
+            "influencer_1_3_6": {
+                "title": "Sage Creator",
+                "description": "Create 500 moments"
+            },
+            "influencer_1_3_7": {
+                "title": "Unstoppable Creativity",
+                "description": "Create 1,000 moments"
+            }
         },
-        "walkCloser": "Walk closer to the space to claim rewards."
-      }
-    },
-    "viewMoment": {
-      "buttons": {
-        "viewNearbySpace": "View Space?"
-      }
-    },
-    "editThought": {
-      "headerTitle": "Share a Thought"
-    },
-    "emailVerification": {
-      "buttons": {
-        "send": "Send E-mail"
-      },
-      "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
-      "failedMessageExpired": "Failed to verify your e-mail. Verification code has expired.",
-      "failedMessageAlreadyVerified": "Your e-mail is already verified. Log in to continue.",
-      "failedMessageVerificationResent": "A new verification code has been sent to {email}.",
-      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
-      "labels": {
-        "email": "E-mail"
-      },
-      "pageTitle": "Account Verification",
-      "headerTitle": "Account Verification",
-      "pageHeader": "Verify Email",
-      "returnToLogin": "Return to login page",
-      "successMessage": "Your!",
-      "successVerifiedMessage": "Your account has been verified. Log in to continue."
-    },
-    "exchangePointsDisclaimer": {
-      "headerTitle": "Therr Rewards",
-      "pageHeader": "Exchange Coins",
-      "pageHeaderHow": "How It Works",
-      "pageHeaderYourWallet": "Your Wallet",
-      "pageHeaderExchangeRate": "Exchange Rate",
-      "info": {
-        "earlyAccess": "Claim coins from local business offers and app achievements.",
-        "stepOne": "Complete achievements and local activities to earn coins.",
-        "stepTwo": "After you have at least ${minimum} in coins, you are eligible to exchange.",
-        "stepThree": "Click 'Exchange Now' below and you will receive an eGift Card to your account e-mail within 24-72 hours.",
-        "stepFour": "More reward options coming soon!"
-      },
-      "labels": {
-        "coinsSuffix": "{total} TherrCoin",
-        "dollarsPrefix": "~${total}",
-        "exchangeRatePrefix": "1 Coin = ${exchangeRate}"
-      },
-      "alertTitles": {
-        "requestSent": "Successfully Sent!",
-        "requestFailed": "Oops Something Went Wrong"
-      },
-      "alertMessages": {
-        "requestSent": "Your request has been sent. Please allow a few days for a response.",
-        "requestFailed": "Please try again later."
-      }
-    },
-    "forgotPassword": {
-      "headerTitle": "Password Reset",
-      "instructions": "Enter your account e-mail below, and we'll send you a temporary password.",
-      "pageHeader": "Forgot Your Password?"
-    },
-    "home": {
-      "headerTitle": "Home",
-      "pageTitle": "Home"
-    },
-    "landing": {
-      "background": {
-        "shareYourInterests": "Share Your Interests",
-        "inviteFriends": "Invite Your Friends",
-        "getMatched": "Match with people & places for your next hangout"
-      },
-      "headerTitle": "Welcome",
-      "buttons": {
-        "continue": "Continue",
-        "next": "Next",
-        "getStarted": "Get Started",
-        "signIn": "Sign In"
-      },
-      "carousel": {
-        "discoverTitle": "Discover Content",
-        "discoverDescription": "on the move, find hidden gems, and plan hangouts",
-        "momentTitle": "Share Moments",
-        "momentDescription": "with friends or earn bonus points as a local influencer",
-        "claimTitle": "Claim Rewards",
-        "claimDescription": "by checking in at local businesses, posting content, or leaving a review"
-      }
-    },
-    "login": {
-      "headerTitle": "Therr",
-      "pageTitle": "Welcome",
-      "pageSubtitle": "Sign in to Therr to see what you missed",
-      "userAlerts": {
-        "registerSuccess": "Registration success! Check your e-mail for verification."
-      }
-    },
-    "map": {
-      "headerTitle": " ",
-      "areaAlerts": {
-        "enableEventLocation": "Enable location to create an event",
-        "enableSpaceLocation": "Enable location to claim a space",
-        "requestSpaceLocation": "Enable location to suggest a space",
-        "enableMomentLocation": "Enable location to create a moment",
-        "tooManyCheckIns": "Too Many Check-Ins: Try again later",
-        "unknownError": "Oops! Something went wrong. Try again later",
-        "ownSpaceCheckIn": "Cannot check in to own spaces",
-        "lowFunds": "Business owner has insufficient funds. We will contact them to request refill",
-        "walkCloser": "Some content is location activated. Enable location and travel to unlock this post."
-      },
-      "bottomSheet": {
-        "noResults": "No Results"
-      },
-      "filterButtons": {
-        "all": "All",
-        "people": "People",
-        "places": "Places",
-        "events": "Events",
-        "music": "Music"
-      }
-    },
-    "mapFilteredSearch": {
-      "headerTitle": "Map Search Filters",
-      "h2": {
-        "authorFilters": "Author Filters",
-        "visibilityFilters": "Visibility Filters",
-        "categoryFilters": "Category Filters"
-      },
-      "labels": {
-        "public": "Public",
-        "private": "Private",
-        "events": "Events",
-        "moments": "Moments",
-        "spaces": "Spaces",
-        "showAll": "Show All Categories",
-        "selectAll": "Select All",
-        "unSelectAll": "Unselect All",
-        "uncategorized": "Uncategorized",
-        "me": "My Posts",
-        "notMe": "Not My Posts"
-      }
-    },
-    "myDrafts": {
-      "headerTitle": "My Drafts",
-      "noDraftsFound": "No drafts found. Save an in-progress post as a draft to edit later."
-    },
-    "nearby": {
-      "headerTitle": "Local Community & Rewards App",
-      "locationDescription1": "See posts from nearby users in the local community where you currently are.",
-      "locationDescription2": "Use the awareness and influence sliders to control content distance and your own visibility.",
-      "locationDescription3": "Enable location services to activate this feature."
-    },
-    "notifications": {
-      "headerTitle": "Notifications",
-      "pageTitle": "Notifications",
-      "noNotifications": "You have no notifications at this time"
-    },
-    "pageNotFound": {
-      "pageTitle": "Page Not Found"
-    },
-    "phoneContacts": {
-      "headerTitle": "Phone Contacts",
-      "pageTitle": "Phone Contacts",
-      "alertTitles": {
-        "contactInvitesSent": "Invite Success"
-      },
-      "alertMessages": {
-        "contactInvitesSent": "Your invites are on the way"
-      }
-    },
-    "register": {
-      "headerTitle": "Therr",
-      "pageTitle": "Sign Up",
-      "pageSubtitle": "Create a profile and see what you are missing or view the",
-      "pageSubtitleMapPreviewLink": "public map",
-      "passwordRequirements1": "Contains a mixture of letters and numbers",
-      "passwordRequirements2": "At least one capital letter",
-      "passwordRequirements3": "At least one special character !@#$%^&*",
-      "passwordRequirements4": "At least 8 characters"
-    },
-    "settings": {
-      "headerTitle": "Settings",
-      "pageHeaderDisplaySettings": "Display",
-      "pageHeaderRewardsSettings": "Therr Rewards",
-      "pageHeaderPrivacySettings": "Privacy Settings",
-      "pageHeaderUser": "User Profile",
-      "pageHeaderPassword": "Update Password",
-      "pageHeaderAdvancedSettings": "Advanced Settings",
-      "pageHeaderContentSettings": "Content Settings",
-      "pageHeaderNotificationSettings": "Emails & Alert Settings",
-      "labels": {
-        "nightMode": "Night Mode?",
-        "enableRewards": "Opt-In?",
-        "isPublic": "Public Profile?"
-      },
-      "alertTitles": {
-        "accountUpdated": "Account Updated",
-        "backendErrorMessage": "Oops! Something went wrong.",
-        "insecurePassword": "Insecure Password" 
-      },
-      "alertMessages": {
-        "accountUpdated": "Successfully updated."
-      }
-    },
-    "socialSync": {
-      "headerTitle": "Social Sync",
-      "pageHeaderSyncList": "Sync Your Social Accounts",
-      "description": "...and get recommended to local businesses for collaboration and partnerships",
-      "buttons": {
-        "personalAccount": "Log in With Instagram",
-        "businessAccount": "Log in With Facebook"
-      },
-      "labels": {
-        "creatorAccount": "Creator",
-        "personalAccount": "Personal",
-        "businessAccount": "Business"
-      },
-      "modals": {
-        "accountTypeModalTitle": "Instagram Account Type"
-      }
-    },
-    "template": {
-      "pageTitle": "Template",
-      "helloTemplate": "Hello, Template!"
-    },
-    "userProfile": {
-      "anonymous": "Anonymous",
-      "buttons": {
-        "createAForum": "Create a Forum",
-        "sendRequest": "Send Request",
-        "send": "Send"
-      },
-      "connectionSent": "You connection request is on the way!",
-      "h2": {
-        "accountDetails": "Account Details",
-        "connections": "Connections",
-        "createConnection": "Create a Connection",
-        "quoteOfTheDay": "Daily Words of Wisdom",
-        "howItWorks": "Welcome back!",
-        "shareFeedback": "Share Feedback"
-      },
-      "subtitles": {
-        "createConnection": "Send a connection request or invite someone to join Therr!",
-        "whoInviteDisclaimer": "Choose who and how you would like to invite."
-      },
-      "labels": {
-        "email": "E-mail",
-        "firstName": "Firstname",
-        "feedbackPlaceholder": "Tell us what you love or hate about the app...",
-        "lastName": "Lastname",
-        "phone": "Phone",
-        "phoneNumber": "Phone Number",
-        "userName": "Username"
-      },
-      "pageTitle": "User Profile",
-      "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
-      "siteDescription2": "So how does it work?",
-      "siteDescription3": "Content on the map is proximity activated. Share a moment with your connections on the map. Discover spaces nearby, and claim TherrCoins for actions (posting, reviewing, visiting, etc).",
-      "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby. Just tap anywhere on the map to start exploring.",
-      "noActiveConnections": "There are currently no active connections in your network",
-      "requestRecommendation": "Send a request to make connections and build a network",
-      "validationErrors": {
-        "phoneNumber": "Invalid phone number"
-      },
-      "messages": {
-        "error": "An error occured while trying to send your feedback. Please try again later.",
-        "success": "Your feedback has been received. Thank you!"
-      }
-    },
-    "viewUser": {
-      "headerTitle": "View User"
-    },
-    "viewThought": {
-      "headerTitle": "Thoughts"
-    },
-    "habits": {
-      "headerTitle": "My Habits",
-      "detailTitle": "Habit Details",
-      "greetingMorning": "Good morning!",
-      "greetingAfternoon": "Good afternoon!",
-      "greetingEvening": "Good evening!",
-      "dashboardSubtitle": "Track your daily habits",
-      "yourHabits": "Your Habits",
-      "todayProgress": "Today",
-      "bestStreak": "Best Streak",
-      "currentStreak": "Current Streak",
-      "longestStreak": "Longest Streak",
-      "graceDays": "Grace Days Left",
-      "stats": "Statistics",
-      "checkin": "Check In",
-      "completed": "Completed!",
-      "noHabitsTitle": "No habits yet",
-      "noHabitsSubtitle": "Create a habit to start tracking your progress",
-      "habitNotFound": "Habit not found"
-    },
-    "pacts": {
-      "headerTitle": "My Pacts",
-      "detailTitle": "Pact Details",
-      "title": "Accountability Pacts",
-      "subtitle": "Stay accountable with friends",
-      "defaultTitle": "Habit Pact",
-      "you": "You",
-      "comparison": "Progress Comparison",
-      "timeline": "Timeline",
-      "accept": "Accept Pact",
-      "decline": "Decline",
-      "abandon": "Abandon Pact",
-      "noPactsTitle": "No pacts yet",
-      "noPactsSubtitle": "Create a pact with a friend to stay accountable",
-      "pactNotFound": "Pact not found",
-      "acceptedTitle": "Pact Accepted!",
-      "acceptedMessage": "You have joined this accountability pact",
-      "successTitle": "Success",
-      "declinedMessage": "You have declined this pact",
-      "abandonedMessage": "You have left this pact",
-      "errorTitle": "Error",
-      "acceptError": "Failed to accept pact. Please try again.",
-      "declineError": "Failed to decline pact. Please try again.",
-      "abandonError": "Failed to abandon pact. Please try again.",
-      "confirmDecline": "Are you sure you want to decline this pact invitation?",
-      "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
-      "onboarding": {
-        "title": "Find Your Accountability Partner",
-        "subtitle": "Habits stick better when you have someone to keep you accountable. Create or join a pact to get started.",
-        "createPact": "Create a Pact",
-        "viewInvites": "View {count} Pending Invite(s)",
-        "findPartner": "Find a Partner",
-        "whyPacts": "Why accountability partners work:",
-        "benefit1": "2x more likely to achieve your goals",
-        "benefit2": "Daily check-ins keep you motivated",
-        "benefit3": "Celebrate milestones together"
-      }
+        "profile": {
+            "actions": {
+                "block": "Block This User?",
+                "connect": "Add Connection",
+                "message": "Send Message",
+                "pendingConnection": "Request Pending",
+                "report": "Report This User?",
+                "syncSocials": "Sync Socials",
+                "shareALink": "Copy Profile Link",
+                "unconnect": "Remove Connection?"
+            },
+            "buttons": {
+                "editProfile": "Edit Profile",
+                "syncSocials": "Sync Socials",
+                "message": "Message"
+            },
+            "labels": {
+                "connections": "connections",
+                "noBioYet": "This user has not updated their bio yet.",
+                "profileIsPublicName": "Profile is Private"
+            },
+            "text": {
+                "noMedia": "No media to display. Users can sync their socials to showcase their best content creations.",
+                "noMeMoments": "No moments to display. You can create moments from the map.",
+                "noMoments": "No moments to display. Travel where they travel to activate nearby moments.",
+                "noMeThoughts": "No thoughts to display. You can create thoughts from the 'Discovered' page.",
+                "noThoughts": "This user has not shared any thoughts yet."
+            }
+        }
     }
-  },
-  "modals": {
-    "confirmModal": {
-      "agree": "Agree",
-      "confirm": "Yes",
-      "checkIn": "Check In",
-      "continue": "Continue",
-      "cancel": "Cancel",
-      "notNow": "Not Now",
-      "blockUser": "Are you sure you want to block {userName}?",
-      "connect": "Send connection request to {userName}?",
-      "reportUser": "Are you sure you want to report {userName}?",
-      "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
-      "header": {
-        "checkIn": "Check In",
-        "claimSpace": "Claim a Space",
-        "requestSpace": "Request a Space",
-        "eula": "End-User License Agreement (EULA)"
-      },
-      "body": {
-        "checkIn": "Check in at a local business to earn rewards:",
-        "checkInVisiting": "{spaceName}",
-        "claimSpace": "Spaces are public business locations. Claiming a space on the map allows you to declare location ownership, incentivize customer loyalty, and moderate content.",
-        "requestSpace": "Request a public business space and earn points per request! We'll connect with the owner to add it to the map so they can start offering loyalty rewards."
-      }
-    },
-    "contentOptions": {
-      "buttons": {
-        "getDirections": "Get Directions",
-        "superLike": "'Super-Like' this",
-        "delete": "Delete?",
-        "dislike": "'Dislike' this",
-        "superDislike": "'Super-Dislike' this",
-        "report": "Report this content...",
-        "shareALink": "Share a Link"
-      },
-      "shareLink": {
-        "message": "You can find this location on Therr App: https://www.therr.com/spaces/{spaceId}",
-        "messageEvent": "You can find this event on Therr App: https://www.therr.com/events/{eventId}",
-        "messageMoment": "You can find this moment on Therr App: https://www.therr.com/moments/{momentId}",
-        "title": "{spaceTitle} | Therr App",
-        "titleEvent": "{eventTitle} | Therr App",
-        "titleMoment": "{momentTitle} | Therr App",
-        "titleUser": "{userName} | Therr App"
-      }
-    },
-    "deleteAccountModal": {
-      "exit": "Exit",
-      "cancel": "Cancel",
-      "confirm": "Confirm",
-      "continue": "Continue",
-      "deactivate": "Deactivate",
-      "delete": "Delete",
-      "close": "Close",
-      "back": "Back",
-      "header1": "Delete Account?",
-      "header2": "Deactivate Account?",
-      "header3": "Confirm Permanent Deletion",
-      "deleteAccountMessage": "Deleting your account is permanent and cannot be undone.",
-      "deactivateAccountMessage": "Would you like to deactivate your account instead? Your profile and content will no longer be searchable, but you can reactivate your account at any time.",
-      "confirmDelete": "Please confirm that you would like to permanently delete your account. You will be logged out immediately and your account will be deleted."
-    },
-    "infoModalPoints": {
-      "header": "What are coins?",
-      "description": "Click 'Exchange' from the main menu to exchange coins for gift cards. In a future iteration of the app, coins will be exchangable for cash or cryptocurrency. Opt in to nearby notifications, and start earning coins through various activities like sharing a 'moment' at a participating business, inviting friends, and earning achievements. Or, opt out and enjoy the app ad-free!",
-      "done": "close"
-    },
-    "touringModal": {
-      "exit": "Exit",
-      "close": "Close",
-      "back": "Back",
-      "next": "Next",
-      "done": "Done",
-      "header1": "Welcome: Earn Rewards",
-      "header2": "Welcome: Create a Moment",
-      "header3": "Welcome: Explore the World",
-      "header4": "Welcome: Find Friends",
-      "header5": "Welcome: Match Up",
-      "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first interactions.",
-      "createAMoment2": "Too in the moment? Drop a pin and edit your post later.",
-      "claimYourSpaces": "Businesses and promoters can claim spaces on the map and offer rewards. Visit a space to earn rewards, then exchange coins/points for cash!",
-      "claimYourSpaces2": "Support local business and share the love.",
-      "exploreTheWorld": "Start discovering content by enabling location and walking around. Content nearby gets prioritized and activated. The 'Discovered' page shows all activated content.",
-      "exploreTheWorld2": "Let travel be your algorithm. You decide.",
-      "findFriends": "We'll send you invites to curated social activities each week! Wherever you go, get matched with the best hangout spots nearby and the friends with the most common interests.",
-      "findFriends2": "Find your vibe! Organize connections by 'close friends', 'family', 'acquaintances', etc.",
-      "matchUp": "Therr app matches you with current friends and potential new friends. We recommend curated social activities based on your interests and nearby restaurants/businesses.",
-      "matchUp2": "“Can't start a fire without a spark”"
-    },
-    "touringNavigationModal": {
-      "done": "Done",
-      "exit": "Exit",
-      "next": "Next",
-      "previous": "Previous",
-      "headers": {
-        "create": "Create 🎨",
-        "connect": "Connect 🌐",
-        "discovered": "Discovered 🏞️",
-        "gps": "Location 📍",
-        "map": "Map 🌎",
-        "matchUp": "Match Up 🔥",
-        "menu": "Menu 💬"
-      },
-      "tips": {
-        "create1": "Click to toggle 'create actions'. These content types require geo-location to encourage local-first engagement.",
-        "create2": "A 'space' is a business such as a restaurant, and a 'moment' is for user generated content.",
-        "connect": "Invite friends, create or join groups, and view your connections list.",
-        "discovered": "Activated 'moments' show up in the discovered list along with global 'thoughts' and local events. Go here to post a thought or schedule events.",
-        "gps": "Press to enable location. This allows you to start activating local content. Discover local food, fun, and upcoming events.",
-        "map": "Tap anywhere on the map for a list of nearby spaces. Some spaces offer rewards for check-ins, posting a moment, leaving a review, etc.",
-        "matchUp": "Press the 'match up' button to generate social outings. We match you with nearby friends and suggest local spaces.",
-        "menu": "Open the menu to track your achievements and exchange points for cash rewards. Find other quicklinks like messages, drafts, and account settings."
-      }
-    }
-  },
-  "permissions": {
-    "accessFineLocation": {
-      "title": "Therr Mobile",
-      "message": "Allow Therr to acces this device's location?",
-      "buttonNeutral": "Only this time",
-      "buttonNegative": "Deny",
-      "buttonPositive": "While using the app"
-    },
-    "locationGps": {
-      "header": "User Location?",
-      "description1": "This app wants to change your device settings: Use GPS, Wi-Fi, and cell network for location",
-      "description2": "This app collects location data in the background to enable content discovery by proximity and to send related notifications. Location is required in the foreground to enable content posting and prevent location spoofing.",
-      "link": "Learn more",
-      "no": "NO",
-      "yes": "YES",
-      "close": "Close"
-    }
-  },
-  "validations": {
-    "email": "Invalid email address",
-    "isRequired": "This is a required field",
-    "lettersOnly": "Input only accepts alphabetic values",
-    "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
-    "numbersOnly": "Input only accepts numeric values"
-  },
-  "user": {
-    "achievements": {
-      "explorer_1_1": {
-        "title": "Explore",
-        "description": "Activate 10 Moments"
-      },
-      "explorer_1_1_1": {
-        "title": "Discover",
-        "description": "Activate 100 Moments"
-      },
-      "explorer_1_1_2": {
-        "title": "Gather",
-        "description": "Activate 500 Moments"
-      },
-      "explorer_1_1_3": {
-        "title": "Branch Out",
-        "description": "Activate 1,000 Moments"
-      },
-      "explorer_1_1_4": {
-        "title": "New Perspectives",
-        "description": "Activate 2,500 Moments"
-      },
-      "explorer_1_1_5": {
-        "title": "The Great Expansion",
-        "description": "Activate 5,000 Moments"
-      },
-      "explorer_1_1_6": {
-        "title": "Explore the World",
-        "description": "Activate 10,000 Moments"
-      },
-      "explorer_1_2": {
-        "title": "New Discoveries",
-        "description": "Discover 5 Moment Categories"
-      },
-      "explorer_1_2_1": {
-        "title": "Diversity of Mind",
-        "description": "Discover 5 Moment Categories"
-      },
-      "explorer_1_3": {
-        "title": "Network",
-        "description": "Activate 5 Spaces"
-      },
-      "explorer_1_3_1": {
-        "title": "Network Developer",
-        "description": "Activate 15 Spaces"
-      },
-      "explorer_1_3_2": {
-        "title": "Network Expansion",
-        "description": "Activate 50 Spaces"
-      },
-      "explorer_1_3_3": {
-        "title": "Networking Leader",
-        "description": "Activate 100 Spaces"
-      },
-      "explorer_1_3_4": {
-        "title": "Space Wizard",
-        "description": "Activate 500 Spaces"
-      },
-      "explorer_1_4": {
-        "title": "Eventful",
-        "description": "Activate 1 Event"
-      },
-      "explorer_1_4_1": {
-        "title": "Face in the Crowd",
-        "description": "Activate 3 Events"
-      },
-      "explorer_1_4_2": {
-        "title": "Have we met?",
-        "description": "Activate 10 Events"
-      },
-      "explorer_1_4_3": {
-        "title": "Right Place, Right Time",
-        "description": "Activate 100 Events"
-      },
-      "explorer_1_4_4": {
-        "title": "See You Therr",
-        "description": "Activate 250 Events"
-      },
-      "influencer_1_1": {
-        "title": "Likable",
-        "description": "Get 5 likes"
-      },
-      "influencer_1_1_1": {
-        "title": "Very Likable",
-        "description": "Get 20 likes"
-      },
-      "influencer_1_1_2": {
-        "title": "Intriguing",
-        "description": "Get 50 likes"
-      },
-      "influencer_1_1_3": {
-        "title": "Too Cool",
-        "description": "Get 100 likes"
-      },
-      "influencer_1_1_4": {
-        "title": "So Very Likable",
-        "description": "Get 500 likes"
-      },
-      "influencer_1_1_5": {
-        "title": "Regally Liked",
-        "description": "Get 2,500 likes"
-      },
-      "influencer_1_2": {
-        "title": "Super Liked",
-        "description": "Get 1 superlike on a post"
-      },
-      "influencer_1_2_1": {
-        "title": "Super Creative",
-        "description": "Get 5 superlike"
-      },
-      "influencer_1_2_2": {
-        "title": "Super Influencer",
-        "description": "Get 15 superlike"
-      },
-      "influencer_1_2_3": {
-        "title": "Superhuman",
-        "description": "Get 50 superlike"
-      },
-      "influencer_1_3": {
-        "title": "Creator",
-        "description": "Create 1 moment"
-      },
-      "influencer_1_3_1": {
-        "title": "Content Creator",
-        "description": "Create 5 moments"
-      },
-      "influencer_1_3_2": {
-        "title": "In the Moment",
-        "description": "Create 10 moments"
-      },
-      "influencer_1_3_3": {
-        "title": "Expressive",
-        "description": "Create 50 moments"
-      },
-      "influencer_1_3_4": {
-        "title": "Magic Maker",
-        "description": "Create 100 moments"
-      },
-      "influencer_1_3_5": {
-        "title": "Professional Creator",
-        "description": "Create 250 moments"
-      },
-      "influencer_1_3_6": {
-        "title": "Sage Creator",
-        "description": "Create 500 moments"
-      },
-      "influencer_1_3_7": {
-        "title": "Unstoppable Creativity",
-        "description": "Create 1,000 moments"
-      }
-    },
-    "profile": {
-      "actions": {
-        "block": "Block This User?",
-        "connect": "Add Connection",
-        "message": "Send Message",
-        "pendingConnection": "Request Pending",
-        "report": "Report This User?",
-        "syncSocials": "Sync Socials",
-        "shareALink": "Copy Profile Link",
-        "unconnect": "Remove Connection?"
-      },
-      "buttons": {
-        "editProfile": "Edit Profile",
-        "syncSocials": "Sync Socials",
-        "message": "Message"
-      },
-      "labels": {
-        "connections": "connections",
-        "noBioYet": "This user has not updated their bio yet.",
-        "profileIsPublicName": "Profile is Private"
-      },
-      "text": {
-        "noMedia": "No media to display. Users can sync their socials to showcase their best content creations.",
-        "noMeMoments": "No moments to display. You can create moments from the map.",
-        "noMoments": "No moments to display. Travel where they travel to activate nearby moments.",
-        "noMeThoughts": "No thoughts to display. You can create thoughts from the 'Discovered' page.",
-        "noThoughts": "This user has not shared any thoughts yet."
-      }
-    }
-  }
 }

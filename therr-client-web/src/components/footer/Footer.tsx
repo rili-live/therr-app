@@ -1,18 +1,18 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
+import { Text } from '@mantine/core';
 import {
     AccessControl,
     SvgButton,
 } from 'therr-react/components';
-import { AccessCheckType, IUserState } from 'therr-react/types';
+import { AccessCheckType, IUserState, IMessagesState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';
-import translator from '../../services/translator';
 import { INavMenuContext } from '../../types';
+import withTranslation from '../../wrappers/withTranslation';
 import UsersActions from '../../redux/actions/UsersActions';
 
 interface IFooterDispatchProps {
@@ -20,6 +20,7 @@ interface IFooterDispatchProps {
 }
 
 interface IStoreProps extends IFooterDispatchProps {
+    messages: IMessagesState;
     user: IUserState;
 }
 
@@ -31,15 +32,18 @@ interface IFooterProps extends IStoreProps {
     goHome: Function;
     goTo: Function;
     isAuthorized: boolean;
-    isMessagingOpen: boolean;
     isMsgContainerOpen: boolean;
     messagingContext: IMessagingContext;
+    onInitMessaging: Function;
     toggleNavMenu: Function;
     toggleMessaging: Function;
     isLandingStylePage?: boolean;
+    locale: string;
+    translate: (key: string, params?: any) => string;
 }
 
 const mapStateToProps = (state: any) => ({
+    messages: state.messages,
     user: state.user,
 });
 
@@ -48,13 +52,10 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class FooterComponent extends React.Component<IFooterProps, IFooterState> {
-    private translate: any;
-
     constructor(props) {
         super(props);
 
         this.state = {};
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     handleLogout = () => {
@@ -66,18 +67,22 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
 
     // eslint-disable-next-line class-methods-use-this
     handleInfoClick = () => {
-        window.open('https://www.therr.app/', '_blank');
+        const { locale } = this.props;
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const localePath = localePrefixMap[locale] || '';
+        window.open(`https://www.therr.app${localePath}/`, '_blank');
     };
 
     render() {
         const {
             goHome,
             goTo,
+            messages,
             toggleNavMenu,
             isAuthorized,
             isMsgContainerOpen,
-            isMessagingOpen,
             messagingContext,
+            onInitMessaging,
             toggleMessaging,
             user,
             isLandingStylePage,
@@ -88,38 +93,60 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
 
         return (
             <footer className={headerClassNames}>
+                <AccessControl isAuthorized={UsersService.isAuthorized({
+                    type: AccessCheckType.ALL,
+                    levels: [AccessLevels.EMAIL_VERIFIED],
+                }, user)}>
+                    <MessagingContainer
+                        isMsgContainerOpen={isMsgContainerOpen}
+                        messagingContext={messagingContext}
+                        onInitMessaging={onInitMessaging}
+                        toggleMessaging={toggleMessaging}
+                    />
+                </AccessControl>
                 <div className="footer-menu-item">
                     <AccessControl isAuthorized={UsersService.isAuthorized({
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
-                    }, user)}>
-                        <MessagingContainer
-                            isMessagingOpen={isMessagingOpen}
-                            isMsgContainerOpen={isMsgContainerOpen}
-                            messagingContext={messagingContext}
-                            toggleMessaging={toggleMessaging}
-                        />
-                    </AccessControl>
-                    <AccessControl isAuthorized={UsersService.isAuthorized({
-                        type: AccessCheckType.ALL,
-                        levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)} publicOnly>
-                        <SvgButton
-                            id="footer_info"
-                            name="info"
-                            className="info-button"
-                            onClick={this.handleInfoClick}
-                            buttonType="primary"
-                            aria-label="Open Therr App landing page and info"
-                        />
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
+                            <SvgButton
+                                id="footer_info"
+                                name="info"
+                                className="info-button"
+                                onClick={this.handleInfoClick}
+                                buttonType="primary"
+                                aria-label="Open Therr App landing page and info"
+                            />
+                            <Text size="xs" className="footer-nav-label">
+                                {this.props.translate('components.footer.labels.info')}
+                            </Text>
+                        </div>
                     </AccessControl>
                 </div>
                 <div className="footer-menu-item">
                     <AccessControl isAuthorized={isAuthorized}>
-                        <SvgButton id="footer_home" name="dashboard" className="home-button" onClick={goHome} buttonType="primary" aria-label="Go home" />
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
+                            <SvgButton
+                                id="footer_home"
+                                name="dashboard"
+                                className="home-button"
+                                onClick={() => goTo('/discovered')}
+                                buttonType="primary"
+                                aria-label="Discovered"
+                            />
+                            <Text size="xs" className="footer-nav-label">
+                                {this.props.translate('components.footer.labels.discovered')}
+                            </Text>
+                        </div>
                     </AccessControl>
                     <AccessControl publicOnly={true} isAuthorized={isAuthorized}>
-                        <SvgButton id="footer_home" name="home" className="home-button" onClick={goHome} buttonType="primary" aria-label="Go home" />
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
+                            <SvgButton id="footer_home" name="home" className="home-button" onClick={goHome} buttonType="primary" aria-label="Go home" />
+                            <Text size="xs" className="footer-nav-label">
+                                {this.props.translate('components.footer.labels.home')}
+                            </Text>
+                        </div>
                     </AccessControl>
                 </div>
                 <div className="footer-menu-item">
@@ -127,30 +154,54 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)}>
-                        <SvgButton
-                            id="footer_messages"
-                            name="messages"
-                            className="messages-button"
-                            onClick={(e) => toggleNavMenu(e, INavMenuContext.FOOTER_MESSAGES)}
-                            buttonType="primary"
-                            aria-label="Open Messages"
-                        />
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
+                            <SvgButton
+                                id="footer_messages"
+                                name="forum"
+                                className={`messages-button${messages?.hasUnreadDms ? ' has-unread-messages' : ''}`}
+                                onClick={(e) => toggleNavMenu(e, INavMenuContext.FOOTER_MESSAGES)}
+                                buttonType="primary"
+                                aria-label="Open Groups"
+                            />
+                            <Text size="xs" className="footer-nav-label">
+                                {this.props.translate('components.footer.labels.messages')}
+                            </Text>
+                        </div>
                     </AccessControl>
                     <AccessControl isAuthorized={UsersService.isAuthorized({
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)} publicOnly>
-                        <div className="locations-link flex-box row center align-center">
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
                             <SvgButton
                                 id="footer_locations_icon"
-                                name="world"
+                                name="location"
+                                className="locations-button"
                                 onClick={() => goTo('/locations')}
                                 buttonType="primary"
                                 aria-label="View business locations on Therr App"
                             />
-                            <Link aria-label="View business locations on Therr App" to="/locations">
-                                {this.translate('components.footer.buttons.locations')}
-                            </Link>
+                            <Text size="xs" className="footer-nav-label">
+                                {this.props.translate('components.footer.labels.locations')}
+                            </Text>
+                        </div>
+                    </AccessControl>
+                    <AccessControl isAuthorized={UsersService.isAuthorized({
+                        type: AccessCheckType.ALL,
+                        levels: [AccessLevels.EMAIL_VERIFIED],
+                    }, user)}>
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
+                            <SvgButton
+                                id="footer_explore"
+                                name="world"
+                                className="explore-button"
+                                onClick={() => goTo('/explore')}
+                                buttonType="primary"
+                                aria-label="Explore content"
+                            />
+                            <Text size="xs" className="footer-nav-label">
+                                {this.props.translate('components.footer.labels.explore')}
+                            </Text>
                         </div>
                     </AccessControl>
                 </div>
@@ -159,4 +210,4 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(FooterComponent);
+export default withTranslation(connect(mapStateToProps, mapDispatchToProps)(FooterComponent));

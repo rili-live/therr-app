@@ -62,6 +62,11 @@ const createActivity = (req, res) => {
         maxCommentsPerMin: group.maxCommentsPerMin || 50,
         doesExpire: group.doesExpire || true,
         isPublic: group.isPublic,
+        city: group.city,
+        region: group.region,
+        country: group.country,
+        localLatitude: group.localLatitude,
+        localLongitude: group.localLongitude,
     })
         .then(([dbForum]) => {
             forumId = dbForum.id;
@@ -136,6 +141,11 @@ const createForum = async (req, res) => {
         });
     }
 
+    const media: any = {};
+    if (req.body.media?.length) {
+        media.featuredImage = req.body.media[0]?.path;
+    }
+
     return Store.forums.createForum({
         authorId: userId,
         authorLocale: locale,
@@ -153,6 +163,12 @@ const createForum = async (req, res) => {
         maxCommentsPerMin: req.body.maxCommentsPerMin || 50,
         doesExpire: req.body.doesExpire || true,
         isPublic: req.body.isPublic || true,
+        media: JSON.stringify(media),
+        city: req.body.city,
+        region: req.body.region,
+        country: req.body.country,
+        localLatitude: req.body.localLatitude,
+        localLongitude: req.body.localLongitude,
     })
         .then(([forum]) => createUserForum(req.headers, forum.id).then((response) => {
             const userGroup = response.data;
@@ -174,6 +190,8 @@ const getForum = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
     const { forumId } = req.params;
+    const isAuthenticated = !!userId;
+
     if (!forumId || forumId === 'undefined' || forumId === 'null') {
         return handleHttpError({
             res,
@@ -202,33 +220,70 @@ const getForum = (req, res) => {
             groupIds: [forumId],
             withUser: true,
         },
-    }).then((response) => {
-        const events = response?.data?.results || [];
+    }).catch((err) => {
+        console.log('getForum: events fetch failed (may be missing auth for SSR)', err?.message); // eslint-disable-line no-console
+        return { data: { results: [] } };
+    })
+        .then((response) => {
+            const events = response?.data?.results || [];
 
-        return Store.forums.getForum(forumId)
-            .then((forums) => {
-                if (!forums?.length) {
-                    return handleHttpError({
-                        res,
-                        message: 'Forum not found',
-                        statusCode: 404,
+            return Store.forums.getForum(forumId)
+                .then((forums) => {
+                    if (!forums?.length) {
+                        return handleHttpError({
+                            res,
+                            message: 'Forum not found',
+                            statusCode: 404,
+                        });
+                    }
+
+                    const forum = forums[0];
+
+                    // For unauthenticated users viewing private groups, return minimal info
+                    if (!isAuthenticated && !forum.isPublic) {
+                        return res.status(202).send({
+                            id: forum.id,
+                            title: forum.title,
+                            isPublic: forum.isPublic,
+                        });
+                    }
+
+                    // Update forum to mark most recently updated/active
+                    Store.forums.updateForum({
+                        id: forum.id,
+                    }, {}).catch((err) => {
+                        console.log(err);
                     });
-                }
 
-                // Update forum to main most recently updated/active
-                Store.forums.updateForum({
-                    id: forums[0].id,
-                }, {}).catch((err) => {
-                    console.log(err);
-                });
+                    // For unauthenticated users, return public-safe fields only
+                    if (!isAuthenticated) {
+                        return res.status(202).send({
+                            id: forum.id,
+                            authorId: forum.authorId,
+                            title: forum.title,
+                            subtitle: forum.subtitle,
+                            description: forum.description,
+                            hashTags: forum.hashTags,
+                            categoryTags: forum.categoryTags,
+                            iconGroup: forum.iconGroup,
+                            iconId: forum.iconId,
+                            iconColor: forum.iconColor,
+                            isPublic: forum.isPublic,
+                            media: forum.media,
+                            featuredImage: forum.featuredImage,
+                            createdAt: forum.createdAt,
+                            updatedAt: forum.updatedAt,
+                            events,
+                        });
+                    }
 
-                return res.status(202).send({
-                    ...forums[0],
-                    events,
-                });
-            })
-            .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
-    });
+                    return res.status(202).send({
+                        ...forum,
+                        events,
+                    });
+                })
+                .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+        });
 };
 
 const findForums: RequestHandler = (req: any, res: any) => {
@@ -256,12 +311,45 @@ const searchForums: RequestHandler = (req: any, res: any) => {
         itemsPerPage,
         pageNumber,
     } = req.query;
+    const isAuthenticated = !!userId;
     const integerColumns = ['authorId'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
+
+    // For unauthenticated users, return only public forums without user/member enrichment
+    if (!isAuthenticated) {
+        return Store.forums.searchForums(searchArgs[0], searchArgs[1], {
+            usersInvitedForumIds: undefined,
+            categoryTags: req.body.categoryTags,
+            forumIds: req.body.forumIds,
+            nearbyCity: req.body.nearbyCity,
+            nearbyLatitude: req.body.nearbyLatitude,
+            nearbyLongitude: req.body.nearbyLongitude,
+            nearbyMaxDistanceKm: req.body.nearbyMaxDistanceKm,
+        }).then((results) => {
+            const response = {
+                results: results.map((result) => ({
+                    ...result,
+                    createdAt: moment(result.createdAt).format('M/D/YY, h:mma'),
+                })),
+                pagination: {
+                    totalItems: 100,
+                    itemsPerPage: Number(itemsPerPage),
+                    pageNumber: Number(pageNumber),
+                },
+            };
+
+            return res.status(200).send(response);
+        }).catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+    }
+
     const searchPromise = Store.forums.searchForums(searchArgs[0], searchArgs[1], {
         usersInvitedForumIds: req.body.usersInvitedForumIds,
         categoryTags: req.body.categoryTags,
         forumIds: req.body.forumIds,
+        nearbyCity: req.body.nearbyCity,
+        nearbyLatitude: req.body.nearbyLatitude,
+        nearbyLongitude: req.body.nearbyLongitude,
+        nearbyMaxDistanceKm: req.body.nearbyMaxDistanceKm,
     });
     // const countPromise = Store.forums.countRecords({
     //     filterBy,
@@ -280,6 +368,10 @@ const searchForums: RequestHandler = (req: any, res: any) => {
             usersInvitedForumIds: validGroupIds,
             categoryTags: req.body.categoryTags,
             forumIds: req.body.forumIds,
+            nearbyCity: req.body.nearbyCity,
+            nearbyLatitude: req.body.nearbyLatitude,
+            nearbyLongitude: req.body.nearbyLongitude,
+            nearbyMaxDistanceKm: req.body.nearbyMaxDistanceKm,
         });
 
         return Promise.all([searchPromise, userMemberGroupsPromise, countPromise]).then(([results, userMemberResults, countResult]) => {
@@ -367,10 +459,7 @@ const updateForum = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const { forumId } = req.params;
 
-    return Store.forums.updateForum({
-        id: forumId,
-        authorId: userId,
-    }, {
+    const updateParams: any = {
         administratorIds: req.body.administratorIds,
         title: req.body.title,
         subtitle: req.body.subtitle,
@@ -385,7 +474,21 @@ const updateForum = (req, res) => {
         maxCommentsPerMin: req.body.maxCommentsPerMin,
         doesExpire: req.body.doesExpire,
         isPublic: req.body.isPublic,
-    })
+        city: req.body.city,
+        region: req.body.region,
+        country: req.body.country,
+        localLatitude: req.body.localLatitude,
+        localLongitude: req.body.localLongitude,
+    };
+
+    if (req.body.media?.length) {
+        updateParams.media = JSON.stringify({ featuredImage: req.body.media[0]?.path });
+    }
+
+    return Store.forums.updateForum({
+        id: forumId,
+        authorId: userId,
+    }, updateParams)
         .then(([forum]) => res.status(202).send(forum))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
 };

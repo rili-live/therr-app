@@ -48,6 +48,7 @@ services:
         npm install &&
         echo '=== Building therr-styles ===' &&
         cd therr-public-library/therr-styles &&
+<<<<<<< HEAD
         npm install &&
         npm run build &&
         echo '=== Building therr-js-utilities ===' &&
@@ -57,6 +58,14 @@ services:
         echo '=== Building therr-react ===' &&
         cd ../therr-react &&
         npm install &&
+=======
+        npm run build &&
+        echo '=== Building therr-js-utilities ===' &&
+        cd ../therr-js-utilities &&
+        npm run build &&
+        echo '=== Building therr-react ===' &&
+        cd ../therr-react &&
+>>>>>>> origin/general
         npm run build &&
         echo '=== Libraries built successfully! ==='
       "
@@ -64,7 +73,11 @@ services:
       - NODE_ENV=development
 
   # ===========================================
+<<<<<<< HEAD
   # DATABASE MIGRATIONS (runs once)
+=======
+  # DATABASE MIGRATIONS & SEEDS (runs once)
+>>>>>>> origin/general
   # ===========================================
   db-migrations:
     build:
@@ -100,7 +113,26 @@ services:
         cd ../reactions-service &&
         npm install &&
         npm run migrations:run &&
+<<<<<<< HEAD
         echo '=== All migrations completed! ==='
+=======
+        echo '=== All migrations completed! ===' &&
+
+        echo '=== Running seed data ===' &&
+        cd /app/therr-services/users-service &&
+        npm run seeds:run &&
+        echo '--- users-service seeds done ---' &&
+        cd /app/therr-services/messages-service &&
+        npm run seeds:run &&
+        echo '--- messages-service seeds done ---' &&
+        cd /app/therr-services/maps-service &&
+        npm run seeds:run &&
+        echo '--- maps-service seeds done ---' &&
+        cd /app/therr-services/reactions-service &&
+        npm run seeds:run &&
+        echo '--- reactions-service seeds done ---' &&
+        echo '=== All seeds completed! ==='
+>>>>>>> origin/general
       "
 
   # ===========================================

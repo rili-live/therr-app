@@ -2,10 +2,11 @@
 import sendEmail from './sendEmail';
 import * as globalConfig from '../../../../../global-config';
 import { getHostContext } from '../../constants/hostContext';
+import translate from '../../utilities/translator';
 
 export interface ISendOneTimePasswordConfig {
     charset?: string;
-    subject: string;
+    locale?: string;
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
@@ -16,23 +17,24 @@ export interface ITemplateParams {
     oneTimePassword: string;
 }
 
-// TODO: Localize email
 export default (emailParams: ISendOneTimePasswordConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
     const linkUrl = isDashboardRegistration
         ? `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`
         : `${globalConfig[process.env.NODE_ENV].hostFull}/login`;
     const htmlConfig = {
-        header: `${contextConfig.brandName}: One-time Password`,
-        dearUser: `Hi ${templateParams.name},`,
-        body1: 'Looks like you forgot your password and requested a reset. Use this temporary password to access your account. After login, you can reset your password from the user settings page.',
-        body2: 'Your temporary, one time password:',
+        header: translate(locale, 'emails.oneTimePassword.header', { brandName: contextConfig.brandName }),
+        dearUser: translate(locale, 'emails.oneTimePassword.dearUser', { name: templateParams.name }),
+        body1: translate(locale, 'emails.oneTimePassword.body1'),
+        body2: translate(locale, 'emails.oneTimePassword.body2'),
         bodyBold: templateParams.oneTimePassword,
         buttonHref: linkUrl,
-        buttonText: 'Go to Login',
+        buttonText: translate(locale, 'emails.oneTimePassword.buttonText'),
     };
 
     return sendEmail({
         ...emailParams,
+        subject: translate(locale, 'emails.oneTimePassword.subject', { brandShortName: contextConfig.brandShortName }),
     }, htmlConfig);
 };

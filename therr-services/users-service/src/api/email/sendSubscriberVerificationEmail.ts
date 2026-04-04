@@ -2,9 +2,11 @@
 import sendEmail from './sendEmail';
 // import * as globalConfig from '../../../../../global-config';
 import { getHostContext } from '../../constants/hostContext';
+import translate from '../../utilities/translator';
 
 export interface ISendSubscriberVerificationEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -17,14 +19,14 @@ interface ITemplateParams {
 
 // export interface ITemplateParams {}
 
-// TODO: Localize email
 export default (emailParams: ISendSubscriberVerificationEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const htmlConfig = {
-        header: `${contextConfig.brandName}: Subscribed to Updates`,
-        dearUser: 'Welcome!',
-        body1: 'You were successfully subscribed to our general updates channel. We\'ll only send updates for big events to keep you in the loop. If don\'t have the app yet, get the early release on Google Play or the Apple App Store.',
+        header: translate(locale, 'emails.subscriberVerification.header', { brandName: contextConfig.brandName }),
+        dearUser: translate(locale, 'emails.subscriberVerification.dearUser'),
+        body1: translate(locale, 'emails.subscriberVerification.body1', { brandName: contextConfig.brandName }),
         fromEmailTitle: `${contextConfig.brandName} Newsletter`,
     };
 

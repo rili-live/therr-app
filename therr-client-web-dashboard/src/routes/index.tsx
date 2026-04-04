@@ -27,12 +27,12 @@ import PaymentComplete from './PaymentComplete';
 import CampaignPerformance from './Campaigns/CampaignPerformance';
 import EmailPreferences from './EmailPreferences';
 
-export interface IRoute extends RouteObject {
+export type IRoute = RouteObject & {
     access?: IAccess;
     fetchData?: Function;
     // Overriding this property allows us to add custom paramaters to React components
     redirectPath?: string;
-}
+};
 
 export interface IRoutePropsConfig {
     onInitMessaging?: any;
@@ -312,5 +312,19 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <PageNotFound />,
     },
 ];
+
+// Route path constants used by data/pages.js and other template files
+export const Routes = {
+    DashboardOverview: { path: '/dashboard' },
+    Transactions: { path: '/transactions' },
+    Settings: { path: '/settings' },
+    Signin: { path: '/login' },
+    Signup: { path: '/register' },
+    Lock: { path: '/lock' },
+    ForgotPassword: { path: '/forgot-password' },
+    ResetPassword: { path: '/reset-password' },
+    NotFound: { path: '/404' },
+    ServerError: { path: '/500' },
+};
 
 export default getRoutes;

@@ -1,14 +1,17 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
+const postcssPresetMantine = require('postcss-preset-mantine');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require('terser-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
+const zlib = require('zlib');
 
 exports.analyzeBundle = (config = {}) => ({
     plugins: [new BundleAnalyzerPlugin(Object.assign({
@@ -123,6 +126,7 @@ exports.loadCSS = (paths, env, dontHash) => {
                             options: {
                                 postcssOptions: {
                                     plugins: [
+                                        postcssPresetMantine(),
                                         autoprefixer(),
                                     ],
                                 },
@@ -181,27 +185,22 @@ exports.generateSourcemaps = type => ({
     devtool: type,
 });
 
-exports.minifyCss = () => ({
-    optimization: {
-        minimizer: [
-            new CssMinimizerPlugin({})
-        ],
-    }
-})
-
 exports.minifyJavaScript = ({ useSourceMap }) => ({
     optimization: {
         minimize: true,
-        minimizer: [new TerserPlugin({
-            parallel: true,
-            terserOptions: {
-                compress: {
-                    warnings: false,
+        minimizer: [
+            new TerserPlugin({
+                parallel: true,
+                terserOptions: {
+                    compress: {
+                        warnings: false,
+                    },
+                    ecma: 2015,
+                    mangle: true
                 },
-                ecma: 2015,
-                mangle: true
-            },
-        })],
+            }),
+            new CssMinimizerPlugin({}),
+        ],
     }
 });
 
@@ -213,4 +212,28 @@ exports.setFreeVariable = (key, value) => {
             new webpack.DefinePlugin(env),
         ],
     };
-}
+};
+
+exports.compressAssets = () => ({
+    plugins: [
+        new CompressionPlugin({
+            filename: '[path][base].gz',
+            algorithm: 'gzip',
+            test: /\.(js|css|html|svg)$/,
+            threshold: 1024,
+            minRatio: 0.8,
+        }),
+        new CompressionPlugin({
+            filename: '[path][base].br',
+            algorithm: 'brotliCompress',
+            test: /\.(js|css|html|svg)$/,
+            compressionOptions: {
+                params: {
+                    [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+                },
+            },
+            threshold: 1024,
+            minRatio: 0.8,
+        }),
+    ],
+});

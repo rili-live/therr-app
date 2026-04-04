@@ -45,6 +45,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 
 // Configure routes
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
 const { USERS_SERVICE_API_PORT } = process.env;
@@ -84,7 +85,7 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
     module.hot.dispose(() => server.close());
 }
 
-process.on('uncaughtExceptionMonitorMonitor', (err, origin) => {
+process.on('uncaughtExceptionMonitor', (err, origin) => {
     logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
@@ -98,4 +99,17 @@ process.on('uncaughtExceptionMonitorMonitor', (err, origin) => {
             source: origin,
         },
     });
+});
+
+process.on('uncaughtException', (err, origin) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Uncaught Exception - Shutting down'],
+        traceArgs: {
+            'error.message': err?.message,
+            'process.origin': origin,
+        },
+    });
+    setTimeout(() => process.exit(1), 1000);
 });

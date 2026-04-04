@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Text, View } from 'react-native';
+import { Button } from '../../../components/BaseButton';
 import LottieView from 'lottie-react-native';
 import UserSearchItem from './UserSearchItem';
 import spacingStyles from '../../../styles/layouts/spacing';
@@ -96,17 +96,17 @@ const PeopleYouMayKnow = ({
                 </>
             }
             {
-                mightKnowUsers.map((user) => (
+                mightKnowUsers.map((mightKnowUser) => (
                     <UserSearchItem
-                        key={user.id}
-                        userDetails={getConnectionOrUserDetails(user)}
+                        key={mightKnowUser.id}
+                        userDetails={getConnectionOrUserDetails(mightKnowUser)}
                         getUserSubtitle={getConnectionSubtitle}
                         goToViewUser={goToViewUser}
                         onSendConnectRequest={onSendConnectRequest}
                         theme={theme}
                         themeButtons={themeButtons}
                         translate={translate}
-                        user={user}
+                        user={mightKnowUser}
                     />
                 ))
             }

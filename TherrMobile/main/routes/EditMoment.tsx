@@ -2,10 +2,13 @@ import React from 'react';
 import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Slider, Image } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
+import EditFormFooter from '../components/EditFormFooter';
+import LottieView from 'lottie-react-native';
+import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../utilities/toasts';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
@@ -14,10 +17,12 @@ import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
+import { buildMomentUrl } from '../utilities/shareUrls';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
@@ -25,7 +30,6 @@ import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmM
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import userContentStyles from '../styles/user-content';
 import spacingStyles from '../styles/layouts/spacing';
@@ -48,9 +52,10 @@ import { getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserContentUri, signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
 import { sendForegroundNotification, sendTriggerNotification } from '../utilities/pushNotifications';
-import BottomSheet from '../components/BottomSheet/BottomSheet';
+import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../components/TherrIcon';
 import ConfirmModal from '../components/Modals/ConfirmModal';
+import SharePromptModal from '../components/Modals/SharePromptModal';
 import SpaceRating from '../components/Input/SpaceRating';
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -81,9 +86,8 @@ interface IEditMomentState {
     areaId?: string;
     errorMsg: string;
     hashtags: string[];
-    isImageBottomSheetVisible: boolean;
     isInsufficientFundsModalVisible: boolean;
-    isVisibilityBottomSheetVisible: boolean;
+    isSharePromptVisible: boolean;
     inputs: any;
     isEditingNearbySpaces: boolean;
     isSubmitting: boolean;
@@ -117,7 +121,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonStyles();
     private themeMoments = buildMomentStyles();
-    private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
 
@@ -153,9 +156,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 spaceId: area?.spaceId && nearbySpaces.find(s => s.id === area?.spaceId) ? area?.spaceId : undefined,
             },
             isEditingNearbySpaces: false,
-            isImageBottomSheetVisible: false,
             isInsufficientFundsModalVisible: false,
-            isVisibilityBottomSheetVisible: false,
+            isSharePromptVisible: false,
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
@@ -168,11 +170,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
         this.categoryOptions = Categories.MomentCategories.map((category: string, index) => ({
             id: index,
             label: this.translate(category),
@@ -325,6 +326,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude = route.params.area?.longitude;
         }
 
+        const sanitizedRadius = Math.max(MIN_RADIUS_PRIVATE, Math.min(MAX_RADIUS_PRIVATE, parseInt(radius, 10) || MIN_RADIUS_PRIVATE));
+
         const createArgs: any = {
             category,
             fromUserId: user.details.id,
@@ -336,7 +339,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             latitude,
             longitude,
             maxViews,
-            radius,
+            radius: sanitizedRadius,
             rating,
             skipReward: shouldSkipRewards,
             spaceId,
@@ -365,16 +368,13 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 createOrUpdatePromise
                     .then((response) => {
                         if (!shouldSkipDraftToast) {
-                            Toast.show({
-                                type: 'successBig',
+                            showToast.success({
                                 text1: isDraft
                                     ? this.translate('alertTitles.momentDraftSuccess')
                                     : this.translate('alertTitles.momentCreatedSuccess'),
                                 text2: isDraft
                                     ? this.translate('alertMessages.momentDraftSuccess')
                                     : this.translate('alertMessages.momentCreatedSuccess'),
-                                visibilityTime: 2500,
-                                position: 'top',
                                 onHide: () => {
                                     if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
                                         // TODO: Only send toast if push notifications are disabled
@@ -394,21 +394,17 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                                 ],
                                             },
                                         }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
-                                        Toast.show({
-                                            type: 'success',
+                                        showToast.success({
                                             text1: this.translate('alertTitles.coinsReceived'),
                                             text2: this.translate('alertMessages.coinsReceived', {
                                                 total: response.therrCoinRewarded,
                                             }),
-                                            visibilityTime: 3500,
                                         });
-                                        Toast.show({
-                                            type: 'success',
+                                        showToast.success({
                                             text1: this.translate('alertTitles.coinsReceived'),
                                             text2: this.translate('alertMessages.coinsReceived', {
                                                 total: response.therrCoinRewarded,
                                             }),
-                                            visibilityTime: 3500,
                                         });
                                     }
                                 },
@@ -432,7 +428,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             }, getAndroidChannel(AndroidChannelIds.reminders, true));
                         }
 
-                        analytics().logEvent(areaId ? 'moment_update' : 'moment_create', {
+                        logEvent(getAnalytics(),areaId ? 'moment_update' : 'moment_create', {
                             userId: user.details.id,
                             momentLongitude: longitude,
                             momentLatitude: latitude,
@@ -443,11 +439,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         }).catch((err) => console.log(err));
 
                         if (!shouldSkipNavigate) {
-                            setTimeout(() => {
-                                this.props.navigation.navigate('Map', {
-                                    shouldShowPreview: false,
+                            if (!isDraft) {
+                                this.setState({
+                                    isSharePromptVisible: true,
+                                    isSubmitting: false,
                                 });
-                            }, 250);
+                            } else {
+                                setTimeout(() => {
+                                    this.props.navigation.navigate('Map', {
+                                        shouldShowPreview: false,
+                                    });
+                                }, 250);
+                            }
                         } else {
                             this.setState({
                                 areaId: response.id, // so subsequent saves do not create a new area
@@ -557,22 +560,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             this.setState({
                 selectedImage: imageResponse,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            }, () => this.toggleImageBottomSheet());
+            });
         }
-    };
-
-    toggleImageBottomSheet = () => {
-        const { isImageBottomSheetVisible } = this.state;
-        this.setState({
-            isImageBottomSheetVisible: !isImageBottomSheetVisible,
-        });
-    };
-
-    toggleVisibilityBottomSheet = () => {
-        const { isVisibilityBottomSheetVisible } = this.state;
-        this.setState({
-            isVisibilityBottomSheetVisible: !isVisibilityBottomSheetVisible,
-        });
     };
 
     onAddImage = (action: string) => {
@@ -601,23 +590,21 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         .then((cameraResponse) => this.handleImageSelect(cameraResponse));
                 }
             } else {
-                analytics().logEvent('permissions_denied_issue', {
+                logEvent(getAnalytics(),'permissions_denied_issue', {
                     platform: Platform.OS,
                     userId: user?.details?.id,
                 }).catch((err) => console.log(err));
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('alertTitles.permissionsDenied'),
                     text2: this.translate('alertMessages.cameraOrFilePermissionsDenied'),
                 });
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            analytics().logEvent('camera_permissions_error', {
+            logEvent(getAnalytics(),'camera_permissions_error', {
                 platform: Platform.OS,
                 userId: user?.details?.id,
             }).catch((err) => console.log(err));
-            this.toggleImageBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
                 console.log('canceled');
@@ -631,23 +618,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 ...this.state.inputs,
                 isPublic,
             },
-        });
-
-        this.toggleVisibilityBottomSheet();
-    };
-
-    onSliderChange = (name, value) => {
-        const newInputChanges = {
-            [name]: value,
-        };
-
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                ...newInputChanges,
-            },
-            errorMsg: '',
-            isSubmitting: false,
         });
     };
 
@@ -663,6 +633,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             shouldSkipRewards: true,
             shouldSkipNavigate: false,
         }));
+    };
+
+    onDismissSharePrompt = () => {
+        this.setState({
+            isSharePromptVisible: false,
+        }, () => {
+            setTimeout(() => {
+                this.props.navigation.navigate('Map', {
+                    shouldShowPreview: false,
+                });
+            }, 250);
+        });
     };
 
     toggleInfoModal = () => {
@@ -739,15 +721,30 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         return (
             <>
                 <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
-                    {
-                        !!imagePreviewPath &&
-                        <View style={this.themeMoments.styles.mediaContainer}>
-                            <Image
-                                source={{ uri: imagePreviewPath }}
-                                style={this.themeMoments.styles.mediaImage}
-                            />
-                        </View>
-                    }
+                    <View style={this.themeMoments.styles.mediaContainer}>
+                        {
+                            imagePreviewPath
+                                ? (
+                                    <Image
+                                        source={{ uri: imagePreviewPath }}
+                                        style={this.themeMoments.styles.mediaImage}
+                                    />
+                                )
+                                : (
+                                    <LottieView
+                                        source={require('../assets/missing-image-storefront.json')}
+                                        resizeMode="contain"
+                                        speed={0.8}
+                                        autoPlay
+                                        loop
+                                        style={{
+                                            width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                            height: 160,
+                                        }}
+                                    />
+                                )
+                        }
+                    </View>
                     <Button
                         containerStyle={spacingStyles.marginBotMd}
                         buttonStyle={this.themeForms.styles.buttonPrimary}
@@ -765,13 +762,39 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 style={{ color: this.theme.colors.primary, paddingRight: 8 }}
                             />
                         }
-                        onPress={() => this.toggleImageBottomSheet()}
+                        onPress={() => SheetManager.show('image-picker-sheet', {
+                            payload: {
+                                galleryText: this.translate('forms.editMoment.buttons.selectExisting'),
+                                cameraText: this.translate('forms.editMoment.buttons.captureNew'),
+                                themeForms: this.themeForms,
+                                onSelect: (source) => this.onAddImage(source),
+                            },
+                        })}
                         raised={false}
                     />
+                    {
+                        !!imagePreviewPath &&
+                        <Button
+                            containerStyle={spacingStyles.marginBotMd}
+                            buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                            titleStyle={this.themeForms.styles.buttonTitleAlt}
+                            title={this.translate('forms.editMoment.buttons.removeImage')}
+                            icon={
+                                <OctIcon
+                                    name="x"
+                                    size={18}
+                                    style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                />
+                            }
+                            onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                            raised={false}
+                        />
+                    }
                     <Text style={this.theme.styles.sectionDescriptionNote}>
                         {this.translate('forms.editMoment.labels.addImageNote')}
                     </Text>
                     <RoundInput
+                        containerStyle={{ marginBottom: 12 }}
                         autoFocus
                         maxLength={100}
                         placeholder={this.translate(
@@ -796,7 +819,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         themeForms={this.themeForms}
                     />
                     <RoundInput
-                        containerStyle={{ marginBottom: !hashtags?.length ? 10 : 0 }}
+                        containerStyle={{ marginBottom: 12 }}
                         autoCorrect={false}
                         errorStyle={this.theme.styles.displayNone}
                         placeholder={this.translate(
@@ -840,7 +863,14 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             ? this.translate('forms.editMoment.buttons.visibilityPublic')
                             : this.translate('forms.editMoment.buttons.visibilityPrivate')}
                         type="outline"
-                        onPress={this.toggleVisibilityBottomSheet}
+                        onPress={() => SheetManager.show('visibility-picker-sheet', {
+                            payload: {
+                                publicText: this.translate('forms.editMoment.buttons.visibilityPublic'),
+                                privateText: this.translate('forms.editMoment.buttons.visibilityPrivate'),
+                                themeForms: this.themeForms,
+                                onSelect: (isPublic) => this.onSetVisibility(isPublic),
+                            },
+                        })}
                         raised={false}
                         icon={
                             <OctIcon
@@ -850,22 +880,37 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             />
                         }
                     />
-                    <View style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}>
-                        <Slider
-                            value={inputs.radius}
-                            onValueChange={(value) => this.onSliderChange('radius', value)}
-                            maximumValue={MAX_RADIUS_PRIVATE}
-                            minimumValue={MIN_RADIUS_PRIVATE}
-                            step={1}
-                            thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
-                            thumbTouchSize={{ width: 30, height: 30 }}
-                            minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
-                            maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                            onSlidingStart={Keyboard.dismiss}
+                    <View
+                        style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}
+                    >
+                        <RoundInput
+                            placeholder={this.translate('forms.editMoment.labels.radiusPlaceholder', {
+                                min: MIN_RADIUS_PRIVATE,
+                                max: MAX_RADIUS_PRIVATE,
+                            })}
+                            value={inputs.radius === '' ? '' : String(inputs.radius)}
+                            onChangeText={(text) => {
+                                const stripped = text.replace(/[^0-9]/g, '');
+                                if (stripped === '') {
+                                    this.onInputChange('radius', '' as any);
+                                } else {
+                                    this.onInputChange('radius', parseInt(stripped, 10) as any);
+                                }
+                            }}
+                            onBlur={() => {
+                                const num = parseInt(inputs.radius, 10);
+                                if (isNaN(num) || num < MIN_RADIUS_PRIVATE) {
+                                    this.onInputChange('radius', MIN_RADIUS_PRIVATE as any);
+                                } else if (num > MAX_RADIUS_PRIVATE) {
+                                    this.onInputChange('radius', MAX_RADIUS_PRIVATE as any);
+                                }
+                            }}
+                            keyboardType="number-pad"
+                            themeForms={this.themeForms}
                         />
-                        <Text style={this.themeForms.styles.inputLabelDark}>
+                        {inputs.radius !== '' && <Text style={this.themeForms.styles.inputLabelDark}>
                             {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
-                        </Text>
+                        </Text>}
                     </View>
                     <Alert
                         containerStyles={addMargins({
@@ -973,9 +1018,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             previewLinkId,
             previewStyleState,
             isEditingNearbySpaces,
-            isImageBottomSheetVisible,
             isInsufficientFundsModalVisible,
-            isVisibilityBottomSheetVisible,
+            isSharePromptVisible,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
         const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
@@ -994,6 +1038,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
+                        scrollEnabled
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
                         contentContainerStyle={[
@@ -1020,156 +1065,42 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.draftButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={[this.themeAccentForms.styles.submitButtonContainer, spacingStyles.marginRtXLg]}
-                            title={this.translate(
-                                'forms.editMoment.buttons.draft'
-                            )}
-                            icon={
-                                <TherrIcon
-                                    name="edit"
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={this.themeAccentForms.styles.submitButtonIcon}
-                                />
-                            }
-                            onPress={() => this.onSubmit({
-                                isDraft: true,
-                                shouldSkipRewards: true,
-                                shouldSkipNavigate: true,
-                            })}
-                            disabled={this.isFormDisabled()}
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={continueButtonConfig.title}
-                            icon={
-                                <TherrIcon
-                                    name={continueButtonConfig.icon}
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={continueButtonConfig.iconStyle}
-                                />
-                            }
-                            iconRight={continueButtonConfig.iconRight}
-                            onPress={continueButtonConfig.onPress}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
-                    <BottomSheet
-                        isVisible={isVisibilityBottomSheetVisible}
-                        onRequestClose={this.toggleVisibilityBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editMoment.buttons.visibilityPublic'
-                            )}
-                            onPress={() => this.onSetVisibility(true)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="globe"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editMoment.buttons.visibilityPrivate'
-                            )}
-                            onPress={() => this.onSetVisibility(false)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="people"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
-                    <BottomSheet
-                        isVisible={isImageBottomSheetVisible}
-                        onRequestClose={this.toggleImageBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editMoment.buttons.selectExisting'
-                            )}
-                            onPress={() => this.onAddImage('upload')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="plus"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editMoment.buttons.captureNew'
-                            )}
-                            onPress={() => this.onAddImage('camera')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="device-camera"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
+                    <EditFormFooter
+                        isDarkMode={isDarkTheme(this.props.user.settings?.mobileThemeName)}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editMoment.buttons.back'),
+                                onPress: () => navigation.goBack(),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: this.translate('forms.editMoment.buttons.draft'),
+                                onPress: () => this.onSubmit({
+                                    isDraft: true,
+                                    shouldSkipRewards: true,
+                                    shouldSkipNavigate: true,
+                                }),
+                                mode: 'outlined',
+                                icon: 'file-edit-outline',
+                                disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: continueButtonConfig.title,
+                                onPress: continueButtonConfig.onPress,
+                                mode: 'contained',
+                                icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
+                                disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isInsufficientFundsModalVisible}
@@ -1182,6 +1113,23 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     textConfirm={this.translate('forms.editMoment.buttons.continue')}
                     translate={this.translate}
                     theme={this.theme}
+                    themeModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
+                <SharePromptModal
+                    isVisible={isSharePromptVisible}
+                    headerText={this.translate('modals.sharePrompt.momentCreated.header')}
+                    message={this.translate('modals.sharePrompt.momentCreated.message')}
+                    shareMessage={this.translate('modals.contentOptions.shareLink.messageMoment', {
+                        momentId: this.state.areaId || '',
+                        shareUrl: buildMomentUrl(this.props.user?.settings?.locale || 'en-us', this.state.areaId || ''),
+                    })}
+                    shareUrl={buildMomentUrl(
+                        this.props.user?.settings?.locale || 'en-us', this.state.areaId || ''
+                    )}
+                    shareTitle={this.translate('modals.contentOptions.shareLink.titleMoment', { momentTitle: this.state.inputs.notificationMsg || '' })}
+                    onDismiss={this.onDismissSharePrompt}
+                    translate={this.translate}
                     themeModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
                 />

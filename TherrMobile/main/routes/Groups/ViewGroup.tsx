@@ -9,14 +9,13 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Avatar, Button } from 'react-native-elements';
+import { Avatar } from '../../components/BaseAvatar';
+import { Button } from '../../components/BaseButton';
 import { TabBar, TabView } from 'react-native-tab-view';
-// import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import { Dialog, Portal, Button as PaperButton, Text as PaperText } from 'react-native-paper';
 import { ContentActions, MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IContentState, IForumsState, IMessageState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { ForumsService, UsersService } from 'therr-react/services';
@@ -33,7 +32,6 @@ import { buildStyles as buildChatStyles } from '../../styles/user-content/groups
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
@@ -47,6 +45,7 @@ import UserSearchItem from '../Connect/components/UserSearchItem';
 import UsersActions from '../../redux/actions/UsersActions';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import { navToViewContent } from '../../utilities/postViewHelpers';
+import { getDisplayTitle } from './groupUtils';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -100,6 +99,8 @@ interface IViewGroupState {
     activeTabIndex: number;
     groupEvents: any[];
     groupMembers: any[];
+    isSending: boolean;
+    isWelcomeDialogVisible: boolean;
     msgInputVal: string;
     isLoading: boolean;
     pageNumber: number;
@@ -143,13 +144,12 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     private themeMenu = buildMenuStyles();
     private themeMessage = buildMessageStyles();
     private themeForms = buildFormStyles();
-    private themeAccentForms = buildAccentFormStyles();
 
     constructor(props) {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const { route } = props;
         const { hashTags, title } = route.params;
@@ -159,9 +159,11 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
 
         this.state = {
             activeTabIndex,
-            title: title || '',
+            title: getDisplayTitle(title),
             groupMembers: [],
             groupEvents: [],
+            isSending: false,
+            isWelcomeDialogVisible: !!route.params?.isNewlyCreated,
             msgInputVal: '',
             isLoading: false,
             pageNumber: 1,
@@ -180,7 +182,6 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMessage = buildMessageStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
     }
 
     componentDidMount() {
@@ -197,15 +198,17 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                 groupEvents: response.data?.events || [],
             });
 
+            const resolvedTitle = getDisplayTitle(title || response?.data?.title);
+
             navigation.setOptions({
-                title: title || response?.data?.title,
+                title: resolvedTitle,
                 subtitle: response?.data?.subtitle,
                 description: response?.data?.description,
             });
 
             joinForum({
                 roomId: forumId,
-                roomName: title || response?.data?.title,
+                roomName: resolvedTitle,
                 userId: user.details.id,
                 userName: user.details.userName,
                 userImgSrc: getUserImageUri(user.details, 100),
@@ -339,10 +342,12 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
 
     handleSend = (e) => {
         e.preventDefault();
-        const { msgInputVal } = this.state;
+        const { isSending, msgInputVal } = this.state;
 
-        if (msgInputVal) {
+        if (msgInputVal && !isSending) {
             const { sendForumMessage, user } = this.props;
+
+            this.setState({ isSending: true });
 
             sendForumMessage({
                 roomId: user.socketDetails.currentRoom,
@@ -355,6 +360,11 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             this.setState({
                 msgInputVal: '',
             });
+
+            // Brief cooldown to prevent double-tap
+            setTimeout(() => {
+                this.setState({ isSending: false });
+            }, 500);
         }
 
         this.onTabSelect(0);
@@ -411,6 +421,16 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         navToViewContent(content, user, navigation.navigate);
     };
 
+    goToCreateEvent = () => {
+        const { navigation, route } = this.props;
+        const { id: forumId } = route.params;
+
+        navigation.navigate('EditEvent', {
+            area: { groupId: forumId },
+            imageDetails: {},
+        });
+    };
+
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
 
@@ -463,6 +483,10 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         });
     };
 
+    handleWelcomeDialogDismiss = () => {
+        this.setState({ isWelcomeDialogVisible: false });
+    };
+
     renderSceneMap = ({ route }) => {
         const { groupEvents } = this.state;
         const { content, createOrUpdateEventReaction, messages, user } = this.props;
@@ -500,10 +524,9 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             <ListEmpty iconName="chat" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.CHAT)} />
                         </View>
                     }
-                    onContentSizeChange={this.scrollTop}
                     showsVerticalScrollIndicator={false}
-                    // onEndReached={this.tryLoadMore}
-                    // onEndReachedThreshold={0.5}
+                    onEndReached={this.tryLoadMore}
+                    onEndReachedThreshold={0.5}
                 />);
             case GROUP_CAROUSEL_TABS.EVENTS:
                 const noop = () => {};
@@ -564,6 +587,18 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 </Pressable>
                             );
                         }}
+                        ListHeaderComponent={
+                            <View style={[spacingStyles.marginHorizLg, spacingStyles.padVertMd]}>
+                                <PaperButton
+                                    mode="contained"
+                                    icon="calendar-plus"
+                                    onPress={this.goToCreateEvent}
+                                    style={{ borderRadius: 20 }}
+                                >
+                                    {this.translate('pages.viewGroup.buttons.createEvent')}
+                                </PaperButton>
+                            </View>
+                        }
                         ListEmptyComponent={<View style={spacingStyles.marginHorizLg}>
                             <ListEmpty iconName="calendar" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.EVENTS)} />
                         </View>}
@@ -640,10 +675,12 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     };
 
     render() {
-        const { activeTabIndex, tabRoutes, msgInputVal } = this.state;
-        const { navigation, route, forums } = this.props;
+        const { activeTabIndex, isSending, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
+        const { route, forums } = this.props;
         const { description, subtitle, id: forumId } = route.params;
-        const group = forums?.searchResults?.find((g) => g.id === forumId) || {};
+        const group = forums?.searchResults?.find((g) => g.id === forumId)
+            || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
+            || route.params;
 
         return (
             <>
@@ -661,6 +698,14 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             spacingStyles.flexRow,
                             (this.hashtags?.length > 0 ? {} : spacingStyles.padBotMd),
                         ]}>
+                            <Pressable
+                                onPress={() => this.props.navigation.navigate('Groups', {
+                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                                })}
+                                style={{ marginRight: 8, justifyContent: 'center' }}
+                            >
+                                <TherrIcon name="go-back" size={24} color={this.theme.colors.textWhite} />
+                            </Pressable>
                             {
                                 group.media?.featuredImage &&
                                 <View>
@@ -676,11 +721,11 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             <View style={spacingStyles.marginLtMd}>
                                 {
                                     subtitle &&
-                                    <Text>
+                                    <Text style={{ color: this.theme.colors.textWhite }}>
                                         <Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.subtitle')}</Text> {subtitle}
                                     </Text>
                                 }
-                                <Text style={spacingStyles.marginBotSm} numberOfLines={7}>
+                                <Text style={[spacingStyles.marginBotSm, { color: this.theme.colors.textWhite }]} numberOfLines={7}>
                                     {description}
                                 </Text>
                                 <HashtagsContainer
@@ -721,28 +766,10 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         </View>
                     </View>
                     <KeyboardAvoidingView
-                        behavior="position"
-                        keyboardVerticalOffset={this.themeAccentLayout.styles.footer.height - 8}
-                        enabled={Platform.OS === 'ios'}
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                     >
-                        <View
-                            style={[this.themeAccentLayout.styles.footer, this.themeChat.styles.footer]}
-                        >
-                            <Button
-                                containerStyle={this.themeAccentForms.styles.backButtonContainerFixed}
-                                buttonStyle={this.themeAccentForms.styles.backButton}
-                                onPress={() => navigation.navigate('Groups', {
-                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                                })}
-                                icon={
-                                    <FontAwesome5Icon
-                                        name="arrow-left"
-                                        size={25}
-                                        color={'black'}
-                                    />
-                                }
-                                type="clear"
-                            />
+                        <View style={this.themeChat.styles.footer}>
                             <RoundInput
                                 value={msgInputVal}
                                 onChangeText={this.handleInputChange}
@@ -751,6 +778,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 )}
                                 onSubmitEditing={this.handleSend}
                                 containerStyle={this.themeMessage.styles.inputContainer}
+                                inputContainerStyle={[this.themeForms.styles.inputContainerRound, { height: 40 }]}
                                 errorStyle={this.theme.styles.displayNone}
                                 themeForms={this.themeForms}
                             />
@@ -759,12 +787,34 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 buttonStyle={this.themeMessage.styles.sendBtn}
                                 containerStyle={[this.themeMessage.styles.sendBtnContainer, this.themeChat.styles.sendBtnContainer]}
                                 onPress={this.handleSend}
+                                disabled={isSending || !msgInputVal}
                             />
                         </View>
                     </KeyboardAvoidingView>
                 </SafeAreaView>
-                {/* <ViewGroupButtonMenu navigation={navigation} translate={this.translate} user={user} /> */}
-                {/* Create Chat button */}
+                {/* <ViewGroupButtonMenu navigation={this.props.navigation} translate={this.translate} user={user} /> */}
+                <Portal>
+                    <Dialog
+                        visible={isWelcomeDialogVisible}
+                        onDismiss={this.handleWelcomeDialogDismiss}
+                        style={{ borderRadius: 12 }}
+                    >
+                        <Dialog.Icon icon="chat-outline" />
+                        <Dialog.Title style={{ textAlign: 'center' }}>
+                            {this.translate('pages.viewGroup.welcomeDialogTitle')}
+                        </Dialog.Title>
+                        <Dialog.Content>
+                            <PaperText style={{ textAlign: 'center' }}>
+                                {this.translate('pages.viewGroup.welcomeDialogMessage')}
+                            </PaperText>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <PaperButton onPress={this.handleWelcomeDialogDismiss}>
+                                {this.translate('pages.viewGroup.welcomeDialogDismiss')}
+                            </PaperButton>
+                        </Dialog.Actions>
+                    </Dialog>
+                </Portal>
             </>
         );
     }

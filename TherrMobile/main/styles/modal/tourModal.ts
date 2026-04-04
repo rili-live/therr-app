@@ -8,10 +8,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
     const styles = StyleSheet.create({
         actionsContainer: {
-            display: 'flex',
             flexDirection: 'row',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            justifyContent: 'center',
+            marginTop: 12,
+            paddingHorizontal: 8,
+            gap: 12,
+        },
+        actionButton: {
+            flex: 1,
+            borderRadius: 20,
+        },
+        actionButtonContentRight: {
+            flexDirection: 'row-reverse',
         },
         overlay: {
             flex: 1,
@@ -25,7 +34,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             justifyContent: 'flex-start',
             alignItems: 'center',
             width: '90%',
-            padding: 10,
+            padding: 16,
             backgroundColor: therrTheme.colors.backgroundGray,
             elevation: 5,
             borderRadius: 12,
@@ -35,7 +44,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: 150,
             display: 'flex',
             paddingVertical: 10,
-            marginBottom: 40,
+            marginBottom: 20,
         },
         header: {
             fontSize: 20,
@@ -48,31 +57,18 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingHorizontal: 8,
             fontSize: 16,
             fontFamily: therrFontFamily,
+            textAlign: 'center',
         },
         buttonContainer: {
-            height: 150,
-            width: 200,
+            width: '100%',
             display: 'flex',
             paddingVertical: 10,
-            marginBottom: 20,
+            paddingHorizontal: 40,
+            marginBottom: 10,
             justifyContent: 'center',
         },
         buttonPrimary: {
-            backgroundColor: therrTheme.colors.primary3,
-            display: 'flex',
-            alignItems: 'center',
             borderRadius: 20,
-            height: 49,
-        },
-        buttonTitle: {
-            fontSize: 18,
-            fontWeight: '500',
-            fontFamily: therrFontFamily,
-            color: therrTheme.colors.textBlack,
-        },
-        buttonIconStyle: {
-            color: therrTheme.colors.textBlack,
-            paddingLeft: 8,
         },
     });
 

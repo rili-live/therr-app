@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { connect } from 'react-redux';
 import { Animated, SafeAreaView, View, Text, ImageProps, Pressable } from 'react-native';
-import { Button } from 'react-native-elements';
-import analytics from '@react-native-firebase/analytics';
+import { Button } from '../components/BaseButton';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
@@ -184,7 +184,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         super(props);
 
         this.translate = (key: string, params: any): string =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.state = {
             activeSlide: 0,
@@ -242,7 +242,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
     prevBackground = () => {
         const { backgroundIndex } = this.state;
         if (backgroundIndex === 1) {
-            analytics().logEvent('landing_progress_started').catch((err) => console.log(err));
+            logEvent(getAnalytics(),'landing_progress_started').catch((err) => console.log(err));
             this.setState({
                 backgroundIndex: 0,
                 backgroundText: this.translate(
@@ -268,7 +268,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
     nextBackground = () => {
         const { backgroundIndex } = this.state;
         if (backgroundIndex === 0) {
-            analytics().logEvent('landing_progress_started').catch((err) => console.log(err));
+            logEvent(getAnalytics(),'landing_progress_started').catch((err) => console.log(err));
             this.setState({
                 backgroundIndex: 1,
                 backgroundText: this.translate('pages.landing.background.inviteFriends'),

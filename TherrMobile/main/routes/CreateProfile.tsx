@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text, Platform } from 'react-native';
+import { SafeAreaView, Share, View, Text, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -8,9 +8,10 @@ import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import LottieView from 'lottie-react-native';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
+import { buildInviteUrl } from '../utilities/shareUrls';
 import { buildStyles } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildFTUIStyles } from '../styles/first-time-ui';
@@ -21,10 +22,12 @@ import CreateProfileDetails from '../components/0_First_Time_UI/onboarding-stage
 import CreateProfilePhoneVerify from '../components/0_First_Time_UI/onboarding-stages/CreateProfilePhoneVerify';
 import CreateProfilePicture from '../components/0_First_Time_UI/onboarding-stages/CreateProfilePicture';
 import CreateProfileInterests from '../components/0_First_Time_UI/onboarding-stages/CreateProfileInterests';
+import InviteFriends from '../components/0_First_Time_UI/onboarding-stages/InviteFriends';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserImageUri } from '../utilities/content';
+import { synceMobileContacts } from '../utilities/contacts';
 
 const verifyPhoneLoader = require('../assets/verify-phone-shield.json');
 
@@ -42,7 +45,7 @@ export interface ICreateProfileProps extends IStoreProps {
     navigation: any;
 }
 
-type StageType = 'details' | 'picture' | 'phone' | 'interests';
+type StageType = 'details' | 'picture' | 'phone' | 'interests' | 'invite';
 
 interface ICreateProfileState {
     croppedImageDetails: any;
@@ -102,7 +105,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -110,7 +113,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         this.props.navigation.setOptions({
             title: this.translate('pages.createProfile.headerTitle'),
         });
-        analytics().logEvent('profile_create_start', {
+        logEvent(getAnalytics(),'profile_create_start', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
 
@@ -262,7 +265,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                 .updateUser(user.details.id, updateArgs)
                 .then(() => {
                     if (phoneNumber) {
-                        analytics().logEvent('profile_create_update_phone', {
+                        logEvent(getAnalytics(),'profile_create_update_phone', {
                             userId: user.details.id,
                         }).catch((err) => console.log(err));
                     }
@@ -278,6 +281,10 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                         } else if (stage === 'picture') {
                             this.setState({
                                 stage: 'phone',
+                            });
+                        } else if (stage === 'phone') {
+                            this.setState({
+                                stage: 'invite',
                             });
                         }
                     }
@@ -359,6 +366,42 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         }, () => this.onInputChange(name, value));
     };
 
+    onFinishOnboarding = () => {
+        const { navigation } = this.props;
+        navigation.navigate('Map');
+    };
+
+    onShareInviteLink = () => {
+        const { user } = this.props;
+        const locale = user.settings?.locale || 'en-us';
+        const shareUrl = buildInviteUrl(locale, user.details.userName);
+        Share.share({
+            message: this.translate('forms.createConnection.shareLink.message', {
+                inviteCode: user.details.userName,
+                shareUrl,
+            }),
+            url: shareUrl,
+            title: this.translate('forms.createConnection.shareLink.title'),
+        }).catch((err) => console.error(err));
+    };
+
+    onSyncContacts = () => {
+        const { navigation, user } = this.props;
+        const storePermissions = () => {};
+
+        synceMobileContacts({
+            storePermissions,
+            user,
+        }).then((result) => {
+            navigation.navigate('PhoneContacts', {
+                allContacts: result.contacts,
+                matchedUsers: result.matchedUsers,
+            });
+        }).catch((err) => {
+            console.log('Sync contacts error:', err);
+        });
+    };
+
     render() {
         const { user } = this.props;
         const { isLoadingInterests, interests, croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
@@ -430,6 +473,17 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                         </Text>
                                     </>
                                 }
+                                {
+                                    stage === 'invite' &&
+                                    <>
+                                        <Text style={this.themeFTUI.styles.title}>
+                                            {this.translate('pages.createProfile.pageHeaderInvite')}
+                                        </Text>
+                                        <Text style={this.themeFTUI.styles.subtitleCenter}>
+                                            {this.translate('pages.createProfile.pageSubHeaderInvite')}
+                                        </Text>
+                                    </>
+                                }
                             </View>
                             {
                                 (stage === 'details' || stage === 'phone') &&
@@ -468,7 +522,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     isLoading={isLoadingInterests}
                                     isDisabled={this.isFormInterestsDisabled()}
                                     onChange={this.onInterestsChange}
-                                    onSubmit={(interests) => this.onSubmitInterests(stage, interests)}
+                                    onSubmit={(selectedInterests) => this.onSubmitInterests(stage, selectedInterests)}
                                     translate={this.translate}
                                     theme={this.theme}
                                     themeForms={this.themeForms}
@@ -507,6 +561,18 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     translate={this.translate}
                                     theme={this.theme}
                                     themeAlerts={this.themeAlerts}
+                                    themeForms={this.themeForms}
+                                    themeSettingsForm={this.themeSettingsForm}
+                                />
+                            }
+                            {
+                                stage === 'invite' &&
+                                <InviteFriends
+                                    onSkip={this.onFinishOnboarding}
+                                    onShareLink={this.onShareInviteLink}
+                                    onSyncContacts={this.onSyncContacts}
+                                    translate={this.translate}
+                                    theme={this.theme}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}
                                 />

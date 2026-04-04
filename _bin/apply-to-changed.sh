@@ -22,6 +22,7 @@ fi
 
 # Library directories: styles
 if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-styles"; then
+<<<<<<< HEAD
   if [ -f package.json ]; then
     HAS_ANY_LIBRARY_CHANGES=true
     HAS_STYLES_LIBRARY_CHANGES=true
@@ -30,12 +31,23 @@ if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-styles"; then
     eval $COMMAND
   fi
     popd
+=======
+  HAS_ANY_LIBRARY_CHANGES=true
+  HAS_STYLES_LIBRARY_CHANGES=true
+  pushd "therr-public-library/therr-styles"
+  if [ -f package.json ]; then
+    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-styles"
+    eval $COMMAND
+  fi
+  popd
+>>>>>>> origin/general
 else
   printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-styles (No Changes)"
 fi
 
 # Library directories: js-utilities
 if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-js-utilities"; then
+<<<<<<< HEAD
   if [ -f package.json ]; then
     HAS_ANY_LIBRARY_CHANGES=true
     HAS_UTILITIES_LIBRARY_CHANGES=true
@@ -44,11 +56,22 @@ if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-js-utilities"; th
     eval $COMMAND
   fi
     popd
+=======
+  HAS_ANY_LIBRARY_CHANGES=true
+  HAS_UTILITIES_LIBRARY_CHANGES=true
+  pushd "therr-public-library/therr-js-utilities"
+  if [ -f package.json ]; then
+    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-js-utilities"
+    eval $COMMAND
+  fi
+  popd
+>>>>>>> origin/general
 else
   printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-js-utilities (No Changes)"
 fi
 
 # Library directories: react
+<<<<<<< HEAD
 if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-react" || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_STYLES_LIBRARY_CHANGES" = true; then
   if [ -f package.json ]; then
     HAS_ANY_LIBRARY_CHANGES=true
@@ -58,6 +81,17 @@ if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-react" || "$HAS_U
     eval $COMMAND
   fi
     popd
+=======
+if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-react" || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_STYLES_LIBRARY_CHANGES" = "true" ]; then
+  HAS_ANY_LIBRARY_CHANGES=true
+  HAS_REACT_LIBRARY_CHANGES=true
+  pushd "therr-public-library/therr-react"
+  if [ -f package.json ]; then
+    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-react"
+    eval $COMMAND
+  fi
+  popd
+>>>>>>> origin/general
 else
   printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-react (No Changes)"
 fi
@@ -65,6 +99,7 @@ fi
 # UI Apps
 declare -a arr=("therr-client-web" "therr-client-web-dashboard" "TherrMobile")
 for i in "${arr[@]}"; do
+<<<<<<< HEAD
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = true; then
     if [ -f package.json ]; then
       pushd ${i}
@@ -72,6 +107,15 @@ for i in "${arr[@]}"; do
       eval $COMMAND
     fi
       popd
+=======
+  if has_diff_changes $TARGET_BRANCH ${i} || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = "true" ]; then
+    pushd ${i}
+    if [ -f package.json ]; then
+      printMessageNeutral "Running command '${COMMAND}': ${i}"
+      eval $COMMAND
+    fi
+    popd
+>>>>>>> origin/general
   else
     printMessageNeutral "Skipping command '${COMMAND}': ${i} (No Changes)"
   fi
@@ -80,6 +124,7 @@ done
 # Services
 declare -a arr=("therr-api-gateway" "therr-services/push-notifications-service" "therr-services/maps-service" "therr-services/messages-service" "therr-services/reactions-service" "therr-services/users-service" "therr-services/websocket-service")
 for i in "${arr[@]}"; do
+<<<<<<< HEAD
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = true; then
     if [ -f package.json ]; then
       pushd ${i}
@@ -87,9 +132,22 @@ for i in "${arr[@]}"; do
       eval $COMMAND
     fi
       popd
+=======
+  if has_diff_changes $TARGET_BRANCH ${i} || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = "true" ]; then
+    pushd ${i}
+    if [ -f package.json ]; then
+      printMessageNeutral "Running command '${COMMAND}': ${i}"
+      eval $COMMAND
+    fi
+    popd
+>>>>>>> origin/general
   else
     printMessageNeutral "Skipping command '${COMMAND}': ${i} (No Changes)"
   fi
 done
 
+<<<<<<< HEAD
 printMessageSuccess "'${COMMAND}' command run on all Libraries, services, and frontend apps with changes or changes to respective dependencies!"${NC}
+=======
+printMessageSuccess "'${COMMAND}' command run on all Libraries, services, and frontend apps with changes or changes to respective dependencies!"
+>>>>>>> origin/general

@@ -13,12 +13,13 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas';
-import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, navToViewContent } from '../../utilities/postViewHelpers';
-import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getDirections from '../../utilities/getDirections';
 
@@ -29,8 +30,10 @@ function getRandomLoaderId(): ILottieId {
 }
 
 interface IBookMarkedDispatchProps {
+    searchBookmarkedEvents: Function;
     searchBookmarkedMoments: Function;
     searchBookmarkedSpaces: Function;
+    searchBookmarkedThoughts: Function;
     createOrUpdateEventReaction: Function;
     createOrUpdateMomentReaction: Function;
     createOrUpdateSpaceReaction: Function;
@@ -50,8 +53,6 @@ export interface IBookMarkedProps extends IStoreProps {
 interface IBookMarkedState {
     activeTab: string;
     isLoading: boolean;
-    areAreaOptionsVisible: boolean;
-    selectedArea: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -63,10 +64,12 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            searchBookmarkedEvents: ContentActions.searchBookmarkedEvents,
             searchBookmarkedMoments: ContentActions.searchBookmarkedMoments,
+            searchBookmarkedSpaces: ContentActions.searchBookmarkedSpaces,
+            searchBookmarkedThoughts: ContentActions.searchBookmarkedThoughts,
             createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
-            searchBookmarkedSpaces: ContentActions.searchBookmarkedSpaces,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
         },
         dispatch
@@ -78,10 +81,10 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     private translate: Function;
     private theme = buildStyles();
     private themeButtons = buildButtonsStyles();
+    private themeForms = buildFormStyles();
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
 
     constructor(props) {
         super(props);
@@ -89,45 +92,40 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         this.state = {
             activeTab: CAROUSEL_TABS.DISCOVERIES,
             isLoading: true,
-            areAreaOptionsVisible: false,
-            selectedArea: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
         this.loaderId = getRandomLoaderId();
     }
 
     componentDidMount() {
-        const { navigation, searchBookmarkedMoments, searchBookmarkedSpaces, user } = this.props;
+        const { navigation, searchBookmarkedEvents, searchBookmarkedMoments, searchBookmarkedSpaces, searchBookmarkedThoughts, user } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.bookmarked.headerTitle'),
         });
 
-        const bookmarkedMomentsPromise = searchBookmarkedMoments({
+        const searchParams = {
             withMedia: true,
             withUser: true,
             offset: 0,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        };
 
-        const bookmarkedSpacesPromise = searchBookmarkedSpaces({
-            withMedia: true,
-            withUser: true,
-            offset: 0,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
-
-        Promise.all([bookmarkedMomentsPromise, bookmarkedSpacesPromise]).finally(() => {
+        Promise.all([
+            searchBookmarkedEvents(searchParams),
+            searchBookmarkedMoments(searchParams),
+            searchBookmarkedSpaces(searchParams),
+            searchBookmarkedThoughts(searchParams),
+        ]).finally(() => {
             this.setState({
                 isLoading: false,
             });
@@ -136,23 +134,22 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
 
     handleRefresh = () => {
-        const { searchBookmarkedMoments, searchBookmarkedSpaces, user } = this.props;
+        const { searchBookmarkedEvents, searchBookmarkedMoments, searchBookmarkedSpaces, searchBookmarkedThoughts, user } = this.props;
 
-        searchBookmarkedMoments({
+        const searchParams = {
             withMedia: true,
             withUser: true,
             offset: 0,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        };
 
-        searchBookmarkedSpaces({
-            withMedia: true,
-            withUser: true,
-            offset: 0,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        return Promise.all([
+            searchBookmarkedEvents(searchParams),
+            searchBookmarkedMoments(searchParams),
+            searchBookmarkedSpaces(searchParams),
+            searchBookmarkedThoughts(searchParams),
+        ]);
     };
 
     onTabSelect = (tabName: string) => {
@@ -199,11 +196,15 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
     };
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedArea: areAreaOptionsVisible ? {} : area,
+    toggleAreaOptions = (displayArea) => {
+        const area = displayArea || {};
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onAreaOptionSelect(type, area),
+            },
         });
     };
 
@@ -211,29 +212,29 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         console.log('try load more');
     };
 
-    onAreaOptionSelect = (type: ISelectionType) => {
-        const { selectedArea } = this.state;
+    onAreaOptionSelect = (type: IContentSelectionType, area: any) => {
         const { createOrUpdateEventReaction, createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedArea.latitude,
-                longitude: selectedArea.longitude,
-                title: selectedArea.notificationMsg,
+                latitude: area.latitude,
+                longitude: area.longitude,
+                title: area.notificationMsg,
             });
         } else {
-            handleAreaReaction(selectedArea, type, {
+            handleAreaReaction(area, type, {
                 user,
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
+                translate: this.translate,
             });
         }
     };
 
     render() {
-        const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
+        const { activeTab, isLoading } = this.state;
         const { createOrUpdateEventReaction, createOrUpdateMomentReaction, createOrUpdateSpaceReaction, content, navigation, user } = this.props;
 
         // TODO: Fetch missing media
@@ -246,7 +247,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             shouldIncludeEvents: true,
             shouldIncludeMoments: true,
             shouldIncludeSpaces: true,
-            // shouldIncludeThoughts: true,
+            shouldIncludeThoughts: true,
             translate: this.translate,
         }, 'createdAt');
 
@@ -279,14 +280,6 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                         // viewportWidth={viewportWidth}
                     />
                 </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
-                    translate={this.translate}
-                    onSelect={this.onAreaOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}

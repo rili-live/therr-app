@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Text, View, SafeAreaView, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { IUserState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
@@ -76,7 +76,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -86,14 +86,12 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     }
 
     onSuccess = () => {
-        // this.props.navigation.navigate('Login', {
-        //     userMessage: this.translate('pages.login.userAlerts.registerSuccess'),
-        // });
-        Toast.show({
-            type: 'successBig',
+        showToast.success({
             text1: this.translate('alertTitles.waitlistSuccess'),
             text2: this.translate('alertMessages.waitlistSuccess'),
-            visibilityTime: 5000,
+        });
+        this.props.navigation.navigate('Login', {
+            userMessage: this.translate('pages.login.userAlerts.registerSuccess'),
         });
     };
 

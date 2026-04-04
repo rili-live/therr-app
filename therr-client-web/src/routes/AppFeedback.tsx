@@ -1,14 +1,15 @@
 import * as React from 'react';
 import { Link, NavigateFunction } from 'react-router-dom';
+import { Alert, Stack } from '@mantine/core';
 import {
-    ButtonPrimary,
-    CheckBox,
-    Input,
-} from 'therr-react/components';
+    MantineButton,
+    MantineCheckbox,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import { UsersService } from 'therr-react/services';
-import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IAppFeedbackRouterProps {
     location: Location;
@@ -21,7 +22,9 @@ interface IAppFeedbackDispatchProps {
 // Add your dispatcher properties here
 }
 
-interface IAppFeedbackProps extends IAppFeedbackRouterProps, IAppFeedbackDispatchProps {}
+interface IAppFeedbackProps extends IAppFeedbackRouterProps, IAppFeedbackDispatchProps {
+    translate: (key: string, params?: any) => string;
+}
 
 interface IAppFeedbackState {
     alertMessage: string;
@@ -42,8 +45,6 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * AppFeedback
  */
 export class AppFeedbackComponent extends React.Component<IAppFeedbackProps, IAppFeedbackState> {
-    private translate: Function;
-
     constructor(props: IAppFeedbackProps & IAppFeedbackDispatchProps) {
         super(props);
 
@@ -58,12 +59,10 @@ export class AppFeedbackComponent extends React.Component<IAppFeedbackProps, IAp
                 appFeedback: '',
             },
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.appFeedback.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.appFeedback.pageTitle')}`;
         const { location } = this.props;
 
         const urlParams = new URLSearchParams(location?.search);
@@ -102,13 +101,13 @@ export class AppFeedbackComponent extends React.Component<IAppFeedbackProps, IAp
         UsersService.sendFeedback(formattedFeedback)
             .then(() => {
                 this.setState({
-                    alertMessage: this.translate('pages.appFeedback.successMessage'),
+                    alertMessage: this.props.translate('pages.appFeedback.successMessage'),
                     alertVariation: 'success',
                 });
             })
             .catch(() => {
                 this.setState({
-                    alertMessage: this.translate('pages.appFeedback.failedToUpdateMessage'),
+                    alertMessage: this.props.translate('pages.appFeedback.failedToUpdateMessage'),
                     alertVariation: 'error',
                 });
             })
@@ -140,71 +139,63 @@ export class AppFeedbackComponent extends React.Component<IAppFeedbackProps, IAp
             <div id="page_app_feedback" className="flex-box space-evenly center row wrap-reverse">
                 <div className="register-container">
                     <div className="flex fill max-wide-30">
-                        <h1 className="text-center">{this.translate('pages.appFeedback.pageTitle')}</h1>
-                        {
-                            alertMessage
-                            && <div className="form-field text-center">
-                                {
-                                    alertVariation === 'success'
-                                    && <p className={`alert-${alertVariation}`}>{alertMessage}</p>
-                                }
-                                {
-                                    (alertVariation === 'error' || alertVariation === 'warning')
-                                    && <p className={`alert-${alertVariation}`}>{alertMessage}</p>
-                                }
-                            </div>
-                        }
-                        <div className="form-field mb-2">
-                            <h4 className="text-center">{this.translate('pages.appFeedback.sectionHeaders.response')}</h4>
-                            <div className="mb-2 text-center">
-                                <CheckBox
-                                    id="isSocialHealth"
-                                    name="isSocialHealth"
-                                    label={this.translate('pages.appFeedback.labels.isSocialHealth')}
-                                    value={inputs.isSocialHealth}
-                                    onChange={this.onCheckboxChange}
-                                    className="no-padding"
-                                    disabled={isLoading}
-                                />
-                                <CheckBox
-                                    id="isLoyaltyRewards"
-                                    name="isLoyaltyRewards"
-                                    label={this.translate('pages.appFeedback.labels.isLoyaltyRewards')}
-                                    value={inputs.isLoyaltyRewards}
-                                    onChange={this.onCheckboxChange}
-                                    className="no-padding"
-                                    disabled={isLoading}
-                                />
-                            </div>
-                            <div className="text-center no-padding">
-                                <label className="required" htmlFor="app_feedback">
-                                    {this.translate('pages.appFeedback.labels.feedback')}:
-                                </label>
-                                <Input
-                                    type="text"
-                                    id="app_feedback"
-                                    name="appFeedback"
-                                    value={this.state.inputs.appFeedback}
-                                    onChange={this.onInputChange}
-                                    onEnter={this.onSubmit}
-                                    translate={this.translate}
-                                    validations={['isRequired']}
-                                    placeholder={this.translate('pages.appFeedback.labels.missing')}
+                        <Stack gap="sm">
+                            <h1 className="text-center">{this.props.translate('pages.appFeedback.pageTitle')}</h1>
+                            {
+                                alertMessage
+                                && <Alert
+                                    color={alertVariation === 'success' ? 'green' : 'red'}
+                                    variant="light"
+                                >
+                                    {alertMessage}
+                                </Alert>
+                            }
+
+                            <h4 className="text-center">{this.props.translate('pages.appFeedback.sectionHeaders.response')}</h4>
+                            <MantineCheckbox
+                                id="isSocialHealth"
+                                name="isSocialHealth"
+                                label={this.props.translate('pages.appFeedback.labels.isSocialHealth')}
+                                isChecked={inputs.isSocialHealth}
+                                onChange={this.onCheckboxChange}
+                                disabled={isLoading}
+                            />
+                            <MantineCheckbox
+                                id="isLoyaltyRewards"
+                                name="isLoyaltyRewards"
+                                label={this.props.translate('pages.appFeedback.labels.isLoyaltyRewards')}
+                                isChecked={inputs.isLoyaltyRewards}
+                                onChange={this.onCheckboxChange}
+                                disabled={isLoading}
+                            />
+
+                            <MantineInput
+                                type="text"
+                                id="app_feedback"
+                                name="appFeedback"
+                                value={this.state.inputs.appFeedback}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.props.translate}
+                                validations={['isRequired']}
+                                placeholder={this.props.translate('pages.appFeedback.labels.missing')}
+                                label={this.props.translate('pages.appFeedback.labels.feedback')}
+                            />
+
+                            <div className="form-field text-right">
+                                <MantineButton
+                                    id="email"
+                                    text={this.props.translate('pages.appFeedback.buttons.send')}
+                                    onClick={this.onSubmit}
+                                    disabled={isLoading || !this.state.inputs.appFeedback}
+                                    fullWidth
                                 />
                             </div>
 
-                            <div className="form-field text-right">
-                                <ButtonPrimary
-                                    id="email"
-                                    text={this.translate('pages.appFeedback.buttons.send')}
-                                    onClick={this.onSubmit}
-                                    disabled={isLoading || !this.state.inputs.appFeedback}
-                                />
+                            <div className="text-center">
+                                <Link to="/login">{this.props.translate('pages.appFeedback.returnToLogin')}</Link>
                             </div>
-                        </div>
-                        <div className="text-center">
-                            <Link to="/login">{this.translate('pages.appFeedback.returnToLogin')}</Link>
-                        </div>
+                        </Stack>
                     </div>
                 </div>
             </div>
@@ -212,4 +203,4 @@ export class AppFeedbackComponent extends React.Component<IAppFeedbackProps, IAp
     }
 }
 
-export default withNavigation(AppFeedbackComponent);
+export default withNavigation(withTranslation(AppFeedbackComponent));

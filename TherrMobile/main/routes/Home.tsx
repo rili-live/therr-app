@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
@@ -72,7 +72,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const quote = this.translate('quoteOfTheDay');
         const quoteSplit = quote.split(' - ');
@@ -177,8 +177,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 />
                                 <View style={this.theme.styles.sectionContainer}>
                                     <Button
-                                        buttonStyle={this.themeForms.styles.button}
+                                        buttonStyle={this.themeForms.styles.buttonPrimary}
                                         disabledStyle={this.themeForms.styles.buttonDisabled}
+                                        titleStyle={this.themeForms.styles.buttonTitle}
+                                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                         title={this.translate(
                                             'pages.userProfile.buttons.send'
                                         )}

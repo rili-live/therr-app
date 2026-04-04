@@ -5,6 +5,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span'; // eslint-disable-l
 import { awsSES } from '../aws';
 import Store from '../../store';
 import { getHostContext } from '../../constants/hostContext';
+import translate from '../../utilities/translator';
 import templateString from './template';
 import { createUserEmailToken } from '../../utilities/userHelpers';
 
@@ -14,6 +15,7 @@ const defaultTherrEmailTemplate = Handlebars.compile(templateString);
 
 export interface ISendEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -26,6 +28,7 @@ export interface ISendEmailConfig {
 
 export interface ISendEmailHtmlConfig {
     header: string;
+    preheaderText?: string;
     dearUser?: string;
     body1: string;
     body2?: string;
@@ -40,6 +43,14 @@ export interface ISendEmailHtmlConfig {
 
     // Brand/Agency Specific Params
     brandBackgroundHexDark?: string;
+    brandAccentHex?: string;
+    brandAccentHexDark?: string;
+    contentBgDark?: string;
+    textColorLight?: string;
+    textColorDark?: string;
+    footerTextColorLight?: string;
+    warningColorLight?: string;
+    warningColorDark?: string;
     homepageLinkUri?: string;
     logoAltText?: string;
     logoRelativePath?: string;
@@ -48,6 +59,23 @@ export interface ISendEmailHtmlConfig {
     legalBusinessName?: string;
     businessCopyrightYear?: string;
     shouldIncludeSocialIcons?: string;
+
+    // Social Links
+    socialFacebook?: string;
+    socialTwitter?: string;
+    socialInstagram?: string;
+    socialLinkedin?: string;
+    socialYoutube?: string;
+    socialTiktok?: string;
+
+    // HTML lang attribute
+    lang?: string;
+
+    // Localized footer text
+    footerAllRightsReserved?: string;
+    footerUnsubscribePrompt?: string;
+    footerUnsubscribeLink?: string;
+    footerUnsubscribeReply?: string;
 
     // E-mail Appearance in Inbox
     fromEmailTitle?: string;
@@ -69,6 +97,7 @@ export default (
     template: Handlebars.TemplateDelegate = defaultTherrEmailTemplate,
 ) => new Promise((resolve, reject) => {
     const contextConfig = getHostContext(emailConfig.agencyDomainName, emailConfig.brandVariation);
+    const lang = htmlConfig.lang || (emailConfig.locale ? emailConfig.locale.split('-')[0] : 'en');
     let unsubscribeUrl = htmlConfig.unsubscribeUrl || contextConfig.emailTemplates.unsubscribeUrl;
     // TODO: Generate user email token based on host context
     const unsubscribeUrlToken = unsubscribeUrl && emailConfig.recipientIdentifiers
@@ -82,10 +111,20 @@ export default (
         unsubscribeUrl = `${unsubscribeUrl}?emailToken=${unsubscribeUrlToken}`;
     }
 
+    const socialLinks = contextConfig.emailTemplates.socialLinks || {};
     const sanitizedHtmlConfig: ISendEmailHtmlConfig = {
         ...htmlConfig,
+        lang,
         messageCategory: htmlConfig.messageCategory || 'marketing',
         brandBackgroundHexDark: htmlConfig.brandBackgroundHexDark || contextConfig.emailTemplates.brandBackgroundHexDark,
+        brandAccentHex: htmlConfig.brandAccentHex || contextConfig.emailTemplates.brandAccentHex || '#1C7F8A',
+        brandAccentHexDark: htmlConfig.brandAccentHexDark || contextConfig.emailTemplates.brandAccentHexDark || '#22A5B4',
+        contentBgDark: htmlConfig.contentBgDark || contextConfig.emailTemplates.contentBgDark || '#1e1e1e',
+        textColorLight: htmlConfig.textColorLight || contextConfig.emailTemplates.textColorLight || '#1f2937',
+        textColorDark: htmlConfig.textColorDark || contextConfig.emailTemplates.textColorDark || '#E0E0E0',
+        footerTextColorLight: htmlConfig.footerTextColorLight || contextConfig.emailTemplates.footerTextColorLight || '#ffffff',
+        warningColorLight: htmlConfig.warningColorLight || contextConfig.emailTemplates.warningColorLight || '#dc2626',
+        warningColorDark: htmlConfig.warningColorDark || contextConfig.emailTemplates.warningColorDark || '#ff6b6b',
         homepageLinkUri: htmlConfig.homepageLinkUri || contextConfig.emailTemplates.homepageLinkUri,
         logoAltText: htmlConfig.logoAltText || contextConfig.emailTemplates.logoAltText,
         logoRelativePath: htmlConfig.logoRelativePath || contextConfig.emailTemplates.logoRelativePath,
@@ -94,6 +133,22 @@ export default (
         legalBusinessName: htmlConfig.legalBusinessName || contextConfig.emailTemplates.legalBusinessName,
         businessCopyrightYear: htmlConfig.businessCopyrightYear || contextConfig.emailTemplates.businessCopyrightYear,
         shouldIncludeSocialIcons: htmlConfig.shouldIncludeSocialIcons || contextConfig.emailTemplates.shouldIncludeSocialIcons,
+        socialFacebook: htmlConfig.socialFacebook || socialLinks.facebook,
+        socialTwitter: htmlConfig.socialTwitter || socialLinks.twitter,
+        socialInstagram: htmlConfig.socialInstagram || socialLinks.instagram,
+        socialLinkedin: htmlConfig.socialLinkedin || socialLinks.linkedin,
+        socialYoutube: htmlConfig.socialYoutube || socialLinks.youtube,
+        socialTiktok: htmlConfig.socialTiktok || socialLinks.tiktok,
+        footerAllRightsReserved: htmlConfig.footerAllRightsReserved
+            || translate(emailConfig.locale || 'en-us', 'emails.template.allRightsReserved'),
+        footerUnsubscribePrompt: htmlConfig.footerUnsubscribePrompt
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribePrompt'),
+        footerUnsubscribeLink: htmlConfig.footerUnsubscribeLink
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribeLink'),
+        footerUnsubscribeReply: htmlConfig.footerUnsubscribeReply
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribeReply', {
+                messageCategory: htmlConfig.messageCategory || 'marketing',
+            }),
     };
     const renderedHtml = template(sanitizedHtmlConfig);
     const params = {

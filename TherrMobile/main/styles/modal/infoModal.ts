@@ -33,6 +33,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: 150,
             width: 150,
             display: 'flex',
+            alignSelf: 'center',
             paddingVertical: 10,
             marginBottom: 40,
         },
@@ -41,6 +42,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '800',
             paddingBottom: 8,
             fontFamily: 'Lexend-Regular',
+            textAlign: 'center',
         },
         text: {
             paddingBottom: 5,

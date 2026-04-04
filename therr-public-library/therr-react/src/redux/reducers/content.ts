@@ -1,318 +1,289 @@
-import * as Immutable from 'seamless-immutable';
+import { produce } from 'immer';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IContentState, ContentActionTypes } from '../../types/redux/content';
 import { MapActionTypes } from '../../types';
 
 // TODO: Rather than using Set to remove duplicates, store this data as a Map keyed on area ID
 
-const initialState: IContentState = Immutable.from({
-    activeEvents: Immutable.from([]),
-    activeEventsPagination: Immutable.from({}),
-    bookmarkedEvents: Immutable.from([]),
-    activeMoments: Immutable.from([]),
-    activeMomentsPagination: Immutable.from({}),
-    bookmarkedMoments: Immutable.from([]),
-    activeSpaces: Immutable.from([]),
-    activeSpacesPagination: Immutable.from({}),
-    bookmarkedSpaces: Immutable.from([]),
-    activeThoughts: Immutable.from([]),
-    activeThoughtsPagination: Immutable.from({}),
-    bookmarkedThoughts: Immutable.from([]),
-    myDrafts: Immutable.from([]),
-    myDraftsPagination: Immutable.from({}),
+const initialState: IContentState = {
+    activeEvents: [],
+    activeEventsPagination: {},
+    bookmarkedEvents: [],
+    activeMoments: [],
+    activeMomentsPagination: {},
+    bookmarkedMoments: [],
+    activeSpaces: [],
+    activeSpacesPagination: {},
+    bookmarkedSpaces: [],
+    activeThoughts: [],
+    activeThoughtsPagination: {},
+    bookmarkedThoughts: [],
+    myDrafts: [],
+    myDraftsPagination: {},
 
-    activeAreasFilters: Immutable.from({
+    activeAreasFilters: {
         order: 'DESC',
-    }),
-    media: Immutable.from({}),
-});
+        contentType: 'all',
+    },
+    media: {},
+};
 
-const content = (state: IContentState = initialState, action: any) => {
-    // If state is initialized by server-side rendering, it may not be a proper immutable object yet
-    if (!state.setIn) {
-        state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
-    }
-
-    let modifiedActiveEvents = [];
-    let modifiedActiveMoments = [];
-    let modifiedActiveSpaces = [];
-    let modifiedActiveThoughts = [];
-    let modifiedBookmarkedEvents = [];
-    let modifiedBookmarkedMoments = [];
-    let modifiedBookmarkedSpaces = [];
-    let modifiedBookmarkedThoughts = [];
-    let modifiedDraftMoments = [];
-    let moddedActiveIndex = -1;
-    let moddedBookmarkedIndex = -1;
-    let moddedDraftIndex = -1;
-
-    // Events
-    if (state.activeEvents) {
-        modifiedActiveEvents = JSON.parse(JSON.stringify(state.activeEvents));
-        modifiedBookmarkedEvents = JSON.parse(JSON.stringify(state.bookmarkedEvents));
-        moddedActiveIndex = modifiedActiveEvents.findIndex((event) => event.id === action.data?.eventId);
-        moddedBookmarkedIndex = modifiedBookmarkedEvents.findIndex((event) => event.id === action.data?.eventId);
-
-        if (moddedActiveIndex !== -1) {
-            if (action.type === ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION) {
-                modifiedActiveEvents[moddedActiveIndex].reaction = { ...action.data };
-            } else if (action.type === ContentActionTypes.REMOVE_ACTIVE_EVENTS) {
-                modifiedActiveEvents.splice(moddedActiveIndex, 1);
-            }
-        }
-
-        if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION) {
-            modifiedBookmarkedEvents[moddedBookmarkedIndex].reaction = { ...action.data };
-        }
-    }
-
-    // Moments
-    if (state.activeMoments) {
-        modifiedActiveMoments = JSON.parse(JSON.stringify(state.activeMoments));
-        modifiedBookmarkedMoments = JSON.parse(JSON.stringify(state.bookmarkedMoments));
-        modifiedDraftMoments = JSON.parse(JSON.stringify(state.myDrafts));
-        moddedActiveIndex = modifiedActiveMoments.findIndex((moment) => moment.id === action.data?.momentId);
-        moddedBookmarkedIndex = modifiedBookmarkedMoments.findIndex((moment) => moment.id === action.data?.momentId);
-        moddedDraftIndex = modifiedDraftMoments.findIndex((moment) => moment.id === action.data?.id);
-
-        if (moddedActiveIndex !== -1) {
-            if (action.type === ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION) {
-                modifiedActiveMoments[moddedActiveIndex].reaction = { ...action.data };
-            } else if (action.type === ContentActionTypes.REMOVE_ACTIVE_MOMENTS) {
-                modifiedActiveMoments.splice(moddedActiveIndex, 1);
-            }
-        }
-
-        if (moddedDraftIndex !== -1) {
-            if (action.type === ContentActionTypes.MOMENT_DRAFT_DELETED) {
-                modifiedDraftMoments.splice(moddedDraftIndex, 1);
-            } else if (action.type === MapActionTypes.MOMENT_UPDATED) {
-                if (!action.data.isDraft) {
-                    modifiedDraftMoments.splice(moddedDraftIndex, 1);
-                }
-            }
-        }
-
-        if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION) {
-            modifiedBookmarkedMoments[moddedBookmarkedIndex].reaction = { ...action.data };
-        }
-    }
-
-    // Spaces
-    if (state.activeSpaces) {
-        modifiedActiveSpaces = JSON.parse(JSON.stringify(state.activeSpaces));
-        modifiedBookmarkedSpaces = JSON.parse(JSON.stringify(state.bookmarkedSpaces));
-        moddedActiveIndex = modifiedActiveSpaces.findIndex((space) => space.id === action.data?.spaceId);
-        moddedBookmarkedIndex = modifiedBookmarkedSpaces.findIndex((space) => space.id === action.data?.spaceId);
-
-        if (moddedActiveIndex !== -1) {
-            if (action.type === ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION) {
-                modifiedActiveSpaces[moddedActiveIndex].reaction = { ...action.data };
-            } else if (action.type === ContentActionTypes.REMOVE_ACTIVE_SPACES) {
-                modifiedActiveSpaces.splice(moddedActiveIndex, 1);
-            }
-        }
-
-        if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION) {
-            modifiedBookmarkedSpaces[moddedBookmarkedIndex].reaction = { ...action.data };
-        }
-    }
-
-    // Thoughts
-    if (state.activeThoughts) {
-        modifiedActiveThoughts = JSON.parse(JSON.stringify(state.activeThoughts));
-        modifiedBookmarkedThoughts = JSON.parse(JSON.stringify(state.bookmarkedThoughts));
-        moddedActiveIndex = modifiedActiveThoughts.findIndex((thought) => thought.id === action.data?.thoughtId);
-        moddedBookmarkedIndex = modifiedBookmarkedThoughts.findIndex((thought) => thought.id === action.data?.thoughtId);
-
-        if (moddedActiveIndex !== -1) {
-            if (action.type === ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION) {
-                modifiedActiveThoughts[moddedActiveIndex].reaction = { ...action.data };
-            } else if (action.type === ContentActionTypes.REMOVE_ACTIVE_THOUGHTS) {
-                modifiedActiveThoughts.splice(moddedActiveIndex, 1);
-            }
-        }
-
-        if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION) {
-            modifiedBookmarkedThoughts[moddedBookmarkedIndex].reaction = { ...action.data };
-        }
-    }
-
-    const modifiedActiveEventsMap = {};
-    const modifiedActiveMomentsMap = {};
-    const modifiedActiveSpacesMap = {};
-    const modifiedActiveThoughtsMap = {};
+const content = produce((draft: IContentState, action: any) => {
+    const modifiedActiveEventsMap: { [key: string]: any } = {};
+    const modifiedActiveMomentsMap: { [key: string]: any } = {};
+    const modifiedActiveSpacesMap: { [key: string]: any } = {};
+    const modifiedActiveThoughtsMap: { [key: string]: any } = {};
 
     // TODO: consider storing as Set to prevent duplicates
     switch (action.type) {
         // Events
         case ContentActionTypes.INSERT_ACTIVE_EVENTS:
             // Add latest events to start
-            return state.setIn(['activeEvents'], [...new Set([...action.data, ...modifiedActiveEvents])]);
-        case ContentActionTypes.REMOVE_ACTIVE_EVENTS:
+            draft.activeEvents = [...new Set([...action.data, ...draft.activeEvents])];
+            break;
+        case ContentActionTypes.REMOVE_ACTIVE_EVENTS: {
             // Remove (reported) events
-            return state.setIn(['activeEvents'], [...new Set(modifiedActiveEvents)]);
-        case ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION:
-            return state.setIn(['activeEvents'], [...new Set(modifiedActiveEvents)])
-                .setIn(['bookmarkedEvents'], modifiedBookmarkedEvents);
+            const idx = draft.activeEvents.findIndex((e) => e.id === action.data?.eventId);
+            if (idx !== -1) draft.activeEvents.splice(idx, 1);
+            draft.activeEvents = [...new Set(draft.activeEvents)];
+            break;
+        }
+        case ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION: {
+            const activeIdx = draft.activeEvents.findIndex((e) => e.id === action.data?.eventId);
+            if (activeIdx !== -1) {
+                draft.activeEvents[activeIdx].reaction = { ...action.data };
+            }
+            draft.activeEvents = [...new Set(draft.activeEvents)];
+            const bookmarkIdx = draft.bookmarkedEvents.findIndex((e) => e.id === action.data?.eventId);
+            if (bookmarkIdx !== -1) {
+                draft.bookmarkedEvents[bookmarkIdx].reaction = { ...action.data };
+            }
+            break;
+        }
         case ContentActionTypes.SEARCH_ACTIVE_EVENTS:
             // Add next offset of events to end
-            action.data.events.concat(modifiedActiveEvents).forEach((m) => {
+            action.data.events.concat([...draft.activeEvents]).forEach((m) => {
                 if (!modifiedActiveEventsMap[m.id]) {
                     modifiedActiveEventsMap[m.id] = m;
                 }
             });
-            return state.setIn(['activeEvents'], Object.values(modifiedActiveEventsMap))
-                .setIn(['activeEventsPagination'], { ...action.data.pagination });
+            draft.activeEvents = Object.values(modifiedActiveEventsMap);
+            draft.activeEventsPagination = { ...action.data.pagination };
+            break;
         case ContentActionTypes.UPDATE_ACTIVE_EVENTS:
             // Reset events from scratch
-            return state.setIn(['activeEvents'], action.data.events)
-                .setIn(['activeEventsPagination'], { ...action.data.pagination });
+            draft.activeEvents = action.data.events;
+            draft.activeEventsPagination = { ...action.data.pagination };
+            break;
         case ContentActionTypes.SEARCH_BOOKMARKED_EVENTS:
             // Add next offset of events to end
-            return state.setIn(['bookmarkedEvents'], action.data.events)
-                .setIn(['media'], { ...state.media, ...action.data.media });
+            draft.bookmarkedEvents = action.data.events;
+            draft.media = { ...draft.media, ...action.data.media };
+            break;
 
         // Moments
         case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
             // Add latest moments to start
-            return state.setIn(['activeMoments'], action.data.concat(modifiedActiveMoments));
-        case ContentActionTypes.REMOVE_ACTIVE_MOMENTS:
+            draft.activeMoments = action.data.concat([...draft.activeMoments]);
+            break;
+        case ContentActionTypes.REMOVE_ACTIVE_MOMENTS: {
             // Remove (reported) moments
-            return state.setIn(['activeMoments'], modifiedActiveMoments);
-        case ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION:
-            return state.setIn(['activeMoments'], modifiedActiveMoments)
-                .setIn(['bookmarkedMoments'], modifiedBookmarkedMoments);
+            const idx = draft.activeMoments.findIndex((m) => m.id === action.data?.momentId);
+            if (idx !== -1) draft.activeMoments.splice(idx, 1);
+            break;
+        }
+        case ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION: {
+            const activeIdx = draft.activeMoments.findIndex((m) => m.id === action.data?.momentId);
+            if (activeIdx !== -1) {
+                draft.activeMoments[activeIdx].reaction = { ...action.data };
+            }
+            const bookmarkIdx = draft.bookmarkedMoments.findIndex((m) => m.id === action.data?.momentId);
+            if (bookmarkIdx !== -1) {
+                draft.bookmarkedMoments[bookmarkIdx].reaction = { ...action.data };
+            }
+            break;
+        }
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS:
             // Add newly activated moments to the top
-            action.data.moments.concat(modifiedActiveMoments).forEach((m) => {
+            action.data.moments.concat([...draft.activeMoments]).forEach((m) => {
                 if (!modifiedActiveMomentsMap[m.id]) {
                     modifiedActiveMomentsMap[m.id] = m;
                 }
             });
-            return state.setIn(['activeMoments'], Object.values(modifiedActiveMomentsMap))
-                .setIn(['media'], { ...state.media, ...action.data.media });
+            draft.activeMoments = Object.values(modifiedActiveMomentsMap);
+            draft.media = { ...draft.media, ...action.data.media };
+            break;
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS:
             // Add next offset of moments to end
-            action.data.moments.concat(modifiedActiveMoments).forEach((m) => {
+            action.data.moments.concat([...draft.activeMoments]).forEach((m) => {
                 if (!modifiedActiveMomentsMap[m.id]) {
                     modifiedActiveMomentsMap[m.id] = m;
                 }
             });
-            return state.setIn(['activeMoments'], Object.values(modifiedActiveMomentsMap))
-                .setIn(['media'], { ...state.media, ...action.data.media })
-                .setIn(['activeMomentsPagination'], { ...action.data.pagination });
+            draft.activeMoments = Object.values(modifiedActiveMomentsMap);
+            draft.media = { ...draft.media, ...action.data.media };
+            draft.activeMomentsPagination = { ...action.data.pagination };
+            break;
         case ContentActionTypes.UPDATE_ACTIVE_MOMENTS:
             // Reset moments from scratch
-            return state.setIn(['activeMoments'], action.data.moments)
-                .setIn(['media'], { ...state.media, ...action.data.media }) // local cache existing media
-                .setIn(['activeMomentsPagination'], { ...action.data.pagination });
+            draft.activeMoments = action.data.moments;
+            draft.media = { ...draft.media, ...action.data.media }; // local cache existing media
+            draft.activeMomentsPagination = { ...action.data.pagination };
+            break;
         case ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS:
             // TODO: Add next offset of moments to end
-            return state.setIn(['bookmarkedMoments'], action.data.moments)
-                .setIn(['media'], { ...state.media, ...action.data.media });
+            draft.bookmarkedMoments = action.data.moments;
+            draft.media = { ...draft.media, ...action.data.media };
+            break;
         case ContentActionTypes.SEARCH_MY_DRAFTS:
             // Add next offset of spaces to end
-            return state.setIn(['myDrafts'], [...action.data.results])
-                .setIn(['myDraftsPagination'], { ...action.data.pagination })
-                .setIn(['media'], { ...state.media, ...action.data.media });
+            draft.myDrafts = [...action.data.results];
+            draft.myDraftsPagination = { ...action.data.pagination };
+            draft.media = { ...draft.media, ...action.data.media };
+            break;
         case ContentActionTypes.MOMENT_DRAFT_CREATED:
-            modifiedDraftMoments.unshift(action.data);
-            return state.setIn(['myDrafts'], modifiedDraftMoments);
-        case ContentActionTypes.MOMENT_DRAFT_DELETED:
+            draft.myDrafts.unshift(action.data);
+            break;
+        case ContentActionTypes.MOMENT_DRAFT_DELETED: {
             // Remove (deleted draft) moments
-            return state.setIn(['myDrafts'], modifiedDraftMoments);
-        case MapActionTypes.MOMENT_UPDATED:
+            const idx = draft.myDrafts.findIndex((m) => m.id === action.data?.id);
+            if (idx !== -1) draft.myDrafts.splice(idx, 1);
+            break;
+        }
+        case MapActionTypes.MOMENT_UPDATED: {
             // Remove moment updated from draft to complete
-            return state.setIn(['myDrafts'], modifiedDraftMoments);
+            const idx = draft.myDrafts.findIndex((m) => m.id === action.data?.id);
+            if (idx !== -1 && !action.data.isDraft) {
+                draft.myDrafts.splice(idx, 1);
+            }
+            break;
+        }
 
         // Spaces
         case ContentActionTypes.INSERT_ACTIVE_SPACES:
             // Add latest spaces to start
-            return state.setIn(['activeSpaces'], [...new Set(action.data.concat(modifiedActiveSpaces))]);
-        case ContentActionTypes.REMOVE_ACTIVE_SPACES:
+            draft.activeSpaces = [...new Set(action.data.concat([...draft.activeSpaces]))];
+            break;
+        case ContentActionTypes.REMOVE_ACTIVE_SPACES: {
             // Remove (reported) spaces
-            return state.setIn(['activeSpaces'], [...new Set(modifiedActiveSpaces)]);
-        case ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION:
-            return state.setIn(['activeSpaces'], [...new Set(modifiedActiveSpaces)])
-                .setIn(['bookmarkedSpaces'], modifiedBookmarkedSpaces);
+            const idx = draft.activeSpaces.findIndex((s) => s.id === action.data?.spaceId);
+            if (idx !== -1) draft.activeSpaces.splice(idx, 1);
+            draft.activeSpaces = [...new Set(draft.activeSpaces)];
+            break;
+        }
+        case ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION: {
+            const activeIdx = draft.activeSpaces.findIndex((s) => s.id === action.data?.spaceId);
+            if (activeIdx !== -1) {
+                draft.activeSpaces[activeIdx].reaction = { ...action.data };
+            }
+            draft.activeSpaces = [...new Set(draft.activeSpaces)];
+            const bookmarkIdx = draft.bookmarkedSpaces.findIndex((s) => s.id === action.data?.spaceId);
+            if (bookmarkIdx !== -1) {
+                draft.bookmarkedSpaces[bookmarkIdx].reaction = { ...action.data };
+            }
+            break;
+        }
         case ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS:
             // Add newly activated space to the top
-            action.data.spaces.concat(modifiedActiveSpaces).forEach((m) => {
+            action.data.spaces.concat([...draft.activeSpaces]).forEach((m) => {
                 if (!modifiedActiveSpacesMap[m.id]) {
                     modifiedActiveSpacesMap[m.id] = m;
                 }
             });
-            return state.setIn(['activeSpaces'], Object.values(modifiedActiveSpacesMap))
-                .setIn(['media'], { ...state.media, ...action.data.media });
+            draft.activeSpaces = Object.values(modifiedActiveSpacesMap);
+            draft.media = { ...draft.media, ...action.data.media };
+            break;
         case ContentActionTypes.SEARCH_ACTIVE_SPACES:
             // Add next offset of spaces to end
-            action.data.spaces.concat(modifiedActiveSpaces).forEach((m) => {
+            action.data.spaces.concat([...draft.activeSpaces]).forEach((m) => {
                 if (!modifiedActiveSpacesMap[m.id]) {
                     modifiedActiveSpacesMap[m.id] = m;
                 }
             });
-            return state.setIn(['activeSpaces'], Object.values(modifiedActiveSpacesMap))
-                .setIn(['media'], { ...state.media, ...action.data.media })
-                .setIn(['activeSpacesPagination'], { ...action.data.pagination });
+            draft.activeSpaces = Object.values(modifiedActiveSpacesMap);
+            draft.media = { ...draft.media, ...action.data.media };
+            draft.activeSpacesPagination = { ...action.data.pagination };
+            break;
         case ContentActionTypes.UPDATE_ACTIVE_SPACES:
             // Reset spaces from scratch
-            return state.setIn(['activeSpaces'], action.data.spaces)
-                .setIn(['media'], { ...state.media, ...action.data.media }) // local cache existing media
-                .setIn(['activeSpacesPagination'], { ...action.data.pagination });
+            draft.activeSpaces = action.data.spaces;
+            draft.media = { ...draft.media, ...action.data.media }; // local cache existing media
+            draft.activeSpacesPagination = { ...action.data.pagination };
+            break;
         case ContentActionTypes.SEARCH_BOOKMARKED_SPACES:
             // Add next offset of spaces to end
-            return state.setIn(['bookmarkedSpaces'], action.data.spaces)
-                .setIn(['media'], { ...state.media, ...action.data.media });
+            draft.bookmarkedSpaces = action.data.spaces;
+            draft.media = { ...draft.media, ...action.data.media };
+            break;
 
         // Thoughts
         case ContentActionTypes.INSERT_ACTIVE_THOUGHTS:
             // Add latest thoughts to start
-            return state.setIn(['activeThoughts'], [...new Set([...action.data, ...modifiedActiveThoughts])]);
-        case ContentActionTypes.REMOVE_ACTIVE_THOUGHTS:
+            draft.activeThoughts = [...new Set([...action.data, ...draft.activeThoughts])];
+            break;
+        case ContentActionTypes.REMOVE_ACTIVE_THOUGHTS: {
             // Remove (reported) thoughts
-            return state.setIn(['activeThoughts'], [...new Set(modifiedActiveThoughts)]);
-        case ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION:
-            return state.setIn(['activeThoughts'], [...new Set(modifiedActiveThoughts)])
-                .setIn(['bookmarkedThoughts'], modifiedBookmarkedThoughts);
+            const idx = draft.activeThoughts.findIndex((t) => t.id === action.data?.thoughtId);
+            if (idx !== -1) draft.activeThoughts.splice(idx, 1);
+            draft.activeThoughts = [...new Set(draft.activeThoughts)];
+            break;
+        }
+        case ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION: {
+            const activeIdx = draft.activeThoughts.findIndex((t) => t.id === action.data?.thoughtId);
+            if (activeIdx !== -1) {
+                draft.activeThoughts[activeIdx].reaction = { ...action.data };
+            }
+            draft.activeThoughts = [...new Set(draft.activeThoughts)];
+            const bookmarkIdx = draft.bookmarkedThoughts.findIndex((t) => t.id === action.data?.thoughtId);
+            if (bookmarkIdx !== -1) {
+                draft.bookmarkedThoughts[bookmarkIdx].reaction = { ...action.data };
+            }
+            break;
+        }
         case ContentActionTypes.SEARCH_ACTIVE_THOUGHTS:
             // Add next offset of thoughts to end
-            action.data.thoughts.concat(modifiedActiveThoughts).forEach((m) => {
+            action.data.thoughts.concat([...draft.activeThoughts]).forEach((m) => {
                 if (!modifiedActiveThoughtsMap[m.id]) {
                     modifiedActiveThoughtsMap[m.id] = m;
                 }
             });
-            return state.setIn(['activeThoughts'], Object.values(modifiedActiveThoughtsMap))
-                .setIn(['activeThoughtsPagination'], { ...action.data.pagination });
+            draft.activeThoughts = Object.values(modifiedActiveThoughtsMap);
+            draft.activeThoughtsPagination = { ...action.data.pagination };
+            break;
         case ContentActionTypes.UPDATE_ACTIVE_THOUGHTS:
             // Reset thoughts from scratch
-            return state.setIn(['activeThoughts'], action.data.thoughts)
-                .setIn(['activeThoughtsPagination'], { ...action.data.pagination });
+            draft.activeThoughts = action.data.thoughts;
+            draft.activeThoughtsPagination = { ...action.data.pagination };
+            break;
         case ContentActionTypes.SEARCH_BOOKMARKED_THOUGHTS:
             // Add next offset of thoughts to end
-            return state.setIn(['bookmarkedThoughts'], action.data.thoughts)
-                .setIn(['media'], { ...state.media, ...action.data.media });
+            draft.bookmarkedThoughts = action.data.thoughts;
+            draft.media = { ...draft.media, ...action.data.media };
+            break;
 
         // Other
         case ContentActionTypes.FETCH_MEDIA:
-            return state.setIn(['media'], { ...state.media, ...action.data });
+            draft.media = { ...draft.media, ...action.data };
+            break;
         case ContentActionTypes.SET_ACTIVE_AREAS_FILTERS:
-            return state.setIn(['activeAreasFilters'], { ...action.data });
+            draft.activeAreasFilters = { ...draft.activeAreasFilters, ...action.data };
+            break;
         case MapActionTypes.GET_EVENT_DETAILS:
         case MapActionTypes.GET_MOMENT_DETAILS:
         case MapActionTypes.GET_SPACE_DETAILS:
-            // Reset moments from scratch
-            return state.setIn(['media'], { ...state.media, ...action.data.media });
+            draft.media = { ...draft.media, ...action.data.media };
+            break;
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['activeMoments'], Immutable.from([]))
-                .setIn(['bookmarkedMoments'], Immutable.from([]))
-                .setIn(['activeSpaces'], Immutable.from([]))
-                .setIn(['bookmarkedSpaces'], Immutable.from([]))
-                .setIn(['activeThoughts'], Immutable.from([]))
-                .setIn(['bookmarkedThoughts'], Immutable.from([]));
+            draft.activeMoments = [];
+            draft.bookmarkedMoments = [];
+            draft.activeSpaces = [];
+            draft.bookmarkedSpaces = [];
+            draft.activeThoughts = [];
+            draft.bookmarkedThoughts = [];
+            break;
         default:
-            return state;
+            break;
     }
-};
+}, initialState);
 
 export default content;

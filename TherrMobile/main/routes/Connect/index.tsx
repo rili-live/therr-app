@@ -28,6 +28,7 @@ import UserSearchItem from './components/UserSearchItem';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 import PeopleYouMayKnow from './components/PeopleYouMayKnow';
+import ReferralStats from '../../components/UserContent/ReferralStats';
 
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
@@ -126,7 +127,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const { route } = props;
         const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
@@ -201,6 +202,16 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             this.unsubscribeFocusListener();
         }
     }
+
+    getReferralCount = () => {
+        const { user } = this.props;
+        const communityLeaderAchievements = Object.values(user.achievements || {})
+            .filter((a: any) => a.achievementClass === 'communityLeader');
+        const totalProgress = communityLeaderAchievements
+            .reduce((sum: number, a: any) => sum + (a.progressCount || 0), 0);
+
+        return totalProgress;
+    };
 
     getConnectionOrUserDetails = (userOrConnection) => {
         const { user } = this.props;
@@ -403,8 +414,12 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     sortMessages = (): any[] => {
-        const { messages } = this.props;
+        const { messages, user } = this.props;
+        const blockedUsers = user?.details?.blockedUsers || [];
         // TODO: Determine if user is active an list unread message count
+        if (blockedUsers.length && messages?.myDMs?.length) {
+            return messages.myDMs.filter((dm) => !blockedUsers.includes(dm.userDetails?.id));
+        }
         return messages?.myDMs;
     };
 
@@ -462,7 +477,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.peopleListRef = component}
+                        ref={(component) => { this.peopleListRef = component; }}
                         data={people}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: user }) => (
@@ -479,17 +494,27 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             />
                         )}
                         ListHeaderComponent={
-                            <PeopleYouMayKnow
-                                mightKnowUsers={mightKnowUsers}
-                                getConnectionOrUserDetails={this.getConnectionOrUserDetails}
-                                getConnectionSubtitle={this.getConnectionSubtitle}
-                                goToViewUser={this.goToViewUser}
-                                onSendConnectRequest={this.onSendConnectRequest}
-                                theme={this.theme}
-                                themeButtons={this.themeButtons}
-                                translate={this.translate}
-                                user={this.props.user}
-                            />
+                            <>
+                                <ReferralStats
+                                    locale={this.props.user.settings?.locale || 'en-us'}
+                                    referralCount={this.getReferralCount()}
+                                    userName={this.props.user.details?.userName || ''}
+                                    translate={this.translate}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                />
+                                <PeopleYouMayKnow
+                                    mightKnowUsers={mightKnowUsers}
+                                    getConnectionOrUserDetails={this.getConnectionOrUserDetails}
+                                    getConnectionSubtitle={this.getConnectionSubtitle}
+                                    goToViewUser={this.goToViewUser}
+                                    onSendConnectRequest={this.onSendConnectRequest}
+                                    theme={this.theme}
+                                    themeButtons={this.themeButtons}
+                                    translate={this.translate}
+                                    user={this.props.user}
+                                />
+                            </>
                         }
                         ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
                             'components.contactsSearch.noUsersFound'
@@ -511,7 +536,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.messagesListRef = component}
+                        ref={(component) => { this.messagesListRef = component; }}
                         data={messagedConnections}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: messageSummary }) => (
@@ -546,7 +571,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.connectionsListRef = component}
+                        ref={(component) => { this.connectionsListRef = component; }}
                         data={connections}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: connection }) => (

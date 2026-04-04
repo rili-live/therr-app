@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { bottomSafeAreaInset } from '../../navigation/buttonMenu';
 import { getTheme, ITherrTheme } from '../../themes';
 
 const containerStyles: any = {
@@ -13,7 +14,7 @@ const containerStyles: any = {
 };
 
 const getMessageStyles = (theme: ITherrTheme, themeName: string) => ({
-    color: themeName === 'light' ? theme.colors.accentTextBlack : theme.colors.accentTextBlack,
+    color: themeName === 'light' ? theme.colors.accentTextBlack : theme.colors.textWhite,
     fontSize: 16,
 });
 
@@ -47,11 +48,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         messageTextLeft: {
             ...getMessageStyles(therrTheme, themeName),
-            color: themeName === 'light' ? therrTheme.colors.textWhite : therrTheme.colors.accentTextBlack,
+            color: themeName === 'light' ? therrTheme.colors.textWhite : therrTheme.colors.textWhite,
         },
         messageTextRight: {
             ...getMessageStyles(therrTheme, themeName),
-            color: themeName === 'light' ? therrTheme.colors.textBlack : therrTheme.colors.accentTextBlack,
+            color: themeName === 'light' ? therrTheme.colors.textBlack : therrTheme.colors.brandingBlack,
         },
         messageDateLeft: {
             ...getMessageDateStyles(therrTheme, themeName),
@@ -73,8 +74,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '100%',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: 12,
-            height: 80,
+            paddingTop: 12,
+            paddingBottom: 12 + bottomSafeAreaInset,
+            height: 80 + bottomSafeAreaInset,
         },
         userImage: {
             // color: therrTheme.colors.primary3,
@@ -93,12 +95,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flex: 1,
         },
         sendBtn: {
-            borderRadius: 25,
+            borderRadius: 22,
             backgroundColor: therrTheme.colors.primary3,
+            width: 44,
+            height: 44,
         },
         sendBtnContainer: {
             margin: 0,
-            marginHorizontal: 4,
+            marginLeft: 8,
+            borderRadius: 22,
         },
     });
 

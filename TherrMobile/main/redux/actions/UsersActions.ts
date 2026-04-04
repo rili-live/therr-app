@@ -15,6 +15,9 @@ if (Platform.OS === 'android') {
     webClientId = config.googleOAuth2WebClientIdiOS;
 }
 
+console.log('[GoogleSignIn Config] Platform:', Platform.OS);
+console.log('[GoogleSignIn Config] webClientId:', webClientId);
+
 GoogleSignin.configure({
     webClientId,
 });

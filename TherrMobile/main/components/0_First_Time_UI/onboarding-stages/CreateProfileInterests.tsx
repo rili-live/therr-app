@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Button } from '../../BaseButton';
 import { ITherrThemeColors } from '../../../styles/themes';
 import spacingStyles from '../../../styles/layouts/spacing';
 import searchLoading from '../../../assets/search-loading.json';
@@ -126,7 +126,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                         speed={1}
                         autoPlay
                         loop
-                        style={[{width: '100%', height: 65, marginVertical: 30 }]}
+                        style={localStyles.loadingAnimation}
                     />
                 }
                 <View style={spacingStyles.marginBotLg}>
@@ -135,10 +135,10 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                             const interests = availableInterests[categoryTranslationKey];
                             return (
                                 <View key={categoryTranslationKey} style={theme.styles.sectionContainer}>
-                                    <Text style={[{ marginBottom: 20, color: 'black' }]}>
+                                    <Text style={[localStyles.categoryLabel, { color: theme.colors.textWhite }]}>
                                         {translate(categoryTranslationKey)}
                                     </Text>
-                                    <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+                                    <View style={localStyles.interestsRow}>
                                         {
                                             interests.map((interest) => {
                                                 const style = interest.isEnabled
@@ -148,9 +148,9 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                                                     <Pressable
                                                         key={interest.id}
                                                         onPress={() => this.onPressInterest(interest)}
-                                                        style={[style, { padding: 2, paddingHorizontal: 6, margin: 4 }]}
+                                                        style={[style, localStyles.interestPill]}
                                                     >
-                                                        <Text>
+                                                        <Text style={{ color: theme.colors.textWhite }}>
                                                             {interest.emoji} {translate(interest.displayNameKey)}
                                                         </Text>
                                                     </Pressable>
@@ -165,10 +165,13 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                 </View>
                 <View style={themeSettingsForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={themeForms.styles.button}
+                        buttonStyle={themeForms.styles.buttonPrimary}
+                        disabledStyle={themeForms.styles.buttonDisabled}
+                        titleStyle={themeForms.styles.buttonTitle}
+                        disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         title={submitButtonText}
                         onPress={this.onSubmitInterests}
-                        raised={true}
+                        raised={false}
                         disabled={isDisabled}
                     />
                 </View>
@@ -176,5 +179,26 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    loadingAnimation: {
+        width: '100%',
+        height: 65,
+        marginVertical: 30,
+    },
+    categoryLabel: {
+        marginBottom: 20,
+    },
+    interestsRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    interestPill: {
+        padding: 2,
+        paddingHorizontal: 6,
+        margin: 4,
+    },
+});
 
 export default CreateProfileInterests;

@@ -1,6 +1,4 @@
-import * as Immutable from 'seamless-immutable';
-
-export interface IUserInterfaceState extends Immutable.ImmutableObject<any> {
+export interface IUserInterfaceState {
     details: any;
 }
 

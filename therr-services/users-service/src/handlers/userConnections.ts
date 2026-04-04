@@ -361,6 +361,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         otherUserEmails.forEach((contact) => {
             emailSendPromises.push(sendContactInviteEmail({
                 subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
+                locale,
                 toAddresses: [contact.email],
                 agencyDomainName: whiteLabelOrigin,
                 brandVariation,
@@ -541,7 +542,10 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
 
     const contactsLimitedForPerformance = contactEmails.slice(0, 500).concat(contactPhones.slice(0, 500));
 
-    return Store.users.findUsersByContactInfo(contactsLimitedForPerformance, ['id']).then((users: { id: string; }[]) => {
+    return Store.users.findUsersByContactInfo(
+        contactsLimitedForPerformance,
+        ['id', 'email', 'phoneNumber', 'firstName', 'lastName', 'userName'],
+    ).then((users: { id: string; email?: string; phoneNumber?: string; firstName?: string; lastName?: string; userName?: string }[]) => {
         // TODO: Add db constraint to prevent requestingUserId equal to acceptingUserId
         const filteredUsers = users.filter((u) => u.id !== requestingUserId);
         const mightKnowConnections = filteredUsers.map((user) => ({
@@ -550,9 +554,20 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
             requestStatus: UserConnectionTypes.MIGHT_KNOW,
         }));
 
-        return Store.userConnections.createIfNotExist(mightKnowConnections);
+        return Store.userConnections.createIfNotExist(mightKnowConnections)
+            .then(() => filteredUsers);
     })
-        .then((connections) => res.status(201).send({ mightKnow: connections.length }))
+        .then((matchedUsers) => res.status(201).send({
+            mightKnow: matchedUsers.length,
+            matchedUsers: matchedUsers.map((u) => ({
+                id: u.id,
+                email: u.email,
+                phoneNumber: u.phoneNumber,
+                firstName: u.firstName,
+                lastName: u.lastName,
+                userName: u.userName,
+            })),
+        }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 };
 

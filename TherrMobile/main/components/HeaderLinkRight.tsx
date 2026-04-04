@@ -1,7 +1,8 @@
 import React from 'react';
+import { StyleSheet, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Text } from 'react-native-elements';
+import { Button } from './BaseButton';
 import 'react-native-gesture-handler';
 import {
     AttachStep,
@@ -16,9 +17,7 @@ const Title = ({
     <AttachStep index={4}>
         <Text style={[
             themeForms.styles.buttonLinkHeader,
-            {
-                textAlign: 'center',
-            },
+            localStyles.textCenter,
         ]}>{buttonTitle}</Text>
     </AttachStep>
 );
@@ -27,6 +26,7 @@ interface IHeaderMenuRightDispatchProps {
 }
 
 interface IStoreProps extends IHeaderMenuRightDispatchProps {
+    user: any;
 }
 
 // Regular component props
@@ -44,7 +44,7 @@ interface IHeaderMenuRightState {
     isPointsInfoModalVisible: boolean;
 }
 
-const mapStateToProps = () => ({});
+const mapStateToProps = (state: any) => ({ user: state.user });
 
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
@@ -68,7 +68,7 @@ class HeaderMenuRight extends React.Component<
             isPointsInfoModalVisible: false,
         };
 
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user?.settings?.locale || 'en-us', key, params);
     }
 
     componentWillUnmount = () => {
@@ -124,5 +124,11 @@ class HeaderMenuRight extends React.Component<
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    textCenter: {
+        textAlign: 'center',
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HeaderMenuRight);

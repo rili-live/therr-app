@@ -1,17 +1,18 @@
 import React from 'react';
-import { SafeAreaView, Switch, View, Text } from 'react-native';
+import { SafeAreaView, View, Text } from 'react-native';
+import { SegmentedButtons, Switch } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Button }  from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
-import { IUserState } from 'therr-react/types';
+import { IMobileThemeName, IUserState } from 'therr-react/types';
 import { Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import RNFB from 'react-native-blob-util';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
@@ -47,7 +48,8 @@ interface ISettingsState {
     croppedImageDetails: any;
     inputs: any;
     isCropping: boolean;
-    isNightMode: boolean;
+    selectedLocale: string;
+    selectedTheme: IMobileThemeName;
     isOptedInToAds: boolean;
     isProfilePublic: boolean;
     isSubmitting: boolean;
@@ -85,7 +87,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
             isCropping: false,
-            isNightMode: props.user.settings.mobileThemeName === 'retro',
+            selectedLocale: props.user.settings.locale || 'en-us',
+            selectedTheme: props.user.settings.mobileThemeName || 'light',
             isOptedInToAds: props.user.settings.settingsPushBackground && props.user.settings.settingsPushMarketing,
             isProfilePublic: props.user.settings.settingsIsProfilePublic,
             isSubmitting: false,
@@ -94,7 +97,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
@@ -157,12 +160,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsBio,
             shouldHideMatureContent,
         } = this.state.inputs;
-        const { isNightMode, isOptedInToAds, isProfilePublic } = this.state;
+        const { selectedTheme, selectedLocale, isOptedInToAds, isProfilePublic } = this.state;
         const { user } = this.props;
 
         if (password && !PasswordRegex.test(password)) {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('pages.settings.alertTitles.insecurePassword'),
                 text2: this.translate(
                     'forms.settings.errorMessages.passwordInsecure'
@@ -179,7 +181,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             lastName,
             userName: userName?.toLowerCase(),
             settingsBio,
-            settingsThemeName: isNightMode ? 'retro' : 'light',
+            settingsLocale: selectedLocale,
+            settingsThemeName: selectedTheme,
             settingsPushMarketing: isOptedInToAds,
             settingsPushBackground: isOptedInToAds,
             settingsIsProfilePublic: isProfilePublic,
@@ -206,11 +209,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: this.translate('pages.settings.alertTitles.accountUpdated'),
                 text2: this.translate('pages.settings.alertMessages.accountUpdated'),
-                visibilityTime: 2000,
+                duration: 2000,
                 onHide: () => {
                     console.log('TODO: LOGOUT');
                 },
@@ -223,8 +225,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 error.statusCode === 401 ||
                 error.statusCode === 404
             ) {
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
                     text2: `${error.message}${
                         error.parameters
@@ -233,8 +234,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     }`,
                 });
             } else if (error.statusCode >= 500) {
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
                     text2: this.translate('forms.settings.backendErrorMessage'),
                 });
@@ -277,9 +277,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
     };
 
-    onThemeChange = (isNightMode: boolean) => {
+    onLocaleChange = (value: string) => {
         this.setState({
-            isNightMode,
+            selectedLocale: value,
+        });
+    };
+
+    onThemeChange = (value: string) => {
+        this.setState({
+            selectedTheme: value as IMobileThemeName,
         });
     };
 
@@ -354,7 +360,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const {
             croppedImageDetails,
             inputs,
-            isNightMode,
+            selectedLocale,
+            selectedTheme,
             isOptedInToAds,
             isProfilePublic,
             passwordErrorMessage,
@@ -367,6 +374,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const pageHeaderContentSettings = this.translate('pages.settings.pageHeaderContentSettings');
         const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
         const pageHeaderNotificationSettings = this.translate('pages.settings.pageHeaderNotificationSettings');
+        const pageHeaderLanguageSettings = this.translate('pages.settings.pageHeaderLanguageSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
@@ -397,9 +405,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     >
                                         <Switch
                                             style={this.themeForms.styles.switchButton}
-                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                            thumbColor={isProfilePublic ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
-                                            ios_backgroundColor={this.theme.colors.primary4}
+                                            color={this.theme.colors.primary3}
                                             onValueChange={this.onProfileVisibilitySettingsChange}
                                             value={isProfilePublic}
                                         />
@@ -428,9 +434,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     >
                                         <Switch
                                             style={this.themeForms.styles.switchButton}
-                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                            thumbColor={isOptedInToAds ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
-                                            ios_backgroundColor={this.theme.colors.primary4}
+                                            color={this.theme.colors.primary3}
                                             onValueChange={this.onRewardSettingsChange}
                                             value={isOptedInToAds}
                                         />
@@ -448,30 +452,31 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 </Text>
                             </View>
                             <View style={this.themeSettingsForm.styles.settingsContainer}>
-                                <View style={this.themeForms.styles.switchContainer}>
-                                    <Text
-                                        style={this.themeForms.styles.switchLabel}
-                                    >
-                                        {this.translate('pages.settings.labels.nightMode')}
-                                    </Text>
-                                    <View
-                                        style={this.themeForms.styles.switchSubContainer}
-                                    >
-                                        <Switch
-                                            style={this.themeForms.styles.switchButton}
-                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                            thumbColor={isNightMode ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
-                                            ios_backgroundColor={this.theme.colors.primary4}
-                                            onValueChange={this.onThemeChange}
-                                            value={isNightMode}
-                                        />
-                                        <FontAwesomeIcon
-                                            name={isNightMode ? 'moon' : 'sun'}
-                                            size={22}
-                                            color={isNightMode ? this.theme.colorVariations.primary3Fade : this.theme.colors.primary3}
-                                        />
-                                    </View>
-                                </View>
+                                <SegmentedButtons
+                                    value={selectedTheme}
+                                    onValueChange={this.onThemeChange}
+                                    buttons={[
+                                        { value: 'light', label: this.translate('pages.settings.labels.themeLight'), icon: 'white-balance-sunny' },
+                                        { value: 'dark', label: this.translate('pages.settings.labels.themeDark'), icon: 'moon-waning-crescent' },
+                                        { value: 'retro', label: this.translate('pages.settings.labels.themeRetro'), icon: 'palette-outline' },
+                                    ]}
+                                />
+                            </View>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderLanguageSettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                                <SegmentedButtons
+                                    value={selectedLocale}
+                                    onValueChange={this.onLocaleChange}
+                                    buttons={[
+                                        { value: 'en-us', label: 'English', icon: 'translate' },
+                                        { value: 'es', label: 'Español', icon: 'translate' },
+                                        { value: 'fr-ca', label: 'Français', icon: 'translate' },
+                                    ]}
+                                />
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
@@ -620,6 +625,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
+                                <Text style={this.theme.styles.sectionTitle}>{this.translate('forms.settings.labels.bioHeader')}</Text>
                                 <RoundTextInput
                                     placeholder={this.translate(
                                         'forms.settings.labels.bio'
@@ -726,13 +732,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 </SafeAreaView>
                 <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
-                        buttonStyle={this.themeForms.styles.button}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'forms.settings.buttons.submit'
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isFormDisabled()}
-                        raised={true}
                     />
                 </View>
                 <MainButtonMenu

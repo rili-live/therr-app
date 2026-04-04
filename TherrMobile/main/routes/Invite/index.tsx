@@ -38,6 +38,7 @@ export interface IContactsProps extends IStoreProps {
 }
 
 interface IContactsState {
+    didIgnoreNameConfirm: boolean;
     isNameConfirmModalVisible: boolean;
     isRefreshing: boolean;
     isRefreshingUserSearch: boolean;
@@ -73,9 +74,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.state = {
+            didIgnoreNameConfirm: false,
             isNameConfirmModalVisible: false,
             isRefreshing: false,
             isRefreshingUserSearch: false,
@@ -240,6 +242,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         });
     };
 
+    handleNameCancel = () => {
+        this.setState({
+            didIgnoreNameConfirm: true,
+            isNameConfirmModalVisible: false,
+        });
+    };
+
     scrollTop = () => {
         const { userConnections, user } = this.props;
 
@@ -261,7 +270,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     render() {
-        const { isNameConfirmModalVisible } = this.state;
+        const { didIgnoreNameConfirm, isNameConfirmModalVisible } = this.state;
         const { navigation, user } = this.props;
         const shouldLaunchContacts = this.props.route?.params?.shouldLaunchContacts;
 
@@ -272,12 +281,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     <CreateConnection
                         navigation={navigation}
                         shouldLaunchContacts={shouldLaunchContacts}
+                        didIgnoreNameConfirm={didIgnoreNameConfirm}
                         toggleNameConfirmModal={this.toggleNameConfirmModal}
                     />
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isNameConfirmModalVisible}
-                    onCancel={this.toggleNameConfirmModal}
+                    onCancel={this.handleNameCancel}
                     onConfirm={this.handleNameConfirm}
                     text={this.translate('forms.createConnection.modal.nameConfirm')}
                     textCancel={this.translate('forms.createConnection.modal.noThanks')}

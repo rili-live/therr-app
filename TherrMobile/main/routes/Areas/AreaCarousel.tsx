@@ -10,6 +10,7 @@ import { buildStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
 import { buildStyles as buildThoughtStyles } from '../../styles/user-content/thoughts/viewing';
+import { isDarkTheme } from '../../styles/themes';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
@@ -61,6 +62,7 @@ const renderItem = ({ item: post }, {
     themeForms,
     updateReaction,
     user,
+    isDarkMode,
 }) => {
     const mediaPath = post.medias?.[0]?.path;
     const mediaType = post.medias?.[0]?.type;
@@ -100,7 +102,7 @@ const renderItem = ({ item: post }, {
                     user={user}
                     contentUserDetails={userDetails}
                     updateThoughtReaction={updateReaction}
-                    isDarkMode={false}
+                    isDarkMode={isDarkMode}
                     isRepliable
                     theme={theme}
                     themeForms={themeForms}
@@ -131,7 +133,7 @@ const renderItem = ({ item: post }, {
                         areaUserDetails={userDetails}
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
-                        isDarkMode={false}
+                        isDarkMode={isDarkMode}
                         theme={theme}
                         themeForms={themeForms}
                         themeViewArea={themeViewPost}
@@ -149,7 +151,7 @@ const renderItem = ({ item: post }, {
                         areaUserDetails={userDetails}
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
-                        isDarkMode={false}
+                        isDarkMode={isDarkMode}
                         placeholderMediaType={post.areaType === 'spaces' ? 'static' : undefined}
                         theme={theme}
                         themeForms={themeForms}
@@ -197,11 +199,11 @@ const AreaCarousel = ({
     const [refreshing, setRefreshing] = React.useState(false);
 
     // TODO: Move to top level
-    const themeRoot = buildRootStyles(user.details.mobileThemeName);
-    const theme = buildStyles(user.details.mobileThemeName);
-    const themeArea = buildAreaStyles(user.details.mobileThemeName, false);
-    const themeThought = buildThoughtStyles(user.details.mobileThemeName, false);
-    const themeForms = buildFormStyles(user.details.mobileThemeName);
+    const themeRoot = buildRootStyles(user.settings?.mobileThemeName);
+    const theme = buildStyles(user.settings?.mobileThemeName);
+    const themeArea = buildAreaStyles(user.settings?.mobileThemeName, isDarkTheme(user.settings?.mobileThemeName));
+    const themeThought = buildThoughtStyles(user.settings?.mobileThemeName, isDarkTheme(user.settings?.mobileThemeName));
+    const themeForms = buildFormStyles(user.settings?.mobileThemeName);
     const isUsingBottomSheet = (displaySize === 'small' || displaySize === 'medium');
     const FlatListComponent = isUsingBottomSheet ? BottomSheetFlatList : FlatList;
 
@@ -268,6 +270,7 @@ const AreaCarousel = ({
                         themeForms,
                         updateReaction,
                         user,
+                        isDarkMode: isDarkTheme(user.settings?.mobileThemeName),
                     });
                 }}
                 initialNumToRender={1}

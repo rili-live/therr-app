@@ -1,10 +1,13 @@
 import { Platform, StyleSheet } from 'react-native';
+import { initialWindowMetrics } from 'react-native-safe-area-context';
 import { IMobileThemeName } from 'therr-react/types';
 import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
-export const buttonMenuHeight = Platform.OS === 'ios' ? 80 : 60;
-export const buttonMenuHeightCompact = 48;
+export const bottomSafeAreaInset = initialWindowMetrics?.insets.bottom || 0;
+const buttonMenuContentHeight = Platform.OS === 'ios' ? 80 : 60;
+export const buttonMenuHeight = buttonMenuContentHeight + bottomSafeAreaInset;
+export const buttonMenuHeightCompact = 48 + bottomSafeAreaInset;
 
 const buttonStyle: any = {
     backgroundColor: 'transparent',
@@ -16,13 +19,7 @@ const buttonStyle: any = {
 };
 
 const getIconStyle = (theme: ITherrTheme) => ({
-    color: theme.colorVariations.backgroundCreamLighten,
-    // textShadowOffset: {
-    //     width: 1,
-    //     height: 1,
-    // },
-    // textShadowColor: '#rgba(27, 74, 105, .75)',
-    // textShadowRadius: 1,
+    color: theme.colors.textWhite,
 });
 
 const getButtonContainerStyle: any = () => ( {
@@ -104,6 +101,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'row',
             zIndex: 10,
             backgroundColor: 'transparent',
+            overflow: 'visible',
             bottom: 0,
         },
         containerInner: {
@@ -112,7 +110,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '100%',
             alignSelf: 'flex-end',
             flexDirection: 'row',
-            marginTop: 100,
+            paddingBottom: bottomSafeAreaInset,
             backgroundColor: therrTheme.colors.primary,
             // backgroundColor: therrTheme.colorVariations.backgroundCreamLighten,
             borderTopWidth: 1,

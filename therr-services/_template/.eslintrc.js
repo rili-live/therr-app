@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const path = require('path');
 
 // .eslintrc.js
@@ -61,3 +62,8 @@ module.exports = {
         }
     }
 };
+=======
+const createServiceConfig = require('../../eslint-config/service');
+
+module.exports = createServiceConfig(__dirname);
+>>>>>>> origin/general

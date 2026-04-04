@@ -1,7 +1,5 @@
-
 import logger from 'redux-logger';
 import { configureStore } from '@reduxjs/toolkit';
-import { CurriedGetDefaultMiddleware } from '@reduxjs/toolkit/dist/getDefaultMiddleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
@@ -15,7 +13,7 @@ declare global {
 
 let preloadedState;
 
-const getMiddleware = (getDefaultMiddleware: CurriedGetDefaultMiddleware<any>) => {
+const getMiddleware = (getDefaultMiddleware: any) => {
     if (__DEV__) {
         return getDefaultMiddleware().concat(socketIOMiddleWare).concat(logger);
     }

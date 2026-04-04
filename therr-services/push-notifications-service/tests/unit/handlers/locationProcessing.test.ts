@@ -251,6 +251,52 @@ describe('Location Processing Handler', () => {
                 expect(sortedSpaces[2].id).to.equal('space-1');
             });
 
+            it('should not include out-of-range spaces (regression: .some() pushed before checking distance)', () => {
+                const maxCheckInDistance = Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
+
+                // All spaces are beyond check-in distance
+                const spacesOrderedByDistance = [
+                    { id: 'space-far', distanceFromUserMeters: maxCheckInDistance + 50 },
+                    { id: 'space-farther', distanceFromUserMeters: maxCheckInDistance + 200 },
+                ];
+
+                const possibleSpacesUserIsVisiting: any[] = [];
+                spacesOrderedByDistance.some((space) => {
+                    if (space.distanceFromUserMeters > maxCheckInDistance) {
+                        return true; // stop without pushing
+                    }
+                    possibleSpacesUserIsVisiting.push(space);
+                    return false;
+                });
+
+                // The bug was: the first out-of-range space was pushed before the check
+                expect(possibleSpacesUserIsVisiting).to.have.lengthOf(0);
+            });
+
+            it('should only include in-range spaces and stop at first out-of-range (regression)', () => {
+                const maxCheckInDistance = Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
+
+                const spacesOrderedByDistance = [
+                    { id: 'space-close', distanceFromUserMeters: maxCheckInDistance - 10 },
+                    { id: 'space-within', distanceFromUserMeters: maxCheckInDistance - 5 },
+                    { id: 'space-far', distanceFromUserMeters: maxCheckInDistance + 10 },
+                    { id: 'space-farther', distanceFromUserMeters: maxCheckInDistance + 100 },
+                ];
+
+                const possibleSpacesUserIsVisiting: any[] = [];
+                spacesOrderedByDistance.some((space) => {
+                    if (space.distanceFromUserMeters > maxCheckInDistance) {
+                        return true;
+                    }
+                    possibleSpacesUserIsVisiting.push(space);
+                    return false;
+                });
+
+                expect(possibleSpacesUserIsVisiting).to.have.lengthOf(2);
+                expect(possibleSpacesUserIsVisiting[0].id).to.equal('space-close');
+                expect(possibleSpacesUserIsVisiting[1].id).to.equal('space-within');
+            });
+
             it('should filter spaces within check-in distance', () => {
                 const maxCheckInDistance = Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
 

@@ -1,10 +1,11 @@
 import React, { Ref } from 'react';
 import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView } from 'react-native';
 import { StackActions } from '@react-navigation/native';
-import MapView from 'react-native-map-clustering';
+import MapView from 'react-native-maps';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
@@ -133,6 +134,7 @@ interface IMapDispatchProps {
     searchSpaces: Function;
     setInitialUserLocation: Function;
     setSearchDropdownVisibility: Function;
+    createMoment: Function;
     deleteMoment: Function;
     createSpaceCheckInMetrics: Function;
     updateGpsStatus: Function;
@@ -222,6 +224,7 @@ const mapDispatchToProps = (dispatch: any) =>
             setInitialUserLocation: MapActions.setInitialUserLocation,
             setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
             setMapFilters: MapActions.setMapFilters,
+            createMoment: MapActions.createMoment,
             deleteMoment: MapActions.deleteMoment,
             createSpaceCheckInMetrics: MapActions.createSpaceCheckInMetrics,
             createOrUpdateMomentReaction: ReactionActions.createOrUpdateMomentReaction,
@@ -319,7 +322,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
         this.initialAuthorFilters = getInitialAuthorFilters(this.translate);
         this.initialCategoryFilters = getInitialCategoryFilters(this.translate);
         this.initialVisibilityFilters = getInitialVisibilityFilters(this.translate);
@@ -400,6 +403,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { map, location, route: inScopeRoute } = this.props;
+            const restoredScrollIndex = inScopeRoute?.params?.previewScrollIndex || 0;
             this.expandBottomSheet(-1);
             this.setState({
                 areButtonsVisible: true,
@@ -412,6 +416,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
                 navigation.setParams({
                     shouldShowPreview: false,
+                    previewScrollIndex: undefined,
                 });
 
                 const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
@@ -427,7 +432,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     longitude: longitude,
                                 },
                             },
-                        }, true);
+                        }, true, restoredScrollIndex);
                     });
             }
 
@@ -761,13 +766,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     ],
                                 },
                             }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: this.translate('alertTitles.coinsReceived'),
                                 text2: this.translate('alertMessages.coinsReceived', {
                                     total: response?.therrCoinRewarded || '2',
                                 }),
-                                visibilityTime: 2500,
                             });
                         } else {
                             const alertMsg = response?.isMySpace
@@ -786,6 +789,19 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     });
                 }
 
+                return;
+            }
+
+            if (action === 'quick-report') {
+                this.setState({
+                    bottomSheetContentType: 'quick-report',
+                    bottomSheetSnapPoints: [defaultSnapPoints[0], '65%', '100%'],
+                    areButtonsVisible: false,
+                    shouldShowCreateActions: false,
+                });
+                if (this.bottomSheetRef?.current) {
+                    this.bottomSheetRef.current.snapToIndex(1);
+                }
                 return;
             }
 
@@ -1308,44 +1324,76 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         setSearchDropdownVisibility(false);
 
+        if (selection?.provider === 'mapbox' && selection?.mapbox_id) {
+            this.handleMapboxSearchSelect(selection, shouldTogglePreview);
+            return;
+        }
+
         MapsService.getPlaceDetails({
             apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
             placeId: selection?.place_id,
         }).then((response) => {
             const geometry = response.data?.result?.geometry;
             if (geometry) {
-                const latDelta = geometry.viewport.northeast.lat - geometry.viewport.southwest.lat;
-                const lngDelta = geometry.viewport.northeast.lng - geometry.viewport.southwest.lng;
-                const loc = {
-                    latitude: geometry.location.lat,
-                    longitude: geometry.location.lng,
-                    latitudeDelta: Math.max(latDelta, PRIMARY_LATITUDE_DELTA),
-                    longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
-                };
-                const searchRadiusMeters = this.getSearchRadius(loc, {
-                    longitude: geometry.viewport.northeast.lng,
-                    latitude: geometry.viewport.northeast.lat,
-                });
-                this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
-                this.handleSearchThisLocation(searchRadiusMeters, geometry.location.lat, geometry.location.lng)
-                    .finally(() => {
-                        // TODO: Determine if this needs to be canceled when navigating to a new view
-                        // We must wait for search to complete so new spaces are available for rendering the preview overlay
-                        if (shouldTogglePreview) {
-                            this.mapRef.props.onPress({
-                                nativeEvent: {
-                                    coordinate: {
-                                        latitude: geometry.location.lat,
-                                        longitude: geometry.location.lng,
-                                    },
-                                },
-                            }, true);
-                        }
-                    });
+                this.animateToSearchResult(
+                    geometry.location.lat,
+                    geometry.location.lng,
+                    geometry.viewport,
+                    shouldTogglePreview
+                );
             }
         }).catch((error) => {
             console.log(error);
         });
+    };
+
+    handleMapboxSearchSelect = (selection, shouldTogglePreview = false) => {
+        MapsService.getMapboxRetrieve(selection.mapbox_id).then((response) => {
+            const feature = response.data?.features?.[0];
+            if (feature?.geometry?.coordinates) {
+                const [lng, lat] = feature.geometry.coordinates;
+                const bbox = feature.properties?.bbox;
+                const viewport = bbox ? {
+                    northeast: { lat: bbox[3], lng: bbox[2] },
+                    southwest: { lat: bbox[1], lng: bbox[0] },
+                } : undefined;
+                this.animateToSearchResult(lat, lng, viewport, shouldTogglePreview);
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
+
+    animateToSearchResult = (lat: number, lng: number, viewport: any, shouldTogglePreview = false) => {
+        let latDelta = PRIMARY_LATITUDE_DELTA;
+        let lngDelta = PRIMARY_LONGITUDE_DELTA;
+
+        if (viewport) {
+            latDelta = viewport.northeast.lat - viewport.southwest.lat;
+            lngDelta = viewport.northeast.lng - viewport.southwest.lng;
+        }
+
+        const loc = {
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: Math.max(latDelta, PRIMARY_LATITUDE_DELTA),
+            longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
+        };
+        const searchRadiusMeters = viewport
+            ? this.getSearchRadius(loc, { longitude: viewport.northeast.lng, latitude: viewport.northeast.lat })
+            : this.getSearchRadius(loc, { longitude: lng + lngDelta / 2, latitude: lat + latDelta / 2 });
+
+        this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
+        this.handleSearchThisLocation(searchRadiusMeters, lat, lng)
+            .finally(() => {
+                if (shouldTogglePreview && this.mapRef) {
+                    this.mapRef.props.onPress({
+                        nativeEvent: {
+                            coordinate: { latitude: lat, longitude: lng },
+                        },
+                    }, true);
+                }
+            });
     };
 
     handleQuickFilterSelect = (index: string) => {
@@ -1693,10 +1741,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
+    closeBottomSheet = () => {
+        this.bottomSheetRef?.current?.close();
+    };
+
     onBottomSheetClose = () => {
         this.setState({
             areButtonsVisible: true,
             areLayersVisible: false,
+            bottomSheetContentType: 'nearby',
+            bottomSheetSnapPoints: defaultSnapPoints,
             shouldFollowUserLocation: false,
             isScrollEnabled: true,
         });
@@ -1827,9 +1881,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.state;
-        const { captureClickTarget, location, map, navigation, notifications, route, updateTour, user } = this.props;
+        const { captureClickTarget, createMoment, location, map, navigation, notifications, route, updateTour, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
+        const isAutoCompleteSearching = map?.searchPredictions?.isSearching;
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isTouring = !!user?.settings?.isTouring;
         const mapFilters = {
@@ -1865,6 +1920,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 isDropdownVisible &&
                                 <SearchTypeAheadResults
                                     handleSelect={this.handleSearchSelect}
+                                    isSearching={isAutoCompleteSearching}
                                     searchPredictionResults={searchPredictionResults}
                                     themeSearch={this.themeSearch}
                                 />
@@ -1888,12 +1944,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 onPreviewBottomSheetOpen={this.onPreviewBottomSheetOpen}
                                 shouldFollowUserLocation={shouldFollowUserLocation}
                                 shouldRenderMapCircles={shouldRenderMapCircles}
+                                isQuickReportOpen={bottomSheetContentType === 'quick-report'}
+                                closeQuickReport={this.closeBottomSheet}
                                 hideCreateActions={this.hideCreateActions}
                                 isScrollEnabled={isScrollEnabled}
                                 onMapLayout={this.onMapLayout}
-                                // /* react-native-map-clustering */
+                                // /* clustering */
                                 // onClusterPress={this.onClusterPress}
-                                // // preserveClusterPressBehavior={true}
                                 updateCircleCenter={this.updateCircleCenter}
                             />
                             <AnimatedOverlay
@@ -1989,7 +2046,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     isVisible={isTouring}
                     translate={this.translate}
                     onRequestClose={this.handleStopTouring}
-                    themeButtons={this.themeButtons}
                     themeTour={this.themeTour}
                     onFindFriends={this.onPressFindFriends}
                     user={user}
@@ -2004,9 +2060,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                         overrideSnapPoints={bottomSheetSnapPoints}
                     >
                         <MapBottomSheetContent
+                            circleCenter={circleCenter}
                             contentType={bottomSheetContentType}
+                            createMoment={createMoment}
                             navigation={navigation}
+                            nearbySpaces={nearbySpaces}
+                            onClose={this.closeBottomSheet}
                             theme={this.theme}
+                            user={user}
                             themeBottomSheet={this.themeBottomSheet}
                             themeViewArea={this.themeViewArea}
                             translate={this.translate}
@@ -2020,6 +2081,17 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1) &&
                     <MapTourRenderer
                         getCurrentScreen={this.getCurrentScreen}
+                        updateTour={updateTour}
+                        user={user}
+                    />
+                }
+                {
+                    isMapReady && isMinLoadTimeComplete && this.isUserAuthenticated() &&
+                    route.params?.shouldStartNavigationTour &&
+                    <MapTourRenderer
+                        getCurrentScreen={this.getCurrentScreen}
+                        immediate
+                        navigation={navigation}
                         updateTour={updateTour}
                         user={user}
                     />

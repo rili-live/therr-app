@@ -1,0 +1,947 @@
+{
+  "branding": {
+    "motto": "Explorez votre quartier. Connectez-vous avec votre communauté. Gagnez des récompenses."
+  },
+  "validations": {
+    "email": "Adresse courriel invalide",
+    "isRequired": "Ce champ est obligatoire",
+    "password": "Le mot de passe doit contenir des lettres, des chiffres et des caractères spéciaux",
+    "lettersOnly": "Ce champ n'accepte que des valeurs alphabétiques",
+    "mobilePhoneNumber": "Le numéro doit être un numéro de téléphone mobile international valide commençant par « + »",
+    "numbersOnly": "Ce champ n'accepte que des valeurs numériques"
+  },
+  "categories": {
+    "uncategorized": "Sélectionner une catégorie",
+    "storefront/shop": "Boutique / Vitrine",
+    "restaurant/food": "Restaurant / Nourriture",
+    "bar/drinks": "Bar / Boissons",
+    "marketplace/festival": "Marché / Festival",
+    "artwork/expression": "Art / Expression",
+    "music/concerts": "Musique / Concerts",
+    "nature/parks": "Nature / Parcs",
+    "hotels/lodging": "Hôtels / Hébergement",
+    "event/space": "Salle d'événements",
+    "art": "Art",
+    "gaming": "Jeux vidéo",
+    "geocache": "Géocache",
+    "menu": "Menu",
+    "music": "Musique",
+    "deals": "Aubaines / Coupons",
+    "fitness": "Sports / Mise en forme",
+    "storefront": "Promotion de vitrine",
+    "idea": "Idée / Observation",
+    "food": "Nourriture",
+    "nature": "Nature / Parc",
+    "travel": "Voyage / Tourisme",
+    "warning": "Avertissement / Alerte",
+    "seasonal": "Saisonnier / Fêtes",
+    "drinks": "5 à 7 / Boissons",
+    "nightLife": "Vie nocturne / Sorties",
+    "sports": "Sports"
+  },
+  "common": {
+    "share": "Partager",
+    "linkCopied": "Lien copié!"
+  },
+  "components": {
+    "tile": {
+      "untitled": "Sans titre"
+    },
+    "layout": {
+      "floatingButton": {
+        "tooltip": "Partager une pensée"
+      }
+    },
+    "header": {
+      "buttons": {
+        "login": "Se connecter"
+      }
+    },
+    "footer": {
+      "buttons": {
+        "locations": "Emplacements"
+      },
+      "labels": {
+        "info": "Info",
+        "home": "Accueil",
+        "discovered": "D\u00e9couvertes",
+        "messages": "Messages",
+        "locations": "Lieux",
+        "explore": "Explorer"
+      }
+    },
+    "createProfileForm": {
+      "buttons": {
+        "backToLogin": "Retour à la connexion",
+        "submit": "Continuer",
+        "resend": "Renvoyer"
+      },
+      "labels": {
+        "firstName": "Prénom",
+        "lastName": "Nom de famille",
+        "mobilePhone": "No de téléphone mobile",
+        "userName": "Nom d'utilisateur",
+        "verificationCode": "Code de vérification",
+        "accountType": "Type de compte",
+        "personal": "Personnel",
+        "business": "Entreprise",
+        "businessName": "Nom de l'entreprise",
+        "businessSuffix": "Suffixe d'entreprise (ex. Inc., LTÉE, etc.)"
+      },
+      "validationErrors": {
+        "phoneNumber": "Numéro de téléphone invalide"
+      }
+    },
+    "loginForm": {
+      "buttons": {
+        "login": "Se connecter",
+        "signUp": "Créer un compte",
+        "forgotPassword": "Mot de passe oublié?",
+        "privacyPolicy": "Politique de confidentialité",
+        "toc": "Conditions d'utilisation"
+      },
+      "defaultTitle": "Connexion",
+      "labels": {
+        "password": "Mot de passe",
+        "userName": "Nom d'utilisateur / Courriel"
+      },
+      "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
+      "oneTimePasswordExpired": "Votre mot de passe à usage unique a expiré.",
+      "tooManyRequests": "Trop de tentatives de connexion, veuillez réessayer plus tard.",
+      "sso": {
+        "orDivider": "ou",
+        "googleError": "Échec de la connexion Google. Veuillez réessayer."
+      }
+    },
+    "messagingContainer": {
+      "conversation": {
+        "to": "À : {firstName} {lastName}"
+      },
+      "inputPlaceholder": "Écrivez un message...",
+      "welcome": "Ceci est le début d'une nouvelle conversation...",
+      "panelTitle": "Messagerie",
+      "noRecentConversations": "Aucune conversation récente"
+    },
+    "messagesMenu": {
+      "buttons": {
+        "createForum": "Créer un clavardage hébergé",
+        "browseGroups": "Parcourir Tous les Groupes"
+      },
+      "h2": {
+        "messaging": "Messagerie",
+        "forums": "Clavardage hébergé",
+        "friendRequest": "Demande de connexion",
+        "locationMap": "Explorer"
+      },
+      "noActiveConnections": "Aucune connexion récemment active"
+    },
+    "registerForm": {
+      "buttons": {
+        "backToLogin": "Retour à la connexion",
+        "register": "S'inscrire",
+        "terms": "Conditions d'utilisation"
+      },
+      "labels": {
+        "newsletter": "Rejoindre notre infolettre marketing?",
+        "email": "Courriel",
+        "firstName": "Prénom",
+        "lastName": "Nom de famille",
+        "mobilePhone": "No de téléphone mobile",
+        "password": "Mot de passe",
+        "repeatPassword": "Répéter le mot de passe",
+        "termsAndConditions": "J'accepte les conditions d'utilisation",
+        "userName": "Nom d'utilisateur",
+        "mySweet": "Êtes-vous sympathique?",
+        "inviteCode": "Code d'invitation"
+      },
+      "validationErrors": {
+        "phoneNumber": "Numéro de téléphone invalide"
+      },
+      "text": {
+        "signupForRewards": "Inscrivez-vous avec le code d'invitation de {userName} — il gagne 10 pièces et vous en gagnez 5!",
+        "inviteCodeHint": "Entrez le code d'invitation d'un ami pour gagner des pièces bonus"
+      },
+      "sso": {
+        "orDivider": "ou",
+        "googleError": "Échec de l'inscription Google. Veuillez réessayer."
+      }
+    },
+    "userMenu": {
+      "buttons": {
+        "changePassword": "Changer le mot de passe",
+        "bookmarks": "Mes signets",
+        "discovered": "Fil des découvertes",
+        "editProfile": "Modifier le profil",
+        "explore": "Tout explorer",
+        "exploreMoments": "Moments",
+        "exploreSpaces": "Espaces et emplacements",
+        "exploreThoughts": "Pensées",
+        "explorePeople": "Personnes",
+        "logout": "Déconnexion",
+        "markAllRead": "Tout marquer comme lu",
+        "viewProfile": "Voir le profil"
+      },
+      "exploreDescriptions": {
+        "moments": "Photos, récits et expériences",
+        "spaces": "Commerces et lieux locaux",
+        "thoughts": "Idées et conversations",
+        "people": "Créateurs et communauté"
+      },
+      "h2": {
+        "accountSettings": "Paramètres du compte",
+        "locationMap": "Explorer",
+        "notifications": "Notifications",
+        "profileSettings": "Paramètres du profil"
+      },
+      "noNotifications": "Vous n'avez aucune notification pour le moment."
+    }
+  },
+  "pages": {
+    "childSafety": {
+      "pageTitle": "Normes de sécurité des enfants",
+      "intro": "Therr s'engage à assurer la sécurité et la protection de tous les utilisateurs, en particulier les enfants. Nous maintenons une politique de tolérance zéro envers l'abus et l'exploitation sexuels des enfants (AESE) sur notre plateforme.",
+      "zeroToleranceTitle": "Politique de tolérance zéro",
+      "zeroToleranceDescription": "Therr interdit strictement tout contenu qui exploite ou met en danger les enfants, y compris le matériel d'abus sexuel d'enfants (MASE), le leurre, la sextorsion et toute autre forme d'exploitation d'enfants. Tout compte trouvé en train de créer, partager ou distribuer un tel contenu sera immédiatement résilié.",
+      "preventionTitle": "Prévention et application",
+      "prevention": {
+        "contentModeration": "Nous employons des pratiques de modération de contenu pour détecter et supprimer le contenu interdit.",
+        "reporting": "Les utilisateurs peuvent signaler des préoccupations liées à la sécurité des enfants directement dans l'application à l'aide de la fonction de signalement intégrée.",
+        "accountActions": "Les comptes qui enfreignent nos politiques de sécurité des enfants sont immédiatement suspendus et bannis de façon permanente.",
+        "lawEnforcement": "Nous coopérons pleinement avec les enquêtes des forces de l'ordre liées à l'exploitation des enfants.",
+        "ncmec": "Nous signalons tout MASE apparent au National Center for Missing & Exploited Children (NCMEC), conformément à la loi."
+      },
+      "reportingTitle": "Comment signaler",
+      "reportingInApp": "Si vous rencontrez du contenu ou un comportement qui met un enfant en danger, veuillez le signaler immédiatement à l'aide des outils de signalement intégrés disponibles sur tous les contenus et profils d'utilisateurs.",
+      "reportingEmail": "Vous pouvez également signaler des préoccupations liées à la sécurité des enfants directement par courriel à",
+      "complianceTitle": "Conformité juridique",
+      "complianceDescription": "Therr se conforme à toutes les lois et réglementations pertinentes en matière de sécurité des enfants. Nous faisons des signalements aux autorités régionales et nationales, y compris le NCMEC, conformément aux exigences légales applicables.",
+      "contactTitle": "Nous joindre",
+      "contactDescription": "Pour toute question ou préoccupation concernant nos pratiques de sécurité des enfants, veuillez nous contacter à",
+      "returnHome": "Retour à la page d'accueil"
+    },
+    "deleteAccount": {
+      "pageTitle": "Supprimer votre compte",
+      "description": "Nous sommes désolés de vous voir partir. Si vous souhaitez supprimer votre compte Therr et toutes les données associées, vous pouvez le faire en utilisant l'une des options ci-dessous.",
+      "optionMobileTitle": "Option 1 : Supprimer via l'application mobile",
+      "steps": {
+        "openApp": "Ouvrez l'application Therr sur votre appareil mobile.",
+        "goToSettings": "Allez dans les Paramètres.",
+        "manageAccount": "Appuyez sur « Gérer le compte ».",
+        "deleteAccount": "Appuyez sur « Supprimer le compte ».",
+        "confirm": "Confirmez la suppression lorsque demandé."
+      },
+      "optionEmailTitle": "Option 2 : Demander la suppression par courriel",
+      "emailInstructions": "Envoyez un courriel à partir de l'adresse associée à votre compte à",
+      "dataDeletedTitle": "Quelles données seront supprimées?",
+      "dataDeletedDescription": "Lorsque vous supprimez votre compte, les données suivantes seront définitivement supprimées :",
+      "dataItems": {
+        "profile": "Vos informations de profil (nom, courriel, biographie, photo de profil)",
+        "posts": "Vos publications, moments et espaces",
+        "connections": "Vos connexions et listes d'amis",
+        "messages": "Vos messages directs",
+        "notifications": "Vos notifications et réalisations"
+      },
+      "retentionNote": "La suppression du compte est permanente et ne peut être annulée. Certaines données anonymisées peuvent être conservées à des fins juridiques ou réglementaires, tel que décrit dans notre Politique de confidentialité.",
+      "returnToLogin": "Retour à la page de connexion"
+    },
+    "appFeedback": {
+      "pageTitle": "Votre opinion compte",
+      "buttons": {
+        "send": "Envoyer les commentaires"
+      },
+      "successMessage": "Vos commentaires ont été soumis. Merci!",
+      "failedToUpdateMessage": "Échec de l'envoi des commentaires. Veuillez réessayer plus tard.",
+      "labels": {
+        "email": "Courriel",
+        "isSocialHealth": "La santé sociale est-elle importante pour vous?",
+        "isLoyaltyRewards": "Les récompenses de fidélité sont-elles importantes pour vous?",
+        "feedback": "Que manque-t-il à l'application Therr selon vous?",
+        "missing": "Votre réponse..."
+      },
+      "returnToLogin": "Retour à la page de connexion",
+      "sectionHeaders": {
+        "response": "Un bref sondage sur l'application"
+      }
+    },
+    "bookmarks": {
+      "pageTitle": "Mes signets",
+      "subtitle": "Contenu que vous avez enregistré pour plus tard",
+      "noResults": "Vous n'avez encore rien enregistré. Parcourez la communauté et enregistrez le contenu que vous souhaitez revoir.",
+      "exploreCta": "Découvrir du contenu",
+      "filters": {
+        "all": "Tout",
+        "moments": "Moments",
+        "spaces": "Espaces",
+        "thoughts": "Pensées"
+      }
+    },
+    "discovered": {
+      "pageTitle": "Découvertes",
+      "subtitle": "Moments et espaces récemment partagés par la communauté",
+      "noResults": "Rien à afficher pour le moment. Revenez plus tard pour du nouveau contenu de la communauté.",
+      "exploreCta": "Explorer les espaces à proximité",
+      "filters": {
+        "all": "Tout",
+        "moments": "Moments",
+        "spaces": "Espaces"
+      }
+    },
+    "explore": {
+      "pageTitle": "Explorer",
+      "subtitle": "Découvrez des moments, espaces, pensées et personnes dans votre communauté",
+      "recentContent": "Contenu récent",
+      "viewAll": "Voir tout",
+      "noResults": "Rien à afficher pour le moment. Revenez plus tard pour du nouveau contenu.",
+      "searchPlaceholder": "Rechercher des espaces, moments et plus...",
+      "categories": {
+        "momentsTitle": "Moments",
+        "momentsDescription": "Photos, récits et expériences partagés par la communauté",
+        "spacesTitle": "Espaces",
+        "spacesDescription": "Commerces locaux, lieux et points d'intérêt",
+        "thoughtsTitle": "Pensées",
+        "thoughtsDescription": "Idées, observations et conversations",
+        "peopleTitle": "Personnes",
+        "peopleDescription": "Découvrez des créateurs, des entreprises et des membres de la communauté"
+      }
+    },
+    "navigation": {
+      "home": "Accueil",
+      "explore": "Explorer",
+      "locations": "Emplacements",
+      "posts": "Publications",
+      "moments": "Moments",
+      "thoughts": "Pensées",
+      "spaces": "Espaces",
+      "events": "Événements",
+      "groups": "Groupes",
+      "users": "Utilisateurs",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "page": "Page {pageNumber}",
+      "search": "Rechercher",
+      "clear": "Effacer",
+      "redirectingToSpaces": "Redirection vers le répertoire des espaces..."
+    },
+    "exploreMoments": {
+      "pageTitle": "Explorer les moments",
+      "subtitle": "Photos, récits et expériences partagés par la communauté",
+      "noResults": "Aucun moment trouvé. Revenez plus tard.",
+      "loadMore": "Charger plus"
+    },
+    "exploreThoughts": {
+      "pageTitle": "Explorer les pensées",
+      "subtitle": "Idées, observations et conversations de la communauté",
+      "noResults": "Aucune pensée trouvée. Revenez plus tard.",
+      "loadMore": "Charger plus",
+      "composePlaceholder": "Qu'avez-vous en tête?",
+      "hashtagsPlaceholder": "Ajouter des mots-clics (séparés par des virgules)",
+      "postButton": "Publier",
+      "postingButton": "Publication en cours...",
+      "loginToPost": "Connectez-vous pour partager vos pensées",
+      "categoryLabel": "Catégorie",
+      "visibilityPublic": "Public",
+      "visibilityPrivate": "Privé",
+      "postSuccess": "Pensée publiée!",
+      "postError": "Échec de la publication de la pensée. Veuillez réessayer.",
+      "messageTooShort": "Le message est trop court"
+    },
+    "explorePeople": {
+      "pageTitle": "Rechercher des personnes",
+      "subtitle": "Découvrez des créateurs, des entreprises et des membres de la communauté",
+      "noResults": "Aucun utilisateur trouvé. Essayez une recherche différente.",
+      "searchPlaceholder": "Rechercher par nom d'utilisateur...",
+      "loadMore": "Charger plus"
+    },
+    "viewThought": {
+      "headerTitle": "Pensée",
+      "reply": "Répondre",
+      "replies": "Réponses",
+      "noReplies": "Aucune réponse pour le moment. Soyez le premier à réagir.",
+      "replyPlaceholder": "Écrire une réponse...",
+      "replyButton": "Répondre",
+      "replyTooShort": "La réponse est trop courte",
+      "replyError": "Échec de la publication de la réponse. Veuillez réessayer.",
+      "loginToReply": "Connectez-vous pour répondre",
+      "loginToView": "Connectez-vous pour voir cette publication et rejoindre la conversation",
+      "backToThoughts": "Retour aux pensées"
+    },
+    "chatForum": {
+      "pageTitle": "Clavardage hébergé",
+      "welcome": "Bienvenue!",
+      "inputPlaceholder": "Écrivez un message",
+      "sendBtn": "Envoyer",
+      "tabs": {
+        "chat": "Clavardage",
+        "events": "Événements",
+        "members": "Membres"
+      },
+      "noEventsFound": "Aucun événement trouvé pour ce groupe.",
+      "upcomingEvents": "Événements à venir",
+      "pastEvents": "Événements passés",
+      "noMembersFound": "Aucun membre trouvé.",
+      "membershipRoles": {
+        "creator": "Créateur",
+        "admin": "Administrateur",
+        "eventHost": "Hôte d'événement",
+        "default": "Membre"
+      },
+      "appBanner": {
+        "message": "Téléchargez l'application pour la meilleure expérience",
+        "appStoreAlt": "Télécharger sur l'App Store",
+        "playStoreAlt": "Disponible sur Google Play"
+      },
+      "labels": {
+        "subtitle": "Sous-titre"
+      }
+    },
+    "changePassword": {
+      "buttons": {
+        "send": "Soumettre"
+      },
+      "failedMessage": "Une erreur est survenue lors de la réinitialisation de votre mot de passe.",
+      "failedMessageUserNotFound": "Aucun utilisateur trouvé. Déconnectez-vous et réessayez.",
+      "failedMessageIncorrectPassword": "Le mot de passe que vous avez entré est incorrect.",
+      "labels": {
+        "oldPassword": "Ancien mot de passe",
+        "newPassword": "Nouveau mot de passe",
+        "newPasswordRepeat": "Répéter le nouveau mot de passe"
+      },
+      "pageTitle": "Changer le mot de passe",
+      "successMessage": "Votre mot de passe a été mis à jour!"
+    },
+    "emailPreferences": {
+      "pageTitle": "Préférences d'abonnement par courriel",
+      "buttons": {
+        "send": "Mettre à jour"
+      },
+      "successMessage": "Préférences de courriel mises à jour avec succès!",
+      "failedToFetchMessage": "Une erreur est survenue lors de la récupération de vos préférences de courriel existantes.",
+      "failedTokenMessage": "Le jeton de courriel fourni est invalide. Veuillez vous connecter pour mettre à jour vos préférences de courriel.",
+      "failedToUpdateMessage": "Une erreur est survenue lors de la mise à jour de vos préférences de courriel. Veuillez réessayer plus tard.",
+      "failedMessageUserNotFound": "Aucun utilisateur trouvé.",
+      "labels": {
+        "email": "Courriel",
+        "settingsEmailBusMarketing": "Conseils et nouveautés du tableau de bord",
+        "settingsEmailMarketing": "Nouveautés communautaires et nouvelles fonctions",
+        "settingsEmailLikes": "J'aime et interactions sur vos publications",
+        "settingsEmailInvites": "Demandes d'amitié et invitations de groupe",
+        "settingsEmailMentions": "Mentions et identifications",
+        "settingsEmailMessages": "Nouveaux messages",
+        "settingsEmailReminders": "Rappels et notifications",
+        "settingsEmailBackground": "Mises à jour automatiques d'activité"
+      },
+      "returnToLogin": "Retour à la page de connexion",
+      "sectionHeaders": {
+        "marketing": "Courriels marketing",
+        "social": "Courriels d'activité"
+      }
+    },
+    "emailVerification": {
+      "buttons": {
+        "send": "Envoyer le courriel"
+      },
+      "failedMessage": "Échec de la vérification de votre courriel. Code de vérification invalide.",
+      "failedMessageExpired": "Échec de la vérification de votre courriel. Le code de vérification a expiré.",
+      "failedMessageAlreadyVerified": "Votre courriel est déjà vérifié. Connectez-vous pour continuer.",
+      "failedMessageVerificationResent": "Un nouveau code de vérification a été envoyé à {email}.",
+      "failedMessageUserNotFound": "Aucun utilisateur trouvé. Essayez un autre courriel ou créez un compte pour continuer.",
+      "labels": {
+        "email": "Courriel"
+      },
+      "pageTitle": "Vérification du compte",
+      "returnToLogin": "Retour à la page de connexion",
+      "successMessage": "Votre courriel a été vérifié!",
+      "successVerifiedMessage": "Votre compte a été vérifié. Connectez-vous pour continuer."
+    },
+    "resetPassword": {
+      "buttons": {
+        "send": "Envoyer le courriel"
+      },
+      "failedMessage": "Une erreur est survenue lors de la réinitialisation de votre mot de passe.",
+      "failedMessageUserNotFound": "Aucun utilisateur trouvé. Essayez un autre courriel ou créez un compte pour continuer.",
+      "instructions": "Entrez le courriel de votre compte pour réinitialiser votre mot de passe.",
+      "labels": {
+        "email": "Courriel"
+      },
+      "pageTitle": "Réinitialiser le mot de passe",
+      "returnToLogin": "Retour à la page de connexion",
+      "successMessage": "Vérifiez votre courriel pour un lien de réinitialisation de mot de passe"
+    },
+    "spaces": {
+      "pageTitle": "Emplacements d'entreprise",
+      "header1": "Répertoire des entreprises locales",
+      "categoryHeading": "{category} près de chez vous",
+      "searchPlaceholder": "Rechercher des espaces par nom...",
+      "noResults": "Aucun espace trouvé. Essayez un terme de recherche différent.",
+      "public": "Public",
+      "private": "Privé",
+      "yours": "Les vôtres",
+      "previousPage": "Retour à la page {pageNumber}",
+      "nextPage": "Vers la page {pageNumber}",
+      "expandMap": "Agrandir la carte",
+      "collapseMap": "Réduire la carte",
+      "signInPrompt": "pour voir vos espaces privés et gérer vos annonces.",
+      "website": "site web",
+      "nearLocation": "Affichage des espaces près de {location}",
+      "searchPlaceholderLocation": "Rechercher par lieu (ex. Michigan, New York)...",
+      "nearMe": "Près de moi",
+      "searchThisArea": "Rechercher dans cette zone",
+      "yourLocation": "Votre position",
+      "clear": "Effacer",
+      "reset": "Réinitialiser",
+      "locationError": "L'accès à la localisation est requis. Veuillez activer la localisation dans les paramètres de votre navigateur."
+    },
+    "home": {
+      "pageTitle": "Créez votre profil social ou d'entreprise",
+      "welcome": "Découvrez le local. Gagnez des récompenses. Créez de vraies connexions.",
+      "apple": "Apple",
+      "android": "Android",
+      "devices": "appareils",
+      "eventOrganizers": "Vitrines",
+      "freelancers": "Pigistes",
+      "or": "ou",
+      "info": "Therr vous connecte avec les gens, les lieux et les entreprises de votre quartier. Publiez des messages géolocalisés, découvrez des trésors cachés à proximité et gagnez des récompenses simplement en explorant votre communauté.",
+      "info2": "Influenceur local ou créateur de contenu? Associez-vous avec des entreprises locales, développez votre audience et décrochez des collaborations payantes — le tout via l'application.",
+      "info3": "Téléchargez l'application gratuite pour profiter de l'expérience complète."
+    },
+    "createForum": {
+      "buttons": {
+        "submit": "Créer et rejoindre le salon"
+      },
+      "labels": {
+        "title": "Titre",
+        "subtitle": "Sous-titre",
+        "hashTags": "Étiquettes",
+        "description": "Description",
+        "activeForums": "Total de clavardages actifs",
+        "city": "Ville",
+        "region": "Province / Région",
+        "categories": "Catégories"
+      },
+      "placeholders": {
+        "title": "Un titre accrocheur...",
+        "subtitle": "Un sous-titre optionnel",
+        "hashTags": "Étiquettes (ex. mon_tag, MonTag)",
+        "description": "Une brève description du clavardage...",
+        "city": "ex. Montréal",
+        "region": "ex. Québec"
+      },
+      "noForumsMessage": "Aucun clavardage n'est actuellement actif. Cliquez sur « Créer un clavardage hébergé » pour en démarrer un nouveau.",
+      "pageTitle": "Clavardages hébergés"
+    },
+    "editGroup": {
+      "buttons": {
+        "submit": "Enregistrer les modifications"
+      },
+      "pageTitle": "Modifier le groupe",
+      "notAuthorized": "Vous n'êtes pas autorisé à modifier ce groupe."
+    },
+    "createProfile": {
+      "pageTitle": "Créer le profil",
+      "pageTitleVerify": "Créer le profil : Vérifier le téléphone",
+      "createProfileSuccess": "Profil mis à jour avec succès!",
+      "createProfileError": "Oups, une erreur est survenue",
+      "updateProfileError": "Échec de la mise à jour du profil. Veuillez réessayer.",
+      "verifyPhoneError": "Échec de l'envoi du code de vérification. Veuillez réessayer.",
+      "authError": "Votre session a expiré. Veuillez vous reconnecter.",
+      "phoneRegionNotSupportedError": "La vérification par SMS n'est pas disponible pour votre région. Veuillez utiliser un autre numéro de téléphone.",
+      "phoneNumberAlreadyInUseError": "Ce numéro de téléphone est déjà utilisé pour ce type de compte",
+      "tooManyAccounts": "Les utilisateurs sont limités à un seul compte de chaque type (personnel, créateur, entreprise)",
+      "invalidRegion": "Région invalide",
+      "invalidCode": "Le code est invalide ou expiré. Réessayez ou renvoyez-le.",
+      "infoTitle": "Pourquoi exiger un numéro de téléphone?",
+      "info": "Nous nous engageons à prévenir les faux utilisateurs, donc l'authentification multifacteur est essentielle. Exiger un courriel et un numéro de téléphone, combiné aux exigences de géolocalisation des publications, limite considérablement le potentiel de faux utilisateurs."
+    },
+    "login": {
+      "pageTitle": "Connexion",
+      "buttons": {
+        "signUp": "Créer un compte"
+      }
+    },
+    "pageNotFound": {
+      "pageTitle": "Page non trouvée"
+    },
+    "register": {
+      "pageTitle": "Inscription",
+      "registerSuccess": "Inscription réussie! Vérifiez votre courriel pour la confirmation.",
+      "registerError": "Oups, une erreur est survenue",
+      "passwordRequirements1": "Contient un mélange de lettres et de chiffres",
+      "passwordRequirements2": "Au moins une lettre majuscule",
+      "passwordRequirements3": "Au moins un caractère spécial !@#$%^&*",
+      "passwordRequirements4": "Au moins 8 caractères"
+    },
+    "template": {
+      "pageTitle": "Modèle",
+      "helloTemplate": "Bonjour, Modèle!"
+    },
+    "userProfile": {
+      "buttons": {
+        "changePassword": "Changer le mot de passe",
+        "createAForum": "Créer un clavardage hébergé",
+        "editProfile": "Modifier le profil",
+        "sendRequest": "Envoyer la demande",
+        "manageSpaces": "Gérer les emplacements",
+        "editSpace": "Modifier",
+        "postUpdate": "Publier une mise à jour"
+      },
+      "connectionSent": "Votre demande de connexion est en route!",
+      "h2": {
+        "accountDetails": "Détails du compte",
+        "addConnection": "Ajouter une nouvelle connexion",
+        "connections": "Connexions",
+        "myLocations": "Mes emplacements",
+        "myEvents": "Mes événements",
+        "myUpdates": "Mes mises à jour"
+      },
+      "labels": {
+        "email": "Courriel",
+        "firstName": "Prénom",
+        "lastName": "Nom de famille",
+        "phone": "Téléphone",
+        "phoneNumber": "Numéro de téléphone",
+        "userName": "Nom d'utilisateur",
+        "businessName": "Nom de l'entreprise",
+        "noLocations": "Aucun emplacement ajouté. Créez votre premier espace pour commencer.",
+        "noEvents": "Aucun événement à venir",
+        "noUpdates": "Aucune mise à jour publiée"
+      },
+      "pageTitle": "Profil de l'utilisateur",
+      "requestRecommendation": "Envoyez une demande pour créer des connexions et bâtir un réseau",
+      "validationErrors": {
+        "phoneNumber": "Numéro de téléphone invalide"
+      }
+    },
+    "editProfile": {
+      "pageTitle": "Modifier le profil",
+      "successMessage": "Votre profil a été mis à jour avec succès.",
+      "failedMessageBadRequest": "Veuillez vérifier vos informations et réessayer.",
+      "failedMessageServer": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+      "h2": {
+        "profileInfo": "Informations du profil",
+        "privacy": "Confidentialité et contenu",
+        "display": "Paramètres d'affichage",
+        "account": "Compte",
+        "businessInfo": "Informations d'entreprise"
+      },
+      "labels": {
+        "firstName": "Prénom",
+        "lastName": "Nom de famille",
+        "businessSuffix": "Suffixe commercial (ex. Inc., SARL, etc.)",
+        "userName": "Nom d'utilisateur",
+        "email": "Courriel",
+        "bio": "Biographie",
+        "profilePublic": "Profil public",
+        "hideMatureContent": "Masquer le contenu pour adultes",
+        "theme": "Thème",
+        "language": "Langue",
+        "businessName": "Nom de l'entreprise",
+        "isBusinessAccount": "Compte entreprise",
+        "organizationDescription": "Description de l'organisation",
+        "businessType": "Type d'entreprise"
+      },
+      "buttons": {
+        "save": "Enregistrer les modifications",
+        "changePassword": "Changer le mot de passe",
+        "viewProfile": "Voir le profil"
+      },
+      "themeOptions": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "retro": "Rétro"
+      },
+      "businessTypeOptions": {
+        "small-business": "Petite entreprise",
+        "restaurant-services": "Restaurant / Services alimentaires",
+        "retail": "Commerce de détail",
+        "health-wellness": "Santé et bien-être",
+        "professional-services": "Services professionnels",
+        "entertainment": "Divertissement",
+        "other": "Autre"
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Modifier l'emplacement",
+      "successMessage": "Votre emplacement a été mis à jour avec succès.",
+      "failedMessageBadRequest": "Veuillez vérifier vos informations et réessayer.",
+      "failedMessageServer": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+      "h2": {
+        "basicInfo": "Informations de base",
+        "contactLinks": "Contact et liens"
+      },
+      "labels": {
+        "name": "Nom de l'emplacement",
+        "description": "Description",
+        "address": "Adresse",
+        "phoneNumber": "Numéro de téléphone",
+        "websiteUrl": "URL du site web",
+        "menuUrl": "URL du menu",
+        "orderUrl": "URL de commande / livraison",
+        "reservationUrl": "URL de réservation"
+      },
+      "buttons": {
+        "save": "Enregistrer les modifications",
+        "backToProfile": "Retour au profil"
+      }
+    },
+    "manageSpaces": {
+      "pageTitle": "G\u00e9rer les emplacements",
+      "noLocations": "Vous n'avez pas encore cr\u00e9\u00e9 d'emplacement.",
+      "buttons": {
+        "createNew": "Cr\u00e9er un nouvel emplacement",
+        "createFirst": "Cr\u00e9ez votre premier emplacement",
+        "backToProfile": "Retour au profil"
+      }
+    },
+    "createSpace": {
+      "pageTitle": "Créer un emplacement",
+      "failedMessageBadRequest": "Veuillez vérifier vos informations et réessayer.",
+      "failedMessageServer": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+      "h2": {
+        "basicInfo": "Informations de base",
+        "contactLinks": "Contact et liens"
+      },
+      "labels": {
+        "name": "Nom de l'emplacement",
+        "description": "Description",
+        "address": "Adresse",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "phoneNumber": "Numéro de téléphone",
+        "websiteUrl": "URL du site web",
+        "menuUrl": "URL du menu",
+        "orderUrl": "URL de commande / livraison",
+        "reservationUrl": "URL de réservation"
+      },
+      "buttons": {
+        "create": "Créer l'emplacement",
+        "cancel": "Annuler"
+      }
+    },
+    "underConstruction": {
+      "pageTitle": "Passez au mobile",
+      "welcome": "Obtenez l'application mobile",
+      "info": "Vous cherchez sûrement l'application mobile! Trouvez-la ci-dessous. Pour l'instant, l'application de bureau ne prend en charge que les fonctions de base comme la mise à jour de votre mot de passe ou les détails de votre compte."
+    },
+    "goMobile": {
+      "pageTitle": "Votre carrefour local",
+      "welcome": "Bonjour Therr",
+      "subtitle": "Découvrez les gens, les lieux et les moments locaux — directement depuis votre navigateur. Voyez ce qui se passe autour de vous et connectez-vous avec votre communauté. Obtenez l'application mobile pour l'expérience complète en déplacement.",
+      "featuresHeading": "Commencez à explorer",
+      "features": {
+        "explore": {
+          "title": "Explorer les environs",
+          "description": "Consultez les publications tendance et découvrez ce que les gens partagent dans votre quartier."
+        },
+        "locations": {
+          "title": "Trouver des lieux locaux",
+          "description": "Découvrez des entreprises locales, des événements et des trésors cachés près de chez vous."
+        },
+        "moments": {
+          "title": "Voir les moments",
+          "description": "Explorez les photos et récits partagés par votre communauté."
+        },
+        "connect": {
+          "title": "Rencontrer des gens à proximité",
+          "description": "Connectez-vous avec des gens qui partagent vos intérêts dans votre quartier."
+        }
+      },
+      "ctaHeading": "Obtenez l'expérience complète",
+      "ctaInfo": "Vous aimez ce que vous voyez? L'application mobile va encore plus loin — avec la découverte en temps réel, les récompenses d'enregistrement et les notifications d'offres à proximité. Téléchargez gratuitement et ne manquez jamais ce qui se passe autour de vous."
+    },
+    "inviteLanding": {
+      "title": "{username} vous a invité sur Therr!",
+      "description": "Rejoignez l'application de communauté locale et de récompenses. Inscrivez-vous avec leur code d'invitation et vous gagnez tous les deux des pièces!",
+      "joinButton": "Rejoindre et gagner 5 pièces",
+      "appStoreText": "Aussi disponible sur mobile",
+      "returnHome": "Retour à la page d'accueil"
+    },
+    "viewSpace": {
+      "pageTitle": "",
+      "headings": {
+        "hours": "Heures d'ouverture",
+        "contactAndLocation": "Contact et emplacement",
+        "events": "Événements",
+        "whatPeopleAreSaying": "Ce que les gens disent",
+        "youMightAlsoLike": "Suggestions locales",
+        "pairingsDescription": "Des endroits parfaits à proximité pour compléter votre sortie à {spaceName}"
+      },
+      "labels": {
+        "website": "Site web",
+        "menu": "Menu",
+        "phone": "Téléphone",
+        "orderDelivery": "Commander la livraison",
+        "reservations": "Réservations",
+        "review": "avis",
+        "reviews": "avis",
+        "anonymous": "Anonyme",
+        "readMore": "Lire la suite",
+        "viewOnGoogleMaps": "Voir sur Google Maps",
+        "getFullExperience": "Profitez de l'expérience complète sur l'application Therr",
+        "helpful": "Utile",
+        "notHelpful": "Pas utile",
+        "bookmark": "Enregistrer",
+        "removeBookmark": "Retirer le signet"
+      },
+      "loginModal": {
+        "title": "Connexion requise",
+        "body": "Vous devez vous connecter pour effectuer cette action. Créez un compte ou connectez-vous pour continuer.",
+        "signIn": "Se connecter",
+        "register": "Créer un compte"
+      },
+      "addReview": {
+        "title": "Laisser un avis",
+        "locationPrompt": "Activez l'accès à votre position pour vérifier que vous êtes près de cet espace avant de laisser un avis.",
+        "enableLocation": "Activer la localisation",
+        "locationUnavailable": "La géolocalisation n'est pas prise en charge par votre navigateur.",
+        "locationDenied": "L'accès à la localisation a été refusé. Veuillez l'activer dans les paramètres de votre navigateur.",
+        "tooFar": "Vous devez être à moins de 200 mètres de cet emplacement pour laisser un avis. Visitez l'espace et réessayez!",
+        "yourRating": "Votre note :",
+        "messagePlaceholder": "Partagez votre expérience (facultatif)...",
+        "ratingRequired": "Veuillez sélectionner une note.",
+        "retryLocation": "Vérifier la position à nouveau",
+        "writeAnother": "Écrire un autre avis",
+        "signInPrompt": "Connectez-vous pour laisser un avis sur cet espace.",
+        "submitButton": "Soumettre l'avis",
+        "successMessage": "Votre avis a été soumis. Merci!",
+        "errorMessage": "Une erreur s'est produite lors de la soumission de votre avis. Veuillez réessayer."
+      },
+      "claimSpace": {
+        "title": "C'est votre entreprise?",
+        "body": "Réclamez cet espace pour voir l'activité de vos clients en temps réel, être jumelé avec des entreprises locales complémentaires et récompenser les clients qui parlent de vous. Mettez à jour vos informations, ajoutez des photos et prenez le contrôle de votre présence.",
+        "subtleCTA": "C'est votre entreprise? Réclamez-la",
+        "emailTitle": "Bienvenue! Réclamez votre entreprise",
+        "emailBody": "Les gens découvrent votre entreprise sur Therr. Réclamez cet espace pour voir l'activité de vos clients en temps réel, gérer votre fiche et commencer à interagir avec votre audience aujourd'hui.",
+        "claimButton": "Réclamer cet espace",
+        "editButton": "Modifier l'espace",
+        "alreadyHaveAccount": "Vous avez déjà un compte? Connectez-vous",
+        "pendingTitle": "Demande de réclamation en attente",
+        "pendingBody": "Une demande de réclamation pour cet espace a été soumise et est en cours de révision.",
+        "successMessage": "Votre demande de réclamation a été soumise. Vous serez notifié une fois qu'elle sera approuvée.",
+        "errorMessage": "Une erreur s'est produite lors de la soumission de votre demande. Veuillez réessayer plus tard."
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Modifier l'espace",
+      "successMessage": "Votre espace a été mis à jour avec succès.",
+      "errorGeneric": "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
+      "headings": {
+        "contactInfo": "Coordonnées"
+      },
+      "labels": {
+        "businessName": "Nom de l'entreprise",
+        "category": "Catégorie",
+        "selectCategory": "Sélectionner une catégorie",
+        "description": "Description",
+        "hashTags": "Étiquettes",
+        "hashTagsHint": "Séparées par des virgules (ex. café, wifi, terrasse)",
+        "image": "Photo de l'entreprise",
+        "chooseImage": "Choisir une image",
+        "phoneNumber": "Numéro de téléphone",
+        "websiteUrl": "Site web",
+        "menuUrl": "URL du menu",
+        "orderUrl": "URL de commande / livraison",
+        "reservationUrl": "URL de réservation"
+      },
+      "buttons": {
+        "save": "Enregistrer les modifications",
+        "backToSpace": "Retour à l'espace"
+      }
+    },
+    "viewGroup": {
+      "headings": {
+        "about": "À propos",
+        "events": "Événements",
+        "members": "Membres"
+      },
+      "labels": {
+        "memberCount": "{count} membres",
+        "joinToChat": "Rejoignez ce groupe pour participer au clavardage",
+        "joinToSeeMembers": "Rejoignez ce groupe pour voir tous les membres",
+        "signUpPrompt": "Inscrivez-vous ou connectez-vous pour rejoindre ce groupe et clavarder",
+        "privateGroupMessage": "Ce groupe est privé",
+        "privateGroupCta": "Inscrivez-vous ou connectez-vous pour demander l'accès à ce groupe",
+        "getFullExperience": "Profitez de l'expérience complète sur l'application Therr",
+        "upcomingEvents": "Événements à venir",
+        "pastEvents": "Événements passés",
+        "noEvents": "Aucun événement trouvé pour ce groupe."
+      },
+      "buttons": {
+        "editGroup": "Modifier le groupe"
+      }
+    },
+    "viewEvent": {
+      "headings": {
+        "eventDetails": "Détails de l'événement",
+        "when": "Quand",
+        "where": "Où",
+        "about": "À propos",
+        "organizer": "Organisateur",
+        "group": "Groupe"
+      },
+      "labels": {
+        "startDate": "Début",
+        "endDate": "Fin",
+        "viewSpace": "Voir l'emplacement",
+        "viewGroup": "Voir le groupe",
+        "viewOnGoogleMaps": "Voir sur Google Maps",
+        "showMap": "Afficher la carte",
+        "hideMap": "Masquer la carte",
+        "privateEventMessage": "Cet événement appartient à un groupe privé",
+        "privateEventCta": "Inscrivez-vous ou connectez-vous pour demander l'accès",
+        "signUpPrompt": "Inscrivez-vous ou connectez-vous pour voir tous les détails de l'événement"
+      }
+    },
+    "viewMoment": {
+      "labels": {
+        "postedBy": "Publié par",
+        "viewLocation": "Voir l'emplacement",
+        "viewOnGoogleMaps": "Voir sur Google Maps",
+        "showMap": "Afficher la carte",
+        "hideMap": "Masquer la carte"
+      }
+    },
+    "viewUser": {
+      "buttons": {
+        "chat": "Clavarder",
+        "follow": "Suivre",
+        "viewAll": "Voir tout"
+      },
+      "headings": {
+        "about": "À propos",
+        "locations": "Nos emplacements",
+        "upcomingEvents": "Événements à venir",
+        "latestUpdates": "Dernières mises à jour"
+      },
+      "labels": {
+        "noLocations": "Aucun emplacement répertorié",
+        "noEvents": "Aucun événement à venir",
+        "noUpdates": "Aucune mise à jour récente"
+      }
+    },
+    "listGroups": {
+      "pageTitle": "Groupes",
+      "tabs": {
+        "discover": "Découvrir",
+        "myGroups": "Mes Groupes"
+      },
+      "placeholders": {
+        "search": "Rechercher des groupes par nom...",
+        "city": "Filtrer par ville..."
+      },
+      "labels": {
+        "joined": "Membre",
+        "memberCount": "{count} membres",
+        "clearFilters": "Effacer les filtres"
+      },
+      "buttons": {
+        "createGroup": "+ Créer un Groupe"
+      },
+      "noResultsFound": "Aucun groupe trouvé. Essayez d'ajuster votre recherche ou vos filtres.",
+      "noMyGroupsFound": "Vous n'avez rejoint aucun groupe. Découvrez des groupes et rejoignez-les pour les voir ici."
+    },
+    "userLocations": {
+      "pageTitle": "Emplacements",
+      "headingWithName": "Emplacements de {name}"
+    }
+  }
+}

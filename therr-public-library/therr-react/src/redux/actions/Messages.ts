@@ -20,7 +20,7 @@ const Messages = {
             type: query.pageNumber > 1 ? MessageActionTypes.GET_MORE_DIRECT_MESSAGES : MessageActionTypes.GET_DIRECT_MESSAGES,
             data,
         });
-    }),
+    }).catch((err) => { console.log(err); throw err; }),
     searchMyDMs: (query: any, userDetails) => (dispatch: any) => MessagesService.searchMyDMs(query).then((response: any) => {
         dispatch({
             type: query.pageNumber > 1 ? MessageActionTypes.GET_MORE_OF_MY_DIRECT_MESSAGES : MessageActionTypes.GET_MY_DIRECT_MESSAGES,
@@ -28,22 +28,30 @@ const Messages = {
         });
 
         return response?.data;
-    }),
+    }).catch((err) => { console.log(err); throw err; }),
+    markDmsRead: () => (dispatch: any) => {
+        dispatch({ type: MessageActionTypes.MARK_DMS_READ });
+    },
     searchForumMessages: (forumId: string, userId: string, query: any) => (dispatch: any) => MessagesService
         .searchForumMessages(forumId, query)
         .then((response: any) => {
+            const messages = response.data.results.map((forumMessage) => ({
+                ...forumMessage,
+                key: forumMessage.id,
+                fromUserImgSrc: `https://robohash.org/${forumMessage.fromUserId}`,
+                text: forumMessage.message,
+                time: `${forumMessage.createdAt}`, // TODO: Format date with locale timezone in mind
+            }));
             dispatch({
-                type: MessageActionTypes.GET_FORUM_MESSAGES,
+                type: query.pageNumber > 1 ? MessageActionTypes.GET_MORE_FORUM_MESSAGES : MessageActionTypes.GET_FORUM_MESSAGES,
                 data: {
                     roomId: forumId,
-                    messages: response.data.results.map((forumMessage) => ({
-                        ...forumMessage,
-                        text: forumMessage.message,
-                        time: `${forumMessage.createdAt}`, // TODO: Format date with locale timezone in mind
-                    })),
+                    messages,
+                    isLastPage: response.data.results.length < query.itemsPerPage,
                 },
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
 };
 
 export default Messages;

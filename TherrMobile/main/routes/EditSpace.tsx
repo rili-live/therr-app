@@ -1,13 +1,17 @@
 import React from 'react';
-import { Dimensions, Pressable, SafeAreaView, Keyboard, Text, View, Platform } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, SafeAreaView, Keyboard, Text, View, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Slider, Image } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
+import EditFormFooter from '../components/EditFormFooter';
+import LottieView from 'lottie-react-native';
+import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
+import { ILocationState } from '../types/redux/location';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { Categories, Content, FilePaths, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
@@ -15,17 +19,19 @@ import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import analytics from '@react-native-firebase/analytics';
-import Toast from 'react-native-toast-message';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
+import { showToast } from '../utilities/toasts';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import translator from '../services/translator';
+import getConfig from '../utilities/getConfig';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import { buildStyles as buildSearchStyles } from '../styles/modal/typeAhead';
 import userContentStyles from '../styles/user-content';
@@ -48,7 +54,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import { addAddressParams, getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserContentUri, signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
-import BottomSheet from '../components/BottomSheet/BottomSheet';
+import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../components/TherrIcon';
 import SearchTypeAheadResults from '../components/SearchTypeAheadResults';
 
@@ -67,6 +73,7 @@ interface IEditSpaceDispatchProps {
 
 interface IStoreProps extends IEditSpaceDispatchProps {
     content: IContentState;
+    location: ILocationState;
     map: IMapState;
     user: IUserState;
 }
@@ -83,11 +90,12 @@ interface IEditSpaceState {
     errorMsg: string;
     hashtags: string[];
     isAddressDropdownVisible: boolean;
-    isBottomSheetVisible: boolean;
+    isSearchingAddress: boolean;
     isEditingIncentives: boolean;
     inputs: any;
     isBusinessAccount: boolean;
     isCreatorAccount?: boolean;
+    isRequestDetailsExpanded: boolean;
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
@@ -97,6 +105,7 @@ interface IEditSpaceState {
 
 const mapStateToProps = (state) => ({
     content: state.content,
+    location: state.location,
     map: state.map,
     user: state.user,
 });
@@ -126,7 +135,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     private theme;
     private themeAlerts = buildAlertStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeModal = buildModalStyles();
     private themeMoments = buildMomentStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
@@ -154,7 +162,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             errorMsg: '',
             hashtags: area?.hashTags ? area?.hashTags?.split(',') : [],
             isAddressDropdownVisible: false,
-            isBottomSheetVisible: false,
+            isSearchingAddress: false,
             isBusinessAccount,
             isCreatorAccount,
             isEditingIncentives: false,
@@ -175,6 +183,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 featuredIncentiveRewardValue: area?.featuredIncentiveRewardValue?.toString() || undefined,
                 featuredIncentiveCurrencyId: area?.featuredIncentiveCurrencyId?.toString() || undefined,
             },
+            isRequestDetailsExpanded: false,
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
@@ -184,12 +193,11 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
 
         // TODO: Make these IDs and values constants from shared config
         this.categoryOptions = Categories.SpaceCategories.map((category: string, index) => ({
@@ -278,13 +286,22 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     }
 
     isFormDisabled() {
-        const { inputs, isEditingIncentives, isSubmitting } = this.state;
+        const { inputs, isBusinessAccount, isEditingIncentives, isSubmitting } = this.state;
 
+        let isDisabled;
 
-        let isDisabled = (
-            !inputs.message ||
-            isSubmitting
-        );
+        if (!isBusinessAccount) {
+            // Non-business users only need an address selected
+            isDisabled = (
+                (!inputs.addressLatitude && !inputs.addressLongitude) ||
+                isSubmitting
+            );
+        } else {
+            isDisabled = (
+                !inputs.message ||
+                isSubmitting
+            );
+        }
 
         if (!isEditingIncentives) {
             return isDisabled;
@@ -409,6 +426,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             longitude,
         } = route.params;
 
+        const sanitizedRadius = Math.max(MIN_RADIUS_PUBLIC, Math.min(MAX_RADIUS_PUBLIC, parseInt(radius, 10) || MIN_RADIUS_PUBLIC));
+
         let createArgs: any = {
             category,
             featuredIncentiveKey,
@@ -424,7 +443,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             latitude: addressLatitude || latitude,
             longitude: addressLongitude || longitude,
             maxViews,
-            radius,
+            radius: sanitizedRadius,
             expiresAt,
         };
 
@@ -458,13 +477,11 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 createOrUpdatePromise
                     .then(() => {
                         if (isBusinessAccount) {
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: areaId ? this.translate('alertTitles.areaUpdatedSuccess') : this.translate('alertTitles.spaceCreatedSuccess'),
                                 text2: this.translate('alertMessages.spaceUpdatedSuccess'),
-                                visibilityTime: 3500,
                             });
-                            analytics().logEvent('space_create', {
+                            logEvent(getAnalytics(),'space_create', {
                                 userId: user.details.id,
                                 momentLongitude: longitude,
                                 momentLatitude: latitude,
@@ -473,13 +490,11 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 category,
                             }).catch((err) => console.log(err));
                         } else {
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: this.translate('alertTitles.spaceRequestSuccess'),
                                 text2: this.translate('alertMessages.spaceRequestSuccess'),
-                                visibilityTime: 3500,
                             });
-                            analytics().logEvent('space_request', {
+                            logEvent(getAnalytics(),'space_request', {
                                 userId: user.details.id,
                                 momentLongitude: longitude,
                                 momentLatitude: latitude,
@@ -604,21 +619,28 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     };
 
     onAddressInputChange = (text: string, invoker: string = 'input') => {
-        const { getPlacesSearchAutoComplete, map } = this.props;
+        const { getPlacesSearchAutoComplete, location, map, route } = this.props;
         const { addressInputText } = this.state;
+        const { latitude, longitude } = route.params;
+        const userLat = location?.user?.latitude;
+        const userLon = location?.user?.longitude;
 
         clearTimeout(this.throttleAddressTimeoutId);
         this.setState({
             addressInputText: text,
+            isSearchingAddress: !!text?.length,
         });
 
         this.throttleAddressTimeoutId = setTimeout(() => {
+            const config = getConfig();
+            const useMapboxSearch = config.featureFlags?.[FeatureFlags.ENABLE_MAPBOX_SEARCH] === true;
             getPlacesSearchAutoComplete({
-                longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
-                latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
-                // radius,
+                longitude: userLon?.toString() || longitude?.toString() || map?.longitude || DEFAULT_LONGITUDE.toString(),
+                latitude: userLat?.toString() || latitude?.toString() || map?.latitude || DEFAULT_LATITUDE.toString(),
                 input: text,
                 types: 'establishment',
+            }, useMapboxSearch).finally(() => {
+                this.setState({ isSearchingAddress: false });
             });
         }, 500);
 
@@ -641,6 +663,11 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
 
         this.setSearchDropdownVisibility(false);
 
+        if (selection?.provider === 'mapbox' && selection?.mapbox_id) {
+            this.handleMapboxSearchSelect(selection);
+            return;
+        }
+
         MapsService.getPlaceDetails({
             apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
             placeId: selection?.place_id,
@@ -651,44 +678,93 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             shouldIncludeRating: true,
         }).then((response) => {
             const result = response.data?.result;
-            const geometry = result?.geometry;
-            const formatted_address = result?.formatted_address;
-            const modifiedInputs = {
-                ...this.state.inputs,
-            };
-            if (formatted_address) {
-                modifiedInputs.address = formatted_address;
-                modifiedInputs.addressReadable = formatted_address;
-            }
-            if (!modifiedInputs.notificationMsg && result?.name) {
-                modifiedInputs.notificationMsg = result.name;
-            }
-            if (geometry?.location) {
-                modifiedInputs.addressLatitude = geometry.location.lat;
-                modifiedInputs.addressLongitude = geometry.location.lng;
-            }
-            if (result?.website) {
-                modifiedInputs.addressWebsite = result?.website;
-            }
-            if (result?.rating) {
-                modifiedInputs.addressRating = {
-                    rating: result?.rating,
-                    total: result?.user_ratings_total || 0,
-                };
-            }
-            if (result?.opening_hours?.weekday_text) {
-                modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
-            }
-            if (result?.international_phone_number) {
-                modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
-            }
-            this.setState({
-                addressInputText: result?.name || formatted_address,
-                inputs: modifiedInputs,
-            });
+            this.applyPlaceDetailsToInputs(result);
         }).catch((error) => {
             console.log(error);
         });
+    };
+
+    handleMapboxSearchSelect = (selection) => {
+        MapsService.getMapboxRetrieve(selection.mapbox_id).then((response) => {
+            const feature = response.data?.features?.[0];
+            if (feature) {
+                const props = feature.properties || {};
+                const [lng, lat] = feature.geometry?.coordinates || [];
+                const result = {
+                    name: props.name || '',
+                    formatted_address: props.full_address || props.place_formatted || '',
+                    geometry: lat && lng ? { location: { lat, lng } } : undefined,
+                    website: props.metadata?.website || undefined,
+                    international_phone_number: props.metadata?.phone || undefined,
+                };
+                this.applyPlaceDetailsToInputs(result);
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
+
+    applyPlaceDetailsToInputs = (result) => {
+        if (!result) return;
+
+        const geometry = result?.geometry;
+        const formatted_address = result?.formatted_address;
+        const modifiedInputs = {
+            ...this.state.inputs,
+        };
+        if (formatted_address) {
+            modifiedInputs.address = formatted_address;
+            modifiedInputs.addressReadable = formatted_address;
+        }
+        if (!this.state.isBusinessAccount) {
+            if (result?.name) {
+                modifiedInputs.notificationMsg = result.name;
+            }
+            if (!modifiedInputs.category) {
+                modifiedInputs.category = 'uncategorized';
+            }
+        } else if (!modifiedInputs.notificationMsg && result?.name) {
+            modifiedInputs.notificationMsg = result.name;
+        }
+        if (geometry?.location) {
+            modifiedInputs.addressLatitude = geometry.location.lat;
+            modifiedInputs.addressLongitude = geometry.location.lng;
+        }
+        if (result?.website) {
+            modifiedInputs.addressWebsite = result?.website;
+        }
+        if (result?.rating) {
+            modifiedInputs.addressRating = {
+                rating: result?.rating,
+                total: result?.user_ratings_total || 0,
+            };
+        }
+        if (result?.opening_hours?.weekday_text) {
+            modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
+        }
+        if (result?.international_phone_number) {
+            modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
+        }
+        this.setState({
+            addressInputText: this.state.isBusinessAccount
+                ? (result?.name || formatted_address)
+                : (formatted_address || result?.name || ''),
+            inputs: modifiedInputs,
+        });
+    };
+
+    renderAddressInputRightIcon = (isSearching: boolean) => {
+        if (isSearching) {
+            return <ActivityIndicator size="small" color={this.theme.colors.primary3} />;
+        }
+        return (
+            <TherrIcon
+                name={'search'}
+                size={18}
+                color={this.theme.colors.primary3}
+                onPress={() => this.handleAddressInputPress('onpress')}
+            />
+        );
     };
 
     setSearchDropdownVisibility = (shouldShow: boolean) => {
@@ -718,15 +794,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             this.setState({
                 selectedImage: imageResponse,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            }, () => this.toggleBottomSheet());
+            });
         }
-    };
-
-    toggleBottomSheet = () => {
-        const { isBottomSheetVisible } = this.state;
-        this.setState({
-            isBottomSheetVisible: !isBottomSheetVisible,
-        });
     };
 
     onAddImage = (action: string) => {
@@ -757,26 +826,10 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            this.toggleBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
                 console.log('canceled');
             }
-        });
-    };
-
-    onSliderChange = (name, value) => {
-        const newInputChanges = {
-            [name]: value,
-        };
-
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                ...newInputChanges,
-            },
-            errorMsg: '',
-            isSubmitting: false,
         });
     };
 
@@ -845,6 +898,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             inputs,
             isBusinessAccount,
             isAddressDropdownVisible,
+            isSearchingAddress,
+            isRequestDetailsExpanded,
             previewLinkId,
             previewStyleState,
             imagePreviewPath,
@@ -855,81 +910,130 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             <>
                 <Pressable style={this.themeAccentLayout.styles.container} onPress={this.onOuterContainerPress}>
                     {
-                        !!imagePreviewPath &&
-                        <View style={this.themeMoments.styles.mediaContainer}>
-                            <Image
-                                source={{ uri: imagePreviewPath }}
-                                style={this.themeMoments.styles.mediaImage}
+                        isBusinessAccount && <>
+                            <View style={this.themeMoments.styles.mediaContainer}>
+                                {
+                                    imagePreviewPath
+                                        ? (
+                                            <Image
+                                                source={{ uri: imagePreviewPath }}
+                                                style={this.themeMoments.styles.mediaImage}
+                                            />
+                                        )
+                                        : (
+                                            <LottieView
+                                                source={require('../assets/missing-image-storefront.json')}
+                                                resizeMode="contain"
+                                                speed={0.8}
+                                                autoPlay
+                                                loop
+                                                style={{
+                                                    width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                                    height: 160,
+                                                }}
+                                            />
+                                        )
+                                }
+                            </View>
+                            <Button
+                                containerStyle={spacingStyles.marginBotMd}
+                                buttonStyle={this.themeForms.styles.buttonPrimary}
+                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                titleStyle={this.themeForms.styles.buttonTitle}
+                                title={this.translate(
+                                    imagePreviewPath ? 'forms.editSpace.buttons.replaceImage' : 'forms.editSpace.buttons.addImage'
+                                )}
+                                icon={
+                                    <TherrIcon
+                                        name="camera"
+                                        size={23}
+                                        style={{ color: this.theme.colors.primary, paddingRight: 8 }}
+                                    />
+                                }
+                                onPress={() => SheetManager.show('image-picker-sheet', {
+                                    payload: {
+                                        galleryText: this.translate('forms.editSpace.buttons.selectExisting'),
+                                        cameraText: this.translate('forms.editSpace.buttons.captureNew'),
+                                        themeForms: this.themeForms,
+                                        onSelect: (source) => this.onAddImage(source),
+                                    },
+                                })}
+                                raised={false}
                             />
-                        </View>
+                            {
+                                !!imagePreviewPath &&
+                                <Button
+                                    containerStyle={spacingStyles.marginBotMd}
+                                    buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate('forms.editSpace.buttons.removeImage')}
+                                    icon={
+                                        <OctIcon
+                                            name="x"
+                                            size={18}
+                                            style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                        />
+                                    }
+                                    onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                                    raised={false}
+                                />
+                            }
+                            <Text style={this.theme.styles.sectionDescriptionNote}>
+                                {this.translate('forms.editSpace.labels.addImageNote')}
+                            </Text>
+                        </>
                     }
-                    <Button
-                        containerStyle={spacingStyles.marginBotMd}
-                        buttonStyle={this.themeForms.styles.buttonPrimary}
-                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                        titleStyle={this.themeForms.styles.buttonTitle}
-                        title={this.translate(
-                            imagePreviewPath ? 'forms.editSpace.buttons.replaceImage' : 'forms.editSpace.buttons.addImage'
-                        )}
-                        icon={
-                            <TherrIcon
-                                name="camera"
-                                size={23}
-                                style={{ color: this.theme.colors.primary, paddingRight: 8 }}
-                            />
-                        }
-                        onPress={() => this.toggleBottomSheet()}
-                        raised={false}
-                    />
-                    <Text style={this.theme.styles.sectionDescriptionNote}>
-                        {this.translate('forms.editSpace.labels.addImageNote')}
-                    </Text>
                     <View style={{
                         position: 'relative',
-                        marginBottom: !isBusinessAccount ? 50 : 0,
                     }}>
                         {
                             !isBusinessAccount &&
                             <>
-                                <RoundInput
-                                    autoFocus
-                                    maxLength={100}
-                                    placeholder={this.translate(
-                                        'forms.editSpace.labels.address'
-                                    )}
-                                    value={addressInputText}
-                                    onChangeText={(text) =>
-                                        this.onAddressInputChange(text)
-                                    }
-                                    onFocus={() => this.handleAddressInputPress('onfocus')}
-                                    onBlur={() => this.setSearchDropdownVisibility(false)}
-                                    rightIcon={
-                                        <TherrIcon
-                                            name={'search'}
-                                            size={18}
-                                            color={this.theme.colors.primary3}
-                                            onPress={() => this.handleAddressInputPress('onpress')}
+                                <Text style={this.theme.styles.sectionDescriptionNote}>
+                                    {this.translate('forms.editSpace.labels.requestNote')}
+                                </Text>
+                                <View style={{ position: 'relative', zIndex: 1000 }}>
+                                    <RoundInput
+                                        containerStyle={{ marginBottom: 12 }}
+                                        autoFocus
+                                        maxLength={100}
+                                        placeholder={this.translate(
+                                            'forms.editSpace.labels.addressRequest'
+                                        )}
+                                        value={addressInputText}
+                                        onChangeText={(text) =>
+                                            this.onAddressInputChange(text)
+                                        }
+                                        onFocus={() => this.handleAddressInputPress('onfocus')}
+                                        onBlur={() => this.setSearchDropdownVisibility(false)}
+                                        rightIcon={this.renderAddressInputRightIcon(isSearchingAddress)}
+                                        themeForms={this.themeForms}
+                                    />
+                                    {
+                                        isAddressDropdownVisible &&
+                                        <SearchTypeAheadResults
+                                            containerStyles={{
+                                                top: this.themeForms.styles.inputContainerRound.height || 59,
+                                            }}
+                                            handleSelect={this.handleSearchSelect}
+                                            searchPredictionResults={map?.searchPredictions?.results || []}
+                                            themeSearch={this.themeSearch}
+                                            disableScroll
                                         />
                                     }
-                                    themeForms={this.themeForms}
-                                />
+                                </View>
                                 {
-                                    isAddressDropdownVisible &&
-                                    <SearchTypeAheadResults
-                                        containerStyles={{
-                                            top: this.themeForms.styles.inputContainerRound.height,
-                                        }}
-                                        handleSelect={this.handleSearchSelect}
-                                        searchPredictionResults={map?.searchPredictions?.results || []}
-                                        themeSearch={this.themeSearch}
-                                        disableScroll
-                                    />
+                                    !!inputs.addressReadable &&
+                                    <Text style={[this.theme.styles.sectionDescriptionNote, spacingStyles.marginBotMd]}>
+                                        {inputs.addressReadable}
+                                    </Text>
                                 }
                             </>
                         }
                         <RoundInput
+                            containerStyle={{ marginBottom: 12 }}
                             autoFocus={isBusinessAccount}
                             maxLength={100}
                             placeholder={this.translate(
@@ -941,68 +1045,161 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             }
                             themeForms={this.themeForms}
                         />
-                        <View style={[
-                            spacingStyles.padBotMd,
-                            spacingStyles.flexRow,
-                            spacingStyles.alignCenter,
-                        ]}>
-                            <DropDown
-                                onChange={(newValue) =>
-                                    this.onInputChange('category', newValue || 'uncategorized')
+                        {
+                            !isBusinessAccount &&
+                            <Pressable
+                                onPress={() => this.setState({ isRequestDetailsExpanded: !isRequestDetailsExpanded })}
+                                style={[spacingStyles.flexRow, spacingStyles.alignCenter, spacingStyles.padBotSm, { justifyContent: 'space-between' }]}
+                            >
+                                <Text style={this.theme.styles.sectionDescriptionNote}>
+                                    {this.translate('forms.editSpace.labels.additionalDetails')}
+                                </Text>
+                                <OctIcon
+                                    name={isRequestDetailsExpanded ? 'chevron-up' : 'chevron-down'}
+                                    size={16}
+                                    color={this.theme.colors.primary3}
+                                />
+                            </Pressable>
+                        }
+                        {
+                            (isBusinessAccount || isRequestDetailsExpanded) && <>
+                                <View style={[
+                                    spacingStyles.padBotMd,
+                                    spacingStyles.flexRow,
+                                    spacingStyles.alignCenter,
+                                ]}>
+                                    <DropDown
+                                        onChange={(newValue) =>
+                                            this.onInputChange('category', newValue || 'uncategorized')
+                                        }
+                                        options={this.categoryOptions}
+                                        formStyles={this.themeForms.styles}
+                                        initialValue={inputs.category}
+                                    />
+                                </View>
+                                <RoundTextInput
+                                    placeholder={this.translate(
+                                        'forms.editSpace.labels.message'
+                                    )}
+                                    value={inputs.message}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('message', text)
+                                    }
+                                    minHeight={150}
+                                    numberOfLines={7}
+                                    themeForms={this.themeForms}
+                                />
+                                <RoundInput
+                                    containerStyle={{ marginBottom: 12 }}
+                                    autoCorrect={false}
+                                    errorStyle={this.theme.styles.displayNone}
+                                    placeholder={this.translate(
+                                        'forms.editSpace.labels.hashTags'
+                                    )}
+                                    value={inputs.hashTags}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('hashTags', text)
+                                    }
+                                    onBlur={this.handleHashTagsBlur}
+                                    themeForms={this.themeForms}
+                                />
+                                <HashtagsContainer
+                                    hashtags={hashtags}
+                                    onHashtagPress={this.handleHashtagPress}
+                                    styles={this.themeForms.styles}
+                                />
+                                {
+                                    !isBusinessAccount && <>
+                                        {
+                                            !!imagePreviewPath &&
+                                            <View style={this.themeMoments.styles.mediaContainer}>
+                                                <Image
+                                                    source={{ uri: imagePreviewPath }}
+                                                    style={this.themeMoments.styles.mediaImage}
+                                                />
+                                            </View>
+                                        }
+                                        <Button
+                                            containerStyle={spacingStyles.marginBotMd}
+                                            buttonStyle={this.themeForms.styles.buttonPrimary}
+                                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                            titleStyle={this.themeForms.styles.buttonTitle}
+                                            title={this.translate(
+                                                imagePreviewPath ? 'forms.editSpace.buttons.replaceImage' : 'forms.editSpace.buttons.addImage'
+                                            )}
+                                            icon={
+                                                <TherrIcon
+                                                    name="camera"
+                                                    size={23}
+                                                    style={{ color: this.theme.colors.primary, paddingRight: 8 }}
+                                                />
+                                            }
+                                            onPress={() => SheetManager.show('image-picker-sheet', {
+                                                payload: {
+                                                    galleryText: this.translate('forms.editSpace.buttons.selectExisting'),
+                                                    cameraText: this.translate('forms.editSpace.buttons.captureNew'),
+                                                    themeForms: this.themeForms,
+                                                    onSelect: (source) => this.onAddImage(source),
+                                                },
+                                            })}
+                                            raised={false}
+                                        />
+                                        {
+                                            !!imagePreviewPath &&
+                                            <Button
+                                                containerStyle={spacingStyles.marginBotMd}
+                                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                                titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                                title={this.translate('forms.editSpace.buttons.removeImage')}
+                                                icon={
+                                                    <OctIcon
+                                                        name="x"
+                                                        size={18}
+                                                        style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                                    />
+                                                }
+                                                onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                                                raised={false}
+                                            />
+                                        }
+                                    </>
                                 }
-                                options={this.categoryOptions}
-                                formStyles={this.themeForms.styles}
-                                initialValue={inputs.category}
-                            />
-                        </View>
-                        <RoundTextInput
-                            placeholder={this.translate(
-                                'forms.editSpace.labels.message'
-                            )}
-                            value={inputs.message}
-                            onChangeText={(text) =>
-                                this.onInputChange('message', text)
-                            }
-                            minHeight={150}
-                            numberOfLines={7}
-                            themeForms={this.themeForms}
-                        />
-                        <RoundInput
-                            autoCorrect={false}
-                            errorStyle={this.theme.styles.displayNone}
-                            placeholder={this.translate(
-                                'forms.editSpace.labels.hashTags'
-                            )}
-                            value={inputs.hashTags}
-                            onChangeText={(text) =>
-                                this.onInputChange('hashTags', text)
-                            }
-                            onBlur={this.handleHashTagsBlur}
-                            themeForms={this.themeForms}
-                        />
-                        <HashtagsContainer
-                            hashtags={hashtags}
-                            onHashtagPress={this.handleHashtagPress}
-                            styles={this.themeForms.styles}
-                        />
+                            </>
+                        }
                     </View>
                     {
-                        isBusinessAccount && <View style={this.themeForms.styles.inputSliderContainer}>
-                            <Slider
-                                value={inputs.radius}
-                                onValueChange={(value) => this.onSliderChange('radius', value)}
-                                maximumValue={MAX_RADIUS_PUBLIC}
-                                minimumValue={MIN_RADIUS_PUBLIC}
-                                step={1}
-                                thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
-                                thumbTouchSize={{ width: 30, height: 30 }}
-                                minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
-                                maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                                onSlidingStart={Keyboard.dismiss}
+                        isBusinessAccount && <View
+                            style={this.themeForms.styles.inputSliderContainer}
+                        >
+                            <RoundInput
+                                placeholder={this.translate('forms.editSpace.labels.radiusPlaceholder', {
+                                    min: MIN_RADIUS_PUBLIC,
+                                    max: MAX_RADIUS_PUBLIC,
+                                })}
+                                value={inputs.radius === '' ? '' : String(inputs.radius)}
+                                onChangeText={(text) => {
+                                    const stripped = text.replace(/[^0-9]/g, '');
+                                    if (stripped === '') {
+                                        this.onInputChange('radius', '' as any);
+                                    } else {
+                                        this.onInputChange('radius', parseInt(stripped, 10) as any);
+                                    }
+                                }}
+                                onBlur={() => {
+                                    const num = parseInt(inputs.radius, 10);
+                                    if (isNaN(num) || num < MIN_RADIUS_PUBLIC) {
+                                        this.onInputChange('radius', MIN_RADIUS_PUBLIC as any);
+                                    } else if (num > MAX_RADIUS_PUBLIC) {
+                                        this.onInputChange('radius', MAX_RADIUS_PUBLIC as any);
+                                    }
+                                }}
+                                keyboardType="number-pad"
+                                themeForms={this.themeForms}
                             />
-                            <Text style={this.themeForms.styles.inputLabelDark}>
+                            {inputs.radius !== '' && <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
-                            </Text>
+                            </Text>}
                             <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.cost', { pointCost: 0 })}`}
                             </Text>
@@ -1183,7 +1380,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     render() {
         const { navigation } = this.props;
         const {
-            isBottomSheetVisible,
             isEditingIncentives,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
@@ -1195,98 +1391,42 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
+                        scrollEnabled
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit, this.theme.styles.scrollView]}
+                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit, this.theme.styles.scrollViewFull]}
                         contentContainerStyle={[
                             this.theme.styles.bodyScroll,
                             this.themeAccentLayout.styles.bodyEditScroll,
-                            { backgroundColor: this.theme.colorVariations.primary2Fade },
+                            { backgroundColor: this.theme.colorVariations.primary2Fade, flexGrow: 1 },
                         ]}
                     >
                         {
                             isEditingIncentives ? this.renderEditingIncentives() : this.renderEditingForm()
                         }
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={continueButtonConfig.title}
-                            icon={
-                                <TherrIcon
-                                    name={continueButtonConfig.icon}
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={continueButtonConfig.iconStyle}
-                                />
-                            }
-                            iconRight={continueButtonConfig.iconRight}
-                            onPress={continueButtonConfig.onPress}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
-                    <BottomSheet
-                        isVisible={isBottomSheetVisible}
-                        onRequestClose={this.toggleBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editSpace.buttons.selectExisting'
-                            )}
-                            onPress={() => this.onAddImage('upload')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="plus"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editSpace.buttons.captureNew'
-                            )}
-                            onPress={() => this.onAddImage('camera')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="device-camera"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
+                    <EditFormFooter
+                        isDarkMode={isDarkTheme(this.props.user.settings?.mobileThemeName)}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editSpace.buttons.back'),
+                                onPress: () => navigation.goBack(),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: continueButtonConfig.title,
+                                onPress: continueButtonConfig.onPress,
+                                mode: 'contained',
+                                icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
+                                disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
             </>
         );

@@ -254,6 +254,15 @@ const createMessage = (
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'UNCLAIMED_ACHIEVEMENTS_REMINDER');
             return baseMessage;
+        case PushNotifications.Types.inviteFriendsReminder:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.inviteFriendsReminder.title'),
+                notificationBody: translate(config.userLocale, 'notifications.inviteFriendsReminder.body'),
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'INVITE_FRIENDS_REMINDER');
+            return baseMessage;
 
         // Event Driven
         case PushNotifications.Types.achievementCompleted:
@@ -272,7 +281,7 @@ const createMessage = (
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
                     notificationBody: translate(config.userLocale, 'notifications.connectionRequestAccepted.body', {
-                        userName: config.fromUserName,
+                        userName: String(config.fromUserName || ''),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.userView,
                     notificationLinkPressActions: JSON.stringify([
@@ -296,7 +305,7 @@ const createMessage = (
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
                     notificationBody: translate(config.userLocale, 'notifications.newConnectionRequest.body', {
-                        userName: config.fromUserName,
+                        userName: String(config.fromUserName || ''),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.userView,
                     notificationLinkPressActions: JSON.stringify([
@@ -320,7 +329,7 @@ const createMessage = (
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.newDirectMessage.title'),
                     notificationBody: translate(config.userLocale, 'notifications.newDirectMessage.body', {
-                        userName: config.fromUserName,
+                        userName: String(config.fromUserName || ''),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.dmView,
                     notificationLinkPressActions: JSON.stringify([
@@ -343,7 +352,7 @@ const createMessage = (
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.newGroupMessage.title'),
                     notificationBody: translate(config.userLocale, 'notifications.newGroupMessage.body', {
-                        groupName: config.groupName,
+                        groupName: String(config.groupName || ''),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.groupView,
                     notificationLinkPressActions: JSON.stringify([
@@ -366,8 +375,8 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newGroupMembers.title'),
                 notificationBody: translate(config.userLocale, 'notifications.newGroupMembers.body', {
-                    groupName: config.groupName,
-                    members: config.groupMembersList?.slice(0, 3).join(', '),
+                    groupName: String(config.groupName || ''),
+                    members: String(config.groupMembersList?.slice(0, 3).join(', ') || ''),
                 }),
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'NEW_GROUP_MEMBERS');
@@ -378,8 +387,8 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newGroupInvite.title'),
                 notificationBody: translate(config.userLocale, 'notifications.newGroupInvite.body', {
-                    groupName: config.groupName,
-                    fromUserName: config.fromUserName,
+                    groupName: String(config.groupName || ''),
+                    fromUserName: String(config.fromUserName || ''),
                 }),
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'NEW_GROUP_INVITE');
@@ -390,7 +399,7 @@ const createMessage = (
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.newLikeReceived.title'),
                     notificationBody: translate(config.userLocale, 'notifications.newLikeReceived.body', {
-                        userName: config.fromUserName,
+                        userName: String(config.fromUserName || ''),
                     }),
                     notificationPressActionId: getPostActionId(modifiedData?.postType),
                     notificationLinkPressActions: JSON.stringify([
@@ -409,7 +418,7 @@ const createMessage = (
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.newSuperLikeReceived.title'),
                     notificationBody: translate(config.userLocale, 'notifications.newSuperLikeReceived.body', {
-                        userName: config.fromUserName,
+                        userName: String(config.fromUserName || ''),
                     }),
                     notificationPressActionId: getPostActionId(modifiedData?.postType),
                     notificationLinkPressActions: JSON.stringify([
@@ -428,7 +437,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newAreasActivated.title'),
                 notificationBody: translate(config.userLocale, 'notifications.newAreasActivated.body', {
-                    totalAreasActivated: config.totalAreasActivated,
+                    totalAreasActivated: Number(config.totalAreasActivated || 0),
                 }),
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'NEW_AREAS_ACTIVATED');
@@ -472,7 +481,7 @@ const createMessage = (
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.newThoughtReplyReceived.title'),
                     notificationBody: translate(config.userLocale, 'notifications.newThoughtReplyReceived.body', {
-                        userName: config.fromUserName,
+                        userName: String(config.fromUserName || ''),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.thoughtView,
                     notificationLinkPressActions: JSON.stringify([
@@ -524,6 +533,9 @@ const predictAndSendNotification = (
                 return admin.messaging().send(message);
             }
             if (type === PushNotifications.Types.unclaimedAchievementsReminder) {
+                return admin.messaging().send(message);
+            }
+            if (type === PushNotifications.Types.inviteFriendsReminder) {
                 return admin.messaging().send(message);
             }
 

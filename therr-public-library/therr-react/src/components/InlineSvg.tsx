@@ -26,6 +26,7 @@ const iconMap: { [index: string]: string } = {
     'therr-text': require('../svg-icons/therr-text.svg').toString(),
     send: require('../svg-icons/send.svg').toString(),
     settings: require('../svg-icons/settings.svg').toString(),
+    lightbulb: require('../svg-icons/lightbulb.svg').toString(),
     world: require('../svg-icons/world.svg').toString(),
 };
 /* eslint-enable global-require */

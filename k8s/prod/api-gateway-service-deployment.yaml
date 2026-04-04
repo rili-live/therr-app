@@ -4,7 +4,11 @@ metadata:
   name: api-gateway-service-deployment
   namespace: default
 spec:
+<<<<<<< HEAD
   replicas: 2
+=======
+  replicas: 1
+>>>>>>> origin/general
   selector:
     matchLabels:
       component: server-api-gateway
@@ -24,6 +28,7 @@ spec:
               - key: cloud.google.com/gke-preemptible
                 operator: DoesNotExist
             weight: 100
+<<<<<<< HEAD
       containers:
       - name: server-api-gateway
         image: therrapp/api-gateway:latest
@@ -33,6 +38,47 @@ spec:
             cpu: "50m"
         ports:
         - containerPort: 7770
+=======
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                  - server-api-gateway
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: server-api-gateway
+        image: therrapp/api-gateway:latest
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        resources:
+          requests:
+            memory: "96Mi"
+            cpu: "10m"
+          limits:
+            memory: "192Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 7770
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7770
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+>>>>>>> origin/general
         env:
         - name: API_GATEWAY_PORT
           value: "7770"

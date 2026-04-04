@@ -1,15 +1,15 @@
 @import './notifications';
 @import './connections';
 
-$menu-width: rem-calc(320px);
+$menu-width: rem-calc(360px);
 $menu-padding: rem-calc(24px);
 
 #nav_menu {
-    background: $therr-white;
-    border-left: 1px solid rgba(0, 0, 0, .12);
-    box-shadow: 0px 8px 10px 5px rgba(0,0,0,0.2), 0px 16px 24px 2px rgba(0,0,0,0.14), 0px 6px 30px 5px rgba(0,0,0,0.12);
+    background: var(--therr-background-black, #fff);
+    border-left: 1px solid var(--therr-divider-grey, rgba(0, 0, 0, .08));
+    box-shadow: -4px 0 24px rgba(0, 0, 0, .1), -1px 0 4px rgba(0, 0, 0, .06);
     box-sizing: border-box;
-    color: $text-grey;
+    color: var(--therr-middle-grey, $text-grey);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -17,7 +17,7 @@ $menu-padding: rem-calc(24px);
     position: fixed;
     right: -100%;
     top: 0;
-    transition: right .15s cubic-bezier(.4,0,.2,1), width .15s cubic-bezier(.4,0,.2,1);
+    transition: right .2s cubic-bezier(.4,0,.2,1), width .2s cubic-bezier(.4,0,.2,1);
     width: 100%;
     z-index: 100;
 
@@ -38,10 +38,11 @@ $menu-padding: rem-calc(24px);
         .menu-tab-button {
             flex: 1;
             box-shadow: none;
+            transition: border-color .15s ease;
 
             &.active,
             &:hover {
-                border-top: rem-calc(5px) solid $therr-secondary-1
+                border-top: rem-calc(3px) solid var(--therr-secondary-1, $therr-secondary-1);
             }
             &:focus {
                 box-shadow: none;
@@ -52,7 +53,7 @@ $menu-padding: rem-calc(24px);
 
             .tab-icon {
                 svg {
-                    fill: $therr-secondary-1;
+                    fill: var(--therr-secondary-1, $therr-secondary-1);
                 }
             }
 
@@ -82,6 +83,27 @@ $menu-padding: rem-calc(24px);
     .nav-menu-content {
         overflow-y: auto;
         overflow-x: hidden;
+
+        .tab-content-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+            padding-top: .75rem;
+            margin-bottom: .75rem;
+
+            h2 {
+                margin: 0;
+            }
+        }
+
+        h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: .01em;
+            margin-bottom: .75rem;
+            color: var(--therr-text-a, $therr-very-dark-grey);
+        }
     }
 
     .nav-menu-subfooter {
@@ -97,7 +119,8 @@ $menu-padding: rem-calc(24px);
         right: 0;
 
         button {
-            width: 9rem;
+            width: fit-content;
+            min-width: 9rem;
         }
     }
 
@@ -117,7 +140,7 @@ $menu-padding: rem-calc(24px);
             background: transparent;
 
             svg {
-                fill: $therr-black;
+                fill: var(--therr-text-a, $therr-black);
             }
         }
 
@@ -125,7 +148,7 @@ $menu-padding: rem-calc(24px);
             &#nav_menu_footer_close {
                 width: 2.15rem;
             }
-        
+
             &#nav_menu_footer_close {
                 margin-right: 1rem;
                 padding: rem-calc(7px);
@@ -143,33 +166,41 @@ $menu-padding: rem-calc(24px);
 
         .menu-item {
             height: auto;
-            color: $text-grey;
+            color: var(--therr-text-a, $text-grey);
             background: transparent;
-            font-size: .95rem;
-            text-align: left;;
-            padding: .5rem;
+            font-size: .9375rem;
+            text-align: left;
+            padding: .625rem .5rem;
             border: none;
-            border-radius: 0;
-            border-bottom: 1px solid #cdcdcd;
-            margin-bottom: .5rem;
+            border-radius: .5rem;
+            border-bottom: none;
+            margin-bottom: .25rem;
+            line-height: 1.4;
+            transition: background .15s ease;
 
             &.left-icon {
                 display: flex;
                 align-items: center;
-                
+                justify-content: flex-start;
+
                 .inline-svg {
-                    margin-right: .5rem;
+                    flex-shrink: 0;
+                    width: 1.25rem;
+                    height: 1.25rem;
 
                     svg {
-                        fill: $therr-primary-2;
+                        width: 100%;
+                        height: 100%;
+                        fill: var(--therr-primary-2, $therr-primary-2);
                     }
                 }
             }
 
             &:hover {
                 cursor: pointer;
-                color: $therr-black;
-                border-left: rem-calc(5px) solid $therr-primary-2;
+                color: var(--therr-text-b, $therr-black);
+                background: rgba(0, 0, 0, .04);
+                border-left: none;
             }
         }
     }
@@ -180,26 +211,34 @@ $menu-padding: rem-calc(24px);
 
             display: flex;
             flex-direction: column;
+            gap: .25rem;
 
             .forum-link-item {
                 flex: 1;
-                padding: .5rem $padding-sides .5rem $padding-sides;
+                padding: .625rem $padding-sides;
                 display: flex;
                 align-items: center;
                 border: none;
                 background: transparent;
                 position: relative;
-                margin: 0 -.5rem;
-                line-height: $line-height;
+                margin: 0;
+                border-radius: .5rem;
+                transition: background .15s ease;
+                overflow: visible;
+                line-height: 1.5;
 
                 &.right-icon {
                     display: flex;
                     align-items: center;
-                    
+
                     .inline-svg {
                         display: none;
                         position: absolute;
                         right: $padding-sides;
+                        background: #fff;
+                        border-radius: 50%;
+                        padding: .25rem;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, .12);
 
                         svg {
                             fill: $therr-primary-2;
@@ -209,29 +248,32 @@ $menu-padding: rem-calc(24px);
 
                 &:hover,
                 &:focus {
+                    background: rgba(0, 0, 0, .04);
+
                     &.right-icon {
                         .inline-svg {
-                            display: inline;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
                         }
                     }
                 }
 
                 &::before {
-                    content: '○';
-                    color: $therr-alert-neutral;
-                    padding: 0 .7rem 0 0;
-                    font-size: .625rem;;
-                    line-height: $line-height;
+                    content: '';
+                    display: inline-block;
+                    width: .5rem;
+                    height: .5rem;
+                    border-radius: 50%;
+                    background: $therr-divider-grey;
+                    margin-right: .75rem;
+                    flex-shrink: 0;
                 }
 
                 &.active {
                     &::before {
-                        content: '•';
-                        color: $therr-alert-success;
-                        font-size: 2rem;
-                        margin-left: -.085rem;
-                        padding: 0 .5rem 0 0;
-                        line-height: $line-height;
+                        background: $therr-alert-success;
+                        box-shadow: 0 0 0 2px rgba($therr-alert-success, .2);
                     }
                 }
             }
@@ -242,7 +284,7 @@ $menu-padding: rem-calc(24px);
 @media only screen and (min-width: $screen-small) {
     #nav_menu {
         padding: $header-height $menu-padding $footer-height $menu-padding;
-       
+
         .nav-menu-header {
             height: $header-height;
         }
@@ -250,7 +292,7 @@ $menu-padding: rem-calc(24px);
         .nav-menu-subfooter {
             bottom: $footer-height;
         }
-    
+
         .nav-menu-footer {
             height: $footer-height;
         }
@@ -263,12 +305,12 @@ $menu-padding: rem-calc(24px);
 
         &.is-expanded {
             width: 90%;
-            
+
             .nav-menu-header {
                 width: 100%
             }
         }
-       
+
         .nav-menu-header {
             width: $menu-width;
         }

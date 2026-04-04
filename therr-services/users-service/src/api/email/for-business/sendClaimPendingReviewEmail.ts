@@ -3,9 +3,11 @@
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
+import translate from '../../../utilities/translator';
 
 export interface ISendClaimPendingReviewEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -21,18 +23,19 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendClaimPendingReviewEmailConfig, templateParams: ITemplateParams) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const dearUser = `${contextConfig.brandGreeting},`;
     const htmlConfig = {
-        header: 'Business Space Request in Review',
+        header: translate(locale, 'emails.claimPendingReview.header'),
         dearUser,
-        body1: `The business location you requested ('${templateParams.spaceName}') is currently being reviewed. If your claim is approved, you should receive a confirmation in the next 24-72 hours.`,
-        body2: `Look for a confirmation e-mail in the next few days. If you have any questions, don't hesitate to contact support at info@therr.com.`,
-        bodyBold: 'Also, you may edit this campaign at any time during the review process.',
-        postBody1: 'Thank you for contributing to Therr app. Users like you make this dream possible!',
+        body1: translate(locale, 'emails.claimPendingReview.body1', { spaceName: templateParams.spaceName }),
+        body2: translate(locale, 'emails.claimPendingReview.body2'),
+        bodyBold: translate(locale, 'emails.claimPendingReview.bodyBold'),
+        postBody1: translate(locale, 'emails.claimPendingReview.postBody1', { brandName: contextConfig.brandName }),
         buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/login`,
-        buttonText: 'Login to App',
+        buttonText: translate(locale, 'emails.claimPendingReview.buttonText'),
     };
 
     return sendEmail({

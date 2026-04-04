@@ -29,7 +29,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             maxHeight: '90%',
             minHeight: '80%',
             padding: 0,
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.backgroundWhite,
             elevation: 5,
             borderRadius: 0,
         },

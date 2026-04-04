@@ -51,49 +51,64 @@ const defaultProps = {
 describe('RegisterForm', () => {
     describe('Form Validation', () => {
         it('should disable register button when form is empty', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
             expect(instance.isRegisterFormDisabled()).toBe(true);
         });
 
         it('should disable register button when only email is provided', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
 
             expect(instance.isRegisterFormDisabled()).toBe(true);
         });
 
         it('should disable register button when only password is provided', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('password', 'Password123!');
+            act(() => { instance.onInputChange('password', 'Password123!'); });
 
             expect(instance.isRegisterFormDisabled()).toBe(true);
         });
 
         it('should disable register button when passwords do not match', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'Password123!');
-            instance.onInputChange('repeatPassword', 'DifferentPassword123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'Password123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'DifferentPassword123!'); });
 
             expect(instance.isRegisterFormDisabled()).toBe(true);
             expect(instance.isFormValid()).toBe(false);
         });
 
         it('should enable register button when all fields are valid', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'Password123!');
-            instance.onInputChange('repeatPassword', 'Password123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'Password123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'Password123!'); });
 
             expect(instance.isFormValid()).toBe(true);
             expect(instance.isRegisterFormDisabled()).toBe(false);
@@ -102,43 +117,55 @@ describe('RegisterForm', () => {
 
     describe('Password Validation', () => {
         it('should show password mismatch error when passwords do not match', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('password', 'Password123!');
-            instance.onInputChange('repeatPassword', 'DifferentPassword123!');
+            act(() => { instance.onInputChange('password', 'Password123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'DifferentPassword123!'); });
 
             expect(instance.state.passwordErrorMessage).toBeTruthy();
             expect(instance.state.passwordErrorMessage.length).toBeGreaterThan(0);
         });
 
         it('should clear password error when passwords match', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('password', 'Password123!');
-            instance.onInputChange('repeatPassword', 'Password123!');
+            act(() => { instance.onInputChange('password', 'Password123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'Password123!'); });
 
             expect(instance.state.passwordErrorMessage.length).toBe(0);
         });
 
         it('should validate password mismatch when password changes after repeatPassword is set', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('repeatPassword', 'Password123!');
-            instance.onInputChange('password', 'DifferentPassword123!');
+            act(() => { instance.onInputChange('repeatPassword', 'Password123!'); });
+            act(() => { instance.onInputChange('password', 'DifferentPassword123!'); });
 
             expect(instance.state.passwordErrorMessage).toBeTruthy();
         });
 
         it('should set isPasswordEntryDirty when password is entered', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
             expect(instance.state.isPasswordEntryDirty).toBe(false);
 
-            instance.onInputChange('password', 'P');
+            act(() => { instance.onInputChange('password', 'P'); });
 
             expect(instance.state.isPasswordEntryDirty).toBe(true);
         });
@@ -149,12 +176,15 @@ describe('RegisterForm', () => {
             const mockRegister = jest.fn().mockResolvedValue({});
             const mockOnSuccess = jest.fn();
             const props = { ...defaultProps, register: mockRegister, onSuccess: mockOnSuccess };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'ValidPassword123!');
-            instance.onInputChange('repeatPassword', 'ValidPassword123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -172,12 +202,15 @@ describe('RegisterForm', () => {
         it('should not include repeatPassword in register call', async () => {
             const mockRegister = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, register: mockRegister };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'ValidPassword123!');
-            instance.onInputChange('repeatPassword', 'ValidPassword123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -195,12 +228,15 @@ describe('RegisterForm', () => {
             const mockRegister = jest.fn().mockResolvedValue({});
             const mockOnSuccess = jest.fn();
             const props = { ...defaultProps, register: mockRegister, onSuccess: mockOnSuccess };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'ValidPassword123!');
-            instance.onInputChange('repeatPassword', 'ValidPassword123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -213,14 +249,17 @@ describe('RegisterForm', () => {
         it('should set isSubmitting during submission', async () => {
             const mockRegister = jest.fn().mockImplementation(() => new Promise(() => {}));
             const props = { ...defaultProps, register: mockRegister };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'ValidPassword123!');
-            instance.onInputChange('repeatPassword', 'ValidPassword123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
 
-            instance.onSubmit();
+            act(() => { instance.onSubmit(); });
 
             expect(instance.state.isSubmitting).toBe(true);
         });
@@ -228,11 +267,14 @@ describe('RegisterForm', () => {
         it('should not submit when form is disabled', () => {
             const mockRegister = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, register: mockRegister };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
             // Form is empty, should be disabled
-            instance.onSubmit();
+            act(() => { instance.onSubmit(); });
 
             expect(mockRegister).not.toHaveBeenCalled();
         });
@@ -240,14 +282,17 @@ describe('RegisterForm', () => {
         it('should show error for insecure password', async () => {
             const mockRegister = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, register: mockRegister };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'weak'); // Insecure password
-            instance.onInputChange('repeatPassword', 'weak');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'weak'); }); // Insecure password
+            act(() => { instance.onInputChange('repeatPassword', 'weak'); });
 
-            instance.onSubmit();
+            act(() => { instance.onSubmit(); });
 
             // Should not call register and should set error
             expect(mockRegister).not.toHaveBeenCalled();
@@ -263,12 +308,15 @@ describe('RegisterForm', () => {
                 parameters: ['email'],
             });
             const props = { ...defaultProps, register: mockRegister };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'ValidPassword123!');
-            instance.onInputChange('repeatPassword', 'ValidPassword123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -282,12 +330,15 @@ describe('RegisterForm', () => {
         it('should handle server errors gracefully', async () => {
             const mockRegister = jest.fn().mockRejectedValue({ statusCode: 500 });
             const props = { ...defaultProps, register: mockRegister };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('password', 'ValidPassword123!');
-            instance.onInputChange('repeatPassword', 'ValidPassword123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -299,12 +350,15 @@ describe('RegisterForm', () => {
         });
 
         it('should clear previous error when input changes', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.setState({ prevRegisterError: 'Some error' });
+            act(() => { instance.setState({ prevRegisterError: 'Some error' }); });
 
-            instance.onInputChange('email', 'new@email.com');
+            act(() => { instance.onInputChange('email', 'new@email.com'); });
 
             expect(instance.state.prevRegisterError).toBe('');
         });
@@ -314,13 +368,16 @@ describe('RegisterForm', () => {
         it('should include invite code in registration', async () => {
             const mockRegister = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, register: mockRegister };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.onInputChange('email', 'test@example.com');
-            instance.onInputChange('inviteCode', 'INVITE123');
-            instance.onInputChange('password', 'ValidPassword123!');
-            instance.onInputChange('repeatPassword', 'ValidPassword123!');
+            act(() => { instance.onInputChange('email', 'test@example.com'); });
+            act(() => { instance.onInputChange('inviteCode', 'INVITE123'); });
+            act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -339,8 +396,11 @@ describe('RegisterForm', () => {
         it('should call toggleEULA when EULA button is pressed', () => {
             const mockToggleEULA = jest.fn();
             const props = { ...defaultProps, toggleEULA: mockToggleEULA };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const tree = component.toJSON();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const tree = component!.toJSON();
 
             // Verify component renders (button functionality tested via integration)
             expect(tree).toBeDefined();
@@ -351,8 +411,11 @@ describe('RegisterForm', () => {
         it('should handle SSO login success with verified email', () => {
             const mockLogin = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, login: mockLogin };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
 
             const mockUser = {
                 emailVerified: true,
@@ -365,7 +428,9 @@ describe('RegisterForm', () => {
                 family_name: 'User',
             };
 
-            instance.onSSOLoginSuccess('mock-id-token', mockUser, mockAdditionalUserInfo, 'google');
+            act(() => {
+                instance.onSSOLoginSuccess('mock-id-token', mockUser, mockAdditionalUserInfo, 'google');
+            });
 
             expect(mockLogin).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -381,8 +446,11 @@ describe('RegisterForm', () => {
         it('should not call login when SSO email is not verified', () => {
             const mockLogin = jest.fn();
             const props = { ...defaultProps, login: mockLogin };
-            const component = renderer.create(<RegisterForm {...props} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...props} />);
+            });
+            const instance = component!.getInstance();
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
             const mockUser = {
@@ -390,18 +458,23 @@ describe('RegisterForm', () => {
                 email: 'test@example.com',
             };
 
-            instance.onSSOLoginSuccess('mock-id-token', mockUser, {}, 'google');
+            act(() => {
+                instance.onSSOLoginSuccess('mock-id-token', mockUser, {}, 'google');
+            });
 
             expect(mockLogin).not.toHaveBeenCalled();
             consoleSpy.mockRestore();
         });
 
         it('should reset isSubmitting on SSO error', () => {
-            const component = renderer.create(<RegisterForm {...defaultProps} />);
-            const instance = component.getInstance();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<RegisterForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance();
 
-            instance.setState({ isSubmitting: true });
-            instance.onSSOLoginError();
+            act(() => { instance.setState({ isSubmitting: true }); });
+            act(() => { instance.onSSOLoginError(); });
 
             expect(instance.state.isSubmitting).toBe(false);
         });

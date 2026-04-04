@@ -21,5 +21,10 @@ spec:
         - 'therr.com'
         - '*.therr.com'
         # Whitelabel
+<<<<<<< HEAD
         - 'adsly.app'
         - '*.adsly.app'
+=======
+        # - 'adsly.app'
+        # - '*.adsly.app'
+>>>>>>> origin/general

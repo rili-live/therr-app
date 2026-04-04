@@ -55,6 +55,7 @@ import { AccessCheckType } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import getUserImageUri from '../utilities/getUserImageUri';
 import { getBrandContext } from '../utilities/getHostContext';
+import * as globalConfig from '../../../global-config';
 
 interface ISidebarProps {
     onLogout: (event: any) => any;
@@ -169,7 +170,7 @@ const Sidebar = (props: ISidebarProps) => {
                 </Navbar.Toggle>
             </Navbar>
             <CSSTransition timeout={300} in={show} classNames="sidebar-transition">
-                <SimpleBar className={`collapse ${contractClass} ${showClass} sidebar d-md-block bg-primary text-white`}>
+                <SimpleBar role="navigation" aria-label="Main navigation" className={`collapse ${contractClass} ${showClass} sidebar d-md-block bg-primary text-white`}>
                     <div className="sidebar-inner px-4 pt-3 overflow-hidden">
                         <div className="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
                             <div className="d-flex align-items-center">
@@ -242,6 +243,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Overview" link={'/documentation/overview'} />
                                 <NavItem title="Quick Start" link={'/claim-a-space'} />
                                 <NavItem title="Claim a Space" link={'/claim-a-space'} />
+                                <NavItem title="API Reference" external target="_blank" link={`${globalConfig[process.env.NODE_ENV].baseApiGatewayRoute}/docs`} />
                             </CollapsableNavItem>
                             {/* <CollapsableNavItem eventKey="components/" title="Components" icon={faBoxOpen}>
                                 <NavItem title="Accordion" link={'/'} />

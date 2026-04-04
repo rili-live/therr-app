@@ -5,13 +5,14 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Image } from 'react-native-elements';
+import { Image } from '../../components/BaseImage';
 // import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button } from 'react-native-elements';
+// import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import randomColor from 'randomcolor';
-import Autolink from 'react-native-autolink';
 import { getUserImageUri } from '../../utilities/content';
+import RichText from '../../components/RichText';
+import handleMentionPress from '../../utilities/handleMentionPress';
 import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 
 const userColors: any = {}; // local state
@@ -73,11 +74,11 @@ const ForumMessage = ({
                     }
                     <Text style={themeChat.styles.messageTime}>{timeDisplay}</Text>
                 </View>
-                <Autolink
+                <RichText
                     style={themeChat.styles.messageText}
                     text={item.text}
                     linkStyle={theme.styles.link}
-                    phone="sms"
+                    onMentionPress={(username) => handleMentionPress(username, goToUser)}
                     selectable
                 />
             </View>
