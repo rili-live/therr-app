@@ -1,6 +1,10 @@
 import * as React from 'react';
 import 'leaflet/dist/leaflet.css';
 
+// Tile provider: Carto Voyager (CDN-backed, free, no API key, proper cache headers)
+// Override via tileLayerUrl in global-config.js if needed
+import * as globalConfig from '../../../global-config';
+
 interface ISpace {
     id: string;
     notificationMsg?: string;
@@ -34,10 +38,6 @@ const escapeHtml = (str: string): string => {
 };
 
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
-
-// Tile provider: Carto Voyager (CDN-backed, free, no API key, proper cache headers)
-// Override via tileLayerUrl in global-config.js if needed
-import * as globalConfig from '../../../global-config';
 
 const envConfig = globalConfig[process.env.NODE_ENV || 'production'] || globalConfig.production;
 const TILE_LAYER_URL = envConfig.tileLayerUrl || 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';

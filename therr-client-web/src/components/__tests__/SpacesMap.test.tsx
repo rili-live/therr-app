@@ -3,17 +3,20 @@
  */
 
 // Mock IntersectionObserver which is not available in jsdom
+import * as React from 'react';
+
 global.IntersectionObserver = class IntersectionObserver {
     constructor(private callback: IntersectionObserverCallback) {}
+
     observe() {
         // Immediately report the element as visible
         this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as any);
     }
+
     unobserve() { return null; }
+
     disconnect() { return null; }
 } as any;
-
-import * as React from 'react';
 import { mount } from 'enzyme';
 import { act } from 'react-test-renderer';
 
