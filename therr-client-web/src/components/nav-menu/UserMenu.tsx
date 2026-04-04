@@ -8,7 +8,7 @@ import {
     UserConnectionsActions,
 } from 'therr-react/redux/actions';
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
-import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 import { bindActionCreators } from 'redux';
 import Notification from './Notification';
@@ -189,18 +189,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         window.open(dashboardUrl, '_blank', 'noopener');
     };
 
-    isBusinessUser = () => {
-        const { user } = this.props;
-        const { accessLevels = [] } = user.details;
-        const businessLevels = [
-            AccessLevels.DASHBOARD_SIGNUP,
-            AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
-            AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
-            AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
-            AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY,
-        ];
-        return accessLevels.some((level: AccessLevels) => businessLevels.includes(level));
-    };
+    isBusinessUser = () => !!this.props.user.details.isBusinessAccount;
 
     renderProfileContent = () => (
         <>

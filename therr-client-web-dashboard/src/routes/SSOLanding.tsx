@@ -1,31 +1,7 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { NavigateFunction, useNavigate, useLocation } from 'react-router-dom';
-import { IUserState } from 'therr-react/types';
-import UsersActions from '../redux/actions/UsersActions';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-interface ISSOLandingDispatchProps {
-    login: Function;
-}
-
-interface IStoreProps extends ISSOLandingDispatchProps {
-    user: IUserState;
-}
-
-interface ISSOLandingProps extends IStoreProps {
-    navigation: { navigate: NavigateFunction };
-}
-
-const mapStateToProps = (state: any) => ({
-    user: state.user,
-});
-
-const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    login: UsersActions.login,
-}, dispatch);
-
-const SSOLandingComponent = ({ user }: ISSOLandingProps) => {
+const SSOLanding = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -65,7 +41,7 @@ const SSOLandingComponent = ({ user }: ISSOLandingProps) => {
             storage.setItem('therrRefreshToken', refreshToken);
         }
 
-        // Full reload so the store re-initializes from localStorage
+        // Full reload so the Redux store re-initializes from storage
         window.location.href = '/dashboard';
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -76,4 +52,4 @@ const SSOLandingComponent = ({ user }: ISSOLandingProps) => {
     );
 };
 
-export default connect<any, IStoreProps, {}>(mapStateToProps, mapDispatchToProps)(SSOLandingComponent as any);
+export default SSOLanding;
