@@ -1363,9 +1363,10 @@ const renderLocationsView = (req, res, config, {
     // For city routes, :categorySlug is dual-purpose: may be a category slug or a page number.
     // Detect which it is so pagination links and page number extraction are correct.
     const categorySlugIsPageNumber = citySlug && categorySlug && !categoryLabel;
-    const pageNumber = parseInt(req.params?.pageNumber, 10)
-        || (categorySlugIsPageNumber ? parseInt(categorySlug, 10) : NaN)
-        || 1;
+    let pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
+    if (categorySlugIsPageNumber) {
+        pageNumber = parseInt(categorySlug, 10) || 1;
+    }
 
     // Build base path for pagination links (city + category aware)
     let locationsBase: string;
@@ -1458,21 +1459,24 @@ const renderLocationsView = (req, res, config, {
     } else if (searchQuery) {
         collectionName = `Local Businesses near ${searchQuery}`;
     }
-    const spatialCoverage = cityEntry
-        ? {
+    let spatialCoverage: Record<string, any> | undefined;
+    if (cityEntry) {
+        spatialCoverage = {
             '@type': 'City',
             name: cityEntry.name,
             containedInPlace: { '@type': 'State', name: cityEntry.state },
             geo: { '@type': 'GeoCoordinates', latitude: cityEntry.lat, longitude: cityEntry.lng },
-        }
-        : (hasCoords ? {
+        };
+    } else if (hasCoords) {
+        spatialCoverage = {
             '@type': 'Place',
             geo: {
                 '@type': 'GeoCoordinates',
                 latitude: parseFloat(req.query.lat),
                 longitude: parseFloat(req.query.lng),
             },
-        } : undefined);
+        };
+    }
     const localDirectorySchema = localBusinessSchemas.length > 0
         ? {
             '@context': 'https://schema.org',
