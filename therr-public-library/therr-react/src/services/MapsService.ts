@@ -402,6 +402,7 @@ class MapsService {
         let url = '/maps-service/place/autocomplete/json?';
         const searchRadius = radius || 50000;
 
+        // eslint-disable-next-line max-len
         url = `${url}input=${encodeURIComponent(input)}&location=${latitude},${longitude}&radius=${searchRadius}&locationbias=circle:${searchRadius}@${latitude},${longitude}`;
 
         if (types) {

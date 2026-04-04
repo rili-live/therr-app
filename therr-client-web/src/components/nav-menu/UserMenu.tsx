@@ -9,8 +9,8 @@ import {
 } from 'therr-react/redux/actions';
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
-import * as globalConfig from '../../../../global-config';
 import { bindActionCreators } from 'redux';
+import * as globalConfig from '../../../../global-config';
 import Notification from './Notification';
 import withNavigation from '../../wrappers/withNavigation';
 import withTranslation from '../../wrappers/withTranslation';

@@ -7,7 +7,9 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 // Mantine components require ResizeObserver which jsdom doesn't provide
 globalThis.ResizeObserver = class ResizeObserver {
     observe() {}
+
     unobserve() {}
+
     disconnect() {}
 };
 
