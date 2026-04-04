@@ -6,7 +6,7 @@ import { NavigateFunction } from 'react-router-dom';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
-import { Content } from 'therr-js-utilities/constants';
+import { Categories, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
@@ -81,6 +81,7 @@ interface IViewSpaceState {
     isClaimLoading: boolean;
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
+    isClaimBannerDismissed: boolean;
     isLoginModalOpen: boolean;
     loginModalAction: 'bookmark' | 'review' | '';
     reviewRating: number;
@@ -131,6 +132,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             pairingFeedback: {},
             isLinkCopied: false,
             isFromClaimEmail: searchParams.get('claim') === 'true',
+            isClaimBannerDismissed: false,
             isClaimLoading: false,
             claimMessage: '',
             claimMessageType: '',
@@ -558,6 +560,35 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     this.renderAddReviewContent()
                 )}
             </Paper>
+        );
+    }
+
+    renderClaimEmailBanner(space: any): JSX.Element | null {
+        const { translate } = this.props;
+        const { isFromClaimEmail, isClaimBannerDismissed, claimMessageType } = this.state;
+
+        if (!isFromClaimEmail || isClaimBannerDismissed || !space.isUnclaimed || claimMessageType === 'success') {
+            return null;
+        }
+
+        return (
+            <Alert
+                color="teal"
+                radius="md"
+                withCloseButton
+                onClose={() => this.setState({ isClaimBannerDismissed: true })}
+                title={translate('pages.viewSpace.claimSpace.emailTitle')}
+            >
+                <Text size="sm" mb="sm">{translate('pages.viewSpace.claimSpace.emailBody')}</Text>
+                <Button
+                    onClick={this.scrollToClaimSection}
+                    variant="filled"
+                    size="compact-md"
+                    color="teal"
+                >
+                    {translate('pages.viewSpace.claimSpace.claimButton')}
+                </Button>
+            </Alert>
         );
     }
 
@@ -1083,11 +1114,15 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             : content?.media?.[mediaPath];
 
         const categoryLabel = formatCategoryLabel(space.category);
+        const categorySlug = Categories.CategorySlugMap[space.category];
         const hasRating = space.rating?.avgRating != null && space.rating.avgRating > 0;
 
         return (
             <Container id="page_view_space" size="lg" py="xl">
                 <Stack gap="md">
+                    {/* Claim Email Banner — shown when arriving via unclaimed space outreach email */}
+                    {this.renderClaimEmailBanner(space)}
+
                     {/* Breadcrumbs */}
                     {this.renderBreadcrumbs(space)}
 
@@ -1141,7 +1176,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
                         <Group gap="sm" mt="xs" wrap="wrap">
                             {categoryLabel && (
-                                <Badge variant="light" size="lg">{categoryLabel}</Badge>
+                                categorySlug
+                                    ? (
+                                        <Anchor href={`/locations/${categorySlug}`} underline="never">
+                                            <Badge variant="light" size="lg" style={{ cursor: 'pointer' }}>{categoryLabel}</Badge>
+                                        </Anchor>
+                                    )
+                                    : <Badge variant="light" size="lg">{categoryLabel}</Badge>
                             )}
                             {space.priceRange > 0 && (
                                 <Text fw={600} c="dimmed">{formatPriceRange(space.priceRange)}</Text>
