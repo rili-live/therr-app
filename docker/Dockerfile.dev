@@ -1,12 +1,21 @@
 ARG NODE_VERSION=24.12.0
 FROM node:${NODE_VERSION}-alpine
 
+<<<<<<< HEAD
+# Install build dependencies for native modules (bcrypt, etc.)
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Install npm 11+ as required by monorepo
+RUN npm i npm@latest -g
+
+=======
 # Node.js 24 Happy Eyeballs (RFC 8305) tries IPv6 first, which Docker Desktop can't route
 ENV NODE_OPTIONS="--no-enable-network-family-autoselection --dns-result-order=ipv4first"
 
 # Install build dependencies for native modules (bcrypt, etc.)
 RUN apk add --no-cache libc6-compat python3 make g++
 
+>>>>>>> origin/general
 WORKDIR /app
 
 # Default command - will be overridden by docker-compose

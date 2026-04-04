@@ -37,6 +37,26 @@ if has_prev_diff_changes "therr-public-library/therr-js-utilities"; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 
+<<<<<<< HEAD
+# This is reliant on the previous commit being a single merge commit with all prior changes
+should_build_web_app()
+{
+  has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+}
+
+# NOTE: This is currently included in the web app build (container)
+# This is reliant on the previous commit being a single merge commit with all prior changes
+should_build_web_app_dashboard()
+{
+  has_prev_diff_changes "therr-client-web-dashboard" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+}
+
+# This is reliant on the previous commit being a single merge commit with all prior changes
+should_build_service()
+{
+  SERVICE_DIR=$1
+  has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+=======
 should_build_web_app()
 {
   has_prev_diff_changes "therr-client-web" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
@@ -52,6 +72,7 @@ should_build_service()
 {
   SERVICE_DIR=$1
   has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
+>>>>>>> origin/general
 }
 
 # Docker Build

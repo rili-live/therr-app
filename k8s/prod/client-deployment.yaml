@@ -5,11 +5,14 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+<<<<<<< HEAD
+=======
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
+>>>>>>> origin/general
   selector:
     matchLabels:
       component: web
@@ -33,6 +36,15 @@ spec:
       containers:
       - name: web
         image: therrapp/client-web:latest
+<<<<<<< HEAD
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "25m"
+        ports:
+        - containerPort: 7070
+        - containerPort: 7071
+=======
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
@@ -72,6 +84,7 @@ spec:
           preStop:
             exec:
               command: ["sh", "-c", "sleep 15"]
+>>>>>>> origin/general
         env:
           - name: USERS_SERVICE_API_PORT
             value: "7771"
@@ -92,6 +105,8 @@ spec:
             value: "info"
           - name: SOCKET_PORT
             value: "7743"
+<<<<<<< HEAD
+=======
           # SEO: Search engine verification codes (get from each search console after registering)
           # Google: https://search.google.com/search-console → Settings → Ownership verification → HTML tag
           - name: GOOGLE_SITE_VERIFICATION
@@ -106,3 +121,4 @@ spec:
           # The same key must be set on both client-web (serves key file) and maps-service (submits URLs)
           - name: INDEXNOW_API_KEY
             value: "bf9415ba04c845a797fdc30bc27df2d7"
+>>>>>>> origin/general

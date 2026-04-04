@@ -23,6 +23,10 @@ enum FeatureFlags {
 
     // Search Providers
     ENABLE_MAPBOX_SEARCH = 'ENABLE_MAPBOX_SEARCH',
+
+    // HABITS App Features
+    ENABLE_HABITS = 'ENABLE_HABITS',
+    ENABLE_PACTS = 'ENABLE_PACTS',
 }
 
 export {

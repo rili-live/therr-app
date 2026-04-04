@@ -8,6 +8,10 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
  */
 const path = require('path');
 
+<<<<<<< HEAD
+const extraNodeModules = {
+    shared: path.join(__dirname, '/../node_modules'),
+=======
 // Block React packages from root node_modules to prevent version conflicts
 const rootNodeModules = path.join(__dirname, '/../node_modules');
 // Escape special regex characters in path
@@ -24,6 +28,7 @@ const blockList = [
 
 const extraNodeModules = {
     shared: rootNodeModules,
+>>>>>>> origin/general
     'therr-react': path.join(
         __dirname,
         '/../therr-public-library/therr-react/lib'
@@ -40,14 +45,24 @@ const extraNodeModules = {
     'react-redux': path.join(__dirname, 'node_modules/react-redux'),
     redux: path.join(__dirname, 'node_modules/redux'),
     '@reduxjs/toolkit': path.join(__dirname, 'node_modules/@reduxjs/toolkit'),
+<<<<<<< HEAD
+};
+const watchFolders = [
+    path.join(__dirname, '/../node_modules'),
+=======
     axios: path.join(rootNodeModules, 'axios'),
 };
 const watchFolders = [
     rootNodeModules,
+>>>>>>> origin/general
     path.join(__dirname, '/../therr-public-library/therr-react/lib'),
     path.join(__dirname, '/../therr-public-library/therr-js-utilities/lib'),
 ];
 
+<<<<<<< HEAD
+const config = {
+    resolver: {
+=======
 // Force all axios imports (CJS require + ESM import) to a single file.
 // axios package.json "exports" maps require→dist/browser/axios.cjs and
 // default→dist/esm/axios.js, creating two singletons in the Metro bundle.
@@ -76,6 +91,7 @@ const config = {
             }
             return context.resolveRequest(context, moduleName, platform);
         },
+>>>>>>> origin/general
         extraNodeModules: new Proxy(extraNodeModules, {
             get: (target, name) =>
                 //redirects dependencies referenced from shared/ to local node_modules

@@ -48,12 +48,24 @@ services:
         npm install &&
         echo '=== Building therr-styles ===' &&
         cd therr-public-library/therr-styles &&
+<<<<<<< HEAD
+        npm install &&
+        npm run build &&
+        echo '=== Building therr-js-utilities ===' &&
+        cd ../therr-js-utilities &&
+        npm install &&
+        npm run build &&
+        echo '=== Building therr-react ===' &&
+        cd ../therr-react &&
+        npm install &&
+=======
         npm run build &&
         echo '=== Building therr-js-utilities ===' &&
         cd ../therr-js-utilities &&
         npm run build &&
         echo '=== Building therr-react ===' &&
         cd ../therr-react &&
+>>>>>>> origin/general
         npm run build &&
         echo '=== Libraries built successfully! ==='
       "
@@ -61,7 +73,11 @@ services:
       - NODE_ENV=development
 
   # ===========================================
+<<<<<<< HEAD
+  # DATABASE MIGRATIONS (runs once)
+=======
   # DATABASE MIGRATIONS & SEEDS (runs once)
+>>>>>>> origin/general
   # ===========================================
   db-migrations:
     build:
@@ -97,6 +113,9 @@ services:
         cd ../reactions-service &&
         npm install &&
         npm run migrations:run &&
+<<<<<<< HEAD
+        echo '=== All migrations completed! ==='
+=======
         echo '=== All migrations completed! ===' &&
 
         echo '=== Running seed data ===' &&
@@ -113,6 +132,7 @@ services:
         npm run seeds:run &&
         echo '--- reactions-service seeds done ---' &&
         echo '=== All seeds completed! ==='
+>>>>>>> origin/general
       "
 
   # ===========================================

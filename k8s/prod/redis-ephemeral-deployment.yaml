@@ -25,6 +25,15 @@ spec:
       containers:
       - name: redis
         image: redis:7
+<<<<<<< HEAD
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+=======
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
@@ -58,5 +67,6 @@ spec:
           limits:
             memory: "64Mi"
             cpu: "50m"
+>>>>>>> origin/general
         ports:
         - containerPort: 6379

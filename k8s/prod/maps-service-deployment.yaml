@@ -4,9 +4,13 @@ metadata:
   name: maps-service-deployment
   namespace: default
 spec:
+<<<<<<< HEAD
+  replicas: 2
+=======
   replicas: 1
   strategy:
     type: Recreate
+>>>>>>> origin/general
   selector:
     matchLabels:
       component: server-maps
@@ -25,6 +29,20 @@ spec:
               matchExpressions:
               - key: cloud.google.com/gke-preemptible
                 operator: Exists
+<<<<<<< HEAD
+            weight: 100
+      nodeSelector:
+        cloud.google.com/gke-preemptible: "true"
+      containers:
+      - name: server-maps
+        image: therrapp/maps-service:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "75m"
+        ports:
+        - containerPort: 7773
+=======
             weight: 80
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -73,6 +91,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
+>>>>>>> origin/general
         env:
         - name: MAPS_SERVICE_API_PORT
           value: "7773"
@@ -129,9 +148,12 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+<<<<<<< HEAD
+=======
         # IndexNow: Must match the same key set on client-web deployment
         - name: INDEXNOW_API_KEY
           value: "bf9415ba04c845a797fdc30bc27df2d7"
+>>>>>>> origin/general
         - name: SIGHTENGINE_API_KEY
           value: "109708716"
         - name: SIGHTENGINE_API_SECRET
@@ -153,7 +175,10 @@ spec:
 
           # Replace DB_PORT with the port the proxy should listen on
           - "--port=5432"
+<<<<<<< HEAD
+=======
           - "--max-connections=20"
+>>>>>>> origin/general
           - "therr-app:us-central1:therr-db-main-prod-14"
         securityContext:
           # The default Cloud SQL proxy image runs as the
@@ -165,9 +190,21 @@ spec:
             # application needs. For details, see
             # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
+<<<<<<< HEAD
+          limits:
+            # The proxy's memory use scales linearly with the number of active
+            # connections. Fewer open connections will use less memory. Adjust
+            # this value based on your application's requirements.
+            memory: "64Mi"
+            # The proxy's CPU use scales linearly with the amount of IO between
+            # the database and the application. Adjust this value based on your
+            # application's requirements.
+            cpu: "50m"
+=======
           requests:
             memory: "32Mi"
             cpu: "10m"
           limits:
             memory: "96Mi"
             cpu: "100m"
+>>>>>>> origin/general

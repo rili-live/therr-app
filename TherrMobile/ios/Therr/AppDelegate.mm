@@ -1,7 +1,6 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
-#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 
 #import <GoogleMaps/GoogleMaps.h>
 #import <RNCConfig.h>
@@ -31,7 +30,6 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   self.moduleName = @"Therr";
-  self.dependencyProvider = [RCTAppDependencyProvider new];
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
@@ -41,7 +39,7 @@
   }
   
   NSString *googleMapsApiKey = [RNCConfig envFor:@"GOOGLE_APIS_IOS_KEY"];
-  [GMSServices provideAPIKey:googleMapsApiKey];
+  +  [GMSServices provideAPIKey:googleMapsApiKey]; // add this line using the api key obtained from Google Console
 
   // [REQUIRED] Register BackgroundFetch
   [[TSBackgroundFetch sharedInstance] didFinishLaunching];

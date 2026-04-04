@@ -4,9 +4,13 @@ metadata:
   name: users-service-deployment
   namespace: default
 spec:
+<<<<<<< HEAD
+  replicas: 2
+=======
   replicas: 1
   strategy:
     type: Recreate
+>>>>>>> origin/general
   selector:
     matchLabels:
       component: server-users
@@ -26,6 +30,17 @@ spec:
               - key: cloud.google.com/gke-preemptible
                 operator: DoesNotExist
             weight: 100
+<<<<<<< HEAD
+      containers:
+      - name: server-users
+        image: therrapp/users-service:latest
+        resources:
+          limits:
+            memory: "192Mi"
+            cpu: "50m"
+        ports:
+        - containerPort: 7771
+=======
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
@@ -81,6 +96,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
+>>>>>>> origin/general
         env:
         - name: AWS_SES_ACCESS_KEY_ID
           valueFrom:
@@ -99,7 +115,11 @@ spec:
         - name: AWS_FEEDBACK_EMAIL_ADDRESS
           value: "info@therr.com"
         - name: AWS_NOTIFY_ADMIN_EMAIL_ADDRESSES
+<<<<<<< HEAD
+          value: "jeremy@therr.com,kayvan.vakili@therr.com"
+=======
           value: "zanselm@therr.com"
+>>>>>>> origin/general
         - name: USERS_SERVICE_API_PORT
           value: "7771"
         - name: URI_WHITELIST
@@ -237,9 +257,20 @@ spec:
             # application needs. For details, see
             # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
+<<<<<<< HEAD
+          limits:
+            # The proxy's memory use scales linearly with the number of active
+            # connections. Fewer open connections will use less memory. Adjust
+            # this value based on your application's requirements.
+            memory: "64Mi"
+            # The proxy's CPU use scales linearly with the amount of IO between
+            # the database and the application. Adjust this value based on your
+            # application's requirements.
+=======
           requests:
             memory: "16Mi"
             cpu: "5m"
           limits:
             memory: "64Mi"
+>>>>>>> origin/general
             cpu: "50m"

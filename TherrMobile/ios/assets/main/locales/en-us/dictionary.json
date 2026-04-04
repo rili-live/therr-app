@@ -287,11 +287,6 @@
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
-    "editThought": {
-      "buttons": {
-        "back": "Back"
-      }
-    },
     "forgotPassword": {
       "buttons": {
         "submit": "Send E-mail"
