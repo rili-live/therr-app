@@ -31,7 +31,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const METRIC_NAME = 'space.marketing.unclaimedEmailSent';
-const METRIC_VALUE_TYPE = 'number';
+const METRIC_VALUE_TYPE = 'NUMBER';
 const THERR_HOST = process.env.THERR_HOST || 'https://therr.com';
 const FROM_EMAIL = process.env.AWS_SES_FROM_EMAIL || 'info@therr.com';
 const FROM_EMAIL_TITLE = 'Therr App';
