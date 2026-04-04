@@ -64,7 +64,7 @@
       "labels": {
         "info": "Info",
         "home": "Accueil",
-        "discovered": "D\u00e9couvertes",
+        "discovered": "Découvertes",
         "messages": "Messages",
         "locations": "Lieux",
         "explore": "Explorer"
@@ -179,7 +179,8 @@
         "explorePeople": "Personnes",
         "logout": "Déconnexion",
         "markAllRead": "Tout marquer comme lu",
-        "viewProfile": "Voir le profil"
+        "viewProfile": "Voir le profil",
+        "businessDashboard": "Tableau de bord entreprise"
       },
       "exploreDescriptions": {
         "moments": "Photos, récits et expériences",
@@ -660,35 +661,38 @@
       }
     },
     "editSpace": {
-      "pageTitle": "Modifier l'emplacement",
-      "successMessage": "Votre emplacement a été mis à jour avec succès.",
-      "failedMessageBadRequest": "Veuillez vérifier vos informations et réessayer.",
-      "failedMessageServer": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
-      "h2": {
-        "basicInfo": "Informations de base",
-        "contactLinks": "Contact et liens"
+      "pageTitle": "Modifier l'espace",
+      "successMessage": "Votre espace a été mis à jour avec succès.",
+      "errorGeneric": "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
+      "headings": {
+        "contactInfo": "Coordonnées"
       },
       "labels": {
-        "name": "Nom de l'emplacement",
+        "businessName": "Nom de l'entreprise",
+        "category": "Catégorie",
+        "selectCategory": "Sélectionner une catégorie",
         "description": "Description",
-        "address": "Adresse",
+        "hashTags": "Étiquettes",
+        "hashTagsHint": "Séparées par des virgules (ex. café, wifi, terrasse)",
+        "image": "Photo de l'entreprise",
+        "chooseImage": "Choisir une image",
         "phoneNumber": "Numéro de téléphone",
-        "websiteUrl": "URL du site web",
+        "websiteUrl": "Site web",
         "menuUrl": "URL du menu",
         "orderUrl": "URL de commande / livraison",
         "reservationUrl": "URL de réservation"
       },
       "buttons": {
         "save": "Enregistrer les modifications",
-        "backToProfile": "Retour au profil"
+        "backToSpace": "Retour à l'espace"
       }
     },
     "manageSpaces": {
-      "pageTitle": "G\u00e9rer les emplacements",
-      "noLocations": "Vous n'avez pas encore cr\u00e9\u00e9 d'emplacement.",
+      "pageTitle": "Gérer les emplacements",
+      "noLocations": "Vous n'avez pas encore créé d'emplacement.",
       "buttons": {
-        "createNew": "Cr\u00e9er un nouvel emplacement",
-        "createFirst": "Cr\u00e9ez votre premier emplacement",
+        "createNew": "Créer un nouvel emplacement",
+        "createFirst": "Créez votre premier emplacement",
         "backToProfile": "Retour au profil"
       }
     },
@@ -818,33 +822,6 @@
         "pendingBody": "Une demande de réclamation pour cet espace a été soumise et est en cours de révision.",
         "successMessage": "Votre demande de réclamation a été soumise. Vous serez notifié une fois qu'elle sera approuvée.",
         "errorMessage": "Une erreur s'est produite lors de la soumission de votre demande. Veuillez réessayer plus tard."
-      }
-    },
-    "editSpace": {
-      "pageTitle": "Modifier l'espace",
-      "successMessage": "Votre espace a été mis à jour avec succès.",
-      "errorGeneric": "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
-      "headings": {
-        "contactInfo": "Coordonnées"
-      },
-      "labels": {
-        "businessName": "Nom de l'entreprise",
-        "category": "Catégorie",
-        "selectCategory": "Sélectionner une catégorie",
-        "description": "Description",
-        "hashTags": "Étiquettes",
-        "hashTagsHint": "Séparées par des virgules (ex. café, wifi, terrasse)",
-        "image": "Photo de l'entreprise",
-        "chooseImage": "Choisir une image",
-        "phoneNumber": "Numéro de téléphone",
-        "websiteUrl": "Site web",
-        "menuUrl": "URL du menu",
-        "orderUrl": "URL de commande / livraison",
-        "reservationUrl": "URL de réservation"
-      },
-      "buttons": {
-        "save": "Enregistrer les modifications",
-        "backToSpace": "Retour à l'espace"
       }
     },
     "viewGroup": {

@@ -179,7 +179,8 @@
         "explorePeople": "People",
         "logout": "Logout",
         "markAllRead": "Mark all as read",
-        "viewProfile": "View Profile"
+        "viewProfile": "View Profile",
+        "businessDashboard": "Business Dashboard"
       },
       "exploreDescriptions": {
         "moments": "Photos, stories & experiences",
@@ -660,27 +661,30 @@
       }
     },
     "editSpace": {
-      "pageTitle": "Edit Location",
-      "successMessage": "Your location has been updated successfully.",
-      "failedMessageBadRequest": "Please check your input and try again.",
-      "failedMessageServer": "An unexpected error occurred. Please try again later.",
-      "h2": {
-        "basicInfo": "Basic Information",
-        "contactLinks": "Contact & Links"
+      "pageTitle": "Edit Space",
+      "successMessage": "Your space has been updated successfully.",
+      "errorGeneric": "An error occurred while saving. Please try again.",
+      "headings": {
+        "contactInfo": "Contact Information"
       },
       "labels": {
-        "name": "Location Name",
+        "businessName": "Business Name",
+        "category": "Category",
+        "selectCategory": "Select a category",
         "description": "Description",
-        "address": "Address",
+        "hashTags": "Tags",
+        "hashTagsHint": "Comma-separated (e.g. coffee, wifi, outdoor seating)",
+        "image": "Business Photo",
+        "chooseImage": "Choose an image",
         "phoneNumber": "Phone Number",
-        "websiteUrl": "Website URL",
+        "websiteUrl": "Website",
         "menuUrl": "Menu URL",
         "orderUrl": "Order / Delivery URL",
         "reservationUrl": "Reservation URL"
       },
       "buttons": {
         "save": "Save Changes",
-        "backToProfile": "Back to Profile"
+        "backToSpace": "Back to Space"
       }
     },
     "manageSpaces": {
@@ -862,33 +866,6 @@
         "pendingBody": "A claim request for this space has been submitted and is currently under review.",
         "successMessage": "Your claim request has been submitted. You will be notified once it is approved.",
         "errorMessage": "There was an error submitting your claim. Please try again later."
-      }
-    },
-    "editSpace": {
-      "pageTitle": "Edit Space",
-      "successMessage": "Your space has been updated successfully.",
-      "errorGeneric": "An error occurred while saving. Please try again.",
-      "headings": {
-        "contactInfo": "Contact Information"
-      },
-      "labels": {
-        "businessName": "Business Name",
-        "category": "Category",
-        "selectCategory": "Select a category",
-        "description": "Description",
-        "hashTags": "Tags",
-        "hashTagsHint": "Comma-separated (e.g. coffee, wifi, outdoor seating)",
-        "image": "Business Photo",
-        "chooseImage": "Choose an image",
-        "phoneNumber": "Phone Number",
-        "websiteUrl": "Website",
-        "menuUrl": "Menu URL",
-        "orderUrl": "Order / Delivery URL",
-        "reservationUrl": "Reservation URL"
-      },
-      "buttons": {
-        "save": "Save Changes",
-        "backToSpace": "Back to Space"
       }
     },
     "viewMoment": {

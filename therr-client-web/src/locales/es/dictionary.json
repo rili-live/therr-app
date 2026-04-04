@@ -45,7 +45,7 @@
   },
   "components": {
     "tile": {
-      "untitled": "Sin t\u00edtulo"
+      "untitled": "Sin título"
     },
     "layout": {
       "floatingButton": {
@@ -168,7 +168,7 @@
     },
     "userMenu": {
       "buttons": {
-        "changePassword": "Cambiar contrase\u00f1a",
+        "changePassword": "Cambiar contraseña",
         "bookmarks": "Mis marcadores",
         "discovered": "Contenido descubierto",
         "editProfile": "Editar perfil",
@@ -179,7 +179,8 @@
         "explorePeople": "Personas",
         "logout": "Cerrar sesión",
         "markAllRead": "Marcar todo como leído",
-        "viewProfile": "Ver perfil"
+        "viewProfile": "Ver perfil",
+        "businessDashboard": "Panel de Negocios"
       },
       "exploreDescriptions": {
         "moments": "Fotos, historias y experiencias",
@@ -265,8 +266,8 @@
     },
     "bookmarks": {
       "pageTitle": "Mis marcadores",
-      "subtitle": "Contenido que has guardado para m\u00e1s tarde",
-      "noResults": "A\u00fan no has guardado nada. Explora la comunidad y guarda contenido que quieras volver a ver.",
+      "subtitle": "Contenido que has guardado para más tarde",
+      "noResults": "Aún no has guardado nada. Explora la comunidad y guarda contenido que quieras volver a ver.",
       "exploreCta": "Descubrir contenido",
       "filters": {
         "all": "Todo",
