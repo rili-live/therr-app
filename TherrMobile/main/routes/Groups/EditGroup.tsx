@@ -1,5 +1,5 @@
 import React from 'react';
-import { Keyboard, SafeAreaView, View } from 'react-native';
+import { Dimensions, Keyboard, Platform, SafeAreaView, Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -10,6 +10,9 @@ import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { ForumActions } from 'therr-react/redux/actions';
 import { Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
 import { IContentState, IForumsState, IUserState } from 'therr-react/types';
+import ImageCropPicker from 'react-native-image-crop-picker';
+import OctIcon from 'react-native-vector-icons/Octicons';
+import { SheetManager } from 'react-native-actions-sheet';
 import translator from '../../services/translator';
 import { isDarkTheme } from '../../styles/themes';
 import { buildStyles } from '../../styles';
@@ -22,12 +25,20 @@ import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import EditFormFooter from '../../components/EditFormFooter';
 import GroupCategories from './GroupCategories';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import { Button } from '../../components/BaseButton';
+import { Image } from '../../components/BaseImage';
+import TherrIcon from '../../components/TherrIcon';
 import RoundInput from '../../components/Input/Round';
 import RoundTextInput from '../../components/Input/TextInput/Round';
+import spacingStyles from '../../styles/layouts/spacing';
 import { GROUPS_CAROUSEL_TABS } from '../../constants';
 import InputGroupName from './InputGroupName';
+import CityAutocompleteInput from '../../components/Input/CityAutocompleteInput';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { signImageUrl } from '../../utilities/content';
+import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
+
+const { width: viewportWidth } = Dimensions.get('window');
 
 interface IEditChatDispatchProps {
     logout: Function;
@@ -115,6 +126,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                 title: group?.title || '',
                 subtitle: group?.subtitle || '',
                 description: group?.description || '',
+                city: group?.city || '',
+                region: group?.region || '',
                 iconGroup: group?.iconGroup || '',
                 iconId: group?.iconId || '',
                 iconColor: group?.iconColor || '',
@@ -153,6 +166,57 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         }
     }
 
+    handleImageSelect = (imageResponse) => {
+        if (!imageResponse.didCancel && !imageResponse.errorCode) {
+            this.setState({
+                selectedImage: imageResponse,
+                imagePreviewPath: getImagePreviewPath(imageResponse?.path),
+            });
+        }
+    };
+
+    onAddImage = (action: string) => {
+        const { user } = this.props;
+        const storePermissions = () => {};
+
+        return requestOSCameraPermissions(storePermissions).then((response) => {
+            const permissionsDenied = Object.keys(response).some((key) => {
+                return response[key] !== 'granted';
+            });
+            const pickerOptions: any = {
+                mediaType: 'photo',
+                includeBase64: false,
+                height: 4 * viewportWidth,
+                width: 4 * viewportWidth,
+                multiple: false,
+                cropping: true,
+            };
+            if (!permissionsDenied) {
+                if (action === 'camera') {
+                    return ImageCropPicker.openCamera(pickerOptions)
+                        .then((cameraResponse) => this.handleImageSelect(cameraResponse));
+                } else {
+                    return ImageCropPicker.openPicker(pickerOptions)
+                        .then((cameraResponse) => this.handleImageSelect(cameraResponse));
+                }
+            } else {
+                logEvent(getAnalytics(), 'permissions_denied_issue', {
+                    platform: Platform.OS,
+                    userId: user?.details?.id,
+                }).catch((err) => console.log(err));
+                showToast.error({
+                    text1: this.translate('alertTitles.permissionsDenied'),
+                    text2: this.translate('alertMessages.cameraOrFilePermissionsDenied'),
+                });
+                throw new Error('permissions denied');
+            }
+        }).catch((e) => {
+            if (e?.message.toLowerCase().includes('cancel')) {
+                console.log('canceled');
+            }
+        });
+    };
+
     handleHashtagPress = (tag) => {
         const { hashtags } = this.state;
         const modifiedHastags = hashtags.filter(t => t !== tag);
@@ -184,6 +248,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             title,
             subtitle,
             description,
+            city,
+            region,
             integrationIds,
             invitees,
             iconGroup,
@@ -199,8 +265,10 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             title,
             subtitle: subtitle || title,
             description,
+            city: city || undefined,
+            region: region || undefined,
             // TODO: Implement end-to-end logic to support updating categoryTags
-            categoryTags: categories.filter(c => c.isActive).map(c => c.tag) || ['general'],
+            categoryTags: categories.filter(c => c.isActive).map(c => c.tag),
             hashTags: hashtags.join(','),
             integrationIds: integrationIds ? integrationIds.join(',') : '',
             invitees: invitees ? invitees.join('') : '',
@@ -408,7 +476,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
     render() {
         const { navigation } = this.props;
-        const { categories, hashtags, inputs, toggleChevronName } = this.state;
+        const { categories, hashtags, imagePreviewPath, inputs, toggleChevronName } = this.state;
 
         return (
             <>
@@ -417,7 +485,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={this.theme.styles.scrollView}
+                        style={this.theme.styles.scrollViewFull}
+                        keyboardShouldPersistTaps="handled"
                         // contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
                         <GroupCategories
@@ -435,6 +504,90 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         <View style={[this.themeAccentLayout.styles.container, {
                             position: 'relative',
                         }]}>
+                            <View style={{
+                                marginBottom: 16,
+                                borderRadius: 16,
+                                backgroundColor: this.theme.colors.accent2,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                            }}>
+                                {
+                                    imagePreviewPath
+                                        ? (
+                                            <Image
+                                                source={{ uri: imagePreviewPath }}
+                                                containerStyle={{ alignSelf: 'stretch' }}
+                                                style={{
+                                                    width: '100%',
+                                                    aspectRatio: 16 / 9,
+                                                    borderRadius: 16,
+                                                }}
+                                            />
+                                        )
+                                        : (
+                                            <View style={{
+                                                width: '100%',
+                                                aspectRatio: 16 / 9,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}>
+                                                <TherrIcon
+                                                    name="camera"
+                                                    size={40}
+                                                    style={{ color: this.theme.colors.textGray }}
+                                                />
+                                                <Text style={{ color: this.theme.colors.textGray, marginTop: 8, fontSize: 14 }}>
+                                                    {this.translate('forms.editGroup.labels.addImageNote')}
+                                                </Text>
+                                            </View>
+                                        )
+                                }
+                            </View>
+                            <Button
+                                containerStyle={spacingStyles.marginBotMd}
+                                buttonStyle={this.themeForms.styles.buttonPrimary}
+                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                titleStyle={this.themeForms.styles.buttonTitle}
+                                title={this.translate(
+                                    imagePreviewPath ? 'forms.editGroup.buttons.replaceImage' : 'forms.editGroup.buttons.addImage'
+                                )}
+                                icon={
+                                    <TherrIcon
+                                        name="camera"
+                                        size={23}
+                                        style={{ color: this.theme.colors.primary, paddingRight: 8 }}
+                                    />
+                                }
+                                onPress={() => SheetManager.show('image-picker-sheet', {
+                                    payload: {
+                                        galleryText: this.translate('forms.editGroup.buttons.selectExisting'),
+                                        cameraText: this.translate('forms.editGroup.buttons.captureNew'),
+                                        themeForms: this.themeForms,
+                                        onSelect: (source) => this.onAddImage(source),
+                                    },
+                                })}
+                                raised={false}
+                            />
+                            {
+                                !!imagePreviewPath &&
+                                <Button
+                                    containerStyle={spacingStyles.marginBotMd}
+                                    buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate('forms.editGroup.buttons.removeImage')}
+                                    icon={
+                                        <OctIcon
+                                            name="x"
+                                            size={18}
+                                            style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                        />
+                                    }
+                                    onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                                    raised={false}
+                                />
+                            }
                             <InputGroupName
                                 autoFocus
                                 onChangeText={(text) =>
@@ -455,17 +608,42 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 }
                                 themeForms={this.themeForms}
                             />
-                            <RoundTextInput
+                            <View style={{ marginTop: 24 }}>
+                                <RoundTextInput
+                                    placeholder={this.translate(
+                                        'forms.editGroup.placeholders.description'
+                                    )}
+                                    value={inputs.description}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('description', text)
+                                    }
+                                    minHeight={150}
+                                    numberOfLines={7}
+                                    themeForms={this.themeForms}
+                                />
+                            </View>
+                            <CityAutocompleteInput
+                                placeholder={this.translate('forms.editGroup.placeholders.city')}
+                                initialValue={inputs.city}
+                                onCitySelect={(city, region) => {
+                                    this.onInputChange('city', city);
+                                    if (region) {
+                                        this.onInputChange('region', region);
+                                    }
+                                }}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                                containerStyle={{ marginTop: 14, zIndex: 10 }}
+                            />
+                            <RoundInput
                                 containerStyle={{ marginTop: 14 }}
                                 placeholder={this.translate(
-                                    'forms.editGroup.placeholders.description'
+                                    'forms.editGroup.placeholders.region'
                                 )}
-                                value={inputs.description}
+                                value={inputs.region}
                                 onChangeText={(text) =>
-                                    this.onInputChange('description', text)
+                                    this.onInputChange('region', text)
                                 }
-                                minHeight={150}
-                                numberOfLines={7}
                                 themeForms={this.themeForms}
                             />
                             <RoundInput

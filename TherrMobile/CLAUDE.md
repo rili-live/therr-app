@@ -25,7 +25,7 @@ TherrMobile/
 │   │   └── ...
 │   ├── redux/                     # Mobile-only actions + reducers (extends therr-react)
 │   ├── styles/themes/             # light (default), dark, retro
-│   ├── locales/                   # i18n: en-us, es
+│   ├── locales/                   # i18n: en-us, es, fr-ca
 │   ├── config/brandConfig.ts      # Brand variation selector (THERR, TEEM, HABITS)
 │   ├── constants/                 # App constants (map, carousel, notifications)
 │   └── utilities/                 # getConfig, pushNotifications, contacts

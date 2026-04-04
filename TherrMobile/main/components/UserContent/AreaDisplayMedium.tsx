@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
-import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Categories } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import HashtagsContainer from './HashtagsContainer';
@@ -24,6 +24,8 @@ import PresssableWithDoubleTap from '../PressableWithDoubleTap';
 // import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
+import RichText from '../RichText';
+import handleMentionPress from '../../utilities/handleMentionPress';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -48,6 +50,7 @@ interface IAreaDisplayContentProps {
     isDarkMode: boolean;
     area: any;
     areaMedia: string;
+    goToViewUser?: Function;
     inspectContent: () => any;
     onBookmarkPress?: () => any;
     onDoubleTap?: () => any;
@@ -75,14 +78,30 @@ interface IAreaDisplayMediumProps extends IAreaDisplayContentProps {
 }
 
 interface IAreaDisplayMediumState {
+    isLiked: boolean;
+    likeCount: number | null;
     mediaWidth: number;
 }
 
 export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediumProps, IAreaDisplayMediumState> {
+    static getDerivedStateFromProps(nextProps: IAreaDisplayMediumProps, nextState: IAreaDisplayMediumState) {
+        if (nextProps.area?.likeCount != null
+            && (nextState.likeCount == null)) {
+            return {
+                isLiked: !!nextProps.area.reaction?.userHasLiked,
+                likeCount: nextProps.area?.likeCount,
+            };
+        }
+
+        return null;
+    }
+
     constructor(props: IAreaDisplayMediumProps) {
         super(props);
 
         this.state = {
+            isLiked: !!props.area.reaction?.userHasLiked,
+            likeCount: props.area.likeCount,
             mediaWidth: viewportWidth / 4,
         };
     }
@@ -105,9 +124,17 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         if (!area.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
+            const newIsLiked = !this.state.isLiked;
+
+            this.setState({
+                isLiked: newIsLiked,
+                likeCount: this.props.area.likeCount != null
+                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
+                    : this.state.likeCount,
+            });
 
             updateAreaReaction(area.id, {
-                userHasLiked: !area.reaction?.userHasLiked,
+                userHasLiked: newIsLiked,
             }, area.fromUserId, user?.details?.userName);
         }
     };
@@ -183,6 +210,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         isDarkMode={isDarkMode}
                         area={area}
                         areaMedia={areaMedia}
+                        goToViewUser={goToViewUser}
                         inspectContent={inspectContent}
                         onDoubleTap={() => this.onLikePress(area)}
                         onBookmarkPress={() => this.onBookmarkPress(area)}
@@ -206,6 +234,7 @@ export const AreaDisplayContent = ({
     isDarkMode,
     area,
     areaMedia,
+    goToViewUser,
     inspectContent,
     onBookmarkPress,
     onDoubleTap,
@@ -221,6 +250,8 @@ export const AreaDisplayContent = ({
     //     setMediaWidth(width);
     // };
 
+    const isQuickReport = Categories.QuickReportCategories.includes(area.category);
+
     return (
         <View style={localStyles.rowContainer}>
             <PresssableWithDoubleTap
@@ -228,45 +259,50 @@ export const AreaDisplayContent = ({
                 onDoubleTap={onDoubleTap || (() => {})}
                 style={localStyles.mediaPressable}
             >
-                {/* <UserMedia
-                    viewportWidth={mediaWidth}
-                    media={areaMedia}
-                    isVisible={!!areaMedia}
-                    isSingleView={false}
-                    onLayout={onUserMediaLayout}
-                /> */}
-                {
-                    areaMedia ?
-                        <Image
-                            source={{
-                                uri: areaMedia,
-                            }}
-                            style={[localStyles.mediaImage, {
-                                width: mediaWidth,
-                                height: mediaWidth,
-                            }]}
-                            resizeMode="contain"
-                            PlaceholderContent={<ActivityIndicator />}
-                        /> :
-                        <MissingImagePlaceholder
-                            area={area}
-                            themeViewArea={themeViewArea}
-                            dimensions={{
-                                width: mediaWidth,
-                                height: mediaWidth,
-                            }}
-                        />
-                }
+                <View style={[localStyles.mediaImageWrapper, {
+                    width: mediaWidth,
+                    height: mediaWidth,
+                }]}>
+                    {
+                        areaMedia ?
+                            <Image
+                                source={{
+                                    uri: areaMedia,
+                                }}
+                                style={[localStyles.mediaImage, {
+                                    width: mediaWidth,
+                                    height: mediaWidth,
+                                }]}
+                                resizeMode="contain"
+                                PlaceholderContent={<ActivityIndicator />}
+                            /> :
+                            <MissingImagePlaceholder
+                                area={area}
+                                themeViewArea={themeViewArea}
+                                dimensions={{
+                                    width: mediaWidth,
+                                    height: mediaWidth,
+                                }}
+                            />
+                    }
+                </View>
             </PresssableWithDoubleTap>
             <View style={spacingStyles.flexOne}>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
-                    <Text
-                        style={themeViewArea.styles.areaContentTitleMedium
-                        }
-                        numberOfLines={2}
-                    >
-                        {sanitizeNotificationMsg(area.notificationMsg)}
-                    </Text>
+                    <View style={localStyles.titleWithBadge}>
+                        <Text
+                            style={[themeViewArea.styles.areaContentTitleMedium, localStyles.titleText]}
+                            numberOfLines={2}
+                        >
+                            {sanitizeNotificationMsg(area.notificationMsg)}
+                        </Text>
+                        {isQuickReport && (
+                            <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                                <Icon name="schedule" size={10} color={theme.colors.brandingWhite} />
+                                <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                            </View>
+                        )}
+                    </View>
                     {
                         !area.isDraft && onBookmarkPress &&
                         <>
@@ -287,13 +323,13 @@ export const AreaDisplayContent = ({
                         </>
                     }
                 </View>
-                <Text style={themeViewArea.styles.areaMessage} numberOfLines={3}>
-                    <Autolink
-                        text={area.message}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={themeViewArea.styles.areaMessage}
+                    text={area.message}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={goToViewUser ? (username) => handleMentionPress(username, goToViewUser) : undefined}
+                    numberOfLines={3}
+                />
                 <View>
                     <HashtagsContainer
                         hasIcon={false}
@@ -319,7 +355,35 @@ const localStyles = StyleSheet.create({
         paddingLeft: 14,
         paddingTop: 8,
     },
+    mediaImageWrapper: {
+        overflow: 'hidden',
+        borderRadius: 7,
+    },
     mediaImage: {
         borderRadius: 7,
+    },
+    titleWithBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexShrink: 1,
+        gap: 6,
+    },
+    titleText: {
+        flexShrink: 1,
+    },
+    quickReportBadge: {
+        flexShrink: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 8,
+        gap: 3,
+    },
+    quickReportBadgeText: {
+        color: '#ffffff',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
 });

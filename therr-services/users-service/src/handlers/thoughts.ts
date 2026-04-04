@@ -146,6 +146,7 @@ const createThought = async (req, res) => {
                                 messageLocaleKey: Notifications.MessageKeys.THOUGHT_REPLY,
                                 messageParams: {
                                     thoughtId: thought.parentId,
+                                    userName: user.userName,
                                     fromUserName: user.userName,
                                     contentUserId: thoughts[0].fromUserId, // author
                                     postType: 'thoughts',

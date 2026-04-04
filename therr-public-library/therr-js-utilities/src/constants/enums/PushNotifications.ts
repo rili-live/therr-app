@@ -13,9 +13,11 @@ export enum Types {
     newSuperLikeReceived = 'new-super-like-received',
     newAreasActivated = 'new-moments-activated',
     nudgeSpaceEngagement = 'nudge-space-engagement',
+    postVisitReviewReminder = 'post-visit-review-reminder',
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',
     newThoughtReplyReceived = 'new-thought-reply-received',
+    reportConfirmed = 'report-confirmed',
 
     // Automation
     createYourProfileReminder = 'create-your-profile-reminder',
@@ -62,6 +64,7 @@ export enum PressActionIds {
     dmReplyToMsg = 'reply-to-dm-msg',
     groupView = 'view-group',
     groupReplyToMsg = 'reply-to-group-msg',
+    reportView = 'view-report',
     thoughtView = 'view-thought',
     spaceView = 'view-space',
     userView = 'view-user',
@@ -80,6 +83,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'LATEST_POST_VIEWCOUNT_STATS'
 | 'NEW_AREAS_ACTIVATED'
 | 'NUDGE_SPACE_ENGAGEMENT'
+| 'POST_VISIT_REVIEW_REMINDER'
 | 'NEW_CONNECTION'
 | 'NEW_CONNECTION_REQUEST'
 | 'NEW_DIRECT_MESSAGE'
@@ -92,6 +96,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'UNREAD_NOTIFICATIONS_REMINDER'
 | 'UNCLAIMED_ACHIEVEMENTS_REMINDER'
 | 'INVITE_FRIENDS_REMINDER'
+| 'REPORT_CONFIRMED'
 // HABITS
 | 'PACT_INVITATION'
 | 'PACT_ACCEPTED'
@@ -109,6 +114,7 @@ enum TeemAndroidIntentActions {
     LATEST_POST_VIEWCOUNT_STATS = 'com.therr.mobile.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'com.therr.mobile.NEW_AREAS_ACTIVATED',
     NUDGE_SPACE_ENGAGEMENT = 'com.therr.mobile.NUDGE_SPACE_ENGAGEMENT',
+    POST_VISIT_REVIEW_REMINDER = 'com.therr.mobile.POST_VISIT_REVIEW_REMINDER',
     NEW_CONNECTION = 'com.therr.mobile.NEW_CONNECTION',
     NEW_CONNECTION_REQUEST = 'com.therr.mobile.NEW_CONNECTION_REQUEST',
     NEW_DIRECT_MESSAGE = 'com.therr.mobile.NEW_DIRECT_MESSAGE',
@@ -121,6 +127,7 @@ enum TeemAndroidIntentActions {
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'com.therr.mobile.INVITE_FRIENDS_REMINDER',
+    REPORT_CONFIRMED = 'com.therr.mobile.REPORT_CONFIRMED',
 }
 
 enum TherrAndroidIntentActions {
@@ -131,6 +138,7 @@ enum TherrAndroidIntentActions {
     LATEST_POST_VIEWCOUNT_STATS = 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'app.therrmobile.NEW_AREAS_ACTIVATED',
     NUDGE_SPACE_ENGAGEMENT = 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT',
+    POST_VISIT_REVIEW_REMINDER = 'app.therrmobile.POST_VISIT_REVIEW_REMINDER',
     NEW_CONNECTION = 'app.therrmobile.NEW_CONNECTION',
     NEW_CONNECTION_REQUEST = 'app.therrmobile.NEW_CONNECTION_REQUEST',
     NEW_DIRECT_MESSAGE = 'app.therrmobile.NEW_DIRECT_MESSAGE',
@@ -143,6 +151,7 @@ enum TherrAndroidIntentActions {
     UNREAD_NOTIFICATIONS_REMINDER = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'app.therrmobile.INVITE_FRIENDS_REMINDER',
+    REPORT_CONFIRMED = 'app.therrmobile.REPORT_CONFIRMED',
 }
 
 enum HabitsAndroidIntentActions {
@@ -153,6 +162,7 @@ enum HabitsAndroidIntentActions {
     LATEST_POST_VIEWCOUNT_STATS = 'com.therr.mobile.habits.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'com.therr.mobile.habits.NEW_AREAS_ACTIVATED',
     NUDGE_SPACE_ENGAGEMENT = 'com.therr.mobile.habits.NUDGE_SPACE_ENGAGEMENT',
+    POST_VISIT_REVIEW_REMINDER = 'com.therr.mobile.habits.POST_VISIT_REVIEW_REMINDER',
     NEW_CONNECTION = 'com.therr.mobile.habits.NEW_CONNECTION',
     NEW_CONNECTION_REQUEST = 'com.therr.mobile.habits.NEW_CONNECTION_REQUEST',
     NEW_DIRECT_MESSAGE = 'com.therr.mobile.habits.NEW_DIRECT_MESSAGE',
@@ -165,6 +175,7 @@ enum HabitsAndroidIntentActions {
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.habits.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.habits.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'com.therr.mobile.habits.INVITE_FRIENDS_REMINDER',
+    REPORT_CONFIRMED = 'com.therr.mobile.habits.REPORT_CONFIRMED',
     // HABITS-specific
     PACT_INVITATION = 'com.therr.mobile.habits.PACT_INVITATION',
     PACT_ACCEPTED = 'com.therr.mobile.habits.PACT_ACCEPTED',

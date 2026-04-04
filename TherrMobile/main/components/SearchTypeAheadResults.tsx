@@ -1,11 +1,12 @@
 import React from 'react';
-import { Pressable, StyleProp, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleProp, Text, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../styles/themes';
 import { ViewStyle } from 'react-native';
 
 interface ISearchTypeAheadProps {
     handleSelect: Function;
+    isSearching?: boolean;
     searchPredictionResults: any[];
     themeSearch: {
         colors: ITherrThemeColors;
@@ -34,6 +35,7 @@ const SearchTypeAheadResults = ({
     containerStyles,
     disableScroll,
     handleSelect,
+    isSearching,
     searchPredictionResults,
     themeSearch,
 }: ISearchTypeAheadProps) => {
@@ -42,17 +44,19 @@ const SearchTypeAheadResults = ({
     return (
         <View
             style={[themeSearch.styles.container, containerStyles || {}]}
-            // childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
         >
+            {isSearching && searchPredictionResults.length === 0 && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
+                    <ActivityIndicator size="small" color={themeSearch.colors.primary3} style={{ marginRight: 8 }} />
+                    <Text style={themeSearch.styles.itemText}>Searching...</Text>
+                </View>
+            )}
             <FlatList
                 data={searchPredictionResults}
-                keyExtractor={(item) => String(item.place_id)}
+                keyExtractor={(item) => String(item.place_id || item.mapbox_id)}
                 renderItem={({ item }) => renderListItem(item, { handleSelect, styles: themeSearch.styles })}
                 ItemSeparatorComponent={getItemSeparator}
                 keyboardShouldPersistTaps="always"
-                // ref={(component) => (this.flatListRef = component)}
-                // style={styles.stretch}
-                // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                 scrollEnabled={!disableScroll}
             />
         </View>

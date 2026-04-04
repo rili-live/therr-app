@@ -6,13 +6,15 @@ import { Badge } from 'react-native-paper';
 import { TextInputProps } from 'react-native';
 import 'react-native-gesture-handler';
 import { MapActions } from 'therr-react/redux/actions';
-import { IMapState as IMapReduxState } from 'therr-react/types';
+import { IContentState, IMapState as IMapReduxState } from 'therr-react/types';
 import DeviceInfo from 'react-native-device-info';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import RoundInput from './';
 import translator from '../../services/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../../constants';
+import getConfig from '../../utilities/getConfig';
 
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -31,6 +33,7 @@ interface IHeaderSearchInputDispatchProps extends Omit<TextInputProps, 'ref'> {
 }
 
 interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
+    content: IContentState;
     map: IMapReduxState;
     user: any;
     theme: {
@@ -51,6 +54,7 @@ interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
 }
 
 const mapStateToProps = (state: any) => ({
+    content: state.content,
     map: state.map,
     user: state.user,
 });
@@ -97,19 +101,20 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
             inputText: text,
         });
 
-        this.throttleTimeoutId = setTimeout(() => {
-            getPlacesSearchAutoComplete({
-                longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
-                latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
-                // radius,
-                input: text,
-            });
-        }, 500);
-
         if (invoker === 'input' && text === inputText) {
             return;
         }
         setSearchDropdownVisibility(!!text?.length);
+
+        this.throttleTimeoutId = setTimeout(() => {
+            const config = getConfig();
+            const useMapboxSearch = config.featureFlags?.[FeatureFlags.ENABLE_MAPBOX_SEARCH] === true;
+            getPlacesSearchAutoComplete({
+                longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
+                latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
+                input: text,
+            }, useMapboxSearch);
+        }, 300);
     };
 
     handlePress = (invoker: string) => {
@@ -129,7 +134,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
     // TODO: Display red dot to show filters enabled
     render() {
         const { inputText } = this.state;
-        const { isAdvancedSearch, map, theme, themeForms, placeholderText } = this.props;
+        const { content, isAdvancedSearch, map, theme, themeForms, placeholderText } = this.props;
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
@@ -147,6 +152,9 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 filterCount += 1;
             }
         });
+        if (content.activeAreasFilters?.contentType && content.activeAreasFilters.contentType !== 'all') {
+            filterCount += 1;
+        }
 
         return (
             <>

@@ -23,6 +23,7 @@ const initialState: IContentState = {
 
     activeAreasFilters: {
         order: 'DESC',
+        contentType: 'all',
     },
     media: {},
 };
@@ -265,7 +266,7 @@ const content = produce((draft: IContentState, action: any) => {
             draft.media = { ...draft.media, ...action.data };
             break;
         case ContentActionTypes.SET_ACTIVE_AREAS_FILTERS:
-            draft.activeAreasFilters = { ...action.data };
+            draft.activeAreasFilters = { ...draft.activeAreasFilters, ...action.data };
             break;
         case MapActionTypes.GET_EVENT_DETAILS:
         case MapActionTypes.GET_MOMENT_DETAILS:

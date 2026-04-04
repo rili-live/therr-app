@@ -260,7 +260,29 @@
     "seasonal": "Temporada / Festividades",
     "drinks": "Happy Hour / Bebidas",
     "nightLife": "Vida nocturna / Social",
-    "sports": "Deportes"
+    "sports": "Deportes",
+    "happeningNow": "Pasando ahora",
+    "longWait": "Larga espera",
+    "liveEntertainment": "Entretenimiento en vivo",
+    "crowdAlert": "Lleno de gente",
+    "hiddenGem": "Joya oculta",
+    "localDeal": "Gran oferta"
+  },
+  "quickReports": {
+    "title": "Que esta pasando aqui?",
+    "happeningNow": "Pasando ahora",
+    "longWait": "Larga espera",
+    "liveEntertainment": "Entretenimiento en vivo",
+    "crowdAlert": "Lleno de gente",
+    "hiddenGem": "Joya oculta",
+    "localDeal": "Gran oferta",
+    "addDetails": "Agregar detalles (opcional)",
+    "submitSuccess": "Reporte enviado!",
+    "submitError": "Error al enviar reporte",
+    "duplicateReport": "Este reporte ya ha sido publicado",
+    "stillTrue": "Aun es cierto",
+    "notAnymore": "Ya no",
+    "confirmCount": "{{count}} confirmaron"
   },
   "components": {
     "activeConnections": {
@@ -419,7 +441,8 @@
     },
     "groups": {
       "noResultsFound": "No se encontraron resultados...",
-      "searchPlaceholder": "Buscar por nombre..."
+      "searchPlaceholder": "Buscar por nombre...",
+      "cityPlaceholder": "Filtrar por ciudad..."
     },
     "loginForm": {
       "buttons": {
@@ -457,7 +480,15 @@
         "delete": "¿Eliminar?",
         "confirm": "Eliminar",
         "back": "Atrás",
-        "cancel": "Cancelar"
+        "cancel": "Cancelar",
+        "addImage": "Adjuntar una Imagen",
+        "replaceImage": "Reemplazar Imagen",
+        "removeImage": "Eliminar Imagen",
+        "captureNew": "Capturar una Nueva Foto",
+        "selectExisting": "Seleccionar una Foto Existente"
+      },
+      "labels": {
+        "addImageNote": "Agregar imagen de portada del grupo"
       },
       "placeholders": {
         "title": "Un título que se pueda buscar...",
@@ -465,7 +496,9 @@
         "description": "Un breve resumen del grupo...",
         "hashTags": "Etiquetas (ej. mi_etiqueta, miEtiqueta)",
         "maxComments": "Máx. comentarios (por minuto)",
-        "expiresAt": "Cuenta regresiva"
+        "expiresAt": "Cuenta regresiva",
+        "city": "Ciudad (ej. Ciudad de México)",
+        "region": "Estado/Región (ej. CDMX)"
       },
       "archiveSuccess": "Archivado exitosamente",
       "backendSuccessHeader": "¡Éxito!",
@@ -499,6 +532,7 @@
         "maxViews": "Máx. vistas (por persona)",
         "expiresAt": "Cuenta regresiva",
         "radius": "Radio: {meters} metros",
+        "radiusPlaceholder": "Radio ({min}-{max} metros)",
         "unselected": "Seleccionar un espacio"
       },
       "headers": {
@@ -576,7 +610,7 @@
         }
       },
       "deleteConfirmation": "¿Estás seguro de que quieres eliminar este evento?",
-      "backendSuccessMessage": "¡Tu momento se guardó exitosamente!",
+      "backendSuccessMessage": "¡Tu evento se guardó exitosamente!",
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde."
     },
     "editSpace": {
@@ -626,6 +660,7 @@
         "maxViews": "Máx. vistas (por persona)",
         "expiresAt": "Cuenta regresiva",
         "radius": "Radio: {meters} metros",
+        "radiusPlaceholder": "Radio ({min}-{max} metros)",
         "incentiveRequirement": "Requisito de recompensa",
         "unselectedIncentiveRequirement": "Seleccionar un requisito",
         "incentiveReward": "Recompensa por participación",
@@ -872,10 +907,8 @@
       "tableTopGames": "Juegos de mesa",
       "boardGames": "Juegos de mesa y noche de juegos"
     },
-    "homeGarden": {
-    },
-    "nature": {
-    },
+    "homeGarden": {},
+    "nature": {},
     "sports": {
       "basketball": "Baloncesto",
       "baseball": "Béisbol",
@@ -904,8 +937,7 @@
       "cars": "Autos",
       "bikes": "Motos y motocicletas"
     },
-    "tv": {
-    }
+    "tv": {}
   },
   "interestsCategories": {
     "arts": "Arte y creatividad",
@@ -946,13 +978,15 @@
       "invite": "+",
       "media": "Multimedia",
       "news": "Noticias",
-      "thoughts": "Pensamientos"
+      "thoughts": "Pensamientos",
+      "groupsDiscover": "Descubrir"
     },
     "mapActions": {
       "create": "Crear",
       "claimASpace": "Reclamar un espacio",
       "createEvent": "Crear un evento",
       "addACheckIn": "Registrarse",
+      "quickReport": "Reporte rapido",
       "requestASpace": "Solicitar un espacio",
       "shareAThought": "Compartir un pensamiento",
       "uploadAMoment": "Crear un momento",
@@ -1100,7 +1134,11 @@
         "asc": "Más antiguos primero",
         "desc": "Más recientes primero",
         "categories": "Filtros de categoría",
-        "searchOrder": "Ordenar resultados por: Fecha"
+        "searchOrder": "Ordenar resultados por: Fecha",
+        "contentType": "Tipo de contenido",
+        "all": "Todos",
+        "moments": "Momentos",
+        "thoughts": "Pensamientos"
       }
     },
     "advancedSettings": {
@@ -1215,7 +1253,9 @@
         "description": "Descripción:",
         "subtitle": "Titular:",
         "memberCount": "{count} miembros"
-      }
+      },
+      "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí.",
+      "discoverGroups": "Descubrir Grupos"
     },
     "invite": {
       "headerTitle": "Invitar"
@@ -1264,6 +1304,9 @@
         "creator": "Creador del grupo",
         "admin": "Admin / Moderador",
         "eventHost": "Anfitrión de eventos"
+      },
+      "buttons": {
+        "createEvent": "Crear Evento"
       }
     },
     "viewSpace": {
@@ -1287,8 +1330,13 @@
       "h2": {
         "claimRewards": "Reclama tus recompensas",
         "requirements": "Pasos",
+        "hours": "Horario",
+        "contactAndLocation": "Contacto y ubicación",
         "events": "Próximos eventos",
         "moments": "Publicaciones de invitados"
+      },
+      "labels": {
+        "viewOnGoogleMaps": "Ver en Google Maps"
       },
       "info": {
         "shareAMoment": {
@@ -1333,7 +1381,7 @@
       "headerTitle": "Verificación de cuenta",
       "pageHeader": "Verificar correo electrónico",
       "returnToLogin": "Volver a la página de inicio de sesión",
-      "successMessage": "¡Listo!",
+      "successMessage": "¡Tu correo ha sido verificado!",
       "successVerifiedMessage": "Tu cuenta ha sido verificada. Inicia sesión para continuar."
     },
     "exchangePointsDisclaimer": {
@@ -1456,6 +1504,13 @@
       "locationDescription1": "Ve publicaciones de usuarios cercanos en la comunidad local donde te encuentras actualmente.",
       "locationDescription2": "Usa los controles deslizantes de percepción e influencia para controlar la distancia del contenido y tu propia visibilidad.",
       "locationDescription3": "Habilita los servicios de ubicación para activar esta función."
+    },
+    "activatedAreas": {
+      "headerTitle": "Activados recientemente",
+      "description": "Estos son los momentos y espacios que activaste recientemente.",
+      "noAreasFound": "No se encontraron áreas activadas",
+      "backToNotifications": "Volver a Notificaciones",
+      "discoverMore": "Descubre más momentos y espacios cercanos"
     },
     "notifications": {
       "headerTitle": "Notificaciones",

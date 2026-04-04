@@ -105,9 +105,14 @@ const initInterceptors = (
                                 const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
 
                                 // Update stored tokens
-                                const userDetails = JSON.parse(
-                                    sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser') || '{}',
-                                );
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                let userDetails: any = {};
+                                try {
+                                    const storedUserStr = sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser');
+                                    userDetails = storedUserStr ? JSON.parse(storedUserStr) : {};
+                                } catch (parseErr) {
+                                    userDetails = {};
+                                }
                                 userDetails.idToken = newIdToken;
                                 sessionStorage.setItem('therrUser', JSON.stringify(userDetails));
                                 sessionStorage.setItem('therrRefreshToken', newRefreshToken);

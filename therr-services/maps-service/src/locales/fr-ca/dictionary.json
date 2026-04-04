@@ -1,0 +1,31 @@
+{
+  "errorMessages": {
+    "accessDenied": "L'accès à cette ressource est refusé",
+    "events": {
+      "toFarFromEvent": "Les utilisateurs ne peuvent créer que des événements locaux"
+    },
+    "posts": {
+        "duplicatePost": "Les publications en double ne sont pas autorisées",
+        "spaceNotFound": "Aucun espace trouvé pour l'identifiant fourni"
+    }
+  },
+  "validation": "Les paramètres requis n'ont pas été fournis.",
+  "eventReactions": {
+    "eventNotActivated": "Cet utilisateur n'est pas autorisé à accéder au contenu sans d'abord rejoindre le groupe de l'événement"
+  },
+  "momentReactions": {
+    "momentNotActivated": "Cet utilisateur n'est pas autorisé à accéder au contenu sans d'abord activer le moment"
+  },
+  "thoughtReactions": {
+    "thoughtNotActivated": "Cet utilisateur n'est pas autorisé à accéder au contenu sans d'abord activer la pensée"
+  },
+  "spaceReactions": {
+    "spaceNotActivated": "Cet utilisateur n'est pas autorisé à accéder au contenu sans d'abord activer l'espace"
+  },
+  "spaces": {
+    "mustBeOwner": "Tu dois être le propriétaire de l'espace pour consulter les métriques",
+    "noOverlap": "Un nouvel espace ne doit pas chevaucher des espaces existants. Les espaces sont exclusifs par conception. Déplace-toi à un nouvel emplacement et réessaie.",
+    "notFound": "Espace non trouvé",
+    "alreadyClaimed": "Tu as déjà réclamé cet espace"
+  }
+}

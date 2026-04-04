@@ -1,5 +1,5 @@
 # therr-client-web
-<!-- Updated: 2026-03-26 -->
+<!-- Updated: 2026-04-02 -->
 
 Public-facing web app with SSR, serving at port 7070.
 
@@ -33,3 +33,5 @@ The web app supports locale-prefixed URLs for multilingual SEO. English uses unp
 - `src/locales/es/dictionary.json` - Spanish strings
 
 When adding new UI text, add the translation key to both dictionary files. See [Locale URL Routing docs](../docs/LOCALE_URL_ROUTING.md) for full details.
+
+...

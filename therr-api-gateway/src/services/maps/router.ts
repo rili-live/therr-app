@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
@@ -401,8 +402,120 @@ mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
 
         return res.status(200).json(data);
     } catch (err) {
-        console.error('Geocoding proxy error:', err);
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_GATEWAY_MAPS_ROUTER',
+            messages: ['Geocoding proxy error'],
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
+        });
         return res.status(502).json({ message: 'Geocoding service unavailable' });
+    }
+});
+
+// External APIs - Mapbox Search proxy with rate limiting and caching
+const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';
+
+mapsServiceRouter.get('/mapbox/search', placesApiLimiter, async (req, res) => {
+    const { q, latitude, longitude, limit: resultLimit, language, sessionToken } = req.query;
+
+    if (!q || typeof q !== 'string' || !q.trim()) {
+        return res.status(400).json({ message: 'Query parameter "q" is required' });
+    }
+
+    if (!MAPBOX_ACCESS_TOKEN) {
+        return res.status(503).json({ message: 'Mapbox search is not configured' });
+    }
+
+    const cacheKey = crypto.createHash('sha256').update(
+        `mapbox:${q.trim().toLowerCase()}:${latitude}:${longitude}:${language || 'en'}`
+    ).digest('hex');
+    const cached = await CacheStore.mapsService.getPlacesResponse(cacheKey);
+
+    if (cached) {
+        return res.status(200).json(cached);
+    }
+
+    try {
+        const params: Record<string, string> = {
+            q: q.trim(),
+            access_token: MAPBOX_ACCESS_TOKEN,
+            limit: String(resultLimit || 5),
+            language: String(language || 'en'),
+        };
+
+        if (latitude && longitude) {
+            params.proximity = `${longitude},${latitude}`;
+        }
+
+        if (sessionToken && typeof sessionToken === 'string') {
+            params.session_token = sessionToken;
+        }
+
+        const response = await axios.get('https://api.mapbox.com/search/searchbox/v1/suggest', {
+            params,
+            timeout: 5000,
+        });
+
+        const data = response.data;
+        CacheStore.mapsService.setPlacesResponse(cacheKey, data);
+
+        return res.status(200).json(data);
+    } catch (err) {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_GATEWAY_MAPS_ROUTER',
+            messages: ['Mapbox search proxy error'],
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
+        });
+        return res.status(502).json({ message: 'Mapbox search service unavailable' });
+    }
+});
+
+mapsServiceRouter.get('/mapbox/retrieve/:mapboxId', placesApiLimiter, async (req, res) => {
+    const { mapboxId } = req.params;
+    const { sessionToken } = req.query;
+
+    if (!mapboxId) {
+        return res.status(400).json({ message: 'mapboxId is required' });
+    }
+
+    if (!MAPBOX_ACCESS_TOKEN) {
+        return res.status(503).json({ message: 'Mapbox search is not configured' });
+    }
+
+    const cacheKey = crypto.createHash('sha256').update(`mapbox-retrieve:${mapboxId}`).digest('hex');
+    const cached = await CacheStore.mapsService.getPlacesResponse(cacheKey);
+
+    if (cached) {
+        return res.status(200).json(cached);
+    }
+
+    try {
+        const params: Record<string, string> = {
+            access_token: MAPBOX_ACCESS_TOKEN,
+        };
+
+        if (sessionToken && typeof sessionToken === 'string') {
+            params.session_token = sessionToken;
+        }
+
+        const response = await axios.get(
+            `https://api.mapbox.com/search/searchbox/v1/retrieve/${encodeURIComponent(mapboxId)}`,
+            { params, timeout: 5000 }
+        );
+
+        const data = response.data;
+        CacheStore.mapsService.setPlacesResponse(cacheKey, data);
+
+        return res.status(200).json(data);
+    } catch (err) {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_GATEWAY_MAPS_ROUTER',
+            messages: ['Mapbox retrieve proxy error'],
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
+        });
+        return res.status(502).json({ message: 'Mapbox retrieve service unavailable' });
     }
 });
 

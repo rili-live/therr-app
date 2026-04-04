@@ -5,7 +5,8 @@ import { bindActionCreators } from 'redux';
 import { Link, NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
-import { Content } from 'therr-js-utilities/constants';
+import { Categories, Content } from 'therr-js-utilities/constants';
+import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import {
     Stack, Group, Title, Text, Badge, Anchor,
     Paper, Skeleton, Button, Image, Avatar, Loader, Center,
@@ -47,6 +48,7 @@ interface IListSpacesRouterProps {
         navigate: NavigateFunction;
     };
     routeParams: {
+        categorySlug: string;
         pageNumber: string;
     }
 }
@@ -134,18 +136,25 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     componentDidMount() { // eslint-disable-line class-methods-use-this
         const { map, routeParams } = this.props;
         const { searchQuery, searchLat, searchLng } = this.state;
-        const { pageNumber: pn } = routeParams;
-        const pageNumberStr = pn || '1';
+        const { categorySlug, pageNumber: pn } = routeParams;
 
+        // categorySlug doubles as page number when it is not a valid category slug
+        const activeCategoryKey = this.getActiveCategoryKey();
+        const isCategory = !!activeCategoryKey;
+        const pageNumberStr = pn || (!isCategory && categorySlug ? categorySlug : '1');
+
+        const categoryLabel = activeCategoryKey ? formatCategoryLabel(activeCategoryKey) : '';
         document.title = searchQuery
             ? `${searchQuery} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`
-            : `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
+            : categoryLabel
+                ? `${categoryLabel} near You | Therr`
+                : `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
 
-        const isValidPage = !Number.isNaN(pageNumberStr) && !Number.isNaN(parseInt(pageNumberStr, 10));
-        if (!isValidPage) {
+        const parsedPage = parseInt(pageNumberStr, 10);
+        if (!isCategory && Number.isNaN(parsedPage)) {
             setTimeout(() => this.props.navigation.navigate('/locations'));
         } else {
-            const pageNumber = parseInt(pageNumberStr, 10);
+            const pageNumber = Number.isNaN(parsedPage) ? 1 : parsedPage;
 
             // If URL has coordinates from a previous search, use them directly
             if (searchLat != null && searchLng != null) {
@@ -166,8 +175,18 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     }
 
     componentDidUpdate(prevProps: Readonly<IListSpacesProps>): void {
-        if (prevProps.routeParams.pageNumber !== this.props.routeParams.pageNumber) {
-            this.searchPaginatedSpaces(parseInt(this.props.routeParams.pageNumber, 10));
+        const { categorySlug, pageNumber } = this.props.routeParams;
+        const { categorySlug: prevCategorySlug, pageNumber: prevPageNumber } = prevProps.routeParams;
+
+        const parsedPageNumber = parseInt(pageNumber, 10);
+        if (prevPageNumber !== pageNumber && !Number.isNaN(parsedPageNumber)) {
+            // Category + page navigation (/locations/:categorySlug/:pageNumber)
+            this.searchPaginatedSpaces(parsedPageNumber);
+        } else if (prevCategorySlug !== categorySlug) {
+            // Single-segment param changed — could be a category or page number change
+            const isCategory = !!this.getActiveCategoryKey();
+            const pageNum = isCategory ? 1 : parseInt(categorySlug || '1', 10);
+            this.searchPaginatedSpaces(pageNum);
         }
     }
 
@@ -198,6 +217,13 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         return searchRadius || DEFAULT_DISTANCE_OVERRIDE;
     };
 
+    getActiveCategoryKey = (): string | undefined => {
+        const { routeParams } = this.props;
+        return routeParams.categorySlug
+            ? Categories.SlugToCategoryMap[routeParams.categorySlug]
+            : undefined;
+    };
+
     searchPaginatedSpaces = (
         pageNumber: number,
         itemsPerPage: number = DEFAULT_ITEMS_PER_PAGE,
@@ -223,7 +249,10 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             queryParams.query = searchQuery.trim();
         }
 
+        const categoryKey = this.getActiveCategoryKey();
+
         return listSpaces(queryParams, {
+            category: categoryKey,
             distanceOverride: this.getDistanceOverride(),
         }).catch((err) => {
             console.log(err);
@@ -280,10 +309,20 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         return str ? `?${str}` : '';
     };
 
+    getLocationsBasePath = (pageNumber?: number): string => {
+        const { routeParams } = this.props;
+        const { categorySlug } = routeParams;
+        const page = pageNumber ?? parseInt(routeParams.pageNumber || '1', 10);
+
+        if (categorySlug) {
+            return page > 1 ? `/locations/${categorySlug}/${page}` : `/locations/${categorySlug}`;
+        }
+        return page > 1 ? `/locations/${page}` : '/locations';
+    };
+
     updateSearchUrl = () => {
-        const { navigation, routeParams } = this.props;
-        const pageNumber = parseInt(routeParams.pageNumber || '1', 10);
-        const basePath = pageNumber > 1 ? `/locations/${pageNumber}` : '/locations';
+        const { navigation } = this.props;
+        const basePath = this.getLocationsBasePath();
         const search = this.buildSearchParams();
 
         navigation.navigate(`${basePath}${search}`, { replace: true });
@@ -526,7 +565,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     )}
                     <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
                         <Group gap="xs" wrap="wrap">
-                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="md" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
+                            <Anchor component={Link} to={`/spaces/${space.id}/${buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion)}`} fw={600} size="md" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
                                 {space.notificationMsg}
                             </Anchor>
                             {this.renderVisibilityBadge(space)}
@@ -589,7 +628,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                 <Stack gap="lg" p={{ base: 'sm', sm: 'xl' }} maw={800} mx="auto">
                     <div>
                         <Title order={1} mb="xs">
-                            {this.props.translate('pages.spaces.header1')}
+                            {this.getActiveCategoryKey()
+                                ? this.props.translate('pages.spaces.categoryHeading', {
+                                    category: formatCategoryLabel(this.getActiveCategoryKey() || ''),
+                                })
+                                : this.props.translate('pages.spaces.header1')}
                         </Title>
                         {!isAuthenticated && (
                             <Text size="sm" c="dimmed">
@@ -709,7 +752,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         {pageNumber > 1 && (
                             <Button
                                 component={Link}
-                                to={`/locations/${pageNumber - 1}${paginationSearch}`}
+                                to={`${this.getLocationsBasePath(pageNumber - 1)}${paginationSearch}`}
                                 variant="outline"
                                 size="sm"
                             >
@@ -719,7 +762,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         {spacesArray.length >= itemsPerPage && (
                             <Button
                                 component={Link}
-                                to={`/locations/${pageNumber + 1}${paginationSearch}`}
+                                to={`${this.getLocationsBasePath(pageNumber + 1)}${paginationSearch}`}
                                 variant="outline"
                                 size="sm"
                             >

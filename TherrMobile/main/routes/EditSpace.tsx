@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
 import EditFormFooter from '../components/EditFormFooter';
-import Slider from '@react-native-community/slider';
+import LottieView from 'lottie-react-native';
 import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
@@ -23,7 +23,9 @@ import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { showToast } from '../utilities/toasts';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import translator from '../services/translator';
+import getConfig from '../utilities/getConfig';
 import { isDarkTheme } from '../styles/themes';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
@@ -94,7 +96,6 @@ interface IEditSpaceState {
     isBusinessAccount: boolean;
     isCreatorAccount?: boolean;
     isRequestDetailsExpanded: boolean;
-    isSliderActive: boolean;
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
@@ -183,7 +184,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 featuredIncentiveCurrencyId: area?.featuredIncentiveCurrencyId?.toString() || undefined,
             },
             isRequestDetailsExpanded: false,
-            isSliderActive: false,
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
@@ -426,6 +426,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             longitude,
         } = route.params;
 
+        const sanitizedRadius = Math.max(MIN_RADIUS_PUBLIC, Math.min(MAX_RADIUS_PUBLIC, parseInt(radius, 10) || MIN_RADIUS_PUBLIC));
+
         let createArgs: any = {
             category,
             featuredIncentiveKey,
@@ -441,7 +443,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             latitude: addressLatitude || latitude,
             longitude: addressLongitude || longitude,
             maxViews,
-            radius,
+            radius: sanitizedRadius,
             expiresAt,
         };
 
@@ -630,13 +632,14 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         });
 
         this.throttleAddressTimeoutId = setTimeout(() => {
+            const config = getConfig();
+            const useMapboxSearch = config.featureFlags?.[FeatureFlags.ENABLE_MAPBOX_SEARCH] === true;
             getPlacesSearchAutoComplete({
                 longitude: userLon?.toString() || longitude?.toString() || map?.longitude || DEFAULT_LONGITUDE.toString(),
                 latitude: userLat?.toString() || latitude?.toString() || map?.latitude || DEFAULT_LATITUDE.toString(),
-                // radius,
                 input: text,
                 types: 'establishment',
-            }).finally(() => {
+            }, useMapboxSearch).finally(() => {
                 this.setState({ isSearchingAddress: false });
             });
         }, 500);
@@ -660,6 +663,11 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
 
         this.setSearchDropdownVisibility(false);
 
+        if (selection?.provider === 'mapbox' && selection?.mapbox_id) {
+            this.handleMapboxSearchSelect(selection);
+            return;
+        }
+
         MapsService.getPlaceDetails({
             apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
             placeId: selection?.place_id,
@@ -670,53 +678,78 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             shouldIncludeRating: true,
         }).then((response) => {
             const result = response.data?.result;
-            const geometry = result?.geometry;
-            const formatted_address = result?.formatted_address;
-            const modifiedInputs = {
-                ...this.state.inputs,
-            };
-            if (formatted_address) {
-                modifiedInputs.address = formatted_address;
-                modifiedInputs.addressReadable = formatted_address;
-            }
-            if (!this.state.isBusinessAccount) {
-                // Always set notificationMsg to place name for non-business
-                if (result?.name) {
-                    modifiedInputs.notificationMsg = result.name;
-                }
-                if (!modifiedInputs.category) {
-                    modifiedInputs.category = 'uncategorized';
-                }
-            } else if (!modifiedInputs.notificationMsg && result?.name) {
-                modifiedInputs.notificationMsg = result.name;
-            }
-            if (geometry?.location) {
-                modifiedInputs.addressLatitude = geometry.location.lat;
-                modifiedInputs.addressLongitude = geometry.location.lng;
-            }
-            if (result?.website) {
-                modifiedInputs.addressWebsite = result?.website;
-            }
-            if (result?.rating) {
-                modifiedInputs.addressRating = {
-                    rating: result?.rating,
-                    total: result?.user_ratings_total || 0,
-                };
-            }
-            if (result?.opening_hours?.weekday_text) {
-                modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
-            }
-            if (result?.international_phone_number) {
-                modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
-            }
-            this.setState({
-                addressInputText: this.state.isBusinessAccount
-                    ? (result?.name || formatted_address)
-                    : (formatted_address || result?.name || ''),
-                inputs: modifiedInputs,
-            });
+            this.applyPlaceDetailsToInputs(result);
         }).catch((error) => {
             console.log(error);
+        });
+    };
+
+    handleMapboxSearchSelect = (selection) => {
+        MapsService.getMapboxRetrieve(selection.mapbox_id).then((response) => {
+            const feature = response.data?.features?.[0];
+            if (feature) {
+                const props = feature.properties || {};
+                const [lng, lat] = feature.geometry?.coordinates || [];
+                const result = {
+                    name: props.name || '',
+                    formatted_address: props.full_address || props.place_formatted || '',
+                    geometry: lat && lng ? { location: { lat, lng } } : undefined,
+                    website: props.metadata?.website || undefined,
+                    international_phone_number: props.metadata?.phone || undefined,
+                };
+                this.applyPlaceDetailsToInputs(result);
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
+
+    applyPlaceDetailsToInputs = (result) => {
+        if (!result) return;
+
+        const geometry = result?.geometry;
+        const formatted_address = result?.formatted_address;
+        const modifiedInputs = {
+            ...this.state.inputs,
+        };
+        if (formatted_address) {
+            modifiedInputs.address = formatted_address;
+            modifiedInputs.addressReadable = formatted_address;
+        }
+        if (!this.state.isBusinessAccount) {
+            if (result?.name) {
+                modifiedInputs.notificationMsg = result.name;
+            }
+            if (!modifiedInputs.category) {
+                modifiedInputs.category = 'uncategorized';
+            }
+        } else if (!modifiedInputs.notificationMsg && result?.name) {
+            modifiedInputs.notificationMsg = result.name;
+        }
+        if (geometry?.location) {
+            modifiedInputs.addressLatitude = geometry.location.lat;
+            modifiedInputs.addressLongitude = geometry.location.lng;
+        }
+        if (result?.website) {
+            modifiedInputs.addressWebsite = result?.website;
+        }
+        if (result?.rating) {
+            modifiedInputs.addressRating = {
+                rating: result?.rating,
+                total: result?.user_ratings_total || 0,
+            };
+        }
+        if (result?.opening_hours?.weekday_text) {
+            modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
+        }
+        if (result?.international_phone_number) {
+            modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
+        }
+        this.setState({
+            addressInputText: this.state.isBusinessAccount
+                ? (result?.name || formatted_address)
+                : (formatted_address || result?.name || ''),
+            inputs: modifiedInputs,
         });
     };
 
@@ -800,21 +833,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         });
     };
 
-    onSliderChange = (name, value) => {
-        const newInputChanges = {
-            [name]: value,
-        };
-
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                ...newInputChanges,
-            },
-            errorMsg: '',
-            isSubmitting: false,
-        });
-    };
-
     handleHashtagPress = (tag) => {
         const { hashtags } = this.state;
         let modifiedHastags = hashtags.filter(t => t !== tag);
@@ -893,15 +911,30 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 <Pressable style={this.themeAccentLayout.styles.container} onPress={this.onOuterContainerPress}>
                     {
                         isBusinessAccount && <>
-                            {
-                                !!imagePreviewPath &&
-                                <View style={this.themeMoments.styles.mediaContainer}>
-                                    <Image
-                                        source={{ uri: imagePreviewPath }}
-                                        style={this.themeMoments.styles.mediaImage}
-                                    />
-                                </View>
-                            }
+                            <View style={this.themeMoments.styles.mediaContainer}>
+                                {
+                                    imagePreviewPath
+                                        ? (
+                                            <Image
+                                                source={{ uri: imagePreviewPath }}
+                                                style={this.themeMoments.styles.mediaImage}
+                                            />
+                                        )
+                                        : (
+                                            <LottieView
+                                                source={require('../assets/missing-image-storefront.json')}
+                                                resizeMode="contain"
+                                                speed={0.8}
+                                                autoPlay
+                                                loop
+                                                style={{
+                                                    width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                                    height: 160,
+                                                }}
+                                            />
+                                        )
+                                }
+                            </View>
                             <Button
                                 containerStyle={spacingStyles.marginBotMd}
                                 buttonStyle={this.themeForms.styles.buttonPrimary}
@@ -1139,21 +1172,34 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         isBusinessAccount && <View
                             style={this.themeForms.styles.inputSliderContainer}
                         >
-                            <Slider
-                                value={inputs.radius}
-                                onValueChange={(value) => this.onSliderChange('radius', value)}
-                                maximumValue={MAX_RADIUS_PUBLIC}
-                                minimumValue={MIN_RADIUS_PUBLIC}
-                                step={1}
-                                thumbTintColor={this.theme.colors.accentBlue}
-                                minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
-                                maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                                onSlidingStart={() => { Keyboard.dismiss(); this.setState({ isSliderActive: true }); }}
-                                onSlidingComplete={() => this.setState({ isSliderActive: false })}
+                            <RoundInput
+                                placeholder={this.translate('forms.editSpace.labels.radiusPlaceholder', {
+                                    min: MIN_RADIUS_PUBLIC,
+                                    max: MAX_RADIUS_PUBLIC,
+                                })}
+                                value={inputs.radius === '' ? '' : String(inputs.radius)}
+                                onChangeText={(text) => {
+                                    const stripped = text.replace(/[^0-9]/g, '');
+                                    if (stripped === '') {
+                                        this.onInputChange('radius', '' as any);
+                                    } else {
+                                        this.onInputChange('radius', parseInt(stripped, 10) as any);
+                                    }
+                                }}
+                                onBlur={() => {
+                                    const num = parseInt(inputs.radius, 10);
+                                    if (isNaN(num) || num < MIN_RADIUS_PUBLIC) {
+                                        this.onInputChange('radius', MIN_RADIUS_PUBLIC as any);
+                                    } else if (num > MAX_RADIUS_PUBLIC) {
+                                        this.onInputChange('radius', MAX_RADIUS_PUBLIC as any);
+                                    }
+                                }}
+                                keyboardType="number-pad"
+                                themeForms={this.themeForms}
                             />
-                            <Text style={this.themeForms.styles.inputLabelDark}>
+                            {inputs.radius !== '' && <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
-                            </Text>
+                            </Text>}
                             <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.cost', { pointCost: 0 })}`}
                             </Text>
@@ -1345,7 +1391,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
-                        scrollEnabled={!this.state.isSliderActive}
+                        scrollEnabled
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit, this.theme.styles.scrollViewFull]}
                         contentContainerStyle={[

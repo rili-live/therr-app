@@ -55,6 +55,7 @@ import { AccessCheckType } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import getUserImageUri from '../utilities/getUserImageUri';
 import { getBrandContext } from '../utilities/getHostContext';
+import * as globalConfig from '../../../global-config';
 
 interface ISidebarProps {
     onLogout: (event: any) => any;
@@ -242,6 +243,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Overview" link={'/documentation/overview'} />
                                 <NavItem title="Quick Start" link={'/claim-a-space'} />
                                 <NavItem title="Claim a Space" link={'/claim-a-space'} />
+                                <NavItem title="API Reference" external target="_blank" link={`${globalConfig[process.env.NODE_ENV].baseApiGatewayRoute}/docs`} />
                             </CollapsableNavItem>
                             {/* <CollapsableNavItem eventKey="components/" title="Components" icon={faBoxOpen}>
                                 <NavItem title="Accordion" link={'/'} />

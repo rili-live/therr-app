@@ -14,11 +14,10 @@ import {
 } from 'react-native';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
-import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { showToast } from '../../utilities/toasts';
-import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
+import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { MapsService } from 'therr-react/services';
 import getConfig from '../../utilities/getConfig';
@@ -35,10 +34,20 @@ import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
 import SpaceRating from '../../components/Input/SpaceRating';
 import { buildSpaceUrl } from '../../utilities/shareUrls';
+import RichText from '../RichText';
+import handleMentionPress from '../../utilities/handleMentionPress';
 
 
 const envConfig = getConfig();
 const { width: viewportWidth } = Dimensions.get('window');
+
+const formatCategoryLabel = (category: string): string => {
+    if (!category) return '';
+    const label = category.replace('categories.', '').replace('/', ' & ');
+    return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
+const formatPriceRange = (priceRange: number): string => '$'.repeat(priceRange);
 // const hapticFeedbackOptions = {
 //     enableVibrateFallback: false,
 //     ignoreAndroidSystemSettings: false,
@@ -92,6 +101,7 @@ interface IAreaDisplayProps {
 }
 
 interface IAreaDisplayState {
+    isLiked: boolean;
     likeCount: number | null;
 }
 
@@ -100,6 +110,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         if (nextProps.area?.likeCount != null
             && (nextState.likeCount == null)) {
             return {
+                isLiked: !!nextProps.area.reaction?.userHasLiked,
                 likeCount: nextProps.area?.likeCount,
             };
         }
@@ -111,6 +122,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         super(props);
 
         this.state = {
+            isLiked: !!props.area.reaction?.userHasLiked,
             likeCount: props.area.likeCount,
         };
     }
@@ -159,18 +171,17 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         if (!area.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
+            const newIsLiked = !this.state.isLiked;
 
-            // Only display on own user post
-            if (this.props.area.likeCount != null) {
-                this.setState({
-                    likeCount: !area.reaction?.userHasLiked
-                        ? (this.state.likeCount || 0) + 1
-                        : (this.state.likeCount || 0) - 1,
-                });
-            }
+            this.setState({
+                isLiked: newIsLiked,
+                likeCount: this.props.area.likeCount != null
+                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
+                    : this.state.likeCount,
+            });
 
             updateAreaReaction(area.id, {
-                userHasLiked: !area.reaction?.userHasLiked,
+                userHasLiked: newIsLiked,
             }, area.fromUserId, user?.details?.userName);
         }
     };
@@ -353,18 +364,18 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             translate,
             user,
         } = this.props;
-        const { likeCount } = this.state;
+        const { isLiked, likeCount } = this.state;
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
         const mediaPadding = areaMediaPadding || 0;
         const isBookmarked = area.reaction?.userBookmarkCategory;
-        const isLiked = area.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
         const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
+        const isQuickReport = Categories.QuickReportCategories.includes(area.category);
         const toggleOptions = () => toggleAreaOptions(area);
         const isEvent = area.areaType === 'events';
         const isSpace = area.areaType === 'spaces';
@@ -495,48 +506,58 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         showsHorizontalScrollIndicator={false}
                     />
                 }
-                <PresssableWithDoubleTap
-                    style={{}}
-                    onPress={inspectContent}
-                    onDoubleTap={() => this.onLikePress(area)}
-                >
-                    {/* <UserMedia
-                        viewportWidth={viewportWidth}
-                        media={areaMedia}
-                        isVisible={!!areaMedia}
-                        isSingleView={isExpanded}
-                    /> */}
-                    {
-                        areaMedia ?
-                            <Image
-                                source={{
-                                    uri: areaMedia,
-                                }}
-                                style={{
-                                    width: mediaDimensions.width,
-                                    height: mediaDimensions.height,
-                                }}
-                                resizeMode="contain"
-                                PlaceholderContent={<ActivityIndicator />}
-                            /> :
-                            placeholderMediaType && <MissingImagePlaceholder
-                                area={area}
-                                themeViewArea={themeViewArea}
-                                placeholderMediaType={placeholderMediaType}
-                                dimensions={{
-                                    height: Math.min(mediaDimensions.height, 160),
-                                    width: mediaDimensions.width,
-                                }}
-                            />
-                    }
-                </PresssableWithDoubleTap>
-                <View style={themeViewArea.styles.areaContentTitleContainer}>
-                    <Text
-                        style={themeViewArea.styles.areaContentTitle}
-                        numberOfLines={2}
+                <View>
+                    <PresssableWithDoubleTap
+                        style={{}}
+                        onPress={inspectContent}
+                        onDoubleTap={() => this.onLikePress(area)}
                     >
-                        {sanitizeNotificationMsg(area.notificationMsg)}
-                    </Text>
+                        {/* <UserMedia
+                            viewportWidth={viewportWidth}
+                            media={areaMedia}
+                            isVisible={!!areaMedia}
+                            isSingleView={isExpanded}
+                        /> */}
+                        {
+                            areaMedia ?
+                                <Image
+                                    source={{
+                                        uri: areaMedia,
+                                    }}
+                                    style={{
+                                        width: mediaDimensions.width,
+                                        height: mediaDimensions.height,
+                                    }}
+                                    resizeMode="contain"
+                                    PlaceholderContent={<ActivityIndicator />}
+                                /> :
+                                placeholderMediaType && <MissingImagePlaceholder
+                                    area={area}
+                                    themeViewArea={themeViewArea}
+                                    placeholderMediaType={placeholderMediaType}
+                                    dimensions={{
+                                        height: Math.min(mediaDimensions.height, 160),
+                                        width: mediaDimensions.width,
+                                    }}
+                                />
+                        }
+                    </PresssableWithDoubleTap>
+                </View>
+                <View style={themeViewArea.styles.areaContentTitleContainer}>
+                    <View style={localStyles.titleWithBadge}>
+                        <Text
+                            style={[themeViewArea.styles.areaContentTitle, localStyles.titleText]}
+                            numberOfLines={2}
+                        >
+                            {sanitizeNotificationMsg(area.notificationMsg)}
+                        </Text>
+                        {isQuickReport && (
+                            <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                                <Icon name="schedule" size={12} color={theme.colors.brandingWhite} />
+                                <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                            </View>
+                        )}
+                    </View>
                     {
                         <Button
                             containerStyle={themeViewArea.styles.areaReactionButtonContainer}
@@ -675,6 +696,36 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </Pressable>
                     </Pressable>
                 }
+                {
+                    isSpace && isExpanded && (area.category || area.priceRange > 0) &&
+                    <View style={[spacingStyles.flexRow, spacingStyles.alignCenter, spacingStyles.padHorizMd, spacingStyles.padVertSm, localStyles.metaRow]}>
+                        {area.category ? (
+                            <View style={[localStyles.categoryBadge, { backgroundColor: theme.colors.primary3 }]}>
+                                <Text style={[localStyles.categoryBadgeText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.primary4,
+                                }]}>
+                                    {formatCategoryLabel(area.category)}
+                                </Text>
+                            </View>
+                        ) : null}
+                        {area.priceRange > 0 ? (
+                            <Text style={[localStyles.priceRangeText, { color: theme.colors.textGray }]}>
+                                {formatPriceRange(area.priceRange)}
+                            </Text>
+                        ) : null}
+                    </View>
+                }
+                {
+                    isSpace && isExpanded && area.addressReadable &&
+                    <View style={[spacingStyles.padHorizMd, localStyles.addressSection]}>
+                        <View style={[spacingStyles.flexRow, spacingStyles.alignCenter]}>
+                            <Icon name="place" size={16} color={theme.colors.textGray} />
+                            <Text style={[localStyles.addressText, { color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark }]}>
+                                {area.addressReadable}
+                            </Text>
+                        </View>
+                    </View>
+                }
                 <View style={[
                     spacingStyles.flexRow,
                 ]}>
@@ -689,7 +740,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 spacingStyles.alignCenter,
                                 spacingStyles.flexRow,
                             ]}>
-                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText]}>
+                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary }]}>
                                     {area.rating?.avgRating}
                                 </Text>
                                 <SpaceRating
@@ -702,7 +754,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                         localStyles.ratingStars,
                                     ]}
                                 />
-                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText]}>
+                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary }]}>
                                     ({area.rating.totalRatings})
                                 </Text>
                             </View>
@@ -715,13 +768,13 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </Text>
                     }
                 </View>
-                <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
-                    <Autolink
-                        text={area.message}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={themeViewArea.styles.areaMessage}
+                    text={area.message}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={!isSpace ? (username) => handleMentionPress(username, goToViewUser) : undefined}
+                    numberOfLines={isExpanded ? undefined : 3}
+                />
                 {
                     isExpanded && isEvent &&
                     <View style={[
@@ -869,6 +922,76 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     </View>
                 }
                 {
+                    isSpace && isExpanded && area.openingHours?.schema?.length > 0
+                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.hours')}
+                        </Text>
+                        <View style={localStyles.hoursGrid}>
+                            {area.openingHours.schema.map((entry: string) => {
+                                const parts = entry.split(' ');
+                                const days = parts[0] || '';
+                                const hours = parts.slice(1).join(' ') || '';
+                                return (
+                                    <View key={entry} style={localStyles.hoursRow}>
+                                        <Text style={[localStyles.hoursDayText, {
+                                            color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                                        }]}>
+                                            {days}
+                                        </Text>
+                                        <Text style={[localStyles.hoursTimeText, { color: theme.colors.textGray }]}>
+                                            {hours}
+                                        </Text>
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    </View>
+                }
+                {
+                    isSpace && isExpanded && (area.addressStreetAddress || area.addressLocality || area.addressRegion || area.phoneNumber)
+                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertSm]}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.contactAndLocation')}
+                        </Text>
+                        {area.addressStreetAddress ? (
+                            <Text style={[localStyles.contactText, {
+                                color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                            }]}>
+                                {area.addressStreetAddress}
+                            </Text>
+                        ) : null}
+                        {(area.addressLocality || area.addressRegion) ? (
+                            <Text style={[localStyles.contactText, {
+                                color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                            }]}>
+                                {[area.addressLocality, area.addressRegion].filter(Boolean).join(', ')}
+                                {area.postalCode ? ` ${area.postalCode}` : ''}
+                            </Text>
+                        ) : null}
+                        {area.phoneNumber ? (
+                            <Pressable onPress={() => Linking.openURL(`tel:${area.phoneNumber}`)}>
+                                <Text style={[localStyles.contactLinkText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen,
+                                }]}>
+                                    {area.phoneNumber}
+                                </Text>
+                            </Pressable>
+                        ) : null}
+                        {area.latitude && area.longitude ? (
+                            <Pressable onPress={() => Linking.openURL(
+                                `https://www.google.com/maps/search/?api=1&query=${area.latitude},${area.longitude}`
+                            )}>
+                                <Text style={[localStyles.contactLinkText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen,
+                                }]}>
+                                    {translate('pages.viewSpace.labels.viewOnGoogleMaps')}
+                                </Text>
+                            </Pressable>
+                        ) : null}
+                    </View>
+                }
+                {
                     isSpace && isExpanded && area.events?.length > 0
                     && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
                         <Text style={theme.styles.sectionTitleCenter}>
@@ -945,5 +1068,83 @@ const localStyles = StyleSheet.create({
     },
     distanceText: {
         width: 'auto',
+    },
+    metaRow: {
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    categoryBadge: {
+        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    categoryBadgeText: {
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    priceRangeText: {
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    addressSection: {
+        paddingBottom: 4,
+    },
+    addressText: {
+        fontSize: 13,
+        marginLeft: 4,
+        flexShrink: 1,
+    },
+    hoursGrid: {
+        marginTop: 8,
+    },
+    hoursRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+    },
+    hoursDayText: {
+        fontSize: 14,
+        fontWeight: '600',
+        minWidth: 80,
+    },
+    hoursTimeText: {
+        fontSize: 14,
+        flex: 1,
+        textAlign: 'right',
+    },
+    contactText: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 4,
+    },
+    contactLinkText: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 8,
+    },
+    titleWithBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexShrink: 1,
+        gap: 8,
+    },
+    titleText: {
+        flexShrink: 1,
+    },
+    quickReportBadge: {
+        flexShrink: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 10,
+        gap: 4,
+    },
+    quickReportBadgeText: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
 });

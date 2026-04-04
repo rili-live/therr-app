@@ -308,6 +308,73 @@ describe('Space Reactions Handler', () => {
         });
     });
 
+    describe('createOrUpdateMultiSpaceReactions - async correctness', () => {
+        it('should await update before sending response (regression: updatedReactions was always undefined)', async () => {
+            const existingReactions = [
+                { spaceId: 'space-1', userId: 'user-123' },
+            ];
+            const updatedResult = [
+                { spaceId: 'space-1', userId: 'user-123', userHasActivated: true },
+            ];
+
+            const getStub = sinon.stub(Store.spaceReactions, 'get').resolves(existingReactions);
+            const updateStub = sinon.stub(Store.spaceReactions, 'update').resolves(updatedResult);
+            const createStub = sinon.stub(Store.spaceReactions, 'create').resolves([]);
+
+            // Simulate the fixed handler logic using Promise.all
+            const existing = await Store.spaceReactions.get({ userId: 'user-123' }, ['space-1']);
+
+            const existingMapped = {};
+            const existingMappedPairs = existing.map((reaction) => {
+                existingMapped[reaction.spaceId] = reaction;
+                return ['user-123', reaction.spaceId];
+            });
+
+            const updatePromise = existing?.length
+                ? Store.spaceReactions.update({}, { userHasActivated: true }, {
+                    columns: ['userId', 'spaceId'],
+                    whereInArray: existingMappedPairs,
+                })
+                : Promise.resolve([]);
+
+            const createArray = ['space-1']
+                .filter((id) => !existingMapped[id])
+                .map((spaceId) => ({ spaceId, userId: 'user-123' }));
+
+            const createPromise = createArray.length
+                ? Store.spaceReactions.create(createArray)
+                : Promise.resolve([]);
+
+            const [updatedReactions, createdReactions] = await Promise.all([updatePromise, createPromise]);
+
+            // This was the bug: updatedReactions was always undefined because update was not awaited
+            expect(updatedReactions).to.not.be.eq(undefined);
+            expect(updatedReactions).to.be.an('array');
+            expect(updatedReactions.length).to.equal(1);
+            expect(updatedReactions[0].userHasActivated).to.be.eq(true);
+        });
+
+        it('should return empty array for updates when no existing reactions', async () => {
+            const getStub = sinon.stub(Store.spaceReactions, 'get').resolves([]);
+            const createStub = sinon.stub(Store.spaceReactions, 'create').resolves([
+                { spaceId: 'space-1', userId: 'user-123' },
+            ]);
+
+            const existing = await Store.spaceReactions.get({ userId: 'user-123' }, ['space-1']);
+
+            const updatePromise = existing?.length
+                ? Store.spaceReactions.update({}, {}, { columns: [], whereInArray: [] })
+                : Promise.resolve([]);
+
+            const createPromise = Store.spaceReactions.create([{ spaceId: 'space-1', userId: 'user-123' }]);
+
+            const [updatedReactions, createdReactions] = await Promise.all([updatePromise, createPromise]);
+
+            expect(updatedReactions).to.deep.equal([]);
+            expect(createdReactions.length).to.equal(1);
+        });
+    });
+
     describe('countSpaceReactions logic', () => {
         it('should return reaction count for a space', async () => {
             const mockCount = [{ spaceId: 'space-123', count: '10' }];

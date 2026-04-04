@@ -136,7 +136,7 @@ const ViewEvent = ({
     const brandColor = isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen;
 
     // Derived values
-    const { event, isMyContent, previousView } = route.params;
+    const { event, isMyContent, previousView, previewScrollIndex } = route.params;
     const eventInView = useMemo(() => ({
         ...event,
         ...fetchedEvent,
@@ -216,9 +216,9 @@ const ViewEvent = ({
                 navigation.navigate('Notifications');
             }
         } else {
-            navigation.navigate('Map', { shouldShowPreview: true });
+            navigation.navigate('Map', { shouldShowPreview: true, previewScrollIndex });
         }
-    }, [previousView, navigation]);
+    }, [previousView, previewScrollIndex, navigation]);
 
     const handleGoToViewMap = useCallback((lat, long) => {
         navigation.replace('Map', { latitude: lat, longitude: long });
