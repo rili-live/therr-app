@@ -435,6 +435,18 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
                     distanceOverride: radius,
                 })(dispatch);
             }
+            // Check if slug is a known city (e.g. /locations/chicago-il)
+            const city = Cities.CitySlugMap[params.categorySlug];
+            if (city) {
+                const cityRadius = parseFloat(query.r) || 50000;
+                return MapActions.listSpaces({
+                    itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                    pageNumber: 1,
+                    latitude: city.lat,
+                    longitude: city.lng,
+                    filterBy: 'distance',
+                }, { distanceOverride: cityRadius })(dispatch);
+            }
             // Treat as page number
             const pageNumber = parseInt(params.categorySlug || '1', 10);
             if (Number.isNaN(pageNumber)) return Promise.resolve();

@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import { Link, NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
-import { Categories, Content } from 'therr-js-utilities/constants';
+import { Categories, Cities, Content } from 'therr-js-utilities/constants';
 import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import {
     Stack, Group, Title, Text, Badge, Anchor,
@@ -49,6 +49,7 @@ interface IListSpacesRouterProps {
     };
     routeParams: {
         categorySlug: string;
+        citySlug: string;
         pageNumber: string;
     }
 }
@@ -154,7 +155,12 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
         const parsedPage = parseInt(pageNumberStr, 10);
         if (!isCategory && Number.isNaN(parsedPage)) {
-            setTimeout(() => this.props.navigation.navigate('/locations'));
+            // If the slug is a known city, redirect to the canonical city URL
+            if (categorySlug && Cities.CitySlugMap[categorySlug]) {
+                setTimeout(() => this.props.navigation.navigate(`/locations/city/${categorySlug}`));
+            } else {
+                setTimeout(() => this.props.navigation.navigate('/locations'));
+            }
         } else {
             const pageNumber = Number.isNaN(parsedPage) ? 1 : parsedPage;
 
@@ -207,6 +213,12 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             return { lat: searchLat, lng: searchLng };
         }
 
+        // City route: use city coordinates
+        const city = this.getActiveCityEntry();
+        if (city) {
+            return { lat: city.lat, lng: city.lng };
+        }
+
         // Fall back to browser location, then defaults
         return {
             lat: location?.user?.latitude || DEFAULT_LATITUDE,
@@ -216,7 +228,10 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     getDistanceOverride = (): number => {
         const { searchRadius } = this.state;
-        return searchRadius || DEFAULT_DISTANCE_OVERRIDE;
+        if (searchRadius) return searchRadius;
+        // City routes use a tighter metro radius
+        if (this.getActiveCityEntry()) return 50000;
+        return DEFAULT_DISTANCE_OVERRIDE;
     };
 
     getActiveCategoryKey = (): string | undefined => {
@@ -224,6 +239,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         return routeParams.categorySlug
             ? Categories.SlugToCategoryMap[routeParams.categorySlug]
             : undefined;
+    };
+
+    getActiveCityEntry = () => {
+        const { routeParams } = this.props;
+        return routeParams.citySlug ? Cities.CitySlugMap[routeParams.citySlug] : undefined;
     };
 
     searchPaginatedSpaces = (
