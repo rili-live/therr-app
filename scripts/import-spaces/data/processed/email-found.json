@@ -1,6 +1,6 @@
 {
   "type": "email-found",
-  "updatedAt": "2026-04-05T01:35:08.298Z",
+  "updatedAt": "2026-04-05T01:39:42.093Z",
   "entries": [
     {
       "id": "9fbe963b-6e01-494c-acee-d628cc40ce01",
@@ -1816,6 +1816,16 @@
       "id": "c00ff722-72a6-4ee7-a5b5-fdc57a7f52c6",
       "name": "Jasmine Thai Restaurant",
       "processedAt": "2026-04-05T01:35:08.297Z"
+    },
+    {
+      "id": "623b938c-9edc-4835-b57b-3ff77406911f",
+      "name": "Ripple Bagel & Deli",
+      "processedAt": "2026-04-05T01:37:36.007Z"
+    },
+    {
+      "id": "5f4c07a4-860c-457a-877d-cc585933a2e9",
+      "name": "Apple Store",
+      "processedAt": "2026-04-05T01:39:42.093Z"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "type": "no-image-found",
-  "updatedAt": "2026-04-05T01:34:55.708Z",
+  "updatedAt": "2026-04-05T01:39:38.283Z",
   "entries": [
     {
       "id": "ad98b699-f56e-4f4b-a270-3a9030116a08",
@@ -5191,6 +5191,41 @@
       "id": "89ee71b2-6681-43e3-b6f7-24460650cfbe",
       "name": "Dream Palace Books & Coffee",
       "processedAt": "2026-04-05T01:34:55.708Z"
+    },
+    {
+      "id": "f6a59e8e-32b3-46e1-8ea6-555ddea0594a",
+      "name": "Axum",
+      "processedAt": "2026-04-05T01:37:06.003Z"
+    },
+    {
+      "id": "8e5b15ee-d1bd-474b-9163-1699f313918c",
+      "name": "IUI Bookstore",
+      "processedAt": "2026-04-05T01:37:55.248Z"
+    },
+    {
+      "id": "1c330a91-1716-4ef9-8104-8d51a79bae82",
+      "name": "Rabble Coffee",
+      "processedAt": "2026-04-05T01:37:57.726Z"
+    },
+    {
+      "id": "4692e427-3676-4dd7-827a-5340c4f35ab7",
+      "name": "American Pizza Company",
+      "processedAt": "2026-04-05T01:38:41.316Z"
+    },
+    {
+      "id": "edf75643-513f-4860-8496-701267390b11",
+      "name": "Capri Ristorante",
+      "processedAt": "2026-04-05T01:38:49.360Z"
+    },
+    {
+      "id": "045c5901-7d39-4647-9d07-27f7ddef5d12",
+      "name": "Finch Entertainment",
+      "processedAt": "2026-04-05T01:38:59.245Z"
+    },
+    {
+      "id": "5f857b13-918d-4f94-b3b1-7afa87040efd",
+      "name": "Half Price Books",
+      "processedAt": "2026-04-05T01:39:38.283Z"
     }
   ]
 }

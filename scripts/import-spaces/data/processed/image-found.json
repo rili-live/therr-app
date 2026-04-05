@@ -1,6 +1,6 @@
 {
   "type": "image-found",
-  "updatedAt": "2026-04-05T01:35:09.574Z",
+  "updatedAt": "2026-04-05T01:40:10.142Z",
   "entries": [
     {
       "id": "38e932b4-2909-4563-9cde-cdc31e7b7cf9",
@@ -556,6 +556,61 @@
       "id": "c00ff722-72a6-4ee7-a5b5-fdc57a7f52c6",
       "name": "Jasmine Thai Restaurant",
       "processedAt": "2026-04-05T01:35:09.574Z"
+    },
+    {
+      "id": "9d488dac-f950-4926-bf8d-5d200eca56e3",
+      "name": "Sultana Cafe & Hookah Bar",
+      "processedAt": "2026-04-05T01:37:10.809Z"
+    },
+    {
+      "id": "b3a618be-e843-4045-a4bb-6af9f660857d",
+      "name": "Starbucks",
+      "processedAt": "2026-04-05T01:37:49.900Z"
+    },
+    {
+      "id": "601832dc-364e-4965-84e8-a2fae029c7ed",
+      "name": "Shalimar",
+      "processedAt": "2026-04-05T01:38:08.602Z"
+    },
+    {
+      "id": "d7975309-38e2-48ef-975c-93d6f822de33",
+      "name": "Bosphorus Istanbul Cafe",
+      "processedAt": "2026-04-05T01:38:27.814Z"
+    },
+    {
+      "id": "c8e2a5e6-d4f6-4f68-bcd7-5d0836299cb9",
+      "name": "The Cheesecake Factory",
+      "processedAt": "2026-04-05T01:39:17.804Z"
+    },
+    {
+      "id": "97ab680b-71db-49a6-b8b9-c0d9a97a302f",
+      "name": "Best Western Airport Suites",
+      "processedAt": "2026-04-05T01:39:30.450Z"
+    },
+    {
+      "id": "6bddf260-ffcf-4340-a584-09b695fbfac9",
+      "name": "Whole Foods Market",
+      "processedAt": "2026-04-05T01:39:35.419Z"
+    },
+    {
+      "id": "5f4c07a4-860c-457a-877d-cc585933a2e9",
+      "name": "Apple Store",
+      "processedAt": "2026-04-05T01:39:43.147Z"
+    },
+    {
+      "id": "c8c42d36-1a89-4e1c-9ad8-503e0b94b020",
+      "name": "Starbucks",
+      "processedAt": "2026-04-05T01:39:47.057Z"
+    },
+    {
+      "id": "466d1d50-2658-437e-912a-5daf3e216ac5",
+      "name": "Los Cuates",
+      "processedAt": "2026-04-05T01:39:53.447Z"
+    },
+    {
+      "id": "adf01043-7ee7-46f0-8144-f73dd777a35f",
+      "name": "MacKenzie River Pizza Co",
+      "processedAt": "2026-04-05T01:40:10.142Z"
     }
   ]
 }

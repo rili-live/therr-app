@@ -161,6 +161,16 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
         },
     },
 }));
+// Return 404 for any static asset extension that wasn't found by expressStaticGzip.
+// Without this, missing bundles (e.g. stale hash after a deploy) fall through to the
+// SSR catch-all and return HTML, causing "Unexpected token '<'" in the browser.
+app.use((req, res, next) => {
+    if (/\.(js|css|map|br|gz)$/.test(req.path)) {
+        return res.status(404).type('text/plain').send('Not found');
+    }
+    next();
+});
+
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
 app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
