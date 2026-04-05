@@ -284,6 +284,27 @@ export default class SpacesStore {
             .then((response) => response.rows);
     }
 
+    getByIdForDisplayRequest(id) {
+        const query = knexBuilder
+            .select([
+                'id',
+                'fromUserId',
+                'requestedByUserId',
+                'isClaimPending',
+                'notificationMsg',
+                'addressStreetAddress',
+                'addressLocality',
+                'addressRegion',
+                'postalCode',
+                'businessEmail',
+            ])
+            .from(SPACES_TABLE_NAME)
+            .where({ id });
+
+        return this.db.read.query(query.toString())
+            .then((response) => response.rows);
+    }
+
     // Combine with search to avoid getting count out of sync
     countRecords(params, fromUserIds) {
         let proximityMax = Location.AREA_PROXIMITY_METERS;
