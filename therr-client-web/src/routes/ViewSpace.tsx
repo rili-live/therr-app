@@ -6,12 +6,13 @@ import { NavigateFunction } from 'react-router-dom';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
+import { IconCheck } from '@tabler/icons-react';
 import { Categories, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
     SimpleGrid, Rating as MantineRating, Paper, Avatar,
-    Button, Alert, Modal, Textarea,
+    Button, Alert, Modal, Textarea, Collapse, List, ThemeIcon,
 } from '@mantine/core';
 import { InlineSvg } from 'therr-react/components';
 import withNavigation from '../wrappers/withNavigation';
@@ -82,6 +83,7 @@ interface IViewSpaceState {
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
     isClaimBannerDismissed: boolean;
+    isWhyTherrExpanded: boolean;
     isLoginModalOpen: boolean;
     loginModalAction: 'bookmark' | 'review' | '';
     reviewRating: number;
@@ -133,6 +135,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isLinkCopied: false,
             isFromClaimEmail: searchParams.get('claim') === 'true',
             isClaimBannerDismissed: false,
+            isWhyTherrExpanded: false,
             isClaimLoading: false,
             claimMessage: '',
             claimMessageType: '',
@@ -638,7 +641,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     renderClaimCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
         const {
-            isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType,
+            isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType, isWhyTherrExpanded,
         } = this.state;
         const isAuthenticated = user?.isAuthenticated;
 
@@ -683,6 +686,36 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <Text size={isFromClaimEmail ? 'md' : 'sm'} mt="xs" c="inherit">
                     {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailBody' : 'pages.viewSpace.claimSpace.body')}
                 </Text>
+                <Anchor
+                    size="sm"
+                    mt="sm"
+                    display="inline-block"
+                    onClick={() => this.setState((prev) => ({ isWhyTherrExpanded: !prev.isWhyTherrExpanded }))}
+                >
+                    {translate('pages.viewSpace.claimSpace.whyTherr.toggle')}
+                    {' '}
+                    {isWhyTherrExpanded ? '▲' : '▼'}
+                </Anchor>
+                <Collapse in={isWhyTherrExpanded}>
+                    <List
+                        mt="sm"
+                        spacing="xs"
+                        size="sm"
+                        icon={(
+                            <ThemeIcon color="teal" size={18} radius="xl">
+                                <IconCheck size={12} />
+                            </ThemeIcon>
+                        )}
+                    >
+                        {[1, 2, 3, 4, 5].map((n) => (
+                            <List.Item key={n}>
+                                <Text size="sm" fw={600} span>{translate(`pages.viewSpace.claimSpace.whyTherr.item${n}Title`)}</Text>
+                                {' — '}
+                                <Text size="sm" span>{translate(`pages.viewSpace.claimSpace.whyTherr.item${n}Body`)}</Text>
+                            </List.Item>
+                        ))}
+                    </List>
+                </Collapse>
                 {claimMessage && claimMessageType === 'error' && (
                     <Text size="sm" c="red" mt="xs">{claimMessage}</Text>
                 )}

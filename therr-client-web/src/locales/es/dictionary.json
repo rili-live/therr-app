@@ -865,7 +865,20 @@
         "pendingTitle": "Solicitud de reclamo pendiente",
         "pendingBody": "Se ha enviado una solicitud de reclamo para este espacio y está siendo revisada.",
         "successMessage": "Tu solicitud de reclamo ha sido enviada. Serás notificado una vez que sea aprobada.",
-        "errorMessage": "Hubo un error al enviar tu solicitud. Por favor, intenta de nuevo más tarde."
+        "errorMessage": "Hubo un error al enviar tu solicitud. Por favor, intenta de nuevo más tarde.",
+        "whyTherr": {
+          "toggle": "¿Por qué Therr app?",
+          "item1Title": "Descubrimiento por proximidad",
+          "item1Body": "Tu listado se activa cuando los clientes están físicamente cerca, no solo cuando buscan.",
+          "item2Title": "Recompensas por visita",
+          "item2Body": "Los clientes ganan recompensas al visitar tu negocio, creando un ciclo de fidelización que impulsa el tráfico.",
+          "item3Title": "Amplificación por red de amigos",
+          "item3Body": "Cuando los clientes hacen check-in, sus amigos lo ven de forma orgánica — boca a boca sin gasto en anuncios.",
+          "item4Title": "Análisis de tráfico",
+          "item4Body": "Consulta análisis mensuales sobre cuántas personas visitaron tu área e interactuaron con tu espacio.",
+          "item5Title": "Promociones geolocalizadas",
+          "item5Body": "Llega a clientes que están a poca distancia en tiempo real con ofertas y descuentos."
+        }
       }
     },
     "viewMoment": {

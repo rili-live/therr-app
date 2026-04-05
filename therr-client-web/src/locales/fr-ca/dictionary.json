@@ -821,7 +821,20 @@
         "pendingTitle": "Demande de réclamation en attente",
         "pendingBody": "Une demande de réclamation pour cet espace a été soumise et est en cours de révision.",
         "successMessage": "Votre demande de réclamation a été soumise. Vous serez notifié une fois qu'elle sera approuvée.",
-        "errorMessage": "Une erreur s'est produite lors de la soumission de votre demande. Veuillez réessayer plus tard."
+        "errorMessage": "Une erreur s'est produite lors de la soumission de votre demande. Veuillez réessayer plus tard.",
+        "whyTherr": {
+          "toggle": "Pourquoi Therr app?",
+          "item1Title": "Découverte par proximité",
+          "item1Body": "Votre fiche s'active quand des clients sont physiquement proches — pas seulement quand ils cherchent.",
+          "item2Title": "Récompenses pour les visites",
+          "item2Body": "Les clients gagnent des récompenses en visitant votre commerce, créant une boucle de fidélisation naturelle.",
+          "item3Title": "Amplification par le réseau d'amis",
+          "item3Body": "Quand des clients font un enregistrement, leurs amis le voient de façon organique — bouche-à-oreille sans publicité.",
+          "item4Title": "Analyses de fréquentation",
+          "item4Body": "Consultez des analyses mensuelles sur le nombre de personnes ayant visité votre zone et interagi avec votre espace.",
+          "item5Title": "Promotions géolocalisées",
+          "item5Body": "Ciblez les clients à distance de marche en temps réel avec des offres et des promotions."
+        }
       }
     },
     "viewGroup": {
