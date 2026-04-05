@@ -85,6 +85,15 @@ export const CITIES: Record<string, ICityConfig> = {
     countryCode: 'US',
     bbox: { south: 43.9888, west: -123.2087, north: 44.0918, east: -123.0366 },
   },
+  indianapolis: {
+    name: 'Indianapolis',
+    slug: 'indianapolis-in',
+    region: 'Indiana',
+    regionCode: 'IN',
+    country: 'United States',
+    countryCode: 'US',
+    bbox: { south: 39.6318, west: -86.3285, north: 39.9260, east: -85.9538 },
+  },
   'new-york': {
     name: 'New York',
     slug: 'new-york-ny',
