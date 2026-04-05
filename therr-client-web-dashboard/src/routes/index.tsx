@@ -26,6 +26,7 @@ import OAuth2Landing from './OAuth2Landing';
 import PaymentComplete from './PaymentComplete';
 import CampaignPerformance from './Campaigns/CampaignPerformance';
 import EmailPreferences from './EmailPreferences';
+import SSOLanding from './SSOLanding';
 
 export type IRoute = RouteObject & {
     access?: IAccess;
@@ -280,6 +281,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/oauth2/facebook-instagram',
         element: <OAuth2Landing />,
+    },
+    {
+        path: '/sso',
+        element: <SSOLanding />,
     },
     {
         path: '/login',

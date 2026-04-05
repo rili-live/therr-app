@@ -3,10 +3,16 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import sendAdminUrgentErrorEmail from '../api/email/admin/sendAdminUrgentErrorEmail';
-import { handleSubscriptionCreateUpdate, productIdMap } from './helpers/payment-webhook-handlers';
+import {
+    handleSubscriptionCreateUpdate,
+    handleSubscriptionDeleted,
+    handleSubscriptionPaused,
+    handleSubscriptionResumed,
+    handleSubscriptionTrialWillEnd,
+    productIdMap,
+} from './helpers/payment-webhook-handlers';
 import stripe from '../api/stripe';
 import Store from '../store';
-import { handleWebhookNotConfigured } from './helpers/webhook-not-configured-handler';
 import * as globalConfig from '../../../../global-config';
 
 const activateUserSubscription = (req, res) => {
@@ -85,9 +91,31 @@ const activateUserSubscription = (req, res) => {
 };
 
 const handleWebhookEvents = async (req, res) => {
-    // TODO: Validate event signature with process.env.STRIPE_WEBHOOK_SIGNING_SECRET
-    // https://stripe.com/docs/webhooks/quickstart
-    const event = req.body;
+    let event;
+
+    if (process.env.STRIPE_WEBHOOK_SIGNING_SECRET) {
+        const sig = req.headers['stripe-signature'];
+        try {
+            event = stripe.webhooks.constructEvent(req.rawBody || req.body, sig, process.env.STRIPE_WEBHOOK_SIGNING_SECRET);
+        } catch (err: any) {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Webhook signature verification failed'],
+                traceArgs: { 'webhook.error': err.message },
+            });
+            return res.status(400).send({ message: `Webhook signature verification failed: ${err.message}` });
+        }
+    } else {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: ['STRIPE_WEBHOOK_SIGNING_SECRET not configured, skipping signature validation'],
+            traceArgs: {},
+        });
+        event = req.body;
+    }
+
     const eventObject = event.data.object;
 
     logSpan({
@@ -114,30 +142,28 @@ const handleWebhookEvents = async (req, res) => {
             case 'customer.subscription.updated':
                 await handleSubscriptionCreateUpdate(event);
                 break;
-            // Occurs when subscription ends
             case 'customer.subscription.deleted':
-                // TODO: Add better handlers
-                await handleWebhookNotConfigured(event, globalConfig[process.env.NODE_ENV].dashboardHost);
+                await handleSubscriptionDeleted(event);
                 break;
             case 'customer.subscription.paused':
-                // TODO: Add better handlers
-                await handleWebhookNotConfigured(event, globalConfig[process.env.NODE_ENV].dashboardHost);
+                await handleSubscriptionPaused(event);
                 break;
             case 'customer.subscription.resumed':
-                // TODO: Add better handlers
-                await handleWebhookNotConfigured(event, globalConfig[process.env.NODE_ENV].dashboardHost);
+                await handleSubscriptionResumed(event);
                 break;
             case 'customer.subscription.pending_update_applied':
-                // TODO: Add better handlers
-                await handleWebhookNotConfigured(event, globalConfig[process.env.NODE_ENV].dashboardHost);
+                await handleSubscriptionCreateUpdate(event);
                 break;
             case 'customer.subscription.pending_update_expired':
-                // TODO: Add better handlers
-                await handleWebhookNotConfigured(event, globalConfig[process.env.NODE_ENV].dashboardHost);
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Subscription pending update expired'],
+                    traceArgs: { 'webhook.eventType': event.type },
+                });
                 break;
             case 'customer.subscription.trial_will_end':
-                // TODO: Add better handlers
-                await handleWebhookNotConfigured(event, globalConfig[process.env.NODE_ENV].dashboardHost);
+                await handleSubscriptionTrialWillEnd(event);
                 break;
             case 'payment_method.attached':
                 // Then define and call a method to handle the successful attachment of a PaymentMethod.
@@ -180,7 +206,71 @@ const handleWebhookEvents = async (req, res) => {
     return res.status(200).send({ message: 'Webhooked' });
 };
 
+const createCustomerPortalSession = async (req, res) => {
+    const {
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
+
+    try {
+        const [user] = userId ? await Store.users.getUserById(userId) : [];
+
+        if (!user) {
+            return res.status(404).send({ message: 'User not found' });
+        }
+
+        const email = user.billingEmail || user.email;
+
+        // Find the Stripe customer by email
+        const customers = await stripe.customers.list({ email, limit: 1 });
+
+        if (!customers.data.length) {
+            return res.status(404).send({ message: 'No subscription found for this account' });
+        }
+
+        const dashboardHost = globalConfig[process.env.NODE_ENV].dashboardHost;
+        const defaultReturnUrl = `https://${dashboardHost}/settings`;
+        let returnUrl = defaultReturnUrl;
+
+        // Validate returnUrl to prevent open redirect
+        if (req.body.returnUrl) {
+            try {
+                const parsed = new URL(req.body.returnUrl);
+                if (parsed.hostname === dashboardHost || parsed.hostname === whiteLabelOrigin) {
+                    returnUrl = req.body.returnUrl;
+                }
+            } catch {
+                // Invalid URL, use default
+            }
+        }
+
+        const portalSession = await stripe.billingPortal.sessions.create({
+            customer: customers.data[0].id,
+            return_url: returnUrl,
+        });
+
+        return res.status(200).send({ url: portalSession.url });
+    } catch (err: any) {
+        sendAdminUrgentErrorEmail({
+            subject: '[Urgent Error] Customer Portal Error',
+            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+            agencyDomainName: whiteLabelOrigin,
+            brandVariation,
+        }, {
+            errorMessage: err?.message,
+        }, {});
+        return handleHttpError({
+            res,
+            err,
+            message: err.message,
+            statusCode: 500,
+        });
+    }
+};
+
 export {
     activateUserSubscription,
+    createCustomerPortalSession,
     handleWebhookEvents,
 };

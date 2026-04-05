@@ -22,7 +22,7 @@ module.exports = {
         url: 'https://www.example.com/',
     },
     transform: {
-        '^.+\\.tsx?$': 'ts-jest',
+        '^.+\\.tsx?$': ['ts-jest', { tsconfig: './tsconfig.test.json' }],
         '^.+\\.jsx?$': 'babel-jest',
     },
     testRegex: '/__tests__/.*\\.(tsx?|jsx?)$',

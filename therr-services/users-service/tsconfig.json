@@ -45,7 +45,8 @@
 		"src/unit_test.d.ts"
 	],
 	"include": [
-		"src/**/*"
+		"src/**/*",
+		"tests/**/*"
 	],
 	"exclude": [
 		"../../node_modules/**/*.*"

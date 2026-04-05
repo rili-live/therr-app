@@ -145,6 +145,30 @@ export default [
         view: 'locations',
     },
     {
+        route: '/locations/city/:citySlug',
+        head: {
+            title: 'Local Business Directory',
+            description: 'Browse local businesses near you. Read reviews, see hours, and get directions.',
+        },
+        view: 'locations',
+    },
+    {
+        route: '/locations/city/:citySlug/:categorySlug',
+        head: {
+            title: 'Local Business Directory',
+            description: 'Browse local businesses near you. Read reviews, see hours, and get directions.',
+        },
+        view: 'locations',
+    },
+    {
+        route: '/locations/city/:citySlug/:categorySlug/:pageNumber',
+        head: {
+            title: 'Local Business Directory',
+            description: 'Browse local businesses near you. Read reviews, see hours, and get directions.',
+        },
+        view: 'locations',
+    },
+    {
         route: '/locations/:categorySlug',
         head: {
             title: 'Local Business Directory',

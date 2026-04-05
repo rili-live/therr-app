@@ -167,7 +167,7 @@ exports.loadSvg = paths => ({
             },
             {
                 test: /\.(eot|woff|woff2|ttf)$/,
-                use: ['file-loader']
+                type: 'asset/resource',
             }
         ],
     },

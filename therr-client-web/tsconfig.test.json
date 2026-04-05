@@ -1,0 +1,12 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"types": ["node", "react", "react-dom", "react-router-dom", "jest", "enzyme"]
+	},
+	"include": [
+		"src/**/*",
+		"src/types",
+		"test-setup.ts"
+	]
+}

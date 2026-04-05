@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import localScout from '../src/config/achievements/localScout';
-import achievements, { achievementsByClass } from '../src/config/achievements';
-import { IAchievement } from '../src/config/achievements';
+import achievements, { achievementsByClass, IAchievement } from '../src/config/achievements';
 
 describe('LocalScout Achievements', () => {
     it('should export localScout achievements', () => {
@@ -40,9 +39,11 @@ describe('LocalScout Achievements', () => {
 
         it('countToComplete should increase across tiers', () => {
             const counts = tiers.map(([, a]) => a.countToComplete);
-            for (let i = 1; i < counts.length; i++) {
-                expect(counts[i]).to.be.greaterThan(counts[i - 1],
-                    `Tier ${i} countToComplete should be greater than tier ${i - 1}`);
+            for (let i = 1; i < counts.length; i += 1) {
+                expect(counts[i]).to.be.greaterThan(
+                    counts[i - 1],
+                    `Tier ${i} countToComplete should be greater than tier ${i - 1}`,
+                );
             }
         });
 
@@ -58,7 +59,7 @@ describe('LocalScout Achievements', () => {
         });
 
         it('each subsequent tier should require the previous tier', () => {
-            for (let i = 1; i < tiers.length; i++) {
+            for (let i = 1; i < tiers.length; i += 1) {
                 const [prevKey] = tiers[i - 1];
                 const [, currentTier] = tiers[i];
                 expect(currentTier.prerequisite({})).to.be.equal(false);

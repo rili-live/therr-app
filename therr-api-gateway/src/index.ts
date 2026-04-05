@@ -48,7 +48,17 @@ if (process.env.NODE_ENV !== 'production') {
 // Open Telemetry Logging Middleware
 app.use(reqLogDecorator);
 
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            'script-src': ["'self'", 'https://cdn.redoc.ly'],
+            'worker-src': ["'self'", 'blob:'],
+            'connect-src': ["'self'", 'https://cdn.redoc.ly'],
+            'img-src': ["'self'", 'data:', 'https://cdn.redoc.ly'],
+        },
+    },
+}));
 app.use(express.urlencoded({ extended: true }));
 // Use defaults except for specific route in regex
 app.use(/^(?!\/v1\/users-service\/users\/connections\/find-people$)/, express.json({

@@ -26,10 +26,12 @@ describe('Categories', () => {
         });
 
         it('new quick report categories (30-35) should be in MomentCategories', () => {
-            for (let id = 30; id <= 35; id++) {
+            for (let id = 30; id <= 35; id += 1) {
                 const cat = Categories.CategoriesMap[id];
-                expect(Categories.MomentCategories).to.include(cat,
-                    `Quick report category "${cat}" (ID ${id}) should be in MomentCategories`);
+                expect(Categories.MomentCategories).to.include(
+                    cat,
+                    `Quick report category "${cat}" (ID ${id}) should be in MomentCategories`,
+                );
             }
         });
     });
@@ -41,8 +43,10 @@ describe('Categories', () => {
 
         it('should have an expiry for every quick report category', () => {
             Categories.QuickReportCategories.forEach((cat: string) => {
-                expect(Categories.QuickReportExpiryHoursMap[cat]).to.be.a('number',
-                    `Missing expiry for category "${cat}"`);
+                expect(Categories.QuickReportExpiryHoursMap[cat]).to.be.a(
+                    'number',
+                    `Missing expiry for category "${cat}"`,
+                );
                 expect(Categories.QuickReportExpiryHoursMap[cat]).to.be.greaterThan(0);
             });
         });
@@ -71,19 +75,23 @@ describe('Categories', () => {
         });
 
         it('should have CategoryToInterestsMap entries for all new categories', () => {
-            for (let id = 30; id <= 35; id++) {
+            for (let id = 30; id <= 35; id += 1) {
                 const cat = Categories.CategoriesMap[id];
-                expect(Categories.CategoryToInterestsMap[cat]).to.be.an('array',
-                    `Missing CategoryToInterestsMap entry for "${cat}"`);
+                expect(Categories.CategoryToInterestsMap[cat]).to.be.an(
+                    'array',
+                    `Missing CategoryToInterestsMap entry for "${cat}"`,
+                );
                 expect(Categories.CategoryToInterestsMap[cat].length).to.be.greaterThan(0);
             }
         });
 
         it('should have ComplementaryCategoriesMap entries for all new categories', () => {
-            for (let id = 30; id <= 35; id++) {
+            for (let id = 30; id <= 35; id += 1) {
                 const cat = Categories.CategoriesMap[id];
-                expect(Categories.ComplementaryCategoriesMap[cat]).to.be.an('array',
-                    `Missing ComplementaryCategoriesMap entry for "${cat}"`);
+                expect(Categories.ComplementaryCategoriesMap[cat]).to.be.an(
+                    'array',
+                    `Missing ComplementaryCategoriesMap entry for "${cat}"`,
+                );
                 expect(Categories.ComplementaryCategoriesMap[cat].length).to.be.greaterThan(0);
             }
         });

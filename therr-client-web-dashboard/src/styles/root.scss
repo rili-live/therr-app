@@ -19,10 +19,15 @@
 // * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. Please contact us to request a removal.
 
 @import url('https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,600,700,800&display=swap');
-$fa-font-path: '../../../node_modules/@fortawesome/fontawesome-free/webfonts'; 
+$fa-font-path: '../../../node_modules/@fortawesome/fontawesome-free/webfonts';
 @import '../../../node_modules/@fortawesome/fontawesome-free/scss/fontawesome';
 @import '../../../node_modules/@fortawesome/fontawesome-free/scss/solid';
 @import '../../../node_modules/@fortawesome/fontawesome-free/scss/regular';
+
+// Define FontAwesome CSS custom properties not included in SCSS source
+:root {
+    --fa-font-solid: normal 900 1em/1 'Font Awesome 6 Free';
+}
 
 // Bootstrap mixins and functions
 @import "../../../node_modules/bootstrap/scss/mixins";

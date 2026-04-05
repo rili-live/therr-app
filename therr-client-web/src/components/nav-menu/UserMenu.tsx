@@ -10,6 +10,7 @@ import {
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
+import * as globalConfig from '../../../../global-config';
 import Notification from './Notification';
 import withNavigation from '../../wrappers/withNavigation';
 import withTranslation from '../../wrappers/withTranslation';
@@ -165,12 +166,48 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         }
     };
 
+    navigateToDashboard = () => {
+        const { user } = this.props;
+        const { details, settings } = user;
+        const refreshToken = settings?.rememberMe
+            ? localStorage.getItem('therrRefreshToken')
+            : sessionStorage.getItem('therrRefreshToken');
+
+        const params = new URLSearchParams({
+            token: details.idToken || '',
+            userId: details.id || '',
+            email: details.email || '',
+            fn: details.firstName || '',
+            ln: details.lastName || '',
+            un: details.userName || '',
+            al: JSON.stringify(details.accessLevels || []),
+            rm: settings?.rememberMe ? '1' : '0',
+            ...(refreshToken ? { rt: refreshToken } : {}),
+        });
+
+        const dashboardUrl = `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/sso?${params.toString()}`;
+        window.open(dashboardUrl, '_blank', 'noopener');
+    };
+
+    isBusinessUser = () => !!this.props.user.details.isBusinessAccount;
+
     renderProfileContent = () => (
         <>
             <div className="tab-content-header">
                 <h2>{this.props.translate('components.userMenu.h2.profileSettings')}</h2>
             </div>
             <div className="profile-settings-menu">
+                {
+                    this.isBusinessUser() && <MantineButton
+                        id="nav_menu_business_dashboard"
+                        className="menu-item left-icon"
+                        leftSection={<InlineSvg name="dashboard" />}
+                        text={this.props.translate('components.userMenu.buttons.businessDashboard')}
+                        onClick={this.navigateToDashboard}
+                        variant="subtle"
+                        fullWidth
+                    />
+                }
                 <MantineButton
                     id="nav_menu_view_profile"
                     className="menu-item left-icon"
