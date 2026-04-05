@@ -2,7 +2,6 @@ import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { Location, NavigateFunction } from 'react-router-dom';
-import { TransitionGroup } from 'react-transition-group';
 import ReactGA from 'react-ga4';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import {
@@ -507,11 +506,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                             {this.renderNavMenuContent()}
                         </div>
                     </AccessControl> */}
-                    <TransitionGroup
-                        appear
-                        enter
-                        exit
-                        component="div"
+                    <div
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
                         <Preloader show={!this.state.clientHasLoaded} />
@@ -544,7 +539,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                                 isLandingStylePage={isLandingStylePage}
                             />
                         </main>
-                    </TransitionGroup>
+                    </div>
                     <ToastContainer className="p-3" position={'bottom-end'}>
                         <Toast bg={alertVariation} show={alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
                             <Toast.Header>

@@ -263,7 +263,7 @@
       "pageSubheader": "...to view customer metrics"
     },
     "influencerPairingResults": {
-      "pageTitle": "Influencer Pairings"
+      "pageTitle": "Local Advocates"
     },
     "manageSpaces": {
       "pageTitle": "Manage Spaces"
@@ -289,10 +289,10 @@
       "pageTitle": "Dashboard"
     },
     "acquisitionOverview": {
-      "pageTitle": "Acquisition Overview"
+      "pageTitle": "Your Customers"
     },
     "adminAcquisitionOverview": {
-      "pageTitle": "Acquisition Overview"
+      "pageTitle": "Your Customers"
     },
     "campaignsOverview": {
       "pageTitle": "Campaigns Overview"

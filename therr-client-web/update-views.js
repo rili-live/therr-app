@@ -17,8 +17,8 @@ const viewFiles = [
 // We need to keep the css/js file paths up to date because we use content hashing in the build compilation
 fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
     if (err) {
-        console.log(err);
-        return;
+        console.error(err);
+        process.exit(1);
     }
 
     const appCssRegex = /^app\.([\w]+\.)?css$/;
@@ -68,7 +68,8 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
     viewFiles.forEach(viewFile => {
         fs.readFile(viewFile, 'utf8', function (readErr, data) {
             if (readErr) {
-                return console.log(readErr);
+                console.error(readErr);
+                process.exit(1);
             }
 
             let result = data;
@@ -97,7 +98,8 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
 
             fs.writeFile(viewFile, result, 'utf8', function (writeErr) {
                 if (writeErr) {
-                    return console.log(writeErr);
+                    console.error(writeErr);
+                    process.exit(1);
                 }
                 console.log('Success: asset paths updated in', path.basename(viewFile));
             });

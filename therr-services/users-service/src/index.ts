@@ -31,7 +31,14 @@ app.use(reqLogDecorator);
 
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
-app.use(/^(?!\/v1\/users\/connections\/find-people$)/, express.json());
+app.use(/^(?!\/v1\/users\/connections\/find-people$)/, express.json({
+    verify: (req: any, _res, buf) => {
+        // Preserve raw body for Stripe webhook signature verification
+        if (req.url?.includes('/payments/webhook') || req.originalUrl?.includes('/payments/webhook')) {
+            req.rawBody = buf.toString();
+        }
+    },
+}));
 
 if (process.env.NODE_ENV !== 'production') {
     app.use(cors());

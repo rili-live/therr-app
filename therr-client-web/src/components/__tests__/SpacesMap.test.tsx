@@ -2,20 +2,19 @@
  * @jest-environment jsdom
  */
 
-// Mock IntersectionObserver which is not available in jsdom
-global.IntersectionObserver = class IntersectionObserver {
-    constructor(private callback: IntersectionObserverCallback) {}
-    observe() {
-        // Immediately report the element as visible
-        this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as any);
-    }
-    unobserve() { return null; }
-    disconnect() { return null; }
-} as any;
-
 import * as React from 'react';
 import { mount } from 'enzyme';
 import { act } from 'react-test-renderer';
+import SpacesMap from '../SpacesMap';
+
+// Mock IntersectionObserver which is not available in jsdom
+global.IntersectionObserver = jest.fn().mockImplementation((callback: IntersectionObserverCallback) => ({
+    observe() {
+        callback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+    },
+    unobserve() {},
+    disconnect() {},
+})) as any;
 
 // Mock leaflet before importing SpacesMap
 // Track markers added to map so eachLayer can enumerate them for removal
@@ -64,9 +63,6 @@ jest.mock('leaflet', () => ({
         Icon: jest.fn().mockReturnValue(mockIcon),
     },
 }));
-
-// eslint-disable-next-line import/first
-import SpacesMap from '../SpacesMap';
 
 describe('SpacesMap', () => {
     const defaultProps = {

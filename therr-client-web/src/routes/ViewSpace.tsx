@@ -81,6 +81,7 @@ interface IViewSpaceState {
     isClaimLoading: boolean;
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
+    isClaimBannerDismissed: boolean;
     isLoginModalOpen: boolean;
     loginModalAction: 'bookmark' | 'review' | '';
     reviewRating: number;
@@ -131,6 +132,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             pairingFeedback: {},
             isLinkCopied: false,
             isFromClaimEmail: searchParams.get('claim') === 'true',
+            isClaimBannerDismissed: false,
             isClaimLoading: false,
             claimMessage: '',
             claimMessageType: '',
@@ -558,6 +560,35 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     this.renderAddReviewContent()
                 )}
             </Paper>
+        );
+    }
+
+    renderClaimEmailBanner(space: any): JSX.Element | null {
+        const { translate } = this.props;
+        const { isFromClaimEmail, isClaimBannerDismissed, claimMessageType } = this.state;
+
+        if (!isFromClaimEmail || isClaimBannerDismissed || !space.isUnclaimed || claimMessageType === 'success') {
+            return null;
+        }
+
+        return (
+            <Alert
+                color="teal"
+                radius="md"
+                withCloseButton
+                onClose={() => this.setState({ isClaimBannerDismissed: true })}
+                title={translate('pages.viewSpace.claimSpace.emailTitle')}
+            >
+                <Text size="sm" mb="sm">{translate('pages.viewSpace.claimSpace.emailBody')}</Text>
+                <Button
+                    onClick={this.scrollToClaimSection}
+                    variant="filled"
+                    size="compact-md"
+                    color="teal"
+                >
+                    {translate('pages.viewSpace.claimSpace.claimButton')}
+                </Button>
+            </Alert>
         );
     }
 
@@ -1089,6 +1120,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         return (
             <Container id="page_view_space" size="lg" py="xl">
                 <Stack gap="md">
+                    {/* Claim Email Banner — shown when arriving via unclaimed space outreach email */}
+                    {this.renderClaimEmailBanner(space)}
+
                     {/* Breadcrumbs */}
                     {this.renderBreadcrumbs(space)}
 
