@@ -137,7 +137,13 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     componentDidMount() { // eslint-disable-line class-methods-use-this
         const { map, routeParams } = this.props;
         const { searchQuery, searchLat, searchLng } = this.state;
-        const { categorySlug, pageNumber: pn } = routeParams;
+        const { categorySlug, citySlug, pageNumber: pn } = routeParams;
+
+        // Guard: city route with an unrecognized slug → redirect rather than search the entire world
+        if (citySlug && !this.getActiveCityEntry()) {
+            setTimeout(() => this.props.navigation.navigate('/locations'));
+            return;
+        }
 
         // categorySlug doubles as page number when it is not a valid category slug
         const activeCategoryKey = this.getActiveCategoryKey();

@@ -59,6 +59,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/sso',
+        head: {
+            title: 'Loading Dashboard',
+            description: 'Signing you in to your business dashboard.',
+        },
+        view: 'index',
+    },
+    {
         route: '*',
         head: {
             title: 'Page Not Found',

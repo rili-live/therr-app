@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { IUserState } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
-import UsersService from 'therr-react/services/UsersService';
+import { UsersService } from 'therr-react/services';
 import {
     Card, Button,
 } from '@themesberg/react-bootstrap';

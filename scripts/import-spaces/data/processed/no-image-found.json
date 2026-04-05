@@ -1,6 +1,6 @@
 {
   "type": "no-image-found",
-  "updatedAt": "2026-03-29T15:37:21.478Z",
+  "updatedAt": "2026-04-05T01:34:55.708Z",
   "entries": [
     {
       "id": "ad98b699-f56e-4f4b-a270-3a9030116a08",
@@ -4826,6 +4826,371 @@
       "id": "1512c00f-bef6-4822-b1cb-3ef127fdfdc6",
       "name": "BierHaus Lubbock",
       "processedAt": "2026-03-29T15:37:21.478Z"
+    },
+    {
+      "id": "8a794b71-a1dd-4fee-8f82-43743a3b7c5e",
+      "name": "New Tons Taphouse",
+      "processedAt": "2026-04-04T21:19:32.061Z"
+    },
+    {
+      "id": "3f9b41d7-c2f0-4a66-aa95-484ca5b00571",
+      "name": "Plaid Pantry",
+      "processedAt": "2026-04-04T21:20:26.061Z"
+    },
+    {
+      "id": "ca7fe8a0-b148-4130-8c0e-a9d7b07e5e27",
+      "name": "Beaumont Hardware",
+      "processedAt": "2026-04-04T21:20:40.146Z"
+    },
+    {
+      "id": "626b05d6-4173-40bb-9698-18ac35f386e0",
+      "name": "Publix",
+      "processedAt": "2026-04-04T21:21:18.633Z"
+    },
+    {
+      "id": "3d74ca49-713e-4448-9e54-24e9eae3b970",
+      "name": "Chambers",
+      "processedAt": "2026-04-04T21:21:33.263Z"
+    },
+    {
+      "id": "592b84e2-de32-4bd5-81c9-51176f0bcbe2",
+      "name": "Rice and Spice Teriyaki",
+      "processedAt": "2026-04-04T21:21:35.810Z"
+    },
+    {
+      "id": "844e349f-bfbc-4e45-be92-46f1ed619a32",
+      "name": "Doc Chey's Noodle House",
+      "processedAt": "2026-04-04T21:22:05.542Z"
+    },
+    {
+      "id": "15a0a2ef-2dc0-4d8b-8fb4-8c6735b70fa9",
+      "name": "Fry's Marketplace",
+      "processedAt": "2026-04-04T21:22:50.276Z"
+    },
+    {
+      "id": "59f5398c-7a5e-48f0-8a46-f76f9509a2c7",
+      "name": "Little Star Pizza",
+      "processedAt": "2026-04-04T21:23:02.113Z"
+    },
+    {
+      "id": "c76c700a-5ada-4338-aa8d-4aaabce1f6a2",
+      "name": "Fry’s",
+      "processedAt": "2026-04-04T21:23:07.134Z"
+    },
+    {
+      "id": "37c2da34-cde6-4bfa-9622-51c9b307012e",
+      "name": "Giorgio's Pizza",
+      "processedAt": "2026-04-04T21:23:21.335Z"
+    },
+    {
+      "id": "56d39e7c-d613-44da-8ee6-782e51c51107",
+      "name": "Compass Arizona Grill",
+      "processedAt": "2026-04-04T21:23:24.889Z"
+    },
+    {
+      "id": "3a077430-e3cd-4fa3-84d5-e347af8d7d15",
+      "name": "Atkins Park",
+      "processedAt": "2026-04-04T21:24:47.441Z"
+    },
+    {
+      "id": "78d98cca-3240-4e69-84da-7c14f9cb013a",
+      "name": "Ghost Ranch: Modern Southwest Cuisine",
+      "processedAt": "2026-04-04T21:24:50.193Z"
+    },
+    {
+      "id": "5a98fb4e-c6ca-4e7f-ac8c-d44ce0dcbded",
+      "name": "Leikam Brewing",
+      "processedAt": "2026-04-04T21:25:03.961Z"
+    },
+    {
+      "id": "b819314f-e45a-4fe7-831c-eb19639d1c2d",
+      "name": "Sisters Ethiopian Restaurant",
+      "processedAt": "2026-04-04T21:25:17.807Z"
+    },
+    {
+      "id": "57eae882-1123-44f7-a276-2f0e529d1b65",
+      "name": "Publix",
+      "processedAt": "2026-04-04T21:25:24.563Z"
+    },
+    {
+      "id": "71efdfdc-68cc-4fa0-a5e1-469fd9a760b9",
+      "name": "Books Again",
+      "processedAt": "2026-04-04T21:25:26.664Z"
+    },
+    {
+      "id": "c91451f1-2cdd-4ff9-b1fd-6f75c0f9f7fe",
+      "name": "E'Njoni Café",
+      "processedAt": "2026-04-04T21:25:28.794Z"
+    },
+    {
+      "id": "1d499c03-e016-4f0d-aef0-0767af4f577c",
+      "name": "Ham Radio Outlet",
+      "processedAt": "2026-04-04T21:25:41.177Z"
+    },
+    {
+      "id": "6dd91148-8607-4309-8a64-d5b8a60be95d",
+      "name": "Burrito Bar",
+      "processedAt": "2026-04-04T21:25:45.899Z"
+    },
+    {
+      "id": "807e47f0-61cc-489a-9df9-dea7f7be2a3e",
+      "name": "Nossa Familia Coffee",
+      "processedAt": "2026-04-04T22:12:52.017Z"
+    },
+    {
+      "id": "268bd5e1-bc7a-4659-90c6-23c09f8e8095",
+      "name": "PaaDee",
+      "processedAt": "2026-04-04T22:13:00.629Z"
+    },
+    {
+      "id": "906d638e-e565-4076-8eec-993e28acf858",
+      "name": "HomePlace",
+      "processedAt": "2026-04-04T22:13:10.430Z"
+    },
+    {
+      "id": "53334bd8-7e8c-4104-9b07-9dd3ef471933",
+      "name": "Candlelight Restaurant & Lounge",
+      "processedAt": "2026-04-04T22:13:15.422Z"
+    },
+    {
+      "id": "9f2ecd17-976d-45b6-8cd8-568575474f33",
+      "name": "Thai Diner",
+      "processedAt": "2026-04-04T22:13:51.462Z"
+    },
+    {
+      "id": "402fb3ba-a2f7-4db6-a99e-cedfb1b1f13a",
+      "name": "Twain's",
+      "processedAt": "2026-04-04T22:14:31.814Z"
+    },
+    {
+      "id": "b2919650-b71e-4974-9e9c-c0637c548fe2",
+      "name": "Fry's Food and Drug",
+      "processedAt": "2026-04-04T22:15:07.671Z"
+    },
+    {
+      "id": "f00f89a6-6889-46ce-b926-64675f748253",
+      "name": "Tru",
+      "processedAt": "2026-04-04T22:15:59.816Z"
+    },
+    {
+      "id": "02a11a13-4b89-4d17-9be9-7549c8857fd6",
+      "name": "The Garden Guest House on Hawthorne",
+      "processedAt": "2026-04-04T22:16:37.257Z"
+    },
+    {
+      "id": "8e4e64c6-5d48-4939-a7f6-9beb6e2ed9bf",
+      "name": "Fry's Food and Drug",
+      "processedAt": "2026-04-04T22:17:46.876Z"
+    },
+    {
+      "id": "b8e6a6c6-b610-4c5b-967a-2befcc03f840",
+      "name": "Faces by Vivian",
+      "processedAt": "2026-04-04T22:18:00.860Z"
+    },
+    {
+      "id": "0b1c2535-6d0d-4789-8d9a-b238fcf1b354",
+      "name": "Welcome Diner",
+      "processedAt": "2026-04-04T22:18:12.520Z"
+    },
+    {
+      "id": "186473b5-1251-4240-a7f1-7e00b068bffe",
+      "name": "Justa Pasta",
+      "processedAt": "2026-04-04T22:18:22.484Z"
+    },
+    {
+      "id": "ca112cc0-4f24-4655-b8c3-1d9e8f05feca",
+      "name": "Woods Lowside",
+      "processedAt": "2026-04-04T22:18:26.630Z"
+    },
+    {
+      "id": "88f12725-7385-4881-9ae4-01cf7b946631",
+      "name": "Beckett's Table",
+      "processedAt": "2026-04-04T22:57:40.408Z"
+    },
+    {
+      "id": "db763362-54d4-48d5-8e92-47f9e0d16eec",
+      "name": "Kroger",
+      "processedAt": "2026-04-04T22:58:22.435Z"
+    },
+    {
+      "id": "31c0ded4-07d6-453f-9e13-6c9f8fe41094",
+      "name": "Residence Inn Eugene",
+      "processedAt": "2026-04-04T22:59:01.421Z"
+    },
+    {
+      "id": "b0db98d0-81d5-4704-84d5-97c5d053e823",
+      "name": "King Tide Fish & Shell",
+      "processedAt": "2026-04-04T22:59:09.517Z"
+    },
+    {
+      "id": "c722913a-5be4-41c0-8dc8-7e05aafe37b0",
+      "name": "Canary",
+      "processedAt": "2026-04-04T22:59:44.711Z"
+    },
+    {
+      "id": "507c3c2b-4aa7-4535-ab8a-41bbd1c0ce9b",
+      "name": "Cafe and Noodle",
+      "processedAt": "2026-04-04T22:59:50.853Z"
+    },
+    {
+      "id": "fd57afe1-871b-4610-9dc8-19ea385e30f5",
+      "name": "Brick Store Pub",
+      "processedAt": "2026-04-04T22:59:56.016Z"
+    },
+    {
+      "id": "0590bb55-2f5a-4f75-a68a-050f624033e5",
+      "name": "Beautify Me Lashes and Spa",
+      "processedAt": "2026-04-04T23:00:08.498Z"
+    },
+    {
+      "id": "417b1af8-b7b7-4d19-9e21-1911e032f760",
+      "name": "Plaid Pantry",
+      "processedAt": "2026-04-04T23:00:53.455Z"
+    },
+    {
+      "id": "fd9a7159-e78e-4407-b98a-c570d4b9dc9a",
+      "name": "Fry's Food and Drug",
+      "processedAt": "2026-04-04T23:01:32.692Z"
+    },
+    {
+      "id": "0f9a0829-04f3-47ca-b523-7168492b366e",
+      "name": "Harvey's Wineburger",
+      "processedAt": "2026-04-04T23:32:42.161Z"
+    },
+    {
+      "id": "011cfea6-8d6e-42ed-9cc0-e4344d25cc92",
+      "name": "Ox Restaurant",
+      "processedAt": "2026-04-04T23:32:59.369Z"
+    },
+    {
+      "id": "9f77dbc3-46ee-4a78-b0e2-9e039b2cc3fe",
+      "name": "Ritual Coffee Roasters",
+      "processedAt": "2026-04-04T23:33:54.332Z"
+    },
+    {
+      "id": "e3be5fcc-c68a-4da2-9019-88c2e9e4cbcc",
+      "name": "Smitty's Taphouse",
+      "processedAt": "2026-04-04T23:34:12.359Z"
+    },
+    {
+      "id": "8b2a3a77-f3ec-4a97-854a-426e95824c8e",
+      "name": "Plaid Pantry",
+      "processedAt": "2026-04-04T23:34:23.797Z"
+    },
+    {
+      "id": "f65d2556-522e-4425-a672-0bf15ff11ba4",
+      "name": "The Vortex Bar & Grill",
+      "processedAt": "2026-04-04T23:34:52.810Z"
+    },
+    {
+      "id": "626a401f-cca9-4d8b-940e-f994226ec01f",
+      "name": "Front Page News",
+      "processedAt": "2026-04-04T23:34:55.959Z"
+    },
+    {
+      "id": "1e4ce69f-8735-4a52-a057-c9508ccab9a0",
+      "name": "WinCo Foods",
+      "processedAt": "2026-04-04T23:35:45.068Z"
+    },
+    {
+      "id": "826abe9f-78b7-4e1b-b5d2-96771b2e64e8",
+      "name": "Food City",
+      "processedAt": "2026-04-04T23:35:51.217Z"
+    },
+    {
+      "id": "f78cec4a-915d-4cf6-ba9e-a73795870ee5",
+      "name": "Harbor Freight Tools",
+      "processedAt": "2026-04-04T23:35:56.508Z"
+    },
+    {
+      "id": "886cefd3-f7f3-434d-8540-2ffb3b4bdbb4",
+      "name": "Bottle + Kitchen",
+      "processedAt": "2026-04-04T23:36:01.520Z"
+    },
+    {
+      "id": "2eafc82b-0162-46b0-968e-927310bd98f1",
+      "name": "Trader Joe's",
+      "processedAt": "2026-04-04T23:36:04.486Z"
+    },
+    {
+      "id": "8965bae0-4959-499d-a45d-4c7576b23809",
+      "name": "DV8",
+      "processedAt": "2026-04-04T23:37:50.786Z"
+    },
+    {
+      "id": "2261af82-9ee4-4917-989c-b6b5ece1a473",
+      "name": "Roots Restaurant & Bar",
+      "processedAt": "2026-04-04T23:38:05.712Z"
+    },
+    {
+      "id": "60b03f7f-45fd-44fd-b425-edd4e339c42c",
+      "name": "Coast To Coast Fish House",
+      "processedAt": "2026-04-04T23:38:31.650Z"
+    },
+    {
+      "id": "96bd5d55-224a-4f97-a363-a894ec200e05",
+      "name": "Woody's Famous Philadelphia Cheesesteaks",
+      "processedAt": "2026-04-04T23:38:37.376Z"
+    },
+    {
+      "id": "82f85357-3c19-45cc-8ec1-fff01922da20",
+      "name": "Fry's Marketplace",
+      "processedAt": "2026-04-04T23:39:32.244Z"
+    },
+    {
+      "id": "081d4a4c-32de-4762-a896-3e481fd82785",
+      "name": "Super Taco",
+      "processedAt": "2026-04-04T23:39:35.437Z"
+    },
+    {
+      "id": "3757dea9-b708-4765-ac9f-c1928cf036c2",
+      "name": "Melton's App & Tap",
+      "processedAt": "2026-04-04T23:40:03.462Z"
+    },
+    {
+      "id": "62587d4b-4eb9-40a7-a1cc-21625d80fa30",
+      "name": "Filthy Animal",
+      "processedAt": "2026-04-04T23:40:57.265Z"
+    },
+    {
+      "id": "62ae6f06-d1bf-4e51-a02e-b12d942a0f35",
+      "name": "24th & Meatball",
+      "processedAt": "2026-04-04T23:41:06.771Z"
+    },
+    {
+      "id": "88ee7de4-fee4-4d31-90ca-85cc736cf027",
+      "name": "Asian Cuisine",
+      "processedAt": "2026-04-05T01:32:07.715Z"
+    },
+    {
+      "id": "621ab5a2-e232-4acf-88ef-08dbce4e3279",
+      "name": "Sun Tan City",
+      "processedAt": "2026-04-05T01:32:42.677Z"
+    },
+    {
+      "id": "fc451ea5-9c2d-417d-8b57-8b3d869dc3f3",
+      "name": "Grindstone Charley's",
+      "processedAt": "2026-04-05T01:32:57.360Z"
+    },
+    {
+      "id": "d042e10e-35d0-408a-b396-9f6af8489848",
+      "name": "One World Market",
+      "processedAt": "2026-04-05T01:33:10.569Z"
+    },
+    {
+      "id": "8d124269-e94d-47c9-89df-0db1e58840c7",
+      "name": "El Toro Bravo",
+      "processedAt": "2026-04-05T01:33:51.893Z"
+    },
+    {
+      "id": "c38b29ea-c865-48e4-bc3e-1d2fabbad654",
+      "name": "Kroger",
+      "processedAt": "2026-04-05T01:34:25.039Z"
+    },
+    {
+      "id": "89ee71b2-6681-43e3-b6f7-24460650cfbe",
+      "name": "Dream Palace Books & Coffee",
+      "processedAt": "2026-04-05T01:34:55.708Z"
     }
   ]
 }
