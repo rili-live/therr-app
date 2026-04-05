@@ -47,6 +47,7 @@ interface IStoreProps extends IUserProfileDispatchProps {
 
 // Regular component props
 interface IUserProfileProps extends IUserProfileRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 

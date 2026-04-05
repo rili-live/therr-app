@@ -40,6 +40,7 @@ interface IStoreProps extends IViewUserDispatchProps {
 
 // Regular component props
 interface IViewUserProps extends IViewUserRouterProps, IStoreProps {
+    locale: string;
     onInitMessaging?: Function;
     translate: (key: string, params?: any) => string;
 }

@@ -10,7 +10,9 @@ export const toIntlLocale = (appLocale: string): string => LOCALE_MAP[appLocale?
 
 export const formatDate = (dateStr: string, locale: string): string => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString(toIntlLocale(locale), {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(toIntlLocale(locale), {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -19,7 +21,9 @@ export const formatDate = (dateStr: string, locale: string): string => {
 
 export const formatDateTime = (dateStr: string, locale: string): string => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString(toIntlLocale(locale), {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(toIntlLocale(locale), {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -31,7 +35,9 @@ export const formatDateTime = (dateStr: string, locale: string): string => {
 
 export const formatEventDate = (dateStr: string, locale: string): string => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString(toIntlLocale(locale), {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(toIntlLocale(locale), {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
