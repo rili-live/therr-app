@@ -6,6 +6,7 @@ import { NavigateFunction } from 'react-router-dom';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
+import { IconCheck } from '@tabler/icons-react';
 import { Categories, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
@@ -688,8 +689,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <Anchor
                     size="sm"
                     mt="sm"
-                    style={{ display: 'inline-block' }}
-                    onClick={() => this.setState({ isWhyTherrExpanded: !isWhyTherrExpanded })}
+                    display="inline-block"
+                    onClick={() => this.setState((prev) => ({ isWhyTherrExpanded: !prev.isWhyTherrExpanded }))}
                 >
                     {translate('pages.viewSpace.claimSpace.whyTherr.toggle')}
                     {' '}
@@ -702,35 +703,17 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         size="sm"
                         icon={(
                             <ThemeIcon color="teal" size={18} radius="xl">
-                                <span style={{ fontSize: 10, fontWeight: 700 }}>✓</span>
+                                <IconCheck size={12} />
                             </ThemeIcon>
                         )}
                     >
-                        <List.Item>
-                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item1Title')}</Text>
-                            {' — '}
-                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item1Body')}</Text>
-                        </List.Item>
-                        <List.Item>
-                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item2Title')}</Text>
-                            {' — '}
-                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item2Body')}</Text>
-                        </List.Item>
-                        <List.Item>
-                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item3Title')}</Text>
-                            {' — '}
-                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item3Body')}</Text>
-                        </List.Item>
-                        <List.Item>
-                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item4Title')}</Text>
-                            {' — '}
-                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item4Body')}</Text>
-                        </List.Item>
-                        <List.Item>
-                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item5Title')}</Text>
-                            {' — '}
-                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item5Body')}</Text>
-                        </List.Item>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                            <List.Item key={n}>
+                                <Text size="sm" fw={600} span>{translate(`pages.viewSpace.claimSpace.whyTherr.item${n}Title`)}</Text>
+                                {' — '}
+                                <Text size="sm" span>{translate(`pages.viewSpace.claimSpace.whyTherr.item${n}Body`)}</Text>
+                            </List.Item>
+                        ))}
                     </List>
                 </Collapse>
                 {claimMessage && claimMessageType === 'error' && (
