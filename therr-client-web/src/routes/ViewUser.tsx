@@ -399,6 +399,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                         {userEvents.slice(0, 4).map((event: any) => (
                                             <BusinessEventCard
                                                 key={event.id}
+                                                locale={this.props.locale}
                                                 event={event}
                                                 spaceName={event.spaceName}
                                             />
@@ -427,6 +428,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                         {userThoughts.slice(0, 5).map((thought: any) => (
                                             <ThoughtCard
                                                 key={thought.id}
+                                                locale={this.props.locale}
                                                 thought={thought}
                                                 onThoughtClick={this.handleThoughtClick}
                                             />
@@ -507,6 +509,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                     {userThoughts.slice(0, 5).map((thought: any) => (
                                         <ThoughtCard
                                             key={thought.id}
+                                            locale={this.props.locale}
                                             thought={thought}
                                             onThoughtClick={this.handleThoughtClick}
                                         />

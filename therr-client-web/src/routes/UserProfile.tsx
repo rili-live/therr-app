@@ -331,6 +331,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                             {myEvents.slice(0, 4).map((event: any) => (
                                                 <BusinessEventCard
                                                     key={event.id}
+                                                    locale={this.props.locale}
                                                     event={event}
                                                     spaceName={event.spaceName}
                                                 />
@@ -357,7 +358,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                     {!isBusinessDataLoading && (
                                         <Stack gap="sm">
                                             {myThoughts.slice(0, 5).map((thought: any) => (
-                                                <ThoughtCard key={thought.id} thought={thought} onThoughtClick={this.handleThoughtClick} />
+                                                <ThoughtCard key={thought.id} locale={this.props.locale} thought={thought} onThoughtClick={this.handleThoughtClick} />
                                             ))}
                                         </Stack>
                                     )}
@@ -501,7 +502,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         {!isThoughtsLoading && myThoughts.length > 0 && (
                             <Stack gap="sm">
                                 {myThoughts.map((thought: any) => (
-                                    <ThoughtCard key={thought.id} thought={thought} onThoughtClick={this.handleThoughtClick} />
+                                    <ThoughtCard key={thought.id} locale={this.props.locale} thought={thought} onThoughtClick={this.handleThoughtClick} />
                                 ))}
                             </Stack>
                         )}

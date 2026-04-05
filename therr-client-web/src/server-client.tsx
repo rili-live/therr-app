@@ -705,6 +705,7 @@ const renderMomentView = (req, res, config, {
         '@id': `https://www.therr.com${localeVars.canonicalPath}`,
         headline: momentTitle,
         datePublished: moment?.createdAt || '',
+        dateModified: moment?.updatedAt || moment?.createdAt || '',
         image: metaImgUrl || '',
         author: {
             '@type': 'Person',
@@ -1088,6 +1089,9 @@ const renderEventView = (req, res, config, {
     }
     if (eventEndTime) {
         eventSchema.endDate = eventEndTime;
+    }
+    if (event?.updatedAt || event?.createdAt) {
+        eventSchema.dateModified = event?.updatedAt || event?.createdAt;
     }
     if (metaImgUrl) {
         eventSchema.image = metaImgUrl;
