@@ -11,7 +11,7 @@ import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
     SimpleGrid, Rating as MantineRating, Paper, Avatar,
-    Button, Alert, Modal, Textarea,
+    Button, Alert, Modal, Textarea, Collapse, List, ThemeIcon,
 } from '@mantine/core';
 import { InlineSvg } from 'therr-react/components';
 import withNavigation from '../wrappers/withNavigation';
@@ -82,6 +82,7 @@ interface IViewSpaceState {
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
     isClaimBannerDismissed: boolean;
+    isWhyTherrExpanded: boolean;
     isLoginModalOpen: boolean;
     loginModalAction: 'bookmark' | 'review' | '';
     reviewRating: number;
@@ -133,6 +134,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isLinkCopied: false,
             isFromClaimEmail: searchParams.get('claim') === 'true',
             isClaimBannerDismissed: false,
+            isWhyTherrExpanded: false,
             isClaimLoading: false,
             claimMessage: '',
             claimMessageType: '',
@@ -638,7 +640,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     renderClaimCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
         const {
-            isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType,
+            isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType, isWhyTherrExpanded,
         } = this.state;
         const isAuthenticated = user?.isAuthenticated;
 
@@ -683,6 +685,54 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <Text size={isFromClaimEmail ? 'md' : 'sm'} mt="xs" c="inherit">
                     {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailBody' : 'pages.viewSpace.claimSpace.body')}
                 </Text>
+                <Anchor
+                    size="sm"
+                    mt="sm"
+                    style={{ display: 'inline-block' }}
+                    onClick={() => this.setState({ isWhyTherrExpanded: !isWhyTherrExpanded })}
+                >
+                    {translate('pages.viewSpace.claimSpace.whyTherr.toggle')}
+                    {' '}
+                    {isWhyTherrExpanded ? '▲' : '▼'}
+                </Anchor>
+                <Collapse in={isWhyTherrExpanded}>
+                    <List
+                        mt="sm"
+                        spacing="xs"
+                        size="sm"
+                        icon={(
+                            <ThemeIcon color="teal" size={18} radius="xl">
+                                <span style={{ fontSize: 10, fontWeight: 700 }}>✓</span>
+                            </ThemeIcon>
+                        )}
+                    >
+                        <List.Item>
+                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item1Title')}</Text>
+                            {' — '}
+                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item1Body')}</Text>
+                        </List.Item>
+                        <List.Item>
+                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item2Title')}</Text>
+                            {' — '}
+                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item2Body')}</Text>
+                        </List.Item>
+                        <List.Item>
+                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item3Title')}</Text>
+                            {' — '}
+                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item3Body')}</Text>
+                        </List.Item>
+                        <List.Item>
+                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item4Title')}</Text>
+                            {' — '}
+                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item4Body')}</Text>
+                        </List.Item>
+                        <List.Item>
+                            <Text size="sm" fw={600} span>{translate('pages.viewSpace.claimSpace.whyTherr.item5Title')}</Text>
+                            {' — '}
+                            <Text size="sm" span>{translate('pages.viewSpace.claimSpace.whyTherr.item5Body')}</Text>
+                        </List.Item>
+                    </List>
+                </Collapse>
                 {claimMessage && claimMessageType === 'error' && (
                     <Text size="sm" c="red" mt="xs">{claimMessage}</Text>
                 )}
