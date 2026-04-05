@@ -2,27 +2,17 @@ import * as React from 'react';
 import {
     Paper, Text, Group, Badge, Stack,
 } from '@mantine/core';
+import { formatEventDate } from '../../utilities/formatDate';
 
 interface IBusinessEventCardProps {
+    locale: string;
     event: any;
     spaceName?: string;
 }
 
-const formatEventDate = (dateStr: string): string => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
-};
-
-const BusinessEventCard: React.FC<IBusinessEventCardProps> = ({ event, spaceName }) => {
-    const startDate = formatEventDate(event.scheduleStartAt);
-    const endDate = formatEventDate(event.scheduleStopAt);
+const BusinessEventCard: React.FC<IBusinessEventCardProps> = ({ locale, event, spaceName }) => {
+    const startDate = formatEventDate(event.scheduleStartAt, locale);
+    const endDate = formatEventDate(event.scheduleStopAt, locale);
 
     return (
         <Paper className="business-event-card" shadow="xs" radius="md" withBorder p="sm">

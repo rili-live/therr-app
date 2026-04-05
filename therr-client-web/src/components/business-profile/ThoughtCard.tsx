@@ -3,23 +3,15 @@ import { Link } from 'react-router-dom';
 import {
     Paper, Text, Group, Badge, Stack, Anchor,
 } from '@mantine/core';
+import { formatDate } from '../../utilities/formatDate';
 
 interface IThoughtCardProps {
+    locale: string;
     thought: any;
     onThoughtClick?: (thoughtId: string) => void;
 }
 
-const formatDate = (dateStr: string): string => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    });
-};
-
-const ThoughtCard: React.FC<IThoughtCardProps> = ({ thought, onThoughtClick }) => {
+const ThoughtCard: React.FC<IThoughtCardProps> = ({ locale, thought, onThoughtClick }) => {
     const hashTags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
     const thoughtUrl = `/thoughts/${thought.id}`;
 
@@ -50,7 +42,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({ thought, onThoughtClick }) =
                 <Stack gap="xs">
                     <Group justify="space-between" align="center">
                         <Text size="xs" c="dimmed">
-                            {formatDate(thought.createdAt)}
+                            {formatDate(thought.createdAt, locale)}
                         </Text>
                         {thought.category && (
                             <Badge variant="light" size="sm">

@@ -16,6 +16,7 @@ import {
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
+import { formatDateTime } from '../utilities/formatDate';
 import ProgressiveImage from '../components/ProgressiveImage';
 
 // Only lazy-load on client (Leaflet requires window/document)
@@ -27,18 +28,6 @@ const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
     const label = category.replace('categories.', '').replace('/', ' & ');
     return label.charAt(0).toUpperCase() + label.slice(1);
-};
-
-const formatDateTime = (dateStr: string): string => {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
 };
 
 interface IViewEventRouterProps {
@@ -192,13 +181,13 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                 {event.scheduleStartAt && (
                     <Group gap="xs">
                         <Text fw={600}>{this.props.translate('pages.viewEvent.labels.startDate')}:</Text>
-                        <Text>{formatDateTime(event.scheduleStartAt)}</Text>
+                        <Text>{formatDateTime(event.scheduleStartAt, this.props.locale)}</Text>
                     </Group>
                 )}
                 {event.scheduleStopAt && (
                     <Group gap="xs">
                         <Text fw={600}>{this.props.translate('pages.viewEvent.labels.endDate')}:</Text>
-                        <Text>{formatDateTime(event.scheduleStopAt)}</Text>
+                        <Text>{formatDateTime(event.scheduleStopAt, this.props.locale)}</Text>
                     </Group>
                 )}
             </Paper>
