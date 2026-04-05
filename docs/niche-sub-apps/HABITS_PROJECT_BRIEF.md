@@ -113,6 +113,19 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 - ✅ Custom habit templates
 - ✅ Priority support
 
+### Group Savings Goals (Phase 3 — High-Virality Feature)
+Friends collectively save toward a shared experience or purchase:
+- **Group Trip** (e.g., "Cancun 2026") — every person going must join the app
+- **Group Event** — concert, festival, sporting event tickets
+- **Group Gift** — birthday, wedding, baby shower fund
+- **Big Purchase** — shared item for a friend group (gaming setup, camping gear)
+
+Why this drives virality: inviting more friends **lowers each person's monthly cost**,
+creating a monetary incentive to keep inviting. A single group trip pact can generate
+5–12 new installs. Milestone celebrations (25%, 50%, 75%, 100%) produce shareable
+"we're saving for Cancun!" moments. See `docs/niche-sub-apps/habits/HABITS_SAVINGS_DESIGN.md`
+for full technical design.
+
 ### Phase 2 Features (Post-Launch)
 - 'Friends with Habits' tournaments and competitions
 - Cash stakes option (winners split pot)
@@ -231,6 +244,12 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 - [ ] Weekly email summaries with share buttons
 - [ ] Friend activity notifications to create FOMO
 - [ ] Public pact directory (opt-in)
+- [ ] **Group Savings Goals** (see `HABITS_SAVINGS_DESIGN.md`) — highest-virality feature:
+  - Users create a savings goal for a shared experience (vacation, concert, group gift)
+  - Every member of the trip/event must join → 5–12 installs per pact vs. 1 for standard habit pacts
+  - Per-person cost drops as more friends join → monetary incentive to keep inviting
+  - Milestone celebrations at 25/50/75/100% are highly shareable moments
+  - MVP: manual contribution logging, progress dashboard, 100% celebration screen with share prompt
 
 **Deliverable:** Every user action encourages friend invites
 
@@ -428,6 +447,7 @@ When working with Claude Code on this project, always start sessions by asking:
 3. **"Ship fast, iterate faster"** - 8-12 weeks to launch
 4. **"Free tier works, premium tier delights"** - Clear value distinction
 5. **"Growth > perfection"** - Get to market, learn, improve
+6. **"More friends = lower cost"** - Group savings goals incentivize viral invites through economics, not just social pressure
 
 ---
 
