@@ -60,12 +60,6 @@
         <data
           android:scheme="https"
           android:host="therr.com" />
-        <data
-          android:scheme="https"
-          android:host="www.therr.app" />
-        <data
-          android:scheme="https"
-          android:host="therr.app" />
       </intent-filter>
       <intent-filter>
         <action android:name="app.therrmobile.ACHIEVEMENT_COMPLETED" />
