@@ -763,6 +763,7 @@
       "buttons": {
         "submit": "Sauvegarder",
         "manageAccount": "Gérer le compte",
+        "manageSpaces": "Mes Commerces",
         "managePreferences": "Gérer les intérêts et algorithmes de contenu",
         "manageNotifications": "Gérer les paramètres de courriel",
         "deleteAccount": "Supprimer le compte?",
@@ -1660,6 +1661,17 @@
       "headerTitle": "Pensées",
       "reply": "Répondre",
       "replies": "Réponses"
+    },
+    "manageSpaces": {
+      "headerTitle": "Mes Commerces",
+      "noSpacesFound": "Aucun espace trouvé. Réclamez un emplacement commercial depuis la Carte pour commencer.",
+      "coinBalanceLabel": "Votre Solde TherrCoins",
+      "rewardActive": "Récompenses Actives",
+      "rewardInactive": "Aucune Récompense",
+      "buttons": {
+        "view": "Voir",
+        "edit": "Modifier"
+      }
     }
   },
   "modals": {

@@ -42,6 +42,11 @@ export interface ISpace {
     businessTransactionId?: string;
     businessTransactionName?: string;
     isPointOfInterest?: boolean;
+    featuredIncentiveKey?: string;
+    featuredIncentiveValue?: number;
+    featuredIncentiveRewardKey?: string;
+    featuredIncentiveRewardValue?: number;
+    featuredIncentiveCurrencyId?: string;
 }
 
 export interface ICampaign {
