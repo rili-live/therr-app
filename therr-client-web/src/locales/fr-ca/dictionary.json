@@ -839,7 +839,7 @@
       "checkinBanner": {
         "title": "Gagnez des récompenses en vous enregistrant ici",
         "body": "Téléchargez l'app Therr pour vous enregistrer chez {businessName}, gagner des ThrrCoins et partager votre visite avec vos amis.",
-        "bodyLoggedIn": "Ouvrez l'app Therr pour vous enregistrer chez {businessName} et gagner des récompenses en ThrrCoins.",
+        "bodyLoggedIn": "Ouvrez Therr app pour vous enregistrer chez {businessName} et gagner des récompenses en ThrrCoins.",
         "orSignUp": "Vous n'avez pas encore l'app?",
         "signUpLink": "Créez un compte gratuit"
       }
