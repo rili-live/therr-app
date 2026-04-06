@@ -268,6 +268,25 @@
     "manageSpaces": {
       "pageTitle": "Manage Spaces"
     },
+    "manageRewards": {
+      "pageTitle": "Customer Rewards",
+      "subtitle": "Reward customers for visiting and engaging with your business",
+      "emptyState": "No spaces found. Claim a business location first to set up rewards.",
+      "coinBalanceLabel": "Your TherrCoin Balance",
+      "lowBalanceWarning": "Your coin balance is low. Customers may not receive check-in rewards until your balance is replenished.",
+      "upgradeHeader": "Unlock Customer Rewards",
+      "upgradeSubtitle": "Drive repeat foot traffic by rewarding customers with TherrCoins when they check in or share a photo at your location."
+    },
+    "createEditReward": {
+      "pageTitle": "Configure Reward",
+      "stepOneTitle": "Choose Customer Action",
+      "stepTwoTitle": "Choose Reward",
+      "stepThreeTitle": "Review & Activate",
+      "rewardTypeLockedLabel": "Subscriber Feature",
+      "saveButton": "Save Reward",
+      "successMessage": "Reward activated! Customers will see this when they visit your space.",
+      "coinExplainer": "Customers earn 2 TherrCoins per qualifying visit (~$0.02 value). Coins are deducted from your account balance."
+    },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
     },
