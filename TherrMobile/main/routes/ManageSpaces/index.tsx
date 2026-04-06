@@ -2,6 +2,7 @@ import React from 'react';
 import {
     FlatList,
     SafeAreaView,
+    StyleSheet,
     Text,
     TouchableOpacity,
     View,
@@ -20,6 +21,90 @@ import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import LottieLoader from '../../components/LottieLoader';
+
+const staticStyles = StyleSheet.create({
+    spaceRowContent: {
+        flex: 1,
+        marginRight: 8,
+    },
+    spaceRowActions: {
+        flexDirection: 'row',
+    },
+    rewardBadgeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rewardBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 10,
+    },
+    rewardBadgeText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    viewButtonText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    editButtonText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    viewButton: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        marginRight: 6,
+        borderRadius: 6,
+    },
+    editButton: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 6,
+        borderWidth: 1,
+    },
+    coinBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+    },
+    coinBannerLabel: {
+        fontSize: 13,
+    },
+    coinBannerValue: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#f0ad4e',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 32,
+    },
+    emptyText: {
+        textAlign: 'center',
+        fontSize: 15,
+    },
+    loaderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    spaceNameText: {
+        fontWeight: 'bold',
+        fontSize: 15,
+        marginBottom: 2,
+    },
+    spaceAddressText: {
+        fontSize: 12,
+        marginBottom: 4,
+    },
+});
 
 interface IManageSpacesDispatchProps {
     searchMySpaces: Function;
@@ -114,9 +199,7 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
             this.setState({
                 spacesInView: data?.results || [],
             });
-        }).catch((err) => {
-            console.log('ManageSpaces fetchSpaces error:', err);
-        }).finally(() => {
+        }).catch(() => {}).finally(() => {
             this.setState({ isLoading: false });
         });
     };
@@ -157,36 +240,25 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                     backgroundColor: this.theme.colors?.backgroundWhite || '#fff',
                 },
             ]}>
-                <View style={{ flex: 1, marginRight: 8 }}>
+                <View style={staticStyles.spaceRowContent}>
                     <Text
-                        style={{
-                            fontWeight: 'bold',
-                            fontSize: 15,
-                            color: this.theme.colors?.textBlack || '#000',
-                            marginBottom: 2,
-                        }}
+                        style={[staticStyles.spaceNameText, { color: this.theme.colors?.textBlack || '#000' }]}
                         numberOfLines={1}
                     >
                         {space.notificationMsg || '—'}
                     </Text>
                     <Text
-                        style={{
-                            fontSize: 12,
-                            color: this.theme.colors?.textGray || '#666',
-                            marginBottom: 4,
-                        }}
+                        style={[staticStyles.spaceAddressText, { color: this.theme.colors?.textGray || '#666' }]}
                         numberOfLines={1}
                     >
                         {space.addressReadable || '—'}
                     </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={{
-                            paddingHorizontal: 8,
-                            paddingVertical: 2,
-                            borderRadius: 10,
-                            backgroundColor: hasReward ? '#28a745' : '#6c757d',
-                        }}>
-                            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
+                    <View style={staticStyles.rewardBadgeRow}>
+                        <View style={[
+                            staticStyles.rewardBadge,
+                            { backgroundColor: hasReward ? '#28a745' : '#6c757d' },
+                        ]}>
+                            <Text style={staticStyles.rewardBadgeText}>
                                 {hasReward
                                     ? this.translate('pages.manageSpaces.rewardActive')
                                     : this.translate('pages.manageSpaces.rewardInactive')}
@@ -194,35 +266,27 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                         </View>
                     </View>
                 </View>
-                <View style={{ flexDirection: 'row' }}>
+                <View style={staticStyles.spaceRowActions}>
                     <TouchableOpacity
                         onPress={() => this.goToViewSpace(space)}
                         style={[
                             this.themeButtons.styles.btnSmall || {},
-                            {
-                                paddingHorizontal: 10,
-                                paddingVertical: 6,
-                                marginRight: 6,
-                                borderRadius: 6,
-                                backgroundColor: this.theme.colors?.primary3 || '#007bff',
-                            },
+                            staticStyles.viewButton,
+                            { backgroundColor: this.theme.colors?.primary3 || '#007bff' },
                         ]}
                     >
-                        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>
+                        <Text style={staticStyles.viewButtonText}>
                             {this.translate('pages.manageSpaces.buttons.view')}
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => this.goToEditSpace(space)}
-                        style={{
-                            paddingHorizontal: 10,
-                            paddingVertical: 6,
-                            borderRadius: 6,
-                            borderWidth: 1,
-                            borderColor: this.theme.colors?.primary3 || '#007bff',
-                        }}
+                        style={[
+                            staticStyles.editButton,
+                            { borderColor: this.theme.colors?.primary3 || '#007bff' },
+                        ]}
                     >
-                        <Text style={{ color: this.theme.colors?.primary3 || '#007bff', fontSize: 12, fontWeight: '600' }}>
+                        <Text style={[staticStyles.editButtonText, { color: this.theme.colors?.primary3 || '#007bff' }]}>
                             {this.translate('pages.manageSpaces.buttons.edit')}
                         </Text>
                     </TouchableOpacity>
@@ -242,36 +306,30 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     {/* Coin Balance Banner */}
-                    <View style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 16,
-                        paddingVertical: 10,
-                        backgroundColor: this.theme.colors?.backgroundGray || '#f8f9fa',
-                        borderBottomWidth: 1,
-                        borderBottomColor: this.theme.colors?.accentDivider || '#dee2e6',
-                    }}>
-                        <Text style={{ fontSize: 13, color: this.theme.colors?.textGray || '#666' }}>
+                    <View style={[
+                        staticStyles.coinBanner,
+                        {
+                            backgroundColor: this.theme.colors?.backgroundGray || '#f8f9fa',
+                            borderBottomColor: this.theme.colors?.accentDivider || '#dee2e6',
+                        },
+                    ]}>
+                        <Text style={[staticStyles.coinBannerLabel, { color: this.theme.colors?.textGray || '#666' }]}>
                             {this.translate('pages.manageSpaces.coinBalanceLabel')}:{'  '}
                         </Text>
-                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#f0ad4e' }}>
+                        <Text style={staticStyles.coinBannerValue}>
                             {coinBalance.toFixed(2)} TherrCoins
                         </Text>
                     </View>
 
                     {isLoading && (
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <View style={staticStyles.loaderContainer}>
                             <LottieLoader id="therr-black-rolling" style={this.themeLoader.styles.loader} />
                         </View>
                     )}
 
                     {!isLoading && spacesInView.length === 0 && (
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
-                            <Text style={{
-                                textAlign: 'center',
-                                color: this.theme.colors?.textGray || '#666',
-                                fontSize: 15,
-                            }}>
+                        <View style={staticStyles.emptyContainer}>
+                            <Text style={[staticStyles.emptyText, { color: this.theme.colors?.textGray || '#666' }]}>
                                 {this.translate('pages.manageSpaces.noSpacesFound')}
                             </Text>
                         </View>
@@ -280,7 +338,7 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                     {!isLoading && spacesInView.length > 0 && (
                         <FlatList
                             data={spacesInView}
-                            keyExtractor={(item) => item.id}
+                            keyExtractor={(item) => String(item.id)}
                             renderItem={this.renderSpaceRow}
                             onRefresh={this.fetchSpaces}
                             refreshing={isLoading}

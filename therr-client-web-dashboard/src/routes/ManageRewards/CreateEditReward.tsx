@@ -99,6 +99,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class CreateEditRewardComponent extends React.Component<ICreateEditRewardProps, ICreateEditRewardState> {
     private translate: Function;
 
+    private timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     constructor(props: ICreateEditRewardProps) {
         super(props);
 
@@ -146,6 +148,12 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
             }).catch(() => {}).finally(() => {
                 this.setState({ isLoadingSpace: false });
             });
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
         }
     }
 
@@ -218,13 +226,13 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
                 alertVariation: 'success',
                 alertIsVisible: true,
             });
-            setTimeout(() => {
+            this.timeoutId = setTimeout(() => {
                 this.props.navigation.navigate('/rewards');
             }, 1800);
         }).catch(() => {
             this.setState({
                 alertTitle: 'Error',
-                alertMessage: 'Failed to save reward. Please try again.',
+                alertMessage: this.translate('pages.createEditReward.saveErrorMessage'),
                 alertVariation: 'danger',
                 alertIsVisible: true,
             });
@@ -343,7 +351,7 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
                             key={opt.key}
                             className={`mb-3 ${isLocked ? 'opacity-75' : 'cursor-pointer'} ${isSelected && !isLocked ? 'border-primary' : ''}`}
                             onClick={() => isLocked ? this.onSelectLockedReward() : this.onInputChange('featuredIncentiveRewardKey', opt.key)}
-                            style={{ cursor: isLocked ? 'pointer' : 'pointer' }}
+                            style={{ cursor: isLocked ? 'not-allowed' : 'pointer' }}
                         >
                             <Card.Body className="d-flex align-items-start">
                                 <FontAwesomeIcon icon={isLocked ? faLock : opt.icon} className={`me-3 mt-1 ${isLocked ? 'text-muted' : 'text-success'}`} />
@@ -360,7 +368,7 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
                                     <small className="text-muted">{opt.description}</small>
                                     {isLocked && (
                                         <div className="mt-1">
-                                            <small className="text-warning fw-bold">Upgrade your plan to unlock this reward type.</small>
+                                            <small className="text-warning fw-bold">{this.translate('pages.createEditReward.upgradeUnlockMessage')}</small>
                                         </div>
                                     )}
                                 </div>
@@ -399,7 +407,7 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
             <>
                 <h5 className="mb-3">{this.translate('pages.createEditReward.stepThreeTitle')}</h5>
                 <Card className="mb-4">
-                    <Card.Header className="fw-bold">Reward Summary</Card.Header>
+                    <Card.Header className="fw-bold">{this.translate('pages.createEditReward.rewardSummaryHeader')}</Card.Header>
                     <Card.Body>
                         <Row className="mb-2">
                             <Col xs={4} className="text-muted">Space</Col>
@@ -424,7 +432,7 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
                     <Form.Check
                         type="switch"
                         id="reward-active-switch"
-                        label={inputs.isActive ? 'Reward is Active' : 'Reward is Inactive'}
+                        label={inputs.isActive ? this.translate('pages.createEditReward.rewardActiveLabel') : this.translate('pages.createEditReward.rewardInactiveLabel')}
                         checked={inputs.isActive}
                         onChange={(e) => this.onInputChange('isActive', e.target.checked)}
                         className="fs-5"
@@ -433,8 +441,7 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
 
                 <Alert variant="light" className="border mb-4">
                     <FontAwesomeIcon icon={faCoins} className="me-2 text-warning" />
-                    When active, customers will see a reward badge when they view your space on the Therr app.
-                    TherrCoins are transferred from your account to customers upon qualifying actions.
+                    {this.translate('pages.createEditReward.rewardInfoText')}
                 </Alert>
 
                 <div className="d-flex justify-content-between mt-2">
@@ -465,8 +472,6 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
         } = this.state;
         const { user } = this.props;
 
-        const stepProgress = ((currentStep - 1) / 2) * 100;
-
         const stepTitles = [
             this.translate('pages.createEditReward.stepOneTitle'),
             this.translate('pages.createEditReward.stepTwoTitle'),
@@ -482,7 +487,7 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
                     />
                     <ButtonGroup>
                         <Button variant="outline-secondary" size="sm" onClick={this.navigateHandler('/rewards')}>
-                            ← Back to Rewards
+                            {this.translate('pages.createEditReward.backToRewards')}
                         </Button>
                     </ButtonGroup>
                 </div>
@@ -490,7 +495,7 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
                 <Row className="d-flex justify-content-center py-2">
                     <Col xs={12} xl={8}>
                         {isLoadingSpace ? (
-                            <p className="text-center mt-5">Loading space details…</p>
+                            <p className="text-center mt-5">{this.translate('pages.createEditReward.loadingSpaceDetails')}</p>
                         ) : (
                             <Card border="light" className="bg-white shadow-sm mb-4">
                                 <Card.Header>
@@ -511,7 +516,7 @@ export class CreateEditRewardComponent extends React.Component<ICreateEditReward
                                                 </small>
                                             ))}
                                         </div>
-                                        <ProgressBar now={stepProgress + 50} className="mb-4" style={{ height: '6px' }} />
+                                        <ProgressBar now={(currentStep / 3) * 100} className="mb-4" style={{ height: '6px' }} />
                                     </div>
 
                                     {currentStep === 1 && this.renderStep1()}

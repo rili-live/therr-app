@@ -86,9 +86,7 @@ export class ManageRewardsComponent extends React.Component<IManageRewardsProps,
             this.setState({
                 spacesInView: response?.data?.results || [],
             });
-        }).catch((err) => {
-            console.log(err);
-        }).finally(() => {
+        }).catch(() => {}).finally(() => {
             this.setState({ isLoading: false });
         });
     };
@@ -181,7 +179,7 @@ export class ManageRewardsComponent extends React.Component<IManageRewardsProps,
                                 </h3>
                                 <div className="text-center mt-4">
                                     <Button variant="secondary" onClick={this.navigateHandler('/claim-a-space')}>
-                                        Claim a Business Location
+                                        {this.translate('pages.manageRewards.claimBusinessButton')}
                                     </Button>
                                 </div>
                             </>
