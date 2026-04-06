@@ -35,6 +35,83 @@ Cloudflare acts as a reverse proxy for all subdomains, providing:
 3. Enable the orange cloud (proxy) icon for all subdomains listed above
 4. For `websocket-service.therr.com`, ensure WebSockets are enabled in the Cloudflare dashboard
 
+### Email / SES DNS Records (MUST migrate when changing nameservers)
+
+When migrating DNS to a new provider, the following records are **required** for
+Amazon SES to send authenticated email from `therr.com`. Missing any of these
+will cause DMARC failures and hard bounces from Google, Yahoo, and other
+providers with strict DMARC enforcement (error: `5.7.26`).
+
+> **Critical**: All email-related DNS records below must be set to **DNS-only
+> (grey cloud)** — do NOT proxy them through Cloudflare.
+
+#### 1. DKIM Signing (Easy DKIM — 3 CNAME records)
+
+Go to **AWS SES Console → Verified Identities → `therr.com` → DKIM signing**
+and copy the 3 CNAME records, then add them to Cloudflare:
+
+| Type  | Name                                  | Target                                | Proxy |
+|-------|---------------------------------------|---------------------------------------|-------|
+| CNAME | `<token1>._domainkey.therr.com`       | `<token1>.dkim.amazonses.com`         | OFF   |
+| CNAME | `<token2>._domainkey.therr.com`       | `<token2>.dkim.amazonses.com`         | OFF   |
+| CNAME | `<token3>._domainkey.therr.com`       | `<token3>.dkim.amazonses.com`         | OFF   |
+
+After adding, the SES identity status should update to **"Successful"** (can
+take up to 72 hours but is usually within minutes).
+
+#### 2. SPF Record
+
+Verify this TXT record exists on `therr.com` (add if missing):
+
+| Type | Name       | Value                               |
+|------|------------|-------------------------------------|
+| TXT  | `therr.com`| `v=spf1 include:amazonses.com ~all` |
+
+#### 3. DMARC Record
+
+| Type | Name               | Value                                                                      |
+|------|--------------------|----------------------------------------------------------------------------|
+| TXT  | `_dmarc.therr.com` | `v=DMARC1; p=reject; rua=mailto:info@therr.com; ruf=mailto:info@therr.com; fo=1` |
+
+#### 4. Custom MAIL FROM Domain (recommended — enables SPF alignment)
+
+By default SES uses `amazonses.com` as the SMTP envelope sender, which fails
+SPF alignment against the `therr.com` From address. Configuring a custom MAIL
+FROM domain fixes this.
+
+In **AWS SES Console → Verified Identities → `therr.com` → Custom MAIL FROM
+domain**, set `mail.therr.com`, then add to Cloudflare:
+
+| Type | Name              | Value                                              | Priority | Proxy |
+|------|-------------------|----------------------------------------------------|----------|-------|
+| MX   | `mail.therr.com`  | `feedback-smtp.us-east-2.amazonses.com`            | 10       | OFF   |
+| TXT  | `mail.therr.com`  | `v=spf1 include:amazonses.com ~all`                | —        | OFF   |
+
+#### Verifying Email Authentication
+
+After adding all records, confirm DKIM is signing correctly by sending a test
+email to a Gmail address and inspecting the raw message headers. Look for:
+
+```
+Authentication-Results: mx.google.com;
+   dkim=pass header.i=@therr.com ...
+   spf=pass ...
+   dmarc=pass ...
+```
+
+You can also check DNS propagation with:
+
+```bash
+# Verify DKIM CNAMEs
+dig CNAME <token1>._domainkey.therr.com
+
+# Verify SPF
+dig TXT therr.com
+
+# Verify DMARC
+dig TXT _dmarc.therr.com
+```
+
 ### SSL/TLS
 
 - **SSL Mode**: `Full (Strict)` - Cloudflare validates the origin's Let's Encrypt certificate
