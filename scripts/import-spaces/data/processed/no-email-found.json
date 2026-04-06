@@ -1,6 +1,6 @@
 {
   "type": "no-email-found",
-  "updatedAt": "2026-04-05T01:40:07.598Z",
+  "updatedAt": "2026-04-05T18:29:47.202Z",
   "entries": [
     {
       "id": "026a9415-fadb-4ca5-b54b-ee93abb63935",
@@ -11206,6 +11206,81 @@
       "id": "adf01043-7ee7-46f0-8144-f73dd777a35f",
       "name": "MacKenzie River Pizza Co",
       "processedAt": "2026-04-05T01:40:07.598Z"
+    },
+    {
+      "id": "e251a84b-3ff7-4827-9fc8-65fc341e1697",
+      "name": "Arni's",
+      "processedAt": "2026-04-05T13:49:52.188Z"
+    },
+    {
+      "id": "d72d6b1a-c459-454b-ab6e-d2a49d10ec44",
+      "name": "Shoe Carnival",
+      "processedAt": "2026-04-05T13:49:58.713Z"
+    },
+    {
+      "id": "0f216f35-f51f-4e2d-9938-f13194a6319c",
+      "name": "Black Circle Brewing Company",
+      "processedAt": "2026-04-05T13:50:10.004Z"
+    },
+    {
+      "id": "caad0169-ba80-486d-8ed6-ea5fcdf06e11",
+      "name": "Hong Kong Restaurant",
+      "processedAt": "2026-04-05T13:50:27.964Z"
+    },
+    {
+      "id": "6c286703-a2e9-48d4-ad80-d2fff1f50018",
+      "name": "Blind Owl Brewery",
+      "processedAt": "2026-04-05T13:50:40.857Z"
+    },
+    {
+      "id": "544e0ea6-f239-44be-8def-85d6c3d1e574",
+      "name": "Soul Fish Cafe",
+      "processedAt": "2026-04-05T14:49:51.368Z"
+    },
+    {
+      "id": "541761c4-af8a-4c5b-acbc-35ba7305dd8d",
+      "name": "7-Eleven",
+      "processedAt": "2026-04-05T14:49:55.618Z"
+    },
+    {
+      "id": "dad6068c-c663-494d-90f6-dbb198dbe8ca",
+      "name": "Oak Flat Vineyards",
+      "processedAt": "2026-04-05T14:50:01.894Z"
+    },
+    {
+      "id": "b2b5bf33-1782-4242-84a7-f03c70cf4d70",
+      "name": "K&W Fashion",
+      "processedAt": "2026-04-05T14:50:14.178Z"
+    },
+    {
+      "id": "471ddda7-57eb-4f10-ab69-70e7da74f65e",
+      "name": "Classic Lanes Greenfield",
+      "processedAt": "2026-04-05T14:50:36.354Z"
+    },
+    {
+      "id": "679da942-f362-48bd-aded-fe93fb1ab50b",
+      "name": "Hungry Brain",
+      "processedAt": "2026-04-05T18:29:15.942Z"
+    },
+    {
+      "id": "e3cda5b1-24da-4f82-a7f9-5a22d160e979",
+      "name": "Spice N' Steam",
+      "processedAt": "2026-04-05T18:29:32.506Z"
+    },
+    {
+      "id": "32be941e-8c50-4e87-89cd-f3da7a9c32df",
+      "name": "Dutch Bros. Coffee",
+      "processedAt": "2026-04-05T18:29:37.597Z"
+    },
+    {
+      "id": "abe8df0a-9129-41c5-bfe2-1ccb6bd4e5ba",
+      "name": "Sardella's Pizza and Wings",
+      "processedAt": "2026-04-05T18:29:40.568Z"
+    },
+    {
+      "id": "2d93b2cc-2814-4876-bce0-0e2c3f7d3ddb",
+      "name": "Track Town Pizza",
+      "processedAt": "2026-04-05T18:29:47.202Z"
     }
   ]
 }

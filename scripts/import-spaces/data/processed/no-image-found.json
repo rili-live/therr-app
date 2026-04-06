@@ -1,6 +1,6 @@
 {
   "type": "no-image-found",
-  "updatedAt": "2026-04-05T01:39:38.283Z",
+  "updatedAt": "2026-04-05T18:29:47.356Z",
   "entries": [
     {
       "id": "ad98b699-f56e-4f4b-a270-3a9030116a08",
@@ -5226,6 +5226,41 @@
       "id": "5f857b13-918d-4f94-b3b1-7afa87040efd",
       "name": "Half Price Books",
       "processedAt": "2026-04-05T01:39:38.283Z"
+    },
+    {
+      "id": "0f216f35-f51f-4e2d-9938-f13194a6319c",
+      "name": "Black Circle Brewing Company",
+      "processedAt": "2026-04-05T13:50:11.464Z"
+    },
+    {
+      "id": "6c286703-a2e9-48d4-ad80-d2fff1f50018",
+      "name": "Blind Owl Brewery",
+      "processedAt": "2026-04-05T13:50:41.067Z"
+    },
+    {
+      "id": "b2b5bf33-1782-4242-84a7-f03c70cf4d70",
+      "name": "K&W Fashion",
+      "processedAt": "2026-04-05T14:50:14.341Z"
+    },
+    {
+      "id": "c7ad8fe5-dc7b-4f13-817e-d98b410571f6",
+      "name": "The Hippie Closet",
+      "processedAt": "2026-04-05T18:29:27.520Z"
+    },
+    {
+      "id": "e3cda5b1-24da-4f82-a7f9-5a22d160e979",
+      "name": "Spice N' Steam",
+      "processedAt": "2026-04-05T18:29:32.692Z"
+    },
+    {
+      "id": "32be941e-8c50-4e87-89cd-f3da7a9c32df",
+      "name": "Dutch Bros. Coffee",
+      "processedAt": "2026-04-05T18:29:37.673Z"
+    },
+    {
+      "id": "2d93b2cc-2814-4876-bce0-0e2c3f7d3ddb",
+      "name": "Track Town Pizza",
+      "processedAt": "2026-04-05T18:29:47.356Z"
     }
   ]
 }
