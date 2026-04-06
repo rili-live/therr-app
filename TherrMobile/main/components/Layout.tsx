@@ -1254,12 +1254,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
         } else if (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex)) {
             const spaceId = (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex))[1];
+            const queryParams = qs.parse(urlSplit[1] || '');
+            const shouldTriggerCheckIn = queryParams.checkin === 'true';
             let targetRouteParams: any = {};
             if (spaceId) {
                 targetRouteParams = {
                     space: {
                         id: spaceId,
                     },
+                    shouldTriggerCheckIn,
                 };
             }
             if (isUserLoggedIn && !isUserMissingProps) {

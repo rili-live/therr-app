@@ -11,6 +11,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:therr.com</string>
+		<string>applinks:therr.app</string>
 	</array>
 </dict>
 </plist>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 /**
  * generate-qr-codes.ts
  *
@@ -10,7 +9,7 @@
  *
  * Output:
  *   One PNG per request named {spaceId}_{displayType}.png in the output directory.
- *   QR codes encode: https://therr.app/spaces/{spaceId}?checkin=true
+ *   QR codes encode: https://www.therr.com/spaces/{spaceId}?checkin=true
  *   Resolution: 1200×1200 px (≥ 300 DPI when printed at 4"×4")
  */
 
@@ -19,7 +18,11 @@ import fs from 'fs';
 import QRCode from 'qrcode';
 import Store from '../store';
 
-const BASE_URL = 'https://therr.app/spaces';
+export const SPACES_BASE_URL = 'https://www.therr.com/spaces';
+
+export const buildCheckinQrUrl = (spaceId: string): string =>
+    `${SPACES_BASE_URL}/${spaceId}?checkin=true`;
+
 const QR_SIZE_PX = 1200; // 300 DPI × 4 inches
 
 function parseArgs(): { outputDir: string } {
@@ -53,7 +56,7 @@ async function main() {
 
     for (const request of pendingRequests) {
         const { spaceId, displayType, businessName } = request;
-        const qrUrl = `${BASE_URL}/${spaceId}?checkin=true`;
+        const qrUrl = buildCheckinQrUrl(spaceId);
         const fileName = `${spaceId}_${displayType}.png`;
         const outputPath = path.join(outputDir, fileName);
 

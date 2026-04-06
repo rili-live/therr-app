@@ -40,7 +40,12 @@ const createSpaceDisplayRequest: RequestHandler = async (req: any, res: any) => 
         });
     }
 
-    const [space] = await Store.spaces.getByIdForDisplayRequest(spaceId).catch(() => []);
+    let space: any;
+    try {
+        [space] = await Store.spaces.getByIdForDisplayRequest(spaceId);
+    } catch (err) {
+        return handleHttpError({ err, res, message: 'SQL:SPACE_DISPLAY_REQUESTS:ERROR' });
+    }
 
     if (!space) {
         return handleHttpError({
