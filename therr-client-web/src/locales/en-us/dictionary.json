@@ -879,6 +879,13 @@
           "item5Title": "Geo-fenced promotions",
           "item5Body": "Target customers within walking distance in real time with deals and offers."
         }
+      },
+      "checkinBanner": {
+        "title": "Earn rewards by checking in here",
+        "body": "Download the Therr app to check in at {businessName}, earn ThrrCoins, and share your visit with friends.",
+        "bodyLoggedIn": "Open Therr app to check in at {businessName} and earn ThrrCoins rewards.",
+        "orSignUp": "Don't have the app yet?",
+        "signUpLink": "Create a free account"
       }
     },
     "viewMoment": {

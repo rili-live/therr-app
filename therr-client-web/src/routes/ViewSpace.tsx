@@ -78,11 +78,13 @@ interface IViewSpaceState {
     isPairingsLoading: boolean;
     pairingFeedback: { [id: string]: boolean };
     isLinkCopied: boolean;
+    isFromCheckin: boolean;
     isFromClaimEmail: boolean;
     isClaimLoading: boolean;
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
     isClaimBannerDismissed: boolean;
+    isCheckinBannerDismissed: boolean;
     isWhyTherrExpanded: boolean;
     isLoginModalOpen: boolean;
     loginModalAction: 'bookmark' | 'review' | '';
@@ -133,8 +135,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isPairingsLoading: false,
             pairingFeedback: {},
             isLinkCopied: false,
+            isFromCheckin: searchParams.get('checkin') === 'true',
             isFromClaimEmail: searchParams.get('claim') === 'true',
             isClaimBannerDismissed: false,
+            isCheckinBannerDismissed: false,
             isWhyTherrExpanded: false,
             isClaimLoading: false,
             claimMessage: '',
@@ -239,12 +243,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         document.getElementById('claim-space-section')?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // Builds the returnTo path for login/register links, preserving ?checkin=true when present
+    // so the check-in intent survives the full auth + profile-creation flow.
+    getReturnToPath = (id: string) => {
+        const { isFromCheckin } = this.state;
+        return isFromCheckin ? `/spaces/${id}?checkin=true` : `/spaces/${id}`;
+    };
+
     handleClaimSpace = () => {
         const { user, translate } = this.props;
         const { spaceId } = this.state;
 
         if (!user?.isAuthenticated) {
-            this.props.navigation.navigate(`/register?returnTo=/spaces/${spaceId}`);
+            this.props.navigation.navigate(`/register?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`);
             return;
         }
 
@@ -404,7 +415,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <Group justify="center" gap="md">
                     <Button
                         component="a"
-                        href={`/login?returnTo=/spaces/${spaceId}`}
+                        href={`/login?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`}
                         variant="filled"
                         color="teal"
                     >
@@ -412,7 +423,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     </Button>
                     <Button
                         component="a"
-                        href={`/register?returnTo=/spaces/${spaceId}`}
+                        href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`}
                         variant="outline"
                         color="teal"
                     >
@@ -595,6 +606,62 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         );
     }
 
+    renderCheckinBanner(space: any): JSX.Element | null {
+        const { user, translate } = this.props;
+        const { isFromCheckin, isCheckinBannerDismissed } = this.state;
+
+        if (!isFromCheckin || isCheckinBannerDismissed) {
+            return null;
+        }
+
+        const businessName = space?.notificationMsg;
+        const isAuthenticated = !!user?.isAuthenticated;
+
+        return (
+            <Alert
+                color="teal"
+                radius="md"
+                withCloseButton
+                onClose={() => this.setState({ isCheckinBannerDismissed: true })}
+                title={translate('pages.viewSpace.checkinBanner.title')}
+            >
+                <Text size="sm" mb="sm">
+                    {isAuthenticated
+                        ? translate('pages.viewSpace.checkinBanner.bodyLoggedIn', { businessName })
+                        : translate('pages.viewSpace.checkinBanner.body', { businessName })}
+                </Text>
+                <Group gap="xs" mb="xs" className="store-image-links">
+                    <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                        <Image
+                            aria-label="apple store link"
+                            maw={120}
+                            src="/assets/images/apple-store-download-button.svg"
+                            alt="Download Therr on the App Store"
+                            loading="lazy"
+                        />
+                    </Anchor>
+                    <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                        <Image
+                            aria-label="play store link"
+                            maw={120}
+                            src="/assets/images/play-store-download-button.svg"
+                            alt="Download Therr on Google Play"
+                            loading="lazy"
+                        />
+                    </Anchor>
+                </Group>
+                {!isAuthenticated && (
+                    <Text size="xs" c="dimmed">
+                        {translate('pages.viewSpace.checkinBanner.orSignUp')}{' '}
+                        <Anchor href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`} size="xs">
+                            {translate('pages.viewSpace.checkinBanner.signUpLink')}
+                        </Anchor>
+                    </Text>
+                )}
+            </Alert>
+        );
+    }
+
     renderClaimSubtleCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
         const { isFromClaimEmail } = this.state;
@@ -734,14 +801,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         <>
                             <Button
                                 component="a"
-                                href={`/register?returnTo=/spaces/${space.id}`}
+                                href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`}
                                 variant="filled"
                                 size="md"
                                 color="teal"
                             >
                                 {translate('pages.viewSpace.claimSpace.claimButton')}
                             </Button>
-                            <Anchor href={`/login?returnTo=/spaces/${space.id}`} size="sm">
+                            <Anchor href={`/login?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`} size="sm">
                                 {translate('pages.viewSpace.claimSpace.alreadyHaveAccount')}
                             </Anchor>
                         </>
@@ -1155,6 +1222,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <Stack gap="md">
                     {/* Claim Email Banner — shown when arriving via unclaimed space outreach email */}
                     {this.renderClaimEmailBanner(space)}
+
+                    {/* QR Check-in Banner — shown when arriving via a physical display kit QR code */}
+                    {this.renderCheckinBanner(space)}
 
                     {/* Breadcrumbs */}
                     {this.renderBreadcrumbs(space)}
