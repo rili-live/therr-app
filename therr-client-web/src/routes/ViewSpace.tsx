@@ -78,6 +78,7 @@ interface IViewSpaceState {
     isPairingsLoading: boolean;
     pairingFeedback: { [id: string]: boolean };
     isLinkCopied: boolean;
+    isFromCheckin: boolean;
     isFromClaimEmail: boolean;
     isClaimLoading: boolean;
     claimMessage: string;
@@ -133,6 +134,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isPairingsLoading: false,
             pairingFeedback: {},
             isLinkCopied: false,
+            isFromCheckin: searchParams.get('checkin') === 'true',
             isFromClaimEmail: searchParams.get('claim') === 'true',
             isClaimBannerDismissed: false,
             isWhyTherrExpanded: false,
@@ -239,12 +241,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         document.getElementById('claim-space-section')?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // Builds the returnTo path for login/register links, preserving ?checkin=true when present
+    // so the check-in intent survives the full auth + profile-creation flow.
+    getReturnToPath = (id: string) => {
+        const { isFromCheckin } = this.state;
+        return isFromCheckin ? `/spaces/${id}?checkin=true` : `/spaces/${id}`;
+    };
+
     handleClaimSpace = () => {
         const { user, translate } = this.props;
         const { spaceId } = this.state;
 
         if (!user?.isAuthenticated) {
-            this.props.navigation.navigate(`/register?returnTo=/spaces/${spaceId}`);
+            this.props.navigation.navigate(`/register?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`);
             return;
         }
 
@@ -404,7 +413,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <Group justify="center" gap="md">
                     <Button
                         component="a"
-                        href={`/login?returnTo=/spaces/${spaceId}`}
+                        href={`/login?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`}
                         variant="filled"
                         color="teal"
                     >
@@ -412,7 +421,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     </Button>
                     <Button
                         component="a"
-                        href={`/register?returnTo=/spaces/${spaceId}`}
+                        href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`}
                         variant="outline"
                         color="teal"
                     >
@@ -734,14 +743,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         <>
                             <Button
                                 component="a"
-                                href={`/register?returnTo=/spaces/${space.id}`}
+                                href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`}
                                 variant="filled"
                                 size="md"
                                 color="teal"
                             >
                                 {translate('pages.viewSpace.claimSpace.claimButton')}
                             </Button>
-                            <Anchor href={`/login?returnTo=/spaces/${space.id}`} size="sm">
+                            <Anchor href={`/login?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`} size="sm">
                                 {translate('pages.viewSpace.claimSpace.alreadyHaveAccount')}
                             </Anchor>
                         </>
