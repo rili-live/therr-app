@@ -84,6 +84,7 @@ interface IViewSpaceState {
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
     isClaimBannerDismissed: boolean;
+    isCheckinBannerDismissed: boolean;
     isWhyTherrExpanded: boolean;
     isLoginModalOpen: boolean;
     loginModalAction: 'bookmark' | 'review' | '';
@@ -137,6 +138,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isFromCheckin: searchParams.get('checkin') === 'true',
             isFromClaimEmail: searchParams.get('claim') === 'true',
             isClaimBannerDismissed: false,
+            isCheckinBannerDismissed: false,
             isWhyTherrExpanded: false,
             isClaimLoading: false,
             claimMessage: '',
@@ -600,6 +602,62 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 >
                     {translate('pages.viewSpace.claimSpace.claimButton')}
                 </Button>
+            </Alert>
+        );
+    }
+
+    renderCheckinBanner(space: any): JSX.Element | null {
+        const { user, translate } = this.props;
+        const { isFromCheckin, isCheckinBannerDismissed } = this.state;
+
+        if (!isFromCheckin || isCheckinBannerDismissed) {
+            return null;
+        }
+
+        const businessName = space?.notificationMsg;
+        const isAuthenticated = !!user?.isAuthenticated;
+
+        return (
+            <Alert
+                color="teal"
+                radius="md"
+                withCloseButton
+                onClose={() => this.setState({ isCheckinBannerDismissed: true })}
+                title={translate('pages.viewSpace.checkinBanner.title')}
+            >
+                <Text size="sm" mb="sm">
+                    {isAuthenticated
+                        ? translate('pages.viewSpace.checkinBanner.bodyLoggedIn', { businessName })
+                        : translate('pages.viewSpace.checkinBanner.body', { businessName })}
+                </Text>
+                <Group gap="xs" mb="xs" className="store-image-links">
+                    <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                        <Image
+                            aria-label="apple store link"
+                            maw={120}
+                            src="/assets/images/apple-store-download-button.svg"
+                            alt="Download Therr on the App Store"
+                            loading="lazy"
+                        />
+                    </Anchor>
+                    <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                        <Image
+                            aria-label="play store link"
+                            maw={120}
+                            src="/assets/images/play-store-download-button.svg"
+                            alt="Download Therr on Google Play"
+                            loading="lazy"
+                        />
+                    </Anchor>
+                </Group>
+                {!isAuthenticated && (
+                    <Text size="xs" c="dimmed">
+                        {translate('pages.viewSpace.checkinBanner.orSignUp')}{' '}
+                        <Anchor href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`} size="xs">
+                            {translate('pages.viewSpace.checkinBanner.signUpLink')}
+                        </Anchor>
+                    </Text>
+                )}
             </Alert>
         );
     }
@@ -1164,6 +1222,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <Stack gap="md">
                     {/* Claim Email Banner — shown when arriving via unclaimed space outreach email */}
                     {this.renderClaimEmailBanner(space)}
+
+                    {/* QR Check-in Banner — shown when arriving via a physical display kit QR code */}
+                    {this.renderCheckinBanner(space)}
 
                     {/* Breadcrumbs */}
                     {this.renderBreadcrumbs(space)}
