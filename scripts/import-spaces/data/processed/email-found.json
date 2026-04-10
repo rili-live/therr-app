@@ -1,6 +1,6 @@
 {
   "type": "email-found",
-  "updatedAt": "2026-04-05T01:39:42.093Z",
+  "updatedAt": "2026-04-05T18:29:50.359Z",
   "entries": [
     {
       "id": "9fbe963b-6e01-494c-acee-d628cc40ce01",
@@ -1826,6 +1826,16 @@
       "id": "5f4c07a4-860c-457a-877d-cc585933a2e9",
       "name": "Apple Store",
       "processedAt": "2026-04-05T01:39:42.093Z"
+    },
+    {
+      "id": "a0d6fade-865b-4139-a2a2-d5dc1d517f98",
+      "name": "Books & Brews",
+      "processedAt": "2026-04-05T13:50:14.688Z"
+    },
+    {
+      "id": "c2e0150b-6e4b-4b32-ba36-b63f2a10ac84",
+      "name": "The Draconian Lounge",
+      "processedAt": "2026-04-05T18:29:50.359Z"
     }
   ]
 }

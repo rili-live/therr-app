@@ -268,6 +268,34 @@
     "manageSpaces": {
       "pageTitle": "Manage Spaces"
     },
+    "manageRewards": {
+      "pageTitle": "Customer Rewards",
+      "subtitle": "Reward customers for visiting and engaging with your business",
+      "emptyState": "No spaces found. Claim a business location first to set up rewards.",
+      "coinBalanceLabel": "Your TherrCoin Balance",
+      "lowBalanceWarning": "Your coin balance is low. Customers may not receive check-in rewards until your balance is replenished.",
+      "upgradeHeader": "Unlock Customer Rewards",
+      "upgradeSubtitle": "Drive repeat foot traffic by rewarding customers with TherrCoins when they check in or share a photo at your location.",
+      "claimBusinessButton": "Claim a Business Location"
+    },
+    "createEditReward": {
+      "pageTitle": "Configure Reward",
+      "stepOneTitle": "Choose Customer Action",
+      "stepTwoTitle": "Choose Reward",
+      "stepThreeTitle": "Review & Activate",
+      "rewardTypeLockedLabel": "Subscriber Feature",
+      "saveButton": "Save Reward",
+      "successMessage": "Reward activated! Customers will see this when they visit your space.",
+      "coinExplainer": "Customers earn 2 TherrCoins per qualifying visit (~$0.02 value). Coins are deducted from your account balance.",
+      "rewardSummaryHeader": "Reward Summary",
+      "upgradeUnlockMessage": "Upgrade your plan to unlock this reward type.",
+      "saveErrorMessage": "Failed to save reward. Please try again.",
+      "rewardActiveLabel": "Reward is Active",
+      "rewardInactiveLabel": "Reward is Inactive",
+      "loadingSpaceDetails": "Loading space details…",
+      "backToRewards": "← Back to Rewards",
+      "rewardInfoText": "When active, customers will see a reward badge when they view your space on the Therr app. TherrCoins are transferred from your account to customers upon qualifying actions."
+    },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
     },

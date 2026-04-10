@@ -19,6 +19,7 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import { getBrandContext, getWebsiteName } from '../../utilities/getHostContext';
+import * as globalConfig from '../../../../global-config';
 
 interface IDocumentationOverviewRouterProps {
     navigation: {
@@ -155,6 +156,11 @@ export class DocumentationOverviewComponent extends React.Component<IDocumentati
                                     <p>Incentives are an easy way to initiate engagement at your business location and gain customer insights. This is a perfect starting point for <b>more foot traffic</b>, <b>enhanced online presence</b>, and <b>customer loyalty</b>.
                                         Combining incentives with a marketing campaign will drive new customers to your location and build the foundation for repeat customers.
                                         Additionally, it provides a wealth of data and metrics that can be used to <b>optimize revenue</b> in the most efficient way possible.</p>
+
+                                    <h2 id="api-reference">API Reference</h2>
+                                    <p>Explore the full REST API documentation, including available endpoints, authentication, and example requests:&nbsp;
+                                        <Card.Link href={`${globalConfig[process.env.NODE_ENV].baseApiGatewayRoute}/docs`} target="_blank">API Documentation</Card.Link>.
+                                    </p>
 
                                     <h2 id="getting-support">Getting support</h2>
                                     <p>If you have any questions, reach out to our support team 24/7. Please <Card.Link href={`mailto: ${brandContext.contactEmail}`} target="_blank">contact us</Card.Link> and we&rsquo;ll get back to you in no time!</p>

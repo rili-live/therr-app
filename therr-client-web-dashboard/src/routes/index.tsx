@@ -27,6 +27,8 @@ import PaymentComplete from './PaymentComplete';
 import CampaignPerformance from './Campaigns/CampaignPerformance';
 import EmailPreferences from './EmailPreferences';
 import SSOLanding from './SSOLanding';
+import ManageRewards from './ManageRewards';
+import CreateEditReward from './ManageRewards/CreateEditReward';
 
 export type IRoute = RouteObject & {
     access?: IAccess;
@@ -260,6 +262,28 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/spaces/:context',
         element: <AuthRoute
             component={ManageSpaces}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/rewards',
+        element: <AuthRoute
+            component={ManageRewards}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/rewards/spaces/:spaceId',
+        element: <AuthRoute
+            component={CreateEditReward}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],

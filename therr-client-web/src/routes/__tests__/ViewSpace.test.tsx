@@ -62,6 +62,8 @@ jest.mock('../../wrappers/withTranslation', () => (c: any) => c);
 jest.mock('@mantine/core', () => {
     const React = require('react'); // eslint-disable-line global-require
     const stub = (name: string) => (props: any) => React.createElement('div', { 'data-testid': name, ...props }, props.children);
+    const ListStub: any = stub('List');
+    ListStub.Item = stub('List.Item');
     return {
         ActionIcon: stub('ActionIcon'),
         Alert: stub('Alert'),
@@ -70,10 +72,12 @@ jest.mock('@mantine/core', () => {
         Badge: stub('Badge'),
         Breadcrumbs: stub('Breadcrumbs'),
         Button: stub('Button'),
+        Collapse: stub('Collapse'),
         Container: stub('Container'),
         Divider: stub('Divider'),
         Group: stub('Group'),
         Image: stub('Image'),
+        List: ListStub,
         Modal: stub('Modal'),
         Paper: stub('Paper'),
         Rating: stub('Rating'),
@@ -82,6 +86,7 @@ jest.mock('@mantine/core', () => {
         Stack: stub('Stack'),
         Text: stub('Text'),
         Textarea: stub('Textarea'),
+        ThemeIcon: stub('ThemeIcon'),
         Title: stub('Title'),
         Tooltip: stub('Tooltip'),
     };

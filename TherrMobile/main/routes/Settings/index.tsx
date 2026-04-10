@@ -112,6 +112,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         navigation.push('ManageAccount');
     };
 
+    goToManageSpaces = () => {
+        const { navigation } = this.props;
+
+        navigation.push('ManageSpaces');
+    };
+
     goToManageNotifications = () => {
         const { navigation } = this.props;
 
@@ -651,6 +657,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     <Text
                                         style={this.themeForms.styles.buttonLink}
                                         onPress={this.goToManageAccount}>{this.translate('forms.settings.buttons.manageAccount')}</Text>
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToManageSpaces}>{this.translate('forms.settings.buttons.manageSpaces')}</Text>
                                 </Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>

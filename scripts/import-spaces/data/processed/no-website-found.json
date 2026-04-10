@@ -1,6 +1,6 @@
 {
   "type": "no-website-found",
-  "updatedAt": "2026-04-05T01:40:04.837Z",
+  "updatedAt": "2026-04-05T18:29:57.144Z",
   "entries": [
     {
       "id": "f0796878-3e0e-425e-afe9-1fe25ad4cad3",
@@ -10381,6 +10381,121 @@
       "id": "0cf4dd75-7cb8-4677-ad91-c5737d8344f1",
       "name": "City Cafe",
       "processedAt": "2026-04-05T01:40:04.837Z"
+    },
+    {
+      "id": "b00d6589-3443-4093-b636-be2c47b19c31",
+      "name": "American Legion",
+      "processedAt": "2026-04-05T13:49:49.471Z"
+    },
+    {
+      "id": "0ee0d3f8-43c4-48ba-8a54-6dc9ab3ac61a",
+      "name": "Indianapolis East Knights Inn",
+      "processedAt": "2026-04-05T13:50:03.085Z"
+    },
+    {
+      "id": "37363e02-6971-4ce6-8827-52854bfb6e74",
+      "name": "McAlister's Deli",
+      "processedAt": "2026-04-05T13:50:05.238Z"
+    },
+    {
+      "id": "33be5833-64d8-447a-aada-0a42278e7245",
+      "name": "Starbucks",
+      "processedAt": "2026-04-05T13:50:07.443Z"
+    },
+    {
+      "id": "c1846493-94cb-4c3d-bbda-fe09ffef9c25",
+      "name": "Comic Carnival",
+      "processedAt": "2026-04-05T13:50:17.947Z"
+    },
+    {
+      "id": "ce3c88e6-1497-4c2f-b2aa-00b968cd1f3e",
+      "name": "Calvin Fletcher Coffee",
+      "processedAt": "2026-04-05T13:50:20.135Z"
+    },
+    {
+      "id": "2e43004e-9017-4386-a360-f6d9c74bcf72",
+      "name": "Best Buy",
+      "processedAt": "2026-04-05T13:50:22.322Z"
+    },
+    {
+      "id": "3fa16b16-2ff5-415d-ac9b-3c5556458aa7",
+      "name": "Outback Steakhouse",
+      "processedAt": "2026-04-05T13:50:24.487Z"
+    },
+    {
+      "id": "512ee63d-66c2-401f-a16f-38b18de3254d",
+      "name": "Eagle Creek Retreat",
+      "processedAt": "2026-04-05T13:50:31.653Z"
+    },
+    {
+      "id": "5240a65a-cb63-49ac-b7a7-83f03135d605",
+      "name": "More Than Just Pizza",
+      "processedAt": "2026-04-05T13:50:33.807Z"
+    },
+    {
+      "id": "52f5645c-4b38-46e5-9822-d77a3c227255",
+      "name": "Liberty Street",
+      "processedAt": "2026-04-05T13:50:36.048Z"
+    },
+    {
+      "id": "92dc5744-cc00-4892-8d4d-e4fdf99a76c5",
+      "name": "Blue Shark",
+      "processedAt": "2026-04-05T13:50:38.345Z"
+    },
+    {
+      "id": "ca216d54-4e4a-495b-93a6-016f25d44767",
+      "name": "Ranch Market",
+      "processedAt": "2026-04-05T14:50:09.198Z"
+    },
+    {
+      "id": "b4cb81db-09f4-4352-b852-bc51f29a47b9",
+      "name": "Dapper&Stout",
+      "processedAt": "2026-04-05T14:50:11.385Z"
+    },
+    {
+      "id": "0fe257da-da1c-4097-848d-28808185adb0",
+      "name": "Happy Donut",
+      "processedAt": "2026-04-05T14:50:42.810Z"
+    },
+    {
+      "id": "2c147506-6135-45cd-91dc-db7ee4ad9183",
+      "name": "Felicia Gelardi Skin Care",
+      "processedAt": "2026-04-05T18:29:10.009Z"
+    },
+    {
+      "id": "8d2da642-2919-4e5d-ab91-29cc977503e3",
+      "name": "Opal's",
+      "processedAt": "2026-04-05T18:29:12.291Z"
+    },
+    {
+      "id": "0751b373-6eaf-45dd-91b4-3ebf8e2ccd74",
+      "name": "The Blooze Bar",
+      "processedAt": "2026-04-05T18:29:29.962Z"
+    },
+    {
+      "id": "123c60cd-efc5-48de-a0fc-d115f5781454",
+      "name": "Mel's Snack Shop",
+      "processedAt": "2026-04-05T18:29:35.093Z"
+    },
+    {
+      "id": "5dd2f118-972c-4a2c-ab48-50f15e862706",
+      "name": "Original Roadhouse Grill",
+      "processedAt": "2026-04-05T18:29:44.803Z"
+    },
+    {
+      "id": "154d325f-43a3-4a75-aa42-449ba8acb845",
+      "name": "Ankeny Hardware",
+      "processedAt": "2026-04-05T18:29:52.695Z"
+    },
+    {
+      "id": "55f1f36d-66c9-4751-b2aa-a31efa3f7c82",
+      "name": "Restaurant LAMARO",
+      "processedAt": "2026-04-05T18:29:54.912Z"
+    },
+    {
+      "id": "22c38441-b0b3-426f-b612-d83aa7028893",
+      "name": "Floral Inn",
+      "processedAt": "2026-04-05T18:29:57.144Z"
     }
   ]
 }

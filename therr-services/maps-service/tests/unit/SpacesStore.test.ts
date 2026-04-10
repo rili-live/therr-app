@@ -385,6 +385,56 @@ describe('SpacesStore', () => {
         });
     });
 
+    describe('isWithinCheckinDistance', () => {
+        it('queries with ST_DWithin using the provided max distance', () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.isWithinCheckinDistance('space-abc', 30.2672, -97.7431, 120);
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('ST_DWithin');
+            expect(query).to.include('ST_MakePoint');
+            expect(query).to.include('space-abc');
+            expect(query).to.include('120');
+        });
+
+        it('passes longitude before latitude to ST_MakePoint (PostGIS convention)', () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            // lat=30, lon=-97
+            store.isWithinCheckinDistance('space-xyz', 30, -97, 120);
+
+            const query = mockStore.read.query.args[0][0];
+            // ST_MakePoint(lon, lat) — longitude must appear before latitude
+            const makePointIdx = query.indexOf('ST_MakePoint(');
+            const lonIdx = query.indexOf('-97', makePointIdx);
+            const latIdx = query.indexOf('30', makePointIdx);
+            expect(lonIdx).to.be.lessThan(latIdx);
+        });
+
+        it('returns true when the DB row is found (user is nearby)', async () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().resolves({ rows: [{ id: 'space-abc' }] }),
+                },
+            };
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            const result = await store.isWithinCheckinDistance('space-abc', 30, -97, 120);
+            expect(result).to.be.true;
+        });
+
+        it('returns false when the DB returns no rows (user is too far)', async () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().resolves({ rows: [] }),
+                },
+            };
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            const result = await store.isWithinCheckinDistance('space-abc', 51.5, -0.12, 120);
+            expect(result).to.be.false;
+        });
+    });
+
     describe('getById', () => {
         it('queries with a join request', () => {
             const mockId = '12345';

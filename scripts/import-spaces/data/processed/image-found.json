@@ -1,6 +1,6 @@
 {
   "type": "image-found",
-  "updatedAt": "2026-04-05T01:40:10.142Z",
+  "updatedAt": "2026-04-05T18:29:42.410Z",
   "entries": [
     {
       "id": "38e932b4-2909-4563-9cde-cdc31e7b7cf9",
@@ -611,6 +611,41 @@
       "id": "adf01043-7ee7-46f0-8144-f73dd777a35f",
       "name": "MacKenzie River Pizza Co",
       "processedAt": "2026-04-05T01:40:10.142Z"
+    },
+    {
+      "id": "e251a84b-3ff7-4827-9fc8-65fc341e1697",
+      "name": "Arni's",
+      "processedAt": "2026-04-05T13:49:53.783Z"
+    },
+    {
+      "id": "d72d6b1a-c459-454b-ab6e-d2a49d10ec44",
+      "name": "Shoe Carnival",
+      "processedAt": "2026-04-05T13:50:00.740Z"
+    },
+    {
+      "id": "a0d6fade-865b-4139-a2a2-d5dc1d517f98",
+      "name": "Books & Brews",
+      "processedAt": "2026-04-05T13:50:15.622Z"
+    },
+    {
+      "id": "caad0169-ba80-486d-8ed6-ea5fcdf06e11",
+      "name": "Hong Kong Restaurant",
+      "processedAt": "2026-04-05T13:50:29.329Z"
+    },
+    {
+      "id": "dad6068c-c663-494d-90f6-dbb198dbe8ca",
+      "name": "Oak Flat Vineyards",
+      "processedAt": "2026-04-05T14:50:06.684Z"
+    },
+    {
+      "id": "c8a6295e-25a5-4da9-a264-4e7ee3e7fa1b",
+      "name": "Mezze and Mooore",
+      "processedAt": "2026-04-05T14:50:40.403Z"
+    },
+    {
+      "id": "abe8df0a-9129-41c5-bfe2-1ccb6bd4e5ba",
+      "name": "Sardella's Pizza and Wings",
+      "processedAt": "2026-04-05T18:29:42.410Z"
     }
   ]
 }
