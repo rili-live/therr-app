@@ -359,6 +359,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                     {!isBusinessDataLoading && (
                                         <Stack gap="sm">
                                             {myThoughts.slice(0, 5).map((thought: any) => (
+                                                // eslint-disable-next-line max-len
                                                 <ThoughtCard key={thought.id} locale={this.props.locale} thought={thought} onThoughtClick={this.handleThoughtClick} />
                                             ))}
                                         </Stack>

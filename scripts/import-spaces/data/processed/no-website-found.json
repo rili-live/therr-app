@@ -1,6 +1,6 @@
 {
   "type": "no-website-found",
-  "updatedAt": "2026-04-05T01:40:04.837Z",
+  "updatedAt": "2026-04-10T16:16:57.735Z",
   "entries": [
     {
       "id": "f0796878-3e0e-425e-afe9-1fe25ad4cad3",
@@ -10381,6 +10381,951 @@
       "id": "0cf4dd75-7cb8-4677-ad91-c5737d8344f1",
       "name": "City Cafe",
       "processedAt": "2026-04-05T01:40:04.837Z"
+    },
+    {
+      "id": "b00d6589-3443-4093-b636-be2c47b19c31",
+      "name": "American Legion",
+      "processedAt": "2026-04-05T13:49:49.471Z"
+    },
+    {
+      "id": "0ee0d3f8-43c4-48ba-8a54-6dc9ab3ac61a",
+      "name": "Indianapolis East Knights Inn",
+      "processedAt": "2026-04-05T13:50:03.085Z"
+    },
+    {
+      "id": "37363e02-6971-4ce6-8827-52854bfb6e74",
+      "name": "McAlister's Deli",
+      "processedAt": "2026-04-05T13:50:05.238Z"
+    },
+    {
+      "id": "33be5833-64d8-447a-aada-0a42278e7245",
+      "name": "Starbucks",
+      "processedAt": "2026-04-05T13:50:07.443Z"
+    },
+    {
+      "id": "c1846493-94cb-4c3d-bbda-fe09ffef9c25",
+      "name": "Comic Carnival",
+      "processedAt": "2026-04-05T13:50:17.947Z"
+    },
+    {
+      "id": "ce3c88e6-1497-4c2f-b2aa-00b968cd1f3e",
+      "name": "Calvin Fletcher Coffee",
+      "processedAt": "2026-04-05T13:50:20.135Z"
+    },
+    {
+      "id": "2e43004e-9017-4386-a360-f6d9c74bcf72",
+      "name": "Best Buy",
+      "processedAt": "2026-04-05T13:50:22.322Z"
+    },
+    {
+      "id": "3fa16b16-2ff5-415d-ac9b-3c5556458aa7",
+      "name": "Outback Steakhouse",
+      "processedAt": "2026-04-05T13:50:24.487Z"
+    },
+    {
+      "id": "512ee63d-66c2-401f-a16f-38b18de3254d",
+      "name": "Eagle Creek Retreat",
+      "processedAt": "2026-04-05T13:50:31.653Z"
+    },
+    {
+      "id": "5240a65a-cb63-49ac-b7a7-83f03135d605",
+      "name": "More Than Just Pizza",
+      "processedAt": "2026-04-05T13:50:33.807Z"
+    },
+    {
+      "id": "52f5645c-4b38-46e5-9822-d77a3c227255",
+      "name": "Liberty Street",
+      "processedAt": "2026-04-05T13:50:36.048Z"
+    },
+    {
+      "id": "92dc5744-cc00-4892-8d4d-e4fdf99a76c5",
+      "name": "Blue Shark",
+      "processedAt": "2026-04-05T13:50:38.345Z"
+    },
+    {
+      "id": "ca216d54-4e4a-495b-93a6-016f25d44767",
+      "name": "Ranch Market",
+      "processedAt": "2026-04-05T14:50:09.198Z"
+    },
+    {
+      "id": "b4cb81db-09f4-4352-b852-bc51f29a47b9",
+      "name": "Dapper&Stout",
+      "processedAt": "2026-04-05T14:50:11.385Z"
+    },
+    {
+      "id": "0fe257da-da1c-4097-848d-28808185adb0",
+      "name": "Happy Donut",
+      "processedAt": "2026-04-05T14:50:42.810Z"
+    },
+    {
+      "id": "2c147506-6135-45cd-91dc-db7ee4ad9183",
+      "name": "Felicia Gelardi Skin Care",
+      "processedAt": "2026-04-05T18:29:10.009Z"
+    },
+    {
+      "id": "8d2da642-2919-4e5d-ab91-29cc977503e3",
+      "name": "Opal's",
+      "processedAt": "2026-04-05T18:29:12.291Z"
+    },
+    {
+      "id": "0751b373-6eaf-45dd-91b4-3ebf8e2ccd74",
+      "name": "The Blooze Bar",
+      "processedAt": "2026-04-05T18:29:29.962Z"
+    },
+    {
+      "id": "123c60cd-efc5-48de-a0fc-d115f5781454",
+      "name": "Mel's Snack Shop",
+      "processedAt": "2026-04-05T18:29:35.093Z"
+    },
+    {
+      "id": "5dd2f118-972c-4a2c-ab48-50f15e862706",
+      "name": "Original Roadhouse Grill",
+      "processedAt": "2026-04-05T18:29:44.803Z"
+    },
+    {
+      "id": "154d325f-43a3-4a75-aa42-449ba8acb845",
+      "name": "Ankeny Hardware",
+      "processedAt": "2026-04-05T18:29:52.695Z"
+    },
+    {
+      "id": "55f1f36d-66c9-4751-b2aa-a31efa3f7c82",
+      "name": "Restaurant LAMARO",
+      "processedAt": "2026-04-05T18:29:54.912Z"
+    },
+    {
+      "id": "22c38441-b0b3-426f-b612-d83aa7028893",
+      "name": "Floral Inn",
+      "processedAt": "2026-04-05T18:29:57.144Z"
+    },
+    {
+      "id": "88e49930-7b54-4101-8591-f24a37111aa4",
+      "name": "Gabriel Pizza",
+      "processedAt": "2026-04-10T14:51:53.084Z"
+    },
+    {
+      "id": "514904c1-1b29-49eb-879f-abc281fea596",
+      "name": "Fulton Grand",
+      "processedAt": "2026-04-10T14:52:08.358Z"
+    },
+    {
+      "id": "b74917b9-4182-4388-9065-dffc55475c30",
+      "name": "Murphy USA",
+      "processedAt": "2026-04-10T14:52:10.531Z"
+    },
+    {
+      "id": "feed5069-2719-4fb6-b648-58a5aa34cfc4",
+      "name": "Tasty Biscuit",
+      "processedAt": "2026-04-10T14:52:12.692Z"
+    },
+    {
+      "id": "58af27d1-5de8-413f-9586-5ac3582ef0e7",
+      "name": "Starbucks",
+      "processedAt": "2026-04-10T14:52:22.725Z"
+    },
+    {
+      "id": "405d9835-025a-4d89-b5aa-3bb107381aa1",
+      "name": "Brooklyn Deli",
+      "processedAt": "2026-04-10T14:52:34.136Z"
+    },
+    {
+      "id": "ea60a3fc-f7f8-4b67-a341-26a092a49044",
+      "name": "The Taphouse Coquitlam",
+      "processedAt": "2026-04-10T14:52:36.328Z"
+    },
+    {
+      "id": "742e6375-0a5f-4ff7-a7a5-3cc0decfaa1f",
+      "name": "River's Edge Cafe",
+      "processedAt": "2026-04-10T14:52:43.005Z"
+    },
+    {
+      "id": "fca6098f-558a-4f5b-8463-77114c5093d1",
+      "name": "Battle Hill Tavern",
+      "processedAt": "2026-04-10T14:52:45.243Z"
+    },
+    {
+      "id": "e2961374-b2a0-42bd-bc4a-cb63b686c776",
+      "name": "The Refuge",
+      "processedAt": "2026-04-10T15:56:52.985Z"
+    },
+    {
+      "id": "10c76a5b-a9dc-4307-bf24-4dde80985d97",
+      "name": "Broadway Bar",
+      "processedAt": "2026-04-10T15:56:55.315Z"
+    },
+    {
+      "id": "903d1942-c073-42ed-89f1-8244072664f1",
+      "name": "Idaho Pizza",
+      "processedAt": "2026-04-10T15:56:57.493Z"
+    },
+    {
+      "id": "453f8316-b6ac-4159-828d-29f26a2f074a",
+      "name": "Pizza Hut",
+      "processedAt": "2026-04-10T15:57:06.031Z"
+    },
+    {
+      "id": "4630abe0-caf6-4b98-8813-918753647b90",
+      "name": "Cafe Rio",
+      "processedAt": "2026-04-10T15:57:08.254Z"
+    },
+    {
+      "id": "1401ba09-6ab9-4ebf-8f5d-e9b731e74814",
+      "name": "Americana Pizza",
+      "processedAt": "2026-04-10T15:57:10.563Z"
+    },
+    {
+      "id": "76f2c65d-b1ed-4481-a38a-6cfb0094f3b6",
+      "name": "Charlie Brown's",
+      "processedAt": "2026-04-10T15:57:12.927Z"
+    },
+    {
+      "id": "70c803da-465b-4ea8-9aee-bc40395fdde7",
+      "name": "Bond Hotel & Extended Stay",
+      "processedAt": "2026-04-10T15:57:15.299Z"
+    },
+    {
+      "id": "24b5e765-b693-43fc-94d1-4d97366be4e2",
+      "name": "Creperie Cafe",
+      "processedAt": "2026-04-10T15:57:17.550Z"
+    },
+    {
+      "id": "b18fe51d-9b61-4391-ba98-135dbb37b308",
+      "name": "Anastasia Skin Care & Waxing",
+      "processedAt": "2026-04-10T15:57:19.916Z"
+    },
+    {
+      "id": "bcf65ae3-82ef-4fe1-bec1-57e65952053d",
+      "name": "Spacebar",
+      "processedAt": "2026-04-10T15:57:33.567Z"
+    },
+    {
+      "id": "3545524c-8556-432b-8964-8667c39519df",
+      "name": "Cracker Barrel",
+      "processedAt": "2026-04-10T15:57:43.174Z"
+    },
+    {
+      "id": "b2dcb88b-0218-47c8-8f6a-a44caba5dcf6",
+      "name": "Jamaca Me Tan",
+      "processedAt": "2026-04-10T15:57:45.381Z"
+    },
+    {
+      "id": "aae5ab05-0576-4286-baa9-aa727dd5dc20",
+      "name": "Petit 4",
+      "processedAt": "2026-04-10T15:57:47.651Z"
+    },
+    {
+      "id": "94ebc8a4-53d9-4a42-9611-a8f0d11faa56",
+      "name": "Abercrombie & Fitch",
+      "processedAt": "2026-04-10T15:57:49.864Z"
+    },
+    {
+      "id": "e0baba72-93e0-48ee-ae08-23eca4742efb",
+      "name": "Dong Khanh Vietnamese Restaurant",
+      "processedAt": "2026-04-10T15:57:52.066Z"
+    },
+    {
+      "id": "2c13053c-95b7-4d27-b1f1-4ef8ff28f0b9",
+      "name": "SouthFork Market",
+      "processedAt": "2026-04-10T15:58:07.905Z"
+    },
+    {
+      "id": "0f4ee609-857b-495c-a5fc-6855bb950ad5",
+      "name": "Bbq 4 Life",
+      "processedAt": "2026-04-10T15:58:10.131Z"
+    },
+    {
+      "id": "9d7a995b-2bf8-41e0-9009-dd68353d8d64",
+      "name": "Jacksons",
+      "processedAt": "2026-04-10T15:58:12.761Z"
+    },
+    {
+      "id": "4a83af90-235c-4447-8f6e-139b0b9c147f",
+      "name": "Quinn's Restaurant & Lounge",
+      "processedAt": "2026-04-10T15:58:23.021Z"
+    },
+    {
+      "id": "644eea45-4b6c-4d7b-87da-0fe41e09a671",
+      "name": "Pendleton",
+      "processedAt": "2026-04-10T15:58:25.200Z"
+    },
+    {
+      "id": "99f5c332-3c7d-496f-96ec-0f00614152bd",
+      "name": "Country Pride",
+      "processedAt": "2026-04-10T15:58:27.378Z"
+    },
+    {
+      "id": "9d41fc85-2480-49c8-9f07-1cbbd2c52aa8",
+      "name": "Zen Bento",
+      "processedAt": "2026-04-10T15:58:29.533Z"
+    },
+    {
+      "id": "71607ccd-1672-4d0b-a646-5021d83c7fe4",
+      "name": "Francesca's",
+      "processedAt": "2026-04-10T15:58:32.094Z"
+    },
+    {
+      "id": "f5f09487-74a3-412a-828a-f9dbc3171d3c",
+      "name": "Backstage Bistro",
+      "processedAt": "2026-04-10T15:58:34.289Z"
+    },
+    {
+      "id": "5c2f0291-620f-4b64-9cb1-8a586073b59a",
+      "name": "The Wylder",
+      "processedAt": "2026-04-10T15:58:36.439Z"
+    },
+    {
+      "id": "f71e64be-bd78-4360-8547-f60b559c1135",
+      "name": "Showgirl Nails & Hair",
+      "processedAt": "2026-04-10T15:58:38.584Z"
+    },
+    {
+      "id": "ee38e611-9ec0-46fa-8766-20d9c64416e2",
+      "name": "Bardenay",
+      "processedAt": "2026-04-10T15:58:40.767Z"
+    },
+    {
+      "id": "c931ec2e-7b65-40f8-99b6-5ce7dc11e04a",
+      "name": "Atomic Salon",
+      "processedAt": "2026-04-10T15:58:42.937Z"
+    },
+    {
+      "id": "f94d8a9b-be67-408c-95b9-3150981e0a1b",
+      "name": "Buckle",
+      "processedAt": "2026-04-10T15:58:49.421Z"
+    },
+    {
+      "id": "0ca0a9f6-8e8d-472c-a85b-f2a94c0e66fa",
+      "name": "Idaho Statesman",
+      "processedAt": "2026-04-10T15:58:59.359Z"
+    },
+    {
+      "id": "da0fe358-2e32-4677-8ae2-a781e6a35e25",
+      "name": "White Dog Brewing Co",
+      "processedAt": "2026-04-10T15:59:01.529Z"
+    },
+    {
+      "id": "bb6431f0-c121-4c8c-9aea-b0fd296dc225",
+      "name": "Sushi Ya!",
+      "processedAt": "2026-04-10T15:59:03.763Z"
+    },
+    {
+      "id": "d2422b44-5530-4933-9c3f-935f6bdca088",
+      "name": "Raw Sushi",
+      "processedAt": "2026-04-10T15:59:05.963Z"
+    },
+    {
+      "id": "24bcd734-f78c-4ea1-ac4a-306d09504524",
+      "name": "Bad Apple",
+      "processedAt": "2026-04-10T15:59:08.171Z"
+    },
+    {
+      "id": "693ae523-7ce6-4a3e-9e14-fa038530200b",
+      "name": "Newt & Harolds",
+      "processedAt": "2026-04-10T15:59:10.400Z"
+    },
+    {
+      "id": "20fb2003-e359-449e-8dfc-32cc02cef5d6",
+      "name": "Nails & Spa at 17th",
+      "processedAt": "2026-04-10T15:59:12.563Z"
+    },
+    {
+      "id": "9e9c9748-d771-4f76-8f0d-7e2b61241db8",
+      "name": "Bronco Shop",
+      "processedAt": "2026-04-10T15:59:19.179Z"
+    },
+    {
+      "id": "cc3c7e24-87c3-4df3-9105-b816e8b4373f",
+      "name": "Bruins Shop",
+      "processedAt": "2026-04-10T15:59:28.209Z"
+    },
+    {
+      "id": "6f2afb31-1a1b-41ea-b2f3-c3461f686a0c",
+      "name": "Little Coney's",
+      "processedAt": "2026-04-10T15:59:30.365Z"
+    },
+    {
+      "id": "53a4a57e-ebfe-4532-a862-30bd38dd5e0b",
+      "name": "Danh's Kitchen",
+      "processedAt": "2026-04-10T15:59:32.615Z"
+    },
+    {
+      "id": "48e165a2-0bf7-46e7-83e7-8107e2d4a738",
+      "name": "Noodles & Company",
+      "processedAt": "2026-04-10T15:59:35.324Z"
+    },
+    {
+      "id": "e321b59f-3b56-480a-ba5f-2f9c0c4f16b1",
+      "name": "Cahoots",
+      "processedAt": "2026-04-10T16:00:02.436Z"
+    },
+    {
+      "id": "408c7e0d-b451-4110-901f-453f6f9f1e19",
+      "name": "Tenth West",
+      "processedAt": "2026-04-10T16:00:22.777Z"
+    },
+    {
+      "id": "b5db2df0-9e0f-4fcd-9106-e751f9ef0a16",
+      "name": "Silverleaf Tavern",
+      "processedAt": "2026-04-10T16:00:46.512Z"
+    },
+    {
+      "id": "6c36e111-a845-4dde-bf92-7c16220af128",
+      "name": "Dosbros Fresh Mexican Grill",
+      "processedAt": "2026-04-10T16:00:48.777Z"
+    },
+    {
+      "id": "b5413daf-6268-4eaa-8b88-21e4765d8ce4",
+      "name": "Bucky's",
+      "processedAt": "2026-04-10T16:00:54.630Z"
+    },
+    {
+      "id": "52843d9d-2fed-48a0-bcd5-5243ad11f953",
+      "name": "Ruth's Chris Steak House",
+      "processedAt": "2026-04-10T16:00:56.990Z"
+    },
+    {
+      "id": "6b3431d6-dcf9-4e6c-91d8-482f1228b08f",
+      "name": "Happy Lamb Hot Pot",
+      "processedAt": "2026-04-10T16:01:02.858Z"
+    },
+    {
+      "id": "652fa9a7-caaa-4d93-948e-a11e3b2fb0b3",
+      "name": "Rent-A-Center",
+      "processedAt": "2026-04-10T16:01:05.187Z"
+    },
+    {
+      "id": "7c0b4270-45d0-4f25-b786-15c98b306111",
+      "name": "O'Hara's Pub",
+      "processedAt": "2026-04-10T16:01:22.244Z"
+    },
+    {
+      "id": "3a54d76a-6517-4ec2-9328-38f6cd1ac14f",
+      "name": "Casa Blanca",
+      "processedAt": "2026-04-10T16:01:27.341Z"
+    },
+    {
+      "id": "4cc4a08b-2cfd-431d-b90d-1ad677ec2cfb",
+      "name": "Revive Nails and Massage Therapy",
+      "processedAt": "2026-04-10T16:01:57.580Z"
+    },
+    {
+      "id": "5f0c9ae5-f9c6-4a62-8586-2bf9367be079",
+      "name": "Mediteranian Food",
+      "processedAt": "2026-04-10T16:02:04.914Z"
+    },
+    {
+      "id": "c7e52472-34d2-40e6-9d44-0cc4e1396486",
+      "name": "Charger Cafe",
+      "processedAt": "2026-04-10T16:02:11.344Z"
+    },
+    {
+      "id": "8aab384f-7dbb-4063-8b47-64c2422b4a66",
+      "name": "Shea's Express",
+      "processedAt": "2026-04-10T16:02:20.565Z"
+    },
+    {
+      "id": "3f317bf9-5ab0-44c5-a82d-9b46ea1fe909",
+      "name": "Nava's Mexican Cuisine",
+      "processedAt": "2026-04-10T16:02:36.313Z"
+    },
+    {
+      "id": "eac81723-492c-4ff6-b86f-c56696c1e423",
+      "name": "Barnes & Noble",
+      "processedAt": "2026-04-10T16:03:25.032Z"
+    },
+    {
+      "id": "3ac2cca5-b133-487c-ae25-da491565306d",
+      "name": "C-Store",
+      "processedAt": "2026-04-10T16:03:27.331Z"
+    },
+    {
+      "id": "a5c71903-9399-4bc0-bfaf-4bdb75780818",
+      "name": "Angel's Island",
+      "processedAt": "2026-04-10T16:03:45.649Z"
+    },
+    {
+      "id": "a43c413b-3816-4479-86a9-cced012be99b",
+      "name": "Red Robin",
+      "processedAt": "2026-04-10T16:04:01.206Z"
+    },
+    {
+      "id": "490d554f-8407-4e87-b0a7-f9a3c609725b",
+      "name": "Charismata Boutique",
+      "processedAt": "2026-04-10T16:04:03.681Z"
+    },
+    {
+      "id": "38f7faf0-e049-4a7a-b4a2-1641af647f0e",
+      "name": "Tip Top Cafe",
+      "processedAt": "2026-04-10T16:04:11.855Z"
+    },
+    {
+      "id": "ecdb10bc-9405-4c51-88a4-87411df7cdb9",
+      "name": "Barnes & Noble",
+      "processedAt": "2026-04-10T16:04:14.050Z"
+    },
+    {
+      "id": "3230497e-2752-4cab-9f93-e48530a9e2ac",
+      "name": "Candlewood Suites",
+      "processedAt": "2026-04-10T16:04:16.239Z"
+    },
+    {
+      "id": "1eadd57c-c8d1-433a-9205-987098ed3bee",
+      "name": "Carrabas Italian Grill",
+      "processedAt": "2026-04-10T16:04:53.867Z"
+    },
+    {
+      "id": "6fcafe2b-c6f8-407d-a42e-6bc2551de298",
+      "name": "Cookies and Cream",
+      "processedAt": "2026-04-10T16:04:56.152Z"
+    },
+    {
+      "id": "57a69e2d-ef65-4220-8ce8-48b88d6f4ef4",
+      "name": "Tim's Cajun Kitchen",
+      "processedAt": "2026-04-10T16:05:10.227Z"
+    },
+    {
+      "id": "06c64697-e7f0-4584-80b7-25429cc0b199",
+      "name": "Sun Kissed",
+      "processedAt": "2026-04-10T16:05:19.794Z"
+    },
+    {
+      "id": "808f7ab9-4e52-47b4-aab2-72d548682a46",
+      "name": "Meridan Crossing Tavern and Eatery",
+      "processedAt": "2026-04-10T16:05:25.821Z"
+    },
+    {
+      "id": "31580789-66ba-4dd5-828a-6b034c9a1edb",
+      "name": "Guadalajara Mexican Restaurant",
+      "processedAt": "2026-04-10T16:05:46.797Z"
+    },
+    {
+      "id": "faa4fdeb-b0c8-46f4-8689-d5953f497238",
+      "name": "China Taste",
+      "processedAt": "2026-04-10T16:05:49.004Z"
+    },
+    {
+      "id": "9ab6954a-4363-408c-ba5c-ca4a4c2337bb",
+      "name": "Unisversity Jet Pep",
+      "processedAt": "2026-04-10T16:05:54.148Z"
+    },
+    {
+      "id": "5814f222-c3e7-46b7-8278-adb7583275ca",
+      "name": "gaRam Korean Restaurant",
+      "processedAt": "2026-04-10T16:05:56.341Z"
+    },
+    {
+      "id": "d0f98ea9-e6af-4812-bdae-83f6a7a2cb83",
+      "name": "Pints & Pixels",
+      "processedAt": "2026-04-10T16:05:59.129Z"
+    },
+    {
+      "id": "4af610d7-d44f-4aca-8584-09ec22a0ebe8",
+      "name": "Booklegger",
+      "processedAt": "2026-04-10T16:06:01.427Z"
+    },
+    {
+      "id": "2b975123-5045-4b44-a9c9-c6d219b71874",
+      "name": "Senor Tequila",
+      "processedAt": "2026-04-10T16:06:04.325Z"
+    },
+    {
+      "id": "774d58e6-2ad5-498f-a06f-5e118b6eaff2",
+      "name": "Star Supermarket",
+      "processedAt": "2026-04-10T16:06:06.483Z"
+    },
+    {
+      "id": "1c036a4e-7846-4ef6-bdc5-efa1eb17bb4e",
+      "name": "El Hurradurra Mexican Restaurant",
+      "processedAt": "2026-04-10T16:06:08.738Z"
+    },
+    {
+      "id": "876b1598-c9bc-45b2-8b50-8dd3eecadd3c",
+      "name": "Mt. Gap food Mart",
+      "processedAt": "2026-04-10T16:06:10.921Z"
+    },
+    {
+      "id": "0ecb96ec-ca04-40fd-9943-f48fe3510fd0",
+      "name": "Olde Towne Coffee Shop",
+      "processedAt": "2026-04-10T16:06:25.417Z"
+    },
+    {
+      "id": "e64ff7c1-f6e6-4cf4-9992-02747bc27650",
+      "name": "Old Navy",
+      "processedAt": "2026-04-10T16:06:27.635Z"
+    },
+    {
+      "id": "e11798f3-edcd-4d43-a124-1b5bf1a1ad11",
+      "name": "La Alemeda",
+      "processedAt": "2026-04-10T16:06:29.879Z"
+    },
+    {
+      "id": "72b9895b-fac2-4fb4-8010-afce6c251eca",
+      "name": "Jamo's Cafe",
+      "processedAt": "2026-04-10T16:06:43.855Z"
+    },
+    {
+      "id": "7adb39de-56fa-4d54-99fa-55f925ed23ad",
+      "name": "H&M",
+      "processedAt": "2026-04-10T16:06:57.840Z"
+    },
+    {
+      "id": "09696e09-2c3c-4c6c-a25f-7d62aa5b5a3d",
+      "name": "The Little Green Store",
+      "processedAt": "2026-04-10T16:07:00.019Z"
+    },
+    {
+      "id": "a276ea69-be9b-46e2-9486-a8f499dbe723",
+      "name": "The Canteen",
+      "processedAt": "2026-04-10T16:07:02.517Z"
+    },
+    {
+      "id": "98a717bd-13c0-40c5-b0ad-7739af143316",
+      "name": "Sushi Sakai",
+      "processedAt": "2026-04-10T16:07:15.485Z"
+    },
+    {
+      "id": "8c69cfb8-ab42-4217-9a35-8b78f8e0e010",
+      "name": "Ferrante's",
+      "processedAt": "2026-04-10T16:08:07.984Z"
+    },
+    {
+      "id": "7eab5de8-44b5-4dc9-a998-a467d95b3f20",
+      "name": "Latah Bistro",
+      "processedAt": "2026-04-10T16:08:10.222Z"
+    },
+    {
+      "id": "420b8e0f-fcf9-45df-b225-35b89b2f38a0",
+      "name": "Rosauers",
+      "processedAt": "2026-04-10T16:08:19.588Z"
+    },
+    {
+      "id": "a6714a67-4f75-4ba3-988d-94364fb8344a",
+      "name": "Rocket Bakery",
+      "processedAt": "2026-04-10T16:08:21.782Z"
+    },
+    {
+      "id": "b8a67bdc-8792-4278-8e61-8fc3dc617a4d",
+      "name": "Grocery Outlet",
+      "processedAt": "2026-04-10T16:08:23.991Z"
+    },
+    {
+      "id": "aeab3fd1-ca22-4020-9ed0-e57fb3f58804",
+      "name": "Indaba Coffee",
+      "processedAt": "2026-04-10T16:08:39.885Z"
+    },
+    {
+      "id": "a99281ca-afb4-4263-91f9-e1242800444d",
+      "name": "Furniture Row",
+      "processedAt": "2026-04-10T16:08:42.455Z"
+    },
+    {
+      "id": "3db69feb-8cbc-4901-ae67-20ce7efd0a1f",
+      "name": "Lavish Salon",
+      "processedAt": "2026-04-10T16:08:44.752Z"
+    },
+    {
+      "id": "1ad93f79-aa3a-4a33-b282-711d63a629be",
+      "name": "Batteries Plus Bulbs",
+      "processedAt": "2026-04-10T16:08:52.788Z"
+    },
+    {
+      "id": "aacf484d-274e-4887-85f0-d4ec337a2afc",
+      "name": "Tuxedo Gallery",
+      "processedAt": "2026-04-10T16:08:55.160Z"
+    },
+    {
+      "id": "037a5de6-f230-4d0f-948e-5f87b170f0a1",
+      "name": "Fathom Salon & Spa",
+      "processedAt": "2026-04-10T16:08:57.354Z"
+    },
+    {
+      "id": "f483eab6-9868-4637-9020-1f7f16f58a26",
+      "name": "Cycle Gear",
+      "processedAt": "2026-04-10T16:08:59.528Z"
+    },
+    {
+      "id": "534f9ffa-df6b-4a5f-899c-535070f5d0ab",
+      "name": "Rocket Bakery",
+      "processedAt": "2026-04-10T16:09:06.570Z"
+    },
+    {
+      "id": "2e50b8ed-50fd-47d5-b93c-207ea707cf7c",
+      "name": "Bennidito's Pizza & Bar",
+      "processedAt": "2026-04-10T16:09:08.812Z"
+    },
+    {
+      "id": "9e738146-e539-4487-9009-5cb93818aab5",
+      "name": "Broadway Diner",
+      "processedAt": "2026-04-10T16:09:14.953Z"
+    },
+    {
+      "id": "05a11efd-ccb9-42f5-bee6-72b1cee4549a",
+      "name": "Urban Outfitters",
+      "processedAt": "2026-04-10T16:09:17.217Z"
+    },
+    {
+      "id": "79af2877-ab7c-4c1e-860f-d0ab0b043312",
+      "name": "Didi's Hawaiian Shack",
+      "processedAt": "2026-04-10T16:09:23.719Z"
+    },
+    {
+      "id": "1960549a-8098-47a4-90fd-7b3e4fef3c81",
+      "name": "Brews Bros. Espresso",
+      "processedAt": "2026-04-10T16:09:31.003Z"
+    },
+    {
+      "id": "ffb00bea-a8a6-4b1f-ae5e-5df6c66da43d",
+      "name": "Knights Inn Spokane North",
+      "processedAt": "2026-04-10T16:09:37.009Z"
+    },
+    {
+      "id": "64951ec4-4715-4da8-82ad-4f8a62f7c443",
+      "name": "Indiana Market",
+      "processedAt": "2026-04-10T16:09:43.668Z"
+    },
+    {
+      "id": "f03db740-3c5f-4c93-aaea-2b77bc353c9a",
+      "name": "Adelo's Pizza",
+      "processedAt": "2026-04-10T16:09:45.888Z"
+    },
+    {
+      "id": "e1bbcb0f-c6b4-498a-b4a8-165eecb37ef6",
+      "name": "Extra Beauty",
+      "processedAt": "2026-04-10T16:09:48.203Z"
+    },
+    {
+      "id": "851d5834-2323-47a4-bf6e-70c1f57cad13",
+      "name": "Garland Mart",
+      "processedAt": "2026-04-10T16:09:50.434Z"
+    },
+    {
+      "id": "0633671d-57c9-4262-9550-a359a972990f",
+      "name": "Red Wing",
+      "processedAt": "2026-04-10T16:09:52.816Z"
+    },
+    {
+      "id": "5bd48f4e-925e-4d05-bae4-076b7e2d12ad",
+      "name": "Kabob House",
+      "processedAt": "2026-04-10T16:09:55.069Z"
+    },
+    {
+      "id": "7e0ce164-383c-439b-9559-75c1139de93c",
+      "name": "Arabian Palace",
+      "processedAt": "2026-04-10T16:09:57.253Z"
+    },
+    {
+      "id": "96a74365-7253-4337-879f-034f01550140",
+      "name": "Mr. Wok",
+      "processedAt": "2026-04-10T16:09:59.442Z"
+    },
+    {
+      "id": "9df077fa-9f45-4e2d-a217-c09dc272ed9c",
+      "name": "Men's Wearhouse",
+      "processedAt": "2026-04-10T16:10:06.049Z"
+    },
+    {
+      "id": "5ff41403-ab2e-48c9-bd82-101461332725",
+      "name": "Donuts",
+      "processedAt": "2026-04-10T16:10:08.246Z"
+    },
+    {
+      "id": "ad746cad-4528-44ef-b3ed-47d1659aeddc",
+      "name": "The Smoker's Outlet and Mini-Market",
+      "processedAt": "2026-04-10T16:10:10.515Z"
+    },
+    {
+      "id": "f5b680ad-f731-4f68-a8b8-d5a200728abe",
+      "name": "Osaka Room",
+      "processedAt": "2026-04-10T16:10:17.610Z"
+    },
+    {
+      "id": "84c53ec5-7abe-46f7-9b50-4446829b7f2e",
+      "name": "Ephata Cafe Juice and Java",
+      "processedAt": "2026-04-10T16:10:27.970Z"
+    },
+    {
+      "id": "01d00879-1fe6-4517-8f79-105d2dcdf2b6",
+      "name": "Dania",
+      "processedAt": "2026-04-10T16:10:35.094Z"
+    },
+    {
+      "id": "dd8a938f-444e-4b0b-a30f-ca70f1f853bd",
+      "name": "9th Street Bistro",
+      "processedAt": "2026-04-10T16:10:40.453Z"
+    },
+    {
+      "id": "0fa39072-d4cd-407c-97b0-6177d0510d48",
+      "name": "Field House Pizza & Pub",
+      "processedAt": "2026-04-10T16:10:42.885Z"
+    },
+    {
+      "id": "2c50c171-44cf-42c5-9b39-54a8b1460497",
+      "name": "Manito Tap House",
+      "processedAt": "2026-04-10T16:10:49.817Z"
+    },
+    {
+      "id": "a4e62706-463d-434d-80e9-28ac139c0437",
+      "name": "Catherines",
+      "processedAt": "2026-04-10T16:10:52.023Z"
+    },
+    {
+      "id": "9b59fd03-198f-464b-a831-724480217de8",
+      "name": "Das Stein Haus",
+      "processedAt": "2026-04-10T16:10:54.229Z"
+    },
+    {
+      "id": "01a1e325-051a-4ea5-90df-4e62ecf9548b",
+      "name": "Divine's Fastmart",
+      "processedAt": "2026-04-10T16:10:56.459Z"
+    },
+    {
+      "id": "d227e53c-5bd9-41e7-a8a8-938b8fb974a9",
+      "name": "Poole's Public House - South",
+      "processedAt": "2026-04-10T16:10:58.645Z"
+    },
+    {
+      "id": "d8f65fce-5293-4964-9566-c76d8039f94d",
+      "name": "Twigs Bistro and Martini Bar",
+      "processedAt": "2026-04-10T16:11:00.876Z"
+    },
+    {
+      "id": "a8c0a055-0c1b-4488-95c5-c517d45cc20c",
+      "name": "Carrie's Cutting Corner",
+      "processedAt": "2026-04-10T16:11:03.065Z"
+    },
+    {
+      "id": "9843e641-d108-4aab-ac6b-cbe0ecae7f17",
+      "name": "King Crab",
+      "processedAt": "2026-04-10T16:11:59.809Z"
+    },
+    {
+      "id": "684da93d-d3c0-48ba-9c8c-528eaecbc590",
+      "name": "Bacchus",
+      "processedAt": "2026-04-10T16:13:39.952Z"
+    },
+    {
+      "id": "d53ddfa7-5bbf-4247-bbef-50339368c46e",
+      "name": "The Hive",
+      "processedAt": "2026-04-10T16:13:45.871Z"
+    },
+    {
+      "id": "540c7e23-b5af-4011-8505-8190454fb461",
+      "name": "bento",
+      "processedAt": "2026-04-10T16:13:55.301Z"
+    },
+    {
+      "id": "16931c6e-a8e7-4a40-b019-83268b66df4e",
+      "name": "Kin-D Thai Kitchen",
+      "processedAt": "2026-04-10T16:14:08.784Z"
+    },
+    {
+      "id": "d26dcf5c-ac9b-48bd-b4b6-7a0408ec1a8a",
+      "name": "Ramen Spot",
+      "processedAt": "2026-04-10T16:14:23.878Z"
+    },
+    {
+      "id": "e5e72051-3e28-4bfc-937c-1eae293d51b7",
+      "name": "Bernie's",
+      "processedAt": "2026-04-10T16:14:33.911Z"
+    },
+    {
+      "id": "a711cdbf-6761-4d56-b332-e1fa0e331098",
+      "name": "Sunny Market",
+      "processedAt": "2026-04-10T16:14:36.120Z"
+    },
+    {
+      "id": "6ef7c7fd-7f29-4db7-8fb1-f5ce433feb63",
+      "name": "Talbots",
+      "processedAt": "2026-04-10T16:14:50.791Z"
+    },
+    {
+      "id": "06658501-21b3-436c-9d75-efcfcc1ae485",
+      "name": "Chico's",
+      "processedAt": "2026-04-10T16:14:53.040Z"
+    },
+    {
+      "id": "784bb99b-d8eb-4655-b93e-cfbf07caa99c",
+      "name": "The Sidewalk Cafe",
+      "processedAt": "2026-04-10T16:14:55.262Z"
+    },
+    {
+      "id": "86939a31-9477-41fb-81ad-70a133b69cc8",
+      "name": "Scoundrel",
+      "processedAt": "2026-04-10T16:15:18.386Z"
+    },
+    {
+      "id": "408ed2c4-3eb4-48a2-81bf-6300e42d5cbb",
+      "name": "Applied Tech",
+      "processedAt": "2026-04-10T16:15:20.648Z"
+    },
+    {
+      "id": "b6b1c9e0-11f6-456c-8081-f5f01dd90e7b",
+      "name": "The Spa @ East McBee Ave",
+      "processedAt": "2026-04-10T16:15:22.829Z"
+    },
+    {
+      "id": "74fa191c-72f3-40e8-9f68-b44878ca6d11",
+      "name": "Draper Purveying Company",
+      "processedAt": "2026-04-10T16:15:25.108Z"
+    },
+    {
+      "id": "7e4b7088-8d1f-4268-8628-3424383885a0",
+      "name": "Sushi Kingdom",
+      "processedAt": "2026-04-10T16:15:44.739Z"
+    },
+    {
+      "id": "94f4f840-bce2-4c01-b4dc-64db3e84c5cc",
+      "name": "Aryana",
+      "processedAt": "2026-04-10T16:15:56.581Z"
+    },
+    {
+      "id": "4ddefcdf-bf02-4c19-9651-bb5b8c84e9c7",
+      "name": "Head Quarters Day Spa and Salon",
+      "processedAt": "2026-04-10T16:15:58.888Z"
+    },
+    {
+      "id": "7010c01a-0b9a-44fe-a5c0-951076134c89",
+      "name": "Azteca",
+      "processedAt": "2026-04-10T16:16:01.105Z"
+    },
+    {
+      "id": "c7691d4c-a708-451d-830b-3e5ff98f1b95",
+      "name": "Campaign",
+      "processedAt": "2026-04-10T16:16:03.301Z"
+    },
+    {
+      "id": "d5cab777-6393-4bba-899a-efb53cced4ca",
+      "name": "Sweet Dreams",
+      "processedAt": "2026-04-10T16:16:10.114Z"
+    },
+    {
+      "id": "02bd1a92-35fb-4bac-b120-db891901df57",
+      "name": "Hooters",
+      "processedAt": "2026-04-10T16:16:21.544Z"
+    },
+    {
+      "id": "8ae9cdd2-6067-4e09-b7d9-dd3c6cad4ff5",
+      "name": "Field House Jerky and Vine",
+      "processedAt": "2026-04-10T16:16:38.735Z"
+    },
+    {
+      "id": "20f508d3-881c-469d-9b29-9f944c87bd0d",
+      "name": "City Tavern",
+      "processedAt": "2026-04-10T16:16:41.065Z"
+    },
+    {
+      "id": "14ab6a90-931a-45a5-ac3b-18779c5e7c1d",
+      "name": "Northgate Soda Shop",
+      "processedAt": "2026-04-10T16:16:53.212Z"
+    },
+    {
+      "id": "fbd28665-c5b9-4292-aaff-a271e36d4788",
+      "name": "Earlene's Pub",
+      "processedAt": "2026-04-10T16:16:55.497Z"
+    },
+    {
+      "id": "ac672e47-a5e5-4a39-a432-54ba3cef765d",
+      "name": "China",
+      "processedAt": "2026-04-10T16:16:57.735Z"
     }
   ]
 }

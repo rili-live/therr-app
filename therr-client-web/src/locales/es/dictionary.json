@@ -879,6 +879,13 @@
           "item5Title": "Promociones geolocalizadas",
           "item5Body": "Llega a clientes que están a poca distancia en tiempo real con ofertas y descuentos."
         }
+      },
+      "checkinBanner": {
+        "title": "Gana recompensas registrándote aquí",
+        "body": "Descarga la app de Therr para registrarte en {businessName}, ganar ThrrCoins y compartir tu visita con amigos.",
+        "bodyLoggedIn": "Abre Therr app para registrarte en {businessName} y ganar recompensas en ThrrCoins.",
+        "orSignUp": "¿Aún no tienes la app?",
+        "signUpLink": "Crea una cuenta gratis"
       }
     },
     "viewMoment": {

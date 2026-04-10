@@ -284,6 +284,44 @@ export default class SpacesStore {
             .then((response) => response.rows);
     }
 
+    getByIdForDisplayRequest(id) {
+        const query = knexBuilder
+            .select([
+                'id',
+                'fromUserId',
+                'requestedByUserId',
+                'isClaimPending',
+                'notificationMsg',
+                'addressStreetAddress',
+                'addressLocality',
+                'addressRegion',
+                'postalCode',
+                'businessEmail',
+            ])
+            .from(SPACES_TABLE_NAME)
+            .where({ id });
+
+        return this.db.read.query(query.toString())
+            .then((response) => response.rows);
+    }
+
+    // Returns true if the given coordinates are within maxDistanceMeters of the space's center.
+    // Used by the check-in endpoint to validate physical proximity server-side.
+    isWithinCheckinDistance(spaceId: string, userLatitude: number, userLongitude: number, maxDistanceMeters: number) {
+        const queryString = knexBuilder.raw(`
+            SELECT id FROM main.spaces
+            WHERE id = ?
+              AND ST_DWithin(
+                  "geomCenter"::geography,
+                  ST_MakePoint(?, ?)::geography,
+                  ?
+              )
+            LIMIT 1
+        `, [spaceId, userLongitude, userLatitude, maxDistanceMeters]).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.length > 0);
+    }
+
     // Combine with search to avoid getting count out of sync
     countRecords(params, fromUserIds) {
         let proximityMax = Location.AREA_PROXIMITY_METERS;

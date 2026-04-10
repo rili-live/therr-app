@@ -1,6 +1,6 @@
 {
   "type": "email-found",
-  "updatedAt": "2026-04-05T01:39:42.093Z",
+  "updatedAt": "2026-04-10T16:17:04.944Z",
   "entries": [
     {
       "id": "9fbe963b-6e01-494c-acee-d628cc40ce01",
@@ -1826,6 +1826,111 @@
       "id": "5f4c07a4-860c-457a-877d-cc585933a2e9",
       "name": "Apple Store",
       "processedAt": "2026-04-05T01:39:42.093Z"
+    },
+    {
+      "id": "a0d6fade-865b-4139-a2a2-d5dc1d517f98",
+      "name": "Books & Brews",
+      "processedAt": "2026-04-05T13:50:14.688Z"
+    },
+    {
+      "id": "c2e0150b-6e4b-4b32-ba36-b63f2a10ac84",
+      "name": "The Draconian Lounge",
+      "processedAt": "2026-04-05T18:29:50.359Z"
+    },
+    {
+      "id": "37326827-8424-424b-bd25-167f6d533e28",
+      "name": "NW Office Liquidations",
+      "processedAt": "2026-04-10T14:51:43.674Z"
+    },
+    {
+      "id": "80f57fec-fba8-428b-a73a-1c2e886a6791",
+      "name": "Alley Cats Entertainment",
+      "processedAt": "2026-04-10T14:52:06.007Z"
+    },
+    {
+      "id": "fb7b33d7-e22e-4bf4-b81b-729f6d6e470e",
+      "name": "Flying M Coffeehouse",
+      "processedAt": "2026-04-10T15:57:23.054Z"
+    },
+    {
+      "id": "71620967-5920-4f74-a6fb-ee9ab0474932",
+      "name": "The Bayou",
+      "processedAt": "2026-04-10T16:00:51.458Z"
+    },
+    {
+      "id": "ca8619d2-796a-4c43-9d68-cf06c00e4975",
+      "name": "City Gear",
+      "processedAt": "2026-04-10T16:03:48.919Z"
+    },
+    {
+      "id": "3def72b9-e850-47db-bab4-d30447b2d98c",
+      "name": "Dreamland BBQ",
+      "processedAt": "2026-04-10T16:04:06.525Z"
+    },
+    {
+      "id": "c8bf6629-7cfb-4a9c-8d01-dd2249ff1413",
+      "name": "The Fresh Market",
+      "processedAt": "2026-04-10T16:06:39.391Z"
+    },
+    {
+      "id": "7d7ade6c-d9ae-4d1c-8634-0abf7b78dce7",
+      "name": "The Bottle",
+      "processedAt": "2026-04-10T16:06:54.246Z"
+    },
+    {
+      "id": "46703071-9da3-4e17-b0e1-6ef051cadfa0",
+      "name": "Rodeway Inn & Suites Spokane",
+      "processedAt": "2026-04-10T16:07:33.226Z"
+    },
+    {
+      "id": "3d99b826-ea88-4fc2-a97f-47f1adc69da3",
+      "name": "Auntie's Bookstore",
+      "processedAt": "2026-04-10T16:09:27.562Z"
+    },
+    {
+      "id": "9150ed94-7050-4549-8407-acfab5e4aaa6",
+      "name": "Jamra Specialty Coffee",
+      "processedAt": "2026-04-10T16:13:48.825Z"
+    },
+    {
+      "id": "d711e87e-44b5-4ace-ba67-ffcdc215c610",
+      "name": "Siné Irish Pub & Restaurant",
+      "processedAt": "2026-04-10T16:14:15.853Z"
+    },
+    {
+      "id": "1473ad85-3343-4fd1-b30e-0e145619f9b3",
+      "name": "Aquarian",
+      "processedAt": "2026-04-10T16:15:12.644Z"
+    },
+    {
+      "id": "d179e7dd-8e9c-4da9-b222-f80b4b5064ab",
+      "name": "Smiley’s On the Roxx",
+      "processedAt": "2026-04-10T16:15:48.595Z"
+    },
+    {
+      "id": "b6bd9e6c-98fb-432d-8c06-5f24f1eeefd7",
+      "name": "Lefty’s West End Tavern",
+      "processedAt": "2026-04-10T16:15:52.790Z"
+    },
+    {
+      "id": "390ccc48-8435-4578-8d75-4116ba16a5f4",
+      "name": "The Lazy Goat",
+      "processedAt": "2026-04-10T16:16:13.174Z"
+    },
+    {
+      "id": "916d66b4-ea4d-48a5-8ab6-e91b37ecaa23",
+      "name": "Twin Peaks",
+      "processedAt": "2026-04-10T16:16:16.933Z"
+    },
+    {
+      "id": "d6738fbf-d7ed-4770-9d42-0c505b1ca360",
+      "name": "Soby's",
+      "processedAt": "2026-04-10T16:16:43.985Z"
+    },
+    {
+      "id": "ff59b022-acc4-4478-ae0a-393745390102",
+      "name": "The Olde Homestead, Inc",
+      "processedAt": "2026-04-10T16:17:04.944Z"
     }
   ]
 }

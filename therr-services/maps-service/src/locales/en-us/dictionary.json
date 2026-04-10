@@ -26,6 +26,13 @@
     "mustBeOwner": "Must be space owner to view metrics",
     "noOverlap": "A new space must not overlap existing spaces. Spaces are exclusive by design. Move to a new location and try again.",
     "notFound": "Space not found",
-    "alreadyClaimed": "You have already claimed this space"
+    "alreadyClaimed": "You have already claimed this space",
+    "tooFarToCheckIn": "You must be within 120 meters of this space to check in"
+  },
+  "spaceDisplayRequests": {
+    "missingSpaceId": "A spaceId is required",
+    "invalidDisplayType": "Display type must be one of: coaster, table_tent, window_cling",
+    "spaceMustBeClaimed": "Display kits are only available for claimed spaces",
+    "businessAddressRequired": "The space must have a verified business address (street, city, and region) to request a display kit"
   }
 }

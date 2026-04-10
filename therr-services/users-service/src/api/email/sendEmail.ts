@@ -189,20 +189,20 @@ export default (
         // Also skip if user account is unclaimed
         const emailIsBlacklisted = blacklistedEmails?.length || userDetails?.isUnclaimed;
         if (emailValidator.validate(emailConfig.toAddresses[0]) && !emailIsBlacklisted) {
-            return awsSES.sendEmail(params, (err, data) => {
-                if (err) {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['Error sending email', err?.message],
-                        traceArgs: {
-                            'email.messageId': data?.MessageId,
-                        },
-                    });
-                    // NOTE: Always resolve, even if there is an error to prevent the API from failing
-                    return resolve(data);
-                }
+            return awsSES.sendEmail(params).then((data) => {
                 resolve(data);
+            }).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Error sending email', err?.message],
+                    traceArgs: {
+                        'email.toAddresses': emailConfig.toAddresses,
+                        'error.code': err?.Code,
+                    },
+                });
+                // NOTE: Always resolve, even if there is an error to prevent the API from failing
+                resolve(err);
             });
         }
 
