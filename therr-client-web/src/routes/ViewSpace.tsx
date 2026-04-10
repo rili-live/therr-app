@@ -255,7 +255,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const { spaceId } = this.state;
 
         if (!user?.isAuthenticated) {
-            this.props.navigation.navigate(`/register?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`);
+            this.props.navigation.navigate(`/register?returnTo=${this.getReturnToPath(spaceId)}`);
             return;
         }
 

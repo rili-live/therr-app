@@ -20,8 +20,7 @@ import Store from '../store';
 
 export const SPACES_BASE_URL = 'https://www.therr.com/spaces';
 
-export const buildCheckinQrUrl = (spaceId: string): string =>
-    `${SPACES_BASE_URL}/${spaceId}?checkin=true`;
+export const buildCheckinQrUrl = (spaceId: string): string => `${SPACES_BASE_URL}/${spaceId}?checkin=true`;
 
 const QR_SIZE_PX = 1200; // 300 DPI × 4 inches
 
@@ -51,10 +50,7 @@ async function main() {
 
     console.log(`Found ${pendingRequests.length} pending request(s). Generating QR codes...\n`);
 
-    let generated = 0;
-    let skipped = 0;
-
-    for (const request of pendingRequests) {
+    const results = await Promise.all(pendingRequests.map(async (request) => {
         const { spaceId, displayType, businessName } = request;
         const qrUrl = buildCheckinQrUrl(spaceId);
         const fileName = `${spaceId}_${displayType}.png`;
@@ -71,13 +67,18 @@ async function main() {
                     light: '#FFFFFF',
                 },
             });
+            // eslint-disable-next-line no-console
             console.log(`  [OK] ${fileName}  (${businessName || spaceId})`);
-            generated += 1;
+            return true;
         } catch (err) {
+            // eslint-disable-next-line no-console
             console.error(`  [FAIL] ${fileName}: ${(err as Error).message}`);
-            skipped += 1;
+            return false;
         }
-    }
+    }));
+
+    const generated = results.filter(Boolean).length;
+    const skipped = results.filter((r) => !r).length;
 
     console.log(`\nDone. Generated: ${generated}  Skipped: ${skipped}`);
     console.log(`Output directory: ${outputDir}`);
@@ -85,7 +86,10 @@ async function main() {
     process.exit(skipped > 0 ? 1 : 0);
 }
 
-main().catch((err) => {
-    console.error('Fatal error:', err);
-    process.exit(1);
-});
+// Only run when executed directly, not when imported by tests
+if (require.main === module) {
+    main().catch((err) => {
+        console.error('Fatal error:', err);
+        process.exit(1);
+    });
+}

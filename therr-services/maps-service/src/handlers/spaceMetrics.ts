@@ -68,9 +68,7 @@ const createSpaceMetric = async (req, res) => {
         if (hasLocation) {
             // 120 m matches the mobile app's MAX_DISTANCE_TO_NEARBY_SPACE constant.
             const CHECKIN_MAX_DISTANCE_METERS = 120;
-            const isNearby = await Store.spaces.isWithinCheckinDistance(
-                spaceId, latitude, longitude, CHECKIN_MAX_DISTANCE_METERS,
-            );
+            const isNearby = await Store.spaces.isWithinCheckinDistance(spaceId, latitude, longitude, CHECKIN_MAX_DISTANCE_METERS);
             if (!isNearby) {
                 return handleHttpError({
                     res,
