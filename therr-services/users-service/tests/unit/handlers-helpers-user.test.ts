@@ -116,7 +116,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UsersStore(mockUserStoreConnection));
             const userAchievementsStub = sinon.stub(Store, 'userAchievements')
                 .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
-            const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
+            const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
             createUserHelper(mockHeaders, mockUserDetails, false, undefined, true).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
@@ -186,7 +186,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UsersStore(mockUserStoreConnection));
             const userAchievementsStub = sinon.stub(Store, 'userAchievements')
                 .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
-            const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
+            const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
             createUserHelper(mockHeaders, mockUserDetails, true).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
@@ -269,7 +269,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UsersStore(mockUserStoreConnection));
             const userAchievementsStub = sinon.stub(Store, 'userAchievements')
                 .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
-            const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
+            const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
             createUserHelper(mockHeaders, mockUserDetails, false, mockUserByInviteDetails).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
