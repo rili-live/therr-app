@@ -829,14 +829,14 @@ const renderSpaceView = (req, res, config, {
         });
     }
 
-    // 301 redirect to keyword-rich slug URL if slug is missing or incorrect
-    if (space.notificationMsg) {
-        const expectedSlug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
-        const currentSlug = req.params?.spaceSlug || '';
-        if (expectedSlug && currentSlug !== expectedSlug) {
-            const lp = localeVars.localePrefix;
-            return res.redirect(301, `${lp}/spaces/${spaceId}/${expectedSlug}`);
-        }
+    // 301 redirect to keyword-rich slug URL if slug is missing or incorrect.
+    // Build from all available parts — not just notificationMsg — so spaces with only
+    // locality/region data still redirect to a consistent slug URL.
+    const expectedSlug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
+    const currentSlug = req.params?.spaceSlug || '';
+    if (expectedSlug && currentSlug !== expectedSlug) {
+        const lp = localeVars.localePrefix;
+        return res.redirect(301, `${lp}/spaces/${spaceId}/${expectedSlug}`);
     }
 
     const spaceNameBase = space.notificationMsg || title;
