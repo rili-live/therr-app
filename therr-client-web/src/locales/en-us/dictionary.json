@@ -833,6 +833,7 @@
       "loginModal": {
         "title": "Sign in required",
         "body": "You need to sign in to perform this action. Create an account or sign in to continue.",
+        "reviewBody": "Your review has been saved! Sign in or create a free account to post it.",
         "signIn": "Sign In",
         "register": "Create Account"
       },
