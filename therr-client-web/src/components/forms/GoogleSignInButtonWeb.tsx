@@ -31,11 +31,6 @@ const GoogleSignInButtonWeb: React.FC<IGoogleSignInButtonWebProps> = ({
     }, []);
 
     const handleSuccess = (credentialResponse: CredentialResponse) => {
-        console.log('[GoogleSSO] credentialResponse received', { // eslint-disable-line no-console
-            hasCredential: !!credentialResponse.credential,
-            clientId: credentialResponse.clientId,
-            selectBy: credentialResponse.select_by,
-        });
         const { credential } = credentialResponse;
         if (!credential) {
             console.warn('[GoogleSSO] No credential in response'); // eslint-disable-line no-console
@@ -54,10 +49,6 @@ const GoogleSignInButtonWeb: React.FC<IGoogleSignInButtonWebProps> = ({
                 userLastName: payload.family_name || '',
                 userEmail: payload.email || '',
             };
-            console.log('[GoogleSSO] Calling onSuccess with ssoData', { // eslint-disable-line no-console
-                ...ssoData,
-                idToken: `${ssoData.idToken.substring(0, 20)}...`,
-            });
             onSuccess(ssoData);
         } catch (err) {
             console.error('[GoogleSSO] Failed to decode JWT', err); // eslint-disable-line no-console
