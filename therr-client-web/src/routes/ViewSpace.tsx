@@ -1116,15 +1116,16 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         return (
                             <Paper key={pairing.id} withBorder p="md" radius="md">
                                 {pairingMedia && (
-                                    <Image
-                                        src={pairingMedia}
-                                        alt={pairing.notificationMsg || 'Space image'}
-                                        height={120}
-                                        fit="cover"
-                                        radius="sm"
-                                        mb="sm"
-                                        loading="lazy"
-                                    />
+                                    <Anchor href={`/spaces/${pairing.id}`} display="block" mb="sm">
+                                        <Image
+                                            src={pairingMedia}
+                                            alt={pairing.notificationMsg || 'Space image'}
+                                            height={120}
+                                            fit="cover"
+                                            radius="sm"
+                                            loading="lazy"
+                                        />
+                                    </Anchor>
                                 )}
                                 <Anchor href={`/spaces/${pairing.id}`} fw={600} size="sm">
                                     {pairing.notificationMsg}
