@@ -8,7 +8,7 @@ const cardImagesLottie: { [key: string]: any } = {
     communityLeader: require('../../assets/socialite-card.json'),
     explorer: require('../../assets/explorer-card.json'),
     influencer: require('../../assets/influencer-card.json'),
-    localPatron: require('../../assets/socialite-card.json'), // TODO: replace with a custom local-business Lottie
+    localPatron: require('../../assets/local-patron-card.json'),
     socialite: require('../../assets/socialite-card.json'),
     thinker: require('../../assets/thinker-card.json'),
 };
