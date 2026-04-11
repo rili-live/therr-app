@@ -7,6 +7,7 @@ import explorer from './explorer';
 import humanitarian from './humanitarian';
 import influencer from './influencer';
 import journalist from './journalist';
+import localPatron from './localPatron';
 import localScout from './localScout';
 import socialite from './socialite';
 import thinker from './thinker';
@@ -35,6 +36,7 @@ const achievements: { [key: string]: IAchievement } = {
     ...humanitarian,
     ...influencer,
     ...journalist,
+    ...localPatron,
     ...localScout,
     ...socialite,
     ...thinker,
@@ -51,6 +53,7 @@ export const achievementsByClass: { [key: string]: { [key: string]: IAchievement
     humanitarian,
     influencer,
     journalist,
+    localPatron,
     localScout,
     socialite,
     thinker,

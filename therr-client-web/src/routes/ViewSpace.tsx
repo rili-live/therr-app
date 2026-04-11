@@ -380,6 +380,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             return;
         }
 
+        const hasVisited = !!(space?.reaction?.visitedAt || (space?.reaction?.visitCount ?? 0) > 0);
+        if (!hasVisited) {
+            const distance = this.getDistanceToSpace();
+            if (distance === null) {
+                this.setState({ reviewError: translate('pages.viewSpace.addReview.locationPrompt') });
+                return;
+            }
+            if (distance > 200) {
+                this.setState({ reviewError: translate('pages.viewSpace.addReview.tooFar') });
+                return;
+            }
+        }
+
         this.setState({ isReviewSubmitting: true, reviewError: '', reviewSuccess: '' });
 
         // Submit rating via space reaction
@@ -462,12 +475,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     renderAddReviewContent(): JSX.Element {
-        const { user, translate } = this.props;
+        const { user, map, translate } = this.props;
         const {
-            reviewRating, reviewMessage, isReviewSubmitting,
+            spaceId, reviewRating, reviewMessage, isReviewSubmitting,
             reviewError, reviewSuccess,
+            userLatitude, userLongitude, isLocationLoading, locationError,
         } = this.state;
         const isAuthenticated = user?.isAuthenticated;
+        const space = map?.spaces[spaceId];
+        const hasVisited = !!(space?.reaction?.visitedAt || (space?.reaction?.visitCount ?? 0) > 0);
+        const distanceToSpace = this.getDistanceToSpace();
+        const hasLocation = userLatitude !== null && userLongitude !== null;
+        const isTooFar = hasLocation && distanceToSpace !== null && distanceToSpace > 200;
+        const isLocationVerified = hasVisited || (hasLocation && !isTooFar);
 
         if (reviewSuccess) {
             return (
@@ -506,6 +526,35 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     maxRows={6}
                     mb="sm"
                 />
+                {isAuthenticated && !isLocationVerified && (
+                    <Stack gap="xs" mb="sm">
+                        {(locationError || isTooFar) ? (
+                            <Alert color="orange" radius="md" p="xs">
+                                <Text size="sm">
+                                    {isTooFar
+                                        ? translate('pages.viewSpace.addReview.tooFar')
+                                        : locationError}
+                                </Text>
+                            </Alert>
+                        ) : (
+                            <Text size="sm" c="dimmed">
+                                {translate('pages.viewSpace.addReview.locationPrompt')}
+                            </Text>
+                        )}
+                        <Button
+                            onClick={this.handleRequestLocation}
+                            loading={isLocationLoading}
+                            variant="outline"
+                            size="compact-md"
+                            color="teal"
+                            style={{ alignSelf: 'flex-start' }}
+                        >
+                            {hasLocation
+                                ? translate('pages.viewSpace.addReview.retryLocation')
+                                : translate('pages.viewSpace.addReview.enableLocation')}
+                        </Button>
+                    </Stack>
+                )}
                 {reviewError && (
                     <Text size="sm" c="red" mb="sm">{reviewError}</Text>
                 )}
