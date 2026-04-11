@@ -41,6 +41,8 @@ const extraNodeModules = {
     redux: path.join(__dirname, 'node_modules/redux'),
     '@reduxjs/toolkit': path.join(__dirname, 'node_modules/@reduxjs/toolkit'),
     axios: path.join(rootNodeModules, 'axios'),
+    // expo-modules-core is nested inside expo/node_modules/ (not hoisted) — point Metro to it directly
+    'expo-modules-core': path.join(__dirname, 'node_modules/expo/node_modules/expo-modules-core'),
 };
 const watchFolders = [
     rootNodeModules,

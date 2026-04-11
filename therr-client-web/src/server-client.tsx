@@ -1834,11 +1834,9 @@ routeConfig.forEach((config) => {
             // This gets the initial state created after all dispatches are called in fetchData
             Object.assign(initialState, store.getState());
 
-            // TODO: Handle all parsing edge cases
-            // https://github.com/yahoo/serialize-javascript ?
             const state = serialize(initialState, {
                 isJSON: true,
-            }).replace(/</g, '\\u003c').replace(/\\n/g, ' ').replace(/\\r/g, ' ');
+            }).replace(/</g, '\\u003c');
 
             if (staticContext.url) {
                 printLogs({

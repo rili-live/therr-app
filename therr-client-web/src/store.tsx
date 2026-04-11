@@ -15,9 +15,15 @@ let preloadedState;
 
 // Grab the state from a global variable injected into the server-generated HTML
 function safelyParse(input: any) {
-    if (input) {
-        const doc = new DOMParser().parseFromString(input, 'text/html');
-        return JSON.parse(doc.documentElement?.textContent?.replace(/\\u0085/g, '\n').replace(/\\u000D/g, '\r') || '{}');
+    if (input && typeof input === 'object') {
+        return input;
+    }
+    if (input && typeof input === 'string') {
+        try {
+            return JSON.parse(input);
+        } catch (e) {
+            return {};
+        }
     }
     console.log('Warning: __PRELOADED_STATE__ is not defined on the respective view'); // eslint-disable-line no-console
     return {};
