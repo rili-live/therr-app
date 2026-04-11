@@ -59,7 +59,7 @@ export const createRefreshToken = (userId: string, rememberMe?: boolean) => {
         (process.env.JWT_SECRET || ''),
         {
             algorithm: 'HS256',
-            expiresIn: rememberMe ? '30d' : '7d',
+            expiresIn: rememberMe ? '90d' : '30d',
         },
     );
 
