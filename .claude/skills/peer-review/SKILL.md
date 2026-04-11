@@ -59,51 +59,88 @@ Stop immediately. Do not proceed.
 
 ---
 
-## Step 1: Check local state and fetch branches
+## Step 1: Sync local general branch and establish diff scope
 
-Before fetching, check for uncommitted local changes:
+### 1a: Confirm current branch
 
+```bash
+git branch --show-current 2>&1
+```
+
+If the current branch is not `general`, warn the user:
+```
+⚠ You are on '<branch>', not 'general'.
+  /peer-review is designed to run on the local general branch.
+  Switch to general first, or confirm this is intentional.
+```
+Stop and ask the user to confirm before proceeding.
+
+### 1b: Pull origin/general (with autostash)
+
+Use `--autostash` so any uncommitted local changes are stashed before the pull and re-applied after, keeping them in scope for the review:
+
+```bash
+git pull --autostash origin general 2>&1
+```
+
+**If the pull results in merge conflicts** (output contains "CONFLICT" or exit code is non-zero):
+```
+⛔ Merge conflicts after pulling origin/general.
+   Resolve the conflicts below before re-running /peer-review:
+   <list conflicting files from git status>
+```
+Stop immediately. Do not attempt to auto-resolve conflicts.
+
+**If the autostash re-apply has conflicts** (output contains "CONFLICT" after "Applying stash"):
+```
+⛔ Stash re-apply conflicts after pulling origin/general.
+   Your local changes could not be cleanly re-applied.
+   Resolve stash conflicts manually, then re-run /peer-review.
+```
+Stop immediately.
+
+### 1c: Fetch origin/stage for comparison
+
+```bash
+git fetch origin stage 2>&1
+```
+
+If `stage` doesn't exist on origin, report it and stop:
+```
+⛔ Cannot diff: branch 'stage' not found on origin.
+```
+
+### 1d: Build the diff scope
+
+The review covers **all local changes** — committed and uncommitted — compared to `origin/stage`. This includes everything that would be new on `stage` after a merge of the local working tree.
+
+Get the committed log:
+```bash
+git log --oneline origin/stage..HEAD 2>&1
+```
+
+Get the full working-tree diff (committed + staged + unstaged tracked files):
+```bash
+git diff origin/stage --stat 2>&1
+git diff origin/stage 2>&1
+```
+
+Also note any untracked files that may be relevant:
 ```bash
 git status --short 2>&1
 ```
 
-If there are uncommitted changes, note them in the final report — they are **not** part of the `general→stage` diff and won't be reviewed. Do not stash or discard them; just be aware they exist.
-
-Fetch the latest `general` and `stage` branches from origin:
-
-```bash
-git fetch origin general stage 2>&1
+If there is no diff at all (working tree is identical to origin/stage and no uncommitted changes):
 ```
-
-If either branch doesn't exist on origin, report it and stop:
-```
-⛔ Cannot diff: branch 'general' (or 'stage') not found on origin.
-   These are required reference branches for peer review.
-```
-
-Get the diff of commits in `general` that are not yet in `stage`:
-
-```bash
-git log --oneline origin/stage..origin/general 2>&1
-```
-
-Also get the full file diff:
-
-```bash
-git diff origin/stage...origin/general --stat 2>&1
-git diff origin/stage...origin/general 2>&1
-```
-
-If the diff is empty (branches are identical):
-```
-ℹ No diff found between general and stage — branches are identical.
+ℹ No changes found between local general and origin/stage.
   Nothing to review.
 ```
 Stop.
 
 Summarize the diff scope:
-- Number of commits
-- Files changed, insertions, deletions
+- Number of commits ahead of origin/stage
+- Files changed, insertions, deletions (from `--stat`)
+- Whether there are unstaged or staged-but-uncommitted changes included
 - Which packages are affected (therr-services/*, therr-public-library/*, TherrMobile/*, therr-client-web/*, etc.)
 
 ---
@@ -113,6 +150,8 @@ Summarize the diff scope:
 Before looking for improvements, scan for anything that could break the **currently deployed mobile app**. Mobile apps cannot be force-updated — any API or schema changes must be backwards compatible.
 
 Flag any of the following as **breaking risk**:
+
+Use `git diff origin/stage -- therr-api-gateway/src/ therr-public-library/ therr-services/` to focus the backwards compat scan on the relevant paths.
 
 1. **Removed or renamed API endpoints**: Check `therr-api-gateway/src/` for route deletions or path changes.
 2. **Changed response shape**: Handler functions that now return fewer fields, renamed fields, or changed types.
@@ -171,7 +210,7 @@ For each **Category B** improvement and **Category A** bug fix:
 3. Keep each change minimal — fix exactly what was identified, nothing more.
 4. Ensure changes remain backwards compatible (per Step 2 criteria).
 
-After all edits, commit the changes to the **current working branch** (not to `general` or `stage`). Stage only the files you modified — do not use `git add -A` or `git add .`:
+After all edits, commit the changes to `general` (the current branch). Stage only the files you modified — do not use `git add -A` or `git add .`:
 
 ```bash
 git add <file1> <file2> ...
@@ -226,13 +265,13 @@ If a test failure cannot be resolved without a large refactor or domain knowledg
 
 Run linting and type-checking on the files in the `general→stage` diff plus any additional files edited in Step 4. These are the files that will enter `stage` when `general` is merged.
 
-Get the list of changed files from the diff:
+Get the list of changed files (working tree vs origin/stage):
 
 ```bash
-git diff --name-only origin/stage...origin/general 2>&1
+git diff --name-only origin/stage 2>&1
 ```
 
-Add any files you modified in Step 4 that aren't already in that list.
+Add any files you modified in Step 4 that aren't already in that list. Also check `git status --short` for staged-but-not-committed files that may not appear in the diff output.
 
 For each affected package, run in parallel:
 
@@ -255,9 +294,9 @@ Output a structured summary:
 ## Peer Review Summary: general → stage
 
 ### Diff Scope
-  Commits reviewed: <N>
+  Commits ahead of origin/stage: <N>
   Packages affected: <list>
-  Uncommitted local changes: <"None" or list of files — these were not reviewed>
+  Unstaged/staged local changes included: <yes/no>
 
 ### Backwards Compatibility
   <"✓ No breaking risks found" or list of risks with resolutions>
@@ -299,7 +338,7 @@ Output a structured summary:
 
 ## Rules
 
-- **Never push** to `general`, `stage`, or `main` — all commits go to the current working branch.
+- **Never push** — commit to the local `general` branch only; the user decides when to push and merge to `stage`.
 - **Never run destructive git commands** (`reset --hard`, `checkout .`, `clean -f`) without explicit user confirmation.
 - **Never modify TherrMobile** unless the diff explicitly touches it — mobile changes require extra care for backwards compatibility.
 - **Never skip the infrastructure check** — if Step 0 fails, stop completely and tell the user how to fix it.
