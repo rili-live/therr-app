@@ -158,7 +158,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        const { getSpaceDetails, map } = this.props;
+        const { getSpaceDetails, map, user } = this.props;
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];
 
@@ -175,6 +175,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     // Allow a render cycle for the claim section to mount
                     requestAnimationFrame(() => this.scrollToClaimSection());
                 }
+                this.restorePendingReview(spaceId, user?.isAuthenticated);
             }).catch(() => {
                 this.props.navigation.navigate('/');
             });
@@ -185,8 +186,25 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             if (this.state.isFromClaimEmail) {
                 requestAnimationFrame(() => this.scrollToClaimSection());
             }
+            this.restorePendingReview(spaceId, user?.isAuthenticated);
         }
     }
+
+    restorePendingReview = (spaceId: string, isAuthenticated?: boolean) => {
+        if (!isAuthenticated || typeof sessionStorage === 'undefined') {
+            return;
+        }
+        try {
+            const raw = sessionStorage.getItem('pendingSpaceReview');
+            if (raw) {
+                const { spaceId: savedSpaceId, rating, message } = JSON.parse(raw);
+                if (savedSpaceId === spaceId) {
+                    this.setState({ reviewRating: rating || 0, reviewMessage: message || '' });
+                }
+                sessionStorage.removeItem('pendingSpaceReview');
+            }
+        } catch { /* ignore malformed data */ }
+    };
 
     fetchSpaceMoments = (spaceId: string) => {
         this.setState({ isMomentsLoading: true });
@@ -346,6 +364,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const space = map?.spaces[spaceId];
 
         if (!user?.isAuthenticated) {
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('pendingSpaceReview', JSON.stringify({
+                    spaceId,
+                    rating: reviewRating,
+                    message: reviewMessage,
+                }));
+            }
             this.setState({ isLoginModalOpen: true, loginModalAction: 'review' });
             return;
         }
@@ -373,8 +398,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 isPublic: true,
                 message: reviewMessage.trim(),
                 notificationMsg: `Review of ${space?.notificationMsg || ''}`.substring(0, 100),
-                latitude: String(this.state.userLatitude),
-                longitude: String(this.state.userLongitude),
+                latitude: String(space?.latitude ?? ''),
+                longitude: String(space?.longitude ?? ''),
                 spaceId,
             } as any)
             : Promise.resolve(null);
@@ -400,7 +425,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderLoginModal(): JSX.Element {
         const { translate } = this.props;
-        const { spaceId, isLoginModalOpen } = this.state;
+        const { spaceId, isLoginModalOpen, loginModalAction } = this.state;
 
         return (
             <Modal
@@ -410,7 +435,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 centered
             >
                 <Text size="sm" mb="lg">
-                    {translate('pages.viewSpace.loginModal.body')}
+                    {loginModalAction === 'review'
+                        ? translate('pages.viewSpace.loginModal.reviewBody')
+                        : translate('pages.viewSpace.loginModal.body')}
                 </Text>
                 <Group justify="center" gap="md">
                     <Button
@@ -435,12 +462,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     renderAddReviewContent(): JSX.Element {
-        const { translate } = this.props;
+        const { user, translate } = this.props;
         const {
             reviewRating, reviewMessage, isReviewSubmitting,
-            reviewError, reviewSuccess, userLatitude,
-            isLocationLoading, locationError,
+            reviewError, reviewSuccess,
         } = this.state;
+        const isAuthenticated = user?.isAuthenticated;
 
         if (reviewSuccess) {
             return (
@@ -460,95 +487,49 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             );
         }
 
-        const MAX_REVIEW_DISTANCE_METERS = 200;
-        const distance = this.getDistanceToSpace();
-        const isNearby = distance !== null && distance <= MAX_REVIEW_DISTANCE_METERS;
-        const hasLocation = userLatitude != null;
-
         return (
             <>
-                {!hasLocation && (
-                    <>
-                        <Text size="sm" c="dimmed" mb="sm">
-                            {translate('pages.viewSpace.addReview.locationPrompt')}
-                        </Text>
-                        <Button
-                            onClick={this.handleRequestLocation}
-                            loading={isLocationLoading}
-                            variant="light"
-                            color="teal"
-                            size="sm"
-                            mb="sm"
-                        >
-                            {translate('pages.viewSpace.addReview.enableLocation')}
-                        </Button>
-                        {locationError && (
-                            <Text size="sm" c="red" mb="sm">{locationError}</Text>
-                        )}
-                    </>
+                <Group gap="xs" mb="sm">
+                    <Text size="sm" fw={500}>{translate('pages.viewSpace.addReview.yourRating')}</Text>
+                    <MantineRating
+                        value={reviewRating}
+                        onChange={isReviewSubmitting ? undefined : (val) => this.setState({ reviewRating: val, reviewError: '' })}
+                        size="lg"
+                    />
+                </Group>
+                <Textarea
+                    placeholder={translate('pages.viewSpace.addReview.messagePlaceholder')}
+                    value={reviewMessage}
+                    onChange={(e) => this.setState({ reviewMessage: e.currentTarget.value })}
+                    disabled={isReviewSubmitting}
+                    minRows={3}
+                    maxRows={6}
+                    mb="sm"
+                />
+                {reviewError && (
+                    <Text size="sm" c="red" mb="sm">{reviewError}</Text>
                 )}
-
-                {hasLocation && !isNearby && (
-                    <>
-                        <Alert color="yellow" radius="md" mb="sm">
-                            <Text size="sm">
-                                {translate('pages.viewSpace.addReview.tooFar')}
-                            </Text>
-                        </Alert>
-                        <Button
-                            onClick={this.handleRequestLocation}
-                            loading={isLocationLoading}
-                            variant="light"
-                            color="teal"
-                            size="sm"
-                            mb="sm"
-                        >
-                            {translate('pages.viewSpace.addReview.retryLocation')}
-                        </Button>
-                    </>
+                {!isAuthenticated && (
+                    <Text size="sm" c="dimmed" mb="sm">
+                        {translate('pages.viewSpace.addReview.signInPrompt')}
+                    </Text>
                 )}
-
-                {hasLocation && isNearby && (
-                    <>
-                        <Group gap="xs" mb="sm">
-                            <Text size="sm" fw={500}>{translate('pages.viewSpace.addReview.yourRating')}</Text>
-                            <MantineRating
-                                value={reviewRating}
-                                onChange={isReviewSubmitting ? undefined : (val) => this.setState({ reviewRating: val, reviewError: '' })}
-                                size="lg"
-                            />
-                        </Group>
-                        <Textarea
-                            placeholder={translate('pages.viewSpace.addReview.messagePlaceholder')}
-                            value={reviewMessage}
-                            onChange={(e) => this.setState({ reviewMessage: e.currentTarget.value })}
-                            disabled={isReviewSubmitting}
-                            minRows={3}
-                            maxRows={6}
-                            mb="sm"
-                        />
-                        {reviewError && (
-                            <Text size="sm" c="red" mb="sm">{reviewError}</Text>
-                        )}
-                        <Button
-                            onClick={this.handleSubmitReview}
-                            loading={isReviewSubmitting}
-                            variant="filled"
-                            color="teal"
-                        >
-                            {translate('pages.viewSpace.addReview.submitButton')}
-                        </Button>
-                    </>
-                )}
+                <Button
+                    onClick={this.handleSubmitReview}
+                    loading={isReviewSubmitting}
+                    variant="filled"
+                    color="teal"
+                >
+                    {translate('pages.viewSpace.addReview.submitButton')}
+                </Button>
             </>
         );
     }
 
     renderAddReview(space: any): JSX.Element | null {
-        const { user, translate } = this.props;
-        const isAuthenticated = user?.isAuthenticated;
+        const { translate } = this.props;
 
-        // Cannot verify proximity without space coordinates
+        // Cannot render without space coordinates (needed for geo-tagging review moments)
         if (!space.latitude || !space.longitude) {
             return null;
         }
@@ -556,23 +537,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         return (
             <Paper withBorder p="lg" radius="md" mt="lg">
                 <Title order={3} size="h4" mb="sm">{translate('pages.viewSpace.addReview.title')}</Title>
-                {!isAuthenticated ? (
-                    <>
-                        <Text size="sm" c="dimmed" mb="sm">
-                            {translate('pages.viewSpace.addReview.signInPrompt')}
-                        </Text>
-                        <Button
-                            onClick={() => this.setState({ isLoginModalOpen: true, loginModalAction: 'review' })}
-                            variant="light"
-                            color="teal"
-                            size="sm"
-                        >
-                            {translate('pages.viewSpace.loginModal.signIn')}
-                        </Button>
-                    </>
-                ) : (
-                    this.renderAddReviewContent()
-                )}
+                {this.renderAddReviewContent()}
             </Paper>
         );
     }
@@ -1325,13 +1290,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {this.renderEvents(space)}
 
                     {/* Add Review */}
-                    {/* TODO: Review submission is disabled on web for now. Our anti-fake-content strategy */}
-                    {/* relies on location verification, which is clunky on web browsers compared to mobile. */}
-                    {/* A separate PR is in progress to improve visited-space tracking. Once we can reliably */}
-                    {/* determine that a user has visited a space (via check-in data), we can re-enable */}
-                    {/* reviews on both web and mobile without requiring real-time geolocation proximity. */}
-                    {/* To re-enable: uncomment the line below */}
-                    {/* {this.renderAddReview(space)} */}
+                    {this.renderAddReview(space)}
 
                     {/* Community Posts (Moments) */}
                     {this.renderCommunityPosts()}

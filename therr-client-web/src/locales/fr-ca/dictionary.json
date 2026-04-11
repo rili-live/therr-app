@@ -789,6 +789,7 @@
       "loginModal": {
         "title": "Connexion requise",
         "body": "Vous devez vous connecter pour effectuer cette action. Créez un compte ou connectez-vous pour continuer.",
+        "reviewBody": "Votre avis a été enregistré ! Connectez-vous ou créez un compte gratuit pour le publier.",
         "signIn": "Se connecter",
         "register": "Créer un compte"
       },
