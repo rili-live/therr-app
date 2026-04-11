@@ -58,7 +58,18 @@ const createOrUpdateMultiSpaceReactions = async (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const { spaceIds, recordVisit } = req.body;
+
+    if (!spaceIds?.length) {
+        return handleHttpError({ res, message: 'spaceIds is required', statusCode: 400 });
+    }
+
+    const validSpaceIds = spaceIds.filter((id) => !!id);
+
     const params = { ...req.body };
     delete params.spaceIds;
     delete params.recordVisit;
@@ -94,7 +105,7 @@ const createOrUpdateMultiSpaceReactions = async (req, res) => {
     try {
         const existing = await Store.spaceReactions.get({
             userId,
-        }, spaceIds);
+        }, validSpaceIds);
 
         const existingMapped = {};
         const existingReactions: string[][] = existing.map((reaction) => {
@@ -109,7 +120,7 @@ const createOrUpdateMultiSpaceReactions = async (req, res) => {
             });
         }
 
-        const createArray = spaceIds
+        const createArray = validSpaceIds
             .filter((id) => !existingMapped[id])
             .map((spaceId) => ({
                 userId,
@@ -130,6 +141,11 @@ const createOrUpdateMultiSpaceReactions = async (req, res) => {
 // READ
 const getSpaceReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const spaceIds = req.query?.spaceIds?.split(',');
     const queryParams: any = {
         userId,
@@ -173,6 +189,10 @@ const getReactionsBySpaceId: RequestHandler = async (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const { spaceId } = req.params;
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     return Store.spaceReactions.get({
         userId,
         spaceId,
@@ -196,6 +216,11 @@ const getReactionsBySpaceId: RequestHandler = async (req: any, res: any) => {
 const findSpaceReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     // const locale = req.headers['x-localecode'] || 'en-us';
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const {
         spaceIds,
         userHasActivated,
@@ -263,6 +288,10 @@ const countSpaceReactions: RequestHandler = async (req: any, res: any) => {
 
 const getVisitedSpaces: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
 
     return Store.spaceReactions.getVisitedSpaces(
         userId,

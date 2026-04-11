@@ -63,7 +63,18 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const { thoughtIds } = req.body;
+
+    if (!thoughtIds?.length) {
+        return handleHttpError({ res, message: 'thoughtIds is required', statusCode: 400 });
+    }
+
+    const validThoughtIds = thoughtIds.filter((id) => !!id);
+
     const params = { ...req.body };
     delete params.thoughtIds;
 
@@ -71,7 +82,7 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.thoughtReactions.get({
         userId,
-    }, thoughtIds).then(async (existing) => {
+    }, validThoughtIds).then(async (existing) => {
         const existingMapped = {};
         const existingReactions = existing.map((reaction) => {
             existingMapped[reaction.thoughtId] = reaction;
@@ -89,7 +100,7 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
                 .then((thoughtReactions) => { updatedReactions = thoughtReactions; });
         }
 
-        const createArray = thoughtIds
+        const createArray = validThoughtIds
             .filter((id) => !existingMapped[id])
             .map((thoughtId) => ({
                 userId,
@@ -108,6 +119,11 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
 // READ
 const getThoughtReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const thoughtIds = req.query?.thoughtIds?.split(',');
     const queryParams: any = {
         userId,
@@ -133,6 +149,10 @@ const getReactionsByThoughtId: RequestHandler = async (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const { thoughtId } = req.params;
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     Store.thoughtReactions.get({
         userId,
         thoughtId,
@@ -156,6 +176,11 @@ const getReactionsByThoughtId: RequestHandler = async (req: any, res: any) => {
 const findThoughtReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     // const locale = req.headers['x-localecode'] || 'en-us';
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const {
         thoughtIds,
         userHasActivated,
