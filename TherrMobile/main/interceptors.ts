@@ -162,15 +162,15 @@ const initInterceptors = (
                                 onTokenRefreshed(newIdToken);
                             })
                             .catch((refreshErr) => {
-                                isRefreshing = false;
-
                                 if (isAuthFailure(refreshErr)) {
                                     // Definitive auth failure (expired/invalid refresh token, blocked user)
+                                    isRefreshing = false;
                                     refreshRetryCount = 0;
                                     onRefreshFailed(refreshErr);
                                     handleLogout(store);
                                 } else if (refreshRetryCount < MAX_REFRESH_RETRIES) {
                                     // Transient failure (network error, 5xx, timeout) — retry after delay
+                                    // Keep isRefreshing = true during the delay so no duplicate refresh fires
                                     refreshRetryCount += 1;
                                     if (__DEV__) {
                                         console.log(`[Interceptor] Refresh failed (transient), retry ${refreshRetryCount}/${MAX_REFRESH_RETRIES}`);
@@ -182,6 +182,7 @@ const initInterceptors = (
                                 } else {
                                     // Exhausted retries — reject queued requests but do NOT logout
                                     // The refresh token is still intact for the next app session
+                                    isRefreshing = false;
                                     refreshRetryCount = 0;
                                     onRefreshFailed(refreshErr);
                                 }
@@ -209,14 +210,10 @@ const initInterceptors = (
                 } else if (is403 && originalRequest.url?.includes('/auth')) {
                     handleLogout(store);
                 }
-            } else if (error) {
-                if (
-                    Number(error.statusCode) === 401 ||
-                    Number(error.statusCode) === 403
-                ) {
-                    socketIO.disconnect();
-                    handleLogout(store);
-                }
+            } else if (error && isAuthFailure(error)) {
+                // Only logout for definitive auth failures without a response object
+                socketIO.disconnect();
+                handleLogout(store);
             }
 
             if (numLoadings === 0) {
