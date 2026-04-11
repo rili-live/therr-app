@@ -8,6 +8,7 @@ import forums from './forums';
 import habits from './habits';
 import messages from './messages';
 import map from './map';
+import network from './network';
 import notifications from './notifications';
 import reactions from './reactions';
 import userConnections from './userConnections';
@@ -27,6 +28,7 @@ export default (socketIO, additionalReducers = {}) => combineReducers({
     habits,
     messages,
     map,
+    network,
     notifications,
     reactions,
     user: getUserReducer(socketIO),

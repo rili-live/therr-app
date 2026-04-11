@@ -4,6 +4,7 @@ import axios from 'axios';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { NavigateFunction } from 'react-router-dom';
 import { UsersService } from 'therr-react/services';
+import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
 import store from './store';
 import * as globalConfig from '../../global-config';
 import UsersActions from './redux/actions/UsersActions';
@@ -184,6 +185,14 @@ const initInterceptors = (
                 }
             }
         } else if (error) {
+            // Graceful offline handling: swallow network errors on GET requests
+            // so cached Redux state remains visible without UI errors
+            const failedRequest = error.config;
+            if (isOfflineError(error) && failedRequest?.method?.toLowerCase() === 'get') {
+                numLoadings = Math.max(0, numLoadings - 1);
+                return Promise.resolve({ data: {}, _offlineFallback: true });
+            }
+
             if (
                 Number(error.statusCode) === 401
                 || Number(error.statusCode) === 403

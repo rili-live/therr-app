@@ -1,6 +1,9 @@
 import LogRocket from 'logrocket';
 import logger from 'redux-logger';
 import { configureStore, Middleware } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage'; // localStorage
+import basePersistConfig from 'therr-react/redux/persistConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
@@ -24,15 +27,28 @@ function safelyParse(input: any) {
 }
 
 // Get stored user details from session storage if they are already logged in
-const safeParse = (key: string, storage: Storage) => {
+const safeParse = (key: string, storageObj: Storage) => {
     try {
-        return JSON.parse(storage.getItem(key) as string);
+        return JSON.parse(storageObj.getItem(key) as string);
     } catch (e) {
-        storage.removeItem(key);
+        storageObj.removeItem(key);
         return null;
     }
 };
-if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
+
+// Only apply persistence on the client (not during SSR)
+const isClient = typeof window !== 'undefined' && typeof Storage !== 'undefined';
+
+const persistConfig = {
+    ...basePersistConfig,
+    storage,
+};
+
+const persistedReducer = isClient
+    ? persistReducer(persistConfig, rootReducer)
+    : rootReducer;
+
+if (isClient) {
     const storedSocketDetails = safeParse('therrSession', localStorage) || safeParse('therrSession', sessionStorage);
     let storedUser = safeParse('therrUser', localStorage) || safeParse('therrUser', sessionStorage);
     storedUser = storedUser || {};
@@ -63,20 +79,31 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
 }
 
 const getMiddleware = (getDefaultMiddleware: any) => {
+    const middleware = getDefaultMiddleware({
+        serializableCheck: {
+            // redux-persist actions contain non-serializable values
+            ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        },
+    });
+
     if (process.env.NODE_ENV === 'development') {
-        return getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger as Middleware);
+        return middleware.concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger as Middleware);
     }
 
-    return getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware());
+    return middleware.concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware());
 };
 
-const store: any = configureStore( // Create Store (Production)
+const store: any = configureStore(
     {
-        reducer: rootReducer,
+        reducer: persistedReducer,
         preloadedState,
         middleware: getMiddleware,
         devTools: process.env.NODE_ENV === 'development',
     },
 );
 
+// Only create persistor on client side
+const persistor = isClient ? persistStore(store) : null;
+
+export { persistor };
 export default store;
