@@ -7,7 +7,7 @@ import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { IconCheck } from '@tabler/icons-react';
-import { Categories, Content } from 'therr-js-utilities/constants';
+import { Categories, Cities, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
@@ -809,7 +809,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             <Anchor href="/locations" key="locations">{this.props.translate('pages.navigation.locations')}</Anchor>,
         ];
         if (locality) {
-            items.push(<Text key="locality" component="span">{locality}</Text>);
+            const cityEntry = Cities.CityNameMap[locality.toLowerCase()];
+            if (cityEntry) {
+                items.push(<Anchor href={`/locations/city/${cityEntry.slug}`} key="locality">{locality}</Anchor>);
+            } else {
+                items.push(<Text key="locality" component="span">{locality}</Text>);
+            }
         }
         items.push(<Text key="title" component="span">{space.notificationMsg}</Text>);
 
