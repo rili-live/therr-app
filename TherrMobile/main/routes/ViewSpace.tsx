@@ -575,12 +575,14 @@ const ViewSpace = ({
                     return (
                         <View key={pairing.id} style={[localStyles.pairingCard, { borderColor: theme.colors.primary3 }]}>
                             {pairingMedia && (
-                                <Image
-                                    source={{ uri: pairingMedia }}
-                                    style={localStyles.pairingImage}
-                                    height={120}
-                                    resizeMode="cover"
-                                />
+                                <Pressable onPress={() => handleGoToViewSpace(pairing)}>
+                                    <Image
+                                        source={{ uri: pairingMedia }}
+                                        style={localStyles.pairingImage}
+                                        height={120}
+                                        resizeMode="cover"
+                                    />
+                                </Pressable>
                             )}
                             <View style={localStyles.pairingContent}>
                                 <Pressable onPress={() => handleGoToViewSpace(pairing)}>

@@ -833,6 +833,7 @@
       "loginModal": {
         "title": "Inicio de sesión requerido",
         "body": "Necesitas iniciar sesión para realizar esta acción. Crea una cuenta o inicia sesión para continuar.",
+        "reviewBody": "¡Tu reseña ha sido guardada! Inicia sesión o crea una cuenta gratuita para publicarla.",
         "signIn": "Iniciar sesión",
         "register": "Crear cuenta"
       },

@@ -15,6 +15,7 @@ const ErrorCodes = {
     THOUGHT_ACCESS_RESTRICTED: 'ThoughtAccessRestricted',
     SPACE_ACCESS_RESTRICTED: 'SpaceAccessRestricted',
     NO_SPACE_OVERLAP: 'SpacesCannotOverlap',
+    NOT_PERMITTED: 'NotPermitted',
 };
 
 export default ErrorCodes;
