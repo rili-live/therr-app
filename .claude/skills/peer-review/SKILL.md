@@ -49,19 +49,25 @@ Stop immediately. Do not proceed.
 ```
 Stop immediately. Do not proceed.
 
-**If both postgres and redis are up**, note which additional service containers are running (API gateway, services). These indicate the full dev stack is available for integration tests.
+**If both postgres and redis are up**, print a brief confirmation:
 
-Print a brief confirmation:
 ```
 ✓ Infrastructure check passed
   therr-postgres-dev  Up (healthy)
   therr-redis-dev     Up (healthy)
-  Full dev stack: <yes/no — based on whether service containers like therr-api-gateway-dev are present>
 ```
 
 ---
 
-## Step 1: Fetch and diff branches
+## Step 1: Check local state and fetch branches
+
+Before fetching, check for uncommitted local changes:
+
+```bash
+git status --short 2>&1
+```
+
+If there are uncommitted changes, note them in the final report — they are **not** part of the `general→stage` diff and won't be reviewed. Do not stash or discard them; just be aware they exist.
 
 Fetch the latest `general` and `stage` branches from origin:
 
@@ -165,10 +171,10 @@ For each **Category B** improvement and **Category A** bug fix:
 3. Keep each change minimal — fix exactly what was identified, nothing more.
 4. Ensure changes remain backwards compatible (per Step 2 criteria).
 
-After all edits, commit the changes to the **current working branch** (not to `general` or `stage`):
+After all edits, commit the changes to the **current working branch** (not to `general` or `stage`). Stage only the files you modified — do not use `git add -A` or `git add .`:
 
 ```bash
-git add -p  # stage changes interactively — or stage specific files
+git add <file1> <file2> ...
 git commit -m "peer-review: fix bugs and low-risk improvements from general→stage diff"
 ```
 
@@ -182,11 +188,7 @@ Determine which services were modified based on the diff. For each affected serv
 
 ### Unit tests (always run)
 
-```bash
-cd therr-services/<service-name> && npm run test:unit 2>&1
-```
-
-Run unit tests from the repo root via:
+Run from the repo root using subshells so the working directory is not changed:
 
 ```bash
 (cd therr-services/users-service && npm run test:unit) 2>&1
@@ -194,18 +196,12 @@ Run unit tests from the repo root via:
 # ... etc for each affected service
 ```
 
-### Integration tests (run only if full dev stack is up)
+### Integration tests
 
-If **Step 0** confirmed the full dev stack is running (API gateway and services containers present):
+Since Step 0 already confirmed postgres and redis are healthy, run integration tests for each affected service. Service integration tests connect directly to the database — they do not require other service containers to be running.
 
 ```bash
 (cd therr-services/<service-name> && npm run test:integration) 2>&1
-```
-
-If full dev stack is NOT running (only postgres + redis), skip integration tests and note:
-```
-ℹ Skipping integration tests — service containers not running.
-  Start the full stack with: docker compose -f docker-compose.dev.yml up -d
 ```
 
 ### Test failure handling
@@ -228,20 +224,26 @@ If a test failure cannot be resolved without a large refactor or domain knowledg
 
 ## Step 6: Quality check
 
-Run linting and type-checking on all files modified during this session (both from the diff and from any fixes applied in Step 4).
+Run linting and type-checking on the files in the `general→stage` diff plus any additional files edited in Step 4. These are the files that will enter `stage` when `general` is merged.
 
-Follow the same procedure as the `/quality-check` skill:
-
-For each affected package, in parallel:
+Get the list of changed files from the diff:
 
 ```bash
-npx eslint <modified-files> --fix --no-error-on-unmatched-pattern 2>&1
+git diff --name-only origin/stage...origin/general 2>&1
+```
+
+Add any files you modified in Step 4 that aren't already in that list.
+
+For each affected package, run in parallel:
+
+```bash
+npx eslint <file1> <file2> ... --fix --no-error-on-unmatched-pattern 2>&1
 npx tsc --noEmit -p <package>/tsconfig.json 2>&1
 ```
 
-Fix any remaining lint errors manually. If TypeScript errors remain after fixing, report them explicitly rather than leaving them unresolved.
+Follow the same package-to-tsconfig mapping as the `/quality-check` skill. Fix any remaining lint errors. If TypeScript errors remain after attempting a fix, report them explicitly rather than leaving them unresolved.
 
-Do not consider the review complete until both ESLint and tsc pass with zero errors on all modified files.
+Do not consider the review complete until both ESLint and tsc pass with zero errors on all files in scope.
 
 ---
 
@@ -255,6 +257,7 @@ Output a structured summary:
 ### Diff Scope
   Commits reviewed: <N>
   Packages affected: <list>
+  Uncommitted local changes: <"None" or list of files — these were not reviewed>
 
 ### Backwards Compatibility
   <"✓ No breaking risks found" or list of risks with resolutions>
