@@ -380,14 +380,17 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             return;
         }
 
-        const distance = this.getDistanceToSpace();
-        if (distance === null) {
-            this.setState({ reviewError: translate('pages.viewSpace.addReview.locationPrompt') });
-            return;
-        }
-        if (distance > 200) {
-            this.setState({ reviewError: translate('pages.viewSpace.addReview.tooFar') });
-            return;
+        const hasVisited = !!(space?.reaction?.visitedAt || (space?.reaction?.visitCount ?? 0) > 0);
+        if (!hasVisited) {
+            const distance = this.getDistanceToSpace();
+            if (distance === null) {
+                this.setState({ reviewError: translate('pages.viewSpace.addReview.locationPrompt') });
+                return;
+            }
+            if (distance > 200) {
+                this.setState({ reviewError: translate('pages.viewSpace.addReview.tooFar') });
+                return;
+            }
         }
 
         this.setState({ isReviewSubmitting: true, reviewError: '', reviewSuccess: '' });
@@ -472,17 +475,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     renderAddReviewContent(): JSX.Element {
-        const { user, translate } = this.props;
+        const { user, map, translate } = this.props;
         const {
-            reviewRating, reviewMessage, isReviewSubmitting,
+            spaceId, reviewRating, reviewMessage, isReviewSubmitting,
             reviewError, reviewSuccess,
             userLatitude, userLongitude, isLocationLoading, locationError,
         } = this.state;
         const isAuthenticated = user?.isAuthenticated;
+        const space = map?.spaces[spaceId];
+        const hasVisited = !!(space?.reaction?.visitedAt || (space?.reaction?.visitCount ?? 0) > 0);
         const distanceToSpace = this.getDistanceToSpace();
         const hasLocation = userLatitude !== null && userLongitude !== null;
         const isTooFar = hasLocation && distanceToSpace !== null && distanceToSpace > 200;
-        const isLocationVerified = hasLocation && !isTooFar;
+        const isLocationVerified = hasVisited || (hasLocation && !isTooFar);
 
         if (reviewSuccess) {
             return (
