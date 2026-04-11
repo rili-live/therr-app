@@ -9,13 +9,22 @@ import UsersActions from './redux/actions/UsersActions';
 import { socketIO } from './socket-io-middleware';
 
 const MAX_LOGOUT_ATTEMPTS = 3;
+const MAX_REFRESH_RETRIES = 2;
+const REFRESH_RETRY_DELAY = 3000; // 3 seconds
 
 let timer: any;
 let numLoadings = 0;
 let logoutAttemptCount = 0;
 let isRefreshing = false;
+let refreshRetryCount = 0;
 let refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
 const _timeout = 350;
+
+// Returns true if the error is a definitive auth failure (expired/invalid tokens, blocked user)
+const isAuthFailure = (err: any): boolean => {
+    const status = err?.response?.status || err?.statusCode;
+    return status === 401 || status === 403;
+};
 
 const subscribeToTokenRefresh = (resolve: (token: string) => void, reject: (err: any) => void) => {
     refreshSubscribers.push({ resolve, reject });
@@ -149,12 +158,33 @@ const initInterceptors = (
                                 });
 
                                 isRefreshing = false;
+                                refreshRetryCount = 0;
                                 onTokenRefreshed(newIdToken);
                             })
                             .catch((refreshErr) => {
                                 isRefreshing = false;
-                                onRefreshFailed(refreshErr);
-                                handleLogout(store);
+
+                                if (isAuthFailure(refreshErr)) {
+                                    // Definitive auth failure (expired/invalid refresh token, blocked user)
+                                    refreshRetryCount = 0;
+                                    onRefreshFailed(refreshErr);
+                                    handleLogout(store);
+                                } else if (refreshRetryCount < MAX_REFRESH_RETRIES) {
+                                    // Transient failure (network error, 5xx, timeout) — retry after delay
+                                    refreshRetryCount += 1;
+                                    if (__DEV__) {
+                                        console.log(`[Interceptor] Refresh failed (transient), retry ${refreshRetryCount}/${MAX_REFRESH_RETRIES}`);
+                                    }
+                                    setTimeout(() => {
+                                        // Reset isRefreshing so the next 401 re-triggers the refresh flow
+                                        isRefreshing = false;
+                                    }, REFRESH_RETRY_DELAY);
+                                } else {
+                                    // Exhausted retries — reject queued requests but do NOT logout
+                                    // The refresh token is still intact for the next app session
+                                    refreshRetryCount = 0;
+                                    onRefreshFailed(refreshErr);
+                                }
                             });
                     }
 
@@ -172,7 +202,11 @@ const initInterceptors = (
                     });
                 }
 
-                if (is401 || is403) {
+                // Only logout for 401 on retried requests (refresh succeeded but new token still rejected)
+                // or 403 on auth-specific endpoints (blocked user, invalid token type)
+                if (is401 && originalRequest._isRetry) {
+                    handleLogout(store);
+                } else if (is403 && originalRequest.url?.includes('/auth')) {
                     handleLogout(store);
                 }
             } else if (error) {
