@@ -72,21 +72,22 @@ const handleSubscriptionCreateUpdate = async (event) => {
             await Store.users.getUsers({
                 email: normedEmail,
             }, {}, {}, ['id', 'email', 'accessLevels']).then(([user]) => {
-                sendDashboardSubscriberIntroEmail({
-                    subject: 'Free Trial Activated: Therr for Business',
-                    toAddresses: [normedEmail],
-                    agencyDomainName: productIdMap[eventObject.product?.id]?.domain || '',
-                    brandVariation: productIdMap[eventObject.product?.id]?.brandVariation || 'dashboard-therr',
-                    recipientIdentifiers: {
-                        id: user.id,
-                        accountEmail: user.email,
-                    },
-                }, {
-                    productName: product.name,
-                });
-
                 if (user) {
                     fetchedUser = user;
+
+                    sendDashboardSubscriberIntroEmail({
+                        subject: 'Free Trial Activated: Therr for Business',
+                        toAddresses: [normedEmail],
+                        agencyDomainName: productIdMap[eventObject.product?.id]?.domain || '',
+                        brandVariation: productIdMap[eventObject.product?.id]?.brandVariation || 'dashboard-therr',
+                        recipientIdentifiers: {
+                            id: user.id,
+                            accountEmail: user.email,
+                        },
+                    }, {
+                        productName: product.name,
+                    });
+
                     const userAccessLevels = new Set(
                         user.accessLevels,
                     );
@@ -102,11 +103,11 @@ const handleSubscriptionCreateUpdate = async (event) => {
                 sendDashboardSubscriberUserNotFoundEmail({
                     subject: 'Subscriber Missing Email | Not Found',
                     toAddresses: [normedEmail, process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-                    agencyDomainName: productIdMap[product.id].domain,
+                    agencyDomainName: productIdMap[product.id]?.domain || '',
                     brandVariation: productIdMap[eventObject.product?.id]?.brandVariation,
                     recipientIdentifiers: {
-                        id: user.id,
-                        accountEmail: user.email,
+                        id: 'unknown',
+                        accountEmail: normedEmail,
                     },
                 }, {
                     productName: product.name,

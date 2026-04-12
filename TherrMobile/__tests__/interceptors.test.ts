@@ -55,25 +55,27 @@ const mockAdapter: AxiosAdapter = jest.fn().mockImplementation(() => Promise.res
 
 const flushAsync = async () => {
     // Multiple ticks to flush chained promise callbacks
-    for (let i = 0; i < 5; i++) {
+    // attemptRefresh has a deeper chain (getItem → refreshToken → setItem × 2 → dispatch)
+    for (let i = 0; i < 15; i++) {
         await jest.advanceTimersByTimeAsync(0);
     }
 };
 
 describe('interceptors', () => {
     let store: any;
-    let responseInterceptorSuccess: (response: any) => any;
     let responseInterceptorError: (error: any) => any;
 
     beforeEach(() => {
         jest.clearAllMocks();
         jest.useFakeTimers();
-        // Flush pending timers from prior test to reset module-level isRefreshing
-        jest.runAllTimers();
 
-        (SecureStorage.getItem as jest.Mock).mockReset();
+        (SecureStorage.getItem as jest.Mock).mockReset().mockResolvedValue(null);
         (SecureStorage.setItem as jest.Mock).mockReset().mockResolvedValue(undefined);
         (mockAdapter as jest.Mock).mockClear();
+
+        // Flush pending timers from prior test — mocks must be set up first
+        // so any leftover retry timers have valid mocks to call
+        jest.runAllTimers();
 
         store = {
             getState: jest.fn(() => ({
@@ -89,14 +91,11 @@ describe('interceptors', () => {
         (axios.interceptors.request as any).handlers = [];
         (axios.interceptors.response as any).handlers = [];
 
+        // initInterceptors resets module-level state (isRefreshing, refreshRetryCount, etc.)
         const responseUse = jest.spyOn(axios.interceptors.response, 'use');
         initInterceptors(store);
-        responseInterceptorSuccess = responseUse.mock.calls[0][0] as any;
         responseInterceptorError = responseUse.mock.calls[0][1] as any;
         responseUse.mockRestore();
-
-        // Fire a success response to reset module-level logoutAttemptCount
-        responseInterceptorSuccess({ status: 200 });
 
         // Set mock adapter so retried requests don't hit network
         axios.defaults.adapter = mockAdapter;
@@ -124,6 +123,17 @@ describe('interceptors', () => {
             responseInterceptorError(error401).catch(() => {});
             await flushAsync();
 
+            // attemptRefresh retries after delay — mock the retry to also fail transiently
+            // so isRefreshing resets without triggering logout
+            (SecureStorage.getItem as jest.Mock).mockResolvedValue('refresh-token');
+            mockRefreshToken.mockRejectedValue(new Error('Network Error'));
+
+            // Advance past retry delays to let retries complete
+            await jest.advanceTimersByTimeAsync(3000);
+            await flushAsync();
+            await jest.advanceTimersByTimeAsync(3000);
+            await flushAsync();
+
             expect(store.dispatch).not.toHaveBeenCalledWith(mockLogoutAction);
         });
 
@@ -134,13 +144,20 @@ describe('interceptors', () => {
                 message: 'Unauthorized',
             };
 
-            (SecureStorage.getItem as jest.Mock).mockResolvedValueOnce('refresh-token');
-            mockRefreshToken.mockRejectedValueOnce({
+            // Mock all retry attempts as 5xx failures
+            (SecureStorage.getItem as jest.Mock).mockResolvedValue('refresh-token');
+            mockRefreshToken.mockRejectedValue({
                 response: { status: 500 },
                 message: 'Internal Server Error',
             });
 
             responseInterceptorError(error401).catch(() => {});
+            await flushAsync();
+
+            // Advance past retry delays so retries complete
+            await jest.advanceTimersByTimeAsync(3000);
+            await flushAsync();
+            await jest.advanceTimersByTimeAsync(3000);
             await flushAsync();
 
             expect(store.dispatch).not.toHaveBeenCalledWith(mockLogoutAction);
@@ -159,8 +176,10 @@ describe('interceptors', () => {
                 statusCode: 401,
             });
 
-            await responseInterceptorError(error401).catch(() => {});
+            // Attach catch immediately to prevent unhandled rejection, then flush
+            const promise = responseInterceptorError(error401).catch(() => {});
             await flushAsync();
+            await promise;
 
             expect(store.dispatch).toHaveBeenCalledWith(mockLogoutAction);
         });
@@ -178,8 +197,10 @@ describe('interceptors', () => {
                 statusCode: 403,
             });
 
-            await responseInterceptorError(error401).catch(() => {});
+            // Attach catch immediately to prevent unhandled rejection, then flush
+            const promise = responseInterceptorError(error401).catch(() => {});
             await flushAsync();
+            await promise;
 
             expect(store.dispatch).toHaveBeenCalledWith(mockLogoutAction);
         });
@@ -262,12 +283,18 @@ describe('interceptors', () => {
                 .mockResolvedValueOnce('old-refresh-token')
                 .mockResolvedValueOnce(JSON.stringify({ id: '1' }));
 
+            (SecureStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+
             mockRefreshToken.mockResolvedValueOnce({
                 data: { idToken: 'new-id-token', refreshToken: 'new-refresh-token' },
             });
 
             const promise = responseInterceptorError(error401);
-            await flushAsync();
+
+            // Flush multiple times to let the attemptRefresh chain and setItem awaits complete
+            for (let i = 0; i < 10; i++) {
+                await jest.advanceTimersByTimeAsync(0);
+            }
 
             // The retried request via axios() will go through the adapter mock
             await promise.catch(() => {});
@@ -301,19 +328,21 @@ describe('interceptors', () => {
             responseInterceptorError(error401First).catch(() => {});
             await flushAsync();
 
-            // A second 401 during the retry delay should queue, not start a new refresh
+            // A second 401 during the retry delay (before setTimeout fires) should queue,
+            // not start a new refresh — isRefreshing stays true until attemptRefresh retries
             const error401Second = {
                 config: { url: '/api/other', _isRetry: false, headers: {} },
                 response: { status: 401, data: {} },
                 message: 'Unauthorized',
             };
 
-            (SecureStorage.getItem as jest.Mock).mockClear();
+            // Clear call counts but don't advance timers — we're still in the retry delay
+            const getItemCallCount = (SecureStorage.getItem as jest.Mock).mock.calls.length;
             responseInterceptorError(error401Second).catch(() => {});
             await flushAsync();
 
-            // getItem should not have been called — isRefreshing blocks a new refresh
-            expect(SecureStorage.getItem).not.toHaveBeenCalled();
+            // getItem should not have been called again — isRefreshing blocks a new refresh
+            expect((SecureStorage.getItem as jest.Mock).mock.calls.length).toBe(getItemCallCount);
         });
     });
 });

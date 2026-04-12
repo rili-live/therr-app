@@ -54,11 +54,78 @@ const handleLogout = (store) => {
     }
 };
 
+const attemptRefresh = (store) => {
+    SecureStorage.getItem('therrRefreshToken')
+        .then((refreshToken) => {
+            if (!refreshToken) {
+                throw new Error('No refresh token available');
+            }
+
+            const storedUser = store.getState().user;
+            const rememberMe = storedUser?.settings?.rememberMe;
+
+            return UsersService.refreshToken(refreshToken, rememberMe);
+        })
+        .then(async (response) => {
+            const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
+
+            // Update stored tokens
+            const userDetailsStr = await SecureStorage.getItem('therrUser');
+            const userDetails = JSON.parse(userDetailsStr || '{}');
+            userDetails.idToken = newIdToken;
+            await SecureStorage.setItem('therrUser', JSON.stringify(userDetails));
+            await SecureStorage.setItem('therrRefreshToken', newRefreshToken);
+
+            // Update Redux state
+            store.dispatch({
+                type: 'UPDATE_USER',
+                data: {
+                    details: { idToken: newIdToken },
+                },
+            });
+
+            isRefreshing = false;
+            refreshRetryCount = 0;
+            onTokenRefreshed(newIdToken);
+        })
+        .catch((refreshErr) => {
+            if (isAuthFailure(refreshErr)) {
+                // Definitive auth failure (expired/invalid refresh token, blocked user)
+                isRefreshing = false;
+                refreshRetryCount = 0;
+                onRefreshFailed(refreshErr);
+                handleLogout(store);
+            } else if (refreshRetryCount < MAX_REFRESH_RETRIES) {
+                // Transient failure (network error, 5xx, timeout) — retry after delay
+                // Keep isRefreshing = true during the delay so no duplicate refresh fires
+                refreshRetryCount += 1;
+                if (__DEV__) {
+                    console.log(`[Interceptor] Refresh failed (transient), retry ${refreshRetryCount}/${MAX_REFRESH_RETRIES}`);
+                }
+                setTimeout(() => {
+                    attemptRefresh(store);
+                }, REFRESH_RETRY_DELAY);
+            } else {
+                // Exhausted retries — reject queued requests but do NOT logout
+                // The refresh token is still intact for the next app session
+                isRefreshing = false;
+                refreshRetryCount = 0;
+                onRefreshFailed(refreshErr);
+            }
+        });
+};
+
 const initInterceptors = (
     store,
     baseUrl = getConfig().baseApiGatewayRoute,
     timeout = _timeout
 ) => {
+    // Reset module-level state (safe for re-initialization)
+    isRefreshing = false;
+    refreshRetryCount = 0;
+    refreshSubscribers = [];
+    logoutAttemptCount = 0;
+
     // Global axios config
     // Use fetch adapter instead of xhr — RN 0.80's XMLHttpRequest polyfill
     // is incompatible with axios 1.x's xhr adapter
@@ -127,66 +194,7 @@ const initInterceptors = (
 
                     if (!isRefreshing) {
                         isRefreshing = true;
-
-                        SecureStorage.getItem('therrRefreshToken')
-                            .then((refreshToken) => {
-                                if (!refreshToken) {
-                                    throw new Error('No refresh token available');
-                                }
-
-                                const storedUser = store.getState().user;
-                                const rememberMe = storedUser?.settings?.rememberMe;
-
-                                return UsersService.refreshToken(refreshToken, rememberMe);
-                            })
-                            .then(async (response) => {
-                                const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
-
-                                // Update stored tokens
-                                const userDetailsStr = await SecureStorage.getItem('therrUser');
-                                const userDetails = JSON.parse(userDetailsStr || '{}');
-                                userDetails.idToken = newIdToken;
-                                await SecureStorage.setItem('therrUser', JSON.stringify(userDetails));
-                                await SecureStorage.setItem('therrRefreshToken', newRefreshToken);
-
-                                // Update Redux state
-                                store.dispatch({
-                                    type: 'UPDATE_USER',
-                                    data: {
-                                        details: { idToken: newIdToken },
-                                    },
-                                });
-
-                                isRefreshing = false;
-                                refreshRetryCount = 0;
-                                onTokenRefreshed(newIdToken);
-                            })
-                            .catch((refreshErr) => {
-                                if (isAuthFailure(refreshErr)) {
-                                    // Definitive auth failure (expired/invalid refresh token, blocked user)
-                                    isRefreshing = false;
-                                    refreshRetryCount = 0;
-                                    onRefreshFailed(refreshErr);
-                                    handleLogout(store);
-                                } else if (refreshRetryCount < MAX_REFRESH_RETRIES) {
-                                    // Transient failure (network error, 5xx, timeout) — retry after delay
-                                    // Keep isRefreshing = true during the delay so no duplicate refresh fires
-                                    refreshRetryCount += 1;
-                                    if (__DEV__) {
-                                        console.log(`[Interceptor] Refresh failed (transient), retry ${refreshRetryCount}/${MAX_REFRESH_RETRIES}`);
-                                    }
-                                    setTimeout(() => {
-                                        // Reset isRefreshing so the next 401 re-triggers the refresh flow
-                                        isRefreshing = false;
-                                    }, REFRESH_RETRY_DELAY);
-                                } else {
-                                    // Exhausted retries — reject queued requests but do NOT logout
-                                    // The refresh token is still intact for the next app session
-                                    isRefreshing = false;
-                                    refreshRetryCount = 0;
-                                    onRefreshFailed(refreshErr);
-                                }
-                            });
+                        attemptRefresh(store);
                     }
 
                     // Queue the original request to retry after refresh
