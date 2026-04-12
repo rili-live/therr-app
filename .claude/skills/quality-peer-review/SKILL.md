@@ -1,5 +1,5 @@
 ---
-name: peer-review
+name: quality-peer-review
 description: Peer review the diff between general and stage branches. Implements low-risk improvements, fixes bugs, resolves quality issues, and notes deployment steps. Requires local Docker Compose infrastructure to be running.
 user-invocable: true
 allowed-tools: Bash(docker*), Bash(git*), Bash(npx*), Bash(npm*), Bash(node*), Read, Glob, Grep, Edit, Write, Agent
@@ -31,7 +31,7 @@ Parse the output:
 ⛔ Infrastructure check failed: Docker is not running.
    This command requires the local Docker Compose dev environment.
    Start it with: docker compose -f docker-compose.dev.yml up -d
-   Then re-run /peer-review once services are healthy.
+   Then re-run /quality-peer-review once services are healthy.
 ```
 Stop immediately. Do not proceed.
 
@@ -45,7 +45,7 @@ Stop immediately. Do not proceed.
    Start infrastructure with: docker compose -f docker-compose.dev.yml up -d
    Or for infra-only: docker compose -f docker-compose.infra.yml up -d
    
-   Wait for containers to be healthy, then re-run /peer-review.
+   Wait for containers to be healthy, then re-run /quality-peer-review.
 ```
 Stop immediately. Do not proceed.
 
@@ -70,7 +70,7 @@ git branch --show-current 2>&1
 If the current branch is not `general`, warn the user:
 ```
 ⚠ You are on '<branch>', not 'general'.
-  /peer-review is designed to run on the local general branch.
+  /quality-peer-review is designed to run on the local general branch.
   Switch to general first, or confirm this is intentional.
 ```
 Stop and ask the user to confirm before proceeding.
@@ -86,7 +86,7 @@ git pull --autostash origin general 2>&1
 **If the pull results in merge conflicts** (output contains "CONFLICT" or exit code is non-zero):
 ```
 ⛔ Merge conflicts after pulling origin/general.
-   Resolve the conflicts below before re-running /peer-review:
+   Resolve the conflicts below before re-running /quality-peer-review:
    <list conflicting files from git status>
 ```
 Stop immediately. Do not attempt to auto-resolve conflicts.
@@ -95,7 +95,7 @@ Stop immediately. Do not attempt to auto-resolve conflicts.
 ```
 ⛔ Stash re-apply conflicts after pulling origin/general.
    Your local changes could not be cleanly re-applied.
-   Resolve stash conflicts manually, then re-run /peer-review.
+   Resolve stash conflicts manually, then re-run /quality-peer-review.
 ```
 Stop immediately.
 
