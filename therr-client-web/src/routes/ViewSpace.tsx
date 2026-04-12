@@ -7,7 +7,7 @@ import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { IconCheck } from '@tabler/icons-react';
-import { Categories, Content } from 'therr-js-utilities/constants';
+import { Categories, Cities, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
@@ -78,11 +78,13 @@ interface IViewSpaceState {
     isPairingsLoading: boolean;
     pairingFeedback: { [id: string]: boolean };
     isLinkCopied: boolean;
+    isFromCheckin: boolean;
     isFromClaimEmail: boolean;
     isClaimLoading: boolean;
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
     isClaimBannerDismissed: boolean;
+    isCheckinBannerDismissed: boolean;
     isWhyTherrExpanded: boolean;
     isLoginModalOpen: boolean;
     loginModalAction: 'bookmark' | 'review' | '';
@@ -133,8 +135,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isPairingsLoading: false,
             pairingFeedback: {},
             isLinkCopied: false,
+            isFromCheckin: searchParams.get('checkin') === 'true',
             isFromClaimEmail: searchParams.get('claim') === 'true',
             isClaimBannerDismissed: false,
+            isCheckinBannerDismissed: false,
             isWhyTherrExpanded: false,
             isClaimLoading: false,
             claimMessage: '',
@@ -154,7 +158,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        const { getSpaceDetails, map } = this.props;
+        const { getSpaceDetails, map, user } = this.props;
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];
 
@@ -171,6 +175,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     // Allow a render cycle for the claim section to mount
                     requestAnimationFrame(() => this.scrollToClaimSection());
                 }
+                this.restorePendingReview(spaceId, user?.isAuthenticated);
             }).catch(() => {
                 this.props.navigation.navigate('/');
             });
@@ -181,8 +186,25 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             if (this.state.isFromClaimEmail) {
                 requestAnimationFrame(() => this.scrollToClaimSection());
             }
+            this.restorePendingReview(spaceId, user?.isAuthenticated);
         }
     }
+
+    restorePendingReview = (spaceId: string, isAuthenticated?: boolean) => {
+        if (!isAuthenticated || typeof sessionStorage === 'undefined') {
+            return;
+        }
+        try {
+            const raw = sessionStorage.getItem('pendingSpaceReview');
+            if (raw) {
+                const { spaceId: savedSpaceId, rating, message } = JSON.parse(raw);
+                if (savedSpaceId === spaceId) {
+                    this.setState({ reviewRating: rating || 0, reviewMessage: message || '' });
+                }
+                sessionStorage.removeItem('pendingSpaceReview');
+            }
+        } catch { /* ignore malformed data */ }
+    };
 
     fetchSpaceMoments = (spaceId: string) => {
         this.setState({ isMomentsLoading: true });
@@ -239,12 +261,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         document.getElementById('claim-space-section')?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // Builds the returnTo path for login/register links, preserving ?checkin=true when present
+    // so the check-in intent survives the full auth + profile-creation flow.
+    getReturnToPath = (id: string) => {
+        const { isFromCheckin } = this.state;
+        return isFromCheckin ? `/spaces/${id}?checkin=true` : `/spaces/${id}`;
+    };
+
     handleClaimSpace = () => {
         const { user, translate } = this.props;
         const { spaceId } = this.state;
 
         if (!user?.isAuthenticated) {
-            this.props.navigation.navigate(`/register?returnTo=/spaces/${spaceId}`);
+            this.props.navigation.navigate(`/register?returnTo=${this.getReturnToPath(spaceId)}`);
             return;
         }
 
@@ -335,6 +364,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const space = map?.spaces[spaceId];
 
         if (!user?.isAuthenticated) {
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('pendingSpaceReview', JSON.stringify({
+                    spaceId,
+                    rating: reviewRating,
+                    message: reviewMessage,
+                }));
+            }
             this.setState({ isLoginModalOpen: true, loginModalAction: 'review' });
             return;
         }
@@ -342,6 +378,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         if (reviewRating === 0) {
             this.setState({ reviewError: translate('pages.viewSpace.addReview.ratingRequired') });
             return;
+        }
+
+        const hasVisited = !!(space?.reaction?.visitedAt || (space?.reaction?.visitCount ?? 0) > 0);
+        if (!hasVisited) {
+            const distance = this.getDistanceToSpace();
+            if (distance === null) {
+                this.setState({ reviewError: translate('pages.viewSpace.addReview.locationPrompt') });
+                return;
+            }
+            if (distance > 200) {
+                this.setState({ reviewError: translate('pages.viewSpace.addReview.tooFar') });
+                return;
+            }
         }
 
         this.setState({ isReviewSubmitting: true, reviewError: '', reviewSuccess: '' });
@@ -362,8 +411,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 isPublic: true,
                 message: reviewMessage.trim(),
                 notificationMsg: `Review of ${space?.notificationMsg || ''}`.substring(0, 100),
-                latitude: String(this.state.userLatitude),
-                longitude: String(this.state.userLongitude),
+                latitude: String(space?.latitude ?? ''),
+                longitude: String(space?.longitude ?? ''),
                 spaceId,
             } as any)
             : Promise.resolve(null);
@@ -389,7 +438,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderLoginModal(): JSX.Element {
         const { translate } = this.props;
-        const { spaceId, isLoginModalOpen } = this.state;
+        const { spaceId, isLoginModalOpen, loginModalAction } = this.state;
 
         return (
             <Modal
@@ -399,12 +448,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 centered
             >
                 <Text size="sm" mb="lg">
-                    {translate('pages.viewSpace.loginModal.body')}
+                    {loginModalAction === 'review'
+                        ? translate('pages.viewSpace.loginModal.reviewBody')
+                        : translate('pages.viewSpace.loginModal.body')}
                 </Text>
                 <Group justify="center" gap="md">
                     <Button
                         component="a"
-                        href={`/login?returnTo=/spaces/${spaceId}`}
+                        href={`/login?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`}
                         variant="filled"
                         color="teal"
                     >
@@ -412,7 +463,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     </Button>
                     <Button
                         component="a"
-                        href={`/register?returnTo=/spaces/${spaceId}`}
+                        href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(spaceId))}`}
                         variant="outline"
                         color="teal"
                     >
@@ -424,12 +475,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     renderAddReviewContent(): JSX.Element {
-        const { translate } = this.props;
+        const { user, map, translate } = this.props;
         const {
-            reviewRating, reviewMessage, isReviewSubmitting,
-            reviewError, reviewSuccess, userLatitude,
-            isLocationLoading, locationError,
+            spaceId, reviewRating, reviewMessage, isReviewSubmitting,
+            reviewError, reviewSuccess,
+            userLatitude, userLongitude, isLocationLoading, locationError,
         } = this.state;
+        const isAuthenticated = user?.isAuthenticated;
+        const space = map?.spaces[spaceId];
+        const hasVisited = !!(space?.reaction?.visitedAt || (space?.reaction?.visitCount ?? 0) > 0);
+        const distanceToSpace = this.getDistanceToSpace();
+        const hasLocation = userLatitude !== null && userLongitude !== null;
+        const isTooFar = hasLocation && distanceToSpace !== null && distanceToSpace > 200;
+        const isLocationVerified = hasVisited || (hasLocation && !isTooFar);
 
         if (reviewSuccess) {
             return (
@@ -449,95 +507,78 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             );
         }
 
-        const MAX_REVIEW_DISTANCE_METERS = 200;
-        const distance = this.getDistanceToSpace();
-        const isNearby = distance !== null && distance <= MAX_REVIEW_DISTANCE_METERS;
-        const hasLocation = userLatitude != null;
-
         return (
             <>
-                {!hasLocation && (
-                    <>
-                        <Text size="sm" c="dimmed" mb="sm">
-                            {translate('pages.viewSpace.addReview.locationPrompt')}
-                        </Text>
-                        <Button
-                            onClick={this.handleRequestLocation}
-                            loading={isLocationLoading}
-                            variant="light"
-                            color="teal"
-                            size="sm"
-                            mb="sm"
-                        >
-                            {translate('pages.viewSpace.addReview.enableLocation')}
-                        </Button>
-                        {locationError && (
-                            <Text size="sm" c="red" mb="sm">{locationError}</Text>
-                        )}
-                    </>
-                )}
-
-                {hasLocation && !isNearby && (
-                    <>
-                        <Alert color="yellow" radius="md" mb="sm">
-                            <Text size="sm">
-                                {translate('pages.viewSpace.addReview.tooFar')}
+                <Group gap="xs" mb="sm">
+                    <Text size="sm" fw={500}>{translate('pages.viewSpace.addReview.yourRating')}</Text>
+                    <MantineRating
+                        value={reviewRating}
+                        onChange={isReviewSubmitting ? undefined : (val) => this.setState({ reviewRating: val, reviewError: '' })}
+                        size="lg"
+                    />
+                </Group>
+                <Textarea
+                    placeholder={translate('pages.viewSpace.addReview.messagePlaceholder')}
+                    value={reviewMessage}
+                    onChange={(e) => this.setState({ reviewMessage: e.currentTarget.value })}
+                    disabled={isReviewSubmitting}
+                    minRows={3}
+                    maxRows={6}
+                    mb="sm"
+                />
+                {isAuthenticated && !isLocationVerified && (
+                    <Stack gap="xs" mb="sm">
+                        {(locationError || isTooFar) ? (
+                            <Alert color="orange" radius="md" p="xs">
+                                <Text size="sm">
+                                    {isTooFar
+                                        ? translate('pages.viewSpace.addReview.tooFar')
+                                        : locationError}
+                                </Text>
+                            </Alert>
+                        ) : (
+                            <Text size="sm" c="dimmed">
+                                {translate('pages.viewSpace.addReview.locationPrompt')}
                             </Text>
-                        </Alert>
+                        )}
                         <Button
                             onClick={this.handleRequestLocation}
                             loading={isLocationLoading}
-                            variant="light"
+                            variant="outline"
+                            size="compact-md"
                             color="teal"
-                            size="sm"
-                            mb="sm"
+                            style={{ alignSelf: 'flex-start' }}
                         >
-                            {translate('pages.viewSpace.addReview.retryLocation')}
+                            {hasLocation
+                                ? translate('pages.viewSpace.addReview.retryLocation')
+                                : translate('pages.viewSpace.addReview.enableLocation')}
                         </Button>
-                    </>
+                    </Stack>
                 )}
-
-                {hasLocation && isNearby && (
-                    <>
-                        <Group gap="xs" mb="sm">
-                            <Text size="sm" fw={500}>{translate('pages.viewSpace.addReview.yourRating')}</Text>
-                            <MantineRating
-                                value={reviewRating}
-                                onChange={isReviewSubmitting ? undefined : (val) => this.setState({ reviewRating: val, reviewError: '' })}
-                                size="lg"
-                            />
-                        </Group>
-                        <Textarea
-                            placeholder={translate('pages.viewSpace.addReview.messagePlaceholder')}
-                            value={reviewMessage}
-                            onChange={(e) => this.setState({ reviewMessage: e.currentTarget.value })}
-                            disabled={isReviewSubmitting}
-                            minRows={3}
-                            maxRows={6}
-                            mb="sm"
-                        />
-                        {reviewError && (
-                            <Text size="sm" c="red" mb="sm">{reviewError}</Text>
-                        )}
-                        <Button
-                            onClick={this.handleSubmitReview}
-                            loading={isReviewSubmitting}
-                            variant="filled"
-                            color="teal"
-                        >
-                            {translate('pages.viewSpace.addReview.submitButton')}
-                        </Button>
-                    </>
+                {reviewError && (
+                    <Text size="sm" c="red" mb="sm">{reviewError}</Text>
                 )}
+                {!isAuthenticated && (
+                    <Text size="sm" c="dimmed" mb="sm">
+                        {translate('pages.viewSpace.addReview.signInPrompt')}
+                    </Text>
+                )}
+                <Button
+                    onClick={this.handleSubmitReview}
+                    loading={isReviewSubmitting}
+                    variant="filled"
+                    color="teal"
+                >
+                    {translate('pages.viewSpace.addReview.submitButton')}
+                </Button>
             </>
         );
     }
 
     renderAddReview(space: any): JSX.Element | null {
-        const { user, translate } = this.props;
-        const isAuthenticated = user?.isAuthenticated;
+        const { translate } = this.props;
 
-        // Cannot verify proximity without space coordinates
+        // Cannot render without space coordinates (needed for geo-tagging review moments)
         if (!space.latitude || !space.longitude) {
             return null;
         }
@@ -545,23 +586,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         return (
             <Paper withBorder p="lg" radius="md" mt="lg">
                 <Title order={3} size="h4" mb="sm">{translate('pages.viewSpace.addReview.title')}</Title>
-                {!isAuthenticated ? (
-                    <>
-                        <Text size="sm" c="dimmed" mb="sm">
-                            {translate('pages.viewSpace.addReview.signInPrompt')}
-                        </Text>
-                        <Button
-                            onClick={() => this.setState({ isLoginModalOpen: true, loginModalAction: 'review' })}
-                            variant="light"
-                            color="teal"
-                            size="sm"
-                        >
-                            {translate('pages.viewSpace.loginModal.signIn')}
-                        </Button>
-                    </>
-                ) : (
-                    this.renderAddReviewContent()
-                )}
+                {this.renderAddReviewContent()}
             </Paper>
         );
     }
@@ -591,6 +616,62 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 >
                     {translate('pages.viewSpace.claimSpace.claimButton')}
                 </Button>
+            </Alert>
+        );
+    }
+
+    renderCheckinBanner(space: any): JSX.Element | null {
+        const { user, translate } = this.props;
+        const { isFromCheckin, isCheckinBannerDismissed } = this.state;
+
+        if (!isFromCheckin || isCheckinBannerDismissed) {
+            return null;
+        }
+
+        const businessName = space?.notificationMsg;
+        const isAuthenticated = !!user?.isAuthenticated;
+
+        return (
+            <Alert
+                color="teal"
+                radius="md"
+                withCloseButton
+                onClose={() => this.setState({ isCheckinBannerDismissed: true })}
+                title={translate('pages.viewSpace.checkinBanner.title')}
+            >
+                <Text size="sm" mb="sm">
+                    {isAuthenticated
+                        ? translate('pages.viewSpace.checkinBanner.bodyLoggedIn', { businessName })
+                        : translate('pages.viewSpace.checkinBanner.body', { businessName })}
+                </Text>
+                <Group gap="xs" mb="xs" className="store-image-links">
+                    <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                        <Image
+                            aria-label="apple store link"
+                            maw={120}
+                            src="/assets/images/apple-store-download-button.svg"
+                            alt="Download Therr on the App Store"
+                            loading="lazy"
+                        />
+                    </Anchor>
+                    <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                        <Image
+                            aria-label="play store link"
+                            maw={120}
+                            src="/assets/images/play-store-download-button.svg"
+                            alt="Download Therr on Google Play"
+                            loading="lazy"
+                        />
+                    </Anchor>
+                </Group>
+                {!isAuthenticated && (
+                    <Text size="xs" c="dimmed">
+                        {translate('pages.viewSpace.checkinBanner.orSignUp')}{' '}
+                        <Anchor href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`} size="xs">
+                            {translate('pages.viewSpace.checkinBanner.signUpLink')}
+                        </Anchor>
+                    </Text>
+                )}
             </Alert>
         );
     }
@@ -734,14 +815,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         <>
                             <Button
                                 component="a"
-                                href={`/register?returnTo=/spaces/${space.id}`}
+                                href={`/register?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`}
                                 variant="filled"
                                 size="md"
                                 color="teal"
                             >
                                 {translate('pages.viewSpace.claimSpace.claimButton')}
                             </Button>
-                            <Anchor href={`/login?returnTo=/spaces/${space.id}`} size="sm">
+                            <Anchor href={`/login?returnTo=${encodeURIComponent(this.getReturnToPath(space.id))}`} size="sm">
                                 {translate('pages.viewSpace.claimSpace.alreadyHaveAccount')}
                             </Anchor>
                         </>
@@ -777,7 +858,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             <Anchor href="/locations" key="locations">{this.props.translate('pages.navigation.locations')}</Anchor>,
         ];
         if (locality) {
-            items.push(<Text key="locality" component="span">{locality}</Text>);
+            const cityEntry = Cities.CityNameMap[locality.toLowerCase()];
+            if (cityEntry) {
+                items.push(<Anchor href={`/locations/city/${cityEntry.slug}`} key="locality">{locality}</Anchor>);
+            } else {
+                items.push(<Text key="locality" component="span">{locality}</Text>);
+            }
         }
         items.push(<Text key="title" component="span">{space.notificationMsg}</Text>);
 
@@ -1049,15 +1135,16 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         return (
                             <Paper key={pairing.id} withBorder p="md" radius="md">
                                 {pairingMedia && (
-                                    <Image
-                                        src={pairingMedia}
-                                        alt={pairing.notificationMsg || 'Space image'}
-                                        height={120}
-                                        fit="cover"
-                                        radius="sm"
-                                        mb="sm"
-                                        loading="lazy"
-                                    />
+                                    <Anchor href={`/spaces/${pairing.id}`} display="block" mb="sm">
+                                        <Image
+                                            src={pairingMedia}
+                                            alt={pairing.notificationMsg || 'Space image'}
+                                            height={120}
+                                            fit="cover"
+                                            radius="sm"
+                                            loading="lazy"
+                                        />
+                                    </Anchor>
                                 )}
                                 <Anchor href={`/spaces/${pairing.id}`} fw={600} size="sm">
                                     {pairing.notificationMsg}
@@ -1155,6 +1242,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <Stack gap="md">
                     {/* Claim Email Banner — shown when arriving via unclaimed space outreach email */}
                     {this.renderClaimEmailBanner(space)}
+
+                    {/* QR Check-in Banner — shown when arriving via a physical display kit QR code */}
+                    {this.renderCheckinBanner(space)}
 
                     {/* Breadcrumbs */}
                     {this.renderBreadcrumbs(space)}
@@ -1255,13 +1345,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {this.renderEvents(space)}
 
                     {/* Add Review */}
-                    {/* TODO: Review submission is disabled on web for now. Our anti-fake-content strategy */}
-                    {/* relies on location verification, which is clunky on web browsers compared to mobile. */}
-                    {/* A separate PR is in progress to improve visited-space tracking. Once we can reliably */}
-                    {/* determine that a user has visited a space (via check-in data), we can re-enable */}
-                    {/* reviews on both web and mobile without requiring real-time geolocation proximity. */}
-                    {/* To re-enable: uncomment the line below */}
-                    {/* {this.renderAddReview(space)} */}
+                    {this.renderAddReview(space)}
 
                     {/* Community Posts (Moments) */}
                     {this.renderCommunityPosts()}

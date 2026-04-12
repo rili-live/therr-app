@@ -4,11 +4,12 @@ import LottieView from 'lottie-react-native';
 import { achievementsByClass } from 'therr-js-utilities/config';
 import spacingStyles from '../../styles/layouts/spacing';
 
-const cardImagesLottie = {
+const cardImagesLottie: { [key: string]: any } = {
+    communityLeader: require('../../assets/socialite-card.json'),
     explorer: require('../../assets/explorer-card.json'),
     influencer: require('../../assets/influencer-card.json'),
+    localPatron: require('../../assets/local-patron-card.json'),
     socialite: require('../../assets/socialite-card.json'),
-    communityLeader: require('../../assets/socialite-card.json'),
     thinker: require('../../assets/thinker-card.json'),
 };
 
@@ -23,7 +24,7 @@ const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchieve
                 <View style={themeAchievements.styles.cardImageContainer}>
                     <View style={themeAchievements.styles.cardImage}>
                         <LottieView
-                            source={cardImagesLottie[userAchievement.achievementClass]}
+                            source={cardImagesLottie[userAchievement.achievementClass] || cardImagesLottie.explorer}
                             resizeMode="cover"
                             speed={1}
                             progress={0}

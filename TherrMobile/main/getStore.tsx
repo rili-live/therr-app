@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistStore, persistReducer } from 'redux-persist';
 import basePersistConfig from 'therr-react/redux/persistConfig';
+import SecureStorage from './utilities/SecureStorage';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
@@ -38,10 +39,13 @@ const getMiddleware = (getDefaultMiddleware: any) => {
 };
 
 const getStore = async () => {
+    // Migrate existing tokens from AsyncStorage to Keychain (runs once per install)
+    await SecureStorage.migrateToSecureStorage();
+
     // Get stored user details from session storage if they are already logged in
     const therrSession = await AsyncStorage.getItem('therrSession');
     const storedSocketDetails = JSON.parse(therrSession || '{}');
-    const therrUser = await AsyncStorage.getItem('therrUser');
+    const therrUser = await SecureStorage.getItem('therrUser');
     const storedUser = JSON.parse(therrUser || '{}');
     const therrUserSettings = await AsyncStorage.getItem('therrUserSettings');
     const storedUserSettings = JSON.parse(therrUserSettings || '{}');

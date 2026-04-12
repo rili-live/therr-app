@@ -158,6 +158,36 @@ const CitiesList: ICityEntry[] = [
     {
         name: 'Santa Ana', state: 'California', stateAbbr: 'CA', slug: 'santa-ana-ca', lat: 33.7455, lng: -117.8677,
     },
+    {
+        name: 'Boise', state: 'Idaho', stateAbbr: 'ID', slug: 'boise-id', lat: 43.6150, lng: -116.2023,
+    },
+    {
+        name: 'Huntsville', state: 'Alabama', stateAbbr: 'AL', slug: 'huntsville-al', lat: 34.7304, lng: -86.5861,
+    },
+    {
+        name: 'Spokane', state: 'Washington', stateAbbr: 'WA', slug: 'spokane-wa', lat: 47.6588, lng: -117.4260,
+    },
+    {
+        name: 'Salt Lake City', state: 'Utah', stateAbbr: 'UT', slug: 'salt-lake-city-ut', lat: 40.7608, lng: -111.8910,
+    },
+    {
+        name: 'Richmond', state: 'Virginia', stateAbbr: 'VA', slug: 'richmond-va', lat: 37.5407, lng: -77.4360,
+    },
+    {
+        name: 'Chattanooga', state: 'Tennessee', stateAbbr: 'TN', slug: 'chattanooga-tn', lat: 35.0456, lng: -85.3097,
+    },
+    {
+        name: 'Des Moines', state: 'Iowa', stateAbbr: 'IA', slug: 'des-moines-ia', lat: 41.5868, lng: -93.6250,
+    },
+    {
+        name: 'Greenville', state: 'South Carolina', stateAbbr: 'SC', slug: 'greenville-sc', lat: 34.8526, lng: -82.3940,
+    },
+    {
+        name: 'Fort Collins', state: 'Colorado', stateAbbr: 'CO', slug: 'fort-collins-co', lat: 40.5853, lng: -105.0844,
+    },
+    {
+        name: 'Bozeman', state: 'Montana', stateAbbr: 'MT', slug: 'bozeman-mt', lat: 45.6769, lng: -111.0429,
+    },
 ];
 
 // Lookup map: slug → city entry
@@ -166,4 +196,10 @@ CitiesList.forEach((city) => {
     CitySlugMap[city.slug] = city;
 });
 
-export default { CitiesList, CitySlugMap };
+// Lookup map: lowercase city name → city entry
+const CityNameMap: Record<string, ICityEntry> = {};
+CitiesList.forEach((city) => {
+    CityNameMap[city.name.toLowerCase()] = city;
+});
+
+export default { CitiesList, CitySlugMap, CityNameMap };

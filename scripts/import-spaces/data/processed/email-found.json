@@ -1,6 +1,6 @@
 {
   "type": "email-found",
-  "updatedAt": "2026-04-05T01:39:42.093Z",
+  "updatedAt": "2026-04-11T00:16:57.109Z",
   "entries": [
     {
       "id": "9fbe963b-6e01-494c-acee-d628cc40ce01",
@@ -1826,6 +1826,581 @@
       "id": "5f4c07a4-860c-457a-877d-cc585933a2e9",
       "name": "Apple Store",
       "processedAt": "2026-04-05T01:39:42.093Z"
+    },
+    {
+      "id": "a0d6fade-865b-4139-a2a2-d5dc1d517f98",
+      "name": "Books & Brews",
+      "processedAt": "2026-04-05T13:50:14.688Z"
+    },
+    {
+      "id": "c2e0150b-6e4b-4b32-ba36-b63f2a10ac84",
+      "name": "The Draconian Lounge",
+      "processedAt": "2026-04-05T18:29:50.359Z"
+    },
+    {
+      "id": "37326827-8424-424b-bd25-167f6d533e28",
+      "name": "NW Office Liquidations",
+      "processedAt": "2026-04-10T14:51:43.674Z"
+    },
+    {
+      "id": "80f57fec-fba8-428b-a73a-1c2e886a6791",
+      "name": "Alley Cats Entertainment",
+      "processedAt": "2026-04-10T14:52:06.007Z"
+    },
+    {
+      "id": "fb7b33d7-e22e-4bf4-b81b-729f6d6e470e",
+      "name": "Flying M Coffeehouse",
+      "processedAt": "2026-04-10T15:57:23.054Z"
+    },
+    {
+      "id": "71620967-5920-4f74-a6fb-ee9ab0474932",
+      "name": "The Bayou",
+      "processedAt": "2026-04-10T16:00:51.458Z"
+    },
+    {
+      "id": "ca8619d2-796a-4c43-9d68-cf06c00e4975",
+      "name": "City Gear",
+      "processedAt": "2026-04-10T16:03:48.919Z"
+    },
+    {
+      "id": "3def72b9-e850-47db-bab4-d30447b2d98c",
+      "name": "Dreamland BBQ",
+      "processedAt": "2026-04-10T16:04:06.525Z"
+    },
+    {
+      "id": "c8bf6629-7cfb-4a9c-8d01-dd2249ff1413",
+      "name": "The Fresh Market",
+      "processedAt": "2026-04-10T16:06:39.391Z"
+    },
+    {
+      "id": "7d7ade6c-d9ae-4d1c-8634-0abf7b78dce7",
+      "name": "The Bottle",
+      "processedAt": "2026-04-10T16:06:54.246Z"
+    },
+    {
+      "id": "46703071-9da3-4e17-b0e1-6ef051cadfa0",
+      "name": "Rodeway Inn & Suites Spokane",
+      "processedAt": "2026-04-10T16:07:33.226Z"
+    },
+    {
+      "id": "3d99b826-ea88-4fc2-a97f-47f1adc69da3",
+      "name": "Auntie's Bookstore",
+      "processedAt": "2026-04-10T16:09:27.562Z"
+    },
+    {
+      "id": "9150ed94-7050-4549-8407-acfab5e4aaa6",
+      "name": "Jamra Specialty Coffee",
+      "processedAt": "2026-04-10T16:13:48.825Z"
+    },
+    {
+      "id": "d711e87e-44b5-4ace-ba67-ffcdc215c610",
+      "name": "Siné Irish Pub & Restaurant",
+      "processedAt": "2026-04-10T16:14:15.853Z"
+    },
+    {
+      "id": "1473ad85-3343-4fd1-b30e-0e145619f9b3",
+      "name": "Aquarian",
+      "processedAt": "2026-04-10T16:15:12.644Z"
+    },
+    {
+      "id": "d179e7dd-8e9c-4da9-b222-f80b4b5064ab",
+      "name": "Smiley’s On the Roxx",
+      "processedAt": "2026-04-10T16:15:48.595Z"
+    },
+    {
+      "id": "b6bd9e6c-98fb-432d-8c06-5f24f1eeefd7",
+      "name": "Lefty’s West End Tavern",
+      "processedAt": "2026-04-10T16:15:52.790Z"
+    },
+    {
+      "id": "390ccc48-8435-4578-8d75-4116ba16a5f4",
+      "name": "The Lazy Goat",
+      "processedAt": "2026-04-10T16:16:13.174Z"
+    },
+    {
+      "id": "916d66b4-ea4d-48a5-8ab6-e91b37ecaa23",
+      "name": "Twin Peaks",
+      "processedAt": "2026-04-10T16:16:16.933Z"
+    },
+    {
+      "id": "d6738fbf-d7ed-4770-9d42-0c505b1ca360",
+      "name": "Soby's",
+      "processedAt": "2026-04-10T16:16:43.985Z"
+    },
+    {
+      "id": "ff59b022-acc4-4478-ae0a-393745390102",
+      "name": "The Olde Homestead, Inc",
+      "processedAt": "2026-04-10T16:17:04.944Z"
+    },
+    {
+      "id": "cd810597-0143-40cd-b4a8-ceca292c46ca",
+      "name": "Zum Stammtisch",
+      "processedAt": "2026-04-10T20:27:14.183Z"
+    },
+    {
+      "id": "c4a48996-944d-4eb1-8c39-a0de28acc11b",
+      "name": "Smith & Wollensky",
+      "processedAt": "2026-04-10T20:27:23.827Z"
+    },
+    {
+      "id": "e80549b3-17b4-4b3b-b7b3-8b649c7b3fe0",
+      "name": "Biaggi's",
+      "processedAt": "2026-04-10T20:29:19.225Z"
+    },
+    {
+      "id": "7b2b8f6e-0fdf-4b24-a274-70e5e8155862",
+      "name": "Sarabella Nail Studio",
+      "processedAt": "2026-04-10T20:29:25.282Z"
+    },
+    {
+      "id": "214e29d6-de90-4522-9fdd-baac6e4dff82",
+      "name": "Marc Bar & Restaurant",
+      "processedAt": "2026-04-10T20:30:25.886Z"
+    },
+    {
+      "id": "90440772-23e6-49db-8e01-f090d7336d65",
+      "name": "Caffè Appassionato",
+      "processedAt": "2026-04-10T20:33:18.252Z"
+    },
+    {
+      "id": "a04825bd-3d0e-4136-8d34-56cc0ee4c8ca",
+      "name": "Audrey's Pizza Oven & FreeFall Brewery",
+      "processedAt": "2026-04-10T20:33:47.965Z"
+    },
+    {
+      "id": "b2cd373b-894e-47bc-9ffb-af254690f97c",
+      "name": "Bri'Zan Couture",
+      "processedAt": "2026-04-10T20:34:23.066Z"
+    },
+    {
+      "id": "5cfb7e07-5124-4b2e-8eab-fb5a14f1c454",
+      "name": "Verboten Brewing",
+      "processedAt": "2026-04-10T20:35:12.070Z"
+    },
+    {
+      "id": "95091f93-f20f-48cd-8dae-13750c41e824",
+      "name": "Paris Bistro & Crêperie",
+      "processedAt": "2026-04-10T20:35:39.004Z"
+    },
+    {
+      "id": "8c390dfe-d554-4188-8a86-fdbb2ed45041",
+      "name": "Nina's Tacos",
+      "processedAt": "2026-04-10T20:35:43.520Z"
+    },
+    {
+      "id": "19b31d29-fbc6-496b-a3fc-32dd27051cc0",
+      "name": "Deccan Spice",
+      "processedAt": "2026-04-10T20:35:59.147Z"
+    },
+    {
+      "id": "c2acd030-49f9-45ff-9da5-999fe3e8c82e",
+      "name": "21st Amendment Brewery",
+      "processedAt": "2026-04-10T20:36:25.281Z"
+    },
+    {
+      "id": "d95fe7d9-7c08-48a5-8f8b-b651d40ecc2b",
+      "name": "Cafe M",
+      "processedAt": "2026-04-10T20:36:33.340Z"
+    },
+    {
+      "id": "d2520dcc-d705-4ed9-a982-120ba8227c84",
+      "name": "DSK Brooklyn",
+      "processedAt": "2026-04-10T20:36:39.863Z"
+    },
+    {
+      "id": "c1561a33-c3bd-43b4-ae17-9314e198443b",
+      "name": "Futura Coffee Roasters",
+      "processedAt": "2026-04-10T20:37:20.324Z"
+    },
+    {
+      "id": "616b6b50-9061-4e7e-b909-a9795db9bf26",
+      "name": "The Indian Harvest",
+      "processedAt": "2026-04-10T20:38:51.537Z"
+    },
+    {
+      "id": "1a9737b6-1191-4b45-ac84-d5b7f6485b45",
+      "name": "New Seasons Market",
+      "processedAt": "2026-04-10T20:38:57.994Z"
+    },
+    {
+      "id": "14da6e18-dc85-4765-a4dc-2c7be8b221cb",
+      "name": "Krob Krua Thai Kitchen",
+      "processedAt": "2026-04-10T20:39:09.027Z"
+    },
+    {
+      "id": "8dc90985-80e1-41dc-900b-78e912ce132e",
+      "name": "Spartan Ale House",
+      "processedAt": "2026-04-10T20:41:01.010Z"
+    },
+    {
+      "id": "22962182-42b4-4bfb-aa72-0f13b7aa4251",
+      "name": "Seven Virtues",
+      "processedAt": "2026-04-10T20:41:06.360Z"
+    },
+    {
+      "id": "d790dbc7-1756-4173-8708-7ac2338046e3",
+      "name": "Super 8 by Wyndham Yorkville",
+      "processedAt": "2026-04-10T20:41:44.951Z"
+    },
+    {
+      "id": "cc44820f-77eb-4aec-8561-6d73b073c296",
+      "name": "Athens Pizza",
+      "processedAt": "2026-04-10T21:41:57.548Z"
+    },
+    {
+      "id": "ce908c83-c79a-45f0-82d3-01cef19dfda7",
+      "name": "Blank Street Coffee",
+      "processedAt": "2026-04-10T21:42:03.083Z"
+    },
+    {
+      "id": "8bd08ca3-3580-4c78-aa01-e69143da5f1d",
+      "name": "Pepe's Mexican Restaurant",
+      "processedAt": "2026-04-10T21:42:30.838Z"
+    },
+    {
+      "id": "235ed26b-046c-4d2d-8a8a-46cbfd20f786",
+      "name": "Bashas'",
+      "processedAt": "2026-04-10T21:43:25.813Z"
+    },
+    {
+      "id": "6230a8da-aa96-47dd-91bf-2822cb44110c",
+      "name": "Bourbon and Branch",
+      "processedAt": "2026-04-10T21:45:26.958Z"
+    },
+    {
+      "id": "cd3c04a7-d271-4646-ad17-bca91c99bd4e",
+      "name": "Botica",
+      "processedAt": "2026-04-10T21:45:56.222Z"
+    },
+    {
+      "id": "7ade17bc-f15e-423a-85a1-3b1e49c85408",
+      "name": "Dubsea Coffee",
+      "processedAt": "2026-04-10T21:46:00.267Z"
+    },
+    {
+      "id": "cd1b4be7-1d67-44b3-a8a1-f15fe0a5af7c",
+      "name": "The Greenwich",
+      "processedAt": "2026-04-10T21:46:18.718Z"
+    },
+    {
+      "id": "7eeef5c3-9bb5-40d9-a5e0-6e95b6855e0d",
+      "name": "The Backyard Bar Stage and Grill",
+      "processedAt": "2026-04-10T21:46:47.182Z"
+    },
+    {
+      "id": "e51f9711-9ed5-446a-81cd-627961ccb2cc",
+      "name": "L'Mu Salon",
+      "processedAt": "2026-04-10T21:48:11.806Z"
+    },
+    {
+      "id": "8a9ab79b-438c-4cde-831e-9609b35a77aa",
+      "name": "Babes Night Club",
+      "processedAt": "2026-04-10T21:48:21.161Z"
+    },
+    {
+      "id": "b1c31080-b1e3-4cd6-aea9-d226175e309a",
+      "name": "Kravet",
+      "processedAt": "2026-04-10T21:48:33.823Z"
+    },
+    {
+      "id": "707c2af8-a126-4465-b529-7601fb16f743",
+      "name": "DSW",
+      "processedAt": "2026-04-10T21:50:30.768Z"
+    },
+    {
+      "id": "aec423fb-f5a5-43a7-b55f-8fbaa93c6825",
+      "name": "Porta Bella",
+      "processedAt": "2026-04-10T21:51:03.997Z"
+    },
+    {
+      "id": "79575107-e2da-4d19-9d1d-fe893c395ef6",
+      "name": "Noe Cafe",
+      "processedAt": "2026-04-10T21:51:58.886Z"
+    },
+    {
+      "id": "bd2cbd64-7917-4ede-a323-6f655dcb7f0a",
+      "name": "DSW",
+      "processedAt": "2026-04-10T21:52:20.115Z"
+    },
+    {
+      "id": "ec840263-dfff-4b84-b686-b56415c4c4d2",
+      "name": "By George",
+      "processedAt": "2026-04-10T21:53:06.477Z"
+    },
+    {
+      "id": "3d7674dd-4e6c-41c4-90b8-84e22679c982",
+      "name": "Lucile's Creole Cafe",
+      "processedAt": "2026-04-10T21:53:41.526Z"
+    },
+    {
+      "id": "c14cb81d-f828-4c70-94c4-07363fec9843",
+      "name": "Suzy's Bar & Grill",
+      "processedAt": "2026-04-10T21:53:45.749Z"
+    },
+    {
+      "id": "b4469831-55b6-4891-923d-5bff0dd0533d",
+      "name": "Monk McGinns",
+      "processedAt": "2026-04-10T21:54:44.900Z"
+    },
+    {
+      "id": "50550997-1dcb-4e6d-8a41-662e78e7d545",
+      "name": "Comfort Inn & Suites Geneva",
+      "processedAt": "2026-04-10T22:04:40.093Z"
+    },
+    {
+      "id": "e592a6f4-6f63-4812-a044-7610cb9f13b4",
+      "name": "Blue Shark Ale House",
+      "processedAt": "2026-04-10T22:07:13.361Z"
+    },
+    {
+      "id": "2c96d9e1-69e9-4560-b422-5ffaf29b857d",
+      "name": "El Patron",
+      "processedAt": "2026-04-10T22:07:17.467Z"
+    },
+    {
+      "id": "6c26b88a-2e61-4eac-9452-babb3a34ebbe",
+      "name": "Dinner Delights",
+      "processedAt": "2026-04-10T22:07:28.813Z"
+    },
+    {
+      "id": "fa1dae3e-70ff-4dcf-ae01-0ea250f08629",
+      "name": "Felix & Oscar's",
+      "processedAt": "2026-04-10T22:07:52.319Z"
+    },
+    {
+      "id": "d35f03d3-3707-4ccd-b5cd-66fe37716917",
+      "name": "Zombie Burger & Drink Lab",
+      "processedAt": "2026-04-10T22:08:14.240Z"
+    },
+    {
+      "id": "0b164a25-de80-4ce6-9cd7-99b4f1b9224a",
+      "name": "Pho All Seasons",
+      "processedAt": "2026-04-10T22:08:21.869Z"
+    },
+    {
+      "id": "16038e3a-c907-43b6-9ffe-c7a9228e32f0",
+      "name": "Saint Kilda Collective",
+      "processedAt": "2026-04-10T22:08:25.870Z"
+    },
+    {
+      "id": "a81f7a66-73ee-4c50-8c40-9bfae8be320d",
+      "name": "All Pho You",
+      "processedAt": "2026-04-10T22:09:00.282Z"
+    },
+    {
+      "id": "03b43c5a-f2d8-44c1-8542-d8e4e9d6761e",
+      "name": "Hessen Haus",
+      "processedAt": "2026-04-10T22:09:23.756Z"
+    },
+    {
+      "id": "7bac3e1c-b9c9-479c-99ee-afc411118044",
+      "name": "Big Acai Bowl",
+      "processedAt": "2026-04-10T22:09:41.554Z"
+    },
+    {
+      "id": "d8c678ea-4ad2-4702-97b8-77e64b95a2b0",
+      "name": "Akebono",
+      "processedAt": "2026-04-10T22:09:45.898Z"
+    },
+    {
+      "id": "f4a10155-9ef0-4e64-a499-4bb954a116e2",
+      "name": "Centro",
+      "processedAt": "2026-04-10T22:10:15.148Z"
+    },
+    {
+      "id": "ac91bd05-d1c6-47c9-b119-5dcb51ee5f5c",
+      "name": "Cheese Bar",
+      "processedAt": "2026-04-10T22:10:39.629Z"
+    },
+    {
+      "id": "7bad8947-1b16-4d8f-aff7-5e748b274386",
+      "name": "Hollywood Boulders",
+      "processedAt": "2026-04-10T22:19:45.519Z"
+    },
+    {
+      "id": "26d9cd40-42f8-43c3-8f2f-85eb56478ef6",
+      "name": "Venn Street Records",
+      "processedAt": "2026-04-10T22:20:44.826Z"
+    },
+    {
+      "id": "e4cbac9b-7791-48c1-bf28-22d1f198a5c6",
+      "name": "Pints Everyday Cafe",
+      "processedAt": "2026-04-10T22:21:18.134Z"
+    },
+    {
+      "id": "2b9a6287-70e4-4e6f-9154-cf5dccfa2199",
+      "name": "Cilicia Cafe & Restaurant",
+      "processedAt": "2026-04-10T22:21:39.600Z"
+    },
+    {
+      "id": "aea88e39-c3f5-4df6-8e2d-998fbbb844b5",
+      "name": "Ru San's",
+      "processedAt": "2026-04-10T22:35:07.024Z"
+    },
+    {
+      "id": "95a40f39-789c-4643-a914-fbce3583efe7",
+      "name": "The Daily Coffee Bar and Bakery",
+      "processedAt": "2026-04-10T22:37:40.952Z"
+    },
+    {
+      "id": "035962a2-9bf9-4588-a3e6-d6cbaca9cc83",
+      "name": "The Birdhouse",
+      "processedAt": "2026-04-10T22:38:47.250Z"
+    },
+    {
+      "id": "498ca88a-758d-40a2-96b9-5e66c9aba710",
+      "name": "White Rock Strong",
+      "processedAt": "2026-04-10T22:44:36.969Z"
+    },
+    {
+      "id": "17a01701-ae92-42b1-b0d0-3db44eed885f",
+      "name": "Bison Coffee House",
+      "processedAt": "2026-04-10T22:49:15.617Z"
+    },
+    {
+      "id": "ce4ee1eb-d74b-474e-bf6a-b981badccfcf",
+      "name": "Gemato's Wood Pit BBQ",
+      "processedAt": "2026-04-10T22:56:51.498Z"
+    },
+    {
+      "id": "b886713a-b357-42e2-86d5-665e208077dd",
+      "name": "Mioposto",
+      "processedAt": "2026-04-10T22:57:36.728Z"
+    },
+    {
+      "id": "3ca840c5-ced0-477d-8905-3354bcbc1ed6",
+      "name": "Talay Thai Restaurant",
+      "processedAt": "2026-04-10T23:05:09.266Z"
+    },
+    {
+      "id": "41c1c964-71ac-4483-8d44-3f2e64db055c",
+      "name": "Le petit Restaurant",
+      "processedAt": "2026-04-10T23:08:41.309Z"
+    },
+    {
+      "id": "4c96046e-405c-498d-8814-e3d1ca659b4c",
+      "name": "Café 140B",
+      "processedAt": "2026-04-10T23:12:50.145Z"
+    },
+    {
+      "id": "dc5be03d-535a-4fea-a1c9-1b367f583f96",
+      "name": "Holiday Inn Express Eugene - Springfield",
+      "processedAt": "2026-04-10T23:13:34.631Z"
+    },
+    {
+      "id": "f38b3525-a3af-470f-8008-248982b3116b",
+      "name": "Vero Espresso House",
+      "processedAt": "2026-04-10T23:14:09.338Z"
+    },
+    {
+      "id": "b4d3d18a-fbe6-4827-a3fa-09cdc43e9842",
+      "name": "Diva Espresso",
+      "processedAt": "2026-04-10T23:14:23.196Z"
+    },
+    {
+      "id": "0288e87c-181d-4889-8284-e4a90167bd7d",
+      "name": "Junior's",
+      "processedAt": "2026-04-10T23:15:25.333Z"
+    },
+    {
+      "id": "9dbc752d-fa28-42f5-b0f3-8094340d1439",
+      "name": "RoadHouse Billiards and Brew",
+      "processedAt": "2026-04-10T23:16:32.459Z"
+    },
+    {
+      "id": "7e666b6a-358d-4165-a69c-11955c336506",
+      "name": "Earthly Body",
+      "processedAt": "2026-04-10T23:21:09.511Z"
+    },
+    {
+      "id": "bd73d591-e2ca-4299-800a-2c4ba352b997",
+      "name": "Flashbackz Lounge & Grill",
+      "processedAt": "2026-04-10T23:25:39.244Z"
+    },
+    {
+      "id": "f0152320-a037-4856-8eac-f66e71c30801",
+      "name": "Apple Store SoHo",
+      "processedAt": "2026-04-10T23:28:44.679Z"
+    },
+    {
+      "id": "23a62290-5731-4dca-83c3-94feb70fc589",
+      "name": "TexAZ Grill",
+      "processedAt": "2026-04-10T23:31:09.019Z"
+    },
+    {
+      "id": "dcc69e1a-b905-4500-a51d-f801d38154c6",
+      "name": "Bowlero Atlantic Station",
+      "processedAt": "2026-04-11T00:07:10.217Z"
+    },
+    {
+      "id": "5cf1c798-07ae-405f-8c1e-de4c2a9800d7",
+      "name": "Home Run Inn Pizzeria",
+      "processedAt": "2026-04-11T00:07:16.672Z"
+    },
+    {
+      "id": "d2f6efb6-38e9-4b38-837f-5aad4ec85e95",
+      "name": "Feed Cafe",
+      "processedAt": "2026-04-11T00:08:43.464Z"
+    },
+    {
+      "id": "34933047-8db0-480f-a647-7f13c7cc660a",
+      "name": "JK Kabab",
+      "processedAt": "2026-04-11T00:10:56.694Z"
+    },
+    {
+      "id": "6986d3b1-e86c-4288-92c5-37658eb92ce3",
+      "name": "Windy City Pie",
+      "processedAt": "2026-04-11T00:11:21.352Z"
+    },
+    {
+      "id": "d7b2b12e-f611-4be2-8372-d994fe20ff87",
+      "name": "McMenamins North Bank",
+      "processedAt": "2026-04-11T00:11:53.663Z"
+    },
+    {
+      "id": "6687ecb8-755c-4606-afad-a2c63d63b18f",
+      "name": "Super 8",
+      "processedAt": "2026-04-11T00:12:53.273Z"
+    },
+    {
+      "id": "3b1aacd1-1bed-4437-a348-c3fc1bbaadab",
+      "name": "Days Inn",
+      "processedAt": "2026-04-11T00:13:09.144Z"
+    },
+    {
+      "id": "8344f871-ae9f-4af7-ab2d-53457eb679fd",
+      "name": "Coquine",
+      "processedAt": "2026-04-11T00:14:18.275Z"
+    },
+    {
+      "id": "93276459-0337-4735-befa-24b6c9d86fac",
+      "name": "Clinton St. Baking Company",
+      "processedAt": "2026-04-11T00:14:38.313Z"
+    },
+    {
+      "id": "111e5bc3-2249-463e-91c3-fedc898ba1a5",
+      "name": "La-Z-Boy",
+      "processedAt": "2026-04-11T00:15:15.087Z"
+    },
+    {
+      "id": "4cd00c96-aea3-4d74-ae35-56584978de46",
+      "name": "Swig",
+      "processedAt": "2026-04-11T00:15:35.126Z"
+    },
+    {
+      "id": "8c73d6aa-2a9d-4940-bcab-4b0bbf9cc6c6",
+      "name": "Super 8 Romeoville Bolingbrook",
+      "processedAt": "2026-04-11T00:15:48.610Z"
+    },
+    {
+      "id": "edd0f149-7604-4d6b-9904-456e59af61ae",
+      "name": "Van Gogh: The Immersive Experience",
+      "processedAt": "2026-04-11T00:16:29.729Z"
+    },
+    {
+      "id": "a613af7f-e605-4478-a272-b017522af9a5",
+      "name": "Grateful Bread Baking Co",
+      "processedAt": "2026-04-11T00:16:57.109Z"
     }
   ]
 }

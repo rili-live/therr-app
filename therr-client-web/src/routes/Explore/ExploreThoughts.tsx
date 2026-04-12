@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { toIntlLocale } from '../../utilities/formatDate';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { ContentActions } from 'therr-react/redux/actions';
@@ -24,6 +23,7 @@ import {
     Tooltip,
 } from '@mantine/core';
 import { Categories } from 'therr-js-utilities/constants';
+import { toIntlLocale } from '../../utilities/formatDate';
 import UsersActions from '../../redux/actions/UsersActions';
 import useTranslation from '../../hooks/useTranslation';
 
@@ -38,7 +38,7 @@ categoryOptions.forEach((opt) => { categoryLabelMap[opt.value] = opt.label; });
 const formatTimeAgo = (dateStr: string, locale: string): string => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '';
+    if (Number.isNaN(date.getTime())) return '';
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60000);

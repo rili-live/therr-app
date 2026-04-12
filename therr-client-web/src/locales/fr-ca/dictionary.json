@@ -789,6 +789,7 @@
       "loginModal": {
         "title": "Connexion requise",
         "body": "Vous devez vous connecter pour effectuer cette action. Créez un compte ou connectez-vous pour continuer.",
+        "reviewBody": "Votre avis a été enregistré ! Connectez-vous ou créez un compte gratuit pour le publier.",
         "signIn": "Se connecter",
         "register": "Créer un compte"
       },
@@ -835,6 +836,13 @@
           "item5Title": "Promotions géolocalisées",
           "item5Body": "Ciblez les clients à distance de marche en temps réel avec des offres et des promotions."
         }
+      },
+      "checkinBanner": {
+        "title": "Gagnez des récompenses en vous enregistrant ici",
+        "body": "Téléchargez l'app Therr pour vous enregistrer chez {businessName}, gagner des ThrrCoins et partager votre visite avec vos amis.",
+        "bodyLoggedIn": "Ouvrez Therr app pour vous enregistrer chez {businessName} et gagner des récompenses en ThrrCoins.",
+        "orSignUp": "Vous n'avez pas encore l'app?",
+        "signUpLink": "Créez un compte gratuit"
       }
     },
     "viewGroup": {

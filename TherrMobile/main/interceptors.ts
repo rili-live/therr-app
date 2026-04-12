@@ -10,13 +10,22 @@ import UsersActions from './redux/actions/UsersActions';
 import { socketIO } from './socket-io-middleware';
 
 const MAX_LOGOUT_ATTEMPTS = 3;
+const MAX_REFRESH_RETRIES = 2;
+const REFRESH_RETRY_DELAY = 3000; // 3 seconds
 
 let timer: any;
 let numLoadings = 0;
 let logoutAttemptCount = 0;
 let isRefreshing = false;
+let refreshRetryCount = 0;
 let refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
 const _timeout = 350;
+
+// Returns true if the error is a definitive auth failure (expired/invalid tokens, blocked user)
+const isAuthFailure = (err: any): boolean => {
+    const status = err?.response?.status || err?.statusCode;
+    return status === 401 || status === 403;
+};
 
 const subscribeToTokenRefresh = (resolve: (token: string) => void, reject: (err: any) => void) => {
     refreshSubscribers.push({ resolve, reject });
@@ -46,11 +55,78 @@ const handleLogout = (store) => {
     }
 };
 
+const attemptRefresh = (store) => {
+    SecureStorage.getItem('therrRefreshToken')
+        .then((refreshToken) => {
+            if (!refreshToken) {
+                throw new Error('No refresh token available');
+            }
+
+            const storedUser = store.getState().user;
+            const rememberMe = storedUser?.settings?.rememberMe;
+
+            return UsersService.refreshToken(refreshToken, rememberMe);
+        })
+        .then(async (response) => {
+            const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
+
+            // Update stored tokens
+            const userDetailsStr = await SecureStorage.getItem('therrUser');
+            const userDetails = JSON.parse(userDetailsStr || '{}');
+            userDetails.idToken = newIdToken;
+            await SecureStorage.setItem('therrUser', JSON.stringify(userDetails));
+            await SecureStorage.setItem('therrRefreshToken', newRefreshToken);
+
+            // Update Redux state
+            store.dispatch({
+                type: 'UPDATE_USER',
+                data: {
+                    details: { idToken: newIdToken },
+                },
+            });
+
+            isRefreshing = false;
+            refreshRetryCount = 0;
+            onTokenRefreshed(newIdToken);
+        })
+        .catch((refreshErr) => {
+            if (isAuthFailure(refreshErr)) {
+                // Definitive auth failure (expired/invalid refresh token, blocked user)
+                isRefreshing = false;
+                refreshRetryCount = 0;
+                onRefreshFailed(refreshErr);
+                handleLogout(store);
+            } else if (refreshRetryCount < MAX_REFRESH_RETRIES) {
+                // Transient failure (network error, 5xx, timeout) — retry after delay
+                // Keep isRefreshing = true during the delay so no duplicate refresh fires
+                refreshRetryCount += 1;
+                if (__DEV__) {
+                    console.log(`[Interceptor] Refresh failed (transient), retry ${refreshRetryCount}/${MAX_REFRESH_RETRIES}`);
+                }
+                setTimeout(() => {
+                    attemptRefresh(store);
+                }, REFRESH_RETRY_DELAY);
+            } else {
+                // Exhausted retries — reject queued requests but do NOT logout
+                // The refresh token is still intact for the next app session
+                isRefreshing = false;
+                refreshRetryCount = 0;
+                onRefreshFailed(refreshErr);
+            }
+        });
+};
+
 const initInterceptors = (
     store,
     baseUrl = getConfig().baseApiGatewayRoute,
     timeout = _timeout
 ) => {
+    // Reset module-level state (safe for re-initialization)
+    isRefreshing = false;
+    refreshRetryCount = 0;
+    refreshSubscribers = [];
+    logoutAttemptCount = 0;
+
     // Global axios config
     // Use fetch adapter instead of xhr — RN 0.80's XMLHttpRequest polyfill
     // is incompatible with axios 1.x's xhr adapter
@@ -119,44 +195,7 @@ const initInterceptors = (
 
                     if (!isRefreshing) {
                         isRefreshing = true;
-
-                        SecureStorage.getItem('therrRefreshToken')
-                            .then((refreshToken) => {
-                                if (!refreshToken) {
-                                    throw new Error('No refresh token available');
-                                }
-
-                                const storedUser = store.getState().user;
-                                const rememberMe = storedUser?.settings?.rememberMe;
-
-                                return UsersService.refreshToken(refreshToken, rememberMe);
-                            })
-                            .then(async (response) => {
-                                const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
-
-                                // Update stored tokens
-                                const userDetailsStr = await SecureStorage.getItem('therrUser');
-                                const userDetails = JSON.parse(userDetailsStr || '{}');
-                                userDetails.idToken = newIdToken;
-                                await SecureStorage.setItem('therrUser', JSON.stringify(userDetails));
-                                await SecureStorage.setItem('therrRefreshToken', newRefreshToken);
-
-                                // Update Redux state
-                                store.dispatch({
-                                    type: 'UPDATE_USER',
-                                    data: {
-                                        details: { idToken: newIdToken },
-                                    },
-                                });
-
-                                isRefreshing = false;
-                                onTokenRefreshed(newIdToken);
-                            })
-                            .catch((refreshErr) => {
-                                isRefreshing = false;
-                                onRefreshFailed(refreshErr);
-                                handleLogout(store);
-                            });
+                        attemptRefresh(store);
                     }
 
                     // Queue the original request to retry after refresh
@@ -173,7 +212,11 @@ const initInterceptors = (
                     });
                 }
 
-                if (is401 || is403) {
+                // Only logout for 401 on retried requests (refresh succeeded but new token still rejected)
+                // or 403 on auth-specific endpoints (blocked user, invalid token type)
+                if (is401 && originalRequest._isRetry) {
+                    handleLogout(store);
+                } else if (is403 && originalRequest.url?.includes('/auth')) {
                     handleLogout(store);
                 }
             } else if (error) {
@@ -184,10 +227,8 @@ const initInterceptors = (
                     return Promise.resolve({ data: {}, _offlineFallback: true });
                 }
 
-                if (
-                    Number(error.statusCode) === 401 ||
-                    Number(error.statusCode) === 403
-                ) {
+                if (isAuthFailure(error)) {
+                    // Only logout for definitive auth failures without a response object
                     socketIO.disconnect();
                     handleLogout(store);
                 }
