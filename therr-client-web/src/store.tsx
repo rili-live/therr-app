@@ -101,7 +101,7 @@ const getMiddleware = (getDefaultMiddleware: any) => {
 
 const store: any = configureStore(
     {
-        reducer: persistedReducer,
+        reducer: persistedReducer as any,
         preloadedState,
         middleware: getMiddleware,
         devTools: process.env.NODE_ENV === 'development',
