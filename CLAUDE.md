@@ -261,6 +261,24 @@ Backend locale dictionaries to reference (in-app notifications use users-service
 - `therr-services/push-notifications-service/src/locales/en-us/dictionary.json` (push notifications only)
 - `therr-services/push-notifications-service/src/locales/fr-ca/dictionary.json` (push notifications only)
 
+## Offline-First Architecture
+
+The app implements an offline-first strategy so users see cached content during network outages or API deploys. The architecture is layered:
+
+1. **Network detection** — `therr-react` exposes a shared `network` Redux slice. Mobile uses `@react-native-community/netinfo`; web uses `online`/`offline` window events. Both dispatch `SET_NETWORK_STATUS`.
+2. **State persistence** — `redux-persist` caches key Redux slices (`user`, `content`, `notifications`, `userConnections`) to AsyncStorage (mobile) or localStorage (web). On app launch, persisted state is rehydrated before rendering.
+3. **Stale-while-revalidate** — Read actions return cached Redux state immediately, then fetch fresh data in the background. If the fetch fails (offline), cached data stays visible with no error shown.
+4. **Graceful axios failure** — The shared axios interceptor catches network errors on GET requests and resolves with empty data instead of throwing, preventing blank screens.
+5. **OfflineBanner** — A dismissable UI banner appears on both platforms when the network is down.
+
+Key files:
+- `therr-react/src/redux/reducers/network.ts` — Network state slice
+- `therr-react/src/utilities/cacheHelpers.ts` — `isOfflineError()` and `isCacheStale()` helpers
+- `TherrMobile/main/services/networkService.ts` — Mobile NetInfo listener
+- `therr-client-web/src/services/networkService.ts` — Web connectivity listener
+
+See `docs/OFFLINE_FIRST_PLAN.md` for the full phased roadmap (Phases 2-5 cover write queue, service worker, image caching, and local DB).
+
 ## Notes
 
 - Most npm deps are in root `package.json` (shared across packages)

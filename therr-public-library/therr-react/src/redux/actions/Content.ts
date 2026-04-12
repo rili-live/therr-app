@@ -10,6 +10,7 @@ import { ContentActionTypes } from '../../types/redux/content';
 import { ISearchAreasArgs } from '../../services/MapsService';
 import { MapsService } from '../../services';
 import { ISearchQuery } from '../../types';
+import { isOfflineError } from '../../utilities/cacheHelpers';
 
 const POST_FEED_PAGE_SIZE = 31;
 
@@ -34,7 +35,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { console.log(err); throw err; }),
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     searchActiveEventsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveEventsByIds(options, ids)
         .then((response: any) => {
@@ -109,7 +110,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { console.log(err); throw err; }),
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     searchActiveMomentsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveMomentsByIds(options, ids)
         .then((response: any) => {
@@ -178,7 +179,7 @@ const Content = {
                 data: response.data,
             });
         })
-        .catch((err) => { console.log(err); throw err; }),
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     deleteDraft: (id: string) => (dispatch: any) => MapsService.deleteMoments({ ids: [id] }).then(() => {
         dispatch({
             type: ContentActionTypes.MOMENT_DRAFT_DELETED,
@@ -204,7 +205,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { console.log(err); throw err; }),
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     searchActiveSpacesByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveSpacesByIds(options, ids)
         .then((response: any) => {
@@ -278,7 +279,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { console.log(err); throw err; }),
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     updateActiveThoughtsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {

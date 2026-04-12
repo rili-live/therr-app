@@ -2,6 +2,7 @@ import axios from 'axios';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
 import { UsersService } from 'therr-react/services';
+import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
 import SecureStorage from './utilities/SecureStorage';
 import { CURRENT_BRAND_VARIATION } from './config/brandConfig';
 import getConfig from './utilities/getConfig';
@@ -218,10 +219,19 @@ const initInterceptors = (
                 } else if (is403 && originalRequest.url?.includes('/auth')) {
                     handleLogout(store);
                 }
-            } else if (error && isAuthFailure(error)) {
-                // Only logout for definitive auth failures without a response object
-                socketIO.disconnect();
-                handleLogout(store);
+            } else if (error) {
+                // Graceful offline handling: swallow network errors on GET requests
+                // so cached Redux state remains visible without UI errors
+                if (isOfflineError(error) && originalRequest?.method?.toLowerCase() === 'get') {
+                    numLoadings = Math.max(0, numLoadings - 1);
+                    return Promise.resolve({ data: {}, _offlineFallback: true });
+                }
+
+                if (isAuthFailure(error)) {
+                    // Only logout for definitive auth failures without a response object
+                    socketIO.disconnect();
+                    handleLogout(store);
+                }
             }
 
             if (numLoadings === 0) {

@@ -2,6 +2,7 @@ import './ReactotronConfig';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 import LogRocket from '@logrocket/react-native';
 import { getAnalytics, setAnalyticsCollectionEnabled } from '@react-native-firebase/analytics';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
@@ -17,6 +18,7 @@ import getStore from './getStore';
 import initInterceptors from './interceptors';
 import { FeatureFlagProvider } from './context/FeatureFlagContext';
 import Layout from './components/Layout';
+import OfflineBanner from './components/OfflineBanner';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import spacingStyles from './styles/layouts/spacing';
@@ -24,6 +26,7 @@ import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
 import { getPaperTheme } from './styles/themes';
+import { startNetworkListener } from './services/networkService';
 import './components/ActionSheet';
 
 // Disable in development
@@ -133,7 +136,7 @@ const toastConfig = {
 
 class App extends React.Component<any, any> {
     private store;
-    // private theme = buildStyles()''
+    private persistor;
 
     constructor(props) {
         super(props);
@@ -141,8 +144,6 @@ class App extends React.Component<any, any> {
         this.state = {
             isLoading: true,
         };
-
-        // changeNavigationBarColor(therrTheme.colors.primary, false, true);
     }
 
     componentDidMount() {
@@ -178,9 +179,11 @@ class App extends React.Component<any, any> {
     }
 
     loadStorage = () => {
-        getStore().then((response) => {
-            this.store = response;
+        getStore().then(({ store, persistor }) => {
+            this.store = store;
+            this.persistor = persistor;
             initInterceptors(this.store);
+            startNetworkListener(this.store.dispatch);
 
             this.setState({
                 isLoading: false,
@@ -200,44 +203,47 @@ class App extends React.Component<any, any> {
         return (
             <SafeAreaProvider initialMetrics={initialWindowMetrics}>
                 <Provider store={this.store}>
-                    <FeatureFlagProvider>
-                        <GestureHandlerRootView style={spacingStyles.flexOne}>
-                            <ThemedPaperProvider>
-                                <SpotlightTourProvider
-                                    steps={getTourSteps({
-                                        locale: this.store.getState()?.user?.settings?.locale || 'en-us',
-                                    })}
-                                    onBackdropPress="continue" // In case the tour gets stuck
-                                    overlayColor={'gray'}
-                                    overlayOpacity={0.4}
-                                    // This configurations will apply to all steps
-                                    floatingProps={{
-                                        placement: 'bottom',
-                                    }}
-                                    onStop={() => {
-                                        return this.store?.dispatch(UsersActions.updateTour({
-                                            isTouring: false,
-                                            isNavigationTouring: false,
-                                        }));
-                                    }}
-                                >
-                                    {
-                                        ({ start, stop }) => (
-                                            <SheetProvider>
-                                                <Layout startNavigationTour={start} stopNavigationTour={stop} />
-                                            </SheetProvider>
-                                        )
-                                    }
-                                </SpotlightTourProvider>
-                            </ThemedPaperProvider>
-                        </GestureHandlerRootView>
-                        <Toast
-                            config={toastConfig}
-                            position="bottom"
-                            bottomOffset={buttonMenuHeight + 10}
-                            topOffset={HEADER_HEIGHT_MARGIN + 30}
-                        />
-                    </FeatureFlagProvider>
+                    <PersistGate loading={null} persistor={this.persistor}>
+                        <OfflineBanner />
+                        <FeatureFlagProvider>
+                            <GestureHandlerRootView style={spacingStyles.flexOne}>
+                                <ThemedPaperProvider>
+                                    <SpotlightTourProvider
+                                        steps={getTourSteps({
+                                            locale: this.store.getState()?.user?.settings?.locale || 'en-us',
+                                        })}
+                                        onBackdropPress="continue" // In case the tour gets stuck
+                                        overlayColor={'gray'}
+                                        overlayOpacity={0.4}
+                                        // This configurations will apply to all steps
+                                        floatingProps={{
+                                            placement: 'bottom',
+                                        }}
+                                        onStop={() => {
+                                            return this.store?.dispatch(UsersActions.updateTour({
+                                                isTouring: false,
+                                                isNavigationTouring: false,
+                                            }));
+                                        }}
+                                    >
+                                        {
+                                            ({ start, stop }) => (
+                                                <SheetProvider>
+                                                    <Layout startNavigationTour={start} stopNavigationTour={stop} />
+                                                </SheetProvider>
+                                            )
+                                        }
+                                    </SpotlightTourProvider>
+                                </ThemedPaperProvider>
+                            </GestureHandlerRootView>
+                            <Toast
+                                config={toastConfig}
+                                position="bottom"
+                                bottomOffset={buttonMenuHeight + 10}
+                                topOffset={HEADER_HEIGHT_MARGIN + 30}
+                            />
+                        </FeatureFlagProvider>
+                    </PersistGate>
                 </Provider>
             </SafeAreaProvider>
         );

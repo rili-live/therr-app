@@ -1,6 +1,8 @@
 import logger from 'redux-logger';
 import { configureStore } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persistStore, persistReducer } from 'redux-persist';
+import basePersistConfig from 'therr-react/redux/persistConfig';
 import SecureStorage from './utilities/SecureStorage';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
@@ -14,12 +16,26 @@ declare global {
 
 let preloadedState;
 
+const persistConfig = {
+    ...basePersistConfig,
+    storage: AsyncStorage,
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 const getMiddleware = (getDefaultMiddleware: any) => {
+    const middleware = getDefaultMiddleware({
+        serializableCheck: {
+            // redux-persist actions contain non-serializable values
+            ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        },
+    });
+
     if (__DEV__) {
-        return getDefaultMiddleware().concat(socketIOMiddleWare).concat(logger);
+        return middleware.concat(socketIOMiddleWare).concat(logger);
     }
 
-    return getDefaultMiddleware().concat(socketIOMiddleWare);
+    return middleware.concat(socketIOMiddleWare);
 };
 
 const getStore = async () => {
@@ -30,7 +46,7 @@ const getStore = async () => {
     const therrSession = await AsyncStorage.getItem('therrSession');
     const storedSocketDetails = JSON.parse(therrSession || '{}');
     const therrUser = await SecureStorage.getItem('therrUser');
-    let storedUser = JSON.parse(therrUser || '{}');
+    const storedUser = JSON.parse(therrUser || '{}');
     const therrUserSettings = await AsyncStorage.getItem('therrUserSettings');
     const storedUserSettings = JSON.parse(therrUserSettings || '{}');
     storedUserSettings.locale = storedUserSettings.locale || 'en-us';
@@ -56,13 +72,16 @@ const getStore = async () => {
 
     preloadedState = { ...reloadedState };
 
-    return configureStore({
-        // Create Store - Redux Development (Chrome Only)
-        reducer: rootReducer,
+    const store = configureStore({
+        reducer: persistedReducer,
         preloadedState,
         middleware: getMiddleware,
         devTools: !!__DEV__,
     });
+
+    const persistor = persistStore(store);
+
+    return { store, persistor };
 };
 
 export default getStore;
