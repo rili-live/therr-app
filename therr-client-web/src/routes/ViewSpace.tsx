@@ -19,6 +19,7 @@ import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
+import ListPickerPopover from './Bookmarks/ListPickerPopover';
 
 // Only lazy-load on client (Leaflet requires window/document)
 const SpacesMap = typeof window !== 'undefined'
@@ -1222,12 +1223,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                 {this.renderClaimSubtleCTA(space)}
                             </div>
                             <Group gap="xs">
-                                <Tooltip label={space.reaction?.userBookmarkCategory ? this.props.translate('pages.viewSpace.labels.removeBookmark') : this.props.translate('pages.viewSpace.labels.bookmark')}>
-                                    <ActionIcon variant="subtle" size="lg" onClick={this.handleBookmarkPress} aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'} className="space-bookmark-icon">
-                                        <InlineSvg
-                                            name={space.reaction?.userBookmarkCategory ? 'bookmark' : 'bookmark-border'}
-                                        />
-                                    </ActionIcon>
+                                <Tooltip label={this.props.translate('pages.viewSpace.labels.saveToList')}>
+                                    <ListPickerPopover spaceId={space.id}>
+                                        <ActionIcon variant="subtle" size="lg" aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'} className="space-bookmark-icon">
+                                            <InlineSvg
+                                                name={space.reaction?.userBookmarkCategory ? 'bookmark' : 'bookmark-border'}
+                                            />
+                                        </ActionIcon>
+                                    </ListPickerPopover>
                                 </Tooltip>
                                 <Tooltip label={this.state.isLinkCopied ? this.props.translate('common.linkCopied') : this.props.translate('common.share')}>
                                     <ActionIcon variant="subtle" size="lg" onClick={this.handleShare} aria-label="Share">

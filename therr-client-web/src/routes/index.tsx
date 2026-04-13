@@ -45,6 +45,7 @@ const EditSpace = lazyLoad(() => import('./EditSpace'));
 const CreateSpace = lazyLoad(() => import('./CreateSpace'));
 const ManageSpaces = lazyLoad(() => import('./ManageSpaces'));
 const Bookmarks = lazyLoad(() => import('./Bookmarks'));
+const BookmarkListDetail = lazyLoad(() => import('./Bookmarks/ListDetail'));
 const Discovered = lazyLoad(() => import('./Discovered'));
 const Explore = lazyLoad(() => import('./Explore'));
 const ExploreMoments = lazyLoad(() => import('./Explore/ExploreMoments'));
@@ -277,6 +278,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/bookmarks',
         element: <AuthRoute
             component={Bookmarks}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/bookmarks/lists/:listId',
+        element: <AuthRoute
+            component={BookmarkListDetail}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
