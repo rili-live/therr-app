@@ -138,31 +138,74 @@ jobs:
       - run:
           name: Run Integration Tests on Microservices
           command: ./_bin/cicd/test-microservices-integration.sh
+      - run:
+          name: Run Campaign E2E Suite (full, cross-service)
+          # Uses therr-ci-network + postgres-ci + redis-ci set up by the
+          # integration tests above. Runs the Treasure Hunt launch flows
+          # against the built api-gateway image.
+          command: ./_bin/cicd/test-campaign-e2e.sh full
       - add_ssh_keys:
           fingerprints:
             - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
-  test-e2e-staging:
+  test-e2e-critical-path:
     docker:
-      - image: google/cloud-sdk
+      - image: cimg/go:1.24.4
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
+      GIT_SHA: << pipeline.git.revision >>
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - attach_workspace:
+          at: ~/
+      - load_deps_image:
+          for: e2e-critical
+      - run:
+          name: Login to DockerHub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
+      - run:
+          name: Build API Gateway Image for E2E
+          command: ./_bin/cicd/build-changed-services.sh
+      - run:
+          name: Setup Test DB Infrastructure
+          command: ./_bin/cicd/setup-test-db.sh
+      - run:
+          name: Run Critical-Path Campaign E2E (referral + QR + incentive)
+          # Fast subset on every PR to catch the 3 highest-stakes regressions
+          # (referral payout, QR check-in, Space Incentive redemption).
+          command: ./_bin/cicd/test-campaign-e2e.sh critical
+      - run:
+          name: Teardown Test DB Infrastructure
+          command: ./_bin/cicd/teardown-test-db.sh
+          when: always
+  eas_build_android_preview:
+    docker:
+      - image: cimg/node:24.12.0
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
     steps:
-      - attach_workspace:
-            at: ~/
+      - checkout
       - run:
-          name: Apply Stage w/ Kubectl
-          # This should pull the latest images (verify and determine if necessary to set image with commit SHA)
-          # command: kubectl apply -f k8s/test && kubectl wait -f k8s/test --for=condition=ContainersReady --timeout=1s
-          command: echo "Hello, Apply Kubectl"
+          name: Install EAS CLI
+          command: npm install -g eas-cli
       - run:
-          name: Run Integration Tests
-          command: echo "Hello, Integration Tests"
+          name: Build Android Preview APK via EAS (free tier)
+          # Publishes an internal-distribution APK for partner testers. Uses
+          # EAS Build free tier (30 builds/mo). EXPO_TOKEN is configured in
+          # the CircleCI context.
+          command: |
+            cd TherrMobile
+            eas build --platform android --profile preview --non-interactive
   deploy:
     docker:
       - image: cimg/gcp:2025.01
@@ -240,10 +283,22 @@ workflows:
             branches:
               only:
                 - stage
-      - test-e2e-staging:
+      - test-e2e-critical-path:
+          # Runs the campaign-critical subset on every PR (not on stage/main
+          # where the full suite runs as part of docker_build_test_publish_images).
+          requires:
+          - docker_build_base_image
+          filters:
+            branches:
+              ignore:
+                - general
+                - stage
+                - main
+      - eas_build_android_preview:
+          # Produce an installable Android APK for campaign partner testers
+          # whenever we publish new stage images.
           requires:
           - docker_build_test_publish_images
-          - docker_build_base_image
           filters:
             branches:
               only:
