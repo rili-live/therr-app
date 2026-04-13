@@ -266,8 +266,10 @@ const map = produce((draft: IMapState, action: any) => {
             break;
         case MapActionTypes.GET_CITY_PULSE:
             if (action.data?.city?.slug) {
+                // Guard: older persisted state (mobile pre-rollout) may rehydrate
+                // without this key. Fall back to {} so the spread is well-defined.
                 draft.cityPulse = {
-                    ...draft.cityPulse,
+                    ...(draft.cityPulse || {}),
                     [action.data.city.slug]: action.data,
                 };
             }

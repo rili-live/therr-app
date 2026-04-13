@@ -80,8 +80,10 @@ export const fetchCitySummary = async (
         return {
             title: data.title,
             extract: data.extract || null,
-            // Prefer originalimage (higher res) then thumbnail. License check happens elsewhere.
-            thumbnailUrl: data.originalimage?.source || data.thumbnail?.source || null,
+            // Prefer `thumbnail` (Wikipedia's ~320px SSR-friendly variant) over
+            // `originalimage` (can be multi-MB full resolution). License check
+            // happens elsewhere before this URL is surfaced in the UI.
+            thumbnailUrl: data.thumbnail?.source || data.originalimage?.source || null,
             pageUrl: data.content_urls?.desktop?.page || `https://${subdomain}.wikipedia.org/wiki/${encodeURIComponent(title)}`,
         };
     } catch (err) {

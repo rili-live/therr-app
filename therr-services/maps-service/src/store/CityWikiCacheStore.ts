@@ -80,6 +80,7 @@ class CityWikiCacheStore {
         });
     }
 
+    // eslint-disable-next-line class-methods-use-this
     isFresh(row: ICityWikiCacheRow | null): boolean {
         if (!row) return false;
         if (!row.expiresAt) return true;

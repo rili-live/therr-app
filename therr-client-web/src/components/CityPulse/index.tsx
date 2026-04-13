@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import {
     Stack, Group, Title, Text, Badge, Anchor, Paper, Image, SimpleGrid, Avatar, Button, Divider,
 } from '@mantine/core';
+import { Categories } from 'therr-js-utilities/constants';
 import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import getUserContentUri from '../../utilities/getUserContentUri';
 
@@ -19,6 +20,21 @@ const formatCategoryLabel = (category: string): string => {
 const paragraphsFromText = (text: string | null | undefined, limit = 4): string[] => {
     if (!text) return [];
     return text.split(/\n\n+/).map((p) => p.trim()).filter(Boolean).slice(0, limit);
+};
+
+// Locale-stable event date formatter. Avoids `toLocaleString()` which produces
+// different output on Node (SSR) vs the browser and triggers React hydration
+// warnings. Format: "Apr 13, 2026 · 7:30 PM".
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const formatEventDate = (iso: string | null | undefined): string => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    const hour24 = d.getUTCHours();
+    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+    const ampm = hour24 < 12 ? 'AM' : 'PM';
+    return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()} · ${hour12}:${minutes} ${ampm}`;
 };
 
 export interface ICityPulseCity {
@@ -60,7 +76,6 @@ export interface ICityPulseData {
 interface ISectionProps {
     pulse: ICityPulseData;
     translate: (key: string, params?: any) => string;
-    localePrefix: string;
 }
 
 // ──────────────────────────────────────────────────────────────────
@@ -149,7 +164,11 @@ export const CityGettingAround: React.FC<ISectionProps> = ({ pulse, translate })
 // ──────────────────────────────────────────────────────────────────
 // Therr-sourced sections
 
-export const CityTrendingSpaces: React.FC<ISectionProps> = ({ pulse, translate, localePrefix }) => {
+export const CityTrendingSpaces: React.FC<ISectionProps> = ({ pulse, translate }) => {
+    // Link `to` values are route-relative; React Router's <StaticRouter> /
+    // <BrowserRouter> basename (set to the locale prefix in Layout) prepends
+    // the locale automatically. Don't prepend localePrefix here — that would
+    // double-prefix client-side navigation.
     const spaces = pulse.therr.trendingSpaces || [];
     if (spaces.length < 6) return null;
     return (
@@ -171,7 +190,7 @@ export const CityTrendingSpaces: React.FC<ISectionProps> = ({ pulse, translate, 
                                     </Avatar>
                                 )}
                                 <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-                                    <Anchor component={Link} to={`${localePrefix}/spaces/${space.id}/${slug}`} fw={600}>
+                                    <Anchor component={Link} to={`/spaces/${space.id}/${slug}`} fw={600}>
                                         {space.notificationMsg}
                                     </Anchor>
                                     {space.addressReadable && (
@@ -190,7 +209,7 @@ export const CityTrendingSpaces: React.FC<ISectionProps> = ({ pulse, translate, 
     );
 };
 
-export const CityUpcomingEvents: React.FC<ISectionProps> = ({ pulse, translate, localePrefix }) => {
+export const CityUpcomingEvents: React.FC<ISectionProps> = ({ pulse, translate }) => {
     const events = pulse.therr.upcomingEvents || [];
     if (events.length < 1) return null;
     return (
@@ -198,14 +217,14 @@ export const CityUpcomingEvents: React.FC<ISectionProps> = ({ pulse, translate, 
             <Title order={2}>{translate('pages.cityPulse.upcomingEventsHeading', { city: pulse.city.name })}</Title>
             <Stack gap="xs">
                 {events.slice(0, 8).map((event: any) => {
-                    const startDate = event.scheduleStartAt ? new Date(event.scheduleStartAt) : null;
+                    const dateLabel = formatEventDate(event.scheduleStartAt);
                     return (
                         <Paper key={event.id} withBorder p="md" radius="md">
-                            <Anchor component={Link} to={`${localePrefix}/events/${event.id}`} fw={600}>
+                            <Anchor component={Link} to={`/events/${event.id}`} fw={600}>
                                 {event.notificationMsg}
                             </Anchor>
-                            {startDate && (
-                                <Text size="sm" c="dimmed">{startDate.toLocaleString()}</Text>
+                            {dateLabel && (
+                                <Text size="sm" c="dimmed">{dateLabel}</Text>
                             )}
                         </Paper>
                     );
@@ -215,7 +234,7 @@ export const CityUpcomingEvents: React.FC<ISectionProps> = ({ pulse, translate, 
     );
 };
 
-export const CityMomentsWall: React.FC<ISectionProps> = ({ pulse, translate, localePrefix }) => {
+export const CityMomentsWall: React.FC<ISectionProps> = ({ pulse, translate }) => {
     const moments = pulse.therr.recentMoments || [];
     if (moments.length < 9) return null;
     return (
@@ -226,7 +245,7 @@ export const CityMomentsWall: React.FC<ISectionProps> = ({ pulse, translate, loc
                     const mediaPath = moment.medias?.[0]?.path;
                     const img = mediaPath ? getUserContentUri(moment.medias[0], 200, 200, true) : null;
                     return (
-                        <Anchor key={moment.id} component={Link} to={`${localePrefix}/moments/${moment.id}`}>
+                        <Anchor key={moment.id} component={Link} to={`/moments/${moment.id}`}>
                             {img ? (
                                 <Image src={img} alt={moment.notificationMsg || 'moment'} h={120} fit="cover" radius="sm" />
                             ) : (
@@ -242,7 +261,7 @@ export const CityMomentsWall: React.FC<ISectionProps> = ({ pulse, translate, loc
     );
 };
 
-export const CityGroups: React.FC<ISectionProps> = ({ pulse, translate, localePrefix }) => {
+export const CityGroups: React.FC<ISectionProps> = ({ pulse, translate }) => {
     const groups = pulse.therr.topGroups || [];
     if (groups.length < 1) return null;
     return (
@@ -251,7 +270,7 @@ export const CityGroups: React.FC<ISectionProps> = ({ pulse, translate, localePr
             <Stack gap="xs">
                 {groups.slice(0, 6).map((group: any) => (
                     <Paper key={group.id} withBorder p="sm" radius="sm">
-                        <Anchor component={Link} to={`${localePrefix}/groups/${group.id}`}>{group.title}</Anchor>
+                        <Anchor component={Link} to={`/groups/${group.id}`}>{group.title}</Anchor>
                     </Paper>
                 ))}
             </Stack>
@@ -259,30 +278,34 @@ export const CityGroups: React.FC<ISectionProps> = ({ pulse, translate, localePr
     );
 };
 
-export const CityCategoryTiles: React.FC<ISectionProps> = ({ pulse, translate, localePrefix }) => {
-    const cats = pulse.therr.categoriesWithCounts || [];
-    if (!cats.length) return null;
+export const CityCategoryTiles: React.FC<ISectionProps> = ({ pulse, translate }) => {
+    // Map backend category keys (e.g. "categories.restaurant/food") to URL slugs
+    // ("restaurants") via the canonical CategorySlugMap. Skip categories without
+    // a URL slug mapping so users never land on a 404 tile.
+    const tiles = (pulse.therr.categoriesWithCounts || [])
+        .map((cat) => ({
+            categoryKey: cat.categorySlug,
+            count: cat.count,
+            urlSlug: Categories.CategorySlugMap[cat.categorySlug],
+        }))
+        .filter((t) => !!t.urlSlug);
+
+    if (!tiles.length) return null;
     return (
         <Stack gap="sm">
             <Title order={2}>{translate('pages.cityPulse.browseByCategoryHeading', { city: pulse.city.name })}</Title>
             <Group gap="xs" wrap="wrap">
-                {cats.map((cat) => {
-                    // Category slug mapping in reverse — backend stores categoryKey (e.g. categories.restaurant/food);
-                    // web URL uses /locations/city/:citySlug/:categorySlug. We can only produce a tile when we can
-                    // derive the category URL slug. Fallback: use the raw slug portion after the last `/`.
-                    const urlSlug = cat.categorySlug.replace('categories.', '').replace(/\//g, '-');
-                    return (
-                        <Button
-                            key={cat.categorySlug}
-                            component={Link}
-                            to={`${localePrefix}/locations/city/${pulse.city.slug}/${urlSlug}`}
-                            variant="light"
-                            size="sm"
-                        >
-                            {formatCategoryLabel(cat.categorySlug)} ({cat.count})
-                        </Button>
-                    );
-                })}
+                {tiles.map((tile) => (
+                    <Button
+                        key={tile.categoryKey}
+                        component={Link}
+                        to={`/locations/city/${pulse.city.slug}/${tile.urlSlug}`}
+                        variant="light"
+                        size="sm"
+                    >
+                        {formatCategoryLabel(tile.categoryKey)} ({tile.count})
+                    </Button>
+                ))}
             </Group>
         </Stack>
     );
@@ -291,7 +314,7 @@ export const CityCategoryTiles: React.FC<ISectionProps> = ({ pulse, translate, l
 // ──────────────────────────────────────────────────────────────────
 // Computed/static sections
 
-export const CityNearbyCities: React.FC<ISectionProps> = ({ pulse, translate, localePrefix }) => {
+export const CityNearbyCities: React.FC<ISectionProps> = ({ pulse, translate }) => {
     const nearby = pulse.nearbyCities || [];
     if (!nearby.length) return null;
     return (
@@ -302,7 +325,7 @@ export const CityNearbyCities: React.FC<ISectionProps> = ({ pulse, translate, lo
                     <Anchor
                         key={c.slug}
                         component={Link}
-                        to={`${localePrefix}/locations/city/${c.slug}`}
+                        to={`/locations/city/${c.slug}`}
                     >
                         {c.name}, {c.stateAbbr}
                     </Anchor>

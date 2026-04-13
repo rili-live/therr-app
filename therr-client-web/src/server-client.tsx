@@ -1596,12 +1596,15 @@ const renderCityPulseView = (req, res, config, {
     // Meta description: lead with Therr counts when we have depth, else Wiki lead.
     let description: string;
     if (trendingCount >= 6) {
-        description = `${trendingCount} local spots${eventsCount ? `, ${eventsCount} events this week` : ''} in ${cityDisplayName || 'this city'}. Browse neighborhoods, nearby places, and things to do.`;
+        const eventsFragment = eventsCount ? `, ${eventsCount} events this week` : '';
+        // eslint-disable-next-line max-len
+        description = `${trendingCount} local spots${eventsFragment} in ${cityDisplayName || 'this city'}. Browse neighborhoods, nearby places, and things to do.`;
     } else if (wikiSummary) {
         const firstSentence = wikiSummary.split(/(?<=[.!?])\s/)[0] || wikiSummary;
         description = firstSentence.substring(0, 300);
     } else {
-        description = config.head.description || `Things to do, places to go, and local highlights in ${cityDisplayName || 'this city'}.`;
+        description = config.head.description
+            || `Things to do, places to go, and local highlights in ${cityDisplayName || 'this city'}.`;
     }
 
     const lp = localeVars.localePrefix;
@@ -1625,8 +1628,12 @@ const renderCityPulseView = (req, res, config, {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations' },
+            {
+                '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+            },
+            {
+                '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+            },
             ...(cityDisplayName ? [{
                 '@type': 'ListItem',
                 position: 3,

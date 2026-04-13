@@ -42,10 +42,6 @@ interface IViewCityPulseProps extends IViewCityPulseRouterProps, IStoreProps {
     translate: (key: string, params?: any) => string;
 }
 
-interface IViewCityPulseState {
-    isLoading: boolean;
-}
-
 const mapStateToProps = (state: any) => ({
     map: state.map,
 });
@@ -54,14 +50,11 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getCityPulse: MapActions.getCityPulse,
 }, dispatch);
 
-export class ViewCityPulseComponent extends React.Component<IViewCityPulseProps, IViewCityPulseState> {
-    constructor(props: IViewCityPulseProps) {
-        super(props);
-        this.state = { isLoading: false };
-    }
-
+export class ViewCityPulseComponent extends React.Component<IViewCityPulseProps> {
     componentDidMount() {
-        const { routeParams, map, locale, getCityPulse, navigation } = this.props;
+        const {
+            routeParams, map, locale, getCityPulse, navigation,
+        } = this.props;
         const city = Cities.CitySlugMap[routeParams.citySlug];
 
         if (!city) {
@@ -69,11 +62,9 @@ export class ViewCityPulseComponent extends React.Component<IViewCityPulseProps,
             return;
         }
 
-        // Use cached state from SSR preload if present; otherwise fetch.
+        // Use SSR preload if present; otherwise fetch client-side.
         if (!map?.cityPulse?.[routeParams.citySlug]) {
-            this.setState({ isLoading: true });
-            getCityPulse(routeParams.citySlug, locale)
-                .finally(() => this.setState({ isLoading: false }));
+            getCityPulse(routeParams.citySlug, locale);
         }
     }
 
@@ -82,6 +73,7 @@ export class ViewCityPulseComponent extends React.Component<IViewCityPulseProps,
      * push Therr above the fold; otherwise lead with the Wiki baseline so the
      * page still feels substantive for thin-data cities.
      */
+    // eslint-disable-next-line class-methods-use-this
     getSectionOrder(pulse: ICityPulseData): 'therrFirst' | 'wikiFirst' {
         const therrSignals = [
             (pulse.therr.trendingSpaces?.length || 0) >= 6,
@@ -94,14 +86,11 @@ export class ViewCityPulseComponent extends React.Component<IViewCityPulseProps,
     }
 
     public render(): JSX.Element | null {
-        const { map, routeParams, locale, translate } = this.props;
+        const { map, routeParams, translate } = this.props;
         const city = Cities.CitySlugMap[routeParams.citySlug];
         if (!city) return null;
 
         const pulse: ICityPulseData | undefined = map?.cityPulse?.[routeParams.citySlug];
-
-        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
-        const localePrefix = localePrefixMap[locale] || '';
 
         // Fallback "shell" pulse so the page renders while loading
         const effective: ICityPulseData = pulse || {
@@ -130,7 +119,7 @@ export class ViewCityPulseComponent extends React.Component<IViewCityPulseProps,
             nearbyCities: [],
         };
 
-        const sectionProps = { pulse: effective, translate, localePrefix };
+        const sectionProps = { pulse: effective, translate };
         const order = this.getSectionOrder(effective);
 
         const therrBlock = (

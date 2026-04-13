@@ -31,36 +31,39 @@ export const resolveCityWikipedia = async (
         city.name,
     ];
 
-    // Try the requested locale first.
-    for (const title of candidates) {
-        // eslint-disable-next-line no-await-in-loop
-        const summary = await fetchCitySummary(title, locale);
-        if (summary?.extract && summary.extract.length > 40) {
-            return {
-                title: summary.title,
-                summary: summary.extract,
-                thumbnailUrl: summary.thumbnailUrl,
-                pageUrl: summary.pageUrl || `https://en.wikipedia.org/wiki/${encodeURIComponent(summary.title)}`,
-                localeFallback: false,
-            };
-        }
-    }
-
-    // Fall back to en-us for non-English locales.
-    if (locale !== 'en-us') {
-        for (const title of candidates) {
-            // eslint-disable-next-line no-await-in-loop
-            const summary = await fetchCitySummary(title, 'en-us');
+    // Try candidates sequentially: stop at first successful extract. We want
+    // the short-circuit on success, so this intentionally does not use
+    // Promise.all / array iteration.
+    const tryCandidates = async (
+        tryLocale: SupportedLocale,
+        localeFallback: boolean,
+    ): Promise<IResolvedCity | null> => candidates.reduce<Promise<IResolvedCity | null>>(
+        async (accPromise, title) => {
+            const acc = await accPromise;
+            if (acc) return acc;
+            const summary = await fetchCitySummary(title, tryLocale);
             if (summary?.extract && summary.extract.length > 40) {
                 return {
                     title: summary.title,
                     summary: summary.extract,
                     thumbnailUrl: summary.thumbnailUrl,
-                    pageUrl: summary.pageUrl || `https://en.wikipedia.org/wiki/${encodeURIComponent(summary.title)}`,
-                    localeFallback: true,
+                    pageUrl: summary.pageUrl
+                        || `https://en.wikipedia.org/wiki/${encodeURIComponent(summary.title)}`,
+                    localeFallback,
                 };
             }
-        }
+            return null;
+        },
+        Promise.resolve(null),
+    );
+
+    const primary = await tryCandidates(locale, false);
+    if (primary) return primary;
+
+    // Fall back to en-us for non-English locales.
+    if (locale !== 'en-us') {
+        const fallback = await tryCandidates('en-us', true);
+        if (fallback) return fallback;
     }
 
     return null;

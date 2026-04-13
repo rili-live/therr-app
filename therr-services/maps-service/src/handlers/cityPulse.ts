@@ -17,8 +17,12 @@ const TRENDING_SPACES_LIMIT = 12;
 const UPCOMING_EVENTS_LIMIT = 12;
 const RECENT_MOMENTS_LIMIT = 18;
 
-const toLocale = (raw: string | undefined): SupportedLocale => {
-    if (raw === 'es' || raw === 'fr-ca') return raw;
+// Must match api-gateway normalizePulseLocale(): exact-match against the
+// supported set, else fall back to "en-us". Handles arrays that Express may
+// produce when a query param is repeated.
+const toLocale = (raw: unknown): SupportedLocale => {
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    if (value === 'es' || value === 'fr-ca' || value === 'en-us') return value;
     return 'en-us';
 };
 
@@ -48,7 +52,7 @@ const getCityPulse: RequestHandler = async (req: any, res: any) => {
     }
 
     const { locale: headerLocale } = parseHeaders(req.headers);
-    const locale = toLocale((req.query?.locale as string) || headerLocale);
+    const locale = toLocale(req.query?.locale || headerLocale);
 
     // Build an auth-optional "headers" object for internal calls. We set
     // isRequestAuthorized=false so stores return the public columns only.

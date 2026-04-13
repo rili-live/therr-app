@@ -10,7 +10,9 @@ export interface IMapState {
     prevLatitudeDelta?: number;
     activities: { [id: string]: any };
     activityGeneration: { [id: string]: any };
-    cityPulse: { [slug: string]: any };
+    // Optional for backwards-compat: the deployed mobile app built before this
+    // field was added may rehydrate persisted state without it.
+    cityPulse?: { [slug: string]: any };
     events: { [id: string]: any };
     moments: { [id: string]: any };
     spaces: { [id: string]: any };
