@@ -348,6 +348,51 @@ mapsServiceRouter.post('/spaces/request-approve/:spaceId', validate, authorize(
     method: 'post',
 }));
 
+// City Pulse — editorial + Therr-data aggregate used by the /locations/city/:slug SSR page.
+// Public endpoint (no auth required); cached in Redis for 15 minutes per (slug, locale).
+//
+// Both the gateway and the maps-service handler normalize locale identically
+// (exact-match against the supported set, else fall back to "en-us"), so the
+// key we read from matches `response.locale` we write under.
+const SUPPORTED_PULSE_LOCALES = ['en-us', 'es', 'fr-ca'];
+const normalizePulseLocale = (raw: unknown): string => {
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    const str = typeof value === 'string' ? value : '';
+    return SUPPORTED_PULSE_LOCALES.includes(str) ? str : 'en-us';
+};
+
+mapsServiceRouter.get('/cities/:slug/pulse', authenticateOptional, async (req: any, res, next) => {
+    const { slug } = req.params;
+    const locale = normalizePulseLocale(req.query?.locale || req.headers['x-localecode']);
+
+    const cached = await CacheStore.mapsService.getCityPulse(slug, locale);
+
+    if (cached) {
+        return res.status(200).send({ ...cached, cached: true });
+    }
+
+    return next();
+}, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}, (response) => {
+    // maps-service's response body carries a normalized `locale`. Cache under it.
+    // Use a shorter TTL when wiki content is still empty (cold cache, background
+    // refresh in flight) so users get the editorial layer within minutes, not
+    // at the end of a full 15-minute window.
+    if (response?.city?.slug && response?.locale) {
+        const hasWiki = !!(response.wiki?.summary);
+        const ttl = hasWiki ? 900 : 120; // 15 min normal, 2 min when wiki is still loading
+        return CacheStore.mapsService.setCityPulse(
+            response.city.slug,
+            response.locale,
+            response,
+            ttl,
+        );
+    }
+    return undefined;
+}));
+
 // External APIs - Nominatim geocoding proxy with rate limiting and caching
 mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
     const { q } = req.query;

@@ -519,6 +519,21 @@ const Maps = {
             console.log(error);
             return { results: [] };
         }),
+
+    // City Pulse
+    getCityPulse: (slug: string, locale?: string) => (dispatch: any) => MapsService
+        .getCityPulse(slug, locale)
+        .then((response: any) => {
+            dispatch({
+                type: MapActionTypes.GET_CITY_PULSE,
+                data: response.data,
+            });
+            return response.data;
+        })
+        .catch((error: any) => {
+            console.log(error);
+            return null;
+        }),
 };
 
 export default Maps;
