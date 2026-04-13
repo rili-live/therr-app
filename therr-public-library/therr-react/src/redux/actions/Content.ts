@@ -30,6 +30,7 @@ const Content = {
     searchActiveEvents: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveEvents(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_EVENTS,
                 data: response?.data,
@@ -39,6 +40,7 @@ const Content = {
     searchActiveEventsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveEventsByIds(options, ids)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_EVENTS_BY_IDS,
                 data: response?.data,
@@ -48,6 +50,7 @@ const Content = {
     updateActiveEventsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveEvents(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_EVENTS,
                 data: response?.data,
@@ -87,6 +90,7 @@ const Content = {
     searchBookmarkedEvents: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedEvents(options, 100)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_BOOKMARKED_EVENTS,
                 data: response?.data,
@@ -105,6 +109,7 @@ const Content = {
     ) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_MOMENTS,
                 data: response?.data,
@@ -114,6 +119,7 @@ const Content = {
     searchActiveMomentsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveMomentsByIds(options, ids)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS,
                 data: response?.data,
@@ -127,6 +133,7 @@ const Content = {
     updateActiveMomentsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_MOMENTS,
                 data: response?.data,
@@ -166,6 +173,7 @@ const Content = {
     searchBookmarkedMoments: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedMoments(options, 100)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS,
                 data: response?.data,
@@ -174,6 +182,7 @@ const Content = {
         .catch((err) => { console.log(err); throw err; }),
     searchMyDrafts: (query: ISearchQuery, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .searchMyMoments(query, data).then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_MY_DRAFTS,
                 data: response.data,
@@ -200,6 +209,7 @@ const Content = {
     searchActiveSpaces: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveSpaces(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_SPACES,
                 data: response?.data,
@@ -209,6 +219,7 @@ const Content = {
     searchActiveSpacesByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveSpacesByIds(options, ids)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS,
                 data: response?.data,
@@ -218,6 +229,7 @@ const Content = {
     updateActiveSpacesStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveSpaces(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_SPACES,
                 data: response?.data,
@@ -257,6 +269,7 @@ const Content = {
     searchBookmarkedSpaces: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedSpaces(options, 100)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_BOOKMARKED_SPACES,
                 data: response?.data,
@@ -274,6 +287,7 @@ const Content = {
     searchActiveThoughts: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_THOUGHTS,
                 data: response?.data,
@@ -283,6 +297,7 @@ const Content = {
     updateActiveThoughtsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_THOUGHTS,
                 data: response?.data,
@@ -325,6 +340,7 @@ const Content = {
     searchBookmarkedThoughts: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedThoughts(options, 100)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_BOOKMARKED_THOUGHTS,
                 data: response?.data,

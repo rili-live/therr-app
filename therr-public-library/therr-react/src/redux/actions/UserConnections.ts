@@ -5,7 +5,8 @@ import { UserActionTypes } from '../../types/redux/user';
 import { isOfflineError } from '../../utilities/cacheHelpers';
 
 const UserConnections = {
-    search: (query: any, userId: number) => (dispatch: any) => UserConnectionsService.search(query).then((response) => {
+    search: (query: any, userId: number) => (dispatch: any) => UserConnectionsService.search(query).then((response: any) => {
+        if (response?.isOfflineFallback) return;
         dispatch({
             type: SocketClientActionTypes.LOAD_ACTIVE_CONNECTIONS,
             data: {

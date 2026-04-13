@@ -169,7 +169,8 @@ class UsersActions {
             return response;
         });
 
-    get = (userId: string) => (dispatch: any) => UsersService.get(userId).then((response) => {
+    get = (userId: string) => (dispatch: any) => UsersService.get(userId).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: UserActionTypes.GET_USER,
             data: response?.data,
@@ -178,7 +179,8 @@ class UsersActions {
         return response?.data;
     });
 
-    search = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.search(args).then((response) => {
+    search = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.search(args).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         if (args.query) {
             dispatch({
                 type: UserActionTypes.GET_USERS_REFETCH,
@@ -194,7 +196,8 @@ class UsersActions {
         return response?.data;
     });
 
-    searchPairings = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.searchPairings(args).then((response) => {
+    searchPairings = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.searchPairings(args).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: UserActionTypes.GET_USERS_PAIRINGS,
             data: response?.data,
@@ -306,7 +309,8 @@ class UsersActions {
     };
 
     getMe = () => async (dispatch: any) => {
-        await UsersService.getMe().then(async (response) => {
+        await UsersService.getMe().then(async (response: any) => {
+            if (response?.isOfflineFallback) return;
             const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || null);
             const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
             const localUserSettings = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || null);
@@ -594,7 +598,8 @@ class UsersActions {
             return response?.data;
         });
 
-    getMyAchievements = () => (dispatch: any) => UsersService.getMyAchievements().then((response) => {
+    getMyAchievements = () => (dispatch: any) => UsersService.getMyAchievements().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         const mapped = {};
         response.data?.forEach((ach) => { mapped[ach.id] = ach; });
         dispatch({
@@ -619,6 +624,7 @@ class UsersActions {
         withGroups?: boolean;
     } = {}) => (dispatch: any) => UsersService.getUserGroups(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: UserActionTypes.GET_USER_GROUPS,
                 data: response.data,
@@ -651,6 +657,7 @@ class UsersActions {
 
     // User Interests
     getUserInterests = () => (dispatch: any) => UsersService.getUserInterests().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: UserActionTypes.GET_USER_INTERESTS,
             data: response.data,
@@ -686,6 +693,7 @@ class UsersActions {
 
     getThoughtDetails = (id: number, data: any) => (dispatch: any) => UsersService.getThoughtDetails(id, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: UserActionTypes.GET_THOUGHT_DETAILS,
                 data: response.data,
@@ -696,6 +704,7 @@ class UsersActions {
 
     searchThoughts = (query: any, data: ISearchThoughtsArgs = {}) => (dispatch: any) => UsersService
         .searchThoughts(query, data).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
                     type: UserActionTypes.GET_THOUGHTS,

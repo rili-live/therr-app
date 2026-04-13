@@ -190,7 +190,7 @@ const initInterceptors = (
             const failedRequest = error.config;
             if (isOfflineError(error) && failedRequest?.method?.toLowerCase() === 'get') {
                 numLoadings = Math.max(0, numLoadings - 1);
-                return Promise.resolve({ data: {}, _offlineFallback: true });
+                return Promise.resolve({ data: {}, isOfflineFallback: true });
             }
 
             if (

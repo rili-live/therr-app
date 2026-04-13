@@ -5,6 +5,7 @@ import { isOfflineError } from '../../utilities/cacheHelpers';
 
 const Notification = {
     search: (query: any) => (dispatch: any) => NotificationsService.search(query).then((response: any) => {
+        if (response?.isOfflineFallback) return;
         dispatch({
             type: NotificationActionTypes.GET_NOTIFICATIONS,
             data: response.data.results,

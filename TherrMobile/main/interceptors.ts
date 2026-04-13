@@ -224,7 +224,7 @@ const initInterceptors = (
                 // so cached Redux state remains visible without UI errors
                 if (isOfflineError(error) && originalRequest?.method?.toLowerCase() === 'get') {
                     numLoadings = Math.max(0, numLoadings - 1);
-                    return Promise.resolve({ data: {}, _offlineFallback: true });
+                    return Promise.resolve({ data: {}, isOfflineFallback: true });
                 }
 
                 if (isAuthFailure(error)) {
