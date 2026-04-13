@@ -68,14 +68,14 @@ New-Arch-compatible release exists but requires a major upgrade with breaking AP
 
 | Package | Installed | Target | Effort |
 |---|---|---|---|
-| `react-native-webview` | ^11.26.1 | ^13.13+ | **L** — two majors of API drift; audit every webview route (OAuth, help, embeds, YouTube) |
-| `react-native-vector-icons` | ^9.2.0 | ^10.2+ | **S** — per-family import paths |
-| `react-native-permissions` | ^3.10.1 | ^4.1+ | **S-M** |
-| `react-native-linear-gradient` | ^2.8.3 | ^3.0+ | **S** |
-| `react-native-haptic-feedback` | ^1.14.0 | ^2.3+ | **S** |
-| `react-native-date-picker` | ^4.4.2 | ^5.0+ | **S-M** |
-| `react-native-geolocation-service` | ^5.3.0 | Evaluate swap to `@react-native-community/geolocation` ^3.x | **M** |
-| `react-native-image-crop-picker` | ^0.41.6 | ^0.42+ (partial; iOS stronger than Android) | **M** — smoke-test avatar + moment upload |
+| `react-native-webview` | ^11.26.1 | ^13.16+ | **L** — two majors of API drift; audit every webview route (OAuth, help, embeds, YouTube) |
+| `react-native-vector-icons` | ^9.2.0 | ^10.3 | **S** — subpath imports still work (deprecated); zero source edits |
+| `react-native-permissions` | ^3.10.1 | ^5.5 (v4 line has been superseded on npm) | **M** — permission constants reorganized; two majors of API drift |
+| `react-native-linear-gradient` | ^2.8.3 | _stay on 2.8.3_ — latest stable; 3.0 is beta only | **n/a** |
+| `react-native-haptic-feedback` | ^1.14.0 | ^2.2 (v3 is maintainer-labeled "pre-release battle testing") | **S** — default import + `.trigger()` unchanged |
+| `react-native-date-picker` | ^4.4.2 | ^5.0 | **S-M** |
+| `react-native-geolocation-service` | ^5.3.0 | ^5.3.1 (patch bump) | **XS** — deeper evaluate-swap task deferred |
+| `react-native-image-crop-picker` | ^0.41.6 | ^0.51 (partial New Arch; iOS stronger than Android) | **M** — smoke-test avatar + moment upload |
 
 ### Tier C — Already compatible (may need minor bumps)
 
@@ -113,18 +113,30 @@ Everything else in Tier B is **Small-to-Medium** effort — one PR per upgrade w
 
 ### Phase 1 — Dependency hygiene: Tier B upgrades (1–2 weeks)
 
-Upgrade Tier B libraries one at a time, **while still on legacy arch**, so regressions are attributable. Each upgrade = its own PR off `general`:
+Upgrade Tier B libraries one at a time, **while still on legacy arch**, so regressions are attributable. Each upgrade = its own commit off `general`:
 
-1. `react-native-vector-icons` 9 → 10
-2. `react-native-linear-gradient` 2 → 3
-3. `react-native-haptic-feedback` 1 → 2
-4. `react-native-date-picker` 4 → 5
-5. `react-native-permissions` 3 → 4
-6. `react-native-image-crop-picker` 0.41 → latest 0.42+
-7. `react-native-webview` 11 → 13 (**largest single PR**)
-8. `react-native-geolocation-service` — evaluate; bump or swap
+| # | Library | Status |
+|---|---|---|
+| 1 | `react-native-haptic-feedback` 1 → 2.2 | ✅ done (commit 888c430) |
+| 2 | `react-native-vector-icons` 9 → 10.3 | ✅ done (commit d180a82) |
+| 3 | `react-native-geolocation-service` 5.3.0 → 5.3.1 | ✅ done (commit 3629afd) |
+| 4 | `react-native-linear-gradient` | _skipped_ — already on latest stable (2.8.3); 3.0 is beta |
+| 5 | `react-native-date-picker` 4 → 5 | ⏳ pending — 1 call site (`Events/InputEventDateTime.tsx`) |
+| 6 | `react-native-permissions` 3 → 5 | ⏳ pending — 3 files; two majors of API drift |
+| 7 | `react-native-image-crop-picker` 0.41 → 0.51 | ⏳ pending — 7 files; validate avatar + moment upload |
+| 8 | `react-native-webview` 11 → 13 | ⏳ pending — 2 files (`OAuthModal`, `UserMedia`); biggest QA surface |
 
 For each: run `npx eslint` + `npx tsc --noEmit -p TherrMobile/tsconfig.json`, build a debug APK, run the Android smoke-test checklist (login, map, create moment, messages, notifications).
+
+**After pulling commits 888c430, d180a82, 3629afd** the developer must run:
+
+```bash
+cd TherrMobile && npm install --legacy-peer-deps
+cd ios && bundle exec pod install
+cd .. && npm run android
+```
+
+to regenerate `package-lock.json` + `Podfile.lock` and verify the three landed upgrades build and run.
 
 ### Phase 2 — Tier A blocker replacements (2–3 weeks)
 
