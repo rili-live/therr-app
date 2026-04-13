@@ -198,6 +198,26 @@
     }
   },
   "pages": {
+    "cityPulse": {
+      "heroTitle": "{city}",
+      "heroFallback": "Explorez {city} — lieux locaux, événements et temps forts de la communauté.",
+      "aboutHeading": "À propos de {city}",
+      "neighborhoodsHeading": "Quartiers",
+      "gettingAroundHeading": "Se déplacer",
+      "getInSubheading": "Comment s'y rendre",
+      "getAroundSubheading": "Se déplacer sur place",
+      "trendingSpacesHeading": "Lieux populaires à {city}",
+      "upcomingEventsHeading": "Événements à venir à {city}",
+      "momentsWallHeading": "Moments récents de {city}",
+      "groupsHeading": "Groupes actifs à {city}",
+      "browseByCategoryHeading": "Parcourir {city} par catégorie",
+      "nearbyCitiesHeading": "Villes à proximité",
+      "ctaHeading": "Obtenez l'application Therr pour {city}",
+      "ctaBody": "Découvrez plus de lieux locaux, partagez des moments avec la communauté et gagnez des récompenses.",
+      "attributionLead": "Certains contenus de cette page proviennent de Wikipédia et Wikivoyage, sous licence CC BY-SA 4.0. Les extraits ont été résumés et reformatés.",
+      "attributionSource": "Source",
+      "attributionLocaleFallback": "Certains contenus sont affichés en anglais car aucune traduction n'est disponible."
+    },
     "childSafety": {
       "pageTitle": "Normes de sécurité des enfants",
       "intro": "Therr s'engage à assurer la sécurité et la protection de tous les utilisateurs, en particulier les enfants. Nous maintenons une politique de tolérance zéro envers l'abus et l'exploitation sexuels des enfants (AESE) sur notre plateforme.",

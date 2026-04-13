@@ -348,6 +348,29 @@ mapsServiceRouter.post('/spaces/request-approve/:spaceId', validate, authorize(
     method: 'post',
 }));
 
+// City Pulse — editorial + Therr-data aggregate used by the /locations/city/:slug SSR page.
+// Public endpoint (no auth required); cached in Redis for 15 minutes per (slug, locale).
+mapsServiceRouter.get('/cities/:slug/pulse', authenticateOptional, async (req: any, res, next) => {
+    const { slug } = req.params;
+    const locale = (req.query?.locale as string) || req.headers['x-localecode'] || 'en-us';
+    const cached = await CacheStore.mapsService.getCityPulse(slug, locale);
+
+    if (cached) {
+        return res.status(200).send({ ...cached, cached: true });
+    }
+
+    return next();
+}, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}, (response, _reqBody) => {
+    if (response?.city?.slug) {
+        const cacheLocale = response.locale || 'en-us';
+        return CacheStore.mapsService.setCityPulse(response.city.slug, cacheLocale, response);
+    }
+    return undefined;
+}));
+
 // External APIs - Nominatim geocoding proxy with rate limiting and caching
 mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
     const { q } = req.query;

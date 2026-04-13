@@ -10,6 +10,7 @@ export interface IMapState {
     prevLatitudeDelta?: number;
     activities: { [id: string]: any };
     activityGeneration: { [id: string]: any };
+    cityPulse: { [slug: string]: any };
     events: { [id: string]: any };
     moments: { [id: string]: any };
     spaces: { [id: string]: any };
@@ -56,6 +57,9 @@ export enum MapActionTypes {
     UPDATE_USER_COORDS = 'UPDATE_USER_COORDS',
     UPDATE_USER_RADIUS = 'UPDATE_USER_RADIUS',
     UPDATE_MAP_VIEW_COORDS = 'UPDATE_MAP_VIEW_COORDS',
+
+    // City Pulse
+    GET_CITY_PULSE = 'GET_CITY_PULSE',
 
     // Filters
     SET_MAP_FILTERS = 'SET_MAP_FILTERS',

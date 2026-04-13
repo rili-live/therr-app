@@ -17,6 +17,7 @@ import Home from './Home';
 import ViewSpace from './ViewSpace';
 import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
+import ViewCityPulse from './ViewCityPulse';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import ViewThought from './ViewThought';
@@ -348,19 +349,15 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         },
     },
     {
+        // City Pulse landing page — SSR-aware, editorial + Therr-data hybrid.
+        // See docs ViewCityPulse.tsx and handlers/cityPulse.ts.
         path: '/locations/city/:citySlug',
-        element: <ListSpaces />,
+        element: <ViewCityPulse />,
         fetchData: (dispatch: any, params: any, query: any = {}) => {
             const city = Cities.CitySlugMap[params.citySlug];
             if (!city) return Promise.resolve();
-            const radius = parseFloat(query.r) || 50000; // 50 km metro radius
-            return MapActions.listSpaces({
-                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-                pageNumber: 1,
-                latitude: city.lat,
-                longitude: city.lng,
-                filterBy: 'distance',
-            }, { distanceOverride: radius })(dispatch);
+            const locale = (query.locale as string) || undefined;
+            return MapActions.getCityPulse(params.citySlug, locale)(dispatch);
         },
     },
     {

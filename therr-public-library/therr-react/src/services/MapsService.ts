@@ -525,6 +525,13 @@ class MapsService {
         headers: {},
     });
 
+    // City Pulse (editorial + Therr-data aggregate for city landing pages)
+    getCityPulse = (slug: string, locale?: string) => axios({
+        method: 'get',
+        url: `/maps-service/cities/${encodeURIComponent(slug)}/pulse${locale ? `?locale=${encodeURIComponent(locale)}` : ''}`,
+        headers: {},
+    });
+
     // Activities
     generateActivity = ({
         distanceMeters,

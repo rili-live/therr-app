@@ -198,6 +198,26 @@
     }
   },
   "pages": {
+    "cityPulse": {
+      "heroTitle": "{city}",
+      "heroFallback": "Explora {city}: lugares locales, eventos y novedades de la comunidad.",
+      "aboutHeading": "Acerca de {city}",
+      "neighborhoodsHeading": "Barrios",
+      "gettingAroundHeading": "Cómo moverse",
+      "getInSubheading": "Cómo llegar",
+      "getAroundSubheading": "Cómo desplazarse",
+      "trendingSpacesHeading": "Lugares populares en {city}",
+      "upcomingEventsHeading": "Próximos eventos en {city}",
+      "momentsWallHeading": "Momentos recientes desde {city}",
+      "groupsHeading": "Grupos activos en {city}",
+      "browseByCategoryHeading": "Explora {city} por categoría",
+      "nearbyCitiesHeading": "Ciudades cercanas",
+      "ctaHeading": "Obtén la aplicación Therr para {city}",
+      "ctaBody": "Descubre más lugares locales, comparte momentos con la comunidad y gana recompensas.",
+      "attributionLead": "Parte del contenido de esta página proviene de Wikipedia y Wikivoyage, bajo licencia CC BY-SA 4.0. Los extractos han sido resumidos y reformateados.",
+      "attributionSource": "Fuente",
+      "attributionLocaleFallback": "Parte del contenido se muestra en inglés porque no hay traducción disponible."
+    },
     "childSafety": {
       "pageTitle": "Estándares de seguridad infantil",
       "intro": "Therr está comprometido con la seguridad y protección de todos los usuarios, especialmente los menores de edad. Mantenemos una política de tolerancia cero hacia el abuso y la explotación sexual infantil (CSAE) en nuestra plataforma.",
