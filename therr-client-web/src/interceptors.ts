@@ -148,7 +148,9 @@ const initInterceptors = (
                             });
                     } else {
                         isRefreshing = false;
-                        // No refresh token available - reject queued requests and logout
+                        // No refresh token available - reject queued requests and logout.
+                        // Return rejection early so the original request isn't queued on a
+                        // refresh that will never fire (the subscriber would hang forever).
                         onRefreshFailed(error);
                         if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
                             store.dispatch(UsersActions.logout());
@@ -157,6 +159,7 @@ const initInterceptors = (
                         if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
                             navigate('/login');
                         }
+                        return Promise.reject(error);
                     }
                 }
 

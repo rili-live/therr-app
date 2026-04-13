@@ -524,6 +524,7 @@ const Maps = {
     getCityPulse: (slug: string, locale?: string) => (dispatch: any) => MapsService
         .getCityPulse(slug, locale)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return null;
             dispatch({
                 type: MapActionTypes.GET_CITY_PULSE,
                 data: response.data,
