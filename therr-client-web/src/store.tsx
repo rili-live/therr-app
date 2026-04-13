@@ -1,6 +1,9 @@
 import LogRocket from 'logrocket';
 import logger from 'redux-logger';
 import { configureStore, Middleware } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage'; // localStorage
+import basePersistConfig from 'therr-react/redux/persistConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
@@ -15,24 +18,43 @@ let preloadedState;
 
 // Grab the state from a global variable injected into the server-generated HTML
 function safelyParse(input: any) {
-    if (input) {
-        const doc = new DOMParser().parseFromString(input, 'text/html');
-        return JSON.parse(doc.documentElement?.textContent?.replace(/\\u0085/g, '\n').replace(/\\u000D/g, '\r') || '{}');
+    if (input && typeof input === 'object') {
+        return input;
+    }
+    if (input && typeof input === 'string') {
+        try {
+            return JSON.parse(input);
+        } catch (e) {
+            return {};
+        }
     }
     console.log('Warning: __PRELOADED_STATE__ is not defined on the respective view'); // eslint-disable-line no-console
     return {};
 }
 
 // Get stored user details from session storage if they are already logged in
-const safeParse = (key: string, storage: Storage) => {
+const safeParse = (key: string, storageObj: Storage) => {
     try {
-        return JSON.parse(storage.getItem(key) as string);
+        return JSON.parse(storageObj.getItem(key) as string);
     } catch (e) {
-        storage.removeItem(key);
+        storageObj.removeItem(key);
         return null;
     }
 };
-if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
+
+// Only apply persistence on the client (not during SSR)
+const isClient = typeof window !== 'undefined' && typeof Storage !== 'undefined';
+
+const persistConfig = {
+    ...basePersistConfig,
+    storage,
+};
+
+const persistedReducer = isClient
+    ? persistReducer(persistConfig, rootReducer)
+    : rootReducer;
+
+if (isClient) {
     const storedSocketDetails = safeParse('therrSession', localStorage) || safeParse('therrSession', sessionStorage);
     let storedUser = safeParse('therrUser', localStorage) || safeParse('therrUser', sessionStorage);
     storedUser = storedUser || {};
@@ -63,20 +85,31 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
 }
 
 const getMiddleware = (getDefaultMiddleware: any) => {
+    const middleware = getDefaultMiddleware({
+        serializableCheck: {
+            // redux-persist actions contain non-serializable values
+            ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        },
+    });
+
     if (process.env.NODE_ENV === 'development') {
-        return getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger as Middleware);
+        return middleware.concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger as Middleware);
     }
 
-    return getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware());
+    return middleware.concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware());
 };
 
-const store: any = configureStore( // Create Store (Production)
+const store: any = configureStore(
     {
-        reducer: rootReducer,
+        reducer: persistedReducer as any,
         preloadedState,
         middleware: getMiddleware,
         devTools: process.env.NODE_ENV === 'development',
     },
 );
 
+// Only create persistor on client side
+const persistor = isClient ? persistStore(store) : null;
+
+export { persistor };
 export default store;

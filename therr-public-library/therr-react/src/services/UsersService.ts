@@ -364,6 +364,12 @@ class UsersService {
         method: 'post',
         url: `/users-service/payments/checkout/sessions/${sessionId}`,
     });
+
+    createCustomerPortalSession = (returnUrl?: string) => axios({
+        method: 'post',
+        url: '/users-service/payments/customer-portal/sessions',
+        data: { returnUrl },
+    });
 }
 
 export default new UsersService();

@@ -14,9 +14,7 @@ describe('sendUnclaimedSpaceEmail', () => {
 
     beforeEach(() => {
         // Stub AWS SES to prevent actual email sending
-        sesStub = sinon.stub(awsSES, 'sendEmail').callsFake((_params: any, callback: any) => {
-            callback(null, { MessageId: 'test-message-id' });
-        });
+        sesStub = sinon.stub(awsSES, 'sendEmail').resolves({ MessageId: 'test-message-id' });
 
         // Stub Store methods to prevent DB calls during blacklist check
         sinon.stub(Store.blacklistedEmails, 'get').resolves([]);

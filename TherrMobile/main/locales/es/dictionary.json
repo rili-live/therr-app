@@ -763,6 +763,7 @@
             "buttons": {
                 "submit": "Guardar",
                 "manageAccount": "Administrar cuenta",
+                "manageSpaces": "Mis Negocios",
                 "managePreferences": "Administrar intereses y algoritmos de contenido",
                 "manageNotifications": "Administrar configuración de correo",
                 "deleteAccount": "¿Eliminar cuenta?",
@@ -1668,6 +1669,17 @@
             "headerTitle": "Pensamientos",
             "reply": "Responder",
             "replies": "Respuestas"
+        },
+        "manageSpaces": {
+            "headerTitle": "Mis Negocios",
+            "noSpacesFound": "No se encontraron espacios. Reclama una ubicación de negocio desde el Mapa para comenzar.",
+            "coinBalanceLabel": "Tu Balance de TherrCoins",
+            "rewardActive": "Recompensas Activas",
+            "rewardInactive": "Sin Recompensas",
+            "buttons": {
+                "view": "Ver",
+                "edit": "Editar"
+            }
         },
         "habits": {
             "headerTitle": "My Habits",

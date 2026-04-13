@@ -336,6 +336,15 @@ const Maps = {
             // Return so we can react by searching for associated reactions
             return Promise.resolve(response.data);
         }),
+    searchMySpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
+        .searchMySpaces(query, data).then((response: any) => {
+            dispatch({
+                type: MapActionTypes.GET_MY_SPACES,
+                data: response.data,
+            });
+
+            return Promise.resolve(response.data);
+        }),
     deleteSpace: (args: { ids: string[] }) => (dispatch: any) => MapsService.deleteSpaces(args).then(() => {
         dispatch({
             type: MapActionTypes.SPACE_DELETED,

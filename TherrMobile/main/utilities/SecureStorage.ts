@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Keys that contain sensitive data and should use secure storage when available
-const SECURE_KEYS = ['therrRefreshToken'];
+const SECURE_KEYS = ['therrRefreshToken', 'therrUser'];
 
 let Keychain: any = null;
 
@@ -12,16 +12,8 @@ try {
 }
 
 const KEYCHAIN_SERVICE = 'therr-secure-storage';
+const MIGRATION_FLAG = 'therr_secure_migration_v1';
 
-/**
- * Wrapper around AsyncStorage that uses react-native-keychain for sensitive data
- * when available. Falls back to AsyncStorage if Keychain is not installed.
- *
- * To enable secure storage:
- * 1. Install react-native-keychain: npm install react-native-keychain --legacy-peer-deps
- * 2. Run pod install for iOS
- * 3. Rebuild the app
- */
 const SecureStorage = {
     setItem: async (key: string, value: string): Promise<void> => {
         if (Keychain && SECURE_KEYS.includes(key)) {
@@ -47,7 +39,8 @@ const SecureStorage = {
                 if (credentials) {
                     return credentials.password;
                 }
-                return null;
+                // Keychain returned nothing — fall through to check AsyncStorage
+                // (handles pre-migration data)
             } catch (e) {
                 // Fall through to AsyncStorage
             }
@@ -82,6 +75,36 @@ const SecureStorage = {
         // Also remove secure keys from AsyncStorage in case of migration
         if (secureKeys.length > 0) {
             await AsyncStorage.multiRemove(secureKeys);
+        }
+    },
+
+    // Migrates existing tokens from AsyncStorage to Keychain (runs once per install)
+    migrateToSecureStorage: async (): Promise<void> => {
+        if (!Keychain) return;
+
+        try {
+            const alreadyMigrated = await AsyncStorage.getItem(MIGRATION_FLAG);
+            if (alreadyMigrated) return;
+
+            for (const key of SECURE_KEYS) {
+                try {
+                    const value = await AsyncStorage.getItem(key);
+                    if (value) {
+                        await Keychain.setInternetCredentials(
+                            key,
+                            key,
+                            value,
+                            { service: KEYCHAIN_SERVICE },
+                        );
+                    }
+                } catch (e) {
+                    // Migration failed for this key; getItem fallback will still find it in AsyncStorage
+                }
+            }
+
+            await AsyncStorage.setItem(MIGRATION_FLAG, '1');
+        } catch (e) {
+            // Migration check failed; will retry on next launch
         }
     },
 };

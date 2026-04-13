@@ -62,6 +62,8 @@ jest.mock('../../wrappers/withTranslation', () => (c: any) => c);
 jest.mock('@mantine/core', () => {
     const React = require('react'); // eslint-disable-line global-require
     const stub = (name: string) => (props: any) => React.createElement('div', { 'data-testid': name, ...props }, props.children);
+    const ListStub: any = stub('List');
+    ListStub.Item = stub('List.Item');
     return {
         ActionIcon: stub('ActionIcon'),
         Alert: stub('Alert'),
@@ -70,10 +72,12 @@ jest.mock('@mantine/core', () => {
         Badge: stub('Badge'),
         Breadcrumbs: stub('Breadcrumbs'),
         Button: stub('Button'),
+        Collapse: stub('Collapse'),
         Container: stub('Container'),
         Divider: stub('Divider'),
         Group: stub('Group'),
         Image: stub('Image'),
+        List: ListStub,
         Modal: stub('Modal'),
         Paper: stub('Paper'),
         Rating: stub('Rating'),
@@ -82,6 +86,7 @@ jest.mock('@mantine/core', () => {
         Stack: stub('Stack'),
         Text: stub('Text'),
         Textarea: stub('Textarea'),
+        ThemeIcon: stub('ThemeIcon'),
         Title: stub('Title'),
         Tooltip: stub('Tooltip'),
     };
@@ -464,6 +469,8 @@ describe('ViewSpace', () => {
                 user: { isAuthenticated: true, details: { id: 'u1', userName: 'testuser' } },
             });
             (instance as any).state.reviewRating = 5;
+            (instance as any).state.userLatitude = 40.7128;
+            (instance as any).state.userLongitude = -74.0060;
             const setStateSpy = jest.spyOn(instance, 'setState' as any);
 
             instance.handleSubmitReview();
@@ -483,6 +490,8 @@ describe('ViewSpace', () => {
             });
             (instance as any).state.reviewRating = 4;
             (instance as any).state.reviewMessage = '';
+            (instance as any).state.userLatitude = 40.7128;
+            (instance as any).state.userLongitude = -74.0060;
 
             // Mock setState to actually update state
             const setStateCalls: any[] = [];
@@ -515,6 +524,8 @@ describe('ViewSpace', () => {
             });
             (instance as any).state.reviewRating = 4;
             (instance as any).state.reviewMessage = '';
+            (instance as any).state.userLatitude = 40.7128;
+            (instance as any).state.userLongitude = -74.0060;
 
             const setStateCalls: any[] = [];
             jest.spyOn(instance, 'setState' as any).mockImplementation((update: any) => {

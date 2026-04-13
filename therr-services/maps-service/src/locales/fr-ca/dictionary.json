@@ -26,6 +26,13 @@
     "mustBeOwner": "Tu dois être le propriétaire de l'espace pour consulter les métriques",
     "noOverlap": "Un nouvel espace ne doit pas chevaucher des espaces existants. Les espaces sont exclusifs par conception. Déplace-toi à un nouvel emplacement et réessaie.",
     "notFound": "Espace non trouvé",
-    "alreadyClaimed": "Tu as déjà réclamé cet espace"
+    "alreadyClaimed": "Tu as déjà réclamé cet espace",
+    "tooFarToCheckIn": "Tu dois être à moins de 120 mètres de cet espace pour faire un enregistrement"
+  },
+  "spaceDisplayRequests": {
+    "missingSpaceId": "Un spaceId est requis",
+    "invalidDisplayType": "Le type d'affichage doit être l'un des suivants : coaster, table_tent, window_cling",
+    "spaceMustBeClaimed": "Les kits d'affichage sont uniquement disponibles pour les espaces réclamés",
+    "businessAddressRequired": "L'espace doit avoir une adresse commerciale vérifiée (rue, ville et région) pour demander un kit d'affichage"
   }
 }

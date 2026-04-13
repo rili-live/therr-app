@@ -42,6 +42,7 @@ import EditThought from './EditThought';
 import EditGroup from './Groups/EditGroup';
 import ViewGroup from './Groups/ViewGroup';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
+import ManageSpaces from './ManageSpaces';
 import Invite from './Invite';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
@@ -375,6 +376,17 @@ const routes: RouteConfig<
         component: ManageAccount,
         options: () => ({
             title: 'ManageAccount',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'ManageSpaces',
+        component: ManageSpaces,
+        options: () => ({
+            title: 'ManageSpaces',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

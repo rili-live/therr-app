@@ -23,7 +23,7 @@ USER node
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # Note: This is the root mono-repo directory
 COPY ./package*.json ./
-COPY ./.babelrc ./
+COPY ./babel.config.json ./
 COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
 COPY ./therr-public-library ./therr-public-library

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { NavigateFunction } from 'react-router-dom';
 import { UsersService } from 'therr-react/services';
+import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
 import store from './store';
 import * as globalConfig from '../../global-config';
 import UsersActions from './redux/actions/UsersActions';
@@ -105,9 +106,14 @@ const initInterceptors = (
                                 const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
 
                                 // Update stored tokens
-                                const userDetails = JSON.parse(
-                                    sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser') || '{}',
-                                );
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                let userDetails: any = {};
+                                try {
+                                    const storedUserStr = sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser');
+                                    userDetails = storedUserStr ? JSON.parse(storedUserStr) : {};
+                                } catch (parseErr) {
+                                    userDetails = {};
+                                }
                                 userDetails.idToken = newIdToken;
                                 sessionStorage.setItem('therrUser', JSON.stringify(userDetails));
                                 sessionStorage.setItem('therrRefreshToken', newRefreshToken);
@@ -179,6 +185,14 @@ const initInterceptors = (
                 }
             }
         } else if (error) {
+            // Graceful offline handling: swallow network errors on GET requests
+            // so cached Redux state remains visible without UI errors
+            const failedRequest = error.config;
+            if (isOfflineError(error) && failedRequest?.method?.toLowerCase() === 'get') {
+                numLoadings = Math.max(0, numLoadings - 1);
+                return Promise.resolve({ data: {}, _offlineFallback: true });
+            }
+
             if (
                 Number(error.statusCode) === 401
                 || Number(error.statusCode) === 403

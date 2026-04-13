@@ -5,7 +5,13 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
-import { blacklistToken, invalidateApiKeyCache, revokeAllUserRefreshTokens } from '../../store/redisClient';
+import {
+    blacklistToken,
+    invalidateApiKeyCache,
+    revokeAllUserRefreshTokens,
+    revokeRefreshToken,
+    storeRefreshToken,
+} from '../../store/redisClient';
 import { validate } from '../../validation';
 import {
     authenticateUserValidation,
@@ -110,6 +116,21 @@ usersServiceRouter.post('/users/achievements/:id/claim', handleServiceRequest({
 usersServiceRouter.post('/auth', authenticateOptional, loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}, (responseData) => {
+    // Store refresh token JTI on login for rotation tracking (fail-open)
+    try {
+        if (responseData?.refreshToken) {
+            const decoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number } | null;
+            if (decoded?.jti && decoded?.id && decoded?.exp) {
+                const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+                if (ttl > 0) {
+                    storeRefreshToken(decoded.id, decoded.jti, ttl);
+                }
+            }
+        }
+    } catch (err) {
+        // Non-critical: don't block login
+    }
 }));
 
 usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, async (req, res, next) => {
@@ -152,6 +173,35 @@ usersServiceRouter.post('/auth/user-token/validate', authenticateUserTokenValida
 usersServiceRouter.post('/auth/token/refresh', refreshTokenLimiter, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}, (responseData, reqBody) => {
+    // Server-side refresh token rotation tracking (fail-open)
+    try {
+        // Revoke the old refresh token
+        if (reqBody?.refreshToken) {
+            const oldDecoded = jwt.decode(reqBody.refreshToken) as { jti?: string } | null;
+            if (oldDecoded?.jti) {
+                revokeRefreshToken(oldDecoded.jti);
+            }
+        }
+        // Store the new refresh token for reuse detection
+        if (responseData?.refreshToken) {
+            const newDecoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number } | null;
+            if (newDecoded?.jti && newDecoded?.id && newDecoded?.exp) {
+                const ttl = newDecoded.exp - Math.floor(Date.now() / 1000);
+                if (ttl > 0) {
+                    storeRefreshToken(newDecoded.id, newDecoded.jti, ttl);
+                }
+            }
+        }
+    } catch (err) {
+        // Non-critical: log but don't block the refresh response
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_GATEWAY_USERS_ROUTER',
+            messages: ['Failed to track refresh token rotation'],
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
+        });
+    }
 }));
 
 // Rewards
@@ -189,6 +239,10 @@ usersServiceRouter.post('/users/interests/me', validate, handleServiceRequest({
 
 // Payments
 usersServiceRouter.post('/payments/checkout/sessions/:id', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/payments/customer-portal/sessions', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

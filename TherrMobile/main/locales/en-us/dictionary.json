@@ -763,6 +763,7 @@
             "buttons": {
                 "submit": "Save",
                 "manageAccount": "Manage Account",
+                "manageSpaces": "My Business Spaces",
                 "managePreferences": "Manage Interests & Content Algorithms",
                 "manageNotifications": "Manage Email Settings",
                 "deleteAccount": "Delete Account?",
@@ -1668,6 +1669,17 @@
             "headerTitle": "Thoughts",
             "reply": "Reply",
             "replies": "Replies"
+        },
+        "manageSpaces": {
+            "headerTitle": "My Business Spaces",
+            "noSpacesFound": "No spaces found. Claim a business location from the Map to get started.",
+            "coinBalanceLabel": "Your TherrCoin Balance",
+            "rewardActive": "Rewards On",
+            "rewardInactive": "No Rewards",
+            "buttons": {
+                "view": "View",
+                "edit": "Edit"
+            }
         },
         "habits": {
             "headerTitle": "My Habits",

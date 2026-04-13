@@ -1,7 +1,7 @@
 # Friends With Habits - PROJECT BRIEF & DEVELOPMENT CONTEXT
 
-**Last Updated:** January 31, 2026
-**Project Status:** Phase 1 Complete / Phase 2 In Progress  
+**Last Updated:** April 2026
+**Project Status:** Active Development — Primary Consumer Focus
 **Developer:** Solo founder with full-time job and family commitments
 
 ---
@@ -12,7 +12,10 @@
 'Therr: Friends With Habits' is an accountability-based habit tracker where users MUST invite friends to create "pacts" together. The mandatory social mechanic creates viral growth without marketing spend.
 
 **Why This Project Exists:**  
-This is a strategic pivot (or fork) of "Therr App" (a location-based social network that failed to gain traction). We're forking the source code and repurposing 60% of the existing infrastructure to enter a lower-competition market with built-in viral mechanics. Authorization will use the same API and database allowing users to authenticate to either app interchangbly. 'Therr: Friends With Habits' is an extension of the Therr, Inc. family of apps.
+Friends With Habits is a niche variant of Therr App built on the same monorepo infrastructure. It repurposes 60% of the existing social infrastructure to enter a lower-competition market with built-in viral mechanics. Authorization uses the same API and database, allowing users to authenticate to either app interchangeably. 'Therr: Friends With Habits' is the primary consumer-facing app in the Therr, Inc. family.
+
+**April 2026 Strategic Direction:**  
+Core Therr App is pursuing a B2B-first strategy (local business directory → email outreach → paid subscriptions). Friends With Habits is the primary consumer-focused niche app and will receive active development on the `niche/HABITS-general` branch. The niche branch is being rebased and development will accelerate.
 
 **Therr Family of Apps:**
 These niche apps are a branch and/or child app of Therr App. The general idea is for a niche app to inherit the core foundations of Therr with unique, niche branding, content filtering specific to that branding, and some simple customizations that are controlled by feature flags.
@@ -168,9 +171,13 @@ for full technical design.
 
 ---
 
-## 12-WEEK EXECUTION ROADMAP
+## EXECUTION ROADMAP
 
-### Phase 1: Foundation (Weeks 1-2, January 5-15) 
+> **Note (April 2026):** The original 12-week timeline (Jan 6 → March 24, 2025) has passed.
+> Phase 1 foundation work is complete. The roadmap below reflects the current backlog
+> with phases restructured around available side-project time (~10-15 hrs/week).
+
+### Phase 1: Foundation ✅ COMPLETE
 **Goal:** Prepare codebase for rapid AI-assisted development
 
 - [x] Make mono repo fully Claude Code compatible
@@ -219,7 +226,7 @@ for full technical design.
 
 ---
 
-### Phase 2: Core Pact Features (Weeks 3-4, January 19-29)
+### Phase 2: Core Pact Features — IN PROGRESS
 **Goal:** Build minimum viable product
 
 - [ ] Streamline user authentication & onboarding
@@ -234,7 +241,7 @@ for full technical design.
 
 ---
 
-### Phase 3: Viral Mechanics (Weeks 5-6, February 2-12)
+### Phase 3: Viral Mechanics — PENDING
 **Goal:** Build growth engine into the product
 
 - [ ] Referral invite system (cannot be skipped)
@@ -255,7 +262,7 @@ for full technical design.
 
 ---
 
-### Phase 4: Monetization (Weeks 7-8, February 16-27)
+### Phase 4: Monetization — PENDING
 **Goal:** Implement freemium model and revenue generation
 
 - [ ] Freemium paywall (1 pact free, unlimited premium)
@@ -270,7 +277,7 @@ for full technical design.
 
 ---
 
-### Phase 5: Polish & Testing (Weeks 9-10, March 2-13)
+### Phase 5: Polish & Testing — PENDING
 **Goal:** Optimize user experience and prepare for launch
 
 - [ ] Optimize onboarding flow (reduce friction)
@@ -284,7 +291,7 @@ for full technical design.
 
 ---
 
-### Phase 6: Launch (Weeks 11-12, March 16-27)
+### Phase 6: Launch — PENDING
 **Goal:** Get first 500-1,000 users organically
 
 - [ ] Submit to App Store & Google Play Store
@@ -416,12 +423,12 @@ for full technical design.
 
 When starting development work with Claude Code, reference this brief and:
 
-1. **Week 1-2:** Focus on making codebase Claude Code compatible
-2. **Week 3-4:** Build core pact creation and check-in features
-3. **Week 5-6:** Implement viral referral mechanics
-4. **Week 7-8:** Add premium features and payment processing
-5. **Week 9-10:** Polish UI/UX and optimize onboarding
-6. **Week 11-12:** Prepare for launch and submit to app stores
+1. **Immediate:** Rebase `niche/HABITS-general` branch from `general` to pull in all revitalization work
+2. **Phase 2:** Build core pact creation and check-in features
+3. **Phase 3:** Implement viral referral mechanics (mandatory invite flow)
+4. **Phase 4:** Add premium features and payment processing ($6.99/mo)
+5. **Phase 5:** Polish UI/UX and optimize onboarding
+6. **Phase 6:** Submit to App Store (iOS developer account needed) and update Google Play listing
 
 ---
 
@@ -463,12 +470,10 @@ This project represents a strategic pivot from a failed location-based social ap
 
 The technology is 60% built. The market is proven. The viral mechanic is sound. Now it's about execution.
 
-**Timeline:** January 6, 2025 start → March 24, 2025 launch → June 2025 first revenue milestone
+**Timeline:** Active development on `niche/HABITS-general` branch (April 2026 onwards). Branch will be rebased from `general` before continuing feature work.
 
 ---
 
-**Document Version:** 1.0  
-**Status:** Ready for Development  
-**Next Action:** Begin Week 1 - Foundation Phase
-
-🚀 Let's build Friends w/ Habits!
+**Document Version:** 2.0  
+**Status:** Active Development — Primary Consumer Focus  
+**Next Action:** Rebase `niche/HABITS-general` branch, then continue Phase 2 (Core Pact Features)

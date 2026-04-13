@@ -17,7 +17,9 @@ import { MantineProvider } from '@mantine/core';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
-import { BrandVariations, Categories, Content } from 'therr-js-utilities/constants';
+import {
+    BrandVariations, Categories, Cities, Content,
+} from 'therr-js-utilities/constants';
 import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
@@ -26,7 +28,7 @@ import getUserImageUri from './utilities/getUserImageUri';
 import * as globalConfig from '../../global-config';
 import getUserContentUri from './utilities/getUserContentUri';
 
-axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
+axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
 axios.defaults.headers['x-brand-variation'] = BrandVariations.THERR;
 
@@ -159,6 +161,16 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
         },
     },
 }));
+// Return 404 for any static asset extension that wasn't found by expressStaticGzip.
+// Without this, missing bundles (e.g. stale hash after a deploy) fall through to the
+// SSR catch-all and return HTML, causing "Unexpected token '<'" in the browser.
+app.use((req, res, next) => {
+    if (/\.(js|css|map|br|gz)$/.test(req.path)) {
+        return res.status(404).type('text/plain').send('Not found');
+    }
+    next();
+});
+
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
 app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
@@ -314,6 +326,7 @@ app.get('/sitemap.xml', async (req, res) => {
 
     const sitemaps = [
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-static.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
+        `  <sitemap>\n    <loc>https://www.therr.com/sitemap-city-categories.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         ...Array.from({ length: totalSpacePages }, (_, i) => (
             // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-spaces-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
@@ -352,12 +365,19 @@ app.get('/sitemap-static.xml', (req, res) => {
         priority: '0.85',
     }));
 
+    // City landing pages for SEO (e.g. /locations/city/denver-co)
+    const cityUrls = Cities.CitiesList.map((city) => ({
+        loc: `/locations/city/${city.slug}`,
+        priority: '0.80',
+    }));
+
     const staticUrls = [
         { loc: '/', priority: '1.0' },
         { loc: '/login', priority: '0.8' },
         { loc: '/register', priority: '0.8' },
         { loc: '/locations', priority: '0.9' },
         ...categoryUrls,
+        ...cityUrls,
     ];
 
     const today = new Date().toISOString().split('T')[0];
@@ -367,6 +387,35 @@ app.get('/sitemap-static.xml', (req, res) => {
     const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
 
     setSitemapCache('static', xml);
+    res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    return res.send(xml);
+});
+
+// City + category combination sitemap: /sitemap-city-categories.xml
+// Generates one URL per city × category combination (~900 pages × 3 locales)
+app.get('/sitemap-city-categories.xml', (req, res) => {
+    const cached = getSitemapCache('city-categories');
+    if (cached) {
+        res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+        return res.send(cached);
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const categorySlugs = Object.values(Categories.CategorySlugMap);
+    const urls: string[] = [];
+
+    Cities.CitiesList.forEach((city) => {
+        categorySlugs.forEach((catSlug) => {
+            urls.push(buildUrlSet(`/locations/city/${city.slug}/${catSlug}`, today, '0.75'));
+        });
+    });
+
+    // eslint-disable-next-line max-len
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
+
+    setSitemapCache('city-categories', xml);
     res.set('Content-Type', 'application/xml');
     res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return res.send(xml);
@@ -688,7 +737,7 @@ const renderMomentView = (req, res, config, {
     const mediaPath = (moment.medias?.[0]?.path);
     const mediaType = (moment.medias?.[0]?.type);
     const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(moment.medias[0], 600, 600)
+        ? getUserContentUri(moment.medias?.[0], 600, 600)
         : content?.media?.[mediaPath];
 
     if (momentMediaUri) {
@@ -705,6 +754,7 @@ const renderMomentView = (req, res, config, {
         '@id': `https://www.therr.com${localeVars.canonicalPath}`,
         headline: momentTitle,
         datePublished: moment?.createdAt || '',
+        dateModified: moment?.updatedAt || moment?.createdAt || '',
         image: metaImgUrl || '',
         author: {
             '@type': 'Person',
@@ -824,7 +874,7 @@ const renderSpaceView = (req, res, config, {
     const mediaPath = (space.medias?.[0]?.path);
     const mediaType = (space.medias?.[0]?.type);
     const spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(space?.medias[0], 600, 600)
+        ? getUserContentUri(space?.medias?.[0], 600, 600)
         : content?.media?.[mediaPath];
 
     if (spaceMediaUri) {
@@ -1055,7 +1105,7 @@ const renderEventView = (req, res, config, {
     const mediaPath = (event?.medias?.[0]?.path);
     const mediaType = (event?.medias?.[0]?.type);
     const eventMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(event.medias[0], 600, 600)
+        ? getUserContentUri(event?.medias?.[0], 600, 600)
         : content?.media?.[mediaPath];
 
     if (eventMediaUri) {
@@ -1088,6 +1138,9 @@ const renderEventView = (req, res, config, {
     }
     if (eventEndTime) {
         eventSchema.endDate = eventEndTime;
+    }
+    if (event?.updatedAt || event?.createdAt) {
+        eventSchema.dateModified = event?.updatedAt || event?.createdAt;
     }
     if (metaImgUrl) {
         eventSchema.image = metaImgUrl;
@@ -1293,10 +1346,23 @@ const renderLocationsView = (req, res, config, {
     const categoryKey = categorySlug ? Categories.SlugToCategoryMap[categorySlug] : '';
     const categoryLabel = categoryKey ? formatCategoryLabel(categoryKey) : '';
 
-    // Dynamic title/description based on category or search query
+    // City slug support for geo-targeted landing pages (e.g. /locations/city/denver-co)
+    const citySlug = req.params?.citySlug || '';
+    const cityEntry = citySlug ? Cities.CitySlugMap[citySlug] : null;
+    const cityDisplayName = cityEntry ? `${cityEntry.name}, ${cityEntry.stateAbbr}` : '';
+
+    // Dynamic title/description based on city, category, or search query
     let title: string;
     let description: string;
-    if (categoryLabel) {
+    if (cityDisplayName && categoryLabel) {
+        title = `Best ${categoryLabel} in ${cityDisplayName} | Therr`;
+        // eslint-disable-next-line max-len
+        description = `Find the best ${categoryLabel.toLowerCase()} in ${cityDisplayName}. Browse listings, read reviews, see hours, and get directions on Therr.`;
+    } else if (cityDisplayName) {
+        title = `Local Businesses in ${cityDisplayName} | Therr`;
+        // eslint-disable-next-line max-len
+        description = `Find local businesses, restaurants, bars, shops, and more in ${cityDisplayName}. Browse listings, read reviews, see hours, and get directions on Therr.`;
+    } else if (categoryLabel) {
         title = `Best ${categoryLabel} Near You | Therr`;
         description = `Find the best ${categoryLabel.toLowerCase()} near you. Browse listings, read reviews, see hours, and get directions on Therr.`;
     } else if (searchQuery) {
@@ -1309,10 +1375,26 @@ const renderLocationsView = (req, res, config, {
     }
 
     const spaces = initialState?.map?.searchResults || [];
-    const pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
 
-    // Build base path for pagination links (category-aware)
-    const locationsBase = categorySlug ? `/locations/${categorySlug}` : '/locations';
+    // For city routes, :categorySlug is dual-purpose: may be a category slug or a page number.
+    // Detect which it is so pagination links and page number extraction are correct.
+    const categorySlugIsPageNumber = citySlug && categorySlug && !categoryLabel;
+    let pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
+    if (categorySlugIsPageNumber) {
+        pageNumber = parseInt(categorySlug, 10) || 1;
+    }
+
+    // Build base path for pagination links (city + category aware)
+    let locationsBase: string;
+    if (citySlug && categorySlug && !categorySlugIsPageNumber) {
+        locationsBase = `/locations/city/${citySlug}/${categorySlug}`;
+    } else if (citySlug) {
+        locationsBase = `/locations/city/${citySlug}`;
+    } else if (categorySlug) {
+        locationsBase = `/locations/${categorySlug}`;
+    } else {
+        locationsBase = '/locations';
+    }
 
     // Build query string for pagination links (preserve search params)
     const paginationQueryParts: string[] = [];
@@ -1337,7 +1419,11 @@ const renderLocationsView = (req, res, config, {
     });
 
     let itemListName = 'Business Locations on Therr';
-    if (categoryLabel) {
+    if (cityDisplayName && categoryLabel) {
+        itemListName = `${categoryLabel} in ${cityDisplayName} on Therr`;
+    } else if (cityDisplayName) {
+        itemListName = `Local Businesses in ${cityDisplayName} on Therr`;
+    } else if (categoryLabel) {
         itemListName = `${categoryLabel} on Therr`;
     } else if (searchQuery) {
         itemListName = `Spaces near ${searchQuery}`;
@@ -1380,10 +1466,32 @@ const renderLocationsView = (req, res, config, {
     });
 
     let collectionName = 'Local Business Directory';
-    if (categoryLabel) {
+    if (cityDisplayName && categoryLabel) {
+        collectionName = `${categoryLabel} in ${cityDisplayName} Directory`;
+    } else if (cityDisplayName) {
+        collectionName = `${cityDisplayName} Business Directory`;
+    } else if (categoryLabel) {
         collectionName = `${categoryLabel} Directory`;
     } else if (searchQuery) {
         collectionName = `Local Businesses near ${searchQuery}`;
+    }
+    let spatialCoverage: Record<string, any> | undefined;
+    if (cityEntry) {
+        spatialCoverage = {
+            '@type': 'City',
+            name: cityEntry.name,
+            containedInPlace: { '@type': 'State', name: cityEntry.state },
+            geo: { '@type': 'GeoCoordinates', latitude: cityEntry.lat, longitude: cityEntry.lng },
+        };
+    } else if (hasCoords) {
+        spatialCoverage = {
+            '@type': 'Place',
+            geo: {
+                '@type': 'GeoCoordinates',
+                latitude: parseFloat(req.query.lat),
+                longitude: parseFloat(req.query.lng),
+            },
+        };
     }
     const localDirectorySchema = localBusinessSchemas.length > 0
         ? {
@@ -1391,16 +1499,7 @@ const renderLocationsView = (req, res, config, {
             '@type': 'CollectionPage',
             name: collectionName,
             description,
-            ...(hasCoords && {
-                spatialCoverage: {
-                    '@type': 'Place',
-                    geo: {
-                        '@type': 'GeoCoordinates',
-                        latitude: parseFloat(req.query.lat),
-                        longitude: parseFloat(req.query.lng),
-                    },
-                },
-            }),
+            ...(spatialCoverage && { spatialCoverage }),
             mainEntity: {
                 '@type': 'ItemList',
                 itemListElement: localBusinessSchemas.map((biz: any, i: number) => ({
@@ -1412,7 +1511,7 @@ const renderLocationsView = (req, res, config, {
         }
         : null;
 
-    // Breadcrumb schema (category-aware)
+    // Breadcrumb schema (city + category aware)
     const breadcrumbItems: any[] = [
         {
             '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
@@ -1421,11 +1520,19 @@ const renderLocationsView = (req, res, config, {
             '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
         },
     ];
-    if (categoryLabel) {
+    if (cityDisplayName) {
         breadcrumbItems.push({
-            '@type': 'ListItem', position: 3, name: categoryLabel, item: `https://www.therr.com/locations/${categorySlug}`,
+            '@type': 'ListItem', position: 3, name: cityDisplayName, item: `https://www.therr.com/locations/city/${citySlug}`,
         });
-    } else if (searchQuery) {
+    }
+    if (categoryLabel) {
+        const categoryItem = citySlug
+            ? `https://www.therr.com/locations/city/${citySlug}/${categorySlug}`
+            : `https://www.therr.com/locations/${categorySlug}`;
+        breadcrumbItems.push({
+            '@type': 'ListItem', position: breadcrumbItems.length + 1, name: categoryLabel, item: categoryItem,
+        });
+    } else if (searchQuery && !cityDisplayName) {
         breadcrumbItems.push({
             '@type': 'ListItem', position: 3, name: searchQuery,
         });
@@ -1481,7 +1588,7 @@ const renderGroupView = (req, res, config, {
     const mediaPath = group?.media?.[0]?.path;
     const mediaType = group?.media?.[0]?.type;
     const groupMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(group.media[0], 600, 600)
+        ? getUserContentUri(group?.media?.[0], 600, 600)
         : undefined;
 
     if (groupMediaUri) {
@@ -1618,6 +1725,8 @@ const publicRoutePatterns = [
     /^\/register$/,
     /^\/locations(\/\d+)?$/,
     /^\/locations\/[a-z-]+(\/\d+)?$/,
+    /^\/locations\/city\/[a-z-]+(\/\d+)?$/,
+    /^\/locations\/city\/[a-z-]+\/[a-z-]+(\/\d+)?$/,
     /^\/spaces\/[^/]+$/,
     /^\/spaces\/[^/]+\/[^/]+$/,
     /^\/events\/[^/]+$/,
@@ -1725,11 +1834,9 @@ routeConfig.forEach((config) => {
             // This gets the initial state created after all dispatches are called in fetchData
             Object.assign(initialState, store.getState());
 
-            // TODO: Handle all parsing edge cases
-            // https://github.com/yahoo/serialize-javascript ?
             const state = serialize(initialState, {
                 isJSON: true,
-            }).replace(/</g, '\\u003c').replace(/\\n/g, ' ').replace(/\\r/g, ' ');
+            }).replace(/</g, '\\u003c');
 
             if (staticContext.url) {
                 printLogs({

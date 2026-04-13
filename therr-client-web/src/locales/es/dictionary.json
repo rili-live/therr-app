@@ -45,7 +45,7 @@
   },
   "components": {
     "tile": {
-      "untitled": "Sin t\u00edtulo"
+      "untitled": "Sin título"
     },
     "layout": {
       "floatingButton": {
@@ -168,7 +168,7 @@
     },
     "userMenu": {
       "buttons": {
-        "changePassword": "Cambiar contrase\u00f1a",
+        "changePassword": "Cambiar contraseña",
         "bookmarks": "Mis marcadores",
         "discovered": "Contenido descubierto",
         "editProfile": "Editar perfil",
@@ -179,7 +179,8 @@
         "explorePeople": "Personas",
         "logout": "Cerrar sesión",
         "markAllRead": "Marcar todo como leído",
-        "viewProfile": "Ver perfil"
+        "viewProfile": "Ver perfil",
+        "businessDashboard": "Panel de Negocios"
       },
       "exploreDescriptions": {
         "moments": "Fotos, historias y experiencias",
@@ -265,8 +266,8 @@
     },
     "bookmarks": {
       "pageTitle": "Mis marcadores",
-      "subtitle": "Contenido que has guardado para m\u00e1s tarde",
-      "noResults": "A\u00fan no has guardado nada. Explora la comunidad y guarda contenido que quieras volver a ver.",
+      "subtitle": "Contenido que has guardado para más tarde",
+      "noResults": "Aún no has guardado nada. Explora la comunidad y guarda contenido que quieras volver a ver.",
       "exploreCta": "Descubrir contenido",
       "filters": {
         "all": "Todo",
@@ -832,6 +833,7 @@
       "loginModal": {
         "title": "Inicio de sesión requerido",
         "body": "Necesitas iniciar sesión para realizar esta acción. Crea una cuenta o inicia sesión para continuar.",
+        "reviewBody": "¡Tu reseña ha sido guardada! Inicia sesión o crea una cuenta gratuita para publicarla.",
         "signIn": "Iniciar sesión",
         "register": "Crear cuenta"
       },
@@ -864,7 +866,27 @@
         "pendingTitle": "Solicitud de reclamo pendiente",
         "pendingBody": "Se ha enviado una solicitud de reclamo para este espacio y está siendo revisada.",
         "successMessage": "Tu solicitud de reclamo ha sido enviada. Serás notificado una vez que sea aprobada.",
-        "errorMessage": "Hubo un error al enviar tu solicitud. Por favor, intenta de nuevo más tarde."
+        "errorMessage": "Hubo un error al enviar tu solicitud. Por favor, intenta de nuevo más tarde.",
+        "whyTherr": {
+          "toggle": "¿Por qué Therr app?",
+          "item1Title": "Descubrimiento por proximidad",
+          "item1Body": "Tu listado se activa cuando los clientes están físicamente cerca, no solo cuando buscan.",
+          "item2Title": "Recompensas por visita",
+          "item2Body": "Los clientes ganan recompensas al visitar tu negocio, creando un ciclo de fidelización que impulsa el tráfico.",
+          "item3Title": "Amplificación por red de amigos",
+          "item3Body": "Cuando los clientes hacen check-in, sus amigos lo ven de forma orgánica — boca a boca sin gasto en anuncios.",
+          "item4Title": "Análisis de tráfico",
+          "item4Body": "Consulta análisis mensuales sobre cuántas personas visitaron tu área e interactuaron con tu espacio.",
+          "item5Title": "Promociones geolocalizadas",
+          "item5Body": "Llega a clientes que están a poca distancia en tiempo real con ofertas y descuentos."
+        }
+      },
+      "checkinBanner": {
+        "title": "Gana recompensas registrándote aquí",
+        "body": "Descarga la app de Therr para registrarte en {businessName}, ganar ThrrCoins y compartir tu visita con amigos.",
+        "bodyLoggedIn": "Abre Therr app para registrarte en {businessName} y ganar recompensas en ThrrCoins.",
+        "orSignUp": "¿Aún no tienes la app?",
+        "signUpLink": "Crea una cuenta gratis"
       }
     },
     "viewMoment": {

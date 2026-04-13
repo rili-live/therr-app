@@ -64,7 +64,7 @@
       "labels": {
         "info": "Info",
         "home": "Accueil",
-        "discovered": "D\u00e9couvertes",
+        "discovered": "Découvertes",
         "messages": "Messages",
         "locations": "Lieux",
         "explore": "Explorer"
@@ -179,7 +179,8 @@
         "explorePeople": "Personnes",
         "logout": "Déconnexion",
         "markAllRead": "Tout marquer comme lu",
-        "viewProfile": "Voir le profil"
+        "viewProfile": "Voir le profil",
+        "businessDashboard": "Tableau de bord entreprise"
       },
       "exploreDescriptions": {
         "moments": "Photos, récits et expériences",
@@ -660,35 +661,38 @@
       }
     },
     "editSpace": {
-      "pageTitle": "Modifier l'emplacement",
-      "successMessage": "Votre emplacement a été mis à jour avec succès.",
-      "failedMessageBadRequest": "Veuillez vérifier vos informations et réessayer.",
-      "failedMessageServer": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
-      "h2": {
-        "basicInfo": "Informations de base",
-        "contactLinks": "Contact et liens"
+      "pageTitle": "Modifier l'espace",
+      "successMessage": "Votre espace a été mis à jour avec succès.",
+      "errorGeneric": "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
+      "headings": {
+        "contactInfo": "Coordonnées"
       },
       "labels": {
-        "name": "Nom de l'emplacement",
+        "businessName": "Nom de l'entreprise",
+        "category": "Catégorie",
+        "selectCategory": "Sélectionner une catégorie",
         "description": "Description",
-        "address": "Adresse",
+        "hashTags": "Étiquettes",
+        "hashTagsHint": "Séparées par des virgules (ex. café, wifi, terrasse)",
+        "image": "Photo de l'entreprise",
+        "chooseImage": "Choisir une image",
         "phoneNumber": "Numéro de téléphone",
-        "websiteUrl": "URL du site web",
+        "websiteUrl": "Site web",
         "menuUrl": "URL du menu",
         "orderUrl": "URL de commande / livraison",
         "reservationUrl": "URL de réservation"
       },
       "buttons": {
         "save": "Enregistrer les modifications",
-        "backToProfile": "Retour au profil"
+        "backToSpace": "Retour à l'espace"
       }
     },
     "manageSpaces": {
-      "pageTitle": "G\u00e9rer les emplacements",
-      "noLocations": "Vous n'avez pas encore cr\u00e9\u00e9 d'emplacement.",
+      "pageTitle": "Gérer les emplacements",
+      "noLocations": "Vous n'avez pas encore créé d'emplacement.",
       "buttons": {
-        "createNew": "Cr\u00e9er un nouvel emplacement",
-        "createFirst": "Cr\u00e9ez votre premier emplacement",
+        "createNew": "Créer un nouvel emplacement",
+        "createFirst": "Créez votre premier emplacement",
         "backToProfile": "Retour au profil"
       }
     },
@@ -785,6 +789,7 @@
       "loginModal": {
         "title": "Connexion requise",
         "body": "Vous devez vous connecter pour effectuer cette action. Créez un compte ou connectez-vous pour continuer.",
+        "reviewBody": "Votre avis a été enregistré ! Connectez-vous ou créez un compte gratuit pour le publier.",
         "signIn": "Se connecter",
         "register": "Créer un compte"
       },
@@ -817,34 +822,27 @@
         "pendingTitle": "Demande de réclamation en attente",
         "pendingBody": "Une demande de réclamation pour cet espace a été soumise et est en cours de révision.",
         "successMessage": "Votre demande de réclamation a été soumise. Vous serez notifié une fois qu'elle sera approuvée.",
-        "errorMessage": "Une erreur s'est produite lors de la soumission de votre demande. Veuillez réessayer plus tard."
-      }
-    },
-    "editSpace": {
-      "pageTitle": "Modifier l'espace",
-      "successMessage": "Votre espace a été mis à jour avec succès.",
-      "errorGeneric": "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
-      "headings": {
-        "contactInfo": "Coordonnées"
+        "errorMessage": "Une erreur s'est produite lors de la soumission de votre demande. Veuillez réessayer plus tard.",
+        "whyTherr": {
+          "toggle": "Pourquoi Therr app?",
+          "item1Title": "Découverte par proximité",
+          "item1Body": "Votre fiche s'active quand des clients sont physiquement proches — pas seulement quand ils cherchent.",
+          "item2Title": "Récompenses pour les visites",
+          "item2Body": "Les clients gagnent des récompenses en visitant votre commerce, créant une boucle de fidélisation naturelle.",
+          "item3Title": "Amplification par le réseau d'amis",
+          "item3Body": "Quand des clients font un enregistrement, leurs amis le voient de façon organique — bouche-à-oreille sans publicité.",
+          "item4Title": "Analyses de fréquentation",
+          "item4Body": "Consultez des analyses mensuelles sur le nombre de personnes ayant visité votre zone et interagi avec votre espace.",
+          "item5Title": "Promotions géolocalisées",
+          "item5Body": "Ciblez les clients à distance de marche en temps réel avec des offres et des promotions."
+        }
       },
-      "labels": {
-        "businessName": "Nom de l'entreprise",
-        "category": "Catégorie",
-        "selectCategory": "Sélectionner une catégorie",
-        "description": "Description",
-        "hashTags": "Étiquettes",
-        "hashTagsHint": "Séparées par des virgules (ex. café, wifi, terrasse)",
-        "image": "Photo de l'entreprise",
-        "chooseImage": "Choisir une image",
-        "phoneNumber": "Numéro de téléphone",
-        "websiteUrl": "Site web",
-        "menuUrl": "URL du menu",
-        "orderUrl": "URL de commande / livraison",
-        "reservationUrl": "URL de réservation"
-      },
-      "buttons": {
-        "save": "Enregistrer les modifications",
-        "backToSpace": "Retour à l'espace"
+      "checkinBanner": {
+        "title": "Gagnez des récompenses en vous enregistrant ici",
+        "body": "Téléchargez l'app Therr pour vous enregistrer chez {businessName}, gagner des ThrrCoins et partager votre visite avec vos amis.",
+        "bodyLoggedIn": "Ouvrez Therr app pour vous enregistrer chez {businessName} et gagner des récompenses en ThrrCoins.",
+        "orSignUp": "Vous n'avez pas encore l'app?",
+        "signUpLink": "Créez un compte gratuit"
       }
     },
     "viewGroup": {

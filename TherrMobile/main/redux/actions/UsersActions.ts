@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { UsersActions } from 'therr-react/redux/actions';
+import SecureStorage from '../../utilities/SecureStorage';
 import getConfig from '../../utilities/getConfig';
 import { socketIO } from '../../socket-io-middleware';
 
@@ -22,4 +22,4 @@ GoogleSignin.configure({
     webClientId,
 });
 
-export default new UsersActions(socketIO, AsyncStorage, GoogleSignin);
+export default new UsersActions(socketIO, SecureStorage, GoogleSignin);

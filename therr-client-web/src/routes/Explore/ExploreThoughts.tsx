@@ -23,6 +23,7 @@ import {
     Tooltip,
 } from '@mantine/core';
 import { Categories } from 'therr-js-utilities/constants';
+import { toIntlLocale } from '../../utilities/formatDate';
 import UsersActions from '../../redux/actions/UsersActions';
 import useTranslation from '../../hooks/useTranslation';
 
@@ -34,8 +35,10 @@ const categoryOptions = Categories.ThoughtCategories.map((cat: string) => {
 const categoryLabelMap: Record<string, string> = {};
 categoryOptions.forEach((opt) => { categoryLabelMap[opt.value] = opt.label; });
 
-const formatTimeAgo = (dateStr: string): string => {
+const formatTimeAgo = (dateStr: string, locale: string): string => {
+    if (!dateStr) return '';
     const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return '';
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60000);
@@ -46,7 +49,7 @@ const formatTimeAgo = (dateStr: string): string => {
     if (diffMin < 60) return `${diffMin}m`;
     if (diffHr < 24) return `${diffHr}h`;
     if (diffDay < 7) return `${diffDay}d`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString(toIntlLocale(locale), { month: 'short', day: 'numeric' });
 };
 
 interface IThoughtCardProps {
@@ -59,6 +62,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     thought, onLike, onBookmark,
 }) => {
     const navigate = useNavigate();
+    const { locale } = useTranslation();
     const isLiked = thought.reaction?.userHasLiked;
     const isBookmarked = thought.reaction?.userBookmarkCategory;
     const hashtags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
@@ -85,7 +89,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                         {thought.fromUserName}
                     </Text>
                     <Text size="xs" c="dimmed">
-                        {thought.createdAt && formatTimeAgo(thought.createdAt)}
+                        {thought.createdAt && formatTimeAgo(thought.createdAt, locale)}
                     </Text>
                     {thought.category && categoryLabelMap[thought.category] && (
                         <Text size="xs" c="dimmed" className="thought-card-category">

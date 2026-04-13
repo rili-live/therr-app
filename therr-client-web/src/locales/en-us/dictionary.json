@@ -179,7 +179,8 @@
         "explorePeople": "People",
         "logout": "Logout",
         "markAllRead": "Mark all as read",
-        "viewProfile": "View Profile"
+        "viewProfile": "View Profile",
+        "businessDashboard": "Business Dashboard"
       },
       "exploreDescriptions": {
         "moments": "Photos, stories & experiences",
@@ -660,27 +661,30 @@
       }
     },
     "editSpace": {
-      "pageTitle": "Edit Location",
-      "successMessage": "Your location has been updated successfully.",
-      "failedMessageBadRequest": "Please check your input and try again.",
-      "failedMessageServer": "An unexpected error occurred. Please try again later.",
-      "h2": {
-        "basicInfo": "Basic Information",
-        "contactLinks": "Contact & Links"
+      "pageTitle": "Edit Space",
+      "successMessage": "Your space has been updated successfully.",
+      "errorGeneric": "An error occurred while saving. Please try again.",
+      "headings": {
+        "contactInfo": "Contact Information"
       },
       "labels": {
-        "name": "Location Name",
+        "businessName": "Business Name",
+        "category": "Category",
+        "selectCategory": "Select a category",
         "description": "Description",
-        "address": "Address",
+        "hashTags": "Tags",
+        "hashTagsHint": "Comma-separated (e.g. coffee, wifi, outdoor seating)",
+        "image": "Business Photo",
+        "chooseImage": "Choose an image",
         "phoneNumber": "Phone Number",
-        "websiteUrl": "Website URL",
+        "websiteUrl": "Website",
         "menuUrl": "Menu URL",
         "orderUrl": "Order / Delivery URL",
         "reservationUrl": "Reservation URL"
       },
       "buttons": {
         "save": "Save Changes",
-        "backToProfile": "Back to Profile"
+        "backToSpace": "Back to Space"
       }
     },
     "manageSpaces": {
@@ -829,6 +833,7 @@
       "loginModal": {
         "title": "Sign in required",
         "body": "You need to sign in to perform this action. Create an account or sign in to continue.",
+        "reviewBody": "Your review has been saved! Sign in or create a free account to post it.",
         "signIn": "Sign In",
         "register": "Create Account"
       },
@@ -861,34 +866,27 @@
         "pendingTitle": "Claim Request Pending",
         "pendingBody": "A claim request for this space has been submitted and is currently under review.",
         "successMessage": "Your claim request has been submitted. You will be notified once it is approved.",
-        "errorMessage": "There was an error submitting your claim. Please try again later."
-      }
-    },
-    "editSpace": {
-      "pageTitle": "Edit Space",
-      "successMessage": "Your space has been updated successfully.",
-      "errorGeneric": "An error occurred while saving. Please try again.",
-      "headings": {
-        "contactInfo": "Contact Information"
+        "errorMessage": "There was an error submitting your claim. Please try again later.",
+        "whyTherr": {
+          "toggle": "Why Therr app?",
+          "item1Title": "Proximity discovery",
+          "item1Body": "Your listing activates when customers are physically nearby — not just when they search.",
+          "item2Title": "Check-in rewards",
+          "item2Body": "Customers earn rewards for visiting, creating a built-in loyalty loop that drives repeat foot traffic.",
+          "item3Title": "Friend-network amplification",
+          "item3Body": "When customers check in, their friends see it organically — word-of-mouth without ad spend.",
+          "item4Title": "Foot traffic insights",
+          "item4Body": "See monthly analytics on how many people visited your area and engaged with your space.",
+          "item5Title": "Geo-fenced promotions",
+          "item5Body": "Target customers within walking distance in real time with deals and offers."
+        }
       },
-      "labels": {
-        "businessName": "Business Name",
-        "category": "Category",
-        "selectCategory": "Select a category",
-        "description": "Description",
-        "hashTags": "Tags",
-        "hashTagsHint": "Comma-separated (e.g. coffee, wifi, outdoor seating)",
-        "image": "Business Photo",
-        "chooseImage": "Choose an image",
-        "phoneNumber": "Phone Number",
-        "websiteUrl": "Website",
-        "menuUrl": "Menu URL",
-        "orderUrl": "Order / Delivery URL",
-        "reservationUrl": "Reservation URL"
-      },
-      "buttons": {
-        "save": "Save Changes",
-        "backToSpace": "Back to Space"
+      "checkinBanner": {
+        "title": "Earn rewards by checking in here",
+        "body": "Download the Therr app to check in at {businessName}, earn ThrrCoins, and share your visit with friends.",
+        "bodyLoggedIn": "Open Therr app to check in at {businessName} and earn ThrrCoins rewards.",
+        "orSignUp": "Don't have the app yet?",
+        "signUpLink": "Create a free account"
       }
     },
     "viewMoment": {

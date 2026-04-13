@@ -66,6 +66,12 @@
 - **Featured incentives** — promote spaces with special offers
 - **Space metrics** — engagement analytics for business owners
 
+### Offline & Resilience
+- **Offline content viewing** — cached content (spaces, moments, thoughts, notifications) displayed when offline via redux-persist
+- **Network status detection** — real-time connectivity monitoring (NetInfo on mobile, window events on web)
+- **Offline banner** — dismissable UI indicator when device is offline
+- **Graceful degradation** — GET requests fail silently with cached data; no blank screens during outages
+
 ### Settings & Preferences
 - **Theme selection** — light, dark, retro
 - **Language selection** — en-us, es (mobile); en-us, es, fr-ca (web)

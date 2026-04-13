@@ -54,7 +54,18 @@ const createOrUpdateMultiEventReactions = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const { eventIds } = req.body;
+
+    if (!eventIds?.length) {
+        return handleHttpError({ res, message: 'eventIds is required', statusCode: 400 });
+    }
+
+    const validEventIds = eventIds.filter((id) => !!id);
+
     const params = { ...req.body };
     delete params.eventIds;
 
@@ -62,7 +73,7 @@ const createOrUpdateMultiEventReactions = (req, res) => {
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.eventReactions.get({
         userId,
-    }, eventIds).then((existing) => {
+    }, validEventIds).then((existing) => {
         const existingMapped = {};
         const existingReactions: string[][] = existing.map((reaction) => {
             existingMapped[reaction.eventId] = reaction;
@@ -80,7 +91,7 @@ const createOrUpdateMultiEventReactions = (req, res) => {
                 .then((eventReactions) => { updatedReactions = eventReactions; });
         }
 
-        const createArray = eventIds
+        const createArray = validEventIds
             .filter((id) => !existingMapped[id])
             .map((eventId) => ({
                 userId,
@@ -101,12 +112,23 @@ const createOrUpdateMultiUserReactions = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
 
     const { eventId, userIds } = req.body;
+
+    if (!eventId) {
+        return handleHttpError({ res, message: 'eventId is required', statusCode: 400 });
+    }
+
+    if (!userIds?.length) {
+        return handleHttpError({ res, message: 'userIds is required', statusCode: 400 });
+    }
+
+    const validUserIds = userIds.filter((id) => !!id);
+
     const params = { ...req.body };
     delete params.userIds;
 
     return Store.eventReactions.get({
         eventId,
-    }, undefined, userIds).then((existing) => {
+    }, undefined, validUserIds).then((existing) => {
         const existingMapped = {};
         const existingReactions: string[][] = existing.map((reaction) => {
             existingMapped[reaction.userId] = reaction;
@@ -123,7 +145,7 @@ const createOrUpdateMultiUserReactions = (req, res) => {
                 .then((eventReactions) => { updatedReactions = eventReactions; });
         }
 
-        const createArray = userIds
+        const createArray = validUserIds
             .filter((id) => !existingMapped[id])
             .map((uId) => ({
                 userId: uId,
@@ -142,6 +164,11 @@ const createOrUpdateMultiUserReactions = (req, res) => {
 // READ
 const getEventReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const eventIds = req.query?.eventIds?.split(',');
     const queryParams: any = {
         userId,
@@ -185,6 +212,10 @@ const getReactionsByEventId: RequestHandler = async (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const { eventId } = req.params;
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     return Store.eventReactions.get({
         userId,
         eventId,
@@ -208,6 +239,11 @@ const getReactionsByEventId: RequestHandler = async (req: any, res: any) => {
 const findEventReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     // const locale = req.headers['x-localecode'] || 'en-us';
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const {
         eventIds,
         userHasActivated,

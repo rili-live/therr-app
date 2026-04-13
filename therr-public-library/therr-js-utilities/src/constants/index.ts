@@ -1,4 +1,5 @@
 import Categories from './Categories';
+import Cities from './Cities';
 import Content from './Content';
 import ErrorCodes from './ErrorCodes';
 import FilePaths from './FilePaths';
@@ -61,6 +62,7 @@ export {
     GroupMemberRoles,
     GroupRequestStatuses,
     Categories,
+    Cities,
     Content,
     ErrorCodes,
     FilePaths,

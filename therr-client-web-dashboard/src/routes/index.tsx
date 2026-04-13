@@ -26,6 +26,9 @@ import OAuth2Landing from './OAuth2Landing';
 import PaymentComplete from './PaymentComplete';
 import CampaignPerformance from './Campaigns/CampaignPerformance';
 import EmailPreferences from './EmailPreferences';
+import SSOLanding from './SSOLanding';
+import ManageRewards from './ManageRewards';
+import CreateEditReward from './ManageRewards/CreateEditReward';
 
 export type IRoute = RouteObject & {
     access?: IAccess;
@@ -267,6 +270,28 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/rewards',
+        element: <AuthRoute
+            component={ManageRewards}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/rewards/spaces/:spaceId',
+        element: <AuthRoute
+            component={CreateEditReward}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
         path: '/settings',
         element: <AuthRoute
             component={Settings}
@@ -280,6 +305,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/oauth2/facebook-instagram',
         element: <OAuth2Landing />,
+    },
+    {
+        path: '/sso',
+        element: <SSOLanding />,
     },
     {
         path: '/login',

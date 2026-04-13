@@ -416,7 +416,9 @@ mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';
 
 mapsServiceRouter.get('/mapbox/search', placesApiLimiter, async (req, res) => {
-    const { q, latitude, longitude, limit: resultLimit, language, sessionToken } = req.query;
+    const {
+        q, latitude, longitude, limit: resultLimit, language, sessionToken,
+    } = req.query;
 
     if (!q || typeof q !== 'string' || !q.trim()) {
         return res.status(400).json({ message: 'Query parameter "q" is required' });
@@ -427,7 +429,7 @@ mapsServiceRouter.get('/mapbox/search', placesApiLimiter, async (req, res) => {
     }
 
     const cacheKey = crypto.createHash('sha256').update(
-        `mapbox:${q.trim().toLowerCase()}:${latitude}:${longitude}:${language || 'en'}`
+        `mapbox:${q.trim().toLowerCase()}:${latitude}:${longitude}:${language || 'en'}`,
     ).digest('hex');
     const cached = await CacheStore.mapsService.getPlacesResponse(cacheKey);
 
@@ -501,7 +503,7 @@ mapsServiceRouter.get('/mapbox/retrieve/:mapboxId', placesApiLimiter, async (req
 
         const response = await axios.get(
             `https://api.mapbox.com/search/searchbox/v1/retrieve/${encodeURIComponent(mapboxId)}`,
-            { params, timeout: 5000 }
+            { params, timeout: 5000 },
         );
 
         const data = response.data;

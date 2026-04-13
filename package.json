@@ -69,6 +69,7 @@
     "@babel/core": "^7.28.0",
     "@babel/eslint-parser": "^7.28.0",
     "@babel/preset-env": "^7.28.0",
+    "@babel/preset-typescript": "^7.28.5",
     "@babel/register": "^7.28.0",
     "@babel/runtime": "^7.28.0",
     "@cfaester/enzyme-adapter-react-18": "^0.8.0",
@@ -100,6 +101,7 @@
     "@types/mocha": "^10.0.10",
     "@types/pg": "^8.16.0",
     "@types/prop-types": "^15.7.15",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.27",
     "@types/react-dom": "^18.3.7",
     "@types/react-router-dom": "^5.3.3",
@@ -313,6 +315,7 @@
     "postcss-preset-mantine": "^1.18.0",
 >>>>>>> origin/general
     "prop-types": "^15.8.1",
+    "qrcode": "^1.5.4",
     "qs": "^6.11.0",
     "randomcolor": "^0.6.2",
     "rate-limit-redis": "^3.0.0",
@@ -345,6 +348,7 @@
     "react-transition-group": "^4.4.5",
     "redux": "^5.0.1",
     "redux-logger": "^3.0.6",
+    "redux-persist": "^6.0.0",
     "redux-socket.io": "^1.4.0",
     "sass": "^1.83.0",
 >>>>>>> origin/general
