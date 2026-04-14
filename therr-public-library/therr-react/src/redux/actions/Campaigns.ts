@@ -13,6 +13,7 @@ const Campaigns = {
         return response?.data;
     }).catch((err) => { console.log(err); throw err; }),
     get: (id: string) => (dispatch: any) => CampaignsService.get(id).then((response: any) => {
+        if (response?.isOfflineFallback) return;
         dispatch({
             type: CampaignActionTypes.GET_CAMPAIGN,
             data: response.data,
@@ -22,6 +23,7 @@ const Campaigns = {
     }).catch((err) => { console.log(err); throw err; }),
     searchMyCampaigns: (query: ISearchQuery, data: any = {}) => (dispatch: any) => CampaignsService.searchMyCampaigns(query, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: CampaignActionTypes.SEARCH_MY_CAMPAIGNS,
                 data: response?.data,

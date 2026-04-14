@@ -36,6 +36,7 @@ import SpaceRating from '../../components/Input/SpaceRating';
 import { buildSpaceUrl } from '../../utilities/shareUrls';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
+import { SheetManager } from 'react-native-actions-sheet';
 
 
 const envConfig = getConfig();
@@ -165,6 +166,29 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         updateAreaReaction(area.id, {
             userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
         }, area.fromUserId, user?.details?.userName);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Lists support spaces only for now. For other content types, long press
+        // behaves like a normal tap (legacy single-tap toggle). Detect spaces via
+        // the explicit areaType flag when available, otherwise fall back to
+        // space-only fields on the area object — moments/events/thoughts don't
+        // set `category` or `addressReadable`, so either is a reliable signal.
+        const isSpace = area?.areaType === 'spaces'
+            || !!area?.isSpace
+            || typeof area?.category === 'string'
+            || typeof area?.addressReadable === 'string';
+        if (!isSpace) {
+            return this.onBookmarkPress(area);
+        }
+        SheetManager.show('list-picker-sheet', {
+            payload: {
+                spaceId: area.id,
+                translate: this.props.translate as any,
+                themeForms: this.props.themeForms,
+            },
+        });
+        return undefined;
     };
 
     onLikePress = (area) => {
@@ -610,6 +634,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     />
                                 }
                                 onPress={() => this.onBookmarkPress(area)}
+                                onLongPress={() => this.onBookmarkLongPress(area)}
                                 type="clear"
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
@@ -897,6 +922,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 />
                             }
                             onPress={() => this.onBookmarkPress(area)}
+                            onLongPress={() => this.onBookmarkLongPress(area)}
                             type="clear"
                             TouchableComponent={TouchableWithoutFeedbackComponent}
                         />

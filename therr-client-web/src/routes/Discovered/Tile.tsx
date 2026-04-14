@@ -15,6 +15,7 @@ import {
 import { InlineSvg } from 'therr-react/components';
 import getUserContentUri from '../../utilities/getUserContentUri';
 import useTranslation from '../../hooks/useTranslation';
+import ListPickerPopover from '../Bookmarks/ListPickerPopover';
 
 interface ITileProps {
     area: any;
@@ -151,19 +152,36 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
                             />
                         </ActionIcon>
                     </Tooltip>
-                    <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
-                        <ActionIcon
-                            variant="subtle"
-                            size="sm"
-                            onClick={onBookmarkPress}
-                            color={isBookmarked ? 'dark' : 'gray'}
-                        >
-                            <InlineSvg
-                                name={isBookmarked ? 'bookmark' : 'bookmark-border'}
-                                className={`discovered-tile-icon ${isBookmarked ? 'discovered-tile-icon-bookmarked' : ''}`}
-                            />
-                        </ActionIcon>
-                    </Tooltip>
+                    {isSpace ? (
+                        <Tooltip label={isBookmarked ? translate('components.tile.saveToList') : translate('components.tile.saveToList')}>
+                            <ListPickerPopover spaceId={area.id}>
+                                <ActionIcon
+                                    variant="subtle"
+                                    size="sm"
+                                    color={isBookmarked ? 'dark' : 'gray'}
+                                >
+                                    <InlineSvg
+                                        name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                        className={`discovered-tile-icon ${isBookmarked ? 'discovered-tile-icon-bookmarked' : ''}`}
+                                    />
+                                </ActionIcon>
+                            </ListPickerPopover>
+                        </Tooltip>
+                    ) : (
+                        <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
+                            <ActionIcon
+                                variant="subtle"
+                                size="sm"
+                                onClick={onBookmarkPress}
+                                color={isBookmarked ? 'dark' : 'gray'}
+                            >
+                                <InlineSvg
+                                    name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                    className={`discovered-tile-icon ${isBookmarked ? 'discovered-tile-icon-bookmarked' : ''}`}
+                                />
+                            </ActionIcon>
+                        </Tooltip>
+                    )}
                 </Group>
             </Card.Section>
         </Card>

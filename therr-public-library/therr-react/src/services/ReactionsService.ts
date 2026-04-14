@@ -402,6 +402,64 @@ class ReactionsService {
             shouldHideMatureContent: !!options.shouldHideMatureContent,
         },
     });
+
+    // User Lists (Google Maps-style bookmark collections)
+    fetchUserLists = (withPreviews = true) => axios({
+        method: 'get',
+        url: `/reactions-service/user-lists${withPreviews ? '?withPreviews=true' : ''}`,
+    });
+
+    fetchUserList = (listId: string, limit = 100, offset = 0) => axios({
+        method: 'get',
+        url: `/reactions-service/user-lists/${listId}?limit=${limit}&offset=${offset}`,
+    });
+
+    createUserList = (data: {
+        name: string;
+        description?: string;
+        iconName?: string;
+        colorHex?: string;
+        isPublic?: boolean;
+        isDefault?: boolean;
+    }) => axios({
+        method: 'post',
+        url: '/reactions-service/user-lists',
+        data,
+    });
+
+    updateUserList = (listId: string, data: Partial<{
+        name: string;
+        description: string;
+        iconName: string;
+        colorHex: string;
+        isPublic: boolean;
+        isDefault: boolean;
+    }>) => axios({
+        method: 'patch',
+        url: `/reactions-service/user-lists/${listId}`,
+        data,
+    });
+
+    deleteUserList = (listId: string) => axios({
+        method: 'delete',
+        url: `/reactions-service/user-lists/${listId}`,
+    });
+
+    addSpaceToList = (listId: string, spaceId: string) => axios({
+        method: 'post',
+        url: `/reactions-service/user-lists/${listId}/spaces`,
+        data: { spaceId },
+    });
+
+    removeSpaceFromList = (listId: string, spaceId: string) => axios({
+        method: 'delete',
+        url: `/reactions-service/user-lists/${listId}/spaces/${spaceId}`,
+    });
+
+    getListsForSpace = (spaceId: string) => axios({
+        method: 'get',
+        url: `/reactions-service/user-lists/for-space/${spaceId}`,
+    });
 }
 
 export default new ReactionsService();

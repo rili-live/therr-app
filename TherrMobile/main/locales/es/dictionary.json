@@ -1672,6 +1672,26 @@
         "view": "Ver",
         "edit": "Editar"
       }
+    },
+    "bookmarks": {
+      "lists": {
+        "title": "Mis listas",
+        "addToList": "Guardar en lista",
+        "newList": "+ Nueva lista",
+        "newListPlaceholder": "Nombre de la lista",
+        "createList": "Crear",
+        "cancel": "Cancelar",
+        "default": "Guardados",
+        "itemCount": "{count} guardados",
+        "emptyState": "Aún no tienes listas. Guarda un espacio para crear tu primera lista.",
+        "emptyList": "Esta lista está vacía. Abre un espacio y mantén presionado el marcador para agregarlo.",
+        "browseSpaces": "Explorar espacios",
+        "noListsYet": "Aún no hay listas",
+        "deleteList": "Eliminar lista",
+        "deleteConfirm": "¿Eliminar esta lista? Los espacios guardados serán removidos.",
+        "loading": "Cargando lista...",
+        "done": "Listo"
+      }
     }
   },
   "modals": {
