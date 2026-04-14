@@ -5,9 +5,52 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
+import { ensureDefaultList } from './userLists';
 // import * as globalConfig from '../../../../global-config';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
+
+// Sync the userListItems junction table with a legacy single-tap bookmark toggle.
+// This keeps the new Lists feature consistent with the old userBookmarkCategory flow.
+const syncListMembershipForBookmarkToggle = async (
+    userId: string,
+    spaceId: string,
+    incomingBody: any,
+    previousCategory: string | null | undefined,
+) => {
+    // Bail if the request didn't touch the bookmark field at all — we only care about toggles.
+    if (!Object.prototype.hasOwnProperty.call(incomingBody, 'userBookmarkCategory')) {
+        return;
+    }
+
+    const next = incomingBody.userBookmarkCategory;
+    const hadBookmark = !!previousCategory;
+    const hasBookmark = next !== null && next !== undefined && String(next).trim() !== '';
+
+    if (hasBookmark && !hadBookmark) {
+        // Newly bookmarked — ensure it's in the default "Saved" list
+        const defaultList = await ensureDefaultList(userId);
+        const added = await Store.userListItems.add({
+            listId: defaultList.id,
+            contentId: spaceId,
+            contentType: 'space',
+        });
+        if (added) {
+            await Store.userLists.incrementItemCount(defaultList.id, 1);
+        }
+    } else if (!hasBookmark && hadBookmark) {
+        // Un-bookmarked — remove from ALL of the user's lists
+        const removed = await Store.userListItems.removeAllForContent(userId, spaceId, 'space');
+        // Decrement counts per affected list
+        const byList: Record<string, number> = {};
+        (removed || []).forEach((r: any) => {
+            byList[r.listId] = (byList[r.listId] || 0) + 1;
+        });
+        await Promise.all(
+            Object.entries(byList).map(([listId, n]) => Store.userLists.incrementItemCount(listId, -n)),
+        );
+    }
+};
 
 // CREATE/UPDATE
 const createOrUpdateSpaceReaction = (req, res) => {
@@ -34,10 +77,23 @@ const createOrUpdateSpaceReaction = (req, res) => {
                 userLocale: locale,
                 userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
             })
-                .then(([spaceReaction]) => {
+                .then(async ([spaceReaction]) => {
                     const space = existing[0];
                     if (userId !== space.fromUserId && spaceReaction.rating > 3) {
                         incrementInterestEngagement(space.interestsKeys, 3, req.headers);
+                    }
+                    // Keep the lists junction table in sync when the bookmark category changes.
+                    // Best-effort — failures here should not block the response.
+                    try {
+                        await syncListMembershipForBookmarkToggle(
+                            userId,
+                            req.params.spaceId,
+                            req.body,
+                            existing[0].userBookmarkCategory,
+                        );
+                    } catch (e) {
+                        // eslint-disable-next-line no-console
+                        console.warn('Failed to sync list membership on bookmark toggle:', e);
                     }
                     return res.status(200).send(spaceReaction);
                 });
@@ -48,7 +104,20 @@ const createOrUpdateSpaceReaction = (req, res) => {
             spaceId: req.params.spaceId,
             ...req.body,
             userLocale: locale,
-        }).then(([reaction]) => res.status(200).send(reaction));
+        }).then(async ([reaction]) => {
+            try {
+                await syncListMembershipForBookmarkToggle(
+                    userId,
+                    req.params.spaceId,
+                    req.body,
+                    null,
+                );
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.warn('Failed to sync list membership on bookmark create:', e);
+            }
+            return res.status(200).send(reaction);
+        });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
 };
 

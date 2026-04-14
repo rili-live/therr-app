@@ -347,6 +347,95 @@ const Content = {
             });
         })
         .catch((err) => { console.log(err); throw err; }),
+
+    // User Lists (bookmark collections, Google Maps-style)
+    fetchUserLists: (withPreviews = true) => (dispatch: any) => ReactionsService
+        .fetchUserLists(withPreviews)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.FETCH_USER_LISTS,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    fetchUserList: (listId: string, limit = 100, offset = 0) => (dispatch: any) => ReactionsService
+        .fetchUserList(listId, limit, offset)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.FETCH_USER_LIST_DETAILS,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    createUserList: (params: {
+        name: string;
+        description?: string;
+        iconName?: string;
+        colorHex?: string;
+        isPublic?: boolean;
+    }) => (dispatch: any) => ReactionsService
+        .createUserList(params)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.CREATE_USER_LIST,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    updateUserList: (listId: string, params: Partial<{
+        name: string;
+        description: string;
+        iconName: string;
+        colorHex: string;
+        isPublic: boolean;
+        isDefault: boolean;
+    }>) => (dispatch: any) => ReactionsService
+        .updateUserList(listId, params)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_USER_LIST,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    deleteUserList: (listId: string) => (dispatch: any) => ReactionsService
+        .deleteUserList(listId)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.DELETE_USER_LIST,
+                data: { id: listId, ...(response?.data || {}) },
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    addSpaceToList: (listId: string, spaceId: string) => (dispatch: any) => ReactionsService
+        .addSpaceToList(listId, spaceId)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_USER_LIST_MEMBERSHIP,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    removeSpaceFromList: (listId: string, spaceId: string) => (dispatch: any) => ReactionsService
+        .removeSpaceFromList(listId, spaceId)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_USER_LIST_MEMBERSHIP,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    getListsForSpace: (spaceId: string) => () => ReactionsService
+        .getListsForSpace(spaceId)
+        .then((response: any) => response?.data)
+        .catch((err) => { console.log(err); throw err; }),
 };
 
 export default Content;

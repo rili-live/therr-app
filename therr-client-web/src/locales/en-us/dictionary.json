@@ -45,7 +45,8 @@
   },
   "components": {
     "tile": {
-      "untitled": "Untitled"
+      "untitled": "Untitled",
+      "saveToList": "Save to list"
     },
     "layout": {
       "floatingButton": {
@@ -294,6 +295,29 @@
         "moments": "Moments",
         "spaces": "Spaces",
         "thoughts": "Thoughts"
+      },
+      "tabs": {
+        "lists": "Lists",
+        "moments": "Moments",
+        "thoughts": "Thoughts"
+      },
+      "lists": {
+        "title": "My Lists",
+        "addToList": "Save to list",
+        "newList": "+ New list",
+        "newListPlaceholder": "List name",
+        "createList": "Create",
+        "cancel": "Cancel",
+        "default": "Saved",
+        "itemCount": "{count} saved",
+        "emptyState": "You don't have any lists yet. Save a space to create your first list.",
+        "emptyList": "This list is empty. Open a space and add it to get started.",
+        "browseSpaces": "Browse spaces",
+        "noListsYet": "No lists yet",
+        "deleteList": "Delete list",
+        "deleteConfirm": "Delete this list? Saved spaces will be removed from it.",
+        "loading": "Loading list...",
+        "back": "Back"
       }
     },
     "discovered": {
@@ -848,7 +872,8 @@
         "helpful": "Helpful",
         "notHelpful": "Not helpful",
         "bookmark": "Bookmark",
-        "removeBookmark": "Remove bookmark"
+        "removeBookmark": "Remove bookmark",
+        "saveToList": "Save to list"
       },
       "loginModal": {
         "title": "Sign in required",

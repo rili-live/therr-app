@@ -21,6 +21,9 @@ const initialState: IContentState = {
     myDrafts: [],
     myDraftsPagination: {},
 
+    userLists: [],
+    activeUserList: null,
+
     activeAreasFilters: {
         order: 'DESC',
         contentType: 'all',
@@ -273,6 +276,48 @@ const content = produce((draft: IContentState, action: any) => {
         case MapActionTypes.GET_SPACE_DETAILS:
             draft.media = { ...draft.media, ...action.data.media };
             break;
+        // User Lists
+        case ContentActionTypes.FETCH_USER_LISTS:
+            draft.userLists = action.data.lists || [];
+            break;
+        case ContentActionTypes.FETCH_USER_LIST_DETAILS:
+            draft.activeUserList = action.data.list || null;
+            draft.media = { ...draft.media, ...(action.data.media || {}) };
+            break;
+        case ContentActionTypes.CREATE_USER_LIST:
+            // Prepend newly created list
+            draft.userLists = [action.data, ...draft.userLists.filter((l) => l.id !== action.data.id)];
+            break;
+        case ContentActionTypes.UPDATE_USER_LIST: {
+            const idx = draft.userLists.findIndex((l) => l.id === action.data.id);
+            if (idx !== -1) {
+                draft.userLists[idx] = { ...draft.userLists[idx], ...action.data };
+            }
+            if (draft.activeUserList && draft.activeUserList.id === action.data.id) {
+                draft.activeUserList = { ...draft.activeUserList, ...action.data };
+            }
+            break;
+        }
+        case ContentActionTypes.DELETE_USER_LIST: {
+            draft.userLists = draft.userLists.filter((l) => l.id !== action.data.id);
+            if (draft.activeUserList && draft.activeUserList.id === action.data.id) {
+                draft.activeUserList = null;
+            }
+            break;
+        }
+        case ContentActionTypes.UPDATE_USER_LIST_MEMBERSHIP: {
+            // action.data = { list: {...updated list with new itemCount} }
+            if (action.data?.list) {
+                const idx = draft.userLists.findIndex((l) => l.id === action.data.list.id);
+                if (idx !== -1) {
+                    draft.userLists[idx] = { ...draft.userLists[idx], ...action.data.list };
+                } else {
+                    draft.userLists.unshift(action.data.list);
+                }
+            }
+            break;
+        }
+
         case SocketClientActionTypes.LOGOUT:
             draft.activeMoments = [];
             draft.bookmarkedMoments = [];
@@ -280,6 +325,8 @@ const content = produce((draft: IContentState, action: any) => {
             draft.bookmarkedSpaces = [];
             draft.activeThoughts = [];
             draft.bookmarkedThoughts = [];
+            draft.userLists = [];
+            draft.activeUserList = null;
             break;
         default:
             break;

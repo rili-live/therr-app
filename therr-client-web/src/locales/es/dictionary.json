@@ -45,7 +45,8 @@
   },
   "components": {
     "tile": {
-      "untitled": "Sin título"
+      "untitled": "Sin título",
+      "saveToList": "Guardar en lista"
     },
     "layout": {
       "floatingButton": {
@@ -294,6 +295,29 @@
         "moments": "Momentos",
         "spaces": "Espacios",
         "thoughts": "Pensamientos"
+      },
+      "tabs": {
+        "lists": "Listas",
+        "moments": "Momentos",
+        "thoughts": "Pensamientos"
+      },
+      "lists": {
+        "title": "Mis listas",
+        "addToList": "Guardar en lista",
+        "newList": "+ Nueva lista",
+        "newListPlaceholder": "Nombre de la lista",
+        "createList": "Crear",
+        "cancel": "Cancelar",
+        "default": "Guardados",
+        "itemCount": "{count} guardados",
+        "emptyState": "Aún no tienes listas. Guarda un espacio para crear tu primera lista.",
+        "emptyList": "Esta lista está vacía. Abre un espacio y agrégalo para comenzar.",
+        "browseSpaces": "Explorar espacios",
+        "noListsYet": "Aún no hay listas",
+        "deleteList": "Eliminar lista",
+        "deleteConfirm": "¿Eliminar esta lista? Los espacios guardados serán removidos.",
+        "loading": "Cargando lista...",
+        "back": "Atrás"
       }
     },
     "discovered": {
@@ -848,7 +872,8 @@
         "helpful": "Útil",
         "notHelpful": "No útil",
         "bookmark": "Guardar",
-        "removeBookmark": "Quitar guardado"
+        "removeBookmark": "Quitar guardado",
+        "saveToList": "Guardar en lista"
       },
       "loginModal": {
         "title": "Inicio de sesión requerido",

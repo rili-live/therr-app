@@ -45,7 +45,8 @@
   },
   "components": {
     "tile": {
-      "untitled": "Sans titre"
+      "untitled": "Sans titre",
+      "saveToList": "Enregistrer dans une liste"
     },
     "layout": {
       "floatingButton": {
@@ -294,6 +295,29 @@
         "moments": "Moments",
         "spaces": "Espaces",
         "thoughts": "Pensées"
+      },
+      "tabs": {
+        "lists": "Listes",
+        "moments": "Moments",
+        "thoughts": "Pensées"
+      },
+      "lists": {
+        "title": "Mes listes",
+        "addToList": "Enregistrer dans une liste",
+        "newList": "+ Nouvelle liste",
+        "newListPlaceholder": "Nom de la liste",
+        "createList": "Créer",
+        "cancel": "Annuler",
+        "default": "Enregistrés",
+        "itemCount": "{count} enregistrés",
+        "emptyState": "Vous n'avez pas encore de listes. Enregistrez un espace pour créer votre première liste.",
+        "emptyList": "Cette liste est vide. Ouvrez un espace et ajoutez-le pour commencer.",
+        "browseSpaces": "Parcourir les espaces",
+        "noListsYet": "Aucune liste pour l'instant",
+        "deleteList": "Supprimer la liste",
+        "deleteConfirm": "Supprimer cette liste? Les espaces enregistrés en seront retirés.",
+        "loading": "Chargement de la liste...",
+        "back": "Retour"
       }
     },
     "discovered": {
@@ -804,7 +828,8 @@
         "helpful": "Utile",
         "notHelpful": "Pas utile",
         "bookmark": "Enregistrer",
-        "removeBookmark": "Retirer le signet"
+        "removeBookmark": "Retirer le signet",
+        "saveToList": "Enregistrer dans une liste"
       },
       "loginModal": {
         "title": "Connexion requise",
