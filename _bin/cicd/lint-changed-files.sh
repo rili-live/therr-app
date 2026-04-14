@@ -7,6 +7,11 @@ set -e
 
 source ./_bin/lib/colorize.sh
 
+# Locale dictionary parity check — zero-dep Node script, runs before `npm ci`
+# so it fails fast on translation drift without waiting for dependency install.
+printMessageNeutral "=== Locale dictionary parity check ==="
+node scripts/locale-check/index.js
+
 # Fetch general branch for comparison
 git fetch origin general
 
