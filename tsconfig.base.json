@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "__comment": "Shared TypeScript compiler options. Contains ONLY options that are already identical across every package in the monorepo today, so adopting this base cannot change any package's effective config. Options that legitimately vary per package (target, module, jsx, paths, baseUrl, rootDir, typeRoots, outDir, declaration, strict, inlineSourceMap) are intentionally omitted — set them in each package's tsconfig.json or in a derived preset like tsconfig.service.json.",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "pretty": true,
+    "moduleResolution": "node",
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitUseStrict": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false
+  }
+}

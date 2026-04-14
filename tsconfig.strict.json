@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "__comment": "Progressive strictness target. Not adopted by any package yet — this file exists so that follow-up PRs can migrate packages one at a time by changing a single `extends` line (e.g. from `../../tsconfig.service.json` to `../../tsconfig.strict.json`). Each migration should be scoped to one package, track remaining violations via `// @ts-expect-error TODO(strict-migration): ...` comments, and aim to drive that grep count to zero. Do NOT flip a shared library (`therr-public-library/therr-js-utilities`, `therr-public-library/therr-react`) first — stricter types there cascade as `.d.ts` breakage to every consumer.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "useUnknownInCatchVariables": true
+  }
+}
