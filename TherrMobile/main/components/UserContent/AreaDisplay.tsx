@@ -170,8 +170,14 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
     onBookmarkLongPress = (area) => {
         // Lists support spaces only for now. For other content types, long press
-        // behaves like a normal tap (legacy single-tap toggle).
-        const isSpace = area?.areaType === 'spaces' || !!area?.isSpace;
+        // behaves like a normal tap (legacy single-tap toggle). Detect spaces via
+        // the explicit areaType flag when available, otherwise fall back to
+        // space-only fields on the area object — moments/events/thoughts don't
+        // set `category` or `addressReadable`, so either is a reliable signal.
+        const isSpace = area?.areaType === 'spaces'
+            || !!area?.isSpace
+            || typeof area?.category === 'string'
+            || typeof area?.addressReadable === 'string';
         if (!isSpace) {
             return this.onBookmarkPress(area);
         }

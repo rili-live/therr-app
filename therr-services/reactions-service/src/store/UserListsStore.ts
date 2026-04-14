@@ -79,6 +79,17 @@ export default class UserListsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows[0]);
     }
 
+    findByUserAndName(userId: string, name: string) {
+        // Case-insensitive match against the unique index on (userId, LOWER(name))
+        const queryString = knexBuilder.select('*')
+            .from(USER_LISTS_TABLE_NAME)
+            .where({ userId })
+            .whereRaw('LOWER(name) = LOWER(?)', [name])
+            .limit(1);
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows[0]);
+    }
+
     create(params: ICreateUserListParams) {
         const queryString = knexBuilder(USER_LISTS_TABLE_NAME)
             .insert({

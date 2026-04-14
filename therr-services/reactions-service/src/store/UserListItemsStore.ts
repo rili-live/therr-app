@@ -83,12 +83,18 @@ export default class UserListItemsStore {
     }
 
     getListsForContent(userId: string, contentId: string, contentType: UserListContentType = 'space') {
-        // Returns userLists rows that contain the given content, scoped to a user
+        // Returns userLists rows that contain the given content, scoped to a user.
+        // Ordered so that consumers (e.g. the fallback after deleting a list)
+        // get a deterministic "remaining list" — default first, then most-recent.
         const queryString = knexBuilder
             .select('ul.*')
             .from({ ul: USER_LISTS_TABLE_NAME })
             .innerJoin({ uli: USER_LIST_ITEMS_TABLE_NAME }, 'ul.id', 'uli.listId')
-            .where({ 'ul.userId': userId, 'uli.contentId': contentId, 'uli.contentType': contentType });
+            .where({ 'ul.userId': userId, 'uli.contentId': contentId, 'uli.contentType': contentType })
+            .orderBy([
+                { column: 'ul.isDefault', order: 'desc' },
+                { column: 'uli.addedAt', order: 'desc' },
+            ]);
 
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
@@ -111,8 +117,12 @@ export default class UserListItemsStore {
         if (!listIds?.length) {
             return Promise.resolve([]);
         }
-        // Fetch the most recently added N items per list via a lateral join
-        const queryString = `
+        // Fetch the most recently added N items per list via a lateral join.
+        // Use Knex parameter bindings so listIds can never be SQL-injected,
+        // regardless of where they came from.
+        const limit = Math.max(1, Math.min(perListLimit, 10));
+        const placeholders = listIds.map(() => '?').join(',');
+        const sql = `
             SELECT t.*
             FROM main."userLists" ul
             JOIN LATERAL (
@@ -120,11 +130,14 @@ export default class UserListItemsStore {
                 FROM main."userListItems" uli
                 WHERE uli."listId" = ul.id
                 ORDER BY uli."addedAt" DESC
-                LIMIT ${Math.max(1, Math.min(perListLimit, 10))}
+                LIMIT ?
             ) t ON TRUE
-            WHERE ul.id IN (${listIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')})
+            WHERE ul.id IN (${placeholders})
         `;
+        const bindings = [limit, ...listIds];
+        const compiled = knexBuilder.raw(sql, bindings).toSQL();
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        return this.db.read.query(compiled.sql, compiled.bindings as any[])
+            .then((response) => response.rows);
     }
 }

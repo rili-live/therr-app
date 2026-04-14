@@ -18,7 +18,11 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('userLists', (
     table.index(['userId'], 'idx_userlists_userid');
 })
     // Case-insensitive uniqueness on (userId, name)
-    .then(() => knex.raw('CREATE UNIQUE INDEX idx_userlists_userid_name_lower ON main."userLists" ("userId", LOWER(name))'));
+    .then(() => knex.raw('CREATE UNIQUE INDEX idx_userlists_userid_name_lower ON main."userLists" ("userId", LOWER(name))'))
+    // At most one default list per user (enforced at the DB level so that
+    // races and backfill bugs can't produce two defaults for the same user).
+    .then(() => knex.raw('CREATE UNIQUE INDEX idx_userlists_userid_default ON main."userLists" ("userId") WHERE "isDefault" = true'));
 
-exports.down = (knex) => knex.raw('DROP INDEX IF EXISTS main.idx_userlists_userid_name_lower')
+exports.down = (knex) => knex.raw('DROP INDEX IF EXISTS main.idx_userlists_userid_default')
+    .then(() => knex.raw('DROP INDEX IF EXISTS main.idx_userlists_userid_name_lower'))
     .then(() => knex.schema.withSchema('main').dropTable('userLists'));

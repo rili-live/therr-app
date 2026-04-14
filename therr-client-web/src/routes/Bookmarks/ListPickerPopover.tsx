@@ -26,7 +26,9 @@ interface IListPickerPopoverProps {
 
 // A small popover that lets the user toggle a space in/out of their lists.
 // Multi-select (a space can be in multiple lists, Google Maps-style).
-const ListPickerPopover: React.FC<IListPickerPopoverProps> = ({ spaceId, children, onChange }) => {
+// forwardRef so wrapping parents (e.g. Mantine `Tooltip`) can attach a ref
+// to the trigger element without triggering React's function-component-ref warning.
+const ListPickerPopover = React.forwardRef<HTMLElement, IListPickerPopoverProps>(({ spaceId, children, onChange }, forwardedRef) => {
     const { t: translate } = useTranslation();
     const dispatch = useDispatch();
     const userLists = useSelector((state: any) => state.content?.userLists || []);
@@ -105,8 +107,11 @@ const ListPickerPopover: React.FC<IListPickerPopoverProps> = ({ spaceId, childre
         return copy;
     }, [userLists]);
 
-    // The trigger is whatever the caller passed in. We clone it to inject onClick.
+    // The trigger is whatever the caller passed in. We clone it to inject onClick
+    // and forward any external ref (e.g. from a wrapping Mantine Tooltip) onto
+    // the cloned child so positioning and hover behavior work correctly.
     const trigger = React.cloneElement(children, {
+        ref: forwardedRef,
         onClick: (e: any) => {
             if (children.props.onClick) children.props.onClick(e);
             setOpened((o) => !o);
@@ -192,6 +197,8 @@ const ListPickerPopover: React.FC<IListPickerPopoverProps> = ({ spaceId, childre
             </Popover.Dropdown>
         </Popover>
     );
-};
+});
+
+ListPickerPopover.displayName = 'ListPickerPopover';
 
 export default ListPickerPopover;

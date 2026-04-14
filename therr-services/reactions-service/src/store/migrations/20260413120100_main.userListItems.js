@@ -15,26 +15,49 @@ exports.up = async (knex) => {
         table.foreign('listId').references('id').inTable('main.userLists').onDelete('CASCADE');
     });
 
-    // 2) Backfill userLists from existing spaceReactions.userBookmarkCategory
-    //    One list per (userId, userBookmarkCategory)
+    // 2) Backfill userLists from existing spaceReactions.userBookmarkCategory.
+    //    One list per (userId, userBookmarkCategory). We insert every one with
+    //    isDefault=false here; step 3 promotes exactly one list per user to
+    //    default, respecting the partial unique index on (userId) WHERE isDefault=true.
     await knex.raw(`
         INSERT INTO main."userLists" ("userId", "name", "isDefault", "itemCount", "createdAt", "updatedAt")
         SELECT sr."userId",
                COALESCE(NULLIF(TRIM(sr."userBookmarkCategory"), ''), 'Saved') AS name,
-               CASE WHEN LOWER(COALESCE(sr."userBookmarkCategory", '')) IN ('uncategorized', 'saved') THEN true ELSE false END AS "isDefault",
+               false AS "isDefault",
                COUNT(*) AS "itemCount",
                NOW(),
                NOW()
         FROM main."spaceReactions" sr
         WHERE sr."userBookmarkCategory" IS NOT NULL
-        GROUP BY sr."userId", COALESCE(NULLIF(TRIM(sr."userBookmarkCategory"), ''), 'Saved'),
-                 CASE WHEN LOWER(COALESCE(sr."userBookmarkCategory", '')) IN ('uncategorized', 'saved') THEN true ELSE false END
+        GROUP BY sr."userId", COALESCE(NULLIF(TRIM(sr."userBookmarkCategory"), ''), 'Saved')
         ON CONFLICT DO NOTHING
     `);
 
-    // 3) Ensure every user with bookmarks has a default "Saved" list.
-    //    If they already have a list derived from 'Uncategorized', mark it as default
-    //    (handled above). If they only have custom categories, create a "Saved" list.
+    // 3a) For each user with existing bookmarks, promote exactly one list to
+    //     default, preferring 'Uncategorized' > 'Saved' > any other name.
+    await knex.raw(`
+        WITH candidates AS (
+            SELECT ul.id,
+                   ul."userId",
+                   ROW_NUMBER() OVER (
+                       PARTITION BY ul."userId"
+                       ORDER BY CASE LOWER(ul.name)
+                                    WHEN 'uncategorized' THEN 1
+                                    WHEN 'saved' THEN 2
+                                    ELSE 3
+                                END,
+                                ul."createdAt" ASC
+                   ) AS rank
+            FROM main."userLists" ul
+        )
+        UPDATE main."userLists" ul
+        SET "isDefault" = true, "updatedAt" = NOW()
+        FROM candidates c
+        WHERE c.id = ul.id AND c.rank = 1
+    `);
+
+    // 3b) Any user with bookmarks but no lists (e.g., if every category was
+    //     empty/whitespace which got normalized) gets a fresh "Saved" default.
     await knex.raw(`
         INSERT INTO main."userLists" ("userId", "name", "isDefault", "itemCount", "createdAt", "updatedAt")
         SELECT DISTINCT sr."userId", 'Saved', true, 0, NOW(), NOW()

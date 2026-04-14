@@ -5,17 +5,34 @@ import Store from '../store';
 import * as globalConfig from '../../../../global-config';
 
 const DEFAULT_LIST_NAME = 'Saved';
+const UNIQUE_VIOLATION = '23505';
 
+// Race-safe: two concurrent first-bookmarks from the same user would each see no
+// default list and try to create one. One wins; the other hits the unique index
+// (either the (userId, LOWER(name)) index or the partial (userId) WHERE isDefault
+// index). On conflict we re-read and return whichever list exists.
 const ensureDefaultList = async (userId: string) => {
-    let defaultList = await Store.userLists.findDefaultForUser(userId);
-    if (!defaultList) {
-        defaultList = await Store.userLists.create({
+    const existing = await Store.userLists.findDefaultForUser(userId);
+    if (existing) return existing;
+
+    try {
+        return await Store.userLists.create({
             userId,
             name: DEFAULT_LIST_NAME,
             isDefault: true,
         });
+    } catch (err: any) {
+        if (err?.code === UNIQUE_VIOLATION) {
+            // Someone else created it (or a list with the same name). Return
+            // whichever is actually the user's default; fall back to the "Saved"
+            // list if a default exists under a different name.
+            const raceDefault = await Store.userLists.findDefaultForUser(userId);
+            if (raceDefault) return raceDefault;
+            const byName = await Store.userLists.findByUserAndName(userId, DEFAULT_LIST_NAME);
+            if (byName) return byName;
+        }
+        throw err;
     }
-    return defaultList;
 };
 
 // Create a new list
@@ -211,10 +228,11 @@ const updateUserList = async (req, res) => {
             const items = await Store.userListItems.getByList(listId, { limit: 1000, offset: 0 });
             const spaceIds = items.filter((i) => i.contentType === 'space').map((i) => i.contentId);
             if (spaceIds.length) {
+                // whereInArray expects one tuple per row for tuple-style WHERE (col) IN ((v1),(v2))
                 await Store.spaceReactions.update(
                     { userId },
                     { userBookmarkCategory: updates.name } as any,
-                    { columns: ['spaceId'], whereInArray: [spaceIds] as any },
+                    { columns: ['spaceId'], whereInArray: spaceIds.map((id) => [id]) as any },
                 );
             }
         }
@@ -299,13 +317,8 @@ const addSpaceToList = async (req, res) => {
             return handleHttpError({ res, message: 'List not found', statusCode: 404 });
         }
 
-        const item = await Store.userListItems.add({
-            listId,
-            contentId: spaceId,
-            contentType: 'space',
-        });
-
-        // Upsert the spaceReactions row so legacy read paths still flag this space as bookmarked
+        // Upsert the spaceReactions row FIRST so legacy read paths are consistent
+        // even if a subsequent step fails. If this throws, no list state changed.
         const existing = await Store.spaceReactions.get({ userId, spaceId });
         if (existing?.length) {
             await Store.spaceReactions.update(
@@ -319,6 +332,15 @@ const addSpaceToList = async (req, res) => {
                 userBookmarkCategory: list.name,
             } as any);
         }
+
+        // Then insert the junction row and bump itemCount together. If the
+        // junction insert fails, the reaction still reflects a bookmarked state
+        // (user sees the icon filled); a retry will land it in the list.
+        const item = await Store.userListItems.add({
+            listId,
+            contentId: spaceId,
+            contentType: 'space',
+        });
 
         if (item) {
             // Only bump count if a new row was actually inserted (onConflict ignore returns undefined)
