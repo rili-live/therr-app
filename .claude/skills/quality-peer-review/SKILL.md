@@ -273,6 +273,24 @@ git diff --name-only origin/stage 2>&1
 
 Add any files you modified in Step 4 that aren't already in that list. Also check `git status --short` for staged-but-not-committed files that may not appear in the diff output.
 
+### Rebuild shared libraries first
+
+Dependent packages (`therr-client-web`, `therr-client-web-dashboard`, `TherrMobile`, every service) consume the **compiled `lib/`** output of `therr-react` and `therr-js-utilities`, not the TypeScript sources. If those libraries were modified in this diff but not rebuilt, downstream `tsc --noEmit` will fail with stale or missing type errors that look like real bugs (e.g. "Property X is missing on type Y" when the prop was just added).
+
+Before running per-package `tsc`, check the diff for changes under either shared library and rebuild any that were touched:
+
+```bash
+# Run only the libraries that appear in the diff
+(cd therr-public-library/therr-js-utilities && npm run build) 2>&1
+(cd therr-public-library/therr-react && npm run build) 2>&1
+```
+
+Build `therr-js-utilities` first when both changed — `therr-react` consumes it.
+
+If neither shared library was modified, skip this step.
+
+### Lint and type-check
+
 For each affected package, run in parallel:
 
 ```bash
