@@ -124,14 +124,32 @@ class MapsServiceCache {
                 return null;
             });
         }
-        // No locale: clear all locale variants via KEYS scan. Small keyspace and
-        // 15-min TTLs mean occasional SCAN work is acceptable.
-        return this.cache.keys(`${CITY_PULSE_CACHE_PREFIX}${slug}:*`).then((keys) => {
-            if (!keys.length) return 0;
-            return this.cache.del(...keys);
-        }).catch((error) => {
-            console.error('Error invalidating cityPulse cache', error);
-            return null;
+        // No locale: clear all locale variants via non-blocking SCAN. Redis KEYS
+        // blocks the server across the full keyspace; SCAN iterates in cursor
+        // chunks and is safe as the cityPulse keyspace grows.
+        const match = `${CITY_PULSE_CACHE_PREFIX}${slug}:*`;
+        return new Promise<number | null>((resolve) => {
+            const stream = this.cache.scanStream({ match, count: 100 });
+            const collected: string[] = [];
+            stream.on('data', (keys: string[]) => {
+                if (keys?.length) collected.push(...keys);
+            });
+            stream.on('error', (error) => {
+                console.error('Error invalidating cityPulse cache', error);
+                resolve(null);
+            });
+            stream.on('end', () => {
+                if (!collected.length) {
+                    resolve(0);
+                    return;
+                }
+                this.cache.del(...collected)
+                    .then((count) => resolve(count))
+                    .catch((error) => {
+                        console.error('Error invalidating cityPulse cache', error);
+                        resolve(null);
+                    });
+            });
         });
     }
 }

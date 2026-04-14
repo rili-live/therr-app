@@ -1601,7 +1601,15 @@ const renderCityPulseView = (req, res, config, {
         description = `${trendingCount} local spots${eventsFragment} in ${cityDisplayName || 'this city'}. Browse neighborhoods, nearby places, and things to do.`;
     } else if (wikiSummary) {
         const firstSentence = wikiSummary.split(/(?<=[.!?])\s/)[0] || wikiSummary;
-        description = firstSentence.substring(0, 300);
+        if (firstSentence.length <= 300) {
+            description = firstSentence;
+        } else {
+            // Cut to the last whitespace before 300 so SERPs don't show a
+            // mid-word break. Falls back to the hard cut if no space is found.
+            const hardCut = firstSentence.slice(0, 300);
+            const lastSpace = hardCut.lastIndexOf(' ');
+            description = lastSpace > 0 ? `${hardCut.slice(0, lastSpace).trimEnd()}…` : hardCut;
+        }
     } else {
         description = config.head.description
             || `Things to do, places to go, and local highlights in ${cityDisplayName || 'this city'}.`;

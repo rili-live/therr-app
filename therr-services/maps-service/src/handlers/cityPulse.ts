@@ -37,6 +37,35 @@ const haversineKm = (aLat: number, aLng: number, bLat: number, bLng: number): nu
     return 2 * R * Math.asin(Math.sqrt(h));
 };
 
+const NEARBY_RADIUS_KM = 300;
+const NEARBY_CITIES_LIMIT = 3;
+
+type NearbyEntry = { slug: string; name: string; stateAbbr: string; distanceKm: number };
+
+// Precompute nearby cities per slug at module load so each request is an O(1)
+// lookup instead of scanning CitiesList on every /pulse hit.
+const nearbyCitiesAdjacency: Record<string, NearbyEntry[]> = (() => {
+    const map: Record<string, NearbyEntry[]> = {};
+    Cities.CitiesList.forEach((origin) => {
+        const neighbors: NearbyEntry[] = [];
+        Cities.CitiesList.forEach((c) => {
+            if (c.slug === origin.slug) return;
+            const distanceKm = haversineKm(origin.lat, origin.lng, c.lat, c.lng);
+            if (distanceKm <= NEARBY_RADIUS_KM) {
+                neighbors.push({
+                    slug: c.slug,
+                    name: c.name,
+                    stateAbbr: c.stateAbbr,
+                    distanceKm,
+                });
+            }
+        });
+        neighbors.sort((a, b) => a.distanceKm - b.distanceKm);
+        map[origin.slug] = neighbors.slice(0, NEARBY_CITIES_LIMIT);
+    });
+    return map;
+})();
+
 /**
  * GET /cities/:slug/pulse
  */
@@ -166,18 +195,8 @@ const getCityPulse: RequestHandler = async (req: any, res: any) => {
         .map(([categorySlug, count]) => ({ categorySlug, count }))
         .sort((a, b) => b.count - a.count);
 
-    // Nearby cities — pure computation off Cities.CitiesList, no DB round trip.
-    const nearbyCities = Cities.CitiesList
-        .filter((c) => c.slug !== city.slug)
-        .map((c) => ({
-            slug: c.slug,
-            name: c.name,
-            stateAbbr: c.stateAbbr,
-            distanceKm: haversineKm(city.lat, city.lng, c.lat, c.lng),
-        }))
-        .filter((c) => c.distanceKm <= 300)
-        .sort((a, b) => a.distanceKm - b.distanceKm)
-        .slice(0, 3);
+    // Nearby cities — served from the adjacency map computed at module load.
+    const nearbyCities = nearbyCitiesAdjacency[city.slug] || [];
 
     const body = {
         city: {
