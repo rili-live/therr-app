@@ -65,7 +65,8 @@
     "joinedGroup": "Te uniste al grupo",
     "waitlistSuccess": "¡Registro exitoso!",
     "reactionSent": "¡Reacción enviada!",
-    "reactionFailed": "Reacción fallida"
+    "reactionFailed": "Reacción fallida",
+    "mediaUploadFailed": "Error al cargar imagen"
   },
   "alertMessages": {
     "activityCreated": "Se creó un nuevo grupo y evento. Se enviaron invitaciones a cada miembro del grupo.",
@@ -100,7 +101,8 @@
     "newAreasActivated": "Recientemente activaste {total} nuevos momentos/espacios.",
     "draftReminder": "¿Recordaste terminar tu publicación en borrador?",
     "requestClaimSent": "Revisa tu correo electrónico para confirmación y próximos pasos",
-    "waitlistSuccess": "Revisa tu correo electrónico para verificar tu cuenta"
+    "waitlistSuccess": "Revisa tu correo electrónico para verificar tu cuenta",
+    "mediaUploadFailed": "No se pudo cargar tu imagen. Por favor, inténtalo de nuevo."
   },
   "dateTime": {
     "lessThanHours": "< 1h",

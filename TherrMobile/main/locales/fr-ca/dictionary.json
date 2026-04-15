@@ -65,7 +65,8 @@
     "joinedGroup": "Vous avez rejoint le groupe",
     "waitlistSuccess": "Inscription réussie!",
     "reactionSent": "Réaction envoyée!",
-    "reactionFailed": "Échec de la réaction"
+    "reactionFailed": "Échec de la réaction",
+    "mediaUploadFailed": "Échec du téléversement de l'image"
   },
   "alertMessages": {
     "activityCreated": "Un nouveau groupe et événement ont été créés. Des invitations ont été envoyées à chaque membre du groupe.",
@@ -100,7 +101,8 @@
     "newAreasActivated": "Vous avez récemment activé {total} nouveaux moments/espaces.",
     "draftReminder": "Avez-vous pensé à terminer votre brouillon?",
     "requestClaimSent": "Vérifiez votre courriel pour la confirmation et les prochaines étapes",
-    "waitlistSuccess": "Vérifiez votre courriel pour confirmer votre compte"
+    "waitlistSuccess": "Vérifiez votre courriel pour confirmer votre compte",
+    "mediaUploadFailed": "Votre image n'a pas pu être téléversée. Veuillez réessayer."
   },
   "dateTime": {
     "lessThanHours": "< 1h",

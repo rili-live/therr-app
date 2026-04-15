@@ -65,7 +65,8 @@
     "joinedGroup": "You joined the group",
     "waitlistSuccess": "Registration Success!",
     "reactionSent": "Reaction Sent!",
-    "reactionFailed": "Reaction Failed"
+    "reactionFailed": "Reaction Failed",
+    "mediaUploadFailed": "Image Upload Failed"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -100,7 +101,8 @@
     "newAreasActivated": "You recently activated {total} new moments/spaces.",
     "draftReminder": "Did you remember to finish your drafted post?",
     "requestClaimSent": "Check your e-mail for confirmation and next steps",
-    "waitlistSuccess": "Check your e-mail to verify your account"
+    "waitlistSuccess": "Check your e-mail to verify your account",
+    "mediaUploadFailed": "Your image could not be uploaded. Please try again."
   },
   "dateTime": {
     "lessThanHours": "< 1h",

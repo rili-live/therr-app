@@ -373,7 +373,13 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     'Content-Disposition': 'inline',
                 },
                 RNFB.wrap(localFileCroppedPath),
-            ).then(() => createArgs);
+            ).then((uploadResp) => {
+                const status = uploadResp?.info?.().status;
+                if (!status || status < 200 || status >= 300) {
+                    throw new Error(`Image upload failed with status ${status ?? 'unknown'}`);
+                }
+                return createArgs;
+            });
         });
     };
 
@@ -417,7 +423,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             isPublic,
         } = this.state.inputs;
         const {
-            navigation,
             route,
             user,
         } = this.props;
@@ -536,8 +541,13 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     });
             }).catch((err) => {
                 console.log(err);
-                return navigation.navigate('Map', {
-                    shouldShowPreview: false,
+                showToast.error({
+                    text1: this.translate('alertTitles.mediaUploadFailed'),
+                    text2: this.translate('alertMessages.mediaUploadFailed'),
+                });
+                this.setState({
+                    isSubmitting: false,
+                    errorMsg: this.translate('alertMessages.mediaUploadFailed'),
                 });
             });
         }
@@ -1108,66 +1118,66 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                     onHashtagPress={this.handleHashtagPress}
                                     styles={this.themeForms.styles}
                                 />
-                                {
-                                    !isBusinessAccount && <>
-                                        {
-                                            !!imagePreviewPath &&
-                                            <View style={this.themeMoments.styles.mediaContainer}>
-                                                <Image
-                                                    source={{ uri: imagePreviewPath }}
-                                                    style={this.themeMoments.styles.mediaImage}
-                                                />
-                                            </View>
-                                        }
-                                        <Button
-                                            containerStyle={spacingStyles.marginBotMd}
-                                            buttonStyle={this.themeForms.styles.buttonPrimary}
-                                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                            titleStyle={this.themeForms.styles.buttonTitle}
-                                            title={this.translate(
-                                                imagePreviewPath ? 'forms.editSpace.buttons.replaceImage' : 'forms.editSpace.buttons.addImage'
-                                            )}
-                                            icon={
-                                                <TherrIcon
-                                                    name="camera"
-                                                    size={23}
-                                                    style={{ color: this.theme.colors.primary, paddingRight: 8 }}
-                                                />
-                                            }
-                                            onPress={() => SheetManager.show('image-picker-sheet', {
-                                                payload: {
-                                                    galleryText: this.translate('forms.editSpace.buttons.selectExisting'),
-                                                    cameraText: this.translate('forms.editSpace.buttons.captureNew'),
-                                                    themeForms: this.themeForms,
-                                                    onSelect: (source) => this.onAddImage(source),
-                                                },
-                                            })}
-                                            raised={false}
-                                        />
-                                        {
-                                            !!imagePreviewPath &&
-                                            <Button
-                                                containerStyle={spacingStyles.marginBotMd}
-                                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                                titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                                title={this.translate('forms.editSpace.buttons.removeImage')}
-                                                icon={
-                                                    <OctIcon
-                                                        name="x"
-                                                        size={18}
-                                                        style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
-                                                    />
-                                                }
-                                                onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
-                                                raised={false}
-                                            />
-                                        }
-                                    </>
-                                }
                             </>
                         }
                     </View>
+                    {
+                        !isBusinessAccount && <>
+                            {
+                                !!imagePreviewPath &&
+                                <View style={this.themeMoments.styles.mediaContainer}>
+                                    <Image
+                                        source={{ uri: imagePreviewPath }}
+                                        style={this.themeMoments.styles.mediaImage}
+                                    />
+                                </View>
+                            }
+                            <Button
+                                containerStyle={spacingStyles.marginBotMd}
+                                buttonStyle={this.themeForms.styles.buttonPrimary}
+                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                titleStyle={this.themeForms.styles.buttonTitle}
+                                title={this.translate(
+                                    imagePreviewPath ? 'forms.editSpace.buttons.replaceImage' : 'forms.editSpace.buttons.addImage'
+                                )}
+                                icon={
+                                    <TherrIcon
+                                        name="camera"
+                                        size={23}
+                                        style={{ color: this.theme.colors.primary, paddingRight: 8 }}
+                                    />
+                                }
+                                onPress={() => SheetManager.show('image-picker-sheet', {
+                                    payload: {
+                                        galleryText: this.translate('forms.editSpace.buttons.selectExisting'),
+                                        cameraText: this.translate('forms.editSpace.buttons.captureNew'),
+                                        themeForms: this.themeForms,
+                                        onSelect: (source) => this.onAddImage(source),
+                                    },
+                                })}
+                                raised={false}
+                            />
+                            {
+                                !!imagePreviewPath &&
+                                <Button
+                                    containerStyle={spacingStyles.marginBotMd}
+                                    buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate('forms.editSpace.buttons.removeImage')}
+                                    icon={
+                                        <OctIcon
+                                            name="x"
+                                            size={18}
+                                            style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                        />
+                                    }
+                                    onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                                    raised={false}
+                                />
+                            }
+                        </>
+                    }
                     {
                         isBusinessAccount && <View
                             style={this.themeForms.styles.inputSliderContainer}
