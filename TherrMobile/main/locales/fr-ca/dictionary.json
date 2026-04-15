@@ -1665,6 +1665,7 @@
     "manageSpaces": {
       "headerTitle": "Mes Commerces",
       "noSpacesFound": "Aucun espace trouvé. Réclamez un emplacement commercial depuis la Carte pour commencer.",
+      "fetchError": "Impossible de charger vos espaces. Tirez vers le bas pour réessayer.",
       "coinBalanceLabel": "Votre Solde TherrCoins",
       "rewardActive": "Récompenses Actives",
       "rewardInactive": "Aucune Récompense",
