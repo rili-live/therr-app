@@ -160,7 +160,14 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         goToViewMap(area.latitude, area.longitude);
     };
 
-    onBookmarkPress = (area) => {
+    // Lists support spaces only. Moments/events/thoughts don't set `category`
+    // or `addressReadable`, so either field is a reliable space signal.
+    isSpaceArea = (area) => area?.areaType === 'spaces'
+        || !!area?.isSpace
+        || typeof area?.category === 'string'
+        || typeof area?.addressReadable === 'string';
+
+    toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
 
         updateAreaReaction(area.id, {
@@ -168,27 +175,30 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }, area.fromUserId, user?.details?.userName);
     };
 
-    onBookmarkLongPress = (area) => {
-        // Lists support spaces only for now. For other content types, long press
-        // behaves like a normal tap (legacy single-tap toggle). Detect spaces via
-        // the explicit areaType flag when available, otherwise fall back to
-        // space-only fields on the area object — moments/events/thoughts don't
-        // set `category` or `addressReadable`, so either is a reliable signal.
-        const isSpace = area?.areaType === 'spaces'
-            || !!area?.isSpace
-            || typeof area?.category === 'string'
-            || typeof area?.addressReadable === 'string';
-        if (!isSpace) {
-            return this.onBookmarkPress(area);
+    onBookmarkPress = (area) => {
+        // For spaces, open the list picker so users can discover and choose
+        // which list(s) to save to. The picker also handles the bookmark
+        // state via list membership (adding to a list sets userBookmarkCategory
+        // and ensures the "Saved" default list exists on first bookmark).
+        if (this.isSpaceArea(area)) {
+            SheetManager.show('list-picker-sheet', {
+                payload: {
+                    spaceId: area.id,
+                    translate: this.props.translate as any,
+                    themeForms: this.props.themeForms,
+                },
+            });
+            return;
         }
-        SheetManager.show('list-picker-sheet', {
-            payload: {
-                spaceId: area.id,
-                translate: this.props.translate as any,
-                themeForms: this.props.themeForms,
-            },
-        });
-        return undefined;
+
+        this.toggleBookmarkReaction(area);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Power-user shortcut on spaces: long-press toggles bookmark directly
+        // into the default list without opening the picker. For non-spaces,
+        // long-press mirrors tap behavior.
+        this.toggleBookmarkReaction(area);
     };
 
     onLikePress = (area) => {

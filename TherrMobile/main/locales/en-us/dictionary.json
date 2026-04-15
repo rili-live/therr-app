@@ -1665,6 +1665,7 @@
     "manageSpaces": {
       "headerTitle": "My Business Spaces",
       "noSpacesFound": "No spaces found. Claim a business location from the Map to get started.",
+      "fetchError": "Unable to load your spaces. Pull down to try again.",
       "coinBalanceLabel": "Your TherrCoin Balance",
       "rewardActive": "Rewards On",
       "rewardInactive": "No Rewards",

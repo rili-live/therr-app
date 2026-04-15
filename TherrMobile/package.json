@@ -37,6 +37,7 @@
     "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
     "postinstall": "patch-package",
     "app:uninstall": "adb uninstall app.therrmobile",
+    "android:reset": "adb uninstall app.therrmobile || true; adb shell pm trim-caches 999999999999 || true; export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
     "troubleshoot:android:stopGradle": "pushd android; ./gradlew --stop; popd",
     "troubleshoot:android:clean": "npm run android:clean"
   },
