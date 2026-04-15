@@ -311,6 +311,9 @@
       "coinsLabel": "Coins Earned",
       "shareLink": "Share Your Invite Link"
     },
+    "offlineBanner": {
+      "tooltip": "You are offline. Showing cached data."
+    },
     "header": {
       "buttons": {
         "login": "Login"
