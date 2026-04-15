@@ -311,6 +311,9 @@
       "coinsLabel": "Monedas ganadas",
       "shareLink": "Comparte tu enlace de invitación"
     },
+    "offlineBanner": {
+      "tooltip": "Estás sin conexión. Mostrando datos en caché."
+    },
     "header": {
       "buttons": {
         "login": "Iniciar sesión"

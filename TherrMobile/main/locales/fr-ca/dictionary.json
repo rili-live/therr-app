@@ -311,6 +311,9 @@
       "coinsLabel": "Pièces gagnées",
       "shareLink": "Partager votre lien d'invitation"
     },
+    "offlineBanner": {
+      "tooltip": "Vous êtes hors ligne. Affichage des données en cache."
+    },
     "header": {
       "buttons": {
         "login": "Connexion"
