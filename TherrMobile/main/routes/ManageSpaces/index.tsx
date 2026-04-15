@@ -323,7 +323,7 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
 
                     {isLoading && (
                         <View style={staticStyles.loaderContainer}>
-                            <LottieLoader id="therr-black-rolling" style={this.themeLoader.styles.loader} />
+                            <LottieLoader id="therr-black-rolling" theme={this.themeLoader} />
                         </View>
                     )}
 

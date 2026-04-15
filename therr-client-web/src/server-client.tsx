@@ -1954,7 +1954,11 @@ routeConfig.forEach((config) => {
                 <GoogleOAuthProvider clientId={envVars.googleOAuth2WebClientId}>
                     <MantineProvider theme={mantineTheme} defaultColorScheme={colorScheme}>
                         <Provider store={store}>
-                            <StaticRouter location={req.url} basename={localePrefix || undefined}>
+                            <StaticRouter
+                                location={req.url}
+                                basename={localePrefix || undefined}
+                                future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+                            >
                                 <Layout />
                             </StaticRouter>
                         </Provider>
