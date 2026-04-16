@@ -31,7 +31,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{{description}}">
     <meta name="author" content="Therr">
-    <meta name="keywords" content="therr, therr app, local businesses, business directory, restaurants, bars, events, local community, reviews, nearby places">
 
     <meta property="og:site_name" content="Therr" />
     <meta property="og:type" content="website" />
@@ -89,6 +88,9 @@
     <script type="application/ld+json">{{{searchActionSchema}}}</script>
     {{#if localDirectorySchema}}
     <script type="application/ld+json">{{{localDirectorySchema}}}</script>
+    {{/if}}
+    {{#if faqSchema}}
+    <script type="application/ld+json">{{{faqSchema}}}</script>
     {{/if}}
 </head>
 

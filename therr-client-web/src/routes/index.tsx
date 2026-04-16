@@ -17,6 +17,8 @@ import Home from './Home';
 import ViewSpace from './ViewSpace';
 import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
+import CitiesHub from './CitiesHub';
+import CategoriesHub from './CategoriesHub';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import ViewThought from './ViewThought';
@@ -319,6 +321,14 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             withMedia: true,
             withUser: true,
         })(dispatch),
+    },
+    {
+        path: '/locations/cities',
+        element: <CitiesHub />,
+    },
+    {
+        path: '/locations/categories',
+        element: <CategoriesHub />,
     },
     {
         path: '/locations',

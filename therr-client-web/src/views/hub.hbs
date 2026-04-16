@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>{{title}} | Therr App</title>
+    <title>Therr | {{title}}</title>
     <link rel="canonical" href="https://www.therr.com{{canonicalPath}}" />
     <link rel="alternate" hreflang="en-US" href="https://www.therr.com{{hreflangEn}}" />
     <link rel="alternate" hreflang="es-MX" href="https://www.therr.com{{hreflangEs}}" />
@@ -26,30 +26,21 @@
     <link rel="preload" as="style" href="/app.css" onload="this.onload=null;this.rel='stylesheet'">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{{description}}">
-    <meta name="author" content="{{#if authorName}}{{authorName}}{{else}}Therr{{/if}}">
+    <meta name="author" content="Therr">
 
     <meta property="og:site_name" content="Therr" />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content="website" />
     <meta property="og:locale" content="{{ogLocale}}" />
     <meta property="og:locale:alternate" content="en_US" />
     <meta property="og:locale:alternate" content="es_MX" />
     <meta property="og:locale:alternate" content="fr_CA" />
     <meta property="og:url" content="https://www.therr.com{{canonicalPath}}" />
-    <meta property="og:title" content="{{title}} | Therr App" />
+    <meta property="og:title" content="Therr | {{title}}" />
     <meta property="og:image" content="https://therr.com/assets/images/meta-image-logo.png" />
     <meta property="og:description" content="{{description}}" />
-    {{#if datePublished}}
-    <meta property="article:published_time" content="{{datePublished}}" />
-    {{/if}}
-    {{#if authorName}}
-    <meta property="article:author" content="{{authorName}}" />
-    {{/if}}
-    {{#if thoughtCategory}}
-    <meta property="article:section" content="{{thoughtCategory}}" />
-    {{/if}}
     <meta name="twitter:image" content="https://therr.com/assets/images/meta-image-logo.png" />
-    <meta name="twitter:title" content="{{title}} | Therr App" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Therr | {{title}}" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@therr_app" />
 
     {{#if googleSiteVerification}}<meta name="google-site-verification" content="{{googleSiteVerification}}" />{{/if}}
@@ -81,8 +72,8 @@
         <link rel="stylesheet" href="/app.css">
     </noscript>
 
-    <script type="application/ld+json">{{{thoughtSchema}}}</script>
-    <script type="application/ld+json">{{{breadcrumbSchema}}}</script>
+    {{#if itemListSchema}}<script type="application/ld+json">{{{itemListSchema}}}</script>{{/if}}
+    {{#if breadcrumbSchema}}<script type="application/ld+json">{{{breadcrumbSchema}}}</script>{{/if}}
 </head>
 
 <body>

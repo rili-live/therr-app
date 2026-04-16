@@ -105,6 +105,22 @@ export default [
         view: 'locations',
     },
     {
+        route: '/locations/cities',
+        head: {
+            title: 'Browse Local Businesses by City',
+            description: 'Find businesses, restaurants, bars, and events by city. Browse Therr\'s full list of supported cities across the United States.',
+        },
+        view: 'hub-cities',
+    },
+    {
+        route: '/locations/categories',
+        head: {
+            title: 'Browse Local Businesses by Category',
+            description: 'Find businesses by category — restaurants, bars, shops, hotels, parks, gyms, museums, and more. Browse the full list of categories on Therr.',
+        },
+        view: 'hub-categories',
+    },
+    {
         route: '/app-feedback',
         head: {
             title: 'Share Your Feedback',
