@@ -1188,7 +1188,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             ref={(ref) => { this.scrollViewRef = ref; }}
                             horizontal
                             removeClippedSubviews={false}
-                            scrollEventThrottle={0}
+                            scrollEventThrottle={16}
                             showsHorizontalScrollIndicator={false}
                             snapToInterval={CARD_WIDTH}
                             onScroll={Animated.event(
