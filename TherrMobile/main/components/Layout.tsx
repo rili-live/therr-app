@@ -1413,7 +1413,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
-                key={`${this.props.user?.settings?.mobileThemeName || 'light'}-${this.props.user?.settings?.locale || 'en-us'}`}
+                // Keyed on locale only so theme toggles do not remount the entire nav tree.
+                // Locale change still requires a remount because route translators close over locale at construction.
+                key={this.props.user?.settings?.locale || 'en-us'}
                 theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                 ref={navigationRef}
                 onReady={() => {

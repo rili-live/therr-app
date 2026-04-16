@@ -529,6 +529,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
                         ListFooterComponentStyle={{ marginBottom: 80 }}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.MESSAGES:
@@ -564,6 +567,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             onRefresh={this.handleRefreshDMsSearch}
                         />}
                         onContentSizeChange={this.scrollTop}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.CONNECTIONS:
@@ -599,6 +605,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             onRefresh={this.handleRefreshUserConnections}
                         />}
                         onContentSizeChange={this.scrollTop}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
         }
