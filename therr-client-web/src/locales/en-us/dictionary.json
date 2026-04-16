@@ -45,7 +45,8 @@
   },
   "components": {
     "tile": {
-      "untitled": "Untitled"
+      "untitled": "Untitled",
+      "saveToList": "Save to list"
     },
     "layout": {
       "floatingButton": {
@@ -198,6 +199,26 @@
     }
   },
   "pages": {
+    "cityPulse": {
+      "heroTitle": "{city}",
+      "heroFallback": "Explore {city} — local places, events, and community highlights.",
+      "aboutHeading": "About {city}",
+      "neighborhoodsHeading": "Neighborhoods",
+      "gettingAroundHeading": "Getting Around",
+      "getInSubheading": "Getting There",
+      "getAroundSubheading": "Getting Around Town",
+      "trendingSpacesHeading": "Trending places in {city}",
+      "upcomingEventsHeading": "Upcoming events in {city}",
+      "momentsWallHeading": "Recent moments from {city}",
+      "groupsHeading": "Active groups in {city}",
+      "browseByCategoryHeading": "Browse {city} by category",
+      "nearbyCitiesHeading": "Nearby cities",
+      "ctaHeading": "Get the Therr app for {city}",
+      "ctaBody": "Discover more local spots, share moments with the community, and earn rewards.",
+      "attributionLead": "Some content on this page is sourced from Wikipedia and Wikivoyage, licensed under CC BY-SA 4.0. Excerpts have been summarized and reformatted.",
+      "attributionSource": "Source",
+      "attributionLocaleFallback": "Some content is shown in English because a translation was not available."
+    },
     "childSafety": {
       "pageTitle": "Child Safety Standards",
       "intro": "Therr is committed to the safety and protection of all users, especially children. We maintain a zero-tolerance policy toward child sexual abuse and exploitation (CSAE) on our platform.",
@@ -274,6 +295,29 @@
         "moments": "Moments",
         "spaces": "Spaces",
         "thoughts": "Thoughts"
+      },
+      "tabs": {
+        "lists": "Lists",
+        "moments": "Moments",
+        "thoughts": "Thoughts"
+      },
+      "lists": {
+        "title": "My Lists",
+        "addToList": "Save to list",
+        "newList": "+ New list",
+        "newListPlaceholder": "List name",
+        "createList": "Create",
+        "cancel": "Cancel",
+        "default": "Saved",
+        "itemCount": "{count} saved",
+        "emptyState": "You don't have any lists yet. Save a space to create your first list.",
+        "emptyList": "This list is empty. Open a space and add it to get started.",
+        "browseSpaces": "Browse spaces",
+        "noListsYet": "No lists yet",
+        "deleteList": "Delete list",
+        "deleteConfirm": "Delete this list? Saved spaces will be removed from it.",
+        "loading": "Loading list...",
+        "back": "Back"
       }
     },
     "discovered": {
@@ -867,7 +911,8 @@
         "helpful": "Helpful",
         "notHelpful": "Not helpful",
         "bookmark": "Bookmark",
-        "removeBookmark": "Remove bookmark"
+        "removeBookmark": "Remove bookmark",
+        "saveToList": "Save to list"
       },
       "loginModal": {
         "title": "Sign in required",

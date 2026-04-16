@@ -37,6 +37,7 @@
     "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
     "postinstall": "patch-package",
     "app:uninstall": "adb uninstall app.therrmobile",
+    "android:reset": "adb uninstall app.therrmobile || true; adb shell pm trim-caches 999999999999 || true; export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
     "troubleshoot:android:stopGradle": "pushd android; ./gradlew --stop; popd",
     "troubleshoot:android:clean": "npm run android:clean"
   },
@@ -48,6 +49,7 @@
     "@notifee/react-native": "^7.9.0",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-clipboard/clipboard": "^1.16.3",
+    "@react-native-community/netinfo": "^12.0.1",
     "@react-native-community/slider": "^5.1.2",
     "@react-native-firebase/analytics": "^21.6.1",
     "@react-native-firebase/app": "^21.6.1",
@@ -130,6 +132,7 @@
     "@welldone-software/why-did-you-render": "^7.0.1",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
+    "babel-plugin-transform-remove-console": "^6.9.4",
     "eslint-plugin-jest": "^28.14.0",
     "patch-package": "^6.5.1",
     "react-devtools": "^6.1.1",

@@ -1,14 +1,16 @@
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { NotificationActionTypes } from '../../types/redux/notifications';
 import NotificationsService from '../../services/NotificationsService';
+import { isOfflineError } from '../../utilities/cacheHelpers';
 
 const Notification = {
     search: (query: any) => (dispatch: any) => NotificationsService.search(query).then((response: any) => {
+        if (response?.isOfflineFallback) return;
         dispatch({
             type: NotificationActionTypes.GET_NOTIFICATIONS,
             data: response.data.results,
         });
-    }),
+    }).catch((err) => { if (!isOfflineError(err)) { throw err; } }),
     add: (data: any) => (dispatch: any) => {
         dispatch({
             type: NotificationActionTypes.ADD_NOTIFICATION,

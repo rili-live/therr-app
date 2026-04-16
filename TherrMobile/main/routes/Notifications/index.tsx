@@ -306,6 +306,9 @@ class Notifications extends React.Component<
                             onRefresh={this.handleRefresh}
                         />}
                         style={notificationStyles.container}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 </SafeAreaView>
                 <MainButtonMenu

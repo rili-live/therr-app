@@ -163,10 +163,10 @@ export default [
     {
         route: '/locations/city/:citySlug',
         head: {
-            title: 'Local Business Directory',
-            description: 'Browse local businesses near you. Read reviews, see hours, and get directions.',
+            title: 'City Guide: Local Businesses, Events & Places',
+            description: 'Discover local businesses, events, and things to do. Read neighborhood guides, transit tips, and community highlights.',
         },
-        view: 'locations',
+        view: 'city-pulse',
     },
     {
         route: '/locations/city/:citySlug/:categorySlug',

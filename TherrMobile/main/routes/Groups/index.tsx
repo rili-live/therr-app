@@ -546,6 +546,9 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefreshDiscoverSearch}
                         />}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             }
@@ -596,6 +599,9 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             refreshing={isMyGroupsRefreshing}
                             onRefresh={this.handleRefreshMyGroupsSearch}
                         />}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             }

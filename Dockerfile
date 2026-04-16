@@ -16,7 +16,7 @@ WORKDIR /app
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 COPY ./therr-public-library ./therr-public-library
-COPY ./.babelrc ./
+COPY ./babel.config.json ./
 COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
 RUN \

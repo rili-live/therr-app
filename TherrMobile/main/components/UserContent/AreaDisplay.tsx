@@ -36,6 +36,7 @@ import SpaceRating from '../../components/Input/SpaceRating';
 import { buildSpaceUrl } from '../../utilities/shareUrls';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
+import { SheetManager } from 'react-native-actions-sheet';
 
 
 const envConfig = getConfig();
@@ -159,12 +160,45 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         goToViewMap(area.latitude, area.longitude);
     };
 
-    onBookmarkPress = (area) => {
+    // Lists support spaces only. Moments/events/thoughts don't set `category`
+    // or `addressReadable`, so either field is a reliable space signal.
+    isSpaceArea = (area) => area?.areaType === 'spaces'
+        || !!area?.isSpace
+        || typeof area?.category === 'string'
+        || typeof area?.addressReadable === 'string';
+
+    toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
 
         updateAreaReaction(area.id, {
             userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
         }, area.fromUserId, user?.details?.userName);
+    };
+
+    onBookmarkPress = (area) => {
+        // For spaces, open the list picker so users can discover and choose
+        // which list(s) to save to. The picker also handles the bookmark
+        // state via list membership (adding to a list sets userBookmarkCategory
+        // and ensures the "Saved" default list exists on first bookmark).
+        if (this.isSpaceArea(area)) {
+            SheetManager.show('list-picker-sheet', {
+                payload: {
+                    spaceId: area.id,
+                    translate: this.props.translate as any,
+                    themeForms: this.props.themeForms,
+                },
+            });
+            return;
+        }
+
+        this.toggleBookmarkReaction(area);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Power-user shortcut on spaces: long-press toggles bookmark directly
+        // into the default list without opening the picker. For non-spaces,
+        // long-press mirrors tap behavior.
+        this.toggleBookmarkReaction(area);
     };
 
     onLikePress = (area) => {
@@ -610,6 +644,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     />
                                 }
                                 onPress={() => this.onBookmarkPress(area)}
+                                onLongPress={() => this.onBookmarkLongPress(area)}
                                 type="clear"
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
@@ -897,6 +932,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 />
                             }
                             onPress={() => this.onBookmarkPress(area)}
+                            onLongPress={() => this.onBookmarkLongPress(area)}
                             type="clear"
                             TouchableComponent={TouchableWithoutFeedbackComponent}
                         />

@@ -469,6 +469,8 @@ describe('ViewSpace', () => {
                 user: { isAuthenticated: true, details: { id: 'u1', userName: 'testuser' } },
             });
             (instance as any).state.reviewRating = 5;
+            (instance as any).state.userLatitude = 40.7128;
+            (instance as any).state.userLongitude = -74.0060;
             const setStateSpy = jest.spyOn(instance, 'setState' as any);
 
             instance.handleSubmitReview();
@@ -488,6 +490,8 @@ describe('ViewSpace', () => {
             });
             (instance as any).state.reviewRating = 4;
             (instance as any).state.reviewMessage = '';
+            (instance as any).state.userLatitude = 40.7128;
+            (instance as any).state.userLongitude = -74.0060;
 
             // Mock setState to actually update state
             const setStateCalls: any[] = [];
@@ -520,6 +524,8 @@ describe('ViewSpace', () => {
             });
             (instance as any).state.reviewRating = 4;
             (instance as any).state.reviewMessage = '';
+            (instance as any).state.userLatitude = 40.7128;
+            (instance as any).state.userLongitude = -74.0060;
 
             const setStateCalls: any[] = [];
             jest.spyOn(instance, 'setState' as any).mockImplementation((update: any) => {
