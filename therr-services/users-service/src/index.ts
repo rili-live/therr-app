@@ -11,17 +11,6 @@ import { version as packageVersion } from '../package.json';
 
 tracing.start();
 
-const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
-const corsOptions = {
-    origin(origin: any, callback: any) {
-        if (origin === undefined || originWhitelist.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-};
-
 const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
 const app = express();
@@ -30,8 +19,9 @@ const app = express();
 app.use(reqLogDecorator);
 
 app.use(helmet());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(/^(?!\/v1\/users\/connections\/find-people$)/, express.json({
+    limit: '1mb',
     verify: (req: any, _res, buf) => {
         // Preserve raw body for Stripe webhook signature verification
         if (req.url?.includes('/payments/webhook') || req.originalUrl?.includes('/payments/webhook')) {
@@ -40,12 +30,8 @@ app.use(/^(?!\/v1\/users\/connections\/find-people$)/, express.json({
     },
 }));
 
-if (process.env.NODE_ENV !== 'production') {
-    app.use(cors());
-} else {
-    // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have no concept of this
-    app.use(cors());
-}
+// Mobile apps have no concept of CORS, so we allow all origins across environments
+app.use(cors());
 
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));

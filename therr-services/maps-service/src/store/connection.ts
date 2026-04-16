@@ -48,7 +48,7 @@ read.on('error', (err, _client) => {
             'error.message': err?.message,
             'error.origin': 'connection',
             source: 'maps-service',
-            'error.hasDBConnectionError': true,
+            'db.hasDBConnectionError': true,
         },
     });
 });

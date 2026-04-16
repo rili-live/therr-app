@@ -48,7 +48,7 @@ read.on('error', (err, _client) => {
             'error.message': err?.message,
             'error.origin': 'connection',
             source: 'users-service',
-            'error.hasDBConnectionError': true,
+            'db.hasDBConnectionError': true,
         },
     });
 });
@@ -66,7 +66,7 @@ write.on('error', (err, _client) => {
             'error.message': err?.message,
             'error.origin': 'connection',
             source: 'users-service',
-            'error.hasDBConnectionError': true,
+            'db.hasDBConnectionError': true,
         },
     });
 });
