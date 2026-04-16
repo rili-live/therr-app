@@ -1,6 +1,5 @@
 import logger from 'redux-logger';
 import { configureStore } from '@reduxjs/toolkit';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import SecureStorage from './utilities/SecureStorage';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
@@ -23,15 +22,19 @@ const getMiddleware = (getDefaultMiddleware: any) => {
 };
 
 const getStore = async () => {
+    // Copy non-secure AsyncStorage data into MMKV (runs once per install).
+    // Must run before migrateToSecureStorage so the Keychain-migration flag is
+    // forwarded into MMKV.
+    await SecureStorage.migrateAsyncStorageToMMKV();
     // Migrate existing tokens from AsyncStorage to Keychain (runs once per install)
     await SecureStorage.migrateToSecureStorage();
 
     // Get stored user details from session storage if they are already logged in
-    const therrSession = await AsyncStorage.getItem('therrSession');
+    const therrSession = await SecureStorage.getItem('therrSession');
     const storedSocketDetails = JSON.parse(therrSession || '{}');
     const therrUser = await SecureStorage.getItem('therrUser');
     let storedUser = JSON.parse(therrUser || '{}');
-    const therrUserSettings = await AsyncStorage.getItem('therrUserSettings');
+    const therrUserSettings = await SecureStorage.getItem('therrUserSettings');
     const storedUserSettings = JSON.parse(therrUserSettings || '{}');
     storedUserSettings.locale = storedUserSettings.locale || 'en-us';
     storedUserSettings.mobileThemeName = storedUserSettings.mobileThemeName || 'light';
