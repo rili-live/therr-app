@@ -23,8 +23,6 @@ const getMiddleware = (getDefaultMiddleware: any) => {
 
 const getStore = async () => {
     // Copy non-secure AsyncStorage data into MMKV (runs once per install).
-    // Must run before migrateToSecureStorage so the Keychain-migration flag is
-    // forwarded into MMKV.
     await SecureStorage.migrateAsyncStorageToMMKV();
     // Migrate existing tokens from AsyncStorage to Keychain (runs once per install)
     await SecureStorage.migrateToSecureStorage();

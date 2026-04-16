@@ -102,7 +102,9 @@ const SecureStorage = {
                         mmkv.set(key, value);
                     }
                 } catch (e) {
-                    // Migration failed for this key; next launch will retry (flag not set yet)
+                    // Per-key migration failed; the flag is still set below so we
+                    // don't block startup. Missing data will surface as a re-login
+                    // or settings reset at worst — not a crash.
                 }
             }
 
