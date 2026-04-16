@@ -665,22 +665,41 @@ class HeaderMenuRight extends React.PureComponent<
                                                 active={currentScreen === 'Settings'}
                                                 onPress={() => this.navTo('Settings')}
                                             />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.wallet')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'ExchangePointsDisclaimer'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="wallet"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'ExchangePointsDisclaimer'}
-                                                onPress={() => this.navTo('ExchangePointsDisclaimer')}
-                                            />
+                                            {user.details?.isBusinessAccount ? (
+                                                <Drawer.Item
+                                                    label={this.translate('components.headerMenuRight.menuItems.manageSpaces')}
+                                                    icon={() => (
+                                                        <TherrIcon
+                                                            style={
+                                                                currentScreen === 'ManageSpaces'
+                                                                    ? themeMenu.styles.iconStyleActive
+                                                                    : themeMenu.styles.iconStyle
+                                                            }
+                                                            name="storefront"
+                                                            size={24}
+                                                        />
+                                                    )}
+                                                    active={currentScreen === 'ManageSpaces'}
+                                                    onPress={() => this.navTo('ManageSpaces')}
+                                                />
+                                            ) : (
+                                                <Drawer.Item
+                                                    label={this.translate('components.headerMenuRight.menuItems.wallet')}
+                                                    icon={() => (
+                                                        <TherrIcon
+                                                            style={
+                                                                currentScreen === 'ExchangePointsDisclaimer'
+                                                                    ? themeMenu.styles.iconStyleActive
+                                                                    : themeMenu.styles.iconStyle
+                                                            }
+                                                            name="wallet"
+                                                            size={24}
+                                                        />
+                                                    )}
+                                                    active={currentScreen === 'ExchangePointsDisclaimer'}
+                                                    onPress={() => this.navTo('ExchangePointsDisclaimer')}
+                                                />
+                                            )}
                                             <Drawer.Item
                                                 label={this.translate('components.headerMenuRight.menuItems.bookmarks')}
                                                 icon={() => (

@@ -374,7 +374,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 },
                 RNFB.wrap(localFileCroppedPath),
             ).then((uploadResp) => {
-                const status = uploadResp?.info?.().status;
+                // RNFB always populates info() on a resolved upload; a missing info()
+                // is treated as a failure since we can't confirm the HTTP status.
+                const status = uploadResp!.info().status;
                 if (!status || status < 200 || status >= 300) {
                     throw new Error(`Image upload failed with status ${status ?? 'unknown'}`);
                 }

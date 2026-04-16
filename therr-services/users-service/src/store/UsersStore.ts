@@ -522,6 +522,20 @@ export default class UsersStore {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }
 
+        if (params.autoRechargeEnabled !== undefined) {
+            modifiedParams.autoRechargeEnabled = params.autoRechargeEnabled === null
+                ? null
+                : !!params.autoRechargeEnabled;
+        }
+
+        if (params.autoRechargeThresholdCoins !== undefined) {
+            modifiedParams.autoRechargeThresholdCoins = params.autoRechargeThresholdCoins;
+        }
+
+        if (params.autoRechargePackageId !== undefined) {
+            modifiedParams.autoRechargePackageId = params.autoRechargePackageId;
+        }
+
         if (params.lastKnownLatitude != null && params.lastKnownLongitude != null) {
             modifiedParams.lastKnownLatitude = params.lastKnownLatitude;
             modifiedParams.lastKnownLongitude = params.lastKnownLongitude;

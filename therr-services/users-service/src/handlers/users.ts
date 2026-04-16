@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    AccessLevels, ErrorCodes, ReferralRewards, UserConnectionTypes,
+    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizeEmail from 'normalize-email';
@@ -586,6 +586,17 @@ const updateUser = (req, res) => {
                 }
             }
 
+            const rawAutoRechargePackageId = req.body.autoRechargePackageId;
+            const autoRechargePackageId = rawAutoRechargePackageId === null
+                || (typeof rawAutoRechargePackageId === 'string' && (COIN_PACKAGE_IDS as string[]).includes(rawAutoRechargePackageId))
+                ? rawAutoRechargePackageId
+                : undefined;
+            const rawAutoRechargeThreshold = req.body.autoRechargeThresholdCoins;
+            const autoRechargeThresholdCoins = rawAutoRechargeThreshold === null
+                || (Number.isInteger(rawAutoRechargeThreshold) && rawAutoRechargeThreshold >= 0)
+                ? rawAutoRechargeThreshold
+                : undefined;
+
             // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
@@ -613,6 +624,9 @@ const updateUser = (req, res) => {
                 settingsLocale: req.body.settingsLocale,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
+                autoRechargeEnabled: req.body.autoRechargeEnabled,
+                autoRechargeThresholdCoins,
+                autoRechargePackageId,
             };
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);

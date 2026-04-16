@@ -352,7 +352,8 @@
         "myDrafts": "My Drafts",
         "notifications": "Notifications",
         "tour": "Take a Tour",
-        "wallet": "Wallet"
+        "wallet": "Wallet",
+        "manageSpaces": "My Business Spaces"
       }
     },
     "imagePicker": {
@@ -1669,19 +1670,42 @@
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",
-      "noSpacesFound": "No spaces found. Claim a business location from the Map to get started.",
+      "noSpacesFound": "You haven't claimed or created a space yet. Get started by claiming your business location or creating a new one.",
       "fetchError": "Unable to load your spaces. Pull down to try again.",
       "coinBalanceLabel": "Your TherrCoin Balance",
       "rewardActive": "Rewards On",
       "rewardInactive": "No Rewards",
       "buttons": {
         "view": "View",
-        "edit": "Edit"
+        "edit": "Edit",
+        "createSpace": "Claim or Create a Space",
+        "createShort": "+ New"
+      },
+      "recharge": {
+        "title": "Fuel Your Space with TherrCoins",
+        "subtitle": "Reward your visitors. Grow your space.",
+        "marketingBlurb": "Every TherrCoin you spend turns into a moment that brings customers through your door. Fund rewards that convert passive discovery into real foot traffic, turn first-time visitors into regulars, and keep your space trending at the top of every nearby feed. Top up once — let your community do the rest.",
+        "comingSoon": "Coming soon — coin purchases launch in the next update.",
+        "packages": {
+          "coinsLabel": "{count} coins",
+          "bonusLabel": "+{count} bonus",
+          "buyButton": "Buy"
+        },
+        "autoRecharge": {
+          "title": "Auto-Recharge",
+          "description": "Never run out of coins. When your balance drops below your threshold, we'll automatically top it up.",
+          "enableToggle": "Enable auto-recharge",
+          "thresholdLabel": "Recharge when balance drops below (coins)",
+          "amountLabel": "Recharge amount",
+          "saveButton": "Save preferences",
+          "savedConfirmation": "Auto-recharge preferences saved."
+        }
       }
     },
     "bookmarks": {
+      "postsHeading": "Bookmarked Posts",
       "lists": {
-        "title": "My Lists",
+        "title": "My Space Lists",
         "addToList": "Save to list",
         "newList": "+ New list",
         "newListPlaceholder": "List name",
@@ -1696,7 +1720,8 @@
         "deleteList": "Delete list",
         "deleteConfirm": "Delete this list? Saved spaces will be removed from it.",
         "loading": "Loading list...",
-        "done": "Done"
+        "done": "Done",
+        "spaceUnavailable": "Space unavailable"
       }
     }
   },

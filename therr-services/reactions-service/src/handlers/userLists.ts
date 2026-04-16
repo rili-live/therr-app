@@ -1,5 +1,6 @@
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 // Handlers without custom error branching are wrapped at the router with
 // `asyncHandler` (see ../routes/userListsRouter.ts). Keeping try/catch here
@@ -98,7 +99,19 @@ const getUserLists = async (req, res) => {
 
     // Build a preview of the first N items per list (space IDs only for now)
     const listIds = lists.map((l) => l.id);
-    const previewRows = await Store.userListItems.getPreviewItems(listIds, 3);
+    let previewRows: any[] = [];
+    try {
+        previewRows = await Store.userListItems.getPreviewItems(listIds, 3);
+    } catch (err: any) {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [`getUserLists: getPreviewItems failed: ${err?.message || err}`],
+            traceArgs: { listIdsCount: listIds.length, 'error.stack': err?.stack },
+        });
+        // Don't 500 the whole request — return lists without previews.
+        return res.status(200).send({ lists });
+    }
     const previewsByList: Record<string, any[]> = {};
     previewRows.forEach((row) => {
         if (!previewsByList[row.listId]) previewsByList[row.listId] = [];
@@ -137,6 +150,13 @@ const getUserListById = async (req, res) => {
         .filter((item) => item.contentType === 'space')
         .map((item) => item.contentId);
 
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: [`getUserListById: items=${items.length} spaceIds=${spaceIds.length} contentTypes=${items.map((i: any) => i.contentType).join(',')}`],
+        traceArgs: { listId },
+    });
+
     let spaces: any[] = [];
     let media: any;
 
@@ -157,8 +177,21 @@ const getUserListById = async (req, res) => {
             });
             spaces = response?.data?.spaces || [];
             media = response?.data?.media;
-        } catch (err) {
-            // Non-fatal — still return the list with whatever we have
+            if (!spaces.length) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['getUserListById: maps-service returned 0 spaces for non-empty spaceIds'],
+                    traceArgs: { listId, spaceIdsCount: spaceIds.length },
+                });
+            }
+        } catch (err: any) {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [`getUserListById: maps-service lookup failed: ${err?.message || err}`],
+                traceArgs: { listId, spaceIdsCount: spaceIds.length },
+            });
             spaces = [];
         }
     }

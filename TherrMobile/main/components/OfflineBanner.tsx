@@ -46,6 +46,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: 'Lexend-Regular',
     },
+    a11yHidden: {
+        position: 'absolute',
+        width: 1,
+        height: 1,
+        opacity: 0,
+    },
 });
 
 // Subtle offline indicator: a small red warning icon pinned to the top-left
@@ -117,6 +123,18 @@ const OfflineBanner = () => {
                         {tooltipLabel}
                     </Text>
                 </Pressable>
+            )}
+            {/* Invisible text keeps the tooltip reason in the a11y tree so screen-reader
+                users hear why we're flagging offline state, even without tapping the icon. */}
+            {!tooltipVisible && (
+                <Text
+                    accessible
+                    accessibilityLabel={tooltipLabel}
+                    style={styles.a11yHidden}
+                    importantForAccessibility="yes"
+                >
+                    {tooltipLabel}
+                </Text>
             )}
         </View>
     );

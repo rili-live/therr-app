@@ -352,7 +352,8 @@
         "myDrafts": "Mis borradores",
         "notifications": "Notificaciones",
         "tour": "Hacer un recorrido",
-        "wallet": "Billetera"
+        "wallet": "Billetera",
+        "manageSpaces": "Mis Negocios"
       }
     },
     "imagePicker": {
@@ -1669,19 +1670,42 @@
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
-      "noSpacesFound": "No se encontraron espacios. Reclama una ubicación de negocio desde el Mapa para comenzar.",
+      "noSpacesFound": "Aún no has reclamado ni creado un espacio. Comienza reclamando la ubicación de tu negocio o creando uno nuevo.",
       "fetchError": "No se pudieron cargar tus espacios. Desliza hacia abajo para reintentar.",
       "coinBalanceLabel": "Tu Balance de TherrCoins",
       "rewardActive": "Recompensas Activas",
       "rewardInactive": "Sin Recompensas",
       "buttons": {
         "view": "Ver",
-        "edit": "Editar"
+        "edit": "Editar",
+        "createSpace": "Reclamar o Crear un Espacio",
+        "createShort": "+ Nuevo"
+      },
+      "recharge": {
+        "title": "Impulsa tu Espacio con TherrCoins",
+        "subtitle": "Recompensa a tus visitantes. Haz crecer tu espacio.",
+        "marketingBlurb": "Cada TherrCoin que gastas se convierte en un momento que atrae clientes a tu puerta. Financia recompensas que convierten el descubrimiento pasivo en tráfico real, transforman a los visitantes ocasionales en clientes habituales y mantienen tu espacio en la parte superior de cada feed cercano. Recarga una vez — deja que tu comunidad haga el resto.",
+        "comingSoon": "Próximamente — las compras de monedas llegan en la próxima actualización.",
+        "packages": {
+          "coinsLabel": "{count} monedas",
+          "bonusLabel": "+{count} de bono",
+          "buyButton": "Comprar"
+        },
+        "autoRecharge": {
+          "title": "Recarga Automática",
+          "description": "Nunca te quedes sin monedas. Cuando tu saldo caiga por debajo del umbral, recargaremos automáticamente.",
+          "enableToggle": "Habilitar recarga automática",
+          "thresholdLabel": "Recargar cuando el saldo baje de (monedas)",
+          "amountLabel": "Monto de recarga",
+          "saveButton": "Guardar preferencias",
+          "savedConfirmation": "Preferencias de recarga automática guardadas."
+        }
       }
     },
     "bookmarks": {
+      "postsHeading": "Publicaciones guardadas",
       "lists": {
-        "title": "Mis listas",
+        "title": "Mis listas de espacios",
         "addToList": "Guardar en lista",
         "newList": "+ Nueva lista",
         "newListPlaceholder": "Nombre de la lista",
@@ -1696,7 +1720,8 @@
         "deleteList": "Eliminar lista",
         "deleteConfirm": "¿Eliminar esta lista? Los espacios guardados serán removidos.",
         "loading": "Cargando lista...",
-        "done": "Listo"
+        "done": "Listo",
+        "spaceUnavailable": "Espacio no disponible"
       }
     }
   },

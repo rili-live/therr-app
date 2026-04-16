@@ -118,26 +118,24 @@ export default class UserListItemsStore {
             return Promise.resolve([]);
         }
         // Fetch the most recently added N items per list via a lateral join.
-        // Use Knex parameter bindings so listIds can never be SQL-injected,
-        // regardless of where they came from.
+        // Use pg positional bindings ($1..$N) so listIds can never be SQL-injected.
         const limit = Math.max(1, Math.min(perListLimit, 10));
-        const placeholders = listIds.map(() => '?').join(',');
+        // $1 = limit, $2..$N = listIds
+        const placeholders = listIds.map((_, i) => `$${i + 2}`).join(',');
         const sql = `
-            SELECT t.*
+            SELECT t.*, ul.id AS "listId"
             FROM main."userLists" ul
             JOIN LATERAL (
                 SELECT uli.*
                 FROM main."userListItems" uli
                 WHERE uli."listId" = ul.id
                 ORDER BY uli."addedAt" DESC
-                LIMIT ?
+                LIMIT $1
             ) t ON TRUE
             WHERE ul.id IN (${placeholders})
         `;
-        const bindings = [limit, ...listIds];
-        const compiled = knexBuilder.raw(sql, bindings).toSQL();
+        const bindings: any[] = [limit, ...listIds];
 
-        return this.db.read.query(compiled.sql, compiled.bindings as any[])
-            .then((response) => response.rows);
+        return this.db.read.query(sql, bindings).then((response) => response.rows);
     }
 }
