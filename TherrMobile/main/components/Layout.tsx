@@ -51,7 +51,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import UIActions from '../redux/actions/UIActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import { buildStyles } from '../styles';
 import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
@@ -1413,7 +1413,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
-                key={`${this.props.user?.settings?.mobileThemeName || 'light'}-${this.props.user?.settings?.locale || 'en-us'}`}
+                // Keyed on locale only so theme toggles do not remount the entire nav tree.
+                // Locale change still requires a remount because route translators close over locale at construction.
+                key={this.props.user?.settings?.locale || 'en-us'}
                 theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                 ref={navigationRef}
                 onReady={() => {

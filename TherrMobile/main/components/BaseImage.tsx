@@ -47,23 +47,30 @@ export const Image = ({
     if (height != null) { sizeStyle.height = height; }
     if (width != null) { sizeStyle.width = width; }
 
-    const imageElement = (
+    const rnImage = (
+        <RNImage
+            source={source}
+            style={[sizeStyle, style]}
+            resizeMode={resizeMode}
+            onLoadStart={() => { setLoading(true); setHasError(false); }}
+            onLoadEnd={() => setLoading(false)}
+            onError={(e) => { console.warn('[BaseImage] failed to load:', (source as any)?.uri, e.nativeEvent); setHasError(true); }}
+        />
+    );
+
+    // Only wrap in a View when we need overlay support or a container style;
+    // otherwise the extra wrapper can collapse percentage-based image sizes to 0.
+    const needsWrapper = !!PlaceholderContent || !!containerStyle;
+    const imageElement = needsWrapper ? (
         <View style={containerStyle}>
-            <RNImage
-                source={source}
-                style={[sizeStyle, style]}
-                resizeMode={resizeMode}
-                onLoadStart={() => { setLoading(true); setHasError(false); }}
-                onLoadEnd={() => setLoading(false)}
-                onError={(e) => { console.warn('[BaseImage] failed to load:', (source as any)?.uri, e.nativeEvent); setHasError(true); }}
-            />
+            {rnImage}
             {(loading || hasError) && PlaceholderContent && (
                 <View style={styles.placeholder}>
                     {PlaceholderContent}
                 </View>
             )}
         </View>
-    );
+    ) : rnImage;
 
     if (onPress) {
         return <Pressable onPress={onPress}>{imageElement}</Pressable>;

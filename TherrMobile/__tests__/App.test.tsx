@@ -81,6 +81,18 @@ jest.mock('react-native-gesture-handler', () => ({
     GestureHandlerRootView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+// Mock @react-native-community/netinfo
+jest.mock('@react-native-community/netinfo', () => ({
+    __esModule: true,
+    default: {
+        addEventListener: jest.fn(() => jest.fn()),
+        fetch: jest.fn(() => Promise.resolve({ isConnected: true, isInternetReachable: true })),
+        configure: jest.fn(),
+    },
+    addEventListener: jest.fn(() => jest.fn()),
+    fetch: jest.fn(() => Promise.resolve({ isConnected: true, isInternetReachable: true })),
+}));
+
 // Mock the Layout component to avoid having to mock all the native modules it imports
 jest.mock('../main/components/Layout', () => {
     const ReactMock = require('react');

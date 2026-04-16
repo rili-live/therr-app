@@ -65,7 +65,8 @@
     "joinedGroup": "Vous avez rejoint le groupe",
     "waitlistSuccess": "Inscription réussie!",
     "reactionSent": "Réaction envoyée!",
-    "reactionFailed": "Échec de la réaction"
+    "reactionFailed": "Échec de la réaction",
+    "mediaUploadFailed": "Échec du téléversement de l'image"
   },
   "alertMessages": {
     "activityCreated": "Un nouveau groupe et événement ont été créés. Des invitations ont été envoyées à chaque membre du groupe.",
@@ -100,7 +101,8 @@
     "newAreasActivated": "Vous avez récemment activé {total} nouveaux moments/espaces.",
     "draftReminder": "Avez-vous pensé à terminer votre brouillon?",
     "requestClaimSent": "Vérifiez votre courriel pour la confirmation et les prochaines étapes",
-    "waitlistSuccess": "Vérifiez votre courriel pour confirmer votre compte"
+    "waitlistSuccess": "Vérifiez votre courriel pour confirmer votre compte",
+    "mediaUploadFailed": "Votre image n'a pas pu être téléversée. Veuillez réessayer."
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -309,6 +311,9 @@
       "coinsLabel": "Pièces gagnées",
       "shareLink": "Partager votre lien d'invitation"
     },
+    "offlineBanner": {
+      "tooltip": "Vous êtes hors ligne. Affichage des données en cache."
+    },
     "header": {
       "buttons": {
         "login": "Connexion"
@@ -347,7 +352,8 @@
         "myDrafts": "Mes brouillons",
         "notifications": "Notifications",
         "tour": "Faire le tour",
-        "wallet": "Portefeuille"
+        "wallet": "Portefeuille",
+        "manageSpaces": "Mes Commerces"
       }
     },
     "imagePicker": {
@@ -1664,13 +1670,58 @@
     },
     "manageSpaces": {
       "headerTitle": "Mes Commerces",
-      "noSpacesFound": "Aucun espace trouvé. Réclamez un emplacement commercial depuis la Carte pour commencer.",
+      "noSpacesFound": "Vous n'avez pas encore réclamé ni créé d'espace. Commencez en réclamant l'emplacement de votre commerce ou en en créant un nouveau.",
+      "fetchError": "Impossible de charger vos espaces. Tirez vers le bas pour réessayer.",
       "coinBalanceLabel": "Votre Solde TherrCoins",
       "rewardActive": "Récompenses Actives",
       "rewardInactive": "Aucune Récompense",
       "buttons": {
         "view": "Voir",
-        "edit": "Modifier"
+        "edit": "Modifier",
+        "createSpace": "Réclamer ou Créer un Espace",
+        "createShort": "+ Nouveau"
+      },
+      "recharge": {
+        "title": "Alimentez votre Espace avec des TherrCoins",
+        "subtitle": "Récompensez vos visiteurs. Faites croître votre espace.",
+        "marketingBlurb": "Chaque TherrCoin que vous dépensez devient un moment qui amène des clients à votre porte. Financez des récompenses qui transforment la découverte passive en trafic réel, convertissent les premiers visiteurs en habitués et gardent votre espace en tête de chaque fil à proximité. Rechargez une fois — laissez votre communauté faire le reste.",
+        "comingSoon": "Bientôt disponible — les achats de monnaie arrivent dans la prochaine mise à jour.",
+        "packages": {
+          "coinsLabel": "{count} pièces",
+          "bonusLabel": "+{count} bonus",
+          "buyButton": "Acheter"
+        },
+        "autoRecharge": {
+          "title": "Recharge Automatique",
+          "description": "Ne manquez jamais de pièces. Lorsque votre solde descend sous votre seuil, nous rechargeons automatiquement.",
+          "enableToggle": "Activer la recharge automatique",
+          "thresholdLabel": "Recharger lorsque le solde descend sous (pièces)",
+          "amountLabel": "Montant de recharge",
+          "saveButton": "Enregistrer les préférences",
+          "savedConfirmation": "Préférences de recharge automatique enregistrées."
+        }
+      }
+    },
+    "bookmarks": {
+      "postsHeading": "Publications enregistrées",
+      "lists": {
+        "title": "Mes listes d'espaces",
+        "addToList": "Enregistrer dans une liste",
+        "newList": "+ Nouvelle liste",
+        "newListPlaceholder": "Nom de la liste",
+        "createList": "Créer",
+        "cancel": "Annuler",
+        "default": "Enregistrés",
+        "itemCount": "{count} enregistrés",
+        "emptyState": "Vous n'avez pas encore de listes. Enregistrez un espace pour créer votre première liste.",
+        "emptyList": "Cette liste est vide. Ouvrez un espace et maintenez appuyé le signet pour l'ajouter.",
+        "browseSpaces": "Parcourir les espaces",
+        "noListsYet": "Aucune liste pour l'instant",
+        "deleteList": "Supprimer la liste",
+        "deleteConfirm": "Supprimer cette liste? Les espaces enregistrés en seront retirés.",
+        "loading": "Chargement de la liste...",
+        "done": "Terminé",
+        "spaceUnavailable": "Espace indisponible"
       }
     }
   },

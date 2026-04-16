@@ -122,7 +122,7 @@ interface INotificationProps {
     }
 }
 
-export default ({
+const Notification = ({
     acknowledgeRequest,
     containerStyles,
     handlePress,
@@ -237,3 +237,15 @@ export default ({
         </Pressable>
     );
 };
+
+// Custom equality: ignore handler-ref churn from the parent and bail out
+// when notification data + presentation flags are unchanged.
+export default React.memo(Notification, (prev, next) => (
+    prev.notification?.id === next.notification?.id
+    && prev.notification?.isUnread === next.notification?.isUnread
+    && prev.notification?.message === next.notification?.message
+    && prev.notification?.createdAt === next.notification?.createdAt
+    && prev.isUnread === next.isUnread
+    && prev.containerStyles === next.containerStyles
+    && prev.themeNotification === next.themeNotification
+));

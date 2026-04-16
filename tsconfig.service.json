@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "__comment": "Shared TypeScript preset for Node-based backend services and the API gateway. Extends tsconfig.base.json with options that every such package sets identically today (CommonJS, strict mode, inline source maps, `jsx: react` for TSX handlers, emit to `build/`). Package tsconfigs still set per-package options like `target`, `paths`, `typeRoots`, `baseUrl`, `rootDir`, `types`, `files`, `include`, `exclude`, and the `ts-node` block — those legitimately vary or are not inherited by `extends`.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "strict": true,
+    "declaration": false,
+    "removeComments": false,
+    "noLib": false,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "jsx": "react",
+    "outDir": "${configDir}/build"
+  }
+}

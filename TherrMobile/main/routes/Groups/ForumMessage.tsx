@@ -6,8 +6,6 @@ import {
     View,
 } from 'react-native';
 import { Image } from '../../components/BaseImage';
-// import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import randomColor from 'randomcolor';
 import { getUserImageUri } from '../../utilities/content';

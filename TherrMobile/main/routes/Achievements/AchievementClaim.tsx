@@ -9,7 +9,7 @@ import { achievementsByClass } from 'therr-js-utilities/config';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import SharePromptModal from '../../components/Modals/SharePromptModal';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';

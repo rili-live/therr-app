@@ -175,6 +175,10 @@ app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/rob
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
 app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
 
+// AI crawler policy — complements robots.txt with per-LLM-agent permissions.
+// Served at both /ai.txt and /.well-known/ai.txt (the emerging canonical location).
+app.get(['/ai.txt', '/.well-known/ai.txt'], express.static(path.join(__dirname, '/../build/static/ai.txt')));
+
 // IndexNow key file endpoint for Bing/Yandex verification
 // Key must be alphanumeric/hyphens only (8-128 chars) to prevent route injection
 const indexNowKey = process.env.INDEXNOW_API_KEY;
@@ -376,6 +380,8 @@ app.get('/sitemap-static.xml', (req, res) => {
         { loc: '/login', priority: '0.8' },
         { loc: '/register', priority: '0.8' },
         { loc: '/locations', priority: '0.9' },
+        { loc: '/locations/cities', priority: '0.9' },
+        { loc: '/locations/categories', priority: '0.9' },
         ...categoryUrls,
         ...cityUrls,
     ];
@@ -464,15 +470,40 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
     }
 
     const today = new Date().toISOString().split('T')[0];
+
+    // Collect public image URLs for a space to emit via <image:image> sitemap extension.
+    // Only public photos (USER_IMAGE_PUBLIC) are crawlable; signed/private URLs are skipped.
+    const getSpaceImageTags = (space: any): string => {
+        if (!Array.isArray(space?.medias) || space.medias.length === 0) return '';
+        const imageUrls: string[] = [];
+        space.medias.forEach((media: any) => {
+            if (!media?.path || media?.type !== Content.mediaTypes.USER_IMAGE_PUBLIC) return;
+            const uri = getUserContentUri(media, 1200, 1200);
+            if (/\.(jpe?g|png|webp)(\?|$)/i.test(uri)) {
+                imageUrls.push(uri);
+            }
+        });
+        // Google accepts up to 1000 images per URL but most sites limit for file size
+        return imageUrls.slice(0, 10).map((url) => (
+            // eslint-disable-next-line max-len
+            `    <image:image>\n      <image:loc>${url.replace(/&/g, '&amp;')}</image:loc>\n    </image:image>`
+        )).join('\n');
+    };
+
     const urls = publicSpaces.map((space: any) => {
         const lastmod = space.updatedAt ? new Date(space.updatedAt).toISOString().split('T')[0] : today;
         const slug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
         const spacePath = slug ? `/spaces/${space.id}/${slug}` : `/spaces/${space.id}`;
-        return buildUrlSet(spacePath, lastmod, '0.7');
+        const urlSet = buildUrlSet(spacePath, lastmod, '0.7');
+        const imageTags = getSpaceImageTags(space);
+        if (!imageTags) return urlSet;
+        // Inject <image:image> children into each <url> block (English variant only — Google
+        // deduplicates images across hreflang variants anyway, so attaching to one is sufficient).
+        return urlSet.replace(/(  <url>\n    <loc>https:\/\/www\.therr\.com\/spaces\/[^<]+<\/loc>[\s\S]*?)\n(  <\/url>)/, `$1\n${imageTags}\n$2`);
     });
 
     // eslint-disable-next-line max-len
-    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${urls.join('\n')}\n</urlset>`;
 
     setSitemapCache(cacheKey, xml);
     res.set('Content-Type', 'application/xml');
@@ -1475,6 +1506,69 @@ const renderLocationsView = (req, res, config, {
     } else if (searchQuery) {
         collectionName = `Local Businesses near ${searchQuery}`;
     }
+    // Auto-generated FAQPage schema for city and category landings.
+    // These answer the common queries that AI engines (ChatGPT / Perplexity / Google AI Overviews)
+    // surface against local directory pages, built entirely from the structured data we already have.
+    const landingFaqEntries: { question: string; answer: string }[] = [];
+    const resultCount = spaces.length;
+    if (cityDisplayName && categoryLabel) {
+        landingFaqEntries.push({
+            question: `What are the best ${categoryLabel.toLowerCase()} in ${cityDisplayName}?`,
+            answer: `Therr's local directory currently lists ${resultCount >= 50 ? '50+' : resultCount || 'several'} ${categoryLabel.toLowerCase()} in ${cityDisplayName}. Listings are ranked by proximity and community engagement, with hours, photos, and reviews from verified visits.`,
+        });
+        landingFaqEntries.push({
+            question: `How many ${categoryLabel.toLowerCase()} are on Therr in ${cityDisplayName}?`,
+            answer: `This page is showing up to 50 ${categoryLabel.toLowerCase()} in ${cityDisplayName}; additional listings are available on later pages and on the global ${categoryLabel.toLowerCase()} category page.`,
+        });
+        landingFaqEntries.push({
+            question: `Are the reviews on Therr for ${categoryLabel.toLowerCase()} in ${cityDisplayName} verified?`,
+            answer: `Therr reviews are written by community members, and verified visits (via in-app check-in) earn TherrCoin rewards. The incentive to check in reduces the volume of fake or paid reviews versus traditional aggregators.`,
+        });
+    } else if (cityDisplayName) {
+        landingFaqEntries.push({
+            question: `What local businesses are on Therr in ${cityDisplayName}?`,
+            answer: `Therr's ${cityDisplayName} directory includes restaurants, bars, shops, hotels, gyms, parks, event venues, and more. Listings include hours, photos, reviews, and categories so you can narrow by what you're looking for.`,
+        });
+        landingFaqEntries.push({
+            question: `How can I find the best places to visit in ${cityDisplayName}?`,
+            answer: `Use Therr's category filters (restaurants, bars, shops, and more) or the map view to explore ${cityDisplayName} neighborhoods. Community ratings and check-ins surface the spots locals actually visit.`,
+        });
+        landingFaqEntries.push({
+            question: `Does Therr support Spanish and French for ${cityDisplayName} listings?`,
+            answer: `Yes — ${cityDisplayName} listings are also available at /es/locations/city/${citySlug} (Spanish) and /fr/locations/city/${citySlug} (French Canadian).`,
+        });
+    } else if (categoryLabel) {
+        landingFaqEntries.push({
+            question: `How do I find ${categoryLabel.toLowerCase()} near me on Therr?`,
+            answer: `Use the "Near Me" button on the ${categoryLabel} page to filter by your current location, or search by city. Every listing shows distance, hours, and recent reviews.`,
+        });
+        landingFaqEntries.push({
+            question: `Can I browse ${categoryLabel.toLowerCase()} by city on Therr?`,
+            answer: `Yes. Visit /locations/cities to pick a specific city and narrow results to ${categoryLabel.toLowerCase()} in that area.`,
+        });
+    }
+
+    const landingFaqSchema = landingFaqEntries.length > 0 ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: landingFaqEntries.map((entry) => ({
+            '@type': 'Question',
+            name: entry.question,
+            acceptedAnswer: { '@type': 'Answer', text: entry.answer },
+        })),
+    } : null;
+
+    // Short, unique SSR-rendered intro paragraph for city/category landings.
+    // This differentiates pages that otherwise share the same <ListSpaces> body.
+    let introParagraph = '';
+    if (cityDisplayName && categoryLabel) {
+        introParagraph = `Looking for ${categoryLabel.toLowerCase()} in ${cityDisplayName}? Therr's local directory surfaces ${categoryLabel.toLowerCase()} in ${cityDisplayName} that real community members have visited, rated, and photographed. Each listing below includes hours, a map, and reviews.`;
+    } else if (cityDisplayName) {
+        introParagraph = `Explore local businesses in ${cityDisplayName}. Therr's ${cityDisplayName} directory pulls from verified community check-ins so you see what locals actually visit — restaurants, bars, shops, hotels, gyms, parks, and more, with hours, photos, and reviews.`;
+    } else if (categoryLabel) {
+        introParagraph = `Discover ${categoryLabel.toLowerCase()} near you on Therr. Each listing below is sourced from community members who have visited and reviewed the venue, with hours, photos, and map directions.`;
+    }
+
     let spatialCoverage: Record<string, any> | undefined;
     if (cityEntry) {
         spatialCoverage = {
@@ -1557,8 +1651,141 @@ const renderLocationsView = (req, res, config, {
         searchActionSchema: JSON.stringify(searchActionSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         localDirectorySchema: localDirectorySchema ? JSON.stringify(localDirectorySchema) : '',
+        faqSchema: landingFaqSchema ? JSON.stringify(landingFaqSchema) : '',
+        introParagraph,
         prevPage,
         nextPage,
+        markup,
+        routePath,
+        state,
+        ...localeVars,
+    });
+};
+
+/**
+ * City Pulse SSR renderer. Reads the prefetched pulse data from Redux and
+ * builds meta + JSON-LD that match the page's density. Therr-rich cities get a
+ * counts-based description; otherwise we fall back to the Wiki lead paragraph.
+ */
+const renderCityPulseView = (req, res, config, {
+    markup,
+    state,
+}, initialState, localeVars) => {
+    const routePath = config.route;
+    const routeView = config.view;
+
+    const citySlug = req.params?.citySlug || '';
+    const cityEntry = citySlug ? Cities.CitySlugMap[citySlug] : null;
+    const cityDisplayName = cityEntry ? `${cityEntry.name}, ${cityEntry.stateAbbr}` : '';
+
+    const pulse = initialState?.map?.cityPulse?.[citySlug] || null;
+    const trendingCount = pulse?.therr?.trendingSpaces?.length || 0;
+    const eventsCount = pulse?.therr?.upcomingEvents?.length || 0;
+    const wikiSummary = pulse?.wiki?.summary || '';
+    const hasUnderstand = !!pulse?.wiki?.sections?.understand;
+
+    // Meta title: always "{City}, {StateAbbr}: Local Guide, Events & Places | Therr"
+    const title = cityDisplayName
+        ? `${cityDisplayName}: Local Guide, Events & Places`
+        : (config.head.title || 'City Guide');
+
+    // Meta description: lead with Therr counts when we have depth, else Wiki lead.
+    let description: string;
+    if (trendingCount >= 6) {
+        const eventsFragment = eventsCount ? `, ${eventsCount} events this week` : '';
+        // eslint-disable-next-line max-len
+        description = `${trendingCount} local spots${eventsFragment} in ${cityDisplayName || 'this city'}. Browse neighborhoods, nearby places, and things to do.`;
+    } else if (wikiSummary) {
+        const firstSentence = wikiSummary.split(/(?<=[.!?])\s/)[0] || wikiSummary;
+        if (firstSentence.length <= 300) {
+            description = firstSentence;
+        } else {
+            // Cut to the last whitespace before 300 so SERPs don't show a
+            // mid-word break. Falls back to the hard cut if no space is found.
+            const hardCut = firstSentence.slice(0, 300);
+            const lastSpace = hardCut.lastIndexOf(' ');
+            description = lastSpace > 0 ? `${hardCut.slice(0, lastSpace).trimEnd()}…` : hardCut;
+        }
+    } else {
+        description = config.head.description
+            || `Things to do, places to go, and local highlights in ${cityDisplayName || 'this city'}.`;
+    }
+
+    const lp = localeVars.localePrefix;
+
+    // schema.org/City — primary entity for the page.
+    const citySchema: any = cityEntry ? {
+        '@context': 'https://schema.org',
+        '@type': 'City',
+        name: cityEntry.name,
+        containedInPlace: { '@type': 'State', name: cityEntry.state },
+        geo: { '@type': 'GeoCoordinates', latitude: cityEntry.lat, longitude: cityEntry.lng },
+        url: `https://www.therr.com${lp}/locations/city/${citySlug}`,
+    } : {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: title,
+    };
+
+    // Breadcrumb (Home → Locations → {City})
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            {
+                '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+            },
+            {
+                '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+            },
+            ...(cityDisplayName ? [{
+                '@type': 'ListItem',
+                position: 3,
+                name: cityDisplayName,
+                item: `https://www.therr.com/locations/city/${citySlug}`,
+            }] : []),
+        ],
+    };
+
+    // ItemList of trending spaces (when we have any) — good for rich results.
+    let itemListSchema: any = null;
+    const trendingSpaces = pulse?.therr?.trendingSpaces || [];
+    if (trendingSpaces.length > 0) {
+        itemListSchema = {
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            name: `Trending places in ${cityDisplayName || 'this city'}`,
+            numberOfItems: trendingSpaces.length,
+            itemListElement: trendingSpaces.slice(0, 20).map((space: any, index: number) => {
+                const slug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
+                return {
+                    '@type': 'ListItem',
+                    position: index + 1,
+                    url: `https://www.therr.com${lp}/spaces/${space.id}${slug ? `/${slug}` : ''}`,
+                    name: space.notificationMsg || space.id,
+                };
+            }),
+        };
+    }
+
+    // TouristDestination when Wikivoyage provided an Understand section —
+    // signals to search engines this is editorial guide content.
+    const touristDestinationSchema: any = hasUnderstand && cityEntry ? {
+        '@context': 'https://schema.org',
+        '@type': 'TouristDestination',
+        name: cityEntry.name,
+        description,
+        geo: { '@type': 'GeoCoordinates', latitude: cityEntry.lat, longitude: cityEntry.lng },
+    } : null;
+
+    return res.render(routeView, {
+        title,
+        description,
+        cityName: cityEntry?.name || '',
+        citySchema: JSON.stringify(citySchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        itemListSchema: itemListSchema ? JSON.stringify(itemListSchema) : '',
+        touristDestinationSchema: touristDestinationSchema ? JSON.stringify(touristDestinationSchema) : '',
         markup,
         routePath,
         state,
@@ -1656,6 +1883,140 @@ const renderGroupView = (req, res, config, {
     });
 };
 
+const formatCategoryLabelForHub = (categoryKey: string): string => {
+    if (!categoryKey) return '';
+    const label = categoryKey.replace('categories.', '').replace('/', ' & ');
+    return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
+const renderHubCitiesView = (req, res, config, { markup, state }, localeVars) => {
+    const lp = localeVars.localePrefix;
+    const cityItems = [...Cities.CitiesList]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((city, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: `${city.name}, ${city.stateAbbr}`,
+            url: `https://www.therr.com${lp}/locations/city/${city.slug}`,
+        }));
+
+    const itemListSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Cities with local business directories on Therr',
+        numberOfItems: cityItems.length,
+        itemListElement: cityItems,
+    };
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/' },
+            { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations' },
+            { '@type': 'ListItem', position: 3, name: 'Cities' },
+        ],
+    };
+
+    return res.render('hub', {
+        title: config.head.title,
+        description: config.head.description,
+        itemListSchema: JSON.stringify(itemListSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        markup,
+        routePath: config.route,
+        state,
+        ...localeVars,
+    });
+};
+
+const renderHubCategoriesView = (req, res, config, { markup, state }, localeVars) => {
+    const lp = localeVars.localePrefix;
+    const categoryEntries = Object.entries(Categories.CategorySlugMap)
+        .map(([key, slug]) => ({ key, slug: slug as string, label: formatCategoryLabelForHub(key) }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+
+    const categoryItems = categoryEntries.map((cat, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: cat.label,
+        url: `https://www.therr.com${lp}/locations/${cat.slug}`,
+    }));
+
+    const itemListSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Local business categories on Therr',
+        numberOfItems: categoryItems.length,
+        itemListElement: categoryItems,
+    };
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/' },
+            { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations' },
+            { '@type': 'ListItem', position: 3, name: 'Categories' },
+        ],
+    };
+
+    return res.render('hub', {
+        title: config.head.title,
+        description: config.head.description,
+        itemListSchema: JSON.stringify(itemListSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        markup,
+        routePath: config.route,
+        state,
+        ...localeVars,
+    });
+};
+
+const renderHomeView = (req, res, config, { markup, state }, localeVars) => {
+    const organizationSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'Therr',
+        url: 'https://www.therr.com',
+        logo: 'https://therr.com/assets/images/meta-image-logo.png',
+        sameAs: [
+            'https://twitter.com/therr_app',
+            'https://www.instagram.com/therr_app',
+            'https://www.linkedin.com/company/therr-app',
+            'https://github.com/rili-live/therr-app',
+            'https://apps.apple.com/us/app/therr/id1569988763',
+            'https://play.google.com/store/apps/details?id=app.therrmobile',
+        ],
+    };
+
+    const websiteSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Therr',
+        url: 'https://www.therr.com',
+        potentialAction: {
+            '@type': 'SearchAction',
+            target: {
+                '@type': 'EntryPoint',
+                urlTemplate: 'https://www.therr.com/locations?q={search_term_string}',
+            },
+            'query-input': 'required name=search_term_string',
+        },
+    };
+
+    return res.render(config.view, {
+        title: config.head.title,
+        description: config.head.description,
+        organizationSchema: JSON.stringify(organizationSchema),
+        websiteSchema: JSON.stringify(websiteSchema),
+        markup,
+        routePath: config.route,
+        state,
+        ...localeVars,
+    });
+};
+
 const renderInviteView = (req, res, config, {
     markup,
     state,
@@ -1724,6 +2085,8 @@ const publicRoutePatterns = [
     /^\/login$/,
     /^\/register$/,
     /^\/locations(\/\d+)?$/,
+    /^\/locations\/cities$/,
+    /^\/locations\/categories$/,
     /^\/locations\/[a-z-]+(\/\d+)?$/,
     /^\/locations\/city\/[a-z-]+(\/\d+)?$/,
     /^\/locations\/city\/[a-z-]+\/[a-z-]+(\/\d+)?$/,
@@ -1823,7 +2186,11 @@ routeConfig.forEach((config) => {
                 <GoogleOAuthProvider clientId={envVars.googleOAuth2WebClientId}>
                     <MantineProvider theme={mantineTheme} defaultColorScheme={colorScheme}>
                         <Provider store={store}>
-                            <StaticRouter location={req.url} basename={localePrefix || undefined}>
+                            <StaticRouter
+                                location={req.url}
+                                basename={localePrefix || undefined}
+                                future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+                            >
                                 <Layout />
                             </StaticRouter>
                         </Provider>
@@ -1876,6 +2243,13 @@ routeConfig.forEach((config) => {
                     }, initialState, localeVars);
                 }
 
+                if (routeView === 'city-pulse') {
+                    return renderCityPulseView(req, res, config, {
+                        markup,
+                        state,
+                    }, initialState, localeVars);
+                }
+
                 if (routeView === 'groups') {
                     return renderGroupView(req, res, config, {
                         markup,
@@ -1909,6 +2283,20 @@ routeConfig.forEach((config) => {
                         markup,
                         state,
                     }, localeVars);
+                }
+
+                if (routeView === 'hub-cities') {
+                    return renderHubCitiesView(req, res, config, { markup, state }, localeVars);
+                }
+
+                if (routeView === 'hub-categories') {
+                    return renderHubCategoriesView(req, res, config, { markup, state }, localeVars);
+                }
+
+                // Home route: inject Organization + WebSite JSON-LD with SiteLinks SearchAction.
+                // Uses the existing `index` view which accepts optional schema blocks.
+                if (routePath === '/' && routeView === 'index') {
+                    return renderHomeView(req, res, config, { markup, state }, localeVars);
                 }
 
                 return res.render(routeView, {

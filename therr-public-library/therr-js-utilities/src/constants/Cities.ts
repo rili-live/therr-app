@@ -196,4 +196,10 @@ CitiesList.forEach((city) => {
     CitySlugMap[city.slug] = city;
 });
 
-export default { CitiesList, CitySlugMap };
+// Lookup map: lowercase city name → city entry
+const CityNameMap: Record<string, ICityEntry> = {};
+CitiesList.forEach((city) => {
+    CityNameMap[city.name.toLowerCase()] = city;
+});
+
+export default { CitiesList, CitySlugMap, CityNameMap };

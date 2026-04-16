@@ -10,7 +10,7 @@ import {
     TourStep,
 } from 'react-native-spotlight-tour';
 import { buildStyles as buildTourStyles, MINIMUM_HORIZONTAL_PADDING } from './styles/navigation/tour';
-import translator from './services/translator';
+import translator from './utilities/translator';
 
 const themeTour = buildTourStyles('light');
 

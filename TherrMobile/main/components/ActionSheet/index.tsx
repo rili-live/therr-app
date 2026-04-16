@@ -5,6 +5,7 @@ import ContentOptionsSheet, { IContentSelectionType } from './ContentOptionsShee
 import UserProfileSheet, { IUserProfileAction } from './UserProfileSheet';
 import VisibilityPickerSheet from './VisibilityPickerSheet';
 import ImagePickerSheet from './ImagePickerSheet';
+import ListPickerSheet from './ListPickerSheet';
 import { ITherrThemeColors } from '../../styles/themes';
 
 registerSheet('group-sheet', GroupSheet);
@@ -13,6 +14,7 @@ registerSheet('content-options-sheet', ContentOptionsSheet);
 registerSheet('user-profile-sheet', UserProfileSheet);
 registerSheet('visibility-picker-sheet', VisibilityPickerSheet);
 registerSheet('image-picker-sheet', ImagePickerSheet);
+registerSheet('list-picker-sheet', ListPickerSheet);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
@@ -89,6 +91,17 @@ declare module 'react-native-actions-sheet' {
                 styles: any;
             };
             onSelect: (source: 'upload' | 'camera') => void;
+        };
+    }>;
+    'list-picker-sheet': SheetDefinition<{
+        payload: {
+            spaceId: string;
+            translate: (key: string, params?: any) => string;
+            themeForms: {
+                colors: ITherrThemeColors;
+                styles: any;
+            };
+            onChange?: () => void;
         };
     }>;
   }

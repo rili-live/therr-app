@@ -11,7 +11,7 @@ import Alert from '../components/Alert';
 import RoundTextInput from '../components/Input/TextInput/Round';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';

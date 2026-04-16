@@ -15,7 +15,6 @@ import {
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { showToast } from '../../utilities/toasts';
 import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
@@ -28,7 +27,6 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
-// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
@@ -36,6 +34,7 @@ import SpaceRating from '../../components/Input/SpaceRating';
 import { buildSpaceUrl } from '../../utilities/shareUrls';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
+import { SheetManager } from 'react-native-actions-sheet';
 
 
 const envConfig = getConfig();
@@ -159,12 +158,39 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         goToViewMap(area.latitude, area.longitude);
     };
 
-    onBookmarkPress = (area) => {
+    // Lists support spaces only. Moments/events/thoughts don't set `category`
+    // or `addressReadable`, so either field is a reliable space signal.
+    isSpaceArea = (area) => area?.areaType === 'spaces'
+        || !!area?.isSpace
+        || typeof area?.category === 'string'
+        || typeof area?.addressReadable === 'string';
+
+    toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
 
         updateAreaReaction(area.id, {
             userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
         }, area.fromUserId, user?.details?.userName);
+    };
+
+    onBookmarkPress = (area) => {
+        this.toggleBookmarkReaction(area);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Spaces: long-press opens the list picker for curated Space Lists.
+        // Non-spaces mirror tap (plain bookmark toggle).
+        if (this.isSpaceArea(area)) {
+            SheetManager.show('list-picker-sheet', {
+                payload: {
+                    spaceId: area.id,
+                    translate: this.props.translate as any,
+                    themeForms: this.props.themeForms,
+                },
+            });
+            return;
+        }
+        this.toggleBookmarkReaction(area);
     };
 
     onLikePress = (area) => {
@@ -610,6 +636,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     />
                                 }
                                 onPress={() => this.onBookmarkPress(area)}
+                                onLongPress={() => this.onBookmarkLongPress(area)}
                                 type="clear"
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
@@ -897,6 +924,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 />
                             }
                             onPress={() => this.onBookmarkPress(area)}
+                            onLongPress={() => this.onBookmarkLongPress(area)}
                             type="clear"
                             TouchableComponent={TouchableWithoutFeedbackComponent}
                         />
