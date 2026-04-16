@@ -629,6 +629,37 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         );
     }
 
+    // Dynamic SSR intro paragraph for city / category / city+category landings.
+    // Differentiates otherwise-identical body content on ~900 landing pages — a material thin-content
+    // signal both to Google and to LLM crawlers that extract page summaries for citation.
+    renderLandingIntro(): JSX.Element | null {
+        const categoryKey = this.getActiveCategoryKey();
+        const cityEntry = this.getActiveCityEntry();
+        if (!categoryKey && !cityEntry) return null;
+
+        const categoryLabel = categoryKey ? formatCategoryLabel(categoryKey) : '';
+        const cityDisplayName = cityEntry ? `${cityEntry.name}, ${cityEntry.stateAbbr}` : '';
+
+        let key: string;
+        let params: Record<string, string> = {};
+        if (cityDisplayName && categoryLabel) {
+            key = 'pages.spaces.introCityCategory';
+            params = { city: cityDisplayName, category: categoryLabel.toLowerCase() };
+        } else if (cityDisplayName) {
+            key = 'pages.spaces.introCity';
+            params = { city: cityDisplayName };
+        } else {
+            key = 'pages.spaces.introCategory';
+            params = { category: categoryLabel.toLowerCase() };
+        }
+
+        return (
+            <Text size="sm" mt="xs">
+                {this.props.translate(key, params)}
+            </Text>
+        );
+    }
+
     public render(): JSX.Element | null {
         const {
             locale, location, routeParams, map, user,
@@ -662,6 +693,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                 })
                                 : this.props.translate('pages.spaces.header1')}
                         </Title>
+                        {this.renderLandingIntro()}
                         {!isAuthenticated && (
                             <Text size="sm" c="dimmed">
                                 <Anchor component={Link} to="/login" size="sm">{this.props.translate('components.header.buttons.login')}</Anchor>
