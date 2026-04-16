@@ -18,7 +18,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { notifications as notificationStyles, buildStyles as buildNotificationStyles } from '../../styles/notifications';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import Notification from './Notification';
 import ListEmpty from '../../components/ListEmpty';

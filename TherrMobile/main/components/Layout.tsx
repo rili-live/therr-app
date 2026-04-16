@@ -51,7 +51,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import UIActions from '../redux/actions/UIActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import { buildStyles } from '../styles';
 import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';

@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 
 const TOOLTIP_AUTO_DISMISS_MS = 3000;
 

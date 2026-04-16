@@ -2,16 +2,15 @@ import React from 'react';
 import { ActivityIndicator, Dimensions, Pressable, SafeAreaView, Keyboard, Text, View, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from '../components/BaseButton';
-import EditFormFooter from '../components/EditFormFooter';
+import { Button } from '../../components/BaseButton';
+import EditFormFooter from '../../components/EditFormFooter';
 import LottieView from 'lottie-react-native';
-import { Image } from '../components/BaseImage';
+import { Image } from '../../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
-import { ILocationState } from '../types/redux/location';
+import { ILocationState } from '../../types/redux/location';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { Categories, Content, FilePaths, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
@@ -20,22 +19,21 @@ import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
-import { showToast } from '../utilities/toasts';
-import DropDown from '../components/Input/DropDown';
-// import Alert from '../components/Alert';
+import { showToast } from '../../utilities/toasts';
+import DropDown from '../../components/Input/DropDown';
 import { FeatureFlags } from 'therr-js-utilities/constants';
-import translator from '../services/translator';
-import getConfig from '../utilities/getConfig';
-import { isDarkTheme } from '../styles/themes';
-import { buildStyles, addMargins } from '../styles';
-import { buildStyles as buildAlertStyles } from '../styles/alerts';
-import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
-import { buildStyles as buildSearchStyles } from '../styles/modal/typeAhead';
-import userContentStyles from '../styles/user-content';
-import spacingStyles from '../styles/layouts/spacing';
+import translator from '../../utilities/translator';
+import getConfig from '../../utilities/getConfig';
+import { isDarkTheme } from '../../styles/themes';
+import { buildStyles, addMargins } from '../../styles';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
+import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas/editing';
+import { buildStyles as buildSearchStyles } from '../../styles/modal/typeAhead';
+import userContentStyles from '../../styles/user-content';
+import spacingStyles from '../../styles/layouts/spacing';
 import {
     youtubeLinkRegex,
     DEFAULT_RADIUS_MEDIUM,
@@ -44,19 +42,19 @@ import {
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
     HAPTIC_FEEDBACK_TYPE,
-} from '../constants';
-import Alert from '../components/Alert';
-import formatHashtags from '../utilities/formatHashtags';
-import RoundInput from '../components/Input/Round';
-import RoundTextInput from '../components/Input/TextInput/Round';
-import HashtagsContainer from '../components/UserContent/HashtagsContainer';
-import BaseStatusBar from '../components/BaseStatusBar';
-import { addAddressParams, getImagePreviewPath } from '../utilities/areaUtils';
-import { getUserContentUri, signImageUrl } from '../utilities/content';
-import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
+} from '../../constants';
+import Alert from '../../components/Alert';
+import formatHashtags from '../../utilities/formatHashtags';
+import RoundInput from '../../components/Input/Round';
+import RoundTextInput from '../../components/Input/TextInput/Round';
+import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import { addAddressParams, getImagePreviewPath } from '../../utilities/areaUtils';
+import { getUserContentUri, signImageUrl } from '../../utilities/content';
+import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
 import { SheetManager } from 'react-native-actions-sheet';
-import TherrIcon from '../components/TherrIcon';
-import SearchTypeAheadResults from '../components/SearchTypeAheadResults';
+import TherrIcon from '../../components/TherrIcon';
+import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 
@@ -934,7 +932,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                         )
                                         : (
                                             <LottieView
-                                                source={require('../assets/missing-image-storefront.json')}
+                                                source={require('../../assets/missing-image-storefront.json')}
                                                 resizeMode="contain"
                                                 speed={0.8}
                                                 autoPlay

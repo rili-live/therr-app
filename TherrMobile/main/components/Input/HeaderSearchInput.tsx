@@ -10,7 +10,7 @@ import { IContentState, IMapState as IMapReduxState } from 'therr-react/types';
 import DeviceInfo from 'react-native-device-info';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import RoundInput from './';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../../constants';
