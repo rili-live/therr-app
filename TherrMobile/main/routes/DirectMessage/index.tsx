@@ -241,6 +241,9 @@ class DirectMessage extends React.Component<
                                     // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                                     onEndReached={this.tryLoadMore}
                                     onEndReachedThreshold={0.5}
+                                    initialNumToRender={15}
+                                    maxToRenderPerBatch={10}
+                                    windowSize={11}
                                     ListEmptyComponent={<View>
                                         <ListEmpty theme={this.theme} text={this.translate(
                                             'pages.directMessage.noMessagesFound',
