@@ -8,7 +8,9 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import router from './routes';
 import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
+import config, { validateEnv } from './config';
 
+validateEnv();
 tracing.start();
 
 const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
@@ -33,15 +35,13 @@ app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
-const { MAPS_SERVICE_API_PORT } = process.env;
-
-const server = app.listen(MAPS_SERVICE_API_PORT, () => {
+const server = app.listen(config.port, () => {
     logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
-        messages: [`Server (maps service) running on port ${MAPS_SERVICE_API_PORT} with process id`, process.pid],
+        messages: [`Server (maps service) running on port ${config.port} with process id`, process.pid],
         traceArgs: {
-            port: MAPS_SERVICE_API_PORT,
+            port: config.port,
             'process.id': process.pid,
         },
     });
@@ -65,7 +65,7 @@ interface WebpackHotModule {
 
 declare const module: WebpackHotModule;
 
-if (process.env.NODE_ENV === 'development' && module.hot) {
+if (config.nodeEnv === 'development' && module.hot) {
     module.hot.accept();
     module.hot.dispose(() => server.close());
 }
@@ -76,7 +76,7 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            port: MAPS_SERVICE_API_PORT,
+            port: config.port,
             'process.id': process.pid,
             'error.isUncaughtException': true,
             'error.message': err?.message,
