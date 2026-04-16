@@ -7,7 +7,7 @@ import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { IconCheck } from '@tabler/icons-react';
-import { Categories, Content } from 'therr-js-utilities/constants';
+import { Categories, Cities, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
@@ -19,6 +19,7 @@ import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
+import ListPickerPopover from './Bookmarks/ListPickerPopover';
 
 // Only lazy-load on client (Leaflet requires window/document)
 const SpacesMap = typeof window !== 'undefined'
@@ -380,6 +381,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             return;
         }
 
+        const hasVisited = !!(space?.reaction?.visitedAt || (space?.reaction?.visitCount ?? 0) > 0);
+        if (!hasVisited) {
+            const distance = this.getDistanceToSpace();
+            if (distance === null) {
+                this.setState({ reviewError: translate('pages.viewSpace.addReview.locationPrompt') });
+                return;
+            }
+            if (distance > 200) {
+                this.setState({ reviewError: translate('pages.viewSpace.addReview.tooFar') });
+                return;
+            }
+        }
+
         this.setState({ isReviewSubmitting: true, reviewError: '', reviewSuccess: '' });
 
         // Submit rating via space reaction
@@ -462,12 +476,19 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     renderAddReviewContent(): JSX.Element {
-        const { user, translate } = this.props;
+        const { user, map, translate } = this.props;
         const {
-            reviewRating, reviewMessage, isReviewSubmitting,
+            spaceId, reviewRating, reviewMessage, isReviewSubmitting,
             reviewError, reviewSuccess,
+            userLatitude, userLongitude, isLocationLoading, locationError,
         } = this.state;
         const isAuthenticated = user?.isAuthenticated;
+        const space = map?.spaces[spaceId];
+        const hasVisited = !!(space?.reaction?.visitedAt || (space?.reaction?.visitCount ?? 0) > 0);
+        const distanceToSpace = this.getDistanceToSpace();
+        const hasLocation = userLatitude !== null && userLongitude !== null;
+        const isTooFar = hasLocation && distanceToSpace !== null && distanceToSpace > 200;
+        const isLocationVerified = hasVisited || (hasLocation && !isTooFar);
 
         if (reviewSuccess) {
             return (
@@ -506,6 +527,35 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     maxRows={6}
                     mb="sm"
                 />
+                {isAuthenticated && !isLocationVerified && (
+                    <Stack gap="xs" mb="sm">
+                        {(locationError || isTooFar) ? (
+                            <Alert color="orange" radius="md" p="xs">
+                                <Text size="sm">
+                                    {isTooFar
+                                        ? translate('pages.viewSpace.addReview.tooFar')
+                                        : locationError}
+                                </Text>
+                            </Alert>
+                        ) : (
+                            <Text size="sm" c="dimmed">
+                                {translate('pages.viewSpace.addReview.locationPrompt')}
+                            </Text>
+                        )}
+                        <Button
+                            onClick={this.handleRequestLocation}
+                            loading={isLocationLoading}
+                            variant="outline"
+                            size="compact-md"
+                            color="teal"
+                            style={{ alignSelf: 'flex-start' }}
+                        >
+                            {hasLocation
+                                ? translate('pages.viewSpace.addReview.retryLocation')
+                                : translate('pages.viewSpace.addReview.enableLocation')}
+                        </Button>
+                    </Stack>
+                )}
                 {reviewError && (
                     <Text size="sm" c="red" mb="sm">{reviewError}</Text>
                 )}
@@ -809,7 +859,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             <Anchor href="/locations" key="locations">{this.props.translate('pages.navigation.locations')}</Anchor>,
         ];
         if (locality) {
-            items.push(<Text key="locality" component="span">{locality}</Text>);
+            const cityEntry = Cities.CityNameMap[locality.toLowerCase()];
+            if (cityEntry) {
+                items.push(<Anchor href={`/locations/city/${cityEntry.slug}`} key="locality">{locality}</Anchor>);
+            } else {
+                items.push(<Text key="locality" component="span">{locality}</Text>);
+            }
         }
         items.push(<Text key="title" component="span">{space.notificationMsg}</Text>);
 
@@ -1222,12 +1277,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                 {this.renderClaimSubtleCTA(space)}
                             </div>
                             <Group gap="xs">
-                                <Tooltip label={space.reaction?.userBookmarkCategory ? this.props.translate('pages.viewSpace.labels.removeBookmark') : this.props.translate('pages.viewSpace.labels.bookmark')}>
-                                    <ActionIcon variant="subtle" size="lg" onClick={this.handleBookmarkPress} aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'} className="space-bookmark-icon">
-                                        <InlineSvg
-                                            name={space.reaction?.userBookmarkCategory ? 'bookmark' : 'bookmark-border'}
-                                        />
-                                    </ActionIcon>
+                                <Tooltip label={this.props.translate('pages.viewSpace.labels.saveToList')}>
+                                    <ListPickerPopover spaceId={space.id}>
+                                        <ActionIcon variant="subtle" size="lg" aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'} className="space-bookmark-icon">
+                                            <InlineSvg
+                                                name={space.reaction?.userBookmarkCategory ? 'bookmark' : 'bookmark-border'}
+                                            />
+                                        </ActionIcon>
+                                    </ListPickerPopover>
                                 </Tooltip>
                                 <Tooltip label={this.state.isLinkCopied ? this.props.translate('common.linkCopied') : this.props.translate('common.share')}>
                                     <ActionIcon variant="subtle" size="lg" onClick={this.handleShare} aria-label="Share">

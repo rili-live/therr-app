@@ -1,0 +1,60 @@
+{
+  "$schema": "./schema.json",
+  "description": "Declarative list of locale directories to validate for key-parity across locales. Each entry names a logical package and points at a directory whose children are locale folders (e.g. en-us/, es/, fr-ca/) each containing a dictionary.json. The baseLocale is the source of truth; every other locale in 'expectedLocales' must have exactly the same deep key set. Locales present on disk but not listed in 'expectedLocales' are ignored. If a package intentionally ships only a subset of locales today (e.g. the dashboard is en-us only), list only that one locale; the parity check becomes a no-op and the script remains green.",
+  "targets": [
+    {
+      "name": "therr-client-web",
+      "baseDir": "therr-client-web/src/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us", "es", "fr-ca"]
+    },
+    {
+      "name": "therr-client-web-dashboard",
+      "baseDir": "therr-client-web-dashboard/src/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us"]
+    },
+    {
+      "name": "TherrMobile",
+      "baseDir": "TherrMobile/main/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us", "es", "fr-ca"]
+    },
+    {
+      "name": "therr-api-gateway",
+      "baseDir": "therr-api-gateway/src/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us", "es"]
+    },
+    {
+      "name": "users-service",
+      "baseDir": "therr-services/users-service/src/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us", "es", "fr-ca"]
+    },
+    {
+      "name": "maps-service",
+      "baseDir": "therr-services/maps-service/src/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us", "es", "fr-ca"]
+    },
+    {
+      "name": "messages-service",
+      "baseDir": "therr-services/messages-service/src/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us", "es", "fr-ca"]
+    },
+    {
+      "name": "push-notifications-service",
+      "baseDir": "therr-services/push-notifications-service/src/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us", "es", "fr-ca"]
+    },
+    {
+      "name": "reactions-service",
+      "baseDir": "therr-services/reactions-service/src/locales",
+      "baseLocale": "en-us",
+      "expectedLocales": ["en-us", "es", "fr-ca"]
+    }
+  ]
+}

@@ -24,6 +24,7 @@ const Reactions = {
         }),
     getEventReactions: (query: IGetEventReactionParams) => (dispatch: any) => ReactionsService.getEventReactions(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ReactionActionTypes.GET_EVENT_REACTIONS,
                 data: response.data,
@@ -31,6 +32,7 @@ const Reactions = {
         }),
     findEventReactions: (query: IFindEventReactionParams) => (dispatch: any) => ReactionsService.findEventReactions(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             const reactionsById = {};
 
             (response.data?.reactions || []).forEach((reaction) => {
@@ -52,6 +54,7 @@ const Reactions = {
         }),
     getMomentReactions: (query: IGetMomentReactionParams) => (dispatch: any) => ReactionsService.getMomentReactions(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ReactionActionTypes.GET_MOMENT_REACTIONS,
                 data: response.data,
@@ -59,6 +62,7 @@ const Reactions = {
         }),
     findMomentReactions: (params: IFindMomentReactionParams) => (dispatch: any) => ReactionsService.findMomentReactions(params)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             const reactionsById = {};
 
             (response.data?.reactions || []).forEach((reaction) => {
@@ -80,6 +84,7 @@ const Reactions = {
         }),
     getSpaceReactions: (query: IGetSpaceReactionParams) => (dispatch: any) => ReactionsService.getSpaceReactions(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ReactionActionTypes.GET_SPACE_REACTIONS,
                 data: response.data,
@@ -87,6 +92,7 @@ const Reactions = {
         }),
     findSpaceReactions: (query: IFindSpaceReactionParams) => (dispatch: any) => ReactionsService.findSpaceReactions(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             const reactionsById = {};
 
             (response.data?.reactions || []).forEach((reaction) => {
@@ -108,6 +114,7 @@ const Reactions = {
         }),
     getThoughtReactions: (query: IGetThoughtReactionParams) => (dispatch: any) => ReactionsService.getThoughtReactions(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ReactionActionTypes.GET_THOUGHT_REACTIONS,
                 data: response.data,
@@ -115,6 +122,7 @@ const Reactions = {
         }),
     findThoughtReactions: (query: IFindThoughtReactionParams) => (dispatch: any) => ReactionsService.findThoughtReactions(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             const reactionsById = {};
 
             (response.data?.reactions || []).forEach((reaction) => {

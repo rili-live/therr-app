@@ -1566,6 +1566,137 @@ const renderLocationsView = (req, res, config, {
     });
 };
 
+/**
+ * City Pulse SSR renderer. Reads the prefetched pulse data from Redux and
+ * builds meta + JSON-LD that match the page's density. Therr-rich cities get a
+ * counts-based description; otherwise we fall back to the Wiki lead paragraph.
+ */
+const renderCityPulseView = (req, res, config, {
+    markup,
+    state,
+}, initialState, localeVars) => {
+    const routePath = config.route;
+    const routeView = config.view;
+
+    const citySlug = req.params?.citySlug || '';
+    const cityEntry = citySlug ? Cities.CitySlugMap[citySlug] : null;
+    const cityDisplayName = cityEntry ? `${cityEntry.name}, ${cityEntry.stateAbbr}` : '';
+
+    const pulse = initialState?.map?.cityPulse?.[citySlug] || null;
+    const trendingCount = pulse?.therr?.trendingSpaces?.length || 0;
+    const eventsCount = pulse?.therr?.upcomingEvents?.length || 0;
+    const wikiSummary = pulse?.wiki?.summary || '';
+    const hasUnderstand = !!pulse?.wiki?.sections?.understand;
+
+    // Meta title: always "{City}, {StateAbbr}: Local Guide, Events & Places | Therr"
+    const title = cityDisplayName
+        ? `${cityDisplayName}: Local Guide, Events & Places`
+        : (config.head.title || 'City Guide');
+
+    // Meta description: lead with Therr counts when we have depth, else Wiki lead.
+    let description: string;
+    if (trendingCount >= 6) {
+        const eventsFragment = eventsCount ? `, ${eventsCount} events this week` : '';
+        // eslint-disable-next-line max-len
+        description = `${trendingCount} local spots${eventsFragment} in ${cityDisplayName || 'this city'}. Browse neighborhoods, nearby places, and things to do.`;
+    } else if (wikiSummary) {
+        const firstSentence = wikiSummary.split(/(?<=[.!?])\s/)[0] || wikiSummary;
+        if (firstSentence.length <= 300) {
+            description = firstSentence;
+        } else {
+            // Cut to the last whitespace before 300 so SERPs don't show a
+            // mid-word break. Falls back to the hard cut if no space is found.
+            const hardCut = firstSentence.slice(0, 300);
+            const lastSpace = hardCut.lastIndexOf(' ');
+            description = lastSpace > 0 ? `${hardCut.slice(0, lastSpace).trimEnd()}…` : hardCut;
+        }
+    } else {
+        description = config.head.description
+            || `Things to do, places to go, and local highlights in ${cityDisplayName || 'this city'}.`;
+    }
+
+    const lp = localeVars.localePrefix;
+
+    // schema.org/City — primary entity for the page.
+    const citySchema: any = cityEntry ? {
+        '@context': 'https://schema.org',
+        '@type': 'City',
+        name: cityEntry.name,
+        containedInPlace: { '@type': 'State', name: cityEntry.state },
+        geo: { '@type': 'GeoCoordinates', latitude: cityEntry.lat, longitude: cityEntry.lng },
+        url: `https://www.therr.com${lp}/locations/city/${citySlug}`,
+    } : {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: title,
+    };
+
+    // Breadcrumb (Home → Locations → {City})
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            {
+                '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+            },
+            {
+                '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+            },
+            ...(cityDisplayName ? [{
+                '@type': 'ListItem',
+                position: 3,
+                name: cityDisplayName,
+                item: `https://www.therr.com/locations/city/${citySlug}`,
+            }] : []),
+        ],
+    };
+
+    // ItemList of trending spaces (when we have any) — good for rich results.
+    let itemListSchema: any = null;
+    const trendingSpaces = pulse?.therr?.trendingSpaces || [];
+    if (trendingSpaces.length > 0) {
+        itemListSchema = {
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            name: `Trending places in ${cityDisplayName || 'this city'}`,
+            numberOfItems: trendingSpaces.length,
+            itemListElement: trendingSpaces.slice(0, 20).map((space: any, index: number) => {
+                const slug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
+                return {
+                    '@type': 'ListItem',
+                    position: index + 1,
+                    url: `https://www.therr.com${lp}/spaces/${space.id}${slug ? `/${slug}` : ''}`,
+                    name: space.notificationMsg || space.id,
+                };
+            }),
+        };
+    }
+
+    // TouristDestination when Wikivoyage provided an Understand section —
+    // signals to search engines this is editorial guide content.
+    const touristDestinationSchema: any = hasUnderstand && cityEntry ? {
+        '@context': 'https://schema.org',
+        '@type': 'TouristDestination',
+        name: cityEntry.name,
+        description,
+        geo: { '@type': 'GeoCoordinates', latitude: cityEntry.lat, longitude: cityEntry.lng },
+    } : null;
+
+    return res.render(routeView, {
+        title,
+        description,
+        cityName: cityEntry?.name || '',
+        citySchema: JSON.stringify(citySchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        itemListSchema: itemListSchema ? JSON.stringify(itemListSchema) : '',
+        touristDestinationSchema: touristDestinationSchema ? JSON.stringify(touristDestinationSchema) : '',
+        markup,
+        routePath,
+        state,
+        ...localeVars,
+    });
+};
+
 const renderGroupView = (req, res, config, {
     markup,
     state,
@@ -1823,7 +1954,11 @@ routeConfig.forEach((config) => {
                 <GoogleOAuthProvider clientId={envVars.googleOAuth2WebClientId}>
                     <MantineProvider theme={mantineTheme} defaultColorScheme={colorScheme}>
                         <Provider store={store}>
-                            <StaticRouter location={req.url} basename={localePrefix || undefined}>
+                            <StaticRouter
+                                location={req.url}
+                                basename={localePrefix || undefined}
+                                future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+                            >
                                 <Layout />
                             </StaticRouter>
                         </Provider>
@@ -1871,6 +2006,13 @@ routeConfig.forEach((config) => {
 
                 if (routeView === 'locations') {
                     return renderLocationsView(req, res, config, {
+                        markup,
+                        state,
+                    }, initialState, localeVars);
+                }
+
+                if (routeView === 'city-pulse') {
+                    return renderCityPulseView(req, res, config, {
                         markup,
                         state,
                     }, initialState, localeVars);

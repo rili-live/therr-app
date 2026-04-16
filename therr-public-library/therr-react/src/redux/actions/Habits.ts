@@ -8,7 +8,8 @@ const Habits = {
     // Habit Goals
     getUserGoals: (limit?: number, offset?: number) => (dispatch: any) => {
         dispatch({ type: HabitsActionTypes.HABITS_LOADING });
-        return HabitGoalsService.getUserGoals(limit, offset).then((response) => {
+        return HabitGoalsService.getUserGoals(limit, offset).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: HabitsActionTypes.GET_USER_HABIT_GOALS,
                 data: response.data,
@@ -20,7 +21,8 @@ const Habits = {
     },
 
     getTemplates: (category?: string, limit?: number, offset?: number) => (dispatch: any) => HabitGoalsService
-        .getTemplates(category, limit, offset).then((response) => {
+        .getTemplates(category, limit, offset).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: HabitsActionTypes.GET_HABIT_GOAL_TEMPLATES,
                 data: response.data,
@@ -56,7 +58,8 @@ const Habits = {
     // Pacts
     getUserPacts: (status?: string, limit?: number, offset?: number) => (dispatch: any) => {
         dispatch({ type: HabitsActionTypes.HABITS_LOADING });
-        return PactsService.getUserPacts(status, limit, offset).then((response) => {
+        return PactsService.getUserPacts(status, limit, offset).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: HabitsActionTypes.GET_USER_PACTS,
                 data: response.data,
@@ -67,7 +70,8 @@ const Habits = {
         });
     },
 
-    getActivePacts: () => (dispatch: any) => PactsService.getActivePacts().then((response) => {
+    getActivePacts: () => (dispatch: any) => PactsService.getActivePacts().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: HabitsActionTypes.GET_ACTIVE_PACTS,
             data: response.data,
@@ -75,7 +79,8 @@ const Habits = {
         return response.data;
     }),
 
-    getPendingInvites: () => (dispatch: any) => PactsService.getPendingInvites().then((response) => {
+    getPendingInvites: () => (dispatch: any) => PactsService.getPendingInvites().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: HabitsActionTypes.GET_PENDING_INVITES,
             data: response.data,
@@ -83,7 +88,8 @@ const Habits = {
         return response.data;
     }),
 
-    getPactDetails: (id: string) => (dispatch: any) => PactsService.get(id).then((response) => {
+    getPactDetails: (id: string) => (dispatch: any) => PactsService.get(id).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: HabitsActionTypes.GET_PACT_DETAILS,
             data: response.data,
@@ -125,7 +131,8 @@ const Habits = {
 
     // Checkins
     getTodayCheckins: (habitGoalId?: string) => (dispatch: any) => HabitCheckinsService
-        .getTodayCheckins(habitGoalId).then((response) => {
+        .getTodayCheckins(habitGoalId).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: HabitsActionTypes.GET_TODAY_CHECKINS,
                 data: response.data,
@@ -134,7 +141,8 @@ const Habits = {
         }),
 
     getCheckinsByRange: (startDate: string, endDate: string, habitGoalId?: string) => (dispatch: any) => HabitCheckinsService
-        .getByDateRange(startDate, endDate, habitGoalId).then((response) => {
+        .getByDateRange(startDate, endDate, habitGoalId).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: HabitsActionTypes.GET_CHECKINS_BY_RANGE,
                 data: response.data,
@@ -171,7 +179,8 @@ const Habits = {
 
     // Streaks
     getUserStreaks: (isActive?: boolean) => (dispatch: any) => StreaksService
-        .getUserStreaks(isActive).then((response) => {
+        .getUserStreaks(isActive).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: HabitsActionTypes.GET_USER_STREAKS,
                 data: response.data,
@@ -179,7 +188,8 @@ const Habits = {
             return response.data;
         }),
 
-    getActiveStreaks: () => (dispatch: any) => StreaksService.getActiveStreaks().then((response) => {
+    getActiveStreaks: () => (dispatch: any) => StreaksService.getActiveStreaks().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: HabitsActionTypes.GET_ACTIVE_STREAKS,
             data: response.data,
@@ -188,7 +198,8 @@ const Habits = {
     }),
 
     getStreakByHabit: (habitGoalId: string) => (dispatch: any) => StreaksService
-        .getByHabit(habitGoalId).then((response) => {
+        .getByHabit(habitGoalId).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: HabitsActionTypes.GET_STREAK_BY_HABIT,
                 data: response.data,
@@ -196,7 +207,8 @@ const Habits = {
             return response.data;
         }),
 
-    getMilestones: () => (dispatch: any) => StreaksService.getMilestones().then((response) => {
+    getMilestones: () => (dispatch: any) => StreaksService.getMilestones().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: HabitsActionTypes.GET_MILESTONES,
             data: response.data,

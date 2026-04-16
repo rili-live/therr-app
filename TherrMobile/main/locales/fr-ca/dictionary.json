@@ -1665,12 +1665,33 @@
     "manageSpaces": {
       "headerTitle": "Mes Commerces",
       "noSpacesFound": "Aucun espace trouvé. Réclamez un emplacement commercial depuis la Carte pour commencer.",
+      "fetchError": "Impossible de charger vos espaces. Tirez vers le bas pour réessayer.",
       "coinBalanceLabel": "Votre Solde TherrCoins",
       "rewardActive": "Récompenses Actives",
       "rewardInactive": "Aucune Récompense",
       "buttons": {
         "view": "Voir",
         "edit": "Modifier"
+      }
+    },
+    "bookmarks": {
+      "lists": {
+        "title": "Mes listes",
+        "addToList": "Enregistrer dans une liste",
+        "newList": "+ Nouvelle liste",
+        "newListPlaceholder": "Nom de la liste",
+        "createList": "Créer",
+        "cancel": "Annuler",
+        "default": "Enregistrés",
+        "itemCount": "{count} enregistrés",
+        "emptyState": "Vous n'avez pas encore de listes. Enregistrez un espace pour créer votre première liste.",
+        "emptyList": "Cette liste est vide. Ouvrez un espace et maintenez appuyé le signet pour l'ajouter.",
+        "browseSpaces": "Parcourir les espaces",
+        "noListsYet": "Aucune liste pour l'instant",
+        "deleteList": "Supprimer la liste",
+        "deleteConfirm": "Supprimer cette liste? Les espaces enregistrés en seront retirés.",
+        "loading": "Chargement de la liste...",
+        "done": "Terminé"
       }
     }
   },

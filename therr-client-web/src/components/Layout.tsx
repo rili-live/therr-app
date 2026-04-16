@@ -17,6 +17,7 @@ import { UsersService } from 'therr-react/services';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import Header from './Header';
+import OfflineBanner from './OfflineBanner';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';
 import { INavMenuContext } from '../types';
@@ -26,6 +27,8 @@ import MessagesMenu from './nav-menu/MessagesMenu';
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import { IMessagingContext } from './footer/MessagingContainer';
 import UsersActions from '../redux/actions/UsersActions';
+import store from '../store';
+import { startNetworkListener } from '../services/networkService';
 import { routeAfterLogin } from '../routes/Login';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
@@ -111,6 +114,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         // TODO: Check if this should be initialized in index with history passed as argument
         // Initialize global interceptors such as 401, 403
         initInterceptors(navigation.navigate, undefined, 300);
+        startNetworkListener(store.dispatch);
 
         ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
 
@@ -395,6 +399,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         if (this.state.clientHasLoaded) {
             return (
                 <>
+                    <OfflineBanner />
                     {this.renderHeader(isLandingStylePage)}
                     <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
                         <div id="nav_menu" className={navMenuClassNames}>

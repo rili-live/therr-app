@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -255,6 +256,19 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
+                    <View style={headerStyles.myListsHeader}>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('MyLists')}
+                            style={headerStyles.myListsButton}
+                            accessibilityLabel={this.translate('pages.bookmarks.lists.title')}
+                        >
+                            <MaterialIcon name="bookmarks" size={18} color="#26a69a" />
+                            <Text style={headerStyles.myListsLabel}>
+                                {this.translate('pages.bookmarks.lists.title')}
+                            </Text>
+                            <MaterialIcon name="chevron-right" size={20} color="#26a69a" />
+                        </TouchableOpacity>
+                    </View>
                     <AreaCarousel
                         activeData={activeData}
                         content={content}
@@ -291,5 +305,28 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         );
     }
 }
+
+const headerStyles = StyleSheet.create({
+    myListsHeader: {
+        paddingHorizontal: 12,
+        paddingTop: 10,
+        paddingBottom: 4,
+    },
+    myListsButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderRadius: 8,
+        backgroundColor: 'rgba(38, 166, 154, 0.08)',
+    },
+    myListsLabel: {
+        flex: 1,
+        marginLeft: 8,
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#26a69a',
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(BookMarked);

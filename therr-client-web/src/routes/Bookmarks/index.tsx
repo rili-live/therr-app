@@ -5,8 +5,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ContentActions } from 'therr-react/redux/actions';
 import {
+    Badge,
     Button,
+    Card,
     Container,
+    Group,
     SegmentedControl,
     Skeleton,
     SimpleGrid,
@@ -15,10 +18,11 @@ import {
     ThemeIcon,
     Title,
     Paper,
-    Group,
 } from '@mantine/core';
 import useTranslation from '../../hooks/useTranslation';
 import Tile from '../Discovered/Tile';
+
+type TabValue = 'lists' | 'moments' | 'thoughts' | 'events';
 
 const Bookmarks: React.FC = () => {
     const { t: translate } = useTranslation();
@@ -27,7 +31,7 @@ const Bookmarks: React.FC = () => {
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
-    const [filter, setFilter] = useState('all');
+    const [tab, setTab] = useState<TabValue>('lists');
 
     const handleRefresh = useCallback(() => {
         setIsLoading(true);
@@ -40,11 +44,11 @@ const Bookmarks: React.FC = () => {
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         };
 
+        const listsPromise = dispatch(ContentActions.fetchUserLists(true) as any);
         const momentsPromise = dispatch(ContentActions.searchBookmarkedMoments(sharedParams) as any);
-        const spacesPromise = dispatch(ContentActions.searchBookmarkedSpaces(sharedParams) as any);
         const thoughtsPromise = dispatch(ContentActions.searchBookmarkedThoughts(sharedParams) as any);
 
-        Promise.all([momentsPromise, spacesPromise, thoughtsPromise])
+        Promise.all([listsPromise, momentsPromise, thoughtsPromise])
             .catch((err) => console.log(err))
             .finally(() => setIsLoading(false));
     }, [dispatch, user.details.blockedUsers, user.details.shouldHideMatureContent]);
@@ -54,43 +58,69 @@ const Bookmarks: React.FC = () => {
         handleRefresh();
     }, []); // eslint-disable-line
 
-    const bookmarkedMoments = useMemo(() => (content.bookmarkedMoments || []).map((m) => ({
+    const userLists = content.userLists || [];
+
+    const bookmarkedMoments = useMemo(() => (content.bookmarkedMoments || []).map((m: any) => ({
         ...m,
         areaType: 'moments',
     })), [content.bookmarkedMoments]);
 
-    const bookmarkedSpaces = useMemo(() => (content.bookmarkedSpaces || []).map((s) => ({
-        ...s,
-        areaType: 'spaces',
-    })), [content.bookmarkedSpaces]);
-
-    const bookmarkedThoughts = useMemo(() => (content.bookmarkedThoughts || []).map((t) => ({
+    const bookmarkedThoughts = useMemo(() => (content.bookmarkedThoughts || []).map((t: any) => ({
         ...t,
         areaType: 'thoughts',
     })), [content.bookmarkedThoughts]);
 
-    const allBookmarks = useMemo(() => {
-        let items: any[] = [];
-        if (filter === 'all') {
-            items = [...bookmarkedMoments, ...bookmarkedSpaces, ...bookmarkedThoughts];
-        } else if (filter === 'moments') {
-            items = bookmarkedMoments;
-        } else if (filter === 'spaces') {
-            items = bookmarkedSpaces;
-        } else if (filter === 'thoughts') {
-            items = bookmarkedThoughts;
-        }
-        return items;
-    }, [filter, bookmarkedMoments, bookmarkedSpaces, bookmarkedThoughts]);
-
-    const hasContent = allBookmarks.length > 0;
-
-    const filterData = [
-        { label: translate('pages.bookmarks.filters.all'), value: 'all' },
-        { label: translate('pages.bookmarks.filters.moments'), value: 'moments' },
-        { label: translate('pages.bookmarks.filters.spaces'), value: 'spaces' },
-        { label: translate('pages.bookmarks.filters.thoughts'), value: 'thoughts' },
+    const tabData = [
+        { label: translate('pages.bookmarks.tabs.lists'), value: 'lists' },
+        { label: translate('pages.bookmarks.tabs.moments'), value: 'moments' },
+        { label: translate('pages.bookmarks.tabs.thoughts'), value: 'thoughts' },
     ];
+
+    const activeItems = useMemo(() => {
+        if (tab === 'moments') return bookmarkedMoments;
+        if (tab === 'thoughts') return bookmarkedThoughts;
+        return [];
+    }, [tab, bookmarkedMoments, bookmarkedThoughts]);
+
+    const renderListCard = (list: any) => (
+        <Card
+            key={list.id}
+            shadow="sm"
+            padding={0}
+            radius="md"
+            withBorder
+            style={{ cursor: 'pointer' }}
+            onClick={() => navigate(`/bookmarks/lists/${list.id}`)}
+        >
+            <Card.Section style={{
+                height: 140,
+                background: list.colorHex || '#f1f3f5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+            >
+                <Text size="xl" c="dimmed">
+                    {list.name?.charAt(0)?.toUpperCase() || '*'}
+                </Text>
+            </Card.Section>
+            <Card.Section p="sm">
+                <Group justify="space-between" align="flex-start" wrap="nowrap">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text fw={600} size="sm" lineClamp={1}>{list.name}</Text>
+                        <Text size="xs" c="dimmed">
+                            {translate('pages.bookmarks.lists.itemCount', { count: list.itemCount ?? 0 })}
+                        </Text>
+                    </div>
+                    {list.isDefault && (
+                        <Badge variant="light" size="xs" color="teal">
+                            {translate('pages.bookmarks.lists.default')}
+                        </Badge>
+                    )}
+                </Group>
+            </Card.Section>
+        </Card>
+    );
 
     return (
         <Container id="page_bookmarks" size="lg" py="xl">
@@ -102,24 +132,42 @@ const Bookmarks: React.FC = () => {
                     </div>
                 </Group>
 
-                {!isLoading && hasContent && (
-                    <SegmentedControl
-                        value={filter}
-                        onChange={setFilter}
-                        data={filterData}
-                        size="sm"
-                    />
-                )}
+                <SegmentedControl
+                    value={tab}
+                    onChange={(v) => setTab(v as TabValue)}
+                    data={tabData}
+                    size="sm"
+                />
 
                 {isLoading && (
                     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <Skeleton key={i} height={280} radius="md" />
+                            <Skeleton key={i} height={220} radius="md" />
                         ))}
                     </SimpleGrid>
                 )}
 
-                {!isLoading && !hasContent && (
+                {!isLoading && tab === 'lists' && userLists.length === 0 && (
+                    <Paper withBorder p="xl" radius="md">
+                        <Stack align="center" gap="md">
+                            <ThemeIcon size={64} radius="xl" variant="light" color="teal">
+                                <Text size="xl">{'*'}</Text>
+                            </ThemeIcon>
+                            <Text ta="center" c="dimmed">{translate('pages.bookmarks.lists.emptyState')}</Text>
+                            <Button variant="light" onClick={() => navigate('/locations')}>
+                                {translate('pages.bookmarks.lists.browseSpaces')}
+                            </Button>
+                        </Stack>
+                    </Paper>
+                )}
+
+                {!isLoading && tab === 'lists' && userLists.length > 0 && (
+                    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+                        {userLists.map(renderListCard)}
+                    </SimpleGrid>
+                )}
+
+                {!isLoading && tab !== 'lists' && activeItems.length === 0 && (
                     <Paper withBorder p="xl" radius="md">
                         <Stack align="center" gap="md">
                             <ThemeIcon size={64} radius="xl" variant="light" color="teal">
@@ -133,9 +181,9 @@ const Bookmarks: React.FC = () => {
                     </Paper>
                 )}
 
-                {!isLoading && hasContent && (
+                {!isLoading && tab !== 'lists' && activeItems.length > 0 && (
                     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-                        {allBookmarks.map((area) => (
+                        {activeItems.map((area: any) => (
                             <Tile
                                 key={area.id}
                                 area={area}

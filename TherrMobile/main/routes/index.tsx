@@ -9,6 +9,8 @@ import ActivityScheduler from './Activities/ActivityScheduler';
 import AdvancedSearch from './AdvancedSearch';
 import MapFilteredSearch from './AdvancedSearch/MapFilteredSearch';
 import BookMarked from './Areas/BookMarked';
+import MyLists from './Areas/MyLists';
+import BookmarkListDetail from './Areas/BookmarkListDetail';
 import MyDrafts from './Areas/MyDrafts';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
@@ -223,6 +225,30 @@ const routes: RouteConfig<
         component: BookMarked,
         options: () => ({
             title: 'Bookmarked',
+            requiredFeatures: [FeatureFlags.ENABLE_AREAS],
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'MyLists',
+        component: MyLists,
+        options: () => ({
+            title: 'My Lists',
+            requiredFeatures: [FeatureFlags.ENABLE_AREAS],
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'BookmarkListDetail',
+        component: BookmarkListDetail,
+        options: () => ({
+            title: 'List',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
             access: {
                 type: AccessCheckType.ALL,

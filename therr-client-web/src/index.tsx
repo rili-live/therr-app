@@ -43,7 +43,10 @@ const RootComponent = () => (
     <GoogleOAuthProvider clientId={envVars.googleOAuth2WebClientId}>
         <MantineProvider theme={mantineTheme} defaultColorScheme={getColorScheme()}>
             <Provider store={store} serverState={store.preloadedState}>
-                <BrowserRouter basename={localeBasename}>
+                <BrowserRouter
+                    basename={localeBasename}
+                    future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+                >
                     <ScrollToTop />
                     <Layout />
                 </BrowserRouter>

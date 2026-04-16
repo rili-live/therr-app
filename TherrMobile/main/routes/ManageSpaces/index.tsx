@@ -10,6 +10,7 @@ import {
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import Toast from 'react-native-toast-message';
 import { MapActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -19,13 +20,19 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildFormStyles } from '../../styles/forms';
 import LottieLoader from '../../components/LottieLoader';
 
 const staticStyles = StyleSheet.create({
     spaceRowContent: {
         flex: 1,
         marginRight: 8,
+    },
+    spaceRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
     },
     spaceRowActions: {
         flexDirection: 'row',
@@ -95,6 +102,9 @@ const staticStyles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    listEmptyContent: {
+        flexGrow: 1,
+    },
     spaceNameText: {
         fontWeight: 'bold',
         fontSize: 15,
@@ -121,6 +131,8 @@ export interface IManageSpacesProps extends IStoreProps {
 interface IManageSpacesState {
     spacesInView: any[];
     isLoading: boolean;
+    isRefreshing: boolean;
+    hasFetchError: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -142,8 +154,6 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
 
     private themeButtons = buildButtonsStyles();
 
-    private themeForms = buildFormStyles();
-
     private themeLoader = buildLoaderStyles();
 
     private themeMenu = buildMenuStyles();
@@ -156,11 +166,12 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
         this.state = {
             spacesInView: [],
             isLoading: true,
+            isRefreshing: false,
+            hasFetchError: false,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) =>
@@ -174,8 +185,6 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
             title: this.translate('pages.manageSpaces.headerTitle'),
         });
 
-        this.fetchSpaces();
-
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             this.fetchSpaces();
         });
@@ -187,22 +196,32 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
         }
     }
 
-    fetchSpaces = () => {
+    fetchSpaces = (isRefresh = false) => {
         const { searchMySpaces } = this.props;
 
-        this.setState({ isLoading: true });
+        this.setState(isRefresh ? { isRefreshing: true } : { isLoading: true });
 
-        searchMySpaces({
+        return searchMySpaces({
             pageNumber: 1,
             itemsPerPage: 50,
         }).then((data) => {
             this.setState({
                 spacesInView: data?.results || [],
+                hasFetchError: false,
             });
-        }).catch(() => {}).finally(() => {
-            this.setState({ isLoading: false });
+        }).catch(() => {
+            this.setState({ hasFetchError: true });
+            Toast.show({
+                type: 'error',
+                text1: this.translate('alertTitles.backendErrorMessage'),
+                text2: this.translate('pages.manageSpaces.fetchError'),
+            });
+        }).finally(() => {
+            this.setState({ isLoading: false, isRefreshing: false });
         });
     };
+
+    handleRefresh = () => this.fetchSpaces(true);
 
     goToViewSpace = (space: any) => {
         const { navigation } = this.props;
@@ -229,15 +248,10 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
 
         return (
             <View style={[
-                this.themeForms.styles.areaContainer || {},
+                staticStyles.spaceRow,
                 {
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderBottomWidth: 1,
-                    borderBottomColor: this.theme.colors?.accentDivider || '#eee',
-                    backgroundColor: this.theme.colors?.backgroundWhite || '#fff',
+                    borderBottomColor: this.theme.colors.accentDivider,
+                    backgroundColor: this.theme.colors.backgroundWhite,
                 },
             ]}>
                 <View style={staticStyles.spaceRowContent}>
@@ -295,11 +309,32 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
         );
     };
 
+    renderEmpty = () => {
+        const { isLoading, hasFetchError } = this.state;
+
+        if (isLoading) {
+            return null;
+        }
+
+        const messageKey = hasFetchError
+            ? 'pages.manageSpaces.fetchError'
+            : 'pages.manageSpaces.noSpacesFound';
+
+        return (
+            <View style={staticStyles.emptyContainer}>
+                <Text style={[staticStyles.emptyText, { color: this.theme.colors.textGray }]}>
+                    {this.translate(messageKey)}
+                </Text>
+            </View>
+        );
+    };
+
     render() {
-        const { isLoading, spacesInView } = this.state;
+        const { isLoading, isRefreshing, spacesInView } = this.state;
         const { navigation, user } = this.props;
 
-        const coinBalance = parseFloat(user.details?.settingsTherrCoinTotal || '0');
+        const parsedCoins = parseFloat(user.details?.settingsTherrCoinTotal || '0');
+        const coinBalance = Number.isFinite(parsedCoins) ? parsedCoins : 0;
 
         return (
             <>
@@ -309,11 +344,11 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                     <View style={[
                         staticStyles.coinBanner,
                         {
-                            backgroundColor: this.theme.colors?.backgroundGray || '#f8f9fa',
-                            borderBottomColor: this.theme.colors?.accentDivider || '#dee2e6',
+                            backgroundColor: this.theme.colors.backgroundGray,
+                            borderBottomColor: this.theme.colors.accentDivider,
                         },
                     ]}>
-                        <Text style={[staticStyles.coinBannerLabel, { color: this.theme.colors?.textGray || '#666' }]}>
+                        <Text style={[staticStyles.coinBannerLabel, { color: this.theme.colors.textGray }]}>
                             {this.translate('pages.manageSpaces.coinBalanceLabel')}:{'  '}
                         </Text>
                         <Text style={staticStyles.coinBannerValue}>
@@ -321,33 +356,25 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                         </Text>
                     </View>
 
-                    {isLoading && (
+                    {isLoading ? (
                         <View style={staticStyles.loaderContainer}>
-                            <LottieLoader id="therr-black-rolling" style={this.themeLoader.styles.loader} />
+                            <LottieLoader id="therr-black-rolling" theme={this.themeLoader} />
                         </View>
-                    )}
-
-                    {!isLoading && spacesInView.length === 0 && (
-                        <View style={staticStyles.emptyContainer}>
-                            <Text style={[staticStyles.emptyText, { color: this.theme.colors?.textGray || '#666' }]}>
-                                {this.translate('pages.manageSpaces.noSpacesFound')}
-                            </Text>
-                        </View>
-                    )}
-
-                    {!isLoading && spacesInView.length > 0 && (
+                    ) : (
                         <FlatList
                             data={spacesInView}
                             keyExtractor={(item) => String(item.id)}
                             renderItem={this.renderSpaceRow}
-                            onRefresh={this.fetchSpaces}
-                            refreshing={isLoading}
+                            ListEmptyComponent={this.renderEmpty}
+                            contentContainerStyle={spacesInView.length === 0 ? staticStyles.listEmptyContent : undefined}
+                            onRefresh={this.handleRefresh}
+                            refreshing={isRefreshing}
                         />
                     )}
                 </SafeAreaView>
                 <MainButtonMenu
                     navigation={navigation}
-                    onActionButtonPress={this.fetchSpaces}
+                    onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
