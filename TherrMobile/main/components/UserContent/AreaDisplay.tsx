@@ -15,7 +15,6 @@ import {
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { showToast } from '../../utilities/toasts';
 import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
@@ -28,7 +27,6 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
-// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';

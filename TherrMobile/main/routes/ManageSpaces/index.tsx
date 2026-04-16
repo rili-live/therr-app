@@ -16,7 +16,7 @@ import { IUserState } from 'therr-react/types';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';

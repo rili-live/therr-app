@@ -15,7 +15,7 @@ import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
 import RegisterForm from './RegisterForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from '../Map/EULA';

@@ -13,7 +13,7 @@ import { getReadableDistance } from 'therr-js-utilities/location';
 import { distanceTo, insideCircle, isLatLon } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ILocationState } from '../../types/redux/location';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import {
     ANIMATE_TO_REGION_DURATION_FAST,
     ANIMATE_TO_REGION_DURATION_VERY_FAST,

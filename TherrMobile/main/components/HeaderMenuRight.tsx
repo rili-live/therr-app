@@ -9,13 +9,11 @@ import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-// import therrIconConfig from '../assets/therr-font-config.json';
-// import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { ITherrThemeColors } from '../styles/themes';

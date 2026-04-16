@@ -14,7 +14,7 @@ import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { navToViewContent } from '../../utilities/postViewHelpers';
 

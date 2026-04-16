@@ -12,7 +12,6 @@ import {
     SpotlightTourProvider,
 } from 'react-native-spotlight-tour';
 import { PaperProvider } from 'react-native-paper';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { useSelector } from 'react-redux';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
@@ -26,13 +25,12 @@ import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
 import { getPaperTheme } from './styles/themes';
-import { startNetworkListener } from './services/networkService';
+import { startNetworkListener } from './utilities/networkService';
 import './components/ActionSheet';
 
 // Disable in development
 setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__);
 
-// import { buildStyles } from './styles';
 
 // Reads theme name from Redux and provides the correct Paper theme to children
 const ThemedPaperProvider = ({ children }: { children: React.ReactNode }) => {

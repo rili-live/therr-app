@@ -1,6 +1,4 @@
 import axios from 'axios';
-// import { AlertActions } from './library/alerts';
-// import { LoaderActions } from './library/loader';
 import { UsersService } from 'therr-react/services';
 import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
 import SecureStorage from './utilities/SecureStorage';

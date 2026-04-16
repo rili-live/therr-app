@@ -6,7 +6,7 @@ import 'react-native-gesture-handler';
 import { IMapState as IMapReduxState } from 'therr-react/types';
 import DeviceInfo from 'react-native-device-info';
 import RoundInput from '.';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import UsersActions from '../../redux/actions/UsersActions';
 import TherrIcon from '../TherrIcon';
