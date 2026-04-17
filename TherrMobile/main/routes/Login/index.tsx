@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { SafeAreaView, View, Text, Platform } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';

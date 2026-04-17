@@ -9,7 +9,7 @@ import {
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { Categories, Content } from 'therr-js-utilities/constants';

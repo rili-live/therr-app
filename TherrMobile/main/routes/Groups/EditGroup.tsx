@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dimensions, Keyboard, Platform, SafeAreaView, Text, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';

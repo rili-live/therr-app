@@ -1,6 +1,6 @@
 import React from 'react';
 import { PermissionsAndroid, Platform, SafeAreaView, View, Text, Pressable, Dimensions } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Geolocation from 'react-native-geolocation-service';

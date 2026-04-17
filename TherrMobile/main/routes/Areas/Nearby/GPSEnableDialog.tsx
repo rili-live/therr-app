@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Button as PaperButton, Text as PaperText } from 'react-native-paper';
 import 'react-native-gesture-handler';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import LottieView from 'lottie-react-native';
 import earthLoader from '../../../assets/earth-loader.json';
 import { ITherrThemeColors } from '../../../styles/themes';

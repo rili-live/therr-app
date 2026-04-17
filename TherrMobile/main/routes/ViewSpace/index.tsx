@@ -13,7 +13,7 @@ import {
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Text as PaperText } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { showToast } from '../../utilities/toasts';
 import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';

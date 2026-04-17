@@ -9,7 +9,7 @@ import {
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';

@@ -6,7 +6,7 @@ import { Button } from '../../components/BaseButton';
 import EditFormFooter from '../../components/EditFormFooter';
 import LottieView from 'lottie-react-native';
 import { Image } from '../../components/BaseImage';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
 import { IUserState, IContentState } from 'therr-react/types';
