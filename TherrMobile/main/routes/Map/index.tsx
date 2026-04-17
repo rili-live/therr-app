@@ -1,8 +1,7 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView } from 'react-native';
+import { Dimensions, Modal, PermissionsAndroid, Keyboard, Platform, Pressable, SafeAreaView, View } from 'react-native';
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-maps';
-import AnimatedOverlay from 'react-native-modal-overlay';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
 import { showToast } from '../../utilities/toasts';
@@ -1948,24 +1947,27 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 // onClusterPress={this.onClusterPress}
                                 updateCircleCenter={this.updateCircleCenter}
                             />
-                            <AnimatedOverlay
-                                animationType="swing"
-                                animationDuration={500}
-                                easing="linear"
+                            <Modal
+                                animationType="fade"
+                                transparent
                                 visible={isAreaAlertVisible}
-                                onClose={this.cancelAreaAlert}
-                                closeOnTouchOutside
-                                containerStyle={this.theme.styles.overlay}
-                                childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
+                                onRequestClose={this.cancelAreaAlert}
                             >
-                                <Alert
-                                    containerStyles={{}}
-                                    isVisible={isAreaAlertVisible}
-                                    message={alertMessage}
-                                    type="error"
-                                    themeAlerts={this.themeAlerts}
-                                />
-                            </AnimatedOverlay>
+                                <Pressable
+                                    style={this.theme.styles.overlay}
+                                    onPress={this.cancelAreaAlert}
+                                >
+                                    <View style={mapStyles.momentAlertOverlayContainer}>
+                                        <Alert
+                                            containerStyles={{}}
+                                            isVisible={isAreaAlertVisible}
+                                            message={alertMessage}
+                                            type="error"
+                                            themeAlerts={this.themeAlerts}
+                                        />
+                                    </View>
+                                </Pressable>
+                            </Modal>
                         </>
                     )}
                     <QuickFiltersList
