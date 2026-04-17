@@ -48,7 +48,7 @@ const getNum = (key: string, fallback: number): number => {
     return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-export const config = {
+const config = {
     nodeEnv: getStr('NODE_ENV', 'development'),
     port: getStr('USERS_SERVICE_API_PORT'),
     jwtSecret: getStr('JWT_SECRET'),
