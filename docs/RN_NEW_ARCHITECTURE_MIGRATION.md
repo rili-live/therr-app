@@ -149,8 +149,8 @@ QA checklist: login, OAuth flow (Instagram/Facebook), map, create moment (with p
 | 3 | `react-native-phone-input` | ✅ reclassified | JS-only (no native code), not a New Arch blocker |
 | 4 | `react-native-snap-carousel` | ✅ removed | Not imported anywhere — was dead code |
 | 5 | `react-native-navigation-bar-color` | ✅ removed | All usages were commented out — dead code |
-| 6 | `react-native-keyboard-aware-scroll-view` → `react-native-keyboard-controller` | ⏳ pending | **21 files** — login, register, profile, edit screens, settings. Largest remaining item. `react-native-keyboard-controller` has a compat `KeyboardAwareScrollView` but offset math may differ. |
-| 7 | `react-native-android-location-services-dialog-box` → `Linking` + custom dialog | ⏳ pending | 2 files (`requestLocationServiceActivation.ts`, `Layout.tsx`). Replaces native Google Play Services GPS-enable dialog with `Linking.sendIntent('android.settings.LOCATION_SOURCE_SETTINGS')` or `react-native-permissions` `openSettings()`. Behavioral change: user leaves app briefly to toggle GPS. |
+| 6 | `react-native-keyboard-aware-scroll-view` → `react-native-keyboard-controller` | ✅ done | 21 files updated to import from `react-native-keyboard-controller` (same `KeyboardAwareScrollView` component name). App root wrapped with `<KeyboardProvider>` in `App.tsx`. Package override removed. |
+| 7 | `react-native-android-location-services-dialog-box` → `Linking.sendIntent` | ✅ done | `requestLocationServiceActivation.ts` now uses `Linking.sendIntent('android.settings.LOCATION_SOURCE_SETTINGS')`; the existing `locationProviderStatusChange` listener in `Layout.tsx` picks up the new GPS state on return. `{ status, alreadyEnabled }` return shape preserved so all six call sites work unchanged. Behavioral change: user leaves app briefly to toggle GPS. |
 
 ### Phase 3 — Enable New Architecture for Android dev build only (2–3 days)
 
