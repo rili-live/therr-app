@@ -26,7 +26,7 @@ const getNum = (key: string, fallback: number): number => {
     return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-export const config = {
+const config = {
     nodeEnv: getStr('NODE_ENV', 'development'),
     port: getNum('SOCKET_PORT', 7743),
     uriWhitelist: getStr('URI_WHITELIST').split(',').filter(Boolean),

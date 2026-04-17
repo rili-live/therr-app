@@ -33,7 +33,7 @@ const getNum = (key: string, fallback: number): number => {
     return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-export const config = {
+const config = {
     nodeEnv: getStr('NODE_ENV', 'development'),
     port: getStr('PUSH_NOTIFICATIONS_SERVICE_API_PORT'),
     uriWhitelist: getStr('URI_WHITELIST').split(',').filter(Boolean),

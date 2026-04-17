@@ -56,7 +56,7 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
 
 // TODO: This needs more security logic to ensure the requesting user has permissions to view
 // non-public images
-const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?: any[], ratings?: any[]) => {
+const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[] | null, users?: any[] | null, ratings?: any[] | null) => {
     const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
     const matchingUsers: any = {};
     const signingPromises: any = [];
