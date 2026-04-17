@@ -2,7 +2,6 @@ import React from 'react';
 import axios from 'axios';
 import qs from 'qs';
 import {
-    DeviceEventEmitter,
     Image,
     Linking,
     PermissionsAndroid,
@@ -237,10 +236,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
         });
 
-        DeviceEventEmitter.addListener('locationProviderStatusChange', (status) => { // only trigger when "providerListener" is enabled
-            this.props.updateGpsStatus(status);
-        });
-
         this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
             logEvent(getAnalytics(),'background_location_on_location', {
                 userId: this.props.user?.details?.id,
@@ -258,8 +253,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         //     console.log('BackgroundGeolocation-[onActivityChange]', event);
         // }));
         this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-            // TODO: This might be the same as DeviceEventEmitter.addListener('locationProviderStatusChange'...above
-            console.log('BackgroundGeolocation-[onProviderChange]', event);
+            // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
+            // listener (emitted by react-native-android-location-services-dialog-box,
+            // which was removed in the New Architecture migration). Fires on
+            // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
+            // changes (iOS). Reducer checks status === 'enabled'.
+            this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
         }));
 
         this.readyAndStartBackgroundGeolocation();
