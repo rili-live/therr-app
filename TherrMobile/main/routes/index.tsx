@@ -46,6 +46,8 @@ import EditGroup from './Groups/EditGroup';
 import ViewGroup from './Groups/ViewGroup';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
 import ManageSpaces from './ManageSpaces';
+import MyQRCodes from './MyQRCodes';
+import MyQRCodeDetail from './MyQRCodes/MyQRCodeDetail';
 import Invite from './Invite';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
@@ -445,6 +447,28 @@ const routes: RouteConfig<
         component: ManagePreferences,
         options: () => ({
             title: 'ManagePreferences',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'MyQRCodes',
+        component: MyQRCodes,
+        options: () => ({
+            title: 'My QR Codes',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'MyQRCodeDetail',
+        component: MyQRCodeDetail,
+        options: () => ({
+            title: 'QR Code',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
