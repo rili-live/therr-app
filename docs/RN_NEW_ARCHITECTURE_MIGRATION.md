@@ -140,17 +140,17 @@ npm run android:clean && npm run android
 
 QA checklist: login, OAuth flow (Instagram/Facebook), map, create moment (with photo + crop), event date picker, send message, push notification, embedded media content, YouTube playback.
 
-### Phase 2 — Tier A blocker replacements (2–3 weeks)
+### Phase 2 — Tier A blocker replacements (in progress)
 
-One PR per replacement on `general` (still legacy arch), smallest first:
-
-1. `react-native-animated-loader` → direct `lottie-react-native`
-2. `react-native-modal-overlay` → built-in `Modal` / `react-native-modal`
-3. `react-native-phone-input` → `react-native-phone-number-input`
-4. `react-native-snap-carousel` → `react-native-reanimated-carousel`
-5. `react-native-keyboard-aware-scroll-view` → `react-native-keyboard-controller`
-6. `react-native-navigation-bar-color` → `react-native-edge-to-edge`
-7. `react-native-android-location-services-dialog-box` → `react-native-permissions` location flow
+| # | Library | Status | Notes |
+|---|---|---|---|
+| 1 | `react-native-animated-loader` → `lottie-react-native` | ✅ done | EarthLoader.tsx rewritten; Map/index.tsx updated |
+| 2 | `react-native-modal-overlay` → built-in `Modal` | ✅ done | Map overlay replaced with `Modal` + `Pressable` backdrop |
+| 3 | `react-native-phone-input` | ✅ reclassified | JS-only (no native code), not a New Arch blocker |
+| 4 | `react-native-snap-carousel` | ✅ removed | Not imported anywhere — was dead code |
+| 5 | `react-native-navigation-bar-color` | ✅ removed | All usages were commented out — dead code |
+| 6 | `react-native-keyboard-aware-scroll-view` → `react-native-keyboard-controller` | ⏳ pending | **21 files** — login, register, profile, edit screens, settings. Largest remaining item. `react-native-keyboard-controller` has a compat `KeyboardAwareScrollView` but offset math may differ. |
+| 7 | `react-native-android-location-services-dialog-box` → `Linking` + custom dialog | ⏳ pending | 2 files (`requestLocationServiceActivation.ts`, `Layout.tsx`). Replaces native Google Play Services GPS-enable dialog with `Linking.sendIntent('android.settings.LOCATION_SOURCE_SETTINGS')` or `react-native-permissions` `openSettings()`. Behavioral change: user leaves app briefly to toggle GPS. |
 
 ### Phase 3 — Enable New Architecture for Android dev build only (2–3 days)
 
