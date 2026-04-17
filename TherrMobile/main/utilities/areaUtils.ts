@@ -1,4 +1,3 @@
-// import { Platform } from 'react-native';
 import uuid from 'react-native-uuid';
 
 const getImagePreviewPath = (imageURI) => {

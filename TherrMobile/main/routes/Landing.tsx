@@ -12,9 +12,8 @@ import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticati
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import spacingStyles from '../styles/layouts/spacing';
 import UsersActions from '../redux/actions/UsersActions';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
-// import ftuiClaim from '../assets/discover.json';
 import ftuiClaim from '../assets/ftui-claim.json';
 import ftuiDiscover from '../assets/ftui-discover.json';
 import ftuiMoment from '../assets/ftui-moment.json';

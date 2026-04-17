@@ -6,9 +6,11 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 const MAPS_STORE_PREFIX = 'MAPS_STORE:';
 const PLACES_CACHE_PREFIX = 'PLACES_CACHE:';
 const GEOCODING_CACHE_PREFIX = 'GEOCODING_CACHE:';
+const CITY_PULSE_CACHE_PREFIX = 'MAPS_STORE:cityPulse:';
 const DEFAULT_TTL_SECONDS = 300;
 const PLACES_TTL_SECONDS = 600; // 10 minutes for Places API responses
 const GEOCODING_TTL_SECONDS = 86400; // 24 hours - locations don't change
+const CITY_PULSE_TTL_SECONDS = 900; // 15 minutes
 
 class MapsServiceCache {
     private cache: Redis;
@@ -91,6 +93,63 @@ class MapsServiceCache {
         return this.cache.del(`${MAPS_STORE_PREFIX}${areaType}:${areaId}`).catch((error) => {
             console.error(`Error invalidating ${areaType} cache`, error);
             return null;
+        });
+    }
+
+    // City Pulse — one payload per (slug, locale). Short TTL so fresh Therr
+    // content (new spaces/moments/events) surfaces within minutes without
+    // requiring write-path invalidation across every POST handler.
+    public getCityPulse(slug: string, locale: string) {
+        return this.cache.get(`${CITY_PULSE_CACHE_PREFIX}${slug}:${locale}`).then((response) => {
+            if (!response) return undefined;
+            return JSON.parse(response);
+        }).catch((error) => {
+            console.error('Error getting cityPulse from cache', error);
+            return undefined;
+        });
+    }
+
+    public setCityPulse(slug: string, locale: string, data: any, ttl = CITY_PULSE_TTL_SECONDS) {
+        return this.cache
+            .setex(`${CITY_PULSE_CACHE_PREFIX}${slug}:${locale}`, ttl, JSON.stringify(data))
+            .catch((error) => {
+                console.error('Error setting cityPulse in cache', error);
+            });
+    }
+
+    public invalidateCityPulse(slug: string, locale?: string): Promise<number | null> {
+        if (locale) {
+            return this.cache.del(`${CITY_PULSE_CACHE_PREFIX}${slug}:${locale}`).catch((error) => {
+                console.error('Error invalidating cityPulse cache', error);
+                return null;
+            });
+        }
+        // No locale: clear all locale variants via non-blocking SCAN. Redis KEYS
+        // blocks the server across the full keyspace; SCAN iterates in cursor
+        // chunks and is safe as the cityPulse keyspace grows.
+        const match = `${CITY_PULSE_CACHE_PREFIX}${slug}:*`;
+        return new Promise<number | null>((resolve) => {
+            const stream = this.cache.scanStream({ match, count: 100 });
+            const collected: string[] = [];
+            stream.on('data', (keys: string[]) => {
+                if (keys?.length) collected.push(...keys);
+            });
+            stream.on('error', (error) => {
+                console.error('Error invalidating cityPulse cache', error);
+                resolve(null);
+            });
+            stream.on('end', () => {
+                if (!collected.length) {
+                    resolve(0);
+                    return;
+                }
+                this.cache.del(...collected)
+                    .then((count) => resolve(count))
+                    .catch((error) => {
+                        console.error('Error invalidating cityPulse cache', error);
+                        resolve(null);
+                    });
+            });
         });
     }
 }

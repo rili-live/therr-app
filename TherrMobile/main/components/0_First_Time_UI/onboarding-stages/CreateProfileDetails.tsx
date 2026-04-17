@@ -6,7 +6,6 @@ import { Picker as ReactPicker } from '@react-native-picker/picker';
 import Alert from '../../Alert';
 import SquareInput from '../../Input/Square';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';
-// import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../constants';
 
 interface ICreateProfileDetailsProps {
     errorMsg: string;

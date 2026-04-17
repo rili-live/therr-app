@@ -9,13 +9,11 @@ import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-// import therrIconConfig from '../assets/therr-font-config.json';
-// import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { ITherrThemeColors } from '../styles/themes';
@@ -665,22 +663,41 @@ class HeaderMenuRight extends React.PureComponent<
                                                 active={currentScreen === 'Settings'}
                                                 onPress={() => this.navTo('Settings')}
                                             />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.wallet')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'ExchangePointsDisclaimer'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="wallet"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'ExchangePointsDisclaimer'}
-                                                onPress={() => this.navTo('ExchangePointsDisclaimer')}
-                                            />
+                                            {user.details?.isBusinessAccount ? (
+                                                <Drawer.Item
+                                                    label={this.translate('components.headerMenuRight.menuItems.manageSpaces')}
+                                                    icon={() => (
+                                                        <TherrIcon
+                                                            style={
+                                                                currentScreen === 'ManageSpaces'
+                                                                    ? themeMenu.styles.iconStyleActive
+                                                                    : themeMenu.styles.iconStyle
+                                                            }
+                                                            name="storefront"
+                                                            size={24}
+                                                        />
+                                                    )}
+                                                    active={currentScreen === 'ManageSpaces'}
+                                                    onPress={() => this.navTo('ManageSpaces')}
+                                                />
+                                            ) : (
+                                                <Drawer.Item
+                                                    label={this.translate('components.headerMenuRight.menuItems.wallet')}
+                                                    icon={() => (
+                                                        <TherrIcon
+                                                            style={
+                                                                currentScreen === 'ExchangePointsDisclaimer'
+                                                                    ? themeMenu.styles.iconStyleActive
+                                                                    : themeMenu.styles.iconStyle
+                                                            }
+                                                            name="wallet"
+                                                            size={24}
+                                                        />
+                                                    )}
+                                                    active={currentScreen === 'ExchangePointsDisclaimer'}
+                                                    onPress={() => this.navTo('ExchangePointsDisclaimer')}
+                                                />
+                                            )}
                                             <Drawer.Item
                                                 label={this.translate('components.headerMenuRight.menuItems.bookmarks')}
                                                 icon={() => (

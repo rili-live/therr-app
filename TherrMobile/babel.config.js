@@ -36,6 +36,11 @@ module.exports = {
             },
         ],
         'react-native-paper/babel',
+        // Strip console.* calls in production bundles (keep error/warn for Crashlytics/LogRocket).
+        // Runs only on production builds so dev logs are preserved.
+        ...(process.env.NODE_ENV === 'production' || process.env.BABEL_ENV === 'production'
+            ? [['transform-remove-console', { exclude: ['error', 'warn'] }]]
+            : []),
         'react-native-reanimated/plugin', // Should always be last
     ],
 };

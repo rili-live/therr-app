@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    AccessLevels, ErrorCodes, ReferralRewards, UserConnectionTypes,
+    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { parseHeaders } from 'therr-js-utilities/http';
@@ -584,6 +584,37 @@ const updateUser = (req, res) => {
                 }
             }
 
+            const rawAutoRechargePackageId = req.body.autoRechargePackageId;
+            if (rawAutoRechargePackageId !== undefined
+                && rawAutoRechargePackageId !== null
+                && !(typeof rawAutoRechargePackageId === 'string' && (COIN_PACKAGE_IDS as string[]).includes(rawAutoRechargePackageId))) {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid autoRechargePackageId',
+                    statusCode: 400,
+                });
+            }
+            const rawAutoRechargeThreshold = req.body.autoRechargeThresholdCoins;
+            if (rawAutoRechargeThreshold !== undefined
+                && rawAutoRechargeThreshold !== null
+                && !(Number.isInteger(rawAutoRechargeThreshold) && rawAutoRechargeThreshold >= 0)) {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid autoRechargeThresholdCoins',
+                    statusCode: 400,
+                });
+            }
+            const rawAutoRechargeEnabled = req.body.autoRechargeEnabled;
+            if (rawAutoRechargeEnabled !== undefined
+                && rawAutoRechargeEnabled !== null
+                && typeof rawAutoRechargeEnabled !== 'boolean') {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid autoRechargeEnabled',
+                    statusCode: 400,
+                });
+            }
+
             // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
@@ -611,6 +642,9 @@ const updateUser = (req, res) => {
                 settingsLocale: req.body.settingsLocale,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
+                autoRechargeEnabled: rawAutoRechargeEnabled,
+                autoRechargeThresholdCoins: rawAutoRechargeThreshold,
+                autoRechargePackageId: rawAutoRechargePackageId,
             };
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);

@@ -45,7 +45,8 @@
   },
   "components": {
     "tile": {
-      "untitled": "Sin título"
+      "untitled": "Sin título",
+      "saveToList": "Guardar en lista"
     },
     "layout": {
       "floatingButton": {
@@ -198,6 +199,26 @@
     }
   },
   "pages": {
+    "cityPulse": {
+      "heroTitle": "{city}",
+      "heroFallback": "Explora {city}: lugares locales, eventos y novedades de la comunidad.",
+      "aboutHeading": "Acerca de {city}",
+      "neighborhoodsHeading": "Barrios",
+      "gettingAroundHeading": "Cómo moverse",
+      "getInSubheading": "Cómo llegar",
+      "getAroundSubheading": "Cómo desplazarse",
+      "trendingSpacesHeading": "Lugares populares en {city}",
+      "upcomingEventsHeading": "Próximos eventos en {city}",
+      "momentsWallHeading": "Momentos recientes desde {city}",
+      "groupsHeading": "Grupos activos en {city}",
+      "browseByCategoryHeading": "Explora {city} por categoría",
+      "nearbyCitiesHeading": "Ciudades cercanas",
+      "ctaHeading": "Obtén la aplicación Therr para {city}",
+      "ctaBody": "Descubre más lugares locales, comparte momentos con la comunidad y gana recompensas.",
+      "attributionLead": "Parte del contenido de esta página proviene de Wikipedia y Wikivoyage, bajo licencia CC BY-SA 4.0. Los extractos han sido resumidos y reformateados.",
+      "attributionSource": "Fuente",
+      "attributionLocaleFallback": "Parte del contenido se muestra en inglés porque no hay traducción disponible."
+    },
     "childSafety": {
       "pageTitle": "Estándares de seguridad infantil",
       "intro": "Therr está comprometido con la seguridad y protección de todos los usuarios, especialmente los menores de edad. Mantenemos una política de tolerancia cero hacia el abuso y la explotación sexual infantil (CSAE) en nuestra plataforma.",
@@ -274,6 +295,29 @@
         "moments": "Momentos",
         "spaces": "Espacios",
         "thoughts": "Pensamientos"
+      },
+      "tabs": {
+        "lists": "Listas",
+        "moments": "Momentos",
+        "thoughts": "Pensamientos"
+      },
+      "lists": {
+        "title": "Mis listas",
+        "addToList": "Guardar en lista",
+        "newList": "+ Nueva lista",
+        "newListPlaceholder": "Nombre de la lista",
+        "createList": "Crear",
+        "cancel": "Cancelar",
+        "default": "Guardados",
+        "itemCount": "{count} guardados",
+        "emptyState": "Aún no tienes listas. Guarda un espacio para crear tu primera lista.",
+        "emptyList": "Esta lista está vacía. Abre un espacio y agrégalo para comenzar.",
+        "browseSpaces": "Explorar espacios",
+        "noListsYet": "Aún no hay listas",
+        "deleteList": "Eliminar lista",
+        "deleteConfirm": "¿Eliminar esta lista? Los espacios guardados serán removidos.",
+        "loading": "Cargando lista...",
+        "back": "Atrás"
       }
     },
     "discovered": {
@@ -483,6 +527,9 @@
       "collapseMap": "Contraer mapa",
       "signInPrompt": "para ver tus espacios privados y gestionar listados.",
       "website": "sitio web",
+      "introCityCategory": "¿Buscas {category} en {city}? El directorio local de Therr muestra {category} en {city} que miembros reales de la comunidad han visitado, valorado y fotografiado. Cada ficha incluye horarios, un mapa y reseñas.",
+      "introCity": "Explora negocios locales en {city}. El directorio de {city} de Therr se basa en check-ins verificados de la comunidad para que veas los lugares que los locales realmente visitan: restaurantes, bares, tiendas, hoteles, gimnasios, parques y más, con horarios, fotos y reseñas.",
+      "introCategory": "Descubre {category} cerca de ti en Therr. Cada ficha proviene de miembros de la comunidad que han visitado y valorado el lugar, con horarios, fotos e indicaciones en el mapa.",
       "nearLocation": "Mostrando espacios cerca de {location}",
       "searchPlaceholderLocation": "Buscar por ubicación (ej. Michigan, Nueva York)...",
       "nearMe": "Cerca de mí",
@@ -503,7 +550,43 @@
       "or": "o",
       "info": "Therr te conecta con las personas, lugares y negocios de tu barrio. Comparte publicaciones geolocalizadas, descubre joyas ocultas cercanas y gana recompensas solo por explorar tu comunidad.",
       "info2": "¿Eres influencer local o creador de contenido? Asóciate con negocios cercanos, haz crecer tu audiencia y consigue colaboraciones pagadas, todo a través de la app.",
-      "info3": "Descarga la app gratuita para desbloquear la experiencia completa."
+      "info3": "Descarga la app gratuita para desbloquear la experiencia completa.",
+      "seo": {
+        "discoverHeading": "Explora un directorio de negocios locales hecho para barrios reales",
+        "discoverBody": "Therr es una plataforma comunitaria y un directorio de negocios con enfoque local. Explora restaurantes, bares, tiendas, hoteles, parques, gimnasios y salones de eventos en todo Estados Unidos. Cada ficha incluye horarios, fotos, reseñas de personas que realmente visitaron el lugar y la opción de guardar o compartir con amistades.",
+        "popularCitiesHeading": "Ciudades populares",
+        "viewAllCities": "Ver todas las ciudades",
+        "popularCategoriesHeading": "Explora por categoría",
+        "viewAllCategories": "Ver todas las categorías",
+        "forBusinessesHeading": "Para negocios locales",
+        "forBusinessesBody": "¿Eres propietario de un negocio local? Reclama tu ficha en Therr para actualizar tus horarios, fotos y menú, y conéctate con clientes cercanos que ganan recompensas TherrCoin por visitarte."
+      }
+    },
+    "citiesHub": {
+      "pageTitle": "Explora negocios locales por ciudad",
+      "heading": "Explora negocios locales por ciudad",
+      "intro": "Encuentra restaurantes, bares, tiendas, hoteles y eventos en las principales ciudades de Estados Unidos. Cada página de ciudad incluye un mapa con búsqueda y los lugares locales más visitados, con reseñas y fotos de usuarios reales de Therr.",
+      "breadcrumb": {
+        "home": "Inicio",
+        "locations": "Ubicaciones",
+        "cities": "Ciudades"
+      },
+      "categoriesCtaHeading": "¿Prefieres explorar por categoría?",
+      "categoriesCtaBody": "¿Buscas algo específico?",
+      "categoriesCtaLink": "Explora por categoría"
+    },
+    "categoriesHub": {
+      "pageTitle": "Explora negocios locales por categoría",
+      "heading": "Explora negocios locales por categoría",
+      "intro": "Elige una categoría para explorar: restaurantes, bares, tiendas, hoteles, parques, gimnasios, museos, locales de música y más. Cada página de categoría usa reseñas y check-ins reales de usuarios para mostrar lo que realmente vale la pena cerca.",
+      "breadcrumb": {
+        "home": "Inicio",
+        "locations": "Ubicaciones",
+        "categories": "Categorías"
+      },
+      "citiesCtaHeading": "¿Buscas fichas en una ciudad específica?",
+      "citiesCtaBody": "¿Quieres filtrar por ubicación?",
+      "citiesCtaLink": "Explora por ciudad"
     },
     "createForum": {
       "buttons": {
@@ -828,7 +911,8 @@
         "helpful": "Útil",
         "notHelpful": "No útil",
         "bookmark": "Guardar",
-        "removeBookmark": "Quitar guardado"
+        "removeBookmark": "Quitar guardado",
+        "saveToList": "Guardar en lista"
       },
       "loginModal": {
         "title": "Inicio de sesión requerido",

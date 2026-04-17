@@ -1,4 +1,5 @@
 import connection, { IConnection } from './connection';
+import CityWikiCacheStore from './CityWikiCacheStore';
 import EventsStore from './EventsStore';
 import ExternalMediaIntegrationsStore from './ExternalMediaIntegrationsStore';
 import MediaStore from './MediaStore';
@@ -12,6 +13,8 @@ import SpaceDisplayRequestsStore from './SpaceDisplayRequestsStore';
 
 class Store {
     db: IConnection;
+
+    cityWikiCache: CityWikiCacheStore;
 
     events: EventsStore;
 
@@ -35,6 +38,8 @@ class Store {
 
     constructor(dbConnection) {
         this.db = dbConnection;
+
+        this.cityWikiCache = new CityWikiCacheStore(this.db);
 
         this.externalMediaIntegrations = new ExternalMediaIntegrationsStore(this.db);
 
