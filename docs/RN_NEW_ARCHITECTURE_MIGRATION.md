@@ -1,0 +1,215 @@
+# React Native New Architecture Migration Plan (Android)
+
+**Created:** April 2026
+**Status:** Planning
+**Branch:** `claude/react-native-architecture-plan-K8wbh` (based on `general`)
+**Target:** `TherrMobile` — Android first, iOS as parallel follow-up
+
+---
+
+## Problem Statement
+
+`TherrMobile` is on React Native 0.80.0 but still runs the legacy bridge-based architecture (`newArchEnabled=false` in `TherrMobile/android/gradle.properties`). RN 0.80 ships with the New Architecture (Fabric renderer + TurboModules + Bridgeless mode) as the forward-default; the legacy bridge is deprecated. Remaining on legacy means:
+
+- Blocks future RN upgrades (0.81+ signals drop legacy support for some subsystems).
+- Forfeits startup, rendering, and memory improvements already landed in Fabric.
+- Prevents adoption of Fabric-only libraries (e.g. modern keyboard, list, and media libs).
+- Will eventually break when RN removes the legacy interop path entirely.
+
+## Goal
+
+Ship a clear, **incremental, non-disrupting** path to turn on the New Architecture for the Android build, validate it in staging, and promote it to production — while cataloging every dependency that blocks the upgrade and estimating effort to clear each blocker.
+
+---
+
+## Current State (on `general`)
+
+| Item | Value |
+|---|---|
+| React Native | 0.80.0 |
+| React | 19.1.0 |
+| Hermes | enabled |
+| `compileSdk` / `targetSdk` | 35 |
+| Kotlin | 2.0.21 |
+| Android Gradle Plugin | 8.9.0 |
+| NDK | 28.0.13004108 |
+| `newArchEnabled` (Android) | **`false`** |
+| iOS `RCT_NEW_ARCH_ENABLED` | unset |
+| Custom native modules | **none** (every native dep is autolinked) |
+| `MainApplication.kt` / `MainActivity.kt` | already uses `DefaultReactNativeHost`, `DefaultReactHost`, `DefaultReactActivityDelegate`, and references `BuildConfig.IS_NEW_ARCHITECTURE_ENABLED` |
+| Metro / Babel | on `@react-native/{metro-config,babel-preset}@0.80.0`; `react-native-reanimated/plugin` is last in Babel chain |
+| Proguard | already keeps `com.facebook.react.turbomodule.**` |
+
+**Implication:** the host app is architecturally ready. The work is **dependency hygiene**, not native-code rewrites.
+
+---
+
+## Dependency Audit
+
+Categorized by risk level based on `TherrMobile/package.json` at `general` and upstream state as of April 2026.
+
+### Tier A — Blockers (abandoned / unmaintained / no New-Arch path)
+
+These libraries cannot be brought into New Arch without replacement; the RN 0.80 interop layer will not save them because they either crash under Bridgeless or render nothing under Fabric.
+
+| Package | Installed | Status | Replacement | Effort |
+|---|---|---|---|---|
+| `react-native-snap-carousel` | 3.9.1 | Archived since 2022 | `react-native-reanimated-carousel` | **M** — ~3–6 carousels; rewrite `renderItem`/`sliderWidth`/`itemWidth` → `width`/`data`/`renderItem` |
+| `react-native-navigation-bar-color` | 2.0.1 | Unmaintained; incompatible with edge-to-edge | `react-native-edge-to-edge` + `StatusBar`/`SystemBars` APIs | **M** — audit every screen that tints nav bar |
+| `react-native-animated-loader` | 0.0.8 | Abandoned (last release 2019) | `lottie-react-native` direct (already installed) | **S** — ~1 component |
+| `react-native-keyboard-aware-scroll-view` | 0.9.5 | Unmaintained; broken under Fabric | `react-native-keyboard-controller` | **M-L** — widely used in forms; worst case ~20 screens |
+| `react-native-android-location-services-dialog-box` | 2.8.2 | Abandoned | `LocationServices.getSettingsClient` via small TurboModule or `react-native-permissions` flow | **M** |
+| `react-native-phone-input` | 1.3.6 | Unmaintained (last release 2021) | `react-native-phone-number-input` | **S-M** |
+| `react-native-modal-overlay` | 1.3.1 | Abandoned | built-in `Modal` or `react-native-modal` | **S** |
+
+### Tier B — Major-version upgrades required
+
+New-Arch-compatible release exists but requires a major upgrade with breaking API changes.
+
+| Package | Installed | Target | Effort |
+|---|---|---|---|
+| `react-native-webview` | ^11.26.1 | ^13.16+ | **L** — two majors of API drift; audit every webview route (OAuth, help, embeds, YouTube) |
+| `react-native-vector-icons` | ^9.2.0 | ^10.3 | **S** — subpath imports still work (deprecated); zero source edits |
+| `react-native-permissions` | ^3.10.1 | ^5.5 (v4 line has been superseded on npm) | **M** — permission constants reorganized; two majors of API drift |
+| `react-native-linear-gradient` | ^2.8.3 | _stay on 2.8.3_ — latest stable; 3.0 is beta only | **n/a** |
+| `react-native-haptic-feedback` | ^1.14.0 | ^2.2 (v3 is maintainer-labeled "pre-release battle testing") | **S** — default import + `.trigger()` unchanged |
+| `react-native-date-picker` | ^4.4.2 | ^5.0 | **S-M** |
+| `react-native-geolocation-service` | ^5.3.0 | ^5.3.1 (patch bump) | **XS** — deeper evaluate-swap task deferred |
+| `react-native-image-crop-picker` | ^0.41.6 | ^0.51 (partial New Arch; iOS stronger than Android) | **M** — smoke-test avatar + moment upload |
+
+### Tier C — Already compatible (may need minor bumps)
+
+`react-native-reanimated` 3.16.7 · `react-native-gesture-handler` 2.30.0 · `react-native-screens` 4.5.0 · `react-native-safe-area-context` 5.1.0 · `react-native-svg` 15.12.0 · `@shopify/flash-list` 1.8.3 · `react-native-pager-view` 6.9.1 · `lottie-react-native` 7.3.5 · `@react-native-async-storage/async-storage` 1.24.0 (→ 2.x recommended) · `@react-native-community/netinfo` 12.0.1 · `@react-native-community/slider` 5.1.2 · `@react-native-masked-view/masked-view` 0.3.2 · `@react-native-picker/picker` 2.11.4 · `@react-native-clipboard/clipboard` 1.16.3 · `react-native-maps` 1.20.1 · `react-native-keychain` 9.2.0 · `react-native-device-info` 10.14.0 · `react-native-background-geolocation` 4.19.3 · `react-native-background-fetch` 4.2.8 · `react-native-contacts` 8.0.10 · `react-native-blob-util` 0.19.11 · `react-native-bootsplash` 6.3.11 · `react-native-actions-sheet` 0.9.8 · `@notifee/react-native` 7.9.0 · `@react-native-firebase/*` 21.6.1 · `@react-native-google-signin/google-signin` 16.1.2 · `@invertase/react-native-apple-authentication` 2.5.0 · `@logrocket/react-native` 1.59.4 · `react-native-config` 1.6.1 · `react-native-spotlight-tour` 3.0.1
+
+### Tier D — JS-only (no native code; no direct risk)
+
+`react-native-paper` · `@react-navigation/*` · `react-native-tab-view` · `react-native-toast-message` · `react-native-country-picker-modal` · `react-native-autolink` · `react-native-map-link` · `react-native-youtube-iframe` (wraps webview) · `react-native-dotenv`
+
+---
+
+## Major Blockers — Level of Effort
+
+1. **`react-native-snap-carousel`** — _Medium._ Drop-in replacement `react-native-reanimated-carousel` uses Reanimated 3 (already installed). ~6 call sites; no native code required.
+2. **`react-native-keyboard-aware-scroll-view`** — _Medium-Large._ `react-native-keyboard-controller` has a compat component, but custom offset math and `getNode()` references must be removed. Worst case ~20 screens (login/signup/profile/messaging).
+3. **`react-native-webview` v11→v13** — _Large._ Two majors of API drift including `onShouldStartLoadWithRequest` semantics, file-upload permissions, Android `mixedContentMode` defaults. Every webview route needs manual QA.
+4. **`react-native-navigation-bar-color`** — _Medium._ Android 15 (target SDK 35) enforces edge-to-edge; this package is a dead-end. Adopt `react-native-edge-to-edge` and move color logic into status/nav bar theming hooks.
+5. **`react-native-image-crop-picker`** — _Medium._ Version 0.42+ works under New Arch but the Android cropper regressed in 2025. Mitigation: pin a tested version and add a smoke test (avatar + moment upload). Fallback: swap to `react-native-image-picker` + separate cropper.
+6. **`react-native-background-geolocation`** — _Small–Medium._ Transistorsoft's lib supports New Arch on 4.19+, but it is the most complex native integration in the app. Risk is behavioral regressions, not compile failures. Exercise on a physical device with app-kill scenarios before flipping the flag in staging.
+
+Everything else in Tier B is **Small-to-Medium** effort — one PR per upgrade with a short smoke test.
+
+---
+
+## Incremental Implementation Plan
+
+**Strategy:** don't flip `newArchEnabled` until every Tier A blocker is replaced and every Tier B lib is on a New-Arch-ready major. RN 0.80's Interop Layer is real but leaky for complex libs — we'll rely on it only for remaining Tier C libs during validation.
+
+### Phase 0 — Branch setup & baseline (0.5 day)
+
+1. Rebase work branch onto `origin/general` (done).
+2. Capture baseline performance on a physical Android device (cold start, Home→Map nav, list scroll FPS) via `adb shell dumpsys gfxinfo` + LogRocket session.
+3. Document current APK size from a release build.
+4. Create this tracking doc.
+
+### Phase 1 — Dependency hygiene: Tier B upgrades (1–2 weeks)
+
+Upgrade Tier B libraries one at a time, **while still on legacy arch**, so regressions are attributable. Each upgrade = its own commit off `general`:
+
+| # | Library | Status |
+|---|---|---|
+| 1 | `react-native-haptic-feedback` 1 → 2.2 | ✅ done (commit 888c430) |
+| 2 | `react-native-vector-icons` 9 → 10.3 | ✅ done (commit d180a82) |
+| 3 | `react-native-geolocation-service` 5.3.0 → 5.3.1 | ✅ done (commit 3629afd) |
+| 4 | `react-native-linear-gradient` | _skipped_ — already on latest stable (2.8.3); 3.0 is beta |
+| 5 | `react-native-date-picker` 4 → 5 | ⏳ pending — 1 call site (`Events/InputEventDateTime.tsx`) |
+| 6 | `react-native-permissions` 3 → 5 | ⏳ pending — 3 files; two majors of API drift |
+| 7 | `react-native-image-crop-picker` 0.41 → 0.51 | ⏳ pending — 7 files; validate avatar + moment upload |
+| 8 | `react-native-webview` 11 → 13 | ⏳ pending — 2 files (`OAuthModal`, `UserMedia`); biggest QA surface |
+
+For each: run `npx eslint` + `npx tsc --noEmit -p TherrMobile/tsconfig.json`, build a debug APK, run the Android smoke-test checklist (login, map, create moment, messages, notifications).
+
+**After pulling commits 888c430, d180a82, 3629afd** the developer must run:
+
+```bash
+cd TherrMobile && npm install --legacy-peer-deps
+cd ios && bundle exec pod install
+cd .. && npm run android
+```
+
+to regenerate `package-lock.json` + `Podfile.lock` and verify the three landed upgrades build and run.
+
+### Phase 2 — Tier A blocker replacements (2–3 weeks)
+
+One PR per replacement on `general` (still legacy arch), smallest first:
+
+1. `react-native-animated-loader` → direct `lottie-react-native`
+2. `react-native-modal-overlay` → built-in `Modal` / `react-native-modal`
+3. `react-native-phone-input` → `react-native-phone-number-input`
+4. `react-native-snap-carousel` → `react-native-reanimated-carousel`
+5. `react-native-keyboard-aware-scroll-view` → `react-native-keyboard-controller`
+6. `react-native-navigation-bar-color` → `react-native-edge-to-edge`
+7. `react-native-android-location-services-dialog-box` → `react-native-permissions` location flow
+
+### Phase 3 — Enable New Architecture for Android dev build only (2–3 days)
+
+1. Add a `-PnewArchEnabled=true` Gradle override path (or dev-only product flavor) so engineers can opt in without affecting CI release builds. Document in `TherrMobile/CLAUDE.md`.
+2. Flip `newArchEnabled=true` locally; run `./gradlew :app:assembleDebug` and fix codegen failures.
+3. Regenerate codegen artifacts (`npx react-native codegen`) or rely on the Gradle hook.
+4. Launch; touch every primary surface (feed, map, moments, messages, notifications, profile, settings). File a sub-issue per runtime bug.
+5. Metro config: add `config.transformer.unstable_allowRequireContext = true` if codegen needs it; verify blocklist does not exclude `android/app/build/generated/source/codegen/...`.
+
+### Phase 4 — Stabilize on New Architecture (1–2 weeks)
+
+1. Fix Fabric-layout regressions — common culprits: shadow styles, `position:absolute` children of `FlatList` rows, custom text measurement.
+2. Validate Reanimated worklets (layout animations, shared-element transitions in Feed).
+3. Validate `react-native-background-geolocation` on a physical device across app-kill scenarios.
+4. Validate push path: `@notifee/react-native` + `@react-native-firebase/messaging` cold-start deep linking.
+5. Profile and compare against Phase 0 baselines.
+
+### Phase 5 — Staging rollout (1 week)
+
+1. Flip `newArchEnabled=true` permanently in `TherrMobile/android/gradle.properties` on `general`.
+2. Merge `general` → `stage` to trigger CI build phase; install staging APK on QA devices.
+3. Full regression on two+ physical devices (one low-end, one recent).
+4. Monitor LogRocket + Crashlytics for 3–5 days.
+
+### Phase 6 — Production rollout (1 week)
+
+1. Merge `stage` → `main` to trigger deploy.
+2. Play Store staged rollout 10% → 50% → 100%, ≥48h between steps.
+3. Watch Crashlytics for New-Arch-specific signatures (`FabricUIManager`, `TurboModuleManager`).
+4. Rollback path: keep a Phase-2-final tag (legacy arch, all deps upgraded) to ship a hotfix with `newArchEnabled=false` without reverting dep upgrades.
+
+### Phase 7 — iOS (parallel-track candidate, out of scope for this plan)
+
+iOS host code is already New-Arch-ready. Enable via `RCT_NEW_ARCH_ENABLED=1 bundle exec pod install` once Android is stable. iOS-specific risks: `@invertase/react-native-apple-authentication`, `react-native-image-crop-picker` photo library permissions, Firebase pod constraints.
+
+---
+
+## Critical Files
+
+- `TherrMobile/android/gradle.properties` — flip `newArchEnabled`
+- `TherrMobile/android/app/build.gradle` — product flavors for dev opt-in (Phase 3)
+- `TherrMobile/android/app/src/main/java/app/therrmobile/MainApplication.kt` — already ready
+- `TherrMobile/android/app/src/main/java/app/therrmobile/MainActivity.kt` — already ready
+- `TherrMobile/package.json` — Tier A + B dependency updates
+- `TherrMobile/metro.config.js` — possible codegen output adjustments
+- `TherrMobile/babel.config.js` — verify Reanimated plugin ordering after any upgrade
+- `TherrMobile/CLAUDE.md` — document dev-build opt-in and rollback
+
+## Existing Utilities to Reuse
+
+- Lottie wrapper use cases already exist inside `TherrMobile/main/components/` — reuse these when replacing `react-native-animated-loader`.
+- Notification / haptic call sites flow through `TherrMobile/main/utilities/` — upgrade call signatures there rather than at every leaf.
+- The brand-variation header pattern (`parseHeaders` / `CURRENT_BRAND_VARIATION`) in `therr-js-utilities` stays untouched — this migration does not cross the brand-variation boundary.
+
+## Verification
+
+End-to-end checklist run at the end of Phase 4, Phase 5, and Phase 6:
+
+1. **Build:** `./android/gradlew -p TherrMobile/android :app:assembleDebug` and `:app:assembleRelease` both succeed with `newArchEnabled=true`.
+2. **Type/lint:** `npx tsc --noEmit -p TherrMobile/tsconfig.json` and `npx eslint TherrMobile/main` zero errors.
+3. **Smoke tests on physical Android:** login (email + Apple + Google), view feed, open map, drop a moment (with photo + crop), send a message, receive a push (warm + cold), enter/leave a geofence, edit profile, sign out.
+4. **Performance:** cold start ≤ baseline + 5%, list scroll FPS ≥ baseline.
+5. **Regression monitoring:** 72h clean Crashlytics window post-staging rollout before production promotion.
+6. **Rollback rehearsal:** confirm a single-line revert of `newArchEnabled=true` → `false` produces a working build on the same commit.
