@@ -209,21 +209,13 @@ const createMessage = (
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'CREATE_A_MOMENT_REMINDER');
             return baseMessage;
         case PushNotifications.Types.completeDraftReminder:
-            baseMessage = createDataOnlyMessage({
-                data: {
-                    ...modifiedData,
-                    notificationTitle: translate(config.userLocale, 'notifications.completeDraftReminder.title'),
-                    notificationBody: translate(config.userLocale, 'notifications.completeDraftReminder.body'),
-                    notificationPressActionId: PushNotifications.PressActionIds.drafts,
-                    notificationLinkPressActions: JSON.stringify([
-                        {
-                            id: PushNotifications.PressActionIds.drafts,
-                            title: translate(config.userLocale, 'notifications.completeDraftReminder.pressActionView'),
-                        },
-                    ]),
-                },
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'COMPLETE_DRAFT_REMINDER'));
+                notificationTitle: translate(config.userLocale, 'notifications.completeDraftReminder.title'),
+                notificationBody: translate(config.userLocale, 'notifications.completeDraftReminder.body'),
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'COMPLETE_DRAFT_REMINDER');
             return baseMessage;
         case PushNotifications.Types.latestPostLikesStats:
             baseMessage = createNotificationMessage({

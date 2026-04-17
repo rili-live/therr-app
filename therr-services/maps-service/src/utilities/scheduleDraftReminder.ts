@@ -52,16 +52,7 @@ const sendDraftReminder = ({
             }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}/notifications/send`,
-                headers: {
-                    authorization,
-                    'x-brand-variation': brandVariation,
-                    'x-localecode': locale,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                    'x-userid': userId,
-                },
                 data: {
-                    area: { id: momentId },
-                    postType: 'moments',
                     toUserDeviceToken: userDeviceToken,
                     type: PushNotifications.Types.completeDraftReminder,
                 },

@@ -16,8 +16,7 @@
     },
     "completeDraftReminder": {
       "title": "Your Draft Is Waiting",
-      "body": "You started a post but never shared it — finish it up and let your community see what you've been up to!",
-      "pressActionView": "Open Draft"
+      "body": "You started a post but never shared it — finish it up and let your community see what you've been up to!"
     },
     "createYourProfileReminder": {
       "title": "Finish Setting Up Your Profile",

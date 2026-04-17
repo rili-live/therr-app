@@ -16,8 +16,7 @@
     },
     "completeDraftReminder": {
       "title": "Ton brouillon t'attend",
-      "body": "Tu as commencé une publication mais tu ne l'as jamais partagée — termine-la et laisse ta communauté voir ce que tu as préparé!",
-      "pressActionView": "Ouvrir le brouillon"
+      "body": "Tu as commencé une publication mais tu ne l'as jamais partagée — termine-la et laisse ta communauté voir ce que tu as préparé!"
     },
     "createYourProfileReminder": {
       "title": "Termine la configuration de ton profil",

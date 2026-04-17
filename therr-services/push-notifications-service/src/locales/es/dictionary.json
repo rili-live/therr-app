@@ -16,8 +16,7 @@
     },
     "completeDraftReminder": {
       "title": "Tu borrador te espera",
-      "body": "Empezaste una publicación pero nunca la compartiste — ¡termínala y deja que tu comunidad vea lo que has estado haciendo!",
-      "pressActionView": "Abrir borrador"
+      "body": "Empezaste una publicación pero nunca la compartiste — ¡termínala y deja que tu comunidad vea lo que has estado haciendo!"
     },
     "createYourProfileReminder": {
       "title": "Termina de configurar tu perfil",
