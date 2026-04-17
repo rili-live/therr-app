@@ -1,8 +1,7 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView } from 'react-native';
+import { Dimensions, Modal, PermissionsAndroid, Keyboard, Platform, Pressable, SafeAreaView, View } from 'react-native';
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-maps';
-import AnimatedOverlay from 'react-native-modal-overlay';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
 import { showToast } from '../../utilities/toasts';
@@ -13,7 +12,7 @@ import { Categories, ErrorCodes, MetricNames, PushNotifications } from 'therr-js
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
-import AnimatedLoader from 'react-native-animated-loader';
+import EarthLoader from '../../components/Loaders/EarthLoader';
 import { distanceTo } from 'geolocation-utils';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -42,7 +41,7 @@ import {
     MIN_TIME_BTW_CHECK_INS_MS,
     HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
-import { buildStyles, loaderStyles } from '../../styles';
+import { buildStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
@@ -82,7 +81,6 @@ import MapTourRenderer from './MapTourRenderer';
 import { connect } from 'react-redux';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
-const earthLoader = require('../../assets/earth-loader.json');
 const matchUpLoader = require('../../assets/match-up.json');
 const createAMomentLoader = require('../../assets/ftui-moment.json');
 const AREAS_SEARCH_COUNT = Platform.OS === 'android' ? 250 : 400;
@@ -1906,11 +1904,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     return false;
                 }}>
                     {!(isLocationReady && isMinLoadTimeComplete) ? (
-                        <AnimatedLoader
+                        <EarthLoader
                             visible={true}
-                            overlayColor="rgba(255,255,255,0.75)"
-                            source={earthLoader}
-                            animationStyle={loaderStyles.lottie}
                             speed={1.5}
                         />
                     ) : (
@@ -1952,24 +1947,27 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 // onClusterPress={this.onClusterPress}
                                 updateCircleCenter={this.updateCircleCenter}
                             />
-                            <AnimatedOverlay
-                                animationType="swing"
-                                animationDuration={500}
-                                easing="linear"
+                            <Modal
+                                animationType="fade"
+                                transparent
                                 visible={isAreaAlertVisible}
-                                onClose={this.cancelAreaAlert}
-                                closeOnTouchOutside
-                                containerStyle={this.theme.styles.overlay}
-                                childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
+                                onRequestClose={this.cancelAreaAlert}
                             >
-                                <Alert
-                                    containerStyles={{}}
-                                    isVisible={isAreaAlertVisible}
-                                    message={alertMessage}
-                                    type="error"
-                                    themeAlerts={this.themeAlerts}
-                                />
-                            </AnimatedOverlay>
+                                <Pressable
+                                    style={this.theme.styles.overlay}
+                                    onPress={this.cancelAreaAlert}
+                                >
+                                    <View style={mapStyles.momentAlertOverlayContainer}>
+                                        <Alert
+                                            containerStyles={{}}
+                                            isVisible={isAreaAlertVisible}
+                                            message={alertMessage}
+                                            type="error"
+                                            themeAlerts={this.themeAlerts}
+                                        />
+                                    </View>
+                                </Pressable>
+                            </Modal>
                         </>
                     )}
                     <QuickFiltersList
