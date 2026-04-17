@@ -23,16 +23,12 @@ import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import {
-    buildEventUrl,
-    buildGroupUrl,
-    buildSpaceUrl,
-    buildUserUrl,
+    buildEntityShareUrl,
+    ShareableEntityType,
 } from '../../utilities/shareUrls';
 
-type EntityType = 'user' | 'space' | 'event' | 'group';
-
-interface IMyQRCodeDetailParams {
-    entityType: EntityType;
+export interface IMyQRCodeDetailParams {
+    entityType: ShareableEntityType;
     entityId: string;
     title?: string;
     subtitle?: string;
@@ -56,25 +52,6 @@ interface IMyQRCodeDetailState {
 const mapStateToProps = (state: any) => ({
     user: state.user,
 });
-
-const buildShareUrlForEntity = (
-    entityType: EntityType,
-    entityId: string,
-    locale: string,
-): string => {
-    switch (entityType) {
-        case 'user':
-            return buildUserUrl(locale, entityId);
-        case 'space':
-            return buildSpaceUrl(locale, entityId);
-        case 'event':
-            return buildEventUrl(locale, entityId);
-        case 'group':
-            return buildGroupUrl(locale, entityId);
-        default:
-            return '';
-    }
-};
 
 class MyQRCodeDetail extends React.Component<IMyQRCodeDetailProps, IMyQRCodeDetailState> {
     private translate: Function;
@@ -120,7 +97,7 @@ class MyQRCodeDetail extends React.Component<IMyQRCodeDetailProps, IMyQRCodeDeta
             return '';
         }
         const locale = user.settings?.locale || 'en-us';
-        return buildShareUrlForEntity(params.entityType, params.entityId, locale);
+        return buildEntityShareUrl(params.entityType, locale, params.entityId);
     };
 
     onShare = () => {
@@ -232,6 +209,9 @@ class MyQRCodeDetail extends React.Component<IMyQRCodeDetailProps, IMyQRCodeDeta
                         {shareUrl ? (
                             <>
                                 {this.renderHeader()}
+                                {/* QR is always dark-on-light regardless of
+                                    theme: scanners degrade on inverted or
+                                    low-contrast codes. */}
                                 <View
                                     accessibilityRole="image"
                                     accessibilityLabel={this.translate(

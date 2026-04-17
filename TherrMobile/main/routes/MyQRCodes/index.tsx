@@ -26,6 +26,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildUserUrl } from '../../utilities/shareUrls';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
+import { IMyQRCodeDetailParams } from './MyQRCodeDetail';
 
 const PROFILE_QR_PREVIEW_SIZE = 64;
 
@@ -114,6 +115,9 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
         this.fetchGroups();
     };
 
+    // Fetch errors are swallowed intentionally: this screen is offline-tolerant
+    // and falls back to empty/cached state rather than blocking the UI with
+    // a toast every time the network hiccups.
     fetchSpaces = () => {
         const { searchMySpaces } = this.props;
 
@@ -123,7 +127,8 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
             itemsPerPage: 50,
         }).then((data: any) => {
             this.setState({ spaces: data?.results || [] });
-        }).catch(() => {
+        }).catch((err: any) => {
+            if (__DEV__) { console.warn('[MyQRCodes] fetchSpaces failed:', err?.message || err); }
             this.setState({ spaces: [] });
         }).finally(() => {
             this.setState({ isLoadingSpaces: false });
@@ -138,7 +143,8 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
             order: 'desc',
         }).then((response: any) => {
             this.setState({ events: response?.data?.results || [] });
-        }).catch(() => {
+        }).catch((err: any) => {
+            if (__DEV__) { console.warn('[MyQRCodes] fetchEvents failed:', err?.message || err); }
             this.setState({ events: [] });
         }).finally(() => {
             this.setState({ isLoadingEvents: false });
@@ -150,7 +156,9 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
 
         this.setState({ isLoadingGroups: true });
         return getUserGroups({ withGroups: true })
-            .catch(() => { /* groups already cached; Redux keeps state */ })
+            .catch((err: any) => {
+                if (__DEV__) { console.warn('[MyQRCodes] fetchGroups failed:', err?.message || err); }
+            })
             .finally(() => {
                 this.setState({ isLoadingGroups: false });
             });
@@ -167,13 +175,7 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
         });
     };
 
-    goToDetail = (params: {
-        entityType: 'user' | 'space' | 'event' | 'group';
-        entityId: string;
-        title: string;
-        subtitle?: string;
-        imageUri?: string;
-    }) => {
+    goToDetail = (params: IMyQRCodeDetailParams) => {
         this.props.navigation.navigate('MyQRCodeDetail', params);
     };
 
@@ -266,106 +268,48 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
         </Pressable>
     );
 
-    renderSpaces = () => {
-        const { isLoadingSpaces, spaces } = this.state;
-
-        if (isLoadingSpaces && !spaces.length) {
+    renderEntitySection = (
+        entityType: IMyQRCodeDetailParams['entityType'],
+        items: any[],
+        isLoading: boolean,
+        emptyKey: string,
+        mapper: (item: any) => { id: string; title: string; subtitle: string; imageUri?: string },
+    ) => {
+        if (isLoading && !items.length) {
             return this.renderSectionLoader();
         }
-
-        if (!spaces.length) {
-            return this.renderSectionEmpty('pages.myQRCodes.emptySpaces');
+        if (!items.length) {
+            return this.renderSectionEmpty(emptyKey);
         }
-
-        return spaces.map((space) => {
-            const title = space.notificationMsg || space.message || '—';
-            const subtitle = space.addressReadable || '';
-            const imageUri = space.media?.featuredImage
-                ? getUserContentUri(space.media.featuredImage, 150, 150)
-                : undefined;
+        return items.map((item) => {
+            const { id, title, subtitle, imageUri } = mapper(item);
             return this.renderEntityRow(
-                `space-${space.id}`,
+                `${entityType}-${id}`,
                 title,
                 subtitle,
                 imageUri,
-                () => this.goToDetail({
-                    entityType: 'space',
-                    entityId: space.id,
-                    title,
-                    subtitle,
-                    imageUri,
-                }),
+                () => this.goToDetail({ entityType, entityId: id, title, subtitle, imageUri }),
             );
         });
     };
 
-    renderEvents = () => {
-        const { isLoadingEvents, events } = this.state;
+    mapAreaEntity = (entity: any) => ({
+        id: String(entity.id),
+        title: entity.notificationMsg || entity.message || '—',
+        subtitle: entity.addressReadable || '',
+        imageUri: entity.media?.featuredImage
+            ? getUserContentUri(entity.media.featuredImage, 150, 150)
+            : undefined,
+    });
 
-        if (isLoadingEvents && !events.length) {
-            return this.renderSectionLoader();
-        }
-
-        if (!events.length) {
-            return this.renderSectionEmpty('pages.myQRCodes.emptyEvents');
-        }
-
-        return events.map((event) => {
-            const title = event.notificationMsg || event.message || '—';
-            const subtitle = event.addressReadable || '';
-            const imageUri = event.media?.featuredImage
-                ? getUserContentUri(event.media.featuredImage, 150, 150)
-                : undefined;
-            return this.renderEntityRow(
-                `event-${event.id}`,
-                title,
-                subtitle,
-                imageUri,
-                () => this.goToDetail({
-                    entityType: 'event',
-                    entityId: event.id,
-                    title,
-                    subtitle,
-                    imageUri,
-                }),
-            );
-        });
-    };
-
-    renderGroups = () => {
-        const { user } = this.props;
-        const { isLoadingGroups } = this.state;
-        const groups = Object.values(user.myUserGroups || {});
-
-        if (isLoadingGroups && !groups.length) {
-            return this.renderSectionLoader();
-        }
-
-        if (!groups.length) {
-            return this.renderSectionEmpty('pages.myQRCodes.emptyGroups');
-        }
-
-        return groups.map((group: any) => {
-            const title = group.title || group.name || '—';
-            const subtitle = group.description || '';
-            const imageUri = group.media?.featuredImage
-                ? getUserContentUri(group.media.featuredImage, 150, 150)
-                : undefined;
-            return this.renderEntityRow(
-                `group-${group.id}`,
-                title,
-                subtitle,
-                imageUri,
-                () => this.goToDetail({
-                    entityType: 'group',
-                    entityId: group.id,
-                    title,
-                    subtitle,
-                    imageUri,
-                }),
-            );
-        });
-    };
+    mapGroupEntity = (group: any) => ({
+        id: String(group.id),
+        title: group.title || group.name || '—',
+        subtitle: group.description || '',
+        imageUri: group.media?.featuredImage
+            ? getUserContentUri(group.media.featuredImage, 150, 150)
+            : undefined,
+    });
 
     renderProfileCard = () => {
         const { user } = this.props;
@@ -429,6 +373,8 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
                         {this.translate('pages.myQRCodes.profileCardHint')}
                     </Text>
                 </View>
+                {/* QR is always dark-on-light regardless of theme: scanners
+                    degrade on inverted/low-contrast codes. */}
                 <View style={staticStyles.profileQrWrapper}>
                     {profileUrl ? (
                         <QRCode
@@ -490,13 +436,37 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
                         {this.renderProfileCard()}
 
                         {this.renderSectionHeader('pages.myQRCodes.sections.spaces')}
-                        <View style={staticStyles.sectionBody}>{this.renderSpaces()}</View>
+                        <View style={staticStyles.sectionBody}>
+                            {this.renderEntitySection(
+                                'space',
+                                this.state.spaces,
+                                this.state.isLoadingSpaces,
+                                'pages.myQRCodes.emptySpaces',
+                                this.mapAreaEntity,
+                            )}
+                        </View>
 
                         {this.renderSectionHeader('pages.myQRCodes.sections.events')}
-                        <View style={staticStyles.sectionBody}>{this.renderEvents()}</View>
+                        <View style={staticStyles.sectionBody}>
+                            {this.renderEntitySection(
+                                'event',
+                                this.state.events,
+                                this.state.isLoadingEvents,
+                                'pages.myQRCodes.emptyEvents',
+                                this.mapAreaEntity,
+                            )}
+                        </View>
 
                         {this.renderSectionHeader('pages.myQRCodes.sections.groups')}
-                        <View style={staticStyles.sectionBody}>{this.renderGroups()}</View>
+                        <View style={staticStyles.sectionBody}>
+                            {this.renderEntitySection(
+                                'group',
+                                Object.values(user.myUserGroups || {}),
+                                this.state.isLoadingGroups,
+                                'pages.myQRCodes.emptyGroups',
+                                this.mapGroupEntity,
+                            )}
+                        </View>
                     </ScrollView>
                 </SafeAreaView>
                 <MainButtonMenu
