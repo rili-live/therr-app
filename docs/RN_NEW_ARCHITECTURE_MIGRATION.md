@@ -174,10 +174,30 @@ QA checklist: login, OAuth flow (Instagram/Facebook), map, create moment (with p
 
 #### Phase 3 blockers to resolve before re-flipping
 
-1. **`react-native-svg` 15.12.0 → 15.15.4+.** Suspected Fabric `VirtualViewManager` class-verification failure. Upgrade, rebuild, re-run; if the crash persists, bisect svg versions between 15.12 and 15.15.4.
-2. **`react-native-reanimated` 3.16.7 → 3.17.x + `react-native-worklets`.** Reanimated 3.17 splits worklets runtime into a separate `react-native-worklets` package; without it, `libreanimated.so`'s JSI registration fails silently under bridgeless mode. Update Babel plugin config accordingly (plugin must remain last).
-3. **MMKV v3 re-upgrade** once new-arch is actually enabled. v3 requires TurboModules; re-running `npm install react-native-mmkv@^3 --legacy-peer-deps` is safe because `SecureStorage.ts`'s simple `new MMKV({ id }) / .set / .getString / .delete` API is preserved across v2→v3.
-4. **Full Phase 3 smoke pass** (feed, map, moments, messages, notifications, profile, settings, keyboard, modals) before any further `gradle.properties` flip.
+1. ✅ **`react-native-svg` 15.12.0 → 15.15.4.** Fixed the `VirtualViewManager` class-verification SIGABRT. However, Fabric ViewManagerPropertyUpdater now emits ~30 `Could not find generated setter for class com.horcrux.svg.RenderableViewManager$*Manager` warnings at startup — non-fatal, but indicates svg's view managers aren't fully on Fabric yet. Deferred: evaluate later whether to raise with the svg maintainers or accept as a warning.
+2. ⚠️ **`react-native-reanimated` 3.16.7 → 3.19.5.** The assumption that 3.17 split worklets into a separate npm package turned out to be wrong for the 3.x line — reanimated 3.19.5 (latest 3.x stable) still bundles worklets internally (see `node_modules/react-native-reanimated/android/build.gradle` targets). The split happens in reanimated 4.x, which also bumps the required RN peer range. **Do not install `react-native-worklets` separately** — the current published `react-native-worklets@0.8.1` requires `react-native: 0.81 - 0.85` and is incompatible with RN 0.80. Upgrading to 3.19.5 alone should clear the `installJSIBindings` JNI warning seen on 3.16.7.
+3. ⚠️ **`react-native-mmkv` 2.12.2 → 3.3.3 → back to 2.12.2.** Upgraded to v3 for TurboModule support, but **v3 is new-arch-only**: when `newArchEnabled=false`, `MmkvPlatformContextModule.java` fails to compile (`cannot find symbol: class NativeMmkvPlatformContextSpec` — that spec is only emitted by codegen when new arch is on). Since we've reverted the flag, MMKV must stay on v2 until Phase 3 actually lands. Rolled back to `^2.12.2`; `SecureStorage.ts` usage is v2/v3 compatible so no source changes needed either direction.
+4. ⛔ **NEW — `react-native-screens` Fabric assertion (2026-04-17 re-attempt, Option A tried):** With svg/reanimated/mmkv upgraded, compileSdk bumped 35 → 36, screens upgraded to `^4.24.0`, and `newArchEnabled=true`, the app still SIGABRTs at launch with:
+   ```
+   RNSScreenComponentDescriptor.h:54: function adopt: assertion failed
+       (dynamic_cast<const RNSScreenProps *>( screenShadowNode.getProps().get()))
+   ```
+   Crash stack: `libappmodules.so!ConcreteComponentDescriptor<RNSScreenShadowNode>::createShadowNode` → `RNSScreenComponentDescriptor::adopt` → `react_native_assert_fail`. Root cause analysis:
+   - **Duplicate RTTI across shared libraries.** The screens build produces `libreact_codegen_rnscreens.so` (from `node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt`, which compiles both the codegen `Props.cpp/ShadowNodes.cpp` and the custom `common/cpp/**/*.cpp`). Meanwhile, RN 0.80's autolinking pipeline includes `<rnscreens.h>` into `libappmodules.so` (via `autolinking.cpp:201`), which forces `libappmodules.so` to also instantiate the `RNSScreenComponentDescriptor` / `RNSScreenProps` templates from the header. Both libraries end up with their own RTTI `type_info` for `RNSScreenProps`. On Android with `-fvisibility=hidden` defaults, `dynamic_cast` across .so boundaries then fails even when the object's runtime type is in fact `RNSScreenProps`. This is a build-system issue inside react-native-screens' RN 0.80 support, not an app bug.
+   - **React Navigation 6 JS stack hits the crash immediately** because its `MaybeScreen` shim (`node_modules/@react-navigation/stack/lib/module/views/Screens.js`) renders `Screens.Screen`, which is the component name `RNSScreen` that triggers the failing descriptor on first render.
+   - Tried and confirmed not-the-fix: compileSdk 35 → 36, screens 4.23 → 4.24, full `android/app/.cxx app/build .gradle build` clean + APK uninstall + fresh codegen on every attempt.
+
+   **Decision (2026-04-17):** `newArchEnabled` reverted to `false`. Kept on the branch: svg 15.15.4, reanimated 3.19.5, screens 4.24.0, compileSdk/buildTools 36 (all safe on legacy arch). Rolled back: mmkv to 2.12.2 (v3 doesn't build on Paper). Phase 3 retry requires one of:
+   - **Option A — React Navigation 7 + native-stack (recommended for retry).** RN7's `@react-navigation/native-stack` uses `<ScreenStack>`/`<Screen>` in the composition screens 4.x is actively tested with; the JS-stack `MaybeScreen` codepath is what screens maintainers have called out as under-exercised on Fabric. Scope: ~1–2 days, touches every `createStackNavigator` call.
+   - **Option B — Patch react-native-screens CMakeLists to stop building `libreact_codegen_rnscreens.so` as SHARED.** Convert it to an `OBJECT` library linked into `libappmodules.so`, so RTTI lives in one place. Requires a `patches/react-native-screens+4.24.0.patch`; upstream fix would be preferable.
+   - **Option C — Wait for a react-native-screens release that addresses RN 0.80 + new-arch Fabric RTTI across library boundaries.** Track [software-mansion/react-native-screens](https://github.com/software-mansion/react-native-screens/issues) for the assertion signature.
+
+5. ✅ **Dependency upgrades kept** (legacy-arch safe):
+   - `react-native-svg`: 15.12.0 → 15.15.4 (fixes the Paper `VirtualViewManager` class-verification crash too)
+   - `react-native-reanimated`: 3.16.7 → 3.19.5 (eliminates the Paper `installJSIBindings` JNI warning)
+   - `react-native-screens`: 4.5.0 → 4.24.0 (Paper code-path unchanged; bug only manifests on Fabric)
+   - `compileSdkVersion` / `buildToolsVersion`: 35 / 35.0.0 → 36 / 36.0.0 (required by screens 4.24; `targetSdk` held at 35 so runtime behavior is unchanged)
+6. **Full Phase 3 smoke pass** (boot/render, login email+Apple+Google, feed, map, create moment with photo + crop, messaging, notifications, profile, settings, keyboard in forms, modals) is the exit criterion for any future `gradle.properties` flip.
 
 ### Phase 4 — Stabilize on New Architecture (1–2 weeks)
 
