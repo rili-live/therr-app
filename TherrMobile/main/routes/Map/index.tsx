@@ -13,7 +13,7 @@ import { Categories, ErrorCodes, MetricNames, PushNotifications } from 'therr-js
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
-import AnimatedLoader from 'react-native-animated-loader';
+import EarthLoader from '../../components/Loaders/EarthLoader';
 import { distanceTo } from 'geolocation-utils';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -42,7 +42,7 @@ import {
     MIN_TIME_BTW_CHECK_INS_MS,
     HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
-import { buildStyles, loaderStyles } from '../../styles';
+import { buildStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
@@ -82,7 +82,6 @@ import MapTourRenderer from './MapTourRenderer';
 import { connect } from 'react-redux';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
-const earthLoader = require('../../assets/earth-loader.json');
 const matchUpLoader = require('../../assets/match-up.json');
 const createAMomentLoader = require('../../assets/ftui-moment.json');
 const AREAS_SEARCH_COUNT = Platform.OS === 'android' ? 250 : 400;
@@ -1906,11 +1905,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     return false;
                 }}>
                     {!(isLocationReady && isMinLoadTimeComplete) ? (
-                        <AnimatedLoader
+                        <EarthLoader
                             visible={true}
-                            overlayColor="rgba(255,255,255,0.75)"
-                            source={earthLoader}
-                            animationStyle={loaderStyles.lottie}
                             speed={1.5}
                         />
                     ) : (
