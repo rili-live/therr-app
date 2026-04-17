@@ -91,9 +91,9 @@ New-Arch-compatible release exists but requires a major upgrade with breaking AP
 
 1. **`react-native-snap-carousel`** — _Medium._ Drop-in replacement `react-native-reanimated-carousel` uses Reanimated 3 (already installed). ~6 call sites; no native code required.
 2. **`react-native-keyboard-aware-scroll-view`** — _Medium-Large._ `react-native-keyboard-controller` has a compat component, but custom offset math and `getNode()` references must be removed. Worst case ~20 screens (login/signup/profile/messaging).
-3. **`react-native-webview` v11→v13** — _Large._ Two majors of API drift including `onShouldStartLoadWithRequest` semantics, file-upload permissions, Android `mixedContentMode` defaults. Every webview route needs manual QA.
+3. **`react-native-webview` v11→v13** — _Revised: Small._ Despite two major versions, the actual call sites (OAuthModal, UserMedia) only use stable props. No source edits needed. **Done** on `rn-newarch/webview-13`.
 4. **`react-native-navigation-bar-color`** — _Medium._ Android 15 (target SDK 35) enforces edge-to-edge; this package is a dead-end. Adopt `react-native-edge-to-edge` and move color logic into status/nav bar theming hooks.
-5. **`react-native-image-crop-picker`** — _Medium._ Version 0.42+ works under New Arch but the Android cropper regressed in 2025. Mitigation: pin a tested version and add a smoke test (avatar + moment upload). Fallback: swap to `react-native-image-picker` + separate cropper.
+5. **`react-native-image-crop-picker`** — _Revised: Small._ v0.51 is API-compatible; `didCancel`/`errorCode` checks in Edit screens are no-ops in both versions. **Done** on `rn-newarch/image-crop-picker-051`. Still needs on-device QA for Android Photo Picker UX change (v0.42+).
 6. **`react-native-background-geolocation`** — _Small–Medium._ Transistorsoft's lib supports New Arch on 4.19+, but it is the most complex native integration in the app. Risk is behavioral regressions, not compile failures. Exercise on a physical device with app-kill scenarios before flipping the flag in staging.
 
 Everything else in Tier B is **Small-to-Medium** effort — one PR per upgrade with a short smoke test.
@@ -111,32 +111,34 @@ Everything else in Tier B is **Small-to-Medium** effort — one PR per upgrade w
 3. Document current APK size from a release build.
 4. Create this tracking doc.
 
-### Phase 1 — Dependency hygiene: Tier B upgrades (1–2 weeks)
+### Phase 1 — Dependency hygiene: Tier B upgrades ✅ COMPLETE
 
-Upgrade Tier B libraries one at a time, **while still on legacy arch**, so regressions are attributable. Each upgrade = its own commit off `general`:
+All Tier B upgrades are on separate branches off `general`, ready for review/merge:
 
-| # | Library | Status |
-|---|---|---|
-| 1 | `react-native-haptic-feedback` 1 → 2.2 | ✅ done (commit 888c430) |
-| 2 | `react-native-vector-icons` 9 → 10.3 | ✅ done (commit d180a82) |
-| 3 | `react-native-geolocation-service` 5.3.0 → 5.3.1 | ✅ done (commit 3629afd) |
-| 4 | `react-native-linear-gradient` | _skipped_ — already on latest stable (2.8.3); 3.0 is beta |
-| 5 | `react-native-date-picker` 4 → 5 | ⏳ pending — 1 call site (`Events/InputEventDateTime.tsx`) |
-| 6 | `react-native-permissions` 3 → 5 | ⏳ pending — 3 files; two majors of API drift |
-| 7 | `react-native-image-crop-picker` 0.41 → 0.51 | ⏳ pending — 7 files; validate avatar + moment upload |
-| 8 | `react-native-webview` 11 → 13 | ⏳ pending — 2 files (`OAuthModal`, `UserMedia`); biggest QA surface |
+| # | Library | Branch | Status | Source edits |
+|---|---|---|---|---|
+| 1 | `react-native-haptic-feedback` 1 → 2.2 | `claude/react-native-architecture-plan-K8wbh` | ✅ done | none |
+| 2 | `react-native-vector-icons` 9 → 10.3 | `claude/react-native-architecture-plan-K8wbh` | ✅ done | none |
+| 3 | `react-native-geolocation-service` 5.3.0 → 5.3.1 | `claude/react-native-architecture-plan-K8wbh` | ✅ done | none |
+| 4 | `react-native-linear-gradient` | — | _skipped_ — already on latest stable (2.8.3); 3.0 is beta | — |
+| 5 | `react-native-date-picker` 4 → 5.0.13 | `rn-newarch/date-picker-5` | ✅ done | none |
+| 6 | `react-native-permissions` 3 → 5.5 | `rn-newarch/permissions-5` | ✅ done | Podfile: replaced manual Permission-* pods with setup_permissions; removed HEADER_SEARCH_PATHS workaround |
+| 7 | `react-native-image-crop-picker` 0.41 → 0.51 | `rn-newarch/image-crop-picker-051` | ✅ done | none |
+| 8 | `react-native-webview` 11 → 13.16 | `rn-newarch/webview-13` | ✅ done | none |
 
-For each: run `npx eslint` + `npx tsc --noEmit -p TherrMobile/tsconfig.json`, build a debug APK, run the Android smoke-test checklist (login, map, create moment, messages, notifications).
+**Key finding:** The original plan estimated webview as "Large" effort and image-crop-picker as "Medium," but thorough API audit showed all call sites use only stable, unchanged props — no JS/TS source edits required for any upgrade.
 
-**After pulling commits 888c430, d180a82, 3629afd** the developer must run:
+**Merge order:** Items 1-3 land via the main tracking branch. Items 5-8 are independent branches that can merge to `general` in any order. The only branch with Podfile changes is `rn-newarch/permissions-5`.
+
+**After merging all Phase 1 branches**, the developer must run:
 
 ```bash
 cd TherrMobile && npm install --legacy-peer-deps
-cd ios && bundle exec pod install
-cd .. && npm run android
+cd ios && rm -rf Pods && bundle exec pod install
+npm run android:clean && npm run android
 ```
 
-to regenerate `package-lock.json` + `Podfile.lock` and verify the three landed upgrades build and run.
+QA checklist: login, OAuth flow (Instagram/Facebook), map, create moment (with photo + crop), event date picker, send message, push notification, embedded media content, YouTube playback.
 
 ### Phase 2 — Tier A blocker replacements (2–3 weeks)
 
