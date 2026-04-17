@@ -300,6 +300,7 @@ const deleteUserList = async (req, res) => {
 
     // For each space that was in the deleted list, check whether it still belongs
     // to any other list for this user. If not, clear userBookmarkCategory.
+    // eslint-disable-next-line no-restricted-syntax
     for (const spaceId of affectedSpaceIds) {
         // eslint-disable-next-line no-await-in-loop
         const remainingLists = await Store.userListItems.getListsForContent(userId, spaceId, 'space');

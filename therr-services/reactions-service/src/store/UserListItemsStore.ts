@@ -122,8 +122,9 @@ export default class UserListItemsStore {
         const limit = Math.max(1, Math.min(perListLimit, 10));
         // $1 = limit, $2..$N = listIds
         const placeholders = listIds.map((_, i) => `$${i + 2}`).join(',');
+        // t.* already includes uli."listId" (t = uli), so no need to re-select ul.id.
         const sql = `
-            SELECT t.*, ul.id AS "listId"
+            SELECT t.*
             FROM main."userLists" ul
             JOIN LATERAL (
                 SELECT uli.*

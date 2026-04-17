@@ -523,9 +523,7 @@ export default class UsersStore {
         }
 
         if (params.autoRechargeEnabled !== undefined) {
-            modifiedParams.autoRechargeEnabled = params.autoRechargeEnabled === null
-                ? null
-                : !!params.autoRechargeEnabled;
+            modifiedParams.autoRechargeEnabled = params.autoRechargeEnabled;
         }
 
         if (params.autoRechargeThresholdCoins !== undefined) {
