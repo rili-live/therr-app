@@ -20,6 +20,7 @@ import Layout from './components/Layout';
 import OfflineBanner from './components/OfflineBanner';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import spacingStyles from './styles/layouts/spacing';
 import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './getTourSteps';
@@ -208,34 +209,36 @@ class App extends React.Component<any, any> {
                         <OfflineBanner />
                         <FeatureFlagProvider>
                             <GestureHandlerRootView style={spacingStyles.flexOne}>
-                                <ThemedPaperProvider>
-                                    <SpotlightTourProvider
-                                        steps={getTourSteps({
-                                            locale: this.store.getState()?.user?.settings?.locale || 'en-us',
-                                        })}
-                                        onBackdropPress="continue" // In case the tour gets stuck
-                                        overlayColor={'gray'}
-                                        overlayOpacity={0.4}
-                                        // This configurations will apply to all steps
-                                        floatingProps={{
-                                            placement: 'bottom',
-                                        }}
-                                        onStop={() => {
-                                            return this.store?.dispatch(UsersActions.updateTour({
-                                                isTouring: false,
-                                                isNavigationTouring: false,
-                                            }));
-                                        }}
-                                    >
-                                        {
-                                            ({ start, stop }) => (
-                                                <SheetProvider>
-                                                    <Layout startNavigationTour={start} stopNavigationTour={stop} />
-                                                </SheetProvider>
-                                            )
-                                        }
-                                    </SpotlightTourProvider>
-                                </ThemedPaperProvider>
+                                <KeyboardProvider>
+                                    <ThemedPaperProvider>
+                                        <SpotlightTourProvider
+                                            steps={getTourSteps({
+                                                locale: this.store.getState()?.user?.settings?.locale || 'en-us',
+                                            })}
+                                            onBackdropPress="continue" // In case the tour gets stuck
+                                            overlayColor={'gray'}
+                                            overlayOpacity={0.4}
+                                            // This configurations will apply to all steps
+                                            floatingProps={{
+                                                placement: 'bottom',
+                                            }}
+                                            onStop={() => {
+                                                return this.store?.dispatch(UsersActions.updateTour({
+                                                    isTouring: false,
+                                                    isNavigationTouring: false,
+                                                }));
+                                            }}
+                                        >
+                                            {
+                                                ({ start, stop }) => (
+                                                    <SheetProvider>
+                                                        <Layout startNavigationTour={start} stopNavigationTour={stop} />
+                                                    </SheetProvider>
+                                                )
+                                            }
+                                        </SpotlightTourProvider>
+                                    </ThemedPaperProvider>
+                                </KeyboardProvider>
                             </GestureHandlerRootView>
                             <Toast
                                 config={toastConfig}

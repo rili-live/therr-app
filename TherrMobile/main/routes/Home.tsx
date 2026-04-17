@@ -4,7 +4,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import Alert from '../components/Alert';

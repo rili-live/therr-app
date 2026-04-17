@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Text, View, SafeAreaView, Platform } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler';
 import { showToast } from '../../utilities/toasts';
 import { IUserState } from 'therr-react/types';

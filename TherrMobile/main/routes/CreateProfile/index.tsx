@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, Share, View, Text, Platform } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Content } from 'therr-js-utilities/constants';

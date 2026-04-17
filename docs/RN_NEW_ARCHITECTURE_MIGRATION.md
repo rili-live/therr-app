@@ -149,8 +149,8 @@ QA checklist: login, OAuth flow (Instagram/Facebook), map, create moment (with p
 | 3 | `react-native-phone-input` | ✅ reclassified | JS-only (no native code), not a New Arch blocker |
 | 4 | `react-native-snap-carousel` | ✅ removed | Not imported anywhere — was dead code |
 | 5 | `react-native-navigation-bar-color` | ✅ removed | All usages were commented out — dead code |
-| 6 | `react-native-keyboard-aware-scroll-view` → `react-native-keyboard-controller` | ⏳ pending | **21 files** — login, register, profile, edit screens, settings. Largest remaining item. `react-native-keyboard-controller` has a compat `KeyboardAwareScrollView` but offset math may differ. |
-| 7 | `react-native-android-location-services-dialog-box` → `Linking` + custom dialog | ⏳ pending | 2 files (`requestLocationServiceActivation.ts`, `Layout.tsx`). Replaces native Google Play Services GPS-enable dialog with `Linking.sendIntent('android.settings.LOCATION_SOURCE_SETTINGS')` or `react-native-permissions` `openSettings()`. Behavioral change: user leaves app briefly to toggle GPS. |
+| 6 | `react-native-keyboard-aware-scroll-view` → `react-native-keyboard-controller` | ✅ done | 21 files updated to import from `react-native-keyboard-controller` (same `KeyboardAwareScrollView` component name). App root wrapped with `<KeyboardProvider>` in `App.tsx`. Package override removed. |
+| 7 | `react-native-android-location-services-dialog-box` → `Linking.sendIntent` | ✅ done | `requestLocationServiceActivation.ts` now uses `Linking.sendIntent('android.settings.LOCATION_SOURCE_SETTINGS')`; the existing `locationProviderStatusChange` listener in `Layout.tsx` picks up the new GPS state on return. `{ status, alreadyEnabled }` return shape preserved so all six call sites work unchanged. Behavioral change: user leaves app briefly to toggle GPS. |
 
 ### Phase 3 — Enable New Architecture for Android dev build only (2–3 days)
 
@@ -159,6 +159,25 @@ QA checklist: login, OAuth flow (Instagram/Facebook), map, create moment (with p
 3. Regenerate codegen artifacts (`npx react-native codegen`) or rely on the Gradle hook.
 4. Launch; touch every primary surface (feed, map, moments, messages, notifications, profile, settings). File a sub-issue per runtime bug.
 5. Metro config: add `config.transformer.unstable_allowRequireContext = true` if codegen needs it; verify blocklist does not exclude `android/app/build/generated/source/codegen/...`.
+
+#### Phase 3 status (2026-04-17)
+
+- ✅ **Step 2 — Build with `newArchEnabled=true`:** `./gradlew :app:assembleDebug -PnewArchEnabled=true` succeeds (clean 6m 13s, incremental 1m 18s). Initial attempt failed with 29 `cannot find symbol NativeGoogleSigninSpec` errors in `@react-native-google-signin/google-signin@16.1.2`; a clean rebuild (`./gradlew clean` + removing `node_modules/@react-native-google-signin/google-signin/android/build`) resolved it — the codegen output directory just wasn't on the compile classpath during the initial run.
+- ✅ **Step 2.1 — FileProvider authority conflict resolved** (commit `a78c51f2`): `react-native-blob-util` and `react-native-image-crop-picker` both declared `android:authorities="${applicationId}.provider"`. On Android 16 (API 36) this escalated from a warning to blocking activity registration (launcher got `Error type 3 — Activity class does not exist`, `am start` returned `START_CLASS_NOT_FOUND`). Fix: suppress image-crop-picker's provider via `tools:node="remove"` in `AndroidManifest.xml`; its runtime calls to `FileProvider.getUriForFile(..., packageName + ".provider", ...)` transparently resolve to blob-util's provider, whose `provider_paths` already cover the `getExternalFilesDir(DIRECTORY_PICTURES)` temp-file location.
+- ✅ **Step 2.2 — GPS status sync regression fixed** (commit `de0085d1`): Phase 2 Tier A #7 removed `react-native-android-location-services-dialog-box`, which was the native emitter of `DeviceEventEmitter.locationProviderStatusChange`. Without it, Redux `isGpsEnabled` never refreshed when the user toggled GPS in Settings and returned. Fix: wire `BackgroundGeolocation.onProviderChange` (already subscribed but only logging per existing TODO) to dispatch `updateGpsStatus('enabled'|'disabled')`; drop the dead `DeviceEventEmitter` listener and import.
+- ⛔ **Step 4 — Runtime crash under `newArchEnabled=true`:** With the manifest conflict fixed, FileProvider + SpaceEdit image upload verified on Android 16, and MMKV upgraded to v3 (`^3.3.3` for TurboModule support), the app still SIGABRTs at launch before rendering. Diagnosis:
+  - MMKV v3 **is initializing successfully** — logcat confirms `RNMMKV : Creating MMKV instance "therr-storage"... (Path: , Encrypted: false)` on post-rebuild installs.
+  - Native crash stack: `com.horcrux.svg.VirtualViewManager.createViewInstance` (class-verification failure during Fabric view-manager instantiation).
+  - Preceded by a concerning Reanimated JNI warning: `CheckJNI: method to register "installJSIBindings" not in the given class (libreanimated.so)`.
+  - Installed versions at time of test: `react-native-svg@^15.12.0` (latest: 15.15.4), `react-native-reanimated@^3.16.7` (RN 0.80 + new arch officially wants 3.17+ with `react-native-worklets` installed separately).
+- ⏸️ **Decision (2026-04-17): revert Phase 3 flip.** `newArchEnabled` is restored to `false` in `gradle.properties`; MMKV is rolled back to `^2.12.2`. FileProvider + GPS-sync fixes remain on the branch as Phase 2 cleanup (they're legacy-arch safe). Re-attempting Phase 3 requires clearing the blockers below first.
+
+#### Phase 3 blockers to resolve before re-flipping
+
+1. **`react-native-svg` 15.12.0 → 15.15.4+.** Suspected Fabric `VirtualViewManager` class-verification failure. Upgrade, rebuild, re-run; if the crash persists, bisect svg versions between 15.12 and 15.15.4.
+2. **`react-native-reanimated` 3.16.7 → 3.17.x + `react-native-worklets`.** Reanimated 3.17 splits worklets runtime into a separate `react-native-worklets` package; without it, `libreanimated.so`'s JSI registration fails silently under bridgeless mode. Update Babel plugin config accordingly (plugin must remain last).
+3. **MMKV v3 re-upgrade** once new-arch is actually enabled. v3 requires TurboModules; re-running `npm install react-native-mmkv@^3 --legacy-peer-deps` is safe because `SecureStorage.ts`'s simple `new MMKV({ id }) / .set / .getString / .delete` API is preserved across v2→v3.
+4. **Full Phase 3 smoke pass** (feed, map, moments, messages, notifications, profile, settings, keyboard, modals) before any further `gradle.properties` flip.
 
 ### Phase 4 — Stabilize on New Architecture (1–2 weeks)
 

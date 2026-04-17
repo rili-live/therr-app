@@ -1,7 +1,7 @@
 import React from 'react';
 import { SafeAreaView, View, Text } from 'react-native';
 import { Button } from '../../components/BaseButton';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
