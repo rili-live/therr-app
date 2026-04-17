@@ -160,6 +160,14 @@ QA checklist: login, OAuth flow (Instagram/Facebook), map, create moment (with p
 4. Launch; touch every primary surface (feed, map, moments, messages, notifications, profile, settings). File a sub-issue per runtime bug.
 5. Metro config: add `config.transformer.unstable_allowRequireContext = true` if codegen needs it; verify blocklist does not exclude `android/app/build/generated/source/codegen/...`.
 
+#### Phase 3 status (2026-04-17)
+
+- ✅ **Step 2 — Build with `newArchEnabled=true`:** `./gradlew :app:assembleDebug -PnewArchEnabled=true` succeeds (3m 57s, 970 tasks). Initial attempt failed with 29 `cannot find symbol NativeGoogleSigninSpec` errors in `@react-native-google-signin/google-signin@16.1.2`; a clean rebuild (`./gradlew clean` + removing `node_modules/@react-native-google-signin/google-signin/android/build`) resolved it — the codegen output directory just wasn't on the compile classpath during the initial run.
+- ⛔ **Step 4 — Runtime verification blocked:** The debug APK installs cleanly but `am start -n app.therrmobile/app.therrmobile.MainActivity` fails with `Error type 3 — Activity class does not exist` on Android 16 (API 36) emulators (Pixel_8, Pixel_9). Root cause is a **pre-existing manifest conflict** unrelated to the New Architecture: `react-native-blob-util`'s `FileProvider` and `react-native-image-crop-picker`'s `IvpusicImagePickerFileProvider` both declare `android:authorities="${applicationId}.provider"`. On older Android versions this logs a `Skipping provider … name already used` warning and continues; on API 36 it breaks activity registration so the launcher can't find `MainActivity`.
+  - Resolution path (out of scope for this plan — file separately): add `tools:replace="android:authorities"` to one of the providers in `TherrMobile/android/app/src/main/AndroidManifest.xml` and give it a unique authority (e.g. `${applicationId}.imagepickerprovider`), then audit call sites that assume the default authority.
+  - Workaround for manual Phase 3 verification: run the debug APK on a physical Android device ≤ API 34 or an API 34 emulator; the conflict is latent there.
+- ⏸️ **Do not flip `newArchEnabled=true` in `gradle.properties`** until the manifest conflict is fixed and a full smoke pass (feed, map, moments, messages, notifications, profile, settings) runs clean under new arch.
+
 ### Phase 4 — Stabilize on New Architecture (1–2 weeks)
 
 1. Fix Fabric-layout regressions — common culprits: shadow styles, `position:absolute` children of `FlatList` rows, custom text measurement.
