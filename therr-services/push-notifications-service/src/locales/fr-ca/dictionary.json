@@ -14,6 +14,11 @@
       "title": "Partage ce que tu fais",
       "body": "Laisse un moment à ton endroit préféré — un avis, une photo ou quelque chose de fun. Tes amis à proximité le découvriront plus tard!"
     },
+    "completeDraftReminder": {
+      "title": "Ton brouillon t'attend",
+      "body": "Tu as commencé une publication mais tu ne l'as jamais partagée — termine-la et laisse ta communauté voir ce que tu as préparé!",
+      "pressActionView": "Ouvrir le brouillon"
+    },
     "createYourProfileReminder": {
       "title": "Termine la configuration de ton profil",
       "body": "Tu y es presque! Choisis un nom d'utilisateur et ajoute une photo pour que les gens de ton quartier puissent te trouver."

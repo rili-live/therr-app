@@ -14,6 +14,11 @@
       "title": "Share What You're Up To",
       "body": "Drop a moment at your favorite spot — a quick review, a photo, or something fun. Your friends nearby will discover it later!"
     },
+    "completeDraftReminder": {
+      "title": "Your Draft Is Waiting",
+      "body": "You started a post but never shared it — finish it up and let your community see what you've been up to!",
+      "pressActionView": "Open Draft"
+    },
     "createYourProfileReminder": {
       "title": "Finish Setting Up Your Profile",
       "body": "You're almost there! Pick a username and add a photo so people in your area can find you."

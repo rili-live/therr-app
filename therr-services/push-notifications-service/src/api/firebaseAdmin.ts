@@ -208,6 +208,23 @@ const createMessage = (
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'CREATE_A_MOMENT_REMINDER');
             return baseMessage;
+        case PushNotifications.Types.completeDraftReminder:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.completeDraftReminder.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.completeDraftReminder.body'),
+                    notificationPressActionId: PushNotifications.PressActionIds.drafts,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.drafts,
+                            title: translate(config.userLocale, 'notifications.completeDraftReminder.pressActionView'),
+                        },
+                    ]),
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'COMPLETE_DRAFT_REMINDER'));
+            return baseMessage;
         case PushNotifications.Types.latestPostLikesStats:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
@@ -521,6 +538,9 @@ const predictAndSendNotification = (
                 return admin.messaging().send(message);
             }
             if (type === PushNotifications.Types.createAMomentReminder) {
+                return admin.messaging().send(message);
+            }
+            if (type === PushNotifications.Types.completeDraftReminder) {
                 return admin.messaging().send(message);
             }
             if (type === PushNotifications.Types.latestPostLikesStats) {

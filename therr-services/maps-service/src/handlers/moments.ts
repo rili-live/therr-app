@@ -35,6 +35,7 @@ import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
 import areaMetricsService from '../api/areaMetricsService';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
+import scheduleDraftReminder from '../utilities/scheduleDraftReminder';
 
 const MAX_INTERGRATIONS_PER_USER = 50;
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
@@ -390,6 +391,19 @@ const createMoment = async (req, res) => {
                 if (process.env.INDEXNOW_API_KEY && moment.id && !moment.isDraft) {
                     submitToIndexNow([`https://www.therr.com/moments/${moment.id}`], process.env.INDEXNOW_API_KEY)
                         .catch(() => undefined); // already handled internally
+                }
+
+                if (moment.isDraft) {
+                    scheduleDraftReminder({
+                        authorization,
+                        brandVariation,
+                        locale,
+                        momentId: moment.id,
+                        platform,
+                        userDeviceToken,
+                        userId,
+                        whiteLabelOrigin,
+                    });
                 }
 
                 return res.status(201).send({
