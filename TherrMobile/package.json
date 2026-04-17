@@ -69,7 +69,6 @@
     "react-dom": "19.1.0",
     "react-native": "0.80.0",
     "react-native-actions-sheet": "^0.9.8",
-    "react-native-android-location-services-dialog-box": "^2.8.2",
     "react-native-autolink": "^3.0.0",
     "react-native-background-fetch": "^4.2.8",
     "react-native-background-geolocation": "^4.19.3",

@@ -8,7 +8,6 @@ import {
     PermissionsAndroid,
     Platform,
 } from 'react-native';
-import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
@@ -425,10 +424,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     componentWillUnmount() {
         this.nativeEventListener?.remove();
         this.urlEventListener?.remove();
-
-        if (Platform.OS !== 'ios') {
-            LocationServicesDialogBox.stopListener();
-        }
 
         if (this.authCredentialListener) {
             this.authCredentialListener();
