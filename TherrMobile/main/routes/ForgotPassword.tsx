@@ -10,10 +10,10 @@ import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticationForms';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
-import VerificationCodesService from '../services/VerificationCodesService';
+import VerificationCodesService from '../utilities/VerificationCodesService';
 import RoundInput from '../components/Input/Round';
 import BaseStatusBar from '../components/BaseStatusBar';
 

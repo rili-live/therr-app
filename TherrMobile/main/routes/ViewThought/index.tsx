@@ -12,27 +12,27 @@ import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTe
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions } from 'therr-react/redux/actions';
-import UsersActions from '../redux/actions/UsersActions';
+import UsersActions from '../../redux/actions/UsersActions';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
-import translator from '../services/translator';
-import { isDarkTheme } from '../styles/themes';
-import { buildStyles } from '../styles';
-import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildThoughtStyles } from '../styles/user-content/thoughts/viewing';
-import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
-import { buildStyles as buildButtonsStyles } from '../styles/buttons';
-import ThoughtDisplay from '../components/UserContent/ThoughtDisplay';
-import ConfirmModal from '../components/Modals/ConfirmModal';
-import BaseStatusBar from '../components/BaseStatusBar';
-import { isMyContent as checkIsMyContent } from '../utilities/content';
+import translator from '../../utilities/translator';
+import { isDarkTheme } from '../../styles/themes';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
+import { buildStyles as buildThoughtStyles } from '../../styles/user-content/thoughts/viewing';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
+import ConfirmModal from '../../components/Modals/ConfirmModal';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import { isMyContent as checkIsMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
-import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
-import { getReactionUpdateArgs } from '../utilities/reactions';
-import TherrIcon from '../components/TherrIcon';
-import { HAPTIC_FEEDBACK_TYPE } from '../constants';
-import { navToViewContent } from '../utilities/postViewHelpers';
+import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
+import { getReactionUpdateArgs } from '../../utilities/reactions';
+import TherrIcon from '../../components/TherrIcon';
+import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
+import { navToViewContent } from '../../utilities/postViewHelpers';
 
 const localStyles = StyleSheet.create({
     contentContainer: {

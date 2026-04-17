@@ -15,7 +15,6 @@ import {
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { showToast } from '../../utilities/toasts';
 import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
@@ -28,7 +27,6 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
-// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
@@ -176,10 +174,12 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     };
 
     onBookmarkPress = (area) => {
-        // For spaces, open the list picker so users can discover and choose
-        // which list(s) to save to. The picker also handles the bookmark
-        // state via list membership (adding to a list sets userBookmarkCategory
-        // and ensures the "Saved" default list exists on first bookmark).
+        this.toggleBookmarkReaction(area);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Spaces: long-press opens the list picker for curated Space Lists.
+        // Non-spaces mirror tap (plain bookmark toggle).
         if (this.isSpaceArea(area)) {
             SheetManager.show('list-picker-sheet', {
                 payload: {
@@ -190,14 +190,6 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             });
             return;
         }
-
-        this.toggleBookmarkReaction(area);
-    };
-
-    onBookmarkLongPress = (area) => {
-        // Power-user shortcut on spaces: long-press toggles bookmark directly
-        // into the default list without opening the picker. For non-spaces,
-        // long-press mirrors tap behavior.
         this.toggleBookmarkReaction(area);
     };
 

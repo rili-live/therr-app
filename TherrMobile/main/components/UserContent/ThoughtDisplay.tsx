@@ -11,7 +11,6 @@ import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -19,7 +18,6 @@ import { getUserImageUri } from '../../utilities/content';
 import TherrIcon from '../TherrIcon';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
-// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
 

@@ -2,27 +2,29 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Categories } from 'therr-js-utilities/constants';
 import { ITherrTheme } from '../../styles/themes';
-import MarkerIconArt from './MarkerIconArt';
-import MarkerIconGeocache from './MarkerIconGeocache';
-import MarkerIconCamera from './MarkerIconCamera';
-import MarkerIconCrowd from './MarkerIconCrowd';
-import MarkerIconDiscount from './MarkerIconDiscount';
-import MarkerIconDrinks from './MarkerIconDrinks';
-import MarkerIconEvent from './MarkerIconEvent';
-import MarkerIconFire from './MarkerIconFire';
-import MarkerIconFitness from './MarkerIconFitness';
-import MarkerIconFood from './MarkerIconFood';
-import MarkerIconGem from './MarkerIconGem';
-import MarkerIconHotel from './MarkerIconHotel';
-import MarkerIconHourglass from './MarkerIconHourglass';
-import MarkerIconMusic from './MarkerIconMusic';
-import MarkerIconMusicNotes from './MarkerIconMusicNotes';
-import MarkerIconNature from './MarkerIconNature';
-import MarkerIconStorefront from './MarkerIconStorefront';
-import MarkerIconThinking from './MarkerIconThinking';
-import MarkerIconNightLife from './MarkerIconNightLife';
-import MarkerIconSeasonal from './MarkerIconSeasonal';
-import MarkerIconWarning from './MarkerIconWarning';
+import {
+    MarkerIconArt,
+    MarkerIconCamera,
+    MarkerIconCrowd,
+    MarkerIconDiscount,
+    MarkerIconDrinks,
+    MarkerIconEvent,
+    MarkerIconFire,
+    MarkerIconFitness,
+    MarkerIconFood,
+    MarkerIconGem,
+    MarkerIconGeocache,
+    MarkerIconHotel,
+    MarkerIconHourglass,
+    MarkerIconMusic,
+    MarkerIconMusicNotes,
+    MarkerIconNature,
+    MarkerIconNightLife,
+    MarkerIconSeasonal,
+    MarkerIconStorefront,
+    MarkerIconThinking,
+    MarkerIconWarning,
+} from './MarkerIcons';
 
 const getMarkerConfigs = (theme: ITherrTheme) => ({
     art: {

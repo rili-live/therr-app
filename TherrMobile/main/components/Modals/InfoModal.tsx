@@ -4,7 +4,6 @@ import { Dialog, Portal } from 'react-native-paper';
 import AnimatedLottieView from 'lottie-react-native';
 import ModalButton from './ModalButton';
 
-// import shareAMoment from '../../assets/share-a-moment.json';
 import shareAMoment from '../../assets/coin-wallet.json';
 
 interface IInfoModal {

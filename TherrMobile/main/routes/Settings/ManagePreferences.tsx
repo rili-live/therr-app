@@ -9,7 +9,7 @@ import { showToast } from '../../utilities/toasts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';

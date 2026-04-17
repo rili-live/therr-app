@@ -1,6 +1,6 @@
 import './ReactotronConfig';
-import React from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useMemo } from 'react';
+import { InteractionManager, StyleSheet } from 'react-native';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import LogRocket from '@logrocket/react-native';
@@ -12,7 +12,6 @@ import {
     SpotlightTourProvider,
 } from 'react-native-spotlight-tour';
 import { PaperProvider } from 'react-native-paper';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { useSelector } from 'react-redux';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
@@ -26,18 +25,17 @@ import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
 import { getPaperTheme } from './styles/themes';
-import { startNetworkListener } from './services/networkService';
+import { startNetworkListener } from './utilities/networkService';
 import './components/ActionSheet';
 
 // Disable in development
 setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__);
 
-// import { buildStyles } from './styles';
 
 // Reads theme name from Redux and provides the correct Paper theme to children
 const ThemedPaperProvider = ({ children }: { children: React.ReactNode }) => {
     const themeName = useSelector((state: any) => state?.user?.settings?.mobileThemeName);
-    const paperTheme = getPaperTheme(themeName);
+    const paperTheme = useMemo(() => getPaperTheme(themeName), [themeName]);
 
     return <PaperProvider theme={paperTheme}>{children}</PaperProvider>;
 };
@@ -150,30 +148,33 @@ class App extends React.Component<any, any> {
         this.loadStorage();
 
         if (!__DEV__) {
-            LogRocket.init('pibaqj/therr-app-mobile', {
-                network: {
-                    requestSanitizer: request => {
-                        if (request.headers.authorization) {
-                            request.headers.authorization = '';
-                        }
-                        if (request.body?.toString().includes('password')) {
-                            request.body = '';
-                        }
+            // Defer SDK init until after first paint to avoid blocking time-to-interactive
+            InteractionManager.runAfterInteractions(() => {
+                LogRocket.init('pibaqj/therr-app-mobile', {
+                    network: {
+                        requestSanitizer: request => {
+                            if (request.headers.authorization) {
+                                request.headers.authorization = '';
+                            }
+                            if (request.body?.toString().includes('password')) {
+                                request.body = '';
+                            }
 
-                        return request;
-                    },
-                    responseSanitizer: response => {
-                        if (response.body?.toString().includes('password') || response.body?.toString().includes('idToken')) {
-                            response.body = '';
-                        }
+                            return request;
+                        },
+                        responseSanitizer: response => {
+                            if (response.body?.toString().includes('password') || response.body?.toString().includes('idToken')) {
+                                response.body = '';
+                            }
 
-                        return response;
+                            return response;
+                        },
                     },
-                },
-                console: {
-                    shouldAggregateConsoleErrors: true,
-                },
-                redactionTags: ['RedactionString'],
+                    console: {
+                        shouldAggregateConsoleErrors: true,
+                    },
+                    redactionTags: ['RedactionString'],
+                });
             });
         }
     }

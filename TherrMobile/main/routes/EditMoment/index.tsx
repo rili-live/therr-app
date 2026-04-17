@@ -2,14 +2,13 @@ import React from 'react';
 import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from '../components/BaseButton';
-import EditFormFooter from '../components/EditFormFooter';
+import { Button } from '../../components/BaseButton';
+import EditFormFooter from '../../components/EditFormFooter';
 import LottieView from 'lottie-react-native';
-import { Image } from '../components/BaseImage';
+import { Image } from '../../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
-import { showToast } from '../utilities/toasts';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
+import { showToast } from '../../utilities/toasts';
 import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
 import { Categories, Content, ErrorCodes, FilePaths, PushNotifications } from 'therr-js-utilities/constants';
@@ -18,21 +17,20 @@ import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
-import DropDown from '../components/Input/DropDown';
-// import Alert from '../components/Alert';
-import translator from '../services/translator';
-import { buildMomentUrl } from '../utilities/shareUrls';
-import { isDarkTheme } from '../styles/themes';
-import { buildStyles, addMargins } from '../styles';
-import { buildStyles as buildAlertStyles } from '../styles/alerts';
-import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
-import { buildStyles as buildButtonStyles } from '../styles/buttons';
-import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
-import userContentStyles from '../styles/user-content';
-import spacingStyles from '../styles/layouts/spacing';
+import DropDown from '../../components/Input/DropDown';
+import translator from '../../utilities/translator';
+import { buildMomentUrl } from '../../utilities/shareUrls';
+import { isDarkTheme } from '../../styles/themes';
+import { buildStyles, addMargins } from '../../styles';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
+import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas/editing';
+import userContentStyles from '../../styles/user-content';
+import spacingStyles from '../../styles/layouts/spacing';
 import {
     youtubeLinkRegex,
     DEFAULT_RADIUS,
@@ -41,22 +39,22 @@ import {
     getAndroidChannel,
     AndroidChannelIds,
     HAPTIC_FEEDBACK_TYPE,
-} from '../constants';
-import Alert from '../components/Alert';
-import RoundInput from '../components/Input/Round';
-import RoundTextInput from '../components/Input/TextInput/Round';
-import HashtagsContainer from '../components/UserContent/HashtagsContainer';
-import BaseStatusBar from '../components/BaseStatusBar';
-import formatHashtags from '../utilities/formatHashtags';
-import { getImagePreviewPath } from '../utilities/areaUtils';
-import { getUserContentUri, signImageUrl } from '../utilities/content';
-import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
-import { sendForegroundNotification, sendTriggerNotification } from '../utilities/pushNotifications';
+} from '../../constants';
+import Alert from '../../components/Alert';
+import RoundInput from '../../components/Input/Round';
+import RoundTextInput from '../../components/Input/TextInput/Round';
+import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import formatHashtags from '../../utilities/formatHashtags';
+import { getImagePreviewPath } from '../../utilities/areaUtils';
+import { getUserContentUri, signImageUrl } from '../../utilities/content';
+import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
+import { sendForegroundNotification, sendTriggerNotification } from '../../utilities/pushNotifications';
 import { SheetManager } from 'react-native-actions-sheet';
-import TherrIcon from '../components/TherrIcon';
-import ConfirmModal from '../components/Modals/ConfirmModal';
-import SharePromptModal from '../components/Modals/SharePromptModal';
-import SpaceRating from '../components/Input/SpaceRating';
+import TherrIcon from '../../components/TherrIcon';
+import ConfirmModal from '../../components/Modals/ConfirmModal';
+import SharePromptModal from '../../components/Modals/SharePromptModal';
+import SpaceRating from '../../components/Input/SpaceRating';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -732,7 +730,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 )
                                 : (
                                     <LottieView
-                                        source={require('../assets/missing-image-storefront.json')}
+                                        source={require('../../assets/missing-image-storefront.json')}
                                         resizeMode="contain"
                                         speed={0.8}
                                         autoPlay

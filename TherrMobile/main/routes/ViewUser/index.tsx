@@ -35,12 +35,12 @@ import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import UserDisplayHeader from './UserDisplayHeader';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
-import LazyPlaceholder from './components/LazyPlaceholder';
+import LazyPlaceholder from '../../components/LazyPlaceholder';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { isMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -732,14 +732,14 @@ class ViewUser extends React.Component<
                                     renderScene={this.renderSceneMap}
                                     renderLazyPlaceholder={() => (
                                         <View style={this.theme.styles.sectionContainer}>
-                                            <LazyPlaceholder />
-                                            <LazyPlaceholder />
-                                            <LazyPlaceholder />
-                                            <LazyPlaceholder />
-                                            <LazyPlaceholder />
-                                            <LazyPlaceholder />
-                                            <LazyPlaceholder />
-                                            <LazyPlaceholder />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
                                         </View>
                                     )}
                                     onIndexChange={this.onTabSelect}

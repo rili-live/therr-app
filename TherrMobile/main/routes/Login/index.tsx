@@ -14,7 +14,7 @@ import mixins from '../../styles/mixins';
 import LoginForm from './LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { getUserImageUri } from '../../utilities/content';
 

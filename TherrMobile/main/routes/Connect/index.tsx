@@ -14,13 +14,13 @@ import { buildStyles as buildTileStyles } from '../../styles/user-content/groups
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import spacingStyles from '../../styles/layouts/spacing';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import ConnectionItem from './components/ConnectionItem';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
 import { RefreshControl } from 'react-native-gesture-handler';
-import LazyPlaceholder from './components/LazyPlaceholder';
+import LazyPlaceholder from '../../components/LazyPlaceholder';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -529,6 +529,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
                         ListFooterComponentStyle={{ marginBottom: 80 }}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.MESSAGES:
@@ -564,6 +567,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             onRefresh={this.handleRefreshDMsSearch}
                         />}
                         onContentSizeChange={this.scrollTop}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.CONNECTIONS:
@@ -599,6 +605,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             onRefresh={this.handleRefreshUserConnections}
                         />}
                         onContentSizeChange={this.scrollTop}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
         }

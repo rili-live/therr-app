@@ -24,7 +24,7 @@ import Alert from '../../components/Alert';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import { ILocationState } from '../../types/redux/location';
 import LocationActions from '../../redux/actions/LocationActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import {
     ANIMATE_TO_REGION_DURATION,
     ANIMATE_TO_REGION_DURATION_SLOW,
@@ -61,7 +61,6 @@ import {
     isLocationPermissionGranted,
     checkAndroidPermission,
 } from '../../utilities/requestOSPermissions';
-// import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
