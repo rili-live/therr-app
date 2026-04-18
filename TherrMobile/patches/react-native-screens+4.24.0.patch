@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt b/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt
+index b2dfc56..396ab6e 100644
+--- a/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt
++++ b/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt
+@@ -25,7 +25,7 @@ file(GLOB LIB_CODEGEN_SRCS CONFIGURE_DEPENDS ${LIB_ANDROID_GENERATED_COMPONENTS_
+ 
+ add_library(
+   ${LIB_TARGET_NAME}
+-  SHARED
++  OBJECT
+   ${LIB_CUSTOM_SRCS}
+   ${LIB_CODEGEN_SRCS}
+ )

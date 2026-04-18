@@ -1,7 +1,10 @@
 import React from 'react'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
-import { StackNavigationOptions } from '@react-navigation/stack';
-import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
+import {
+    NativeStackNavigationOptions,
+    NativeStackNavigationEventMap,
+    NativeStackNavigationProp,
+} from '@react-navigation/native-stack';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { IAccess } from 'therr-react/types';
 import ActivityGenerator from './Activities/ActivityGenerator';
@@ -52,7 +55,7 @@ import ViewUser from './ViewUser';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
 
-export interface ExtendedRouteOptions extends StackNavigationOptions {
+export interface ExtendedRouteOptions extends NativeStackNavigationOptions {
     access?: IAccess;
     requiredFeatures?: FeatureFlags[];
 }
@@ -62,7 +65,8 @@ const routes: RouteConfig<
     any,
     StackNavigationState<any>,
     ExtendedRouteOptions,
-    StackNavigationEventMap
+    NativeStackNavigationEventMap,
+    NativeStackNavigationProp<Record<string, object>>
 >[] = [
     {
         name: 'Landing',

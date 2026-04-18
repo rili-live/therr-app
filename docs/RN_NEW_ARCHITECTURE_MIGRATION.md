@@ -1,7 +1,7 @@
 # React Native New Architecture Migration Plan (Android)
 
 **Created:** April 2026
-**Status:** Planning
+**Status:** Phase 3 complete on Android (newArchEnabled=true booting, login + nav + map verified in emulator). Internal release in progress for physical-device QA.
 **Branch:** `claude/react-native-architecture-plan-K8wbh` (based on `general`)
 **Target:** `TherrMobile` — Android first, iOS as parallel follow-up
 
@@ -198,6 +198,31 @@ QA checklist: login, OAuth flow (Instagram/Facebook), map, create moment (with p
    - `react-native-screens`: 4.5.0 → 4.24.0 (Paper code-path unchanged; bug only manifests on Fabric)
    - `compileSdkVersion` / `buildToolsVersion`: 35 / 35.0.0 → 36 / 36.0.0 (required by screens 4.24; `targetSdk` held at 35 so runtime behavior is unchanged)
 6. **Full Phase 3 smoke pass** (boot/render, login email+Apple+Google, feed, map, create moment with photo + crop, messaging, notifications, profile, settings, keyboard in forms, modals) is the exit criterion for any future `gradle.properties` flip.
+
+#### Phase 3 SUCCESS (2026-04-18) — `newArchEnabled=true` is on
+
+After the 2026-04-17 revert, retried with **both** Option A and Option B from the blocker list applied together. Option A alone did NOT avoid the crash (the assertion still fires from `UIManager::createNode` even on native-stack); the screens CMakeLists patch is the actual fix. Final landing state:
+
+1. ✅ **Option B — `react-native-screens` CMakeLists patch.** `patches/react-native-screens+4.24.0.patch` flips `add_library(react_codegen_rnscreens SHARED ...)` → `OBJECT` in `node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt`. Reason: RN 0.80's autolinking pipeline already compiles the `RNSScreenComponentDescriptor` template instantiations into `libappmodules.so` (see `android/app/build/generated/autolinking/src/main/jni/autolinking.cpp:201`). The screens-built `libreact_codegen_rnscreens.so` produced a second copy of the same template — with `-fvisibility=hidden`, Android emits two `type_info` entries for `RNSScreenProps`, and `dynamic_cast<const RNSScreenProps *>` inside `RNSScreenComponentDescriptor::adopt` then fails across the .so boundary. Switching to `OBJECT` keeps those symbols in `libappmodules.so` only. Auto-applied via `postinstall` (`patch-package`). See `~/.claude/projects/.../memory/rn-screens-rtti-patch.md` for the full root-cause writeup and re-patch instructions when bumping screens.
+2. ✅ **Option A — React Navigation 6 → 7 + native-stack.** Migrated `Layout.tsx` from `@react-navigation/stack@6.4.1` (JS stack) → `@react-navigation/native-stack@7.14.11` (uses `<ScreenStack>`/`<Screen>` directly — the composition screens 4.x is actively tested with). Touched: `Layout.tsx`, `routes/index.tsx`, `routes/stackOptions.ts`, four edit screens (`EditMoment`, `EditSpace`, `EditEvent`, `ViewSpace`) for `animationEnabled`/`gestureEnabled` → `animation`. Side effects:
+   - `getCurrentScreen`/`getCurrentScreenParams` helpers replaced by `route.name` / `route.params` from `screenOptions`.
+   - `cardStyleInterpolator: forFade` → `animation: 'fade'`.
+   - native-stack's headerTitle slot has constrained width, so search routes (Areas/Map/Connect) needed a custom JS `header` component to render `HeaderSearchInput` full-width alongside the menu buttons. See `Layout.tsx:1517-1568`.
+   - `headerBackTitleVisible: false` → `headerBackTitle: ''` (RN7 API).
+   - Theme objects need `fonts: DefaultTheme.fonts` (new RN7 requirement).
+   - `momentTransitionSpec` (Reanimated spring) removed — native-stack uses the platform animation API and doesn't accept JS transition specs. Acceptable: native iOS/Android transitions are smoother anyway.
+3. ✅ **`react-native-mmkv` 2.12.2 → 3.3.3.** v3 ships TurboModule support (required under New Arch; v2 throws "React Native is not running on-device. MMKV can only be used when synchronous method invocations (JSI) are possible."). v4 was skipped because it requires `react-native-nitro-modules` as a separate install. `SecureStorage.ts` API is v2/v3 compatible — no source changes.
+4. ✅ **`react-native-maps` 1.20.1 → 1.27.2.** v1.20.1 had no `codegenConfig` in its `package.json`, so under Fabric the view managers got no generated setters (visible in logcat: `Could not find generated setter for class com.rnmaps.maps.*`). Map rendered but with all props effectively no-ops. v1.21+ adds `RNMapsSpecs` codegen.
+5. ✅ **`ClusteredMapView.tsx` rebuilt for Fabric.** Original used a halo `<View position="absolute" opacity={0.5}>` layered behind a solid inner `<View>` — under Fabric only the halo rendered, so clusters appeared transparent. Removed the halo; cluster is now a single solid `<View>` with the count `<Text>` inside (added explicit `lineHeight: fontSize + 2` for vertical centering). SuperCluster `radius` bumped 40 → 80 to stop visually overlapping clusters from coexisting at low zooms. Removed `tracksViewChanges={false}` from `<Marker>` (was preventing the cluster JSX swap from rendering).
+6. ✅ **`Landing.tsx` edge-to-edge fix.** Replaced outer `SafeAreaView` (from `react-native`) with a plain `View` so the background image stretches edge-to-edge under New Arch's enforced edge-to-edge layout; positioned title and CTA via `useSafeAreaInsets()` from `react-native-safe-area-context` (`top: insets.top + 80`, `bottom: insets.bottom + 32`).
+7. ✅ **`HeaderSearchInput` / `HeaderSearchUsersInput` width via flex.** Removed `Dimensions.get('window')` + `DeviceInfo.isTablet()` math; the search container now uses `flex: 1` since the new custom JS header in `Layout.tsx` provides a flex row that constrains it. `themeForms.styles.headerSearchContainer` simplified to `{ flex: 1, margin: 0, padding: 0 }`.
+
+**Verification on Android emulator (Pixel 9, API 36, debug build):** boot, login (email), home/feed nav, map render with clusters, GPS permission flow, no crashes through ~10 min of clicking around. Physical-device QA pending via internal release.
+
+**Carried-forward technical debt:**
+- ~30 `Could not find generated setter for class com.horcrux.svg.RenderableViewManager$*Manager` startup warnings remain. Non-fatal but indicates `react-native-svg` view managers aren't fully migrated to Fabric. Track upstream.
+- Reanimated `installJSIBindings` JNI warning is gone after the 3.19.5 bump.
+- `react-native-snap-carousel` was already removed (Phase 2). No remaining Tier A blockers.
 
 ### Phase 4 — Stabilize on New Architecture (1–2 weeks)
 

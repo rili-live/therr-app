@@ -92,7 +92,7 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
                 }
             });
 
-            const sc = new SuperCluster({ radius: 40, maxZoom: 20, minZoom: 1 });
+            const sc = new SuperCluster({ radius: 80, maxZoom: 20, minZoom: 1 });
             sc.load(
                 markers.map((m, i) => ({
                     type: 'Feature' as const,
@@ -161,44 +161,31 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
                                 coordinate={{ latitude, longitude }}
                                 style={{ zIndex: point_count + 1 }}
                                 onPress={() => handleClusterPress(item)}
-                                tracksViewChanges={false}
                             >
-                                <View style={[styles.clusterOuter, { width: size + 10, height: size + 10 }]}>
-                                    <View
+                                <View
+                                    style={[
+                                        styles.clusterInner,
+                                        {
+                                            backgroundColor: clusterColor,
+                                            width: size,
+                                            height: size,
+                                            borderRadius: size / 2,
+                                        },
+                                    ]}
+                                >
+                                    <Text
                                         style={[
-                                            styles.clusterHalo,
+                                            styles.clusterText,
                                             {
-                                                backgroundColor: clusterColor,
-                                                width: size + 10,
-                                                height: size + 10,
-                                                borderRadius: (size + 10) / 2,
-                                            },
-                                        ]}
-                                    />
-                                    <View
-                                        style={[
-                                            styles.clusterInner,
-                                            {
-                                                backgroundColor: clusterColor,
-                                                width: size,
-                                                height: size,
-                                                borderRadius: size / 2,
+                                                color: clusterTextColor,
+                                                fontSize,
+                                                lineHeight: fontSize + 2,
+                                                fontFamily: clusterFontFamily,
                                             },
                                         ]}
                                     >
-                                        <Text
-                                            style={[
-                                                styles.clusterText,
-                                                {
-                                                    color: clusterTextColor,
-                                                    fontSize,
-                                                    fontFamily: clusterFontFamily,
-                                                },
-                                            ]}
-                                        >
-                                            {point_count}
-                                        </Text>
-                                    </View>
+                                        {point_count}
+                                    </Text>
                                 </View>
                             </Marker>
                         );

@@ -376,8 +376,7 @@ const ViewSpace = ({
         if (isUserAuthenticated(user)) {
             setIsViewingIncentives(true);
             navigation.setOptions({
-                animationEnabled: false,
-                gestureEnabled: true,
+                animation: 'none',
             });
         } else {
             navigation.push('Login');

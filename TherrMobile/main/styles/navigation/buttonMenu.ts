@@ -5,7 +5,7 @@ import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
 export const bottomSafeAreaInset = initialWindowMetrics?.insets.bottom || 0;
-const buttonMenuContentHeight = Platform.OS === 'ios' ? 80 : 60;
+const buttonMenuContentHeight = Platform.OS === 'ios' ? 64 : 48;
 export const buttonMenuHeight = buttonMenuContentHeight + bottomSafeAreaInset;
 export const buttonMenuHeightCompact = 48 + bottomSafeAreaInset;
 
@@ -109,6 +109,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: buttonMenuHeight,
             width: '100%',
             alignSelf: 'flex-end',
+            alignItems: 'center',
             flexDirection: 'row',
             paddingBottom: bottomSafeAreaInset,
             backgroundColor: therrTheme.colors.primary,
