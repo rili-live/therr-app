@@ -1,0 +1,92 @@
+{
+  "slug": "editors-picks-bars-chicago",
+  "type": "list",
+  "status": "published",
+  "title": "Editor's Picks: 8 Local Chicago Bars Worth Knowing",
+  "description": "A hand-picked guide to neighborhood pubs, breweries, and wine bars across Chicago — local favorites with character, not chains.",
+  "city": "chicago-il",
+  "category": "categories.bar/drinks",
+  "publishedAt": "2026-04-19",
+  "updatedAt": "2026-04-19",
+  "author": "Therr Editorial",
+  "lead": "These aren't the loud, line-around-the-block spots — they're the Chicago bars locals actually return to. Eight neighborhood pubs, breweries, and wine rooms across the city, hand-picked by the Therr editorial team.",
+  "sections": [
+    {
+      "type": "prose",
+      "body": "These picks were curated by the Therr editorial team from venues with complete profiles on Therr — places with a published website, address, and enough information that we could verify they're open and findable. We don't rank by popularity here; the order reflects editorial judgment and venue completeness, not visit counts."
+    },
+    {
+      "type": "space-list",
+      "items": [
+        {
+          "spaceId": "5bc56a0a-ac69-4a4a-bd53-1224b29c6373",
+          "rank": 1,
+          "blurb": "A no-frills Irish pub in River North that locals reach for when they want a pour and a conversation, not a scene."
+        },
+        {
+          "spaceId": "ec53e77e-1b3f-4326-a8db-e46a66abdebd",
+          "rank": 2,
+          "blurb": "The legendary lower-Michigan-Avenue burger joint — the original \"cheezborger\" counter that inspired the SNL sketch."
+        },
+        {
+          "spaceId": "11e43ed8-28d7-4665-8c60-aad12915164a",
+          "rank": 3,
+          "blurb": "A long-running West Loop tavern that pre-dates the neighborhood's restaurant boom — friendly, unpretentious, and reliably open."
+        },
+        {
+          "spaceId": "d7800db1-9fad-4b3b-9b30-0ae347ec211b",
+          "rank": 4,
+          "blurb": "Northwest-side German tavern slinging stein pours of imported pilsner and a kitchen built for hearty plates."
+        },
+        {
+          "spaceId": "d3b48487-c6d0-4a83-be74-a7bbcccf4a6f",
+          "rank": 5,
+          "blurb": "The Fulton Street brewery that helped put Chicago craft beer on the map — tours, taproom, and the limited bottle drops fans line up for."
+        },
+        {
+          "spaceId": "54a2ef16-e9f3-4da7-a541-332ab0a6ab22",
+          "rank": 6,
+          "blurb": "A Streeterville dive that's outlasted the high-rises around it — late hours, cheap pints, and a pool table that rarely sits idle."
+        },
+        {
+          "spaceId": "78c28d01-9750-4efe-9ac9-e1271dfb4cb1",
+          "rank": 7,
+          "blurb": "Edgewater corner spot built for a game with the volume up and a beer that doesn't require a glossary."
+        },
+        {
+          "spaceId": "d5534da6-95e3-41ff-87d8-fe987f90081b",
+          "rank": 8,
+          "blurb": "Bucktown's neighborhood pub for two decades — strong on the local-art front and the kind of bar where the regulars actually know each other."
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "items": [
+        {
+          "question": "How were these Chicago bars chosen?",
+          "answer": "The Therr editorial team hand-picked these from venues with verified, complete profiles on Therr — meaning each spot has a working website, full address, and enough information that we could confirm it's open. We don't rank by popularity; the order reflects editorial judgment."
+        },
+        {
+          "question": "Are any of these chain bars?",
+          "answer": "No. We deliberately exclude national chains in editorial guides like this one — the goal is to surface independent, locally-owned bars that give Chicago its character."
+        },
+        {
+          "question": "How often is this list updated?",
+          "answer": "We refresh the list when our data shows a featured space has closed or moved, and we publish a new updatedAt date when changes are made. Check the date below the title to see when the guide was last reviewed."
+        },
+        {
+          "question": "Where can I find more bars in Chicago?",
+          "answer": "You can browse the full directory of Chicago bars and other local spaces on Therr — including newer openings that didn't make this editorial cut."
+        }
+      ]
+    },
+    {
+      "type": "cta",
+      "heading": "More Chicago bars",
+      "body": "See more local spots and the full directory on Therr.",
+      "href": "/locations/city/chicago-il/bar-drinks",
+      "ctaText": "Browse all"
+    }
+  ]
+}

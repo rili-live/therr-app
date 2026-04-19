@@ -20,6 +20,7 @@ import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
 import ListPickerPopover from './Bookmarks/ListPickerPopover';
+import { getGuidesBySpaceId } from '../utilities/guideContent';
 
 // Only lazy-load on client (Leaflet requires window/document)
 const SpacesMap = typeof window !== 'undefined'
@@ -871,6 +872,21 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         return <Breadcrumbs className="space-breadcrumbs">{items}</Breadcrumbs>;
     }
 
+    renderFeaturedInGuides(spaceId: string): JSX.Element | null {
+        const guides = getGuidesBySpaceId(spaceId);
+        if (!guides.length) return null;
+        return (
+            <Paper withBorder p="sm" radius="md">
+                <Text size="sm" fw={600} mb={4}>{this.props.translate('pages.viewSpace.labels.featuredIn')}</Text>
+                <Group gap="xs" wrap="wrap">
+                    {guides.slice(0, 5).map((g) => (
+                        <Anchor key={g.slug} href={`/guides/${g.slug}`} size="sm">{g.title}</Anchor>
+                    ))}
+                </Group>
+            </Paper>
+        );
+    }
+
     renderActionLinks(space: any): JSX.Element | null {
         const { translate } = this.props;
         const links = [
@@ -1327,6 +1343,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
                     {/* Action Links */}
                     {this.renderActionLinks(space)}
+
+                    {/* Featured in editorial guides */}
+                    {this.renderFeaturedInGuides(space.id)}
 
                     <Divider />
 

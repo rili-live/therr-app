@@ -281,6 +281,39 @@ export default [
         view: 'index',
     },
     {
+        route: '/guides',
+        head: {
+            title: 'Local Guides',
+            description: 'Editorial guides and data-driven posts about local businesses, neighborhoods, and what people actually do in your city.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/guides/city/:citySlug',
+        head: {
+            title: 'City Guides',
+            description: 'Local business guides and data posts curated by city.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/guides/category/:categorySlug',
+        head: {
+            title: 'Category Guides',
+            description: 'Local business guides organized by category — bars, restaurants, music venues, and more.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/guides/:slug',
+        head: {
+            // Per-post title/description are injected by server-client.tsx from the post JSON.
+            title: 'Therr Guide',
+            description: 'A local guide on Therr.',
+        },
+        view: 'guides',
+    },
+    {
         route: '*',
         head: {
             title: 'Not Found',

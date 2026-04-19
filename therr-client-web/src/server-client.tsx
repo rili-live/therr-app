@@ -27,6 +27,8 @@ import socketIOMiddleWare from './socket-io-middleware';
 import getUserImageUri from './utilities/getUserImageUri';
 import * as globalConfig from '../../global-config';
 import getUserContentUri from './utilities/getUserContentUri';
+import { getGuide, getPublishedGuides, resolveGuideForLocale } from './utilities/guideContent';
+import { buildGuideSchemas } from './utilities/guideJsonLd';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
@@ -331,6 +333,7 @@ app.get('/sitemap.xml', async (req, res) => {
     const sitemaps = [
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-static.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-city-categories.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
+        `  <sitemap>\n    <loc>https://www.therr.com/sitemap-guides.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         ...Array.from({ length: totalSpacePages }, (_, i) => (
             // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-spaces-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
@@ -427,6 +430,43 @@ app.get('/sitemap-city-categories.xml', (req, res) => {
     return res.send(xml);
 });
 
+// Editorial guides sitemap: /sitemap-guides.xml
+// Includes the /guides hub, per-city/category hubs, and each published post.
+app.get('/sitemap-guides.xml', (req, res) => {
+    const cached = getSitemapCache('guides');
+    if (cached) {
+        res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+        return res.send(cached);
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const posts = getPublishedGuides();
+    const cities = new Set<string>();
+    const categories = new Set<string>();
+    posts.forEach((p) => {
+        if (p.city) cities.add(p.city);
+        if (p.category) categories.add(p.category);
+    });
+
+    const urls: string[] = [];
+    urls.push(buildUrlSet('/guides', today, '0.85'));
+    cities.forEach((c) => urls.push(buildUrlSet(`/guides/city/${c}`, today, '0.75')));
+    categories.forEach((c) => urls.push(buildUrlSet(`/guides/category/${c}`, today, '0.75')));
+    posts.forEach((p) => {
+        const lastmod = (p.updatedAt || p.publishedAt || today).slice(0, 10);
+        urls.push(buildUrlSet(`/guides/${p.slug}`, lastmod, '0.80'));
+    });
+
+    // eslint-disable-next-line max-len
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
+
+    setSitemapCache('guides', xml);
+    res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    return res.send(xml);
+});
+
 // Paginated spaces sitemaps: /sitemap-spaces-1.xml, /sitemap-spaces-2.xml, etc.
 app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
     const page = parseInt(req.params[0], 10);
@@ -499,7 +539,7 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
         if (!imageTags) return urlSet;
         // Inject <image:image> children into each <url> block (English variant only — Google
         // deduplicates images across hreflang variants anyway, so attaching to one is sufficient).
-        return urlSet.replace(/(  <url>\n    <loc>https:\/\/www\.therr\.com\/spaces\/[^<]+<\/loc>[\s\S]*?)\n(  <\/url>)/, `$1\n${imageTags}\n$2`);
+        return urlSet.replace(/( {2}<url>\n {4}<loc>https:\/\/www\.therr\.com\/spaces\/[^<]+<\/loc>[\s\S]*?)\n( {2}<\/url>)/, `$1\n${imageTags}\n$2`);
     });
 
     // eslint-disable-next-line max-len
@@ -1522,7 +1562,7 @@ const renderLocationsView = (req, res, config, {
         });
         landingFaqEntries.push({
             question: `Are the reviews on Therr for ${categoryLabel.toLowerCase()} in ${cityDisplayName} verified?`,
-            answer: `Therr reviews are written by community members, and verified visits (via in-app check-in) earn TherrCoin rewards. The incentive to check in reduces the volume of fake or paid reviews versus traditional aggregators.`,
+            answer: 'Therr reviews are written by community members, and verified visits (via in-app check-in) earn TherrCoin rewards. The incentive to check in reduces the volume of fake or paid reviews versus traditional aggregators.',
         });
     } else if (cityDisplayName) {
         landingFaqEntries.push({
@@ -1793,6 +1833,57 @@ const renderCityPulseView = (req, res, config, {
     });
 };
 
+// TODO: locale-first guide rendering — see docs/CONTENT_LOCALE_FIRST_PLAN.md.
+// When a post has `locales.es` / `locales.fr-ca` and the request is at /es/guides
+// or /fr-ca/guides, resolveGuideForLocale already swaps in the localized
+// title/description/sections. Phase 1 of the plan is to verify htmlLang and
+// canonicalPath reflect the request locale (not hardcoded en-us).
+const renderGuideView = (req, res, config, { markup, state }, localeVars) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const slug = req.params?.slug || '';
+    const post = slug ? getGuide(slug) : null;
+
+    if (!post || post.status !== 'published') {
+        res.status(404);
+        return res.render(routeView, {
+            title: config.head.title,
+            description: config.head.description,
+            markup,
+            routePath,
+            state,
+            ...localeVars,
+        });
+    }
+
+    const urlLocale = req.localeFromUrl || 'en-us';
+    const resolved = resolveGuideForLocale(post, urlLocale);
+    const schemas = buildGuideSchemas({
+        post,
+        resolved,
+        canonicalPath: localeVars.canonicalPath,
+    });
+
+    return res.render(routeView, {
+        title: resolved.title,
+        description: resolved.description,
+        author: post.author || 'Therr',
+        cityName: post.city || '',
+        categoryName: post.category || '',
+        publishedAt: post.publishedAt,
+        updatedAt: post.updatedAt || post.publishedAt,
+        heroImageUrl: post.heroImage?.url || '',
+        articleSchema: schemas.articleSchema,
+        breadcrumbSchema: schemas.breadcrumbSchema,
+        itemListSchema: schemas.itemListSchema,
+        faqSchema: schemas.faqSchema,
+        markup,
+        routePath,
+        state,
+        ...localeVars,
+    });
+};
+
 const renderGroupView = (req, res, config, {
     markup,
     state,
@@ -1912,8 +2003,12 @@ const renderHubCitiesView = (req, res, config, { markup, state }, localeVars) =>
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations' },
+            {
+                '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+            },
+            {
+                '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+            },
             { '@type': 'ListItem', position: 3, name: 'Cities' },
         ],
     };
@@ -1955,8 +2050,12 @@ const renderHubCategoriesView = (req, res, config, { markup, state }, localeVars
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations' },
+            {
+                '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+            },
+            {
+                '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+            },
             { '@type': 'ListItem', position: 3, name: 'Categories' },
         ],
     };
@@ -2297,6 +2396,10 @@ routeConfig.forEach((config) => {
                 // Uses the existing `index` view which accepts optional schema blocks.
                 if (routePath === '/' && routeView === 'index') {
                     return renderHomeView(req, res, config, { markup, state }, localeVars);
+                }
+
+                if (routeView === 'guides') {
+                    return renderGuideView(req, res, config, { markup, state }, localeVars);
                 }
 
                 return res.render(routeView, {
