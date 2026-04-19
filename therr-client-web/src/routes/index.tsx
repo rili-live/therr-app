@@ -17,6 +17,8 @@ import Home from './Home';
 import ViewSpace from './ViewSpace';
 import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
+import CitiesHub from './CitiesHub';
+import CategoriesHub from './CategoriesHub';
 import ViewCityPulse from './ViewCityPulse';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
@@ -26,6 +28,8 @@ import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
 import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
+import Guide from './Guide';
+import GuidesIndex from './Guide/GuidesIndex';
 
 // Auth-only routes — lazy-loaded client-side to reduce initial bundle size.
 // These are never SSR-rendered (AuthRoute redirects unauthenticated users).
@@ -334,6 +338,14 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         })(dispatch),
     },
     {
+        path: '/locations/cities',
+        element: <CitiesHub />,
+    },
+    {
+        path: '/locations/categories',
+        element: <CategoriesHub />,
+    },
+    {
         path: '/locations',
         element: <ListSpaces />,
         fetchData: (dispatch: any, params: any, query: any = {}) => {
@@ -538,6 +550,23 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/users/:userId',
         element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
         fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
+    },
+
+    {
+        path: '/guides',
+        element: <GuidesIndex />,
+    },
+    {
+        path: '/guides/city/:citySlug',
+        element: <GuidesIndex filterMode="city" />,
+    },
+    {
+        path: '/guides/category/:categorySlug',
+        element: <GuidesIndex filterMode="category" />,
+    },
+    {
+        path: '/guides/:slug',
+        element: <Guide />,
     },
 
     // If no route matches, return NotFound component

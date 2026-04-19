@@ -1,6 +1,6 @@
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
-import { Theme } from '@react-navigation/native';
+import { DefaultTheme, Theme } from '@react-navigation/native';
 import { initialWindowMetrics } from 'react-native-safe-area-context';
 import { buttonMenuHeight } from './navigation/buttonMenu';
 import { getTheme, isDarkTheme, ITherrTheme } from './themes';
@@ -118,6 +118,7 @@ const buildNavTheme = (theme: ITherrTheme, themeName?: IMobileThemeName): Theme 
             border: theme.colors.primary3,
             notification: theme.colors.primary3,
         },
+        fonts: DefaultTheme.fonts,
     });
 };
 
@@ -385,8 +386,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingBottom: 2,
         },
         headerSearchContainer: {
-            ...headerTitleStyles,
-            marginBottom: (Platform.OS === 'ios' && Platform.isPad) ? HEADER_PADDING_BOTTOM : HEADER_PADDING_BOTTOM / 2,
+            flex: 1,
+            margin: 0,
+            padding: 0,
         },
         headerSearchInputContainer: {
             height: 36,

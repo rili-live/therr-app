@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, View, Text } from 'react-native';
+import { ActivityIndicator, Pressable, View, Text } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { achievementsByClass } from 'therr-js-utilities/config';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -13,7 +13,7 @@ const cardImagesLottie: { [key: string]: any } = {
     thinker: require('../../assets/thinker-card.json'),
 };
 
-const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchievement, userAchievement, themeAchievements }) => {
+const AchievementTile = ({ claimText, completedText, handleClaim, isClaiming, onPressAchievement, userAchievement, themeAchievements }) => {
     const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
     const progressPercent = `${userAchievement.progressCount * 100 / achievement.countToComplete}%`;
     const progressText = `${userAchievement.progressCount}/${achievement.countToComplete}`;
@@ -54,8 +54,15 @@ const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchieve
                     {
                         userAchievement.unclaimedRewardPts > 0 ?
                             <View style={themeAchievements.styles.completedContainer}>
-                                <Pressable onPress={handleClaim} style={themeAchievements.styles.claimButton}>
-                                    <Text style={themeAchievements.styles.claimText}>{claimText}</Text>
+                                <Pressable
+                                    onPress={handleClaim}
+                                    style={[themeAchievements.styles.claimButton, isClaiming && { opacity: 0.7 }]}
+                                    disabled={isClaiming}
+                                >
+                                    {isClaiming
+                                        ? <ActivityIndicator size="small" color={themeAchievements.colors.brandingWhite} />
+                                        : <Text style={themeAchievements.styles.claimText}>{claimText}</Text>
+                                    }
                                 </Pressable>
                             </View> :
                             <Text style={themeAchievements.styles.completeText}>{completedText}</Text>

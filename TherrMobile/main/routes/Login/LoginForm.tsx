@@ -5,7 +5,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { showToast } from '../../utilities/toasts';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { addMargins } from '../../styles';
 import spacingStyles from '../../styles/layouts/spacing';
 import Alert from '../../components/Alert';

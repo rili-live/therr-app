@@ -16,11 +16,9 @@
  */
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { Pool } from 'pg';
 import { IMPORT_USER_ID } from './config';
-import { crawlForImages } from './sources/crawl';
-import { downloadAndValidateImage } from './utils/imageValidation';
-import { uploadImage } from './utils/gcs';
+import { createDbPool } from './utils/db';
+import { sourceImageForSpace } from './utils/sourceImage';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -73,19 +71,6 @@ function parseArgs(): ICliArgs {
   };
 }
 
-function createDbPool(): Pool {
-  return new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.MAPS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_WRITE) || 5432,
-    max: 3,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 10000,
-  });
-}
-
 interface IUpdateResult {
   spaceId: string;
   emailUpdated: boolean;
@@ -97,7 +82,7 @@ interface IUpdateResult {
 
 async function main() {
   const args = parseArgs();
-  const db = createDbPool();
+  const db = createDbPool({ max: 3 });
 
   try {
     await db.query('SELECT 1');
@@ -152,64 +137,53 @@ async function main() {
       log(`Updated website: ${args.website}`);
     }
 
-    // Mark as closed/defunct
+    // Mark as closed/defunct. Also clears any lingering pending-claim flag so
+    // the space drops out of the admin approval queue — a closed business
+    // should never appear as "awaiting approval".
     if (args.closed) {
       await db.query(
-        `UPDATE main.spaces SET "isPublic" = false, "updatedAt" = NOW() WHERE id = $1`,
+        `UPDATE main.spaces
+            SET "isPublic" = false,
+                "isClaimPending" = false,
+                "updatedAt" = NOW()
+          WHERE id = $1`,
         [args.id],
       );
       result.closedMarked = true;
-      log(`Marked space as closed (isPublic=false): ${args.id}`);
+      log(`Marked space as closed (isPublic=false, isClaimPending=false): ${args.id}`);
     }
 
     // Source image
     if (args.sourceImage) {
       const websiteUrl = args.website || space.websiteUrl;
-      const hasMedia = (space.mediaIds && space.mediaIds !== '') || (space.medias && space.medias.length > 0);
 
       if (!websiteUrl) {
         log('Skipping image sourcing: no website URL available.');
-      } else if (hasMedia) {
-        log('Skipping image sourcing: space already has media.');
       } else {
         log(`Sourcing image from: ${websiteUrl}`);
-        const candidates = await crawlForImages(websiteUrl);
+        const userId = space.fromUserId || args.userId;
+        const outcome = await sourceImageForSpace(
+          db,
+          { id: args.id, notificationMsg: space.notificationMsg, mediaIds: space.mediaIds, medias: space.medias },
+          websiteUrl,
+          userId,
+          { log },
+        );
 
-        for (const candidate of candidates) {
-          const validImage = await downloadAndValidateImage(candidate.imageUrl);
-          if (!validImage) continue;
-
-          const userId = space.fromUserId || args.userId;
-          const storagePath = await uploadImage(userId, args.id, validImage.buffer, validImage.contentType);
-
-          // Insert media record
-          const mediaResult = await db.query(
-            `INSERT INTO main.media ("fromUserId", "altText", type, path)
-             VALUES ($1, $2, $3, $4)
-             RETURNING id`,
-            [userId, space.notificationMsg, 'user-image-public', storagePath],
-          );
-          const mediaId = mediaResult.rows[0].id;
-
-          // Update space with media references
-          const medias = JSON.stringify([{ path: storagePath, type: 'user-image-public' }]);
-          await db.query(
-            `UPDATE main.spaces
-             SET "mediaIds" = $1::text,
-                 medias = $2::jsonb,
-                 "updatedAt" = NOW()
-             WHERE id = $3`,
-            [String(mediaId), medias, args.id],
-          );
-
-          result.imageSourced = true;
-          result.imagePath = storagePath;
-          log(`Uploaded image: ${storagePath}`);
-          break;
-        }
-
-        if (!result.imageSourced) {
-          log('No valid image found on website.');
+        switch (outcome.status) {
+          case 'uploaded':
+            result.imageSourced = true;
+            result.imagePath = outcome.imagePath;
+            break;
+          case 'skipped-has-media':
+            log('Skipping image sourcing: space already has media.');
+            break;
+          case 'no-candidates':
+          case 'no-valid-image':
+            log('No valid image found on website.');
+            break;
+          default:
+            break;
         }
       }
     }

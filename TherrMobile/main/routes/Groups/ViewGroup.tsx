@@ -20,9 +20,7 @@ import { ContentActions, MessageActions, SocketActions, UserConnectionsActions }
 import { IContentState, IForumsState, IMessageState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { ForumsService, UsersService } from 'therr-react/services';
 import { Content, GroupMemberRoles, GroupRequestStatuses } from 'therr-js-utilities/constants';
-// import ViewGroupButtonMenu from '../../components/ButtonMenu/ViewGroupButtonMenu';
-import translator from '../../services/translator';
-// import RoundInput from '../../components/Input/Round';
+import translator from '../../utilities/translator';
 import spacingStyles from '../../styles/layouts/spacing';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
@@ -40,7 +38,7 @@ import RoundInput from '../../components/Input/Round';
 import TherrIcon from '../../components/TherrIcon';
 import ForumMessage from './ForumMessage';
 import ListEmpty from '../../components/ListEmpty';
-import LazyPlaceholder from '../Areas/components/LazyPlaceholder';
+import LazyPlaceholder from '../../components/LazyPlaceholder';
 import UserSearchItem from '../Connect/components/UserSearchItem';
 import UsersActions from '../../redux/actions/UsersActions';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
@@ -749,14 +747,14 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 renderScene={this.renderSceneMap}
                                 renderLazyPlaceholder={() => (
                                     <View style={this.theme.styles.sectionContainer}>
-                                        <LazyPlaceholder />
-                                        <LazyPlaceholder />
-                                        <LazyPlaceholder />
-                                        <LazyPlaceholder />
-                                        <LazyPlaceholder />
-                                        <LazyPlaceholder />
-                                        <LazyPlaceholder />
-                                        <LazyPlaceholder />
+                                        <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                        <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                        <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                        <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                        <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                        <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                        <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                        <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
                                     </View>
                                 )}
                                 onIndexChange={this.onTabSelect}

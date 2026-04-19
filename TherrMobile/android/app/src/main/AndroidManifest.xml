@@ -155,6 +155,18 @@
       android:name="com.google.firebase.messaging.default_notification_channel_id"
       android:value="@string/default_notification_channel_id"
       tools:replace="android:value" />
+
+    <!-- Suppress duplicate FileProvider authority. Both react-native-blob-util and
+         react-native-image-crop-picker declare ${applicationId}.provider; on API 36
+         this breaks activity registration. Image-crop-picker's Java calls
+         FileProvider.getUriForFile(..., packageName + ".provider", ...) which then
+         resolves to blob-util's FileProvider — whose file_paths cover the
+         getExternalFilesDir(DIRECTORY_PICTURES) location where image-crop-picker
+         writes camera temp files. -->
+    <provider
+      android:name="com.reactnative.ivpusic.imagepicker.IvpusicImagePickerFileProvider"
+      tools:node="remove" />
+
     <uses-library
       android:name="org.apache.http.legacy"
       android:required="false" />

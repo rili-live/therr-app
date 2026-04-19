@@ -9,7 +9,7 @@ import { achievementsByClass } from 'therr-js-utilities/config';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
@@ -32,6 +32,7 @@ export interface IAchievementsProps extends IStoreProps {
 }
 
 interface IAchievementsState {
+    claimingIds: { [key: string]: boolean };
     collapsedSections: { [key: string]: boolean };
     isRefreshing: boolean;
 }
@@ -58,6 +59,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         super(props);
 
         this.state = {
+            claimingIds: {},
             collapsedSections: {},
             isRefreshing: false,
         };
@@ -98,6 +100,14 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
     handleClaim = (userAchievement: any) => {
         const { claimMyAchievement, getMyAchievements } = this.props;
 
+        if (this.state.claimingIds[userAchievement.id]) {
+            return;
+        }
+
+        this.setState((prev) => ({
+            claimingIds: { ...prev.claimingIds, [userAchievement.id]: true },
+        }));
+
         claimMyAchievement(userAchievement.id, userAchievement.unclaimedRewardPts).then(() => {
             showToast.success({
                 text1: this.translate('alertTitles.coinsReceived'),
@@ -116,6 +126,12 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             showToast.error({
                 text1: this.translate('alertTitles.backendErrorMessage'),
                 text2: this.translate('alertMessages.backendErrorMessage'),
+            });
+        }).finally(() => {
+            this.setState((prev) => {
+                const next = { ...prev.claimingIds };
+                delete next[userAchievement.id];
+                return { claimingIds: next };
             });
         });
     };
@@ -249,7 +265,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
 
     render() {
         const { navigation, user } = this.props;
-        const { collapsedSections, isRefreshing } = this.state;
+        const { claimingIds, collapsedSections, isRefreshing } = this.state;
         const sections = this.getAchievementSections();
 
         // Apply collapsed state: replace data with empty array for collapsed sections
@@ -272,6 +288,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                 claimText={this.translate('pages.achievements.info.claimRewards')}
                                 completedText={this.translate('pages.achievements.info.completed')}
                                 handleClaim={() => this.handleClaim(item)}
+                                isClaiming={!!claimingIds[item.id]}
                                 onPressAchievement={() => this.onPressAchievement(item)}
                                 themeAchievements={this.themeAchievements}
                                 userAchievement={item}

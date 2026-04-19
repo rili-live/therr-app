@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Text, View, SafeAreaView, Platform } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler';
 import { showToast } from '../../utilities/toasts';
 import { IUserState } from 'therr-react/types';
@@ -15,7 +15,7 @@ import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
 import RegisterForm from './RegisterForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from '../Map/EULA';

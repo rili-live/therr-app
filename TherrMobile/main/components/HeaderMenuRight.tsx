@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, View, Modal, ScrollView, Animated, Dimensions } from 'react-native';
+import { Pressable, Text, View, Modal, ScrollView, Animated, Dimensions, Easing, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge, Drawer } from 'react-native-paper';
@@ -9,13 +9,11 @@ import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-// import therrIconConfig from '../assets/therr-font-config.json';
-// import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { ITherrThemeColors } from '../styles/themes';
@@ -122,12 +120,16 @@ class HeaderMenuRight extends React.PureComponent<
         const { isModalVisible } = this.state;
         const menuWidth = Dimensions.get('window').width * 0.75;
         const nextVisible = shouldClose ? false : !isModalVisible;
+        // Keep in sync with the spring/easing feel below.
+        const duration = 280;
+        const easing = Easing.out(Easing.cubic);
 
         return new Promise((resolve) => {
             if (!nextVisible && isModalVisible) {
                 Animated.timing(this.slideAnim, {
                     toValue: menuWidth,
-                    duration: 250,
+                    duration,
+                    easing: Easing.in(Easing.cubic),
                     useNativeDriver: true,
                 }).start(() => {
                     this.setState({ isModalVisible: false }, () => resolve(null));
@@ -135,11 +137,18 @@ class HeaderMenuRight extends React.PureComponent<
             } else if (nextVisible && !isModalVisible) {
                 this.slideAnim.setValue(menuWidth);
                 this.setState({ isModalVisible: true }, () => {
-                    Animated.timing(this.slideAnim, {
-                        toValue: 0,
-                        duration: 250,
-                        useNativeDriver: true,
-                    }).start(() => resolve(null));
+                    // Defer the opening animation until the Modal's native window
+                    // has mounted and laid out. Under Fabric + Android, starting
+                    // the native-driver animation in the same frame as the Modal
+                    // mount can drop frames and cause a visible stutter.
+                    InteractionManager.runAfterInteractions(() => {
+                        Animated.timing(this.slideAnim, {
+                            toValue: 0,
+                            duration,
+                            easing,
+                            useNativeDriver: true,
+                        }).start(() => resolve(null));
+                    });
                 });
             } else {
                 resolve(null);
@@ -665,22 +674,41 @@ class HeaderMenuRight extends React.PureComponent<
                                                 active={currentScreen === 'Settings'}
                                                 onPress={() => this.navTo('Settings')}
                                             />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.wallet')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'ExchangePointsDisclaimer'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="wallet"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'ExchangePointsDisclaimer'}
-                                                onPress={() => this.navTo('ExchangePointsDisclaimer')}
-                                            />
+                                            {user.details?.isBusinessAccount ? (
+                                                <Drawer.Item
+                                                    label={this.translate('components.headerMenuRight.menuItems.manageSpaces')}
+                                                    icon={() => (
+                                                        <TherrIcon
+                                                            style={
+                                                                currentScreen === 'ManageSpaces'
+                                                                    ? themeMenu.styles.iconStyleActive
+                                                                    : themeMenu.styles.iconStyle
+                                                            }
+                                                            name="storefront"
+                                                            size={24}
+                                                        />
+                                                    )}
+                                                    active={currentScreen === 'ManageSpaces'}
+                                                    onPress={() => this.navTo('ManageSpaces')}
+                                                />
+                                            ) : (
+                                                <Drawer.Item
+                                                    label={this.translate('components.headerMenuRight.menuItems.wallet')}
+                                                    icon={() => (
+                                                        <TherrIcon
+                                                            style={
+                                                                currentScreen === 'ExchangePointsDisclaimer'
+                                                                    ? themeMenu.styles.iconStyleActive
+                                                                    : themeMenu.styles.iconStyle
+                                                            }
+                                                            name="wallet"
+                                                            size={24}
+                                                        />
+                                                    )}
+                                                    active={currentScreen === 'ExchangePointsDisclaimer'}
+                                                    onPress={() => this.navTo('ExchangePointsDisclaimer')}
+                                                />
+                                            )}
                                             <Drawer.Item
                                                 label={this.translate('components.headerMenuRight.menuItems.bookmarks')}
                                                 icon={() => (

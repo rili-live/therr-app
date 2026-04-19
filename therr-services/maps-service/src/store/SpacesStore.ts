@@ -56,7 +56,7 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
 
 // TODO: This needs more security logic to ensure the requesting user has permissions to view
 // non-public images
-const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?: any[], ratings?: any[]) => {
+const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[] | null, users?: any[] | null, ratings?: any[] | null) => {
     const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
     const matchingUsers: any = {};
     const signingPromises: any = [];
@@ -519,7 +519,7 @@ export default class SpacesStore {
         });
     }
 
-    findSpaces(internalReqHeaders: InternalConfigHeaders, spaceIds, filters, options: any = {}) {
+    async findSpaces(internalReqHeaders: InternalConfigHeaders, spaceIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let restrictedLimit = filters?.limit || 1000;
         restrictedLimit = restrictedLimit > 1000 ? 1000 : restrictedLimit;
@@ -541,52 +541,44 @@ export default class SpacesStore {
             query = query.where({ isMatureContent: false });
         }
 
-        return this.db.read.query(query.toString()).then(async ({ rows: spaces }) => {
-            // Strip internal-only fields from API responses
-            spaces.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
+        const { rows: spaces } = await this.db.read.query(query.toString());
+        // Strip internal-only fields from API responses
+        spaces.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
 
-            if (options.withMedia || options.withUser || options.withRatings) {
-                const mediaIds: string[] = [];
-                const userIds: string[] = [];
-                const spaceResultIds: string[] = [];
-                const spaceDetailsPromises: Promise<any>[] = [];
+        if (!options.withMedia && !options.withUser && !options.withRatings) {
+            return { spaces, media: {}, users: {} };
+        }
 
-                spaces.forEach((space) => {
-                    if (options.withMedia && space.mediaIds) {
-                        mediaIds.push(...space.mediaIds.split(','));
-                    }
-                    if (options.withUser) {
-                        userIds.push(space.fromUserId);
-                    }
-                    if (options.withRatings) {
-                        spaceResultIds.push(space.id);
-                    }
-                });
-                // NOTE: The media db was replaced by moment.medias JSONB
-                spaceDetailsPromises.push(Promise.resolve(null));
-                spaceDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
-                spaceDetailsPromises.push(options.withRatings ? getRatings('space', spaceResultIds, internalReqHeaders) : Promise.resolve(null));
+        const userIds: string[] = [];
+        const spaceResultIds: string[] = [];
 
-                const [media, users, ratings] = await Promise.all(spaceDetailsPromises);
-
-                const spacesMedia = getSpacesToMediaAndUsersAndRatings(spaces, media, users, ratings);
-
-                return Promise.all(spacesMedia.signingPromises).then((signedUrlResponses) => ({
-                    spaces: spacesMedia.mappedSpaces,
-                    media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
-                    users: spacesMedia.matchingUsers,
-                }));
+        spaces.forEach((space) => {
+            if (options.withUser) {
+                userIds.push(space.fromUserId);
             }
-
-            return {
-                spaces,
-                media: {},
-                users: {},
-            };
+            if (options.withRatings) {
+                spaceResultIds.push(space.id);
+            }
         });
+
+        // NOTE: The media db was replaced by moment.medias JSONB, so the first slot is always null
+        const [media, users, ratings] = await Promise.all([
+            Promise.resolve(null),
+            options.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null),
+            options.withRatings ? getRatings('space', spaceResultIds, internalReqHeaders) : Promise.resolve(null),
+        ]);
+
+        const spacesMedia = getSpacesToMediaAndUsersAndRatings(spaces, media, users, ratings);
+        const signedUrlResponses = await Promise.all(spacesMedia.signingPromises);
+
+        return {
+            spaces: spacesMedia.mappedSpaces,
+            media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
+            users: spacesMedia.matchingUsers,
+        };
     }
 
-    createSpace(params: ICreateSpaceParams) {
+    async createSpace(params: ICreateSpaceParams) {
         const region = countryReverseGeo.get_country(params.latitude, params.longitude);
         const notificationMsg = params.notificationMsg
             ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, maxNotificationMsgLength)}`
@@ -602,98 +594,101 @@ export default class SpacesStore {
             }))
             : undefined;
 
-        const mediaPromise: Promise<string | undefined> = params.media
-            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString()).catch((err) => {
+        let mediaIds: string | undefined;
+        if (params.media) {
+            try {
+                const createdIds = await this.mediaStore.create(params.media[0]);
+                mediaIds = createdIds.toString();
+            } catch (err) {
                 console.log(err);
-                return '[]';
-            })
-            : Promise.resolve(undefined);
+                mediaIds = '[]';
+            }
+        }
 
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
-        return mediaPromise.then((mediaIds: string | undefined) => {
-            const radius = params.radius || DEFAULT_RADIUS_MEDIUM;
-            const sanitizedParams: Partial<ICreateSpaceParams> = {
-                addressReadable: params.addressReadable || '',
-                areaType: params.areaType || 'spaces',
-                category: params.category || 'uncategorized',
-                expiresAt: params.expiresAt,
-                fromUserId: params.fromUserId,
-                requestedByUserId: params.requestedByUserId,
-                locale: params.locale,
-                isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
-                isClaimPending: params.isClaimPending || false,
-                isMatureContent: isTextMature || !!params.isMatureContent,
-                message: params.message,
-                notificationMsg,
-                mediaIds: mediaIds || params.mediaIds || '',
-                mentionsIds: params.mentionsIds || '',
-                hashTags: params.hashTags || '',
-                maxViews: params.maxViews || 0,
-                maxProximity: params.maxProximity,
-                latitude: params.latitude,
-                longitude: params.longitude,
-                radius,
-                region: region?.code,
-                polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
-                featuredIncentiveKey: params.featuredIncentiveKey,
-                featuredIncentiveValue: params.featuredIncentiveValue,
-                featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
-                featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
-                featuredIncentiveCurrencyId: params.featuredIncentiveCurrencyId,
-                phoneNumber: params.phoneNumber,
-                businessEmail: params.businessEmail,
-                websiteUrl: params.websiteUrl,
-                menuUrl: params.menuUrl,
-                orderUrl: params.orderUrl,
-                reservationUrl: params.reservationUrl,
-                businessTransactionId: params.businessTransactionId,
-                businessTransactionName: params.businessTransactionName,
-                isPointOfInterest: params.isPointOfInterest,
-                addressStreetAddress: params.addressStreetAddress,
-                addressRegion: params.addressRegion,
-                addressLocality: params.addressLocality,
-                postalCode: params.postalCode,
-                priceRange: params.priceRange,
-                // eslint-disable-next-line max-len
-                geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
-            };
+        const radius = params.radius || DEFAULT_RADIUS_MEDIUM;
+        const sanitizedParams: Partial<ICreateSpaceParams> = {
+            addressReadable: params.addressReadable || '',
+            areaType: params.areaType || 'spaces',
+            category: params.category || 'uncategorized',
+            expiresAt: params.expiresAt,
+            fromUserId: params.fromUserId,
+            requestedByUserId: params.requestedByUserId,
+            locale: params.locale,
+            isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
+            isClaimPending: params.isClaimPending || false,
+            isMatureContent: isTextMature || !!params.isMatureContent,
+            message: params.message,
+            notificationMsg,
+            mediaIds: mediaIds || params.mediaIds || '',
+            mentionsIds: params.mentionsIds || '',
+            hashTags: params.hashTags || '',
+            maxViews: params.maxViews || 0,
+            maxProximity: params.maxProximity,
+            latitude: params.latitude,
+            longitude: params.longitude,
+            radius,
+            region: region?.code,
+            polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
+            featuredIncentiveKey: params.featuredIncentiveKey,
+            featuredIncentiveValue: params.featuredIncentiveValue,
+            featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
+            featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
+            featuredIncentiveCurrencyId: params.featuredIncentiveCurrencyId,
+            phoneNumber: params.phoneNumber,
+            businessEmail: params.businessEmail,
+            websiteUrl: params.websiteUrl,
+            menuUrl: params.menuUrl,
+            orderUrl: params.orderUrl,
+            reservationUrl: params.reservationUrl,
+            businessTransactionId: params.businessTransactionId,
+            businessTransactionName: params.businessTransactionName,
+            isPointOfInterest: params.isPointOfInterest,
+            addressStreetAddress: params.addressStreetAddress,
+            addressRegion: params.addressRegion,
+            addressLocality: params.addressLocality,
+            postalCode: params.postalCode,
+            priceRange: params.priceRange,
+            // eslint-disable-next-line max-len
+            geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
+        };
 
-            if (params.medias) {
-                (sanitizedParams as any).medias = JSON.stringify(params.medias);
-            }
+        if (params.medias) {
+            (sanitizedParams as any).medias = JSON.stringify(params.medias);
+        }
 
-            if (params.happyHours) {
-                sanitizedParams.happyHours = JSON.stringify(params.happyHours);
-            }
+        if (params.happyHours) {
+            sanitizedParams.happyHours = JSON.stringify(params.happyHours);
+        }
 
-            if (params.openingHours) {
-                sanitizedParams.openingHours = JSON.stringify(params.openingHours);
-            }
+        if (params.openingHours) {
+            sanitizedParams.openingHours = JSON.stringify(params.openingHours);
+        }
 
-            if (params.thirdPartyRatings) {
-                sanitizedParams.thirdPartyRatings = params.thirdPartyRatings ? JSON.stringify(params.thirdPartyRatings) : JSON.stringify({});
-            }
+        if (params.thirdPartyRatings) {
+            sanitizedParams.thirdPartyRatings = params.thirdPartyRatings ? JSON.stringify(params.thirdPartyRatings) : JSON.stringify({});
+        }
 
-            // TODO: Implement use of Categories.ts
-            if (params.interestsKeys) {
-                sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
-            } else if (Categories.SpaceCategories.includes(params.category) && Categories.CategoryToInterestsMap[params.category]) {
-                const interests = Categories.CategoryToInterestsMap[params.category];
-                sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
-            } else if (Content.interestsMap[`forms.editMoment.categories.${params.category}`]) {
-                // Set a default interests where ever valid
-                const interests = [Content.interestsMap[`forms.editMoment.categories.${params.category}`]];
-                sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
-            }
+        // TODO: Implement use of Categories.ts
+        if (params.interestsKeys) {
+            sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
+        } else if (Categories.SpaceCategories.includes(params.category) && Categories.CategoryToInterestsMap[params.category]) {
+            const interests = Categories.CategoryToInterestsMap[params.category];
+            sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
+        } else if (Content.interestsMap[`forms.editMoment.categories.${params.category}`]) {
+            // Set a default interests where ever valid
+            const interests = [Content.interestsMap[`forms.editMoment.categories.${params.category}`]];
+            sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
+        }
 
-            const queryString = knexBuilder.insert(sanitizedParams)
-                .into(SPACES_TABLE_NAME)
-                .returning('*')
-                .toString();
+        const queryString = knexBuilder.insert(sanitizedParams)
+            .into(SPACES_TABLE_NAME)
+            .returning('*')
+            .toString();
 
-            return this.db.write.query(queryString).then((response) => response.rows);
-        });
+        const response = await this.db.write.query(queryString);
+        return response.rows;
     }
 
     updateSpace(id: string, params: any = {}) {

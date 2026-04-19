@@ -527,6 +527,9 @@
       "collapseMap": "Collapse Map",
       "signInPrompt": "to see your private spaces and manage listings.",
       "website": "website",
+      "introCityCategory": "Looking for {category} in {city}? Therr's local directory surfaces {category} in {city} that real community members have visited, rated, and photographed. Each listing below includes hours, a map, and reviews.",
+      "introCity": "Explore local businesses in {city}. Therr's {city} directory pulls from verified community check-ins so you see what locals actually visit — restaurants, bars, shops, hotels, gyms, parks, and more, with hours, photos, and reviews.",
+      "introCategory": "Discover {category} near you on Therr. Each listing below is sourced from community members who have visited and reviewed the venue, with hours, photos, and map directions.",
       "nearLocation": "Showing spaces near {location}",
       "searchPlaceholderLocation": "Search by location (e.g. Michigan, New York)...",
       "nearMe": "Near Me",
@@ -547,7 +550,43 @@
       "or": "or",
       "info": "Therr connects you with the people, places, and businesses in your neighborhood. Share location-based posts, discover hidden gems nearby, and earn rewards just for exploring your community.",
       "info2": "Local influencer or content creator? Partner with nearby businesses, grow your audience, and land paid collaborations — all through the app.",
-      "info3": "Download the free app to unlock the full experience."
+      "info3": "Download the free app to unlock the full experience.",
+      "seo": {
+        "discoverHeading": "Explore a local business directory built for real neighborhoods",
+        "discoverBody": "Therr is a local-first community platform and business directory. Browse restaurants, bars, shops, hotels, parks, gyms, and event venues across the United States. Every listing includes hours, photos, reviews from people who actually visited, and the option to save or share with friends.",
+        "popularCitiesHeading": "Popular cities",
+        "viewAllCities": "View all cities",
+        "popularCategoriesHeading": "Browse by category",
+        "viewAllCategories": "View all categories",
+        "forBusinessesHeading": "For local businesses",
+        "forBusinessesBody": "Are you a local business owner? Claim your listing on Therr to update your hours, photos, and menu — and connect with nearby customers who earn TherrCoin rewards for visiting you."
+      }
+    },
+    "citiesHub": {
+      "pageTitle": "Browse Local Businesses by City",
+      "heading": "Browse local businesses by city",
+      "intro": "Find restaurants, bars, shops, hotels, and events in major cities across the United States. Each city page includes a searchable map and the most-visited local spots, with reviews and photos from real Therr users.",
+      "breadcrumb": {
+        "home": "Home",
+        "locations": "Locations",
+        "cities": "Cities"
+      },
+      "categoriesCtaHeading": "Prefer to browse by category?",
+      "categoriesCtaBody": "Looking for something specific?",
+      "categoriesCtaLink": "Browse by category"
+    },
+    "categoriesHub": {
+      "pageTitle": "Browse Local Businesses by Category",
+      "heading": "Browse local businesses by category",
+      "intro": "Pick a category to explore — restaurants, bars, shops, hotels, parks, gyms, museums, music venues, and more. Every category page pulls from real user reviews and check-ins so you see what's genuinely good nearby.",
+      "breadcrumb": {
+        "home": "Home",
+        "locations": "Locations",
+        "categories": "Categories"
+      },
+      "citiesCtaHeading": "Looking for listings in a specific city?",
+      "citiesCtaBody": "Want to narrow down by location?",
+      "citiesCtaLink": "Browse by city"
     },
     "createForum": {
       "buttons": {
@@ -863,6 +902,7 @@
         "phone": "Phone",
         "orderDelivery": "Order Delivery",
         "reservations": "Reservations",
+        "featuredIn": "Featured in",
         "review": "review",
         "reviews": "reviews",
         "anonymous": "Anonymous",

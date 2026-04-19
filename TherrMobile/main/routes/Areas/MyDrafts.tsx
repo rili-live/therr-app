@@ -7,7 +7,7 @@ import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
