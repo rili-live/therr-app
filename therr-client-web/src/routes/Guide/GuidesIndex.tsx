@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import {
     Anchor, Badge, Container, Group, Paper, Stack, Text, Title,
 } from '@mantine/core';
+import { Categories, Cities } from 'therr-js-utilities/constants';
 import {
     getPublishedGuides, getGuidesByCity, getGuidesByCategory, IPost,
 } from '../../utilities/guideContent';
@@ -21,6 +22,20 @@ function localePrefix(locale: string): string {
     return '';
 }
 
+function cityLabelFromSlug(slug: string): string {
+    return Cities.CitySlugMap[slug]?.name || slug;
+}
+
+function categoryLabelFromKey(key: string): string {
+    const label = key.replace('categories.', '').replace('/', ' & ');
+    return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function categoryLabelFromSlug(slug: string): string {
+    const key = Categories.SlugToCategoryMap[slug];
+    return key ? categoryLabelFromKey(key) : slug;
+}
+
 const GuideTeaser: React.FC<{ post: IPost; locale: string }> = ({ post, locale }) => {
     const prefix = localePrefix(locale);
     return (
@@ -34,8 +49,8 @@ const GuideTeaser: React.FC<{ post: IPost; locale: string }> = ({ post, locale }
                 </Group>
                 <Text size="sm" c="dimmed">{post.description}</Text>
                 <Group gap="xs">
-                    {post.city && <Badge variant="outline" size="xs">{post.city}</Badge>}
-                    {post.category && <Badge variant="outline" size="xs">{post.category}</Badge>}
+                    {post.city && <Badge variant="outline" size="xs">{cityLabelFromSlug(post.city)}</Badge>}
+                    {post.category && <Badge variant="outline" size="xs">{categoryLabelFromKey(post.category)}</Badge>}
                     <Text size="xs" c="dimmed">{post.publishedAt}</Text>
                 </Group>
             </Stack>
@@ -51,12 +66,14 @@ const GuidesIndex: React.FC<IProps> = ({ locale, filterMode }) => {
 
     if (filterMode === 'city' && params.citySlug) {
         posts = getGuidesByCity(params.citySlug);
-        pageTitle = `Guides for ${params.citySlug}`;
-        pageDescription = `Local business guides and data posts for ${params.citySlug}.`;
+        const cityLabel = cityLabelFromSlug(params.citySlug);
+        pageTitle = `Guides for ${cityLabel}`;
+        pageDescription = `Local business guides and data posts for ${cityLabel}.`;
     } else if (filterMode === 'category' && params.categorySlug) {
         posts = getGuidesByCategory(params.categorySlug);
-        pageTitle = `Guides — ${params.categorySlug}`;
-        pageDescription = `Local guides and data posts in the ${params.categorySlug} category.`;
+        const categoryLabel = categoryLabelFromSlug(params.categorySlug);
+        pageTitle = `Guides — ${categoryLabel}`;
+        pageDescription = `Local guides and data posts in the ${categoryLabel.toLowerCase()} category.`;
     } else {
         posts = getPublishedGuides();
     }

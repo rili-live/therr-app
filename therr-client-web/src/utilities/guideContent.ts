@@ -10,6 +10,7 @@
  * the two in sync. We duplicate rather than cross-import to keep each
  * tsconfig hermetic (scripts/ has its own rootDir).
  */
+import { Categories } from 'therr-js-utilities/constants';
 
 export type PostType = 'list' | 'data' | 'mixed';
 export type PostStatus = 'draft' | 'published';
@@ -104,7 +105,16 @@ export function getGuidesByCity(citySlug: string): IPost[] {
 }
 
 export function getGuidesByCategory(categorySlug: string): IPost[] {
-    return getPublishedGuides().filter((p) => p.category === categorySlug);
+    // URL uses short slugs ("bars"), posts store full category keys
+    // ("categories.bar/drinks") — translate before filtering.
+    const categoryKey = Categories.SlugToCategoryMap[categorySlug] || categorySlug;
+    return getPublishedGuides().filter((p) => p.category === categoryKey);
+}
+
+/** URL slug for a post's category, suitable for /guides/category/<slug>. */
+export function getCategoryUrlSlug(categoryKey?: string): string | undefined {
+    if (!categoryKey) return undefined;
+    return Categories.CategorySlugMap[categoryKey];
 }
 
 export function getGuidesBySpaceId(spaceId: string): IPost[] {

@@ -246,7 +246,8 @@ Adds up to N new spaces to the last `space-list` section (drawing from the post'
 - Activity stats (data posts): `scripts/generate-content/query-activity-stats.ts`
 - Save/validate post: `scripts/generate-content/save-post.ts`
 - Refresh existing post: `scripts/generate-content/refresh-post.ts`
-- Discovery helpers: `scripts/generate-content/discover-categories.ts`, `discover-impressions.ts`, `discover-metrics.ts`
+- Discovery helpers: `scripts/generate-content/discover-categories.ts`
+- Diagnostics (ad-hoc): `scripts/generate-content/diagnostics/discover-impressions.ts`, `diagnostics/discover-metrics.ts`
 - Frontend renderer: `therr-client-web/src/routes/Guide/index.tsx`
 - JSON-LD builder: `therr-client-web/src/utilities/guideJsonLd.ts`
 - Sitemap entry: `/sitemap-guides.xml` (regenerated hourly)

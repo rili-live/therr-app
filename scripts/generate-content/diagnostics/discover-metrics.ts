@@ -2,11 +2,11 @@
 /** Inspect what metric names exist in main.spaceMetrics and how recent they are. */
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { createDbPool } from '../import-spaces/utils/db';
+import { createDbPool } from '../../import-spaces/utils/db';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
-dotenv.config({ path: path.resolve(__dirname, '../import-spaces/.env') });
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../import-spaces/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 async function main() {
     const db = createDbPool({ max: 2 });

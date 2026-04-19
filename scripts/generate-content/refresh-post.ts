@@ -178,9 +178,10 @@ async function fetchFreshCandidates(db: Pool, post: IPost, excludeIds: Set<strin
     const result = await db.query(sql, [windowDays.toString(), post.category, `%${cityConfig.name}%`, fetchPool]);
     const fresh: IFreshCandidate[] = [];
     for (const row of result.rows) {
-        if (excludeIds.has(row.id)) continue;
-        fresh.push({ id: row.id, name: row.name, completenessScore: Number(row.completeness_score) || 0 });
-        if (fresh.length >= n) break;
+        if (!excludeIds.has(row.id)) {
+            fresh.push({ id: row.id, name: row.name, completenessScore: Number(row.completeness_score) || 0 });
+            if (fresh.length >= n) break;
+        }
     }
     return fresh;
 }
@@ -229,34 +230,36 @@ async function main() {
         process.exit(1);
     }
 
-    let drift: IDriftEntry[] = [];
+    const drift: IDriftEntry[] = [];
     let additions: IFreshCandidate[] = [];
 
     try {
         const lookup = await lookupSpaces(db, allIds);
+        const classifyItem = (item: ISpaceListItem): IDriftEntry => {
+            const live = lookup.get(item.spaceId);
+            if (!live) return { spaceId: item.spaceId, rank: item.rank, status: 'missing' };
+            if (!live.isPublic) {
+                return {
+                    spaceId: item.spaceId, rank: item.rank, status: 'private', name: live.name,
+                };
+            }
+            if (post.city && live.addressLocality && CITIES[post.city]
+                && !live.addressLocality.toLowerCase().includes(CITIES[post.city].name.toLowerCase())) {
+                return {
+                    spaceId: item.spaceId,
+                    rank: item.rank,
+                    status: 'moved',
+                    name: live.name,
+                    note: `addressLocality is now "${live.addressLocality}" (post city is ${CITIES[post.city].name})`,
+                };
+            }
+            return {
+                spaceId: item.spaceId, rank: item.rank, status: 'ok', name: live.name,
+            };
+        };
         for (const { items } of sectionsWithItems) {
             for (const item of items) {
-                const live = lookup.get(item.spaceId);
-                if (!live) {
-                    drift.push({ spaceId: item.spaceId, rank: item.rank, status: 'missing' });
-                    continue;
-                }
-                if (!live.isPublic) {
-                    drift.push({ spaceId: item.spaceId, rank: item.rank, status: 'private', name: live.name });
-                    continue;
-                }
-                if (post.city && live.addressLocality && CITIES[post.city]
-                    && !live.addressLocality.toLowerCase().includes(CITIES[post.city].name.toLowerCase())) {
-                    drift.push({
-                        spaceId: item.spaceId,
-                        rank: item.rank,
-                        status: 'moved',
-                        name: live.name,
-                        note: `addressLocality is now "${live.addressLocality}" (post city is ${CITIES[post.city].name})`,
-                    });
-                    continue;
-                }
-                drift.push({ spaceId: item.spaceId, rank: item.rank, status: 'ok', name: live.name });
+                drift.push(classifyItem(item));
             }
         }
 
@@ -273,11 +276,12 @@ async function main() {
 
     let applied = false;
     if (args.apply) {
-        const updatedSections = post.sections.map((section) => {
+        const lastSpaceListIdx = sectionsWithItems[sectionsWithItems.length - 1]?.sectionIndex;
+        const updatedSections = post.sections.map((section, idx) => {
             if (section.type !== 'space-list') return section;
             const kept = section.items.filter((item) => !removable.has(item.spaceId));
-            const reranked: ISpaceListItem[] = kept.map((item, idx) => ({ ...item, rank: idx + 1 }));
-            if (additions.length > 0 && section === post.sections[sectionsWithItems[sectionsWithItems.length - 1]?.sectionIndex]) {
+            const reranked: ISpaceListItem[] = kept.map((item, i) => ({ ...item, rank: i + 1 }));
+            if (additions.length > 0 && idx === lastSpaceListIdx) {
                 additions.forEach((a) => {
                     reranked.push({
                         spaceId: a.id,

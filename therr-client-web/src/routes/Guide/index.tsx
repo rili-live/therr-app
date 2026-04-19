@@ -73,12 +73,7 @@ const Guide: React.FC<IGuideProps> = ({ locale }) => {
     const slug = params.slug || '';
     const post: IPost | null = slug ? getGuide(slug) : null;
 
-    if (!post) return <PageNotFound />;
-    if (post.status !== 'published' && typeof window !== 'undefined') {
-        // Drafts are not publicly viewable. Hide on server too (returns 200 + Not Found UI;
-        // server-client.tsx will set status code based on fetchData's 'notFound' signal in Phase 3 wiring).
-        return <PageNotFound />;
-    }
+    if (!post || post.status !== 'published') return <PageNotFound />;
 
     const resolved = resolveGuideForLocale(post, locale);
     const prefix = localePrefix(locale);

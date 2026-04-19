@@ -27,7 +27,9 @@ import socketIOMiddleWare from './socket-io-middleware';
 import getUserImageUri from './utilities/getUserImageUri';
 import * as globalConfig from '../../global-config';
 import getUserContentUri from './utilities/getUserContentUri';
-import { getGuide, getPublishedGuides, resolveGuideForLocale } from './utilities/guideContent';
+import {
+    getGuide, getPublishedGuides, resolveGuideForLocale, getCategoryUrlSlug,
+} from './utilities/guideContent';
 import { buildGuideSchemas } from './utilities/guideJsonLd';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
@@ -452,7 +454,10 @@ app.get('/sitemap-guides.xml', (req, res) => {
     const urls: string[] = [];
     urls.push(buildUrlSet('/guides', today, '0.85'));
     cities.forEach((c) => urls.push(buildUrlSet(`/guides/city/${c}`, today, '0.75')));
-    categories.forEach((c) => urls.push(buildUrlSet(`/guides/category/${c}`, today, '0.75')));
+    categories.forEach((c) => {
+        const slug = getCategoryUrlSlug(c);
+        if (slug) urls.push(buildUrlSet(`/guides/category/${slug}`, today, '0.75'));
+    });
     posts.forEach((p) => {
         const lastmod = (p.updatedAt || p.publishedAt || today).slice(0, 10);
         urls.push(buildUrlSet(`/guides/${p.slug}`, lastmod, '0.80'));
@@ -1551,6 +1556,7 @@ const renderLocationsView = (req, res, config, {
     // surface against local directory pages, built entirely from the structured data we already have.
     const landingFaqEntries: { question: string; answer: string }[] = [];
     const resultCount = spaces.length;
+    /* eslint-disable max-len */
     if (cityDisplayName && categoryLabel) {
         landingFaqEntries.push({
             question: `What are the best ${categoryLabel.toLowerCase()} in ${cityDisplayName}?`,
@@ -1608,6 +1614,7 @@ const renderLocationsView = (req, res, config, {
     } else if (categoryLabel) {
         introParagraph = `Discover ${categoryLabel.toLowerCase()} near you on Therr. Each listing below is sourced from community members who have visited and reviewed the venue, with hours, photos, and map directions.`;
     }
+    /* eslint-enable max-len */
 
     let spatialCoverage: Record<string, any> | undefined;
     if (cityEntry) {

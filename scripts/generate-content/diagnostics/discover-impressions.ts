@@ -2,10 +2,10 @@
 /** Find (city, category) buckets with enough impression volume to power a post. */
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { createDbPool } from '../import-spaces/utils/db';
+import { createDbPool } from '../../import-spaces/utils/db';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
-dotenv.config({ path: path.resolve(__dirname, '../import-spaces/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../import-spaces/.env') });
 
 async function main() {
     const db = createDbPool({ max: 2 });
@@ -77,4 +77,4 @@ async function main() {
     console.log(JSON.stringify({ byCity: byCity.rows, byCityCategory: byCityCat.rows }, null, 2));
     await db.end();
 }
-main().catch((e) => { process.stderr.write(e.message + '\n'); process.exit(1); });
+main().catch((e) => { process.stderr.write(`${e.message}\n`); process.exit(1); });
