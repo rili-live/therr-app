@@ -527,6 +527,9 @@
       "collapseMap": "Réduire la carte",
       "signInPrompt": "pour voir vos espaces privés et gérer vos annonces.",
       "website": "site web",
+      "introCityCategory": "Vous cherchez {category} à {city}? Le répertoire local de Therr met en avant les {category} à {city} que des membres de la communauté ont réellement visités, évalués et photographiés. Chaque fiche ci-dessous comprend les heures, une carte et des avis.",
+      "introCity": "Explorez les entreprises locales à {city}. Le répertoire de {city} de Therr s'appuie sur des check-ins communautaires vérifiés pour vous montrer les endroits que les locaux fréquentent vraiment — restaurants, bars, boutiques, hôtels, salles de sport, parcs, et plus, avec heures, photos et avis.",
+      "introCategory": "Découvrez {category} près de chez vous sur Therr. Chaque fiche provient de membres de la communauté qui ont visité et évalué le lieu, avec heures, photos et itinéraire sur la carte.",
       "nearLocation": "Affichage des espaces près de {location}",
       "searchPlaceholderLocation": "Rechercher par lieu (ex. Michigan, New York)...",
       "nearMe": "Près de moi",
@@ -547,7 +550,43 @@
       "or": "ou",
       "info": "Therr vous connecte avec les gens, les lieux et les entreprises de votre quartier. Publiez des messages géolocalisés, découvrez des trésors cachés à proximité et gagnez des récompenses simplement en explorant votre communauté.",
       "info2": "Influenceur local ou créateur de contenu? Associez-vous avec des entreprises locales, développez votre audience et décrochez des collaborations payantes — le tout via l'application.",
-      "info3": "Téléchargez l'application gratuite pour profiter de l'expérience complète."
+      "info3": "Téléchargez l'application gratuite pour profiter de l'expérience complète.",
+      "seo": {
+        "discoverHeading": "Explorez un répertoire d'entreprises locales pensé pour de vrais quartiers",
+        "discoverBody": "Therr est une plateforme communautaire et un répertoire d'entreprises axés sur le local. Parcourez des restaurants, bars, boutiques, hôtels, parcs, salles de sport et salles d'événements partout aux États-Unis. Chaque fiche comprend les heures d'ouverture, des photos, des avis de personnes qui ont réellement visité l'endroit, et l'option de sauvegarder ou partager.",
+        "popularCitiesHeading": "Villes populaires",
+        "viewAllCities": "Voir toutes les villes",
+        "popularCategoriesHeading": "Parcourir par catégorie",
+        "viewAllCategories": "Voir toutes les catégories",
+        "forBusinessesHeading": "Pour les entreprises locales",
+        "forBusinessesBody": "Vous êtes propriétaire d'une entreprise locale? Réclamez votre fiche sur Therr pour mettre à jour vos heures, photos et menu — et rejoignez les clients à proximité qui gagnent des récompenses TherrCoin pour leurs visites."
+      }
+    },
+    "citiesHub": {
+      "pageTitle": "Parcourir les entreprises locales par ville",
+      "heading": "Parcourir les entreprises locales par ville",
+      "intro": "Trouvez des restaurants, bars, boutiques, hôtels et événements dans les grandes villes des États-Unis. Chaque page de ville comprend une carte avec recherche et les lieux les plus fréquentés, avec des avis et des photos de vrais utilisateurs de Therr.",
+      "breadcrumb": {
+        "home": "Accueil",
+        "locations": "Emplacements",
+        "cities": "Villes"
+      },
+      "categoriesCtaHeading": "Vous préférez parcourir par catégorie?",
+      "categoriesCtaBody": "Vous cherchez quelque chose de précis?",
+      "categoriesCtaLink": "Parcourir par catégorie"
+    },
+    "categoriesHub": {
+      "pageTitle": "Parcourir les entreprises locales par catégorie",
+      "heading": "Parcourir les entreprises locales par catégorie",
+      "intro": "Choisissez une catégorie à explorer — restaurants, bars, boutiques, hôtels, parcs, salles de sport, musées, salles de spectacle, et plus. Chaque page de catégorie s'appuie sur de vrais avis et check-ins d'utilisateurs pour vous montrer ce qui vaut vraiment le détour près de chez vous.",
+      "breadcrumb": {
+        "home": "Accueil",
+        "locations": "Emplacements",
+        "categories": "Catégories"
+      },
+      "citiesCtaHeading": "Vous cherchez des fiches dans une ville précise?",
+      "citiesCtaBody": "Vous voulez filtrer par emplacement?",
+      "citiesCtaLink": "Parcourir par ville"
     },
     "createForum": {
       "buttons": {
@@ -819,6 +858,7 @@
         "phone": "Téléphone",
         "orderDelivery": "Commander la livraison",
         "reservations": "Réservations",
+        "featuredIn": "Présenté dans",
         "review": "avis",
         "reviews": "avis",
         "anonymous": "Anonyme",

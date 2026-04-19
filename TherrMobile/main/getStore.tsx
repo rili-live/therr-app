@@ -16,6 +16,9 @@ declare global {
 
 let preloadedState;
 
+// redux-persist still uses AsyncStorage as the storage engine. Migrating it to
+// MMKV is a follow-up PR — it requires a dedicated MMKV storage adapter and
+// rehydration of existing persisted state.
 const persistConfig = {
     ...basePersistConfig,
     storage: AsyncStorage,
@@ -39,15 +42,17 @@ const getMiddleware = (getDefaultMiddleware: any) => {
 };
 
 const getStore = async () => {
+    // Copy non-secure AsyncStorage data into MMKV (runs once per install).
+    await SecureStorage.migrateAsyncStorageToMMKV();
     // Migrate existing tokens from AsyncStorage to Keychain (runs once per install)
     await SecureStorage.migrateToSecureStorage();
 
     // Get stored user details from session storage if they are already logged in
-    const therrSession = await AsyncStorage.getItem('therrSession');
+    const therrSession = await SecureStorage.getItem('therrSession');
     const storedSocketDetails = JSON.parse(therrSession || '{}');
     const therrUser = await SecureStorage.getItem('therrUser');
     const storedUser = JSON.parse(therrUser || '{}');
-    const therrUserSettings = await AsyncStorage.getItem('therrUserSettings');
+    const therrUserSettings = await SecureStorage.getItem('therrUserSettings');
     const storedUserSettings = JSON.parse(therrUserSettings || '{}');
     storedUserSettings.locale = storedUserSettings.locale || 'en-us';
     storedUserSettings.mobileThemeName = storedUserSettings.mobileThemeName || 'light';

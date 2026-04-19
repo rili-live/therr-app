@@ -14,6 +14,10 @@
       "title": "Comparte lo que estás haciendo",
       "body": "Deja un momento en tu lugar favorito — una reseña, una foto o algo divertido. ¡Tus amigos cercanos lo descubrirán después!"
     },
+    "completeDraftReminder": {
+      "title": "Tu borrador te espera",
+      "body": "Empezaste una publicación pero nunca la compartiste — ¡termínala y deja que tu comunidad vea lo que has estado haciendo!"
+    },
     "createYourProfileReminder": {
       "title": "Termina de configurar tu perfil",
       "body": "¡Ya casi! Elige un nombre de usuario y agrega una foto para que las personas de tu zona te encuentren."

@@ -13,14 +13,18 @@ import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
 import { MapActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import LottieLoader from '../../components/LottieLoader';
+import UsersActions from '../../redux/actions/UsersActions';
+import getConfig from '../../utilities/getConfig';
+import CoinRechargePanel from './CoinRechargePanel';
 
 const staticStyles = StyleSheet.create({
     spaceRowContent: {
@@ -87,6 +91,19 @@ const staticStyles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#f0ad4e',
     },
+    coinBannerSpacer: {
+        flex: 1,
+    },
+    headerCreateButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+    },
+    headerCreateButtonText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
+    },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -96,6 +113,19 @@ const staticStyles = StyleSheet.create({
     emptyText: {
         textAlign: 'center',
         fontSize: 15,
+        marginBottom: 20,
+    },
+    emptyCreateButton: {
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 8,
+        minWidth: 200,
+        alignItems: 'center',
+    },
+    emptyCreateButtonText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '600',
     },
     loaderContainer: {
         flex: 1,
@@ -118,6 +148,7 @@ const staticStyles = StyleSheet.create({
 
 interface IManageSpacesDispatchProps {
     searchMySpaces: Function;
+    updateUser: Function;
 }
 
 interface IStoreProps extends IManageSpacesDispatchProps {
@@ -143,6 +174,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             searchMySpaces: MapActions.searchMySpaces,
+            updateUser: UsersActions.update,
         },
         dispatch
     );
@@ -227,19 +259,32 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
         const { navigation } = this.props;
 
         navigation.navigate('ViewSpace', {
-            isMySpace: true,
+            isMyContent: true,
             previousView: 'ManageSpaces',
-            spaceDetails: space,
+            space,
         });
     };
 
     goToEditSpace = (space: any) => {
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
 
         navigation.navigate('EditSpace', {
             area: space,
             imageDetails: {},
             nearbySpaces: [],
+            isBusinessAccount: user.details?.isBusinessAccount,
+            isCreatorAccount: user.details?.isCreatorAccount,
+        });
+    };
+
+    goToCreateSpace = () => {
+        const { navigation, user } = this.props;
+
+        navigation.navigate('EditSpace', {
+            imageDetails: {},
+            nearbySpaces: [],
+            isBusinessAccount: user.details?.isBusinessAccount,
+            isCreatorAccount: user.details?.isCreatorAccount,
         });
     };
 
@@ -256,7 +301,7 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
             ]}>
                 <View style={staticStyles.spaceRowContent}>
                     <Text
-                        style={[staticStyles.spaceNameText, { color: this.theme.colors?.textBlack || '#000' }]}
+                        style={[staticStyles.spaceNameText, { color: this.theme.colors?.textWhite || '#000' }]}
                         numberOfLines={1}
                     >
                         {space.notificationMsg || '—'}
@@ -325,16 +370,32 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                 <Text style={[staticStyles.emptyText, { color: this.theme.colors.textGray }]}>
                     {this.translate(messageKey)}
                 </Text>
+                {!hasFetchError && (
+                    <TouchableOpacity
+                        onPress={this.goToCreateSpace}
+                        style={[
+                            staticStyles.emptyCreateButton,
+                            { backgroundColor: this.theme.colors?.primary3 || '#007bff' },
+                        ]}
+                    >
+                        <Text style={staticStyles.emptyCreateButtonText}>
+                            {this.translate('pages.manageSpaces.buttons.createSpace')}
+                        </Text>
+                    </TouchableOpacity>
+                )}
             </View>
         );
     };
 
     render() {
         const { isLoading, isRefreshing, spacesInView } = this.state;
-        const { navigation, user } = this.props;
+        const { navigation, user, updateUser } = this.props;
 
         const parsedCoins = parseFloat(user.details?.settingsTherrCoinTotal || '0');
         const coinBalance = Number.isFinite(parsedCoins) ? parsedCoins : 0;
+        const config = getConfig();
+        const isRechargeEnabled = config.featureFlags?.[FeatureFlags.ENABLE_COIN_RECHARGE] === true
+            && !!user.details?.isBusinessAccount;
 
         return (
             <>
@@ -354,6 +415,18 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                         <Text style={staticStyles.coinBannerValue}>
                             {coinBalance.toFixed(2)} TherrCoins
                         </Text>
+                        <View style={staticStyles.coinBannerSpacer} />
+                        <TouchableOpacity
+                            onPress={this.goToCreateSpace}
+                            style={[
+                                staticStyles.headerCreateButton,
+                                { backgroundColor: this.theme.colors?.primary3 || '#007bff' },
+                            ]}
+                        >
+                            <Text style={staticStyles.headerCreateButtonText}>
+                                {this.translate('pages.manageSpaces.buttons.createShort')}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
 
                     {isLoading ? (
@@ -365,6 +438,15 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                             data={spacesInView}
                             keyExtractor={(item) => String(item.id)}
                             renderItem={this.renderSpaceRow}
+                            ListHeaderComponent={isRechargeEnabled ? (
+                                <CoinRechargePanel
+                                    theme={this.theme}
+                                    translate={this.translate}
+                                    userId={user.details.id}
+                                    userDetails={user.details}
+                                    updateUser={updateUser}
+                                />
+                            ) : null}
                             ListEmptyComponent={this.renderEmpty}
                             contentContainerStyle={spacesInView.length === 0 ? staticStyles.listEmptyContent : undefined}
                             onRefresh={this.handleRefresh}

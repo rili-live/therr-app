@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge } from 'react-native-paper';
@@ -7,17 +7,14 @@ import { TextInputProps } from 'react-native';
 import 'react-native-gesture-handler';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState as IMapReduxState } from 'therr-react/types';
-import DeviceInfo from 'react-native-device-info';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import RoundInput from './';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../../constants';
 import getConfig from '../../utilities/getConfig';
 
-
-const { width: screenWidth } = Dimensions.get('window');
 
 interface IHeaderSearchInputState {
     inputText: string;
@@ -138,9 +135,6 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
-        const containerWidth = DeviceInfo.isTablet()
-            ? screenWidth - 248
-            : screenWidth - 124;
         const mapFilters = {
             filtersAuthor: map.filtersAuthor,
             filtersCategory: map.filtersCategory,
@@ -161,7 +155,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 <RoundInput
                     errorStyle={localStyles.hidden}
                     style={textStyle}
-                    containerStyle={[theme.styles.headerSearchContainer, { width: containerWidth }]}
+                    containerStyle={theme.styles.headerSearchContainer}
                     inputStyle={
                         [
                             Platform.OS !== 'ios'

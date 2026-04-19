@@ -12,7 +12,9 @@ const viewFiles = [
     path.join(__dirname, 'src/views/users.hbs'),
     path.join(__dirname, 'src/views/events.hbs'),
     path.join(__dirname, 'src/views/groups.hbs'),
+    path.join(__dirname, 'src/views/hub.hbs'),
     path.join(__dirname, 'src/views/city-pulse.hbs'),
+    path.join(__dirname, 'src/views/guides.hbs'),
 ];
 
 // We need to keep the css/js file paths up to date because we use content hashing in the build compilation

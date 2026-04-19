@@ -105,6 +105,22 @@ export default [
         view: 'locations',
     },
     {
+        route: '/locations/cities',
+        head: {
+            title: 'Browse Local Businesses by City',
+            description: 'Find businesses, restaurants, bars, and events by city. Browse Therr\'s full list of supported cities across the United States.',
+        },
+        view: 'hub-cities',
+    },
+    {
+        route: '/locations/categories',
+        head: {
+            title: 'Browse Local Businesses by Category',
+            description: 'Find businesses by category — restaurants, bars, shops, hotels, parks, gyms, museums, and more. Browse the full list of categories on Therr.',
+        },
+        view: 'hub-categories',
+    },
+    {
         route: '/app-feedback',
         head: {
             title: 'Share Your Feedback',
@@ -263,6 +279,39 @@ export default [
             description: 'Discover local people, places, and deals on Therr. Download the mobile app for check-in rewards and real-time discovery.',
         },
         view: 'index',
+    },
+    {
+        route: '/guides',
+        head: {
+            title: 'Local Guides',
+            description: 'Editorial guides and data-driven posts about local businesses, neighborhoods, and what people actually do in your city.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/guides/city/:citySlug',
+        head: {
+            title: 'City Guides',
+            description: 'Local business guides and data posts curated by city.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/guides/category/:categorySlug',
+        head: {
+            title: 'Category Guides',
+            description: 'Local business guides organized by category — bars, restaurants, music venues, and more.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/guides/:slug',
+        head: {
+            // Per-post title/description are injected by server-client.tsx from the post JSON.
+            title: 'Therr Guide',
+            description: 'A local guide on Therr.',
+        },
+        view: 'guides',
     },
     {
         route: '*',

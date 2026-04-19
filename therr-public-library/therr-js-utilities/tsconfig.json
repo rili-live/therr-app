@@ -29,6 +29,7 @@
       "therr-public-library/therr-js-utilities": ["../therr-public-library/therr-js-utilities/lib"],
 		},
 		"pretty": true,
+		"skipLibCheck": true,
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false,
 		"noImplicitAny": true,

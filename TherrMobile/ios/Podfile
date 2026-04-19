@@ -5,6 +5,25 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
+# react-native-permissions v5: configure which permission handlers to compile
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "react-native-permissions/scripts/setup.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
+
+setup_permissions([
+  'Camera',
+  'Contacts',
+  'LocationAccuracy',
+  'LocationAlways',
+  'LocationWhenInUse',
+  'MediaLibrary',
+  'Microphone',
+  'Notifications',
+  'PhotoLibrary',
+])
+
 # IOS_VERSION = min_ios_version_supported
 IOS_VERSION = '15.1'
 
@@ -34,17 +53,6 @@ target 'Therr' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-
-  # Permissions
-  permissions_path = '../node_modules/react-native-permissions/ios'
-  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
-  pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
-  pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
-  pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
-  pod 'Permission-MediaLibrary', :path => "#{permissions_path}/MediaLibrary"
-  pod 'Permission-Microphone', :path => "#{permissions_path}/Microphone"
-  pod 'Permission-Notifications', :path => "#{permissions_path}/Notifications"
-  pod 'Permission-PhotoLibrary', :path => "#{permissions_path}/PhotoLibrary"
 
   # Third-party pods (BVLinearGradient and react-native-blob-util are autolinked)
   # Firebase pods with modular headers for Swift compatibility
@@ -96,27 +104,12 @@ target 'Therr' do
       File.write(folly_new_h, content)
     end
 
-    # Fix react-native-permissions __has_include with use_frameworks! :linkage => :static
-    # Permission handler headers are in separate framework modules, so RNPermissions
-    # can't find them via __has_include without explicit header search paths.
-    permissions_path = File.join(Pod::Config.instance.installation_root, '..', 'node_modules', 'react-native-permissions', 'ios')
-    permission_pods = %w[Camera LocationAccuracy LocationAlways LocationWhenInUse MediaLibrary Microphone Notifications PhotoLibrary]
-
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = IOS_VERSION
        config.build_settings["ONLY_ACTIVE_ARCH"] = "NO"
        config.build_settings['ENABLE_BITCODE'] = 'NO'
       #  config.build_settings["ONLY_ACTIVE_ARCH"] = "YES"
-      end
-
-      if target.name == 'RNPermissions'
-        target.build_configurations.each do |config|
-          permission_pods.each do |handler|
-            config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited)'
-            config.build_settings['HEADER_SEARCH_PATHS'] += " \"#{permissions_path}/#{handler}\""
-          end
-        end
       end
     end
   end

@@ -5,10 +5,9 @@ import { bindActionCreators } from 'redux';
 import { Button } from '../../components/BaseButton';
 import EditFormFooter from '../../components/EditFormFooter';
 import { Image } from '../../components/BaseImage';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
@@ -21,9 +20,8 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import LottieView from 'lottie-react-native';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../../components/Input/DropDown';
-// import Alert from '../components/Alert';
 import { FeatureFlags } from 'therr-js-utilities/constants';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import getConfig from '../../utilities/getConfig';
 import { isDarkTheme } from '../../styles/themes';
 import { buildStyles, addMargins } from '../../styles';
@@ -355,9 +353,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
         // before preventDefault is called in the beforeRemove listener
         navigation.setOptions({
-            // animation: 'none', // navigation v6
-            animationEnabled: false,
-            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+            animation: 'none',
         });
     };
 

@@ -5,7 +5,7 @@ import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
 export const bottomSafeAreaInset = initialWindowMetrics?.insets.bottom || 0;
-const buttonMenuContentHeight = Platform.OS === 'ios' ? 80 : 60;
+const buttonMenuContentHeight = Platform.OS === 'ios' ? 64 : 56;
 export const buttonMenuHeight = buttonMenuContentHeight + bottomSafeAreaInset;
 export const buttonMenuHeightCompact = 48 + bottomSafeAreaInset;
 
@@ -28,6 +28,7 @@ const getButtonContainerStyle: any = () => ( {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 4,
     margin: 0,
     height: '100%',
     borderRadius: 0,
@@ -36,8 +37,9 @@ const getButtonContainerStyle: any = () => ( {
 const getButtonsTitleStyle = (theme: ITherrTheme) => ({
     backgroundColor: 'transparent',
     fontSize: 10,
-    marginTop: 5,
-    paddingBottom: Platform.OS === 'ios' ? 10 : 0,
+    lineHeight: 12,
+    marginTop: 3,
+    paddingBottom: 0,
     fontFamily: therrFontFamily,
     ...getIconStyle(theme),
 });

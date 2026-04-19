@@ -38,6 +38,7 @@ describe('firebaseAdmin', () => {
                 const expectedTypes = [
                     PushNotifications.Types.createYourProfileReminder,
                     PushNotifications.Types.createAMomentReminder,
+                    PushNotifications.Types.completeDraftReminder,
                     PushNotifications.Types.latestPostLikesStats,
                     PushNotifications.Types.latestPostViewcountStats,
                     PushNotifications.Types.unreadNotificationsReminder,
@@ -141,6 +142,7 @@ describe('PushNotifications Constants', () => {
         it('should have automation notification types', () => {
             expect(PushNotifications.Types.createYourProfileReminder).to.equal('create-your-profile-reminder');
             expect(PushNotifications.Types.createAMomentReminder).to.equal('create-a-moment-reminder');
+            expect(PushNotifications.Types.completeDraftReminder).to.equal('complete-draft-reminder');
             expect(PushNotifications.Types.latestPostLikesStats).to.equal('latest-post-likes-stats');
             expect(PushNotifications.Types.latestPostViewcountStats).to.equal('latest-post-viewcount-stats');
             expect(PushNotifications.Types.unreadNotificationsReminder).to.equal('unread-notifications-reminder');

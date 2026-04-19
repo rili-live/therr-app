@@ -14,6 +14,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { Pool } from 'pg';
 import { CITIES } from './config';
+import { createDbPool } from './utils/db';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -52,19 +53,6 @@ function parseArgs(): ICliArgs {
     mode: mode as 'email' | 'website' | 'both',
     limit: parsed.limit ? parseInt(parsed.limit, 10) : 10,
   };
-}
-
-function createDbPool(): Pool {
-  return new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.MAPS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_WRITE) || 5432,
-    max: 3,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 10000,
-  });
 }
 
 async function querySpaces(db: Pool, args: ICliArgs) {
@@ -115,7 +103,7 @@ async function main() {
   const args = parseArgs();
   log(`Querying spaces: mode=${args.mode}, city=${args.city}, category=${args.category}, limit=${args.limit}`);
 
-  const db = createDbPool();
+  const db = createDbPool({ max: 3 });
 
   try {
     await db.query('SELECT 1');

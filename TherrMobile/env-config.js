@@ -35,6 +35,9 @@ const featureFlags = {
 
     // Search Providers
     ENABLE_MAPBOX_SEARCH: false,
+
+    // Monetization
+    ENABLE_COIN_RECHARGE: false,
 };
 
 // TODO: Find a way to import this from global config
