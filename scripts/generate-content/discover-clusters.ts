@@ -30,7 +30,6 @@ import { CITIES } from '../import-spaces/config';
 import { createDbPool } from '../import-spaces/utils/db';
 import {
     clusterByRadius,
-    diameterMeters,
     walkingMinutes,
     IGeoSpace,
 } from './utils/geo';
@@ -199,15 +198,9 @@ async function main() {
                     (acc, s) => acc + (Number(s.row.completeness_score) || 0),
                     0,
                 );
-                // Quick "chordal" estimate of a reasonable walking distance: mean pairwise
-                // distance across members. `diameterMeters` already gives the worst hop;
-                // the mean helps show whether the cluster is "tight" vs "elongated".
-                const memberCoords = c.spaces.map((s) => ({ lat: s.lat, lng: s.lng }));
-                const diameter2 = diameterMeters(memberCoords);
                 return {
                     cluster: c,
                     diameter,
-                    diameterCheck: diameter2,
                     sumCompleteness,
                     density: densityScore(sumCompleteness, diameter),
                     memberCount: c.spaces.length,
