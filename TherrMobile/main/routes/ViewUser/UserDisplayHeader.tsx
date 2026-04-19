@@ -41,6 +41,12 @@ const actionMenuOptions: IActionItem[] = [
         title: 'user.profile.actions.shareALink',
     },
     {
+        id: '8',
+        name: 'my-qr-codes',
+        icon: 'qr-code-2',
+        title: 'user.profile.actions.myQRCodes',
+    },
+    {
         id: '3',
         name: 'sync-socials',
         icon: 'sync',
@@ -88,6 +94,7 @@ const getActionableOptions = (isMe: boolean, userInView: any) => {
         filteredOptions = filteredOptions
             .filter(option => ![
                 'sync-socials',
+                'my-qr-codes',
             ].includes(option.name));
     }
 
@@ -193,6 +200,9 @@ const UserDisplayHeader = ({
         switch (action.name) {
             case 'sync-socials':
                 navigation.navigate('SocialSync', userInView);
+                break;
+            case 'my-qr-codes':
+                navigation.navigate('MyQRCodes');
                 break;
             case 'remove-connection-request':
                 onConnectionRequest(action, userInView);
@@ -333,12 +343,12 @@ const UserDisplayHeader = ({
                             containerStyle={[spacingStyles.marginLtLg, spacingStyles.flexOne]}
                             buttonStyle={themeForms.styles.buttonPrimarySmall}
                             titleStyle={[themeForms.styles.buttonTitleSmall, spacingStyles.padRtSm]}
-                            title={translate('user.profile.buttons.syncSocials')}
-                            onPress={() => navigation.navigate('SocialSync', userInView)}
+                            title={translate('user.profile.buttons.editProfile')}
+                            onPress={() => navigation.navigate('Settings')}
                             icon={
                                 <TherrIcon
-                                    name="refresh"
-                                    size={23}
+                                    name="edit"
+                                    size={21}
                                     style={themeForms.styles.buttonIconSmall}
                                 />
                             }
@@ -347,12 +357,12 @@ const UserDisplayHeader = ({
                             containerStyle={[spacingStyles.marginHorizLg, spacingStyles.flexOne]}
                             buttonStyle={themeForms.styles.buttonPrimarySmall}
                             titleStyle={[themeForms.styles.buttonTitleSmall, spacingStyles.padRtSm]}
-                            title={translate('user.profile.buttons.editProfile')}
-                            onPress={() => navigation.navigate('Settings')}
+                            title={translate('user.profile.buttons.myQRCode')}
+                            onPress={() => navigation.navigate('MyQRCodes')}
                             icon={
-                                <TherrIcon
-                                    name="edit"
-                                    size={21}
+                                <MaterialIcon
+                                    name="qr-code-2"
+                                    size={22}
                                     style={themeForms.styles.buttonIconSmall}
                                 />
                             }

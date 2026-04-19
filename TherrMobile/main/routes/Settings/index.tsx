@@ -130,6 +130,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         navigation.push('ManagePreferences');
     };
 
+    goToMyQRCodes = () => {
+        const { navigation } = this.props;
+
+        navigation.push('MyQRCodes');
+    };
+
     isFormDisabled() {
         const { inputs, isSubmitting } = this.state;
 
@@ -494,6 +500,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     <Text
                                         style={this.themeForms.styles.buttonLink}
                                         onPress={this.goToManageNotifications}>{this.translate('forms.settings.buttons.manageNotifications')}</Text>
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToMyQRCodes}>{this.translate('forms.settings.buttons.myQRCodes')}</Text>
                                 </Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
