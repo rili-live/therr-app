@@ -22,6 +22,7 @@ export enum Types {
     // Automation
     createYourProfileReminder = 'create-your-profile-reminder',
     createAMomentReminder = 'create-a-moment-reminder',
+    completeDraftReminder = 'complete-draft-reminder',
     latestPostLikesStats = 'latest-post-likes-stats',
     latestPostViewcountStats = 'latest-post-viewcount-stats',
     unreadNotificationsReminder = 'unread-notifications-reminder',
@@ -79,6 +80,7 @@ export enum PressActionIds {
 export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'CREATE_YOUR_PROFILE_REMINDER'
 | 'CREATE_A_MOMENT_REMINDER'
+| 'COMPLETE_DRAFT_REMINDER'
 | 'LATEST_POST_LIKES_STATS'
 | 'LATEST_POST_VIEWCOUNT_STATS'
 | 'NEW_AREAS_ACTIVATED'
@@ -110,6 +112,7 @@ enum TeemAndroidIntentActions {
     ACHIEVEMENT_COMPLETED = 'com.therr.mobile.ACHIEVEMENT_COMPLETED',
     CREATE_YOUR_PROFILE_REMINDER = 'com.therr.mobile.CREATE_YOUR_PROFILE_REMINDER',
     CREATE_A_MOMENT_REMINDER = 'com.therr.mobile.CREATE_A_MOMENT_REMINDER',
+    COMPLETE_DRAFT_REMINDER = 'com.therr.mobile.COMPLETE_DRAFT_REMINDER',
     LATEST_POST_LIKES_STATS = 'com.therr.mobile.LATEST_POST_LIKES_STATS',
     LATEST_POST_VIEWCOUNT_STATS = 'com.therr.mobile.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'com.therr.mobile.NEW_AREAS_ACTIVATED',
@@ -134,6 +137,7 @@ enum TherrAndroidIntentActions {
     ACHIEVEMENT_COMPLETED = 'app.therrmobile.ACHIEVEMENT_COMPLETED',
     CREATE_YOUR_PROFILE_REMINDER = 'app.therrmobile.CREATE_YOUR_PROFILE_REMINDER',
     CREATE_A_MOMENT_REMINDER = 'app.therrmobile.CREATE_A_MOMENT_REMINDER',
+    COMPLETE_DRAFT_REMINDER = 'app.therrmobile.COMPLETE_DRAFT_REMINDER',
     LATEST_POST_LIKES_STATS = 'app.therrmobile.LATEST_POST_LIKES_STATS',
     LATEST_POST_VIEWCOUNT_STATS = 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'app.therrmobile.NEW_AREAS_ACTIVATED',
@@ -158,6 +162,7 @@ enum HabitsAndroidIntentActions {
     ACHIEVEMENT_COMPLETED = 'com.therr.mobile.habits.ACHIEVEMENT_COMPLETED',
     CREATE_YOUR_PROFILE_REMINDER = 'com.therr.mobile.habits.CREATE_YOUR_PROFILE_REMINDER',
     CREATE_A_MOMENT_REMINDER = 'com.therr.mobile.habits.CREATE_A_MOMENT_REMINDER',
+    COMPLETE_DRAFT_REMINDER = 'com.therr.mobile.habits.COMPLETE_DRAFT_REMINDER',
     LATEST_POST_LIKES_STATS = 'com.therr.mobile.habits.LATEST_POST_LIKES_STATS',
     LATEST_POST_VIEWCOUNT_STATS = 'com.therr.mobile.habits.LATEST_POST_VIEWCOUNT_STATS',
     NEW_AREAS_ACTIVATED = 'com.therr.mobile.habits.NEW_AREAS_ACTIVATED',
