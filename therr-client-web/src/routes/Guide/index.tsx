@@ -14,6 +14,7 @@ import DataCalloutSection from './sections/DataCalloutSection';
 import DataTableSection from './sections/DataTableSection';
 import FAQSection from './sections/FAQSection';
 import CTASection from './sections/CTASection';
+import WalkableRoute from './sections/WalkableRoute';
 import PageNotFound from '../PageNotFound';
 
 interface IGuideProps {
@@ -56,6 +57,19 @@ function renderSection(
             return <FAQSection key={idx} items={section.items} />;
         case 'cta':
             return <CTASection key={idx} heading={section.heading} body={section.body} href={section.href} ctaText={section.ctaText} />;
+        case 'walkable-route':
+            return (
+                <WalkableRoute
+                    key={idx}
+                    centroid={section.centroid}
+                    totalMeters={section.totalMeters}
+                    estimatedMinutes={section.estimatedMinutes}
+                    stops={section.stops}
+                    localePrefix={localePrefix(ctx.locale)}
+                    buildSpaceHref={(id, slug) => buildSpaceHref(ctx.locale, id, slug)}
+                    spaceMeta={ctx.spaceMeta}
+                />
+            );
         default:
             return null;
     }

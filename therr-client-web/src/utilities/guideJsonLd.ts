@@ -15,6 +15,7 @@ export interface IGuideSchemas {
     breadcrumbSchema: string;
     itemListSchema: string;
     faqSchema: string;
+    touristTripSchema: string;
 }
 
 const escapeForJsonLd = (input: any): string => JSON.stringify(input);
@@ -132,6 +133,51 @@ const buildItemList = ({ resolved, spaceMeta }: IBuildArgs) => {
     };
 };
 
+const buildTouristTrip = ({ resolved, spaceMeta }: IBuildArgs) => {
+    const routeSection = resolved.sections.find(
+        (s): s is Extract<IPostSection, { type: 'walkable-route' }> => s.type === 'walkable-route',
+    );
+    if (!routeSection || !routeSection.stops?.length) return null;
+    const ordered = [...routeSection.stops].sort((a, b) => a.order - b.order);
+    // Schema.org TouristTrip expects ISO 8601 duration for estimatedFlightDuration;
+    // the equivalent for touristType/itinerary is plain minutes on the item. Use
+    // `itinerary` with a list of `TouristAttraction`s and describe the route
+    // with `touristType` + a narrative `description`.
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'TouristTrip',
+        name: resolved.title,
+        description: resolved.description,
+        touristType: 'Walking tour',
+        itinerary: {
+            '@type': 'ItemList',
+            numberOfItems: ordered.length,
+            itemListElement: ordered.map((stop, index) => {
+                const meta = spaceMeta?.[stop.spaceId];
+                const name = meta?.name || stop.name || stop.spaceId;
+                const slug = meta?.slug;
+                const url = slug
+                    ? `${SITE_ORIGIN}/spaces/${stop.spaceId}/${slug}`
+                    : `${SITE_ORIGIN}/spaces/${stop.spaceId}`;
+                return {
+                    '@type': 'ListItem',
+                    position: index + 1,
+                    item: {
+                        '@type': 'TouristAttraction',
+                        name,
+                        url,
+                        geo: {
+                            '@type': 'GeoCoordinates',
+                            latitude: stop.lat,
+                            longitude: stop.lng,
+                        },
+                    },
+                };
+            }),
+        },
+    };
+};
+
 const buildFaq = ({ resolved }: IBuildArgs) => {
     const faqSection = resolved.sections.find((s): s is Extract<IPostSection, { type: 'faq' }> => s.type === 'faq');
     if (!faqSection || !faqSection.items?.length) return null;
@@ -152,10 +198,12 @@ const buildFaq = ({ resolved }: IBuildArgs) => {
 export const buildGuideSchemas = (args: IBuildArgs): IGuideSchemas => {
     const itemList = buildItemList(args);
     const faq = buildFaq(args);
+    const touristTrip = buildTouristTrip(args);
     return {
         articleSchema: escapeForJsonLd(buildArticle(args)),
         breadcrumbSchema: escapeForJsonLd(buildBreadcrumb(args)),
         itemListSchema: itemList ? escapeForJsonLd(itemList) : '',
         faqSchema: faq ? escapeForJsonLd(faq) : '',
+        touristTripSchema: touristTrip ? escapeForJsonLd(touristTrip) : '',
     };
 };

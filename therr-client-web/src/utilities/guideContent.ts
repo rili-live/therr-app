@@ -46,13 +46,30 @@ export interface ISpaceListItem {
     reason?: string;
 }
 
+export interface IWalkableRouteStop {
+    spaceId: string;
+    order: number;
+    lat: number;
+    lng: number;
+    name: string;
+    walkFromPreviousMeters?: number;
+    note?: string;
+}
+
 export type IPostSection =
     | { type: 'prose'; body: string }
     | { type: 'space-list'; items: ISpaceListItem[] }
     | { type: 'data-callout'; stat: string; statLabel: string; body?: string }
     | { type: 'data-table'; caption: string; headers: string[]; rows: (string | number)[][] }
     | { type: 'faq'; items: { question: string; answer: string }[] }
-    | { type: 'cta'; heading: string; body: string; href?: string; ctaText?: string };
+    | { type: 'cta'; heading: string; body: string; href?: string; ctaText?: string }
+    | {
+        type: 'walkable-route';
+        centroid: { lat: number; lng: number };
+        totalMeters: number;
+        estimatedMinutes: number;
+        stops: IWalkableRouteStop[];
+    };
 
 export interface IPostLocaleContent {
     title: string;

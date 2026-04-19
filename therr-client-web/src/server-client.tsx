@@ -1887,6 +1887,7 @@ const renderGuideView = (req, res, config, { markup, state }, localeVars) => {
         breadcrumbSchema: schemas.breadcrumbSchema,
         itemListSchema: schemas.itemListSchema,
         faqSchema: schemas.faqSchema,
+        touristTripSchema: schemas.touristTripSchema,
         markup,
         routePath,
         state,
