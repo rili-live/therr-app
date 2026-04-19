@@ -133,22 +133,29 @@ const buildItemList = ({ resolved, spaceMeta }: IBuildArgs) => {
     };
 };
 
+const minutesToIso8601 = (minutes: number): string => {
+    if (!Number.isFinite(minutes) || minutes <= 0) return 'PT0M';
+    const whole = Math.round(minutes);
+    const hours = Math.floor(whole / 60);
+    const mins = whole % 60;
+    if (hours === 0) return `PT${mins}M`;
+    if (mins === 0) return `PT${hours}H`;
+    return `PT${hours}H${mins}M`;
+};
+
 const buildTouristTrip = ({ resolved, spaceMeta }: IBuildArgs) => {
     const routeSection = resolved.sections.find(
         (s): s is Extract<IPostSection, { type: 'walkable-route' }> => s.type === 'walkable-route',
     );
     if (!routeSection || !routeSection.stops?.length) return null;
     const ordered = [...routeSection.stops].sort((a, b) => a.order - b.order);
-    // Schema.org TouristTrip expects ISO 8601 duration for estimatedFlightDuration;
-    // the equivalent for touristType/itinerary is plain minutes on the item. Use
-    // `itinerary` with a list of `TouristAttraction`s and describe the route
-    // with `touristType` + a narrative `description`.
     return {
         '@context': 'https://schema.org',
         '@type': 'TouristTrip',
         name: resolved.title,
         description: resolved.description,
         touristType: 'Walking tour',
+        duration: minutesToIso8601(routeSection.estimatedMinutes),
         itinerary: {
             '@type': 'ItemList',
             numberOfItems: ordered.length,

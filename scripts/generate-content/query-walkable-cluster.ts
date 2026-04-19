@@ -9,10 +9,10 @@
  *      This is the typical editorial workflow: run discover-clusters, pick a
  *      cluster, feed its ids back in.
  *   2. `--center <lat,lng> --radius <meters>` — pull all spaces inside the
- *      bounding circle, re-cluster, pick the cluster covering the centerpoint
- *      (or the densest cluster if no single cluster covers it), then order.
- *      Useful when we already know a neighborhood's lat/lng but haven't
- *      pre-discovered clusters for it (e.g., editorial pitch: "Wicker Park").
+ *      bounding circle, re-cluster, pick the cluster whose centroid is
+ *      closest to the requested center, then order. Useful when we already
+ *      know a neighborhood's lat/lng but haven't pre-discovered clusters for
+ *      it (e.g., editorial pitch: "Wicker Park").
  *
  * Either mode emits the same output shape: `{ query, cluster, route }` where
  * `route.stops[]` is the ordered list with `walkFromPreviousMeters` set on
