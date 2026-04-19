@@ -10,6 +10,10 @@
 const basePersistConfig = {
     key: 'therr-root',
     version: 1,
+    // Coalesce writes so action bursts (map searches, socket events, feed
+    // refreshes) don't each trigger a full slice serialization into storage.
+    // Trade-off: up to `throttle` ms of unpersisted state on hard-kill.
+    throttle: 1000,
     whitelist: [
         'user',
         'content',
