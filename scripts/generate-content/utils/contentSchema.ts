@@ -136,17 +136,74 @@ const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const VALID_TYPES: PostType[] = ['list', 'data', 'mixed'];
 const VALID_STATUSES: PostStatus[] = ['draft', 'published'];
+const VALID_LOCALES: PostLocale[] = ['es', 'fr-ca'];
 
 export interface IValidationError {
     field: string;
     message: string;
 }
 
+export interface IValidatePostOptions {
+    /** Fail validation if any of these locales are missing from `locales`. */
+    requireLocales?: PostLocale[];
+}
+
+function validateLocaleBlock(
+    locale: PostLocale,
+    block: unknown,
+    parentSectionTypes: string[],
+): IValidationError[] {
+    const prefix = `locales.${locale}`;
+    const errors: IValidationError[] = [];
+    if (!block || typeof block !== 'object') {
+        errors.push({ field: prefix, message: 'Must be an object.' });
+        return errors;
+    }
+    const b = block as Record<string, unknown>;
+    if (typeof b.title !== 'string' || !b.title.trim()) {
+        errors.push({ field: `${prefix}.title`, message: 'Required, non-empty.' });
+    } else if (b.title.length > 70) {
+        errors.push({ field: `${prefix}.title`, message: `Should be ≤70 chars for SEO (got ${b.title.length}).` });
+    }
+    if (typeof b.description !== 'string' || !b.description.trim()) {
+        errors.push({ field: `${prefix}.description`, message: 'Required, non-empty.' });
+    } else if (b.description.length > 165) {
+        errors.push({ field: `${prefix}.description`, message: `Should be ≤165 chars for SEO (got ${b.description.length}).` });
+    }
+    if (typeof b.lead !== 'string' || !b.lead.trim()) {
+        errors.push({ field: `${prefix}.lead`, message: 'Required, non-empty (intro paragraph).' });
+    }
+    if (!Array.isArray(b.sections) || b.sections.length === 0) {
+        errors.push({ field: `${prefix}.sections`, message: 'Required, at least one section.' });
+        return errors;
+    }
+    if (b.sections.length !== parentSectionTypes.length) {
+        errors.push({
+            field: `${prefix}.sections`,
+            message: `Must mirror default-locale sections (expected ${parentSectionTypes.length}, got ${b.sections.length}).`,
+        });
+    }
+    b.sections.forEach((s, i) => {
+        if (!s || typeof s !== 'object' || typeof (s as any).type !== 'string') {
+            errors.push({ field: `${prefix}.sections[${i}]`, message: 'Section must have a type field.' });
+            return;
+        }
+        const expected = parentSectionTypes[i];
+        if (expected && (s as any).type !== expected) {
+            errors.push({
+                field: `${prefix}.sections[${i}].type`,
+                message: `Must match default-locale section type (expected "${expected}", got "${(s as any).type}").`,
+            });
+        }
+    });
+    return errors;
+}
+
 /**
  * Lightweight runtime validation. Returns an array of errors; empty array means valid.
  * Not a replacement for static types — guards against malformed input from the LLM.
  */
-export function validatePost(input: unknown): IValidationError[] {
+export function validatePost(input: unknown, options: IValidatePostOptions = {}): IValidationError[] {
     const errors: IValidationError[] = [];
     if (!input || typeof input !== 'object') {
         return [{ field: '<root>', message: 'Post must be an object.' }];
@@ -165,12 +222,12 @@ export function validatePost(input: unknown): IValidationError[] {
     if (typeof p.title !== 'string' || !p.title.trim()) {
         errors.push({ field: 'title', message: 'Required, non-empty.' });
     } else if (p.title.length > 70) {
-        errors.push({ field: 'title', message: 'Should be ≤70 chars for SEO (got ' + p.title.length + ').' });
+        errors.push({ field: 'title', message: `Should be ≤70 chars for SEO (got ${p.title.length}).` });
     }
     if (typeof p.description !== 'string' || !p.description.trim()) {
         errors.push({ field: 'description', message: 'Required, non-empty.' });
     } else if (p.description.length > 165) {
-        errors.push({ field: 'description', message: 'Should be ≤165 chars for SEO (got ' + p.description.length + ').' });
+        errors.push({ field: 'description', message: `Should be ≤165 chars for SEO (got ${p.description.length}).` });
     }
     if (typeof p.publishedAt !== 'string' || !ISO_DATE_RE.test(p.publishedAt)) {
         errors.push({ field: 'publishedAt', message: 'Required, ISO date (yyyy-mm-dd).' });
@@ -184,14 +241,51 @@ export function validatePost(input: unknown): IValidationError[] {
     if (typeof p.lead !== 'string' || !p.lead.trim()) {
         errors.push({ field: 'lead', message: 'Required, non-empty (intro paragraph).' });
     }
+    const parentSectionTypes: string[] = [];
     if (!Array.isArray(p.sections) || p.sections.length === 0) {
         errors.push({ field: 'sections', message: 'Required, at least one section.' });
     } else {
         p.sections.forEach((s, i) => {
             if (!s || typeof s !== 'object' || typeof (s as any).type !== 'string') {
                 errors.push({ field: `sections[${i}]`, message: 'Section must have a type field.' });
+                parentSectionTypes.push('');
+            } else {
+                parentSectionTypes.push((s as any).type);
             }
         });
     }
+
+    // Validate any locale blocks that are present. Unknown locale keys error.
+    if (p.locales !== undefined) {
+        if (!p.locales || typeof p.locales !== 'object' || Array.isArray(p.locales)) {
+            errors.push({ field: 'locales', message: 'Must be an object keyed by locale.' });
+        } else {
+            const localesRecord = p.locales as Record<string, unknown>;
+            Object.keys(localesRecord).forEach((key) => {
+                if (!VALID_LOCALES.includes(key as PostLocale)) {
+                    errors.push({ field: `locales.${key}`, message: `Unknown locale; must be one of: ${VALID_LOCALES.join(', ')}.` });
+                    return;
+                }
+                errors.push(...validateLocaleBlock(key as PostLocale, localesRecord[key], parentSectionTypes));
+            });
+        }
+    }
+
+    // Required locales: each must be present in the locales block.
+    if (options.requireLocales && options.requireLocales.length > 0) {
+        const localesRecord = (p.locales && typeof p.locales === 'object' && !Array.isArray(p.locales))
+            ? (p.locales as Record<string, unknown>)
+            : {};
+        options.requireLocales.forEach((required) => {
+            if (!VALID_LOCALES.includes(required)) {
+                errors.push({ field: 'requireLocales', message: `Unknown locale "${required}"; must be one of: ${VALID_LOCALES.join(', ')}.` });
+                return;
+            }
+            if (localesRecord[required] === undefined) {
+                errors.push({ field: `locales.${required}`, message: 'Required by --require-locales, but missing from locales block.' });
+            }
+        });
+    }
+
     return errors;
 }
