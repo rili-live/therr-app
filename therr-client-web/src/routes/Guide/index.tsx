@@ -129,4 +129,4 @@ const Guide: React.FC<IGuideProps> = ({ locale }) => {
     );
 };
 
-export default withTranslation()(Guide);
+export default withTranslation(Guide);

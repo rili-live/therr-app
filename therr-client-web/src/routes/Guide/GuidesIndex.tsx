@@ -80,4 +80,4 @@ const GuidesIndex: React.FC<IProps> = ({ locale, filterMode }) => {
     );
 };
 
-export default withTranslation()(GuidesIndex);
+export default withTranslation(GuidesIndex);

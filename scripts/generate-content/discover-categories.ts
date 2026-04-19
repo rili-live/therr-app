@@ -57,7 +57,7 @@ async function main() {
             LEFT JOIN (
                 SELECT "spaceId", COUNT(*) AS visits
                 FROM main."spaceMetrics"
-                WHERE name = 'SPACE_VISIT'
+                WHERE name = 'space.user.visit'
                   AND "createdAt" >= NOW() - ($1 || ' days')::interval
                 GROUP BY "spaceId"
             ) m ON m."spaceId" = s.id
