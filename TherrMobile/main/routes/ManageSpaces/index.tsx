@@ -266,12 +266,14 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
     };
 
     goToEditSpace = (space: any) => {
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
 
         navigation.navigate('EditSpace', {
             area: space,
             imageDetails: {},
             nearbySpaces: [],
+            isBusinessAccount: user.details?.isBusinessAccount,
+            isCreatorAccount: user.details?.isCreatorAccount,
         });
     };
 
