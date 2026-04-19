@@ -6,15 +6,15 @@ import {
 } from '@mantine/core';
 import { Categories, Cities } from 'therr-js-utilities/constants';
 import {
-    getPublishedGuides, getGuidesByCity, getGuidesByCategory, IPost,
+    getPublishedGuides, getGuidesByCity, getGuidesByCategory, getGuidesByHashtag, IPost,
 } from '../../utilities/guideContent';
 import withTranslation from '../../wrappers/withTranslation';
 
 interface IProps {
     locale: string;
     translate: (key: string, params?: any) => string;
-    /** When set, narrows the index by city or category (driven by the route). */
-    filterMode?: 'city' | 'category';
+    /** When set, narrows the index by city, category, or hashtag (driven by the route). */
+    filterMode?: 'city' | 'category' | 'hashtag';
 }
 
 function localePrefix(locale: string): string {
@@ -36,6 +36,15 @@ function categoryLabelFromSlug(slug: string): string {
     return key ? categoryLabelFromKey(key) : slug;
 }
 
+function hashtagLabel(tag: string): string {
+    const spaced = tag.replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+    return spaced
+        .split(' ')
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+}
+
 const GuideTeaser: React.FC<{ post: IPost; locale: string }> = ({ post, locale }) => {
     const prefix = localePrefix(locale);
     return (
@@ -51,6 +60,7 @@ const GuideTeaser: React.FC<{ post: IPost; locale: string }> = ({ post, locale }
                 <Group gap="xs">
                     {post.city && <Badge variant="outline" size="xs">{cityLabelFromSlug(post.city)}</Badge>}
                     {post.category && <Badge variant="outline" size="xs">{categoryLabelFromKey(post.category)}</Badge>}
+                    {post.hashtag && <Badge variant="outline" size="xs">{`#${post.hashtag}`}</Badge>}
                     <Text size="xs" c="dimmed">{post.publishedAt}</Text>
                 </Group>
             </Stack>
@@ -59,7 +69,7 @@ const GuideTeaser: React.FC<{ post: IPost; locale: string }> = ({ post, locale }
 };
 
 const GuidesIndex: React.FC<IProps> = ({ locale, filterMode }) => {
-    const params = useParams<{ citySlug?: string; categorySlug?: string }>();
+    const params = useParams<{ citySlug?: string; categorySlug?: string; hashtag?: string }>();
     let posts: IPost[];
     let pageTitle = 'Local Guides';
     let pageDescription = 'Editorial guides and data-driven posts about local businesses, neighborhoods, and what people actually do in your city.';
@@ -74,6 +84,11 @@ const GuidesIndex: React.FC<IProps> = ({ locale, filterMode }) => {
         const categoryLabel = categoryLabelFromSlug(params.categorySlug);
         pageTitle = `Guides — ${categoryLabel}`;
         pageDescription = `Local guides and data posts in the ${categoryLabel.toLowerCase()} category.`;
+    } else if (filterMode === 'hashtag' && params.hashtag) {
+        posts = getGuidesByHashtag(params.hashtag);
+        const tagLabel = hashtagLabel(params.hashtag);
+        pageTitle = `Guides — ${tagLabel}`;
+        pageDescription = `Local guides tagged ${tagLabel.toLowerCase()}.`;
     } else {
         posts = getPublishedGuides();
     }

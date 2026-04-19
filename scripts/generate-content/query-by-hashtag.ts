@@ -1,30 +1,25 @@
 #!/usr/bin/env node
 /**
- * Query top-ranked spaces in a city/category for editorial list posts.
+ * Query top-ranked spaces in a city + hashtag for editorial list posts.
  *
- * Two ranking modes:
- *   - `engagement` (default): rank by visits * 5 + impressions over the time window.
- *     Good when a city/category has enough activity to back a "ranked by community visits"
- *     framing.
- *   - `curated`: rank by completeness of editorial metadata (website, media, description,
- *     phone, full address). Good when engagement data is thin and we shouldn't claim a
- *     popularity-based ranking.
+ * Mirrors `query-top-spaces.ts` but anchors on `spaces.hashTags` instead of
+ * `spaces.category`. Uses the same `auto`/`engagement`/`curated` mode
+ * discipline so posts never claim popularity that isn't in the data.
  *
- * Mode selection:
- *   - Pass `--mode curated` (or `--curated`) to force curated ranking.
- *   - Pass `--mode engagement` to force engagement ranking.
- *   - Default `--mode auto` picks engagement, then *automatically falls back* to curated
- *     if total visits across the result set is below `--minVisits` (default 25). The
- *     selected mode is reported in the JSON output so the LLM can frame the post honestly.
+ * Matching strategy:
+ * `spaces.hashTags` is a comma-separated string (lowercase, no `#`). To avoid
+ * `firstdate` matching `firstdateandlast`, we unnest into individual tags in
+ * SQL and compare by exact equality after LOWER(TRIM(tag)). This is
+ * consistent with `discover-hashtags.ts`.
  *
  * Usage:
- *   npx ts-node scripts/generate-content/query-top-spaces \
- *     --city cincinnati --category bar/drinks --limit 15 --window 90
- *   npx ts-node scripts/generate-content/query-top-spaces \
- *     --city denver --category cafe --curated --limit 10
+ *   npx ts-node scripts/generate-content/query-by-hashtag \
+ *     --city chicago --hashtag firstdate --limit 10 --window 90
+ *   npx ts-node scripts/generate-content/query-by-hashtag \
+ *     --city portland --hashtag worksession --curated --limit 8
  *
- * Stdout: JSON envelope `{ query, mode, modeReason, spaces }` (no secrets).
- * Stderr: progress logs.
+ * Stdout: JSON envelope `{ query, mode, modeReason, spaces }`.
+ * Stderr: progress.
  */
 import * as dotenv from 'dotenv';
 import * as path from 'path';
@@ -44,7 +39,7 @@ type RankMode = 'auto' | 'engagement' | 'curated';
 
 interface ICliArgs {
     city: string;
-    category: string;
+    hashtag: string;
     limit: number;
     windowDays: number;
     mode: RankMode;
@@ -74,8 +69,8 @@ function parseArgs(): ICliArgs {
         log('Missing required --city <slug>. See scripts/import-spaces/config.ts for valid city slugs.');
         process.exit(1);
     }
-    if (!parsed.category) {
-        log('Missing required --category <name>. Examples: bar/drinks, restaurant/food, cafe.');
+    if (!parsed.hashtag) {
+        log('Missing required --hashtag <tag>. Examples: firstdate, latenight, worksession.');
         process.exit(1);
     }
 
@@ -87,10 +82,17 @@ function parseArgs(): ICliArgs {
         process.exit(1);
     }
 
+    // Normalize the hashtag: strip a leading '#' if the user typed one, lowercase, trim.
+    const hashtag = parsed.hashtag.replace(/^#/, '').trim().toLowerCase();
+    if (!hashtag) {
+        log('--hashtag must be non-empty after trimming.');
+        process.exit(1);
+    }
+
     return {
         city: parsed.city,
-        category: parsed.category,
-        limit: parsed.limit ? parseInt(parsed.limit, 10) : 15,
+        hashtag,
+        limit: parsed.limit ? parseInt(parsed.limit, 10) : 12,
         windowDays: parsed.window ? parseInt(parsed.window, 10) : 90,
         mode,
         minVisits: parsed.minVisits ? parseInt(parsed.minVisits, 10) : 25,
@@ -130,13 +132,12 @@ async function queryRankedSpaces(db: Pool, args: ICliArgs) {
         process.exit(1);
     }
 
-    // Base query: select all candidates with both engagement and completeness columns.
-    // The ORDER BY is decided after we inspect the engagement totals (so we can fall back
-    // gracefully) — we fetch a pool of candidates by completeness OR engagement and then
-    // sort and slice in-process. This keeps the SQL simple and lets the calling layer pick
-    // the mode label honestly.
+    // Pull a candidate pool ordered by a tie-broken completeness signal, then
+    // re-sort in pickModeAndSort based on the chosen mode.
     const candidateLimit = Math.max(args.limit * 4, 40);
 
+    // Exact-match on the normalized hashtag after splitting the comma-separated
+    // string. EXISTS + LATERAL keeps this readable and avoids substring gotchas.
     const query = `
         SELECT
             s.id,
@@ -190,15 +191,21 @@ async function queryRankedSpaces(db: Pool, args: ICliArgs) {
             GROUP BY "spaceId"
         ) i ON i."spaceId" = s.id
         WHERE s."isPublic" = true
-          AND s.category = $2
           AND s."addressLocality" ILIKE $3
+          AND s."hashTags" IS NOT NULL
+          AND s."hashTags" <> ''
+          AND EXISTS (
+              SELECT 1
+              FROM unnest(string_to_array(s."hashTags", ',')) AS tag
+              WHERE LOWER(TRIM(tag)) = $2
+          )
         ORDER BY completeness_score DESC, score DESC, s."createdAt" DESC
         LIMIT $4
     `;
 
     const params: (string | number)[] = [
         args.windowDays.toString(),
-        args.category,
+        args.hashtag,
         `%${cityConfig.name}%`,
         candidateLimit,
     ];
@@ -261,7 +268,7 @@ function pickModeAndSort(args: ICliArgs, rows: IRawSpaceRow[]): { mode: 'engagem
 
 async function main() {
     const args = parseArgs();
-    log(`Querying top spaces: city=${args.city}, category=${args.category}, limit=${args.limit}, window=${args.windowDays}d, mode=${args.mode}`);
+    log(`Querying by hashtag: city=${args.city}, hashtag=${args.hashtag}, limit=${args.limit}, window=${args.windowDays}d, mode=${args.mode}`);
 
     const db = createDbPool({ max: 3 });
     try {
@@ -274,6 +281,9 @@ async function main() {
 
     try {
         const { city, rows } = await queryRankedSpaces(db, args);
+        if (rows.length === 0) {
+            log(`No spaces found for city=${args.city} hashtag=${args.hashtag}. Try discover-hashtags to find viable tags.`);
+        }
         const { mode, reason, sorted } = pickModeAndSort(args, rows);
         const finalRows = sorted.slice(0, args.limit);
         log(`Found ${rows.length} candidates; returning ${finalRows.length} via mode=${mode}.`);
@@ -286,7 +296,7 @@ async function main() {
                 region: city.region,
                 regionCode: city.regionCode,
                 country: city.country,
-                category: args.category,
+                hashtag: args.hashtag,
                 windowDays: args.windowDays,
                 generatedAt: new Date().toISOString(),
             },

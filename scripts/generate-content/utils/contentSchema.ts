@@ -32,11 +32,15 @@ export interface IPostMetadata {
     description: string;
     /** City slug (matches CITIES key from scripts/import-spaces/config.ts). */
     city?: string;
-    /** Category slug (matches space.category). */
+    /** Category slug (matches space.category). Mutually exclusive with hashtag. */
     category?: string;
-    // TODO: add `hashtag?: string` for hashtag-anchored posts.
-    // See docs/CONTENT_HASHTAG_GUIDES_PLAN.md (Phase 3). Validator must enforce
-    // that exactly one of {category, hashtag} is set.
+    /**
+     * Hashtag anchor for intent-based guides (e.g., "firstdate", "latenight").
+     * Stored without the leading '#', lowercase, normalized to match the
+     * `spaces.hashTags` column format. Mutually exclusive with category.
+     * See docs/CONTENT_HASHTAG_GUIDES_PLAN.md.
+     */
+    hashtag?: string;
     /** ISO date string (yyyy-mm-dd). */
     publishedAt: string;
     /** ISO date string (yyyy-mm-dd). */
@@ -103,8 +107,40 @@ export interface ICTASection {
     ctaText?: string;
 }
 
+export interface IWalkableRouteStop {
+    spaceId: string;
+    /** 1-indexed position along the route. Must be dense (1..n). */
+    order: number;
+    /**
+     * Denormalized stop coordinates. Duplicating `spaces.latitude/longitude`
+     * here keeps the rendered section self-contained (no async space lookups
+     * for the map embed) and is fine because the whole guide is a frozen
+     * snapshot anyway — blurb, rank, and stop order would also all be stale
+     * if the underlying space moved.
+     */
+    lat: number;
+    lng: number;
+    /** Space name at generation time; lets the map popup render on SSR without a space lookup. */
+    name: string;
+    /** Walking distance from the previous stop, in meters. Omitted for order=1. */
+    walkFromPreviousMeters?: number;
+    /** Optional editorial one-liner for this stop ("start here — best coffee in the cluster"). */
+    note?: string;
+}
+
+export interface IWalkableRouteSection {
+    type: 'walkable-route';
+    /** Cluster centroid; drives the map-embed viewport. */
+    centroid: { lat: number; lng: number };
+    /** Sum of walking legs, in meters. */
+    totalMeters: number;
+    /** Rough walk-time estimate (walkingMinutes(totalMeters) from utils/geo). */
+    estimatedMinutes: number;
+    /** Ordered stops (order=1..n). Minimum 2 stops required. */
+    stops: IWalkableRouteStop[];
+}
+
 // TODO: planned new section types — see docs/CONTENT_GUIDES_ROADMAP.md
-//   - 'walkable-route'  → docs/CONTENT_WALKABLE_CLUSTERS_PLAN.md (Phase 4)
 //   - 'moment-quote'    → docs/CONTENT_MOMENT_DRIVEN_PLAN.md (Phase 4)
 // Adding a new section type also requires updating validatePost below and
 // mirroring the type into therr-client-web/src/utilities/guideContent.ts.
@@ -114,7 +150,8 @@ export type IPostSection =
     | IDataCalloutSection
     | IDataTableSection
     | IFAQSection
-    | ICTASection;
+    | ICTASection
+    | IWalkableRouteSection;
 
 export interface IPostLocaleContent {
     title: string;
@@ -134,6 +171,9 @@ export interface IPost extends IPostMetadata {
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+// Hashtags are stored lowercase and without whitespace or '#' — matches the
+// format produced by `buildHashTags` in scripts/import-spaces/transforms/mapToSpace.ts.
+const HASHTAG_RE = /^[a-z0-9][a-z0-9-]{0,49}$/;
 const VALID_TYPES: PostType[] = ['list', 'data', 'mixed'];
 const VALID_STATUSES: PostStatus[] = ['draft', 'published'];
 const VALID_LOCALES: PostLocale[] = ['es', 'fr-ca'];
@@ -146,6 +186,54 @@ export interface IValidationError {
 export interface IValidatePostOptions {
     /** Fail validation if any of these locales are missing from `locales`. */
     requireLocales?: PostLocale[];
+}
+
+function validateWalkableRoute(prefix: string, section: unknown): IValidationError[] {
+    const errors: IValidationError[] = [];
+    const s = section as Record<string, unknown>;
+
+    const centroid = s.centroid as Record<string, unknown> | undefined;
+    if (!centroid || typeof centroid !== 'object'
+        || !Number.isFinite(centroid.lat as number) || !Number.isFinite(centroid.lng as number)) {
+        errors.push({ field: `${prefix}.centroid`, message: 'Required: { lat, lng } with finite numbers.' });
+    }
+    if (!Number.isFinite(s.totalMeters as number) || (s.totalMeters as number) < 0) {
+        errors.push({ field: `${prefix}.totalMeters`, message: 'Required, non-negative number.' });
+    }
+    if (!Number.isFinite(s.estimatedMinutes as number) || (s.estimatedMinutes as number) < 0) {
+        errors.push({ field: `${prefix}.estimatedMinutes`, message: 'Required, non-negative number.' });
+    }
+    if (!Array.isArray(s.stops) || s.stops.length < 2) {
+        errors.push({ field: `${prefix}.stops`, message: 'Required, at least 2 stops.' });
+        return errors;
+    }
+    const seenIds = new Set<string>();
+    s.stops.forEach((stop, i) => {
+        const st = stop as Record<string, unknown>;
+        if (typeof st.spaceId !== 'string' || !st.spaceId.trim()) {
+            errors.push({ field: `${prefix}.stops[${i}].spaceId`, message: 'Required, non-empty string.' });
+        } else if (seenIds.has(st.spaceId as string)) {
+            errors.push({ field: `${prefix}.stops[${i}].spaceId`, message: `Duplicate spaceId "${st.spaceId}".` });
+        } else {
+            seenIds.add(st.spaceId as string);
+        }
+        if (st.order !== i + 1) {
+            errors.push({ field: `${prefix}.stops[${i}].order`, message: `Must equal ${i + 1} (stops must be 1-indexed and dense).` });
+        }
+        if (!Number.isFinite(st.lat as number) || !Number.isFinite(st.lng as number)) {
+            errors.push({ field: `${prefix}.stops[${i}]`, message: 'Required `lat` and `lng` (finite numbers).' });
+        }
+        if (typeof st.name !== 'string' || !st.name.trim()) {
+            errors.push({ field: `${prefix}.stops[${i}].name`, message: 'Required, non-empty string.' });
+        }
+        if (i === 0 && st.walkFromPreviousMeters !== undefined) {
+            errors.push({ field: `${prefix}.stops[${i}].walkFromPreviousMeters`, message: 'Must be omitted for the first stop.' });
+        }
+        if (i > 0 && (!Number.isFinite(st.walkFromPreviousMeters as number) || (st.walkFromPreviousMeters as number) < 0)) {
+            errors.push({ field: `${prefix}.stops[${i}].walkFromPreviousMeters`, message: 'Required for stops 2..n, non-negative number.' });
+        }
+    });
+    return errors;
 }
 
 function validateLocaleBlock(
@@ -238,6 +326,16 @@ export function validatePost(input: unknown, options: IValidatePostOptions = {})
     if (typeof p.author !== 'string' || !p.author.trim()) {
         errors.push({ field: 'author', message: 'Required, non-empty (E-E-A-T signal).' });
     }
+    const hasCategory = typeof p.category === 'string' && p.category.trim().length > 0;
+    const hasHashtag = typeof p.hashtag === 'string' && p.hashtag.trim().length > 0;
+    if (hasCategory && hasHashtag) {
+        errors.push({ field: 'category|hashtag', message: 'Exactly one of `category` or `hashtag` must be set, not both.' });
+    } else if (!hasCategory && !hasHashtag) {
+        errors.push({ field: 'category|hashtag', message: 'Exactly one of `category` or `hashtag` is required.' });
+    }
+    if (hasHashtag && !HASHTAG_RE.test(p.hashtag as string)) {
+        errors.push({ field: 'hashtag', message: 'Must be lowercase letters/digits/hyphens, no leading `#` (e.g., "firstdate", "live-music").' });
+    }
     if (typeof p.lead !== 'string' || !p.lead.trim()) {
         errors.push({ field: 'lead', message: 'Required, non-empty (intro paragraph).' });
     }
@@ -249,8 +347,12 @@ export function validatePost(input: unknown, options: IValidatePostOptions = {})
             if (!s || typeof s !== 'object' || typeof (s as any).type !== 'string') {
                 errors.push({ field: `sections[${i}]`, message: 'Section must have a type field.' });
                 parentSectionTypes.push('');
-            } else {
-                parentSectionTypes.push((s as any).type);
+                return;
+            }
+            const type = (s as any).type as string;
+            parentSectionTypes.push(type);
+            if (type === 'walkable-route') {
+                errors.push(...validateWalkableRoute(`sections[${i}]`, s));
             }
         });
     }

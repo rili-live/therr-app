@@ -18,26 +18,27 @@ Generate guides anchored on **user-applied hashtags** (e.g., `#firstdate`, `#lat
 
 ### Phase 1 — discover viable hashtags (0.5 day)
 
-- [ ] Build `scripts/generate-content/discover-hashtags.ts` — inspects the distribution of `spaces.hashTags` values, splits comma-separated tags, counts occurrences per (city, hashtag), and lists pairs meeting a minimum threshold (e.g., ≥8 spaces with the tag in one city).
-- [ ] Output should rank by the same density rules as `discover-categories` so we can pick targets quickly.
-- [ ] Look for high-intent verbs/contexts: `firstdate`, `latenight`, `worksession`, `livemusic`, `outdoorseating`, `dogfriendly`, `kidfriendly`, `groupfriendly`, `roomforevent`.
+- [x] Build `scripts/generate-content/discover-hashtags.ts` — inspects the distribution of `spaces.hashTags` values, splits comma-separated tags, counts occurrences per (city, hashtag), and lists pairs meeting a minimum threshold (e.g., ≥8 spaces with the tag in one city). Also supports `--intentOnly` to filter to an intent-shaped allowlist. ✓
+- [x] Output is ranked `spaceCount DESC` with sample categories — matches the `discover-categories` shape for quick target picking. ✓
+- [ ] Look for high-intent verbs/contexts: `firstdate`, `latenight`, `worksession`, `livemusic`, `outdoorseating`, `dogfriendly`, `kidfriendly`, `groupfriendly`, `roomforevent`. **Caveat discovered during implementation:** `spaces.hashTags` is today populated by the OSM ingester (cuisines, amenity types) — intent-shaped tags are not yet present. Phase 5 pilot selection is blocked on enriching the hashTags data upstream.
 
 ### Phase 2 — query script (0.5 day)
 
-- [ ] Build `scripts/generate-content/query-by-hashtag.ts` mirroring the structure of `query-top-spaces.ts` but accepting `--hashtag <tag>` instead of `--category <slug>`.
-- [ ] Reuse the auto-fallback discipline: `mode: engagement` only when there's enough visit data to support a ranking; otherwise `curated` by completeness.
-- [ ] WHERE clause: `s."hashTags" ILIKE '%' || $1 || '%'` (case-insensitive substring match, since hashTags is a comma-separated string field — verify before trusting). May need a more careful regex to avoid `#firstdate` matching `#firstdateandlast` etc.
+- [x] Build `scripts/generate-content/query-by-hashtag.ts` mirroring the structure of `query-top-spaces.ts` but accepting `--hashtag <tag>` instead of `--category <slug>`. ✓
+- [x] Reuses the auto-fallback discipline: `mode: engagement` only when visit/impression totals clear `--minVisits` + `--minTopVisits`; otherwise `curated`. ✓
+- [x] Matching strategy: `EXISTS (SELECT 1 FROM unnest(string_to_array(s."hashTags", ',')) AS tag WHERE LOWER(TRIM(tag)) = $hashtag)`. Exact, normalized match — does **not** substring-match `firstdate` against `firstdateandlast`. ✓
 
 ### Phase 3 — schema update (0.5 day)
 
-- [ ] Add an optional `hashtag?: string` field to `IPostMetadata` (alongside `city` and `category`). The validator should require *one of* `category` or `hashtag` — not both, not neither. Update `validatePost` in `utils/contentSchema.ts`.
-- [ ] Mirror the field into `therr-client-web/src/utilities/guideContent.ts` (`IPostMetadata`).
-- [ ] Decide on URL path: do we keep `/guides/<slug>` flat, or prefix `/guides/by-hashtag/<slug>`? Current recommendation: keep flat — the hashtag is metadata, not a path segment.
+- [x] Added optional `hashtag?: string` to `IPostMetadata`. Validator enforces exactly one of `{category, hashtag}` (XOR) and validates hashtag format (lowercase letters/digits/hyphens, no leading `#`). ✓
+- [x] Mirrored the field into `therr-client-web/src/utilities/guideContent.ts` and exposed `getGuidesByHashtag(tag)`. ✓
+- [x] URL decision: post URL stays flat at `/guides/<slug>`. Added a **hashtag filter listing** at `/guides/hashtag/:hashtag` (sibling to `/guides/city/:citySlug` and `/guides/category/:categorySlug`) so the breadcrumb has a real target. ✓
 
 ### Phase 4 — JSON-LD + breadcrumb tweaks (0.25 day)
 
-- [ ] In `therr-client-web/src/utilities/guideJsonLd.ts`, add a hashtag-flavored breadcrumb when `post.hashtag` is present (e.g., Home → Guides → "First Date" → post). Skip the city crumb if no city is set.
-- [ ] Article schema's `keywords` field should include the hashtag (without the `#`).
+- [x] `buildBreadcrumb` in `guideJsonLd.ts` now inserts a hashtag crumb (humanized) linking to `/guides/hashtag/<tag>` when `post.hashtag` is present. Breadcrumb positions are computed dynamically so city-only, hashtag-only, or both-present posts all render correctly. ✓
+- [x] Article schema's `keywords` field includes the hashtag (without the `#`) when present. ✓
+- [x] `/sitemap-guides.xml` now emits a URL for each distinct hashtag across published guides, matching the city/category pattern. ✓
 
 ### Phase 5 — pilot 3 hashtag posts (1 day)
 

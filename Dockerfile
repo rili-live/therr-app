@@ -19,6 +19,7 @@ COPY ./therr-public-library ./therr-public-library
 COPY ./babel.config.json ./
 COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
+COPY ./tsconfig.base.json ./tsconfig.service.json ./tsconfig.strict.json ./
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci --ignore-scripts --legacy-peer-deps; \

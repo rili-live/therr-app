@@ -101,6 +101,7 @@ interface IIndexEntry {
     description: string;
     city?: string;
     category?: string;
+    hashtag?: string;
     publishedAt: string;
     updatedAt: string;
 }
@@ -122,6 +123,7 @@ function rebuildIndex(): IIndexEntry[] {
                 description: post.description,
                 city: post.city,
                 category: post.category,
+                hashtag: post.hashtag,
                 publishedAt: post.publishedAt,
                 updatedAt: post.updatedAt,
             });

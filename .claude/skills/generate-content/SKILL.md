@@ -4,7 +4,7 @@ description: Generate editorial guides and data-driven posts for /guides using p
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Bash(npx ts-node scripts/generate-content/*), Read, Write, Edit
-argument-hint: [--list --city slug --category slug [--curated]] [--data --topic name --city slug] [--review slug] [--refresh slug [--apply] [--add-new n]] [--limit n] [--draft]
+argument-hint: [--list --city slug --category slug [--curated]] [--data --topic name --city slug] [--hashtag --city slug --hashtag tag] [--walkable --city slug [--category slug]] [--review slug] [--refresh slug [--apply] [--add-new n]] [--limit n] [--draft]
 ---
 
 # Generate Content (Editorial Guides)
@@ -19,6 +19,8 @@ Output goes to `therr-client-web/src/content/guides/<slug>.json` and is rendered
 |-----------|------|-------------|
 | `--list` | **Curated list post** | Rank top spaces in a city + category; write commentary blurbs |
 | `--data` | **Data-driven post** | Aggregate Therr activity (e.g., busiest hour for bars in Denver) |
+| `--hashtag` | **Hashtag-anchored post** | Rank spaces by user-applied intent tag (e.g., `firstdate`, `latenight`) in a city |
+| `--walkable` | **Walkable-cluster post** | Find a dense cluster of nearby spaces, order them as a route, render map + stops |
 | `--review <slug>` | **Review existing post** | Read the post JSON and check headline, lead, blurbs, FAQ for quality |
 | `--refresh <slug>` | **Refresh existing post** | Re-check space references against production; optionally prune/bump updatedAt |
 
@@ -223,6 +225,155 @@ Adds up to N new spaces to the last `space-list` section (drawing from the post'
 
 ---
 
+## Mode 5: Hashtag-anchored post (`--hashtag`)
+
+Hashtag posts rank spaces by user-applied intent tags (`firstdate`, `latenight`, `worksession`, `livemusic`) rather than by category. The goal is to serve intent-based long-tail queries — "first date bars chicago", "late night food portland", "coffee shops to work seattle" — that category-driven directories can't.
+
+The post's anchor is stored as `hashtag: "<tag>"` in `IPostMetadata` **instead of** `category`. The validator enforces exactly one of `{category, hashtag}`. A hashtag filter listing is served at `/guides/hashtag/<tag>` and hashtag URLs are included in `/sitemap-guides.xml`.
+
+### Before you start: check the data
+
+The `spaces.hashTags` column is today mostly populated by the OSM ingester (`scripts/import-spaces/transforms/mapToSpace.ts`), which derives tags from OSM `cuisine` / `amenity` / `shop` / `tourism` values. These look more like categories (`italian`, `bar`, `coffee`) than user intent (`firstdate`, `latenight`). **Run discovery first to confirm there's meaningful intent-shaped signal in the target city before writing a post**:
+
+```
+npx ts-node scripts/generate-content/discover-hashtags --city <city> --minSpaces 8 --intentOnly
+```
+
+- Drop `--intentOnly` to see all tags (useful for understanding what's actually there).
+- `--intentOnly` filters to an allowlist of intent-shaped tags (see `INTENT_HASHTAG_ALLOWLIST` in the script).
+- If the intent-only output is empty or thin, this plan is blocked on enriching user-applied tags upstream; don't force it.
+
+### Step 1: Query spaces by hashtag
+
+```
+npx ts-node scripts/generate-content/query-by-hashtag --city <slug> --hashtag <tag> --limit <n> [--window <days>] [--mode auto|engagement|curated]
+```
+
+Same ranking discipline as `query-top-spaces` (engagement / curated / auto with `modeReason`). The matcher does an **exact, normalized tag match** after splitting `hashTags` on commas — `firstdate` will not match `firstdateandlast`. A leading `#` on `--hashtag` is stripped.
+
+### Step 2: Write the post
+
+Build the post JSON with `hashtag` in place of `category`:
+
+```json
+{
+  "slug": "first-date-bars-chicago",
+  "type": "list",
+  "status": "published",
+  "title": "8 First-Date Bars in Chicago",
+  "description": "Editor-picked bars with the right vibe for a first date — conversational, not too loud, easy to find.",
+  "city": "chicago-il",
+  "hashtag": "firstdate",
+  "publishedAt": "2026-04-19",
+  "updatedAt": "2026-04-19",
+  "author": "Therr Editorial",
+  "lead": "...",
+  "sections": [ /* same section types as Mode 1 */ ]
+}
+```
+
+All other rules from Mode 1 apply: title ≤ 70 chars, description ≤ 165, honest mode framing, at least one `space-list`, 3–5 FAQ items.
+
+### Step 3: Save
+
+```
+echo '<post-json>' | npx ts-node scripts/generate-content/save-post --stdin
+```
+
+The validator enforces `category XOR hashtag` — setting both or neither fails.
+
+### When to use this vs. Mode 1
+
+- **Category post (`--list` + `--category`)**: "best bars in Chicago" — broad, covers the whole category.
+- **Hashtag post (`--hashtag`)**: "best first-date bars in Chicago" — narrower, intent-anchored. Sibling to the category post, not a replacement.
+
+Cross-link hashtag posts from their category-post sibling in prose ("for date-night specifically, see our first-date bars guide") and vice versa.
+
+## Mode 6: Walkable-cluster post (`--walkable`)
+
+Walkable-cluster posts present 4–8 nearby spaces as a **walking route**, not a ranked list — "Wicker Park bar crawl: 5 stops, 1 mile". The frontend renders an ordered stop list with walking-distance badges between stops *plus* a Leaflet map centered on the cluster centroid. `TouristTrip` JSON-LD is emitted so the post can appear in Google's walking-tour rich results.
+
+The section type is `walkable-route`; it is an **additional** section alongside the usual prose/FAQ blocks, not a replacement for `space-list`. Use category or hashtag anchoring normally — the route is orthogonal.
+
+### Step 1: Discover dense clusters in a city
+
+```
+npx ts-node scripts/generate-content/discover-clusters --city <slug> [--category <slug>] [--limit 10] [--minSize 4] [--maxSize 8] [--maxDiameter 1500]
+```
+
+Defaults: `--limit 10`, `--minSize 4`, `--maxSize 8`, `--maxDiameter 1500` (meters — roughly a 19-minute walk tip-to-tip).
+
+Output is a ranked list of clusters by **completeness-weighted density** (sum of member completeness scores / area). Each cluster includes its centroid, diameter, walking-time estimate, distinct categories, and the member spaces with address + completeness fields. Pick one whose narrative hook is obvious — a tight cluster of 5 well-documented bars beats a sprawling 8-space cluster with half the members missing phone numbers.
+
+### Step 2: Build the route from the selected cluster
+
+```
+npx ts-node scripts/generate-content/query-walkable-cluster --spaceIds "<id1>,<id2>,<id3>,..."
+```
+
+OR, when you only have a centerpoint (e.g., from an editorial pitch "Wicker Park"):
+
+```
+npx ts-node scripts/generate-content/query-walkable-cluster --center <lat>,<lng> --radius 800 [--category <slug>]
+```
+
+Either mode returns `{ query, cluster, route }` where `route.stops[]` is ordered via nearest-neighbor TSP starting from the highest-completeness member. The shape is the exact section payload minus the editorial `note` strings — you fill those in.
+
+### Step 3: Write the post
+
+Build a normal post with a `walkable-route` section in addition to the usual list/prose/FAQ blocks. Minimal shape:
+
+```json
+{
+  "slug": "wicker-park-bar-crawl",
+  "type": "list",
+  "status": "published",
+  "title": "Wicker Park Bar Crawl: 5 Stops, About a Mile",
+  "description": "An editor-picked walking route through Wicker Park — five bars, one loop, all walkable in an afternoon.",
+  "city": "chicago-il",
+  "category": "categories.bar/drinks",
+  "publishedAt": "2026-04-19",
+  "updatedAt": "2026-04-19",
+  "author": "Therr Editorial",
+  "lead": "...",
+  "sections": [
+    { "type": "prose", "body": "..." },
+    {
+      "type": "walkable-route",
+      "centroid": { "lat": 41.9088, "lng": -87.6796 },
+      "totalMeters": 1420,
+      "estimatedMinutes": 18,
+      "stops": [
+        { "order": 1, "spaceId": "<uuid>", "name": "The First Stop", "lat": 41.9101, "lng": -87.6812, "note": "Start here — the patio is the best introduction to the neighborhood." },
+        { "order": 2, "spaceId": "<uuid>", "name": "Second Spot", "lat": 41.9085, "lng": -87.6798, "walkFromPreviousMeters": 310, "note": "Duck in for the cocktail list." }
+      ]
+    },
+    { "type": "space-list", "items": [ /* same stops as a ranked list for users who skip the map */ ] },
+    { "type": "faq", "items": [ /* 3-5 items */ ] }
+  ]
+}
+```
+
+Validator rules for `walkable-route`:
+- `stops.length >= 2`, `order` must be 1-indexed and dense (1..n)
+- `lat` / `lng` / `name` required on every stop (denormalized from space — the map and SSR rendering don't async-fetch)
+- `walkFromPreviousMeters` required on stops 2..n, omitted on stop 1
+- `spaceId` must be unique across stops (no visiting the same bar twice)
+
+### Step 4: Save
+
+```
+echo '<post-json>' | npx ts-node scripts/generate-content/save-post --stdin
+```
+
+### Editorial tips
+
+- **One walkable section per post.** Multiple routes in one post split the reader's attention.
+- **Keep notes concrete.** "Start here — best patio in the cluster" beats "This is a great bar." The route is the hook, but the stop-by-stop color is the content.
+- **Pair with a `space-list` section.** The map is great for visual skimmers; the list is better for users who skip maps or are on slow connections.
+- **Cross-link to the city's category post.** "For a broader guide to bars in Chicago, see our [bars in Chicago list]." The walkable post is a sub-angle, not a standalone.
+- **Don't force mixed-category routes** unless the hook is the mix. "5 coffee shops in Pearl District" reads cleanly; "3 coffee shops, a bar, and a bookstore" needs a strong narrative reason.
+
 ## Locale workflow (multilingual guides)
 
 Guides can carry translated content under `locales.es` / `locales.fr-ca`. The SSR layer (`resolveGuideForLocale()`) swaps in the localized `title`, `description`, `lead`, and `sections` when the request comes in at `/es/guides/<slug>` or `/fr-ca/guides/<slug>`. Pick target locales per city based on local-language population density and weak competitor coverage — see `docs/CONTENT_LOCALE_FIRST_PLAN.md` for the target-market table.
@@ -321,7 +472,10 @@ When implementing any of these, the relevant schema/script files contain `TODO:`
 - Save/validate post: `scripts/generate-content/save-post.ts` (supports `--require-locales <es,fr-ca>`)
 - Refresh existing post: `scripts/generate-content/refresh-post.ts`
 - Translate post: `scripts/generate-content/translate-post.ts` (emits a translator prompt for a given locale)
-- Discovery helpers: `scripts/generate-content/discover-categories.ts`
+- Discovery helpers: `scripts/generate-content/discover-categories.ts`, `scripts/generate-content/discover-hashtags.ts`, `scripts/generate-content/discover-clusters.ts`
+- Query by hashtag: `scripts/generate-content/query-by-hashtag.ts`
+- Query walkable cluster (route-ordered): `scripts/generate-content/query-walkable-cluster.ts`
+- Geo utilities (haversine, clustering, TSP ordering): `scripts/generate-content/utils/geo.ts`
 - Diagnostics (ad-hoc): `scripts/generate-content/diagnostics/discover-impressions.ts`, `diagnostics/discover-metrics.ts`
 - Frontend renderer: `therr-client-web/src/routes/Guide/index.tsx`
 - JSON-LD builder: `therr-client-web/src/utilities/guideJsonLd.ts`
