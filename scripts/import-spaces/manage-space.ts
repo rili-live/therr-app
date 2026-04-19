@@ -28,17 +28,14 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { Pool } from 'pg';
-import { CITIES, BATCH_SIZE, IMPORT_USER_ID, OSM_CATEGORY_MAP } from './config';
+import { CITIES, IMPORT_USER_ID, OSM_CATEGORY_MAP } from './config';
 import { fetchOsmData } from './sources/osm';
 import { mapOsmToSpace, ISpaceInsertParams } from './transforms/mapToSpace';
 import { findDuplicates, deduplicateWithinBatch } from './utils/deduplicate';
 import { validateSpace } from './utils/validate';
 import { crawlForEmails } from './sources/crawlEmails';
 import { searchForWebsite } from './sources/searchWeb';
-import { crawlForImages } from './sources/crawl';
 import { crawlForDetails, fetchPage } from './sources/crawlDetails';
-import { downloadAndValidateImage } from './utils/imageValidation';
-import { uploadImage } from './utils/gcs';
 import {
   ProcessedType,
   markProcessed,
@@ -46,6 +43,9 @@ import {
   getProcessedStats,
 } from './utils/processedSpaces';
 import { CITY_TIMEZONE_MAP } from './transforms/parseHours';
+import { assertDbConnection, createDbPool } from './utils/db';
+import { insertSpacesBatch } from './utils/insertSpaces';
+import { sourceImageForSpace } from './utils/sourceImage';
 
 // Load .env from scripts/import-spaces/ first, fall back to root .env
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -165,20 +165,6 @@ function parseArgs(): ICliArgs {
   };
 }
 
-// ── DB connection ────────────────────────────────────────────────────────────
-function createDbPool(): Pool {
-  return new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.MAPS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_WRITE) || 5432,
-    max: 5,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 10000,
-  });
-}
-
 // ── Sleep helper ─────────────────────────────────────────────────────────────
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => { setTimeout(resolve, ms); });
@@ -213,69 +199,6 @@ function newCounters(): ICounters {
     phonesFound: 0,
     enrichErrors: 0,
   };
-}
-
-// ── Insert spaces ────────────────────────────────────────────────────────────
-async function insertSpaces(db: Pool, spaces: ISpaceInsertParams[]): Promise<{ inserted: number; ids: string[] }> {
-  let inserted = 0;
-  const ids: string[] = [];
-
-  for (let i = 0; i < spaces.length; i += BATCH_SIZE) {
-    const batch = spaces.slice(i, i + BATCH_SIZE);
-
-    for (const space of batch) {
-      try {
-        const result = await db.query(
-          `INSERT INTO main.spaces
-            ("fromUserId", locale, "isPublic", message, "notificationMsg",
-             "mediaIds", "mentionsIds", "hashTags", "maxViews",
-             latitude, longitude, radius, "polygonCoords", "maxProximity",
-             "doesRequireProximityToView", "isMatureContent", "isModeratorApproved",
-             "isForSale", "isHirable", "isPromotional", "isExclusiveToGroups",
-             category, "areaType", valuation, region,
-             "addressReadable", "addressStreetAddress", "addressRegion", "addressLocality", "postalCode",
-             "phoneNumber", "businessEmail", "websiteUrl", "isPointOfInterest", "openingHours",
-             geom, "geomCenter")
-          VALUES
-            ($1, $2, $3, $4, $5,
-             $6, $7, $8, $9,
-             $10::float8, $11::float8, $12::float8, $13::jsonb, $14::float8,
-             $15, $16, $17,
-             $18, $19, $20, $21,
-             $22, $23, $24, $25,
-             $26, $27, $28, $29, $30::integer,
-             $31, $32, $33, $34, $35::jsonb,
-             ST_SetSRID(ST_Buffer(ST_MakePoint($11::float8, $10::float8)::geography, $36::float8)::geometry, 4326),
-             ST_SetSRID(ST_MakePoint($11::float8, $10::float8), 4326))
-          ON CONFLICT DO NOTHING
-          RETURNING id`,
-          [
-            space.fromUserId, space.locale, space.isPublic, space.message, space.notificationMsg,
-            space.mediaIds, space.mentionsIds, space.hashTags, space.maxViews,
-            space.latitude, space.longitude, space.radius, space.polygonCoords, space.maxProximity,
-            space.doesRequireProximityToView, space.isMatureContent, space.isModeratorApproved,
-            space.isForSale, space.isHirable, space.isPromotional, space.isExclusiveToGroups,
-            space.category, space.areaType, space.valuation, space.region,
-            space.addressReadable, space.addressStreetAddress, space.addressRegion, space.addressLocality, space.postalCode,
-            space.phoneNumber, space.businessEmail, space.websiteUrl, space.isPointOfInterest, space.openingHours,
-            space.radius,
-          ],
-        );
-        if (result.rowCount && result.rowCount > 0) {
-          inserted++;
-          ids.push(result.rows[0].id);
-        }
-      } catch (err: any) {
-        if (!err.message?.includes('no_area_overlaps') && !err.message?.includes('exclude')) {
-          console.error(`  Failed to insert "${space.notificationMsg}": ${err.message}`);
-        }
-      }
-    }
-
-    console.log(`  Batch progress: ${Math.min(i + BATCH_SIZE, spaces.length)}/${spaces.length} processed, ${inserted} inserted`);
-  }
-
-  return { inserted, ids };
 }
 
 // ── Space row interface for enrichment ───────────────────────────────────────
@@ -363,50 +286,6 @@ async function querySpacesByIds(db: Pool, ids: string[]): Promise<ISpaceRow[]> {
 // ── Check if a space needs images ────────────────────────────────────────────
 function spaceNeedsImages(space: ISpaceRow): boolean {
   return (!space.mediaIds || space.mediaIds === '') && !space.medias;
-}
-
-// ── Source image for a space ─────────────────────────────────────────────────
-async function sourceImageForSpace(
-  db: Pool,
-  space: ISpaceRow,
-  websiteUrl: string,
-  userId: string,
-  progress: string,
-): Promise<boolean> {
-  const candidates = await crawlForImages(websiteUrl);
-  if (candidates.length === 0) return false;
-
-  for (const candidate of candidates) {
-    const validImage = await downloadAndValidateImage(candidate.imageUrl);
-    if (!validImage) continue;
-
-    console.log(`${progress}   Image found (${candidate.source}): ${validImage.width}x${validImage.height}`);
-
-    const storagePath = await uploadImage(userId, space.id, validImage.buffer, validImage.contentType);
-
-    const mediaResult = await db.query(
-      `INSERT INTO main.media ("fromUserId", "altText", type, path)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id`,
-      [userId, space.notificationMsg, 'user-image-public', storagePath],
-    );
-    const mediaId = mediaResult.rows[0].id;
-
-    const medias = JSON.stringify([{ path: storagePath, type: 'user-image-public' }]);
-    await db.query(
-      `UPDATE main.spaces
-       SET "mediaIds" = $1::text,
-           medias = $2::jsonb,
-           "updatedAt" = NOW()
-       WHERE id = $3`,
-      [String(mediaId), medias, space.id],
-    );
-
-    console.log(`${progress}   Uploaded image: ${storagePath}`);
-    return true;
-  }
-
-  return false;
 }
 
 /**
@@ -556,13 +435,17 @@ async function enrichSpace(
     if (args.dryRun) {
       console.log(`${progress} Would source image from ${websiteUrl}`);
     } else {
-      const imageSourced = await sourceImageForSpace(
-        db, space, websiteUrl, space.fromUserId || args.userId, progress,
+      const outcome = await sourceImageForSpace(
+        db,
+        space,
+        websiteUrl,
+        space.fromUserId || args.userId,
+        { progress },
       );
-      if (imageSourced) {
+      if (outcome.status === 'uploaded') {
         counters.imagesFound++;
         markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
-      } else {
+      } else if (outcome.status === 'no-candidates' || outcome.status === 'no-valid-image') {
         markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
       }
     }
@@ -647,11 +530,12 @@ async function runImport(db: Pool, args: ICliArgs, counters: ICounters): Promise
     // Insert
     if (spaces.length > 0) {
       console.log(`  Inserting ${spaces.length} spaces...`);
-      const { inserted, ids } = await insertSpaces(db, spaces);
+      const { inserted, ids, skipped, failed } = await insertSpacesBatch(db, spaces);
       counters.imported += inserted;
+      counters.skippedDuplicate += skipped;
       remaining -= inserted;
       allInsertedIds.push(...ids);
-      console.log(`  Inserted: ${inserted}`);
+      console.log(`  Inserted: ${inserted} (skipped ${skipped}, failed ${failed})`);
     }
   }
 
@@ -721,17 +605,8 @@ async function main() {
   console.log('');
 
   const db = createDbPool();
-
-  // Test connection
-  try {
-    await db.query('SELECT 1');
-    console.log('Database connection established.\n');
-  } catch (err: any) {
-    console.error(`Database connection failed: ${err.message}`);
-    console.error('Make sure .env is configured with DB_HOST_MAIN_WRITE, DB_USER_MAIN_WRITE, etc.');
-    await db.end();
-    process.exit(1);
-  }
+  await assertDbConnection(db);
+  console.log('');
 
   const counters = newCounters();
 

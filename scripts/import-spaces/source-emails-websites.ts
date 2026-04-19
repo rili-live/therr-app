@@ -18,15 +18,14 @@ import { Pool } from 'pg';
 import { CITIES, IMPORT_USER_ID } from './config';
 import { crawlForEmails } from './sources/crawlEmails';
 import { searchForWebsite } from './sources/searchWeb';
-import { crawlForImages } from './sources/crawl';
-import { downloadAndValidateImage } from './utils/imageValidation';
-import { uploadImage } from './utils/gcs';
 import {
   ProcessedType,
   markProcessed,
   filterProcessedSpaces,
   getProcessedStats,
 } from './utils/processedSpaces';
+import { assertDbConnection, createDbPool } from './utils/db';
+import { sourceImageForSpace } from './utils/sourceImage';
 
 // Load .env from scripts/import-spaces/ first, fall back to root .env
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -119,20 +118,6 @@ function parseArgs(): ICliArgs {
   };
 }
 
-// ── DB connection ────────────────────────────────────────────────────────────
-function createDbPool(): Pool {
-  return new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.MAPS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_WRITE) || 5432,
-    max: 5,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 10000,
-  });
-}
-
 interface ISpaceRow {
   id: string;
   notificationMsg: string;
@@ -206,53 +191,6 @@ function spaceNeedsImages(space: ISpaceRow): boolean {
   return (!space.mediaIds || space.mediaIds === '') && !space.medias;
 }
 
-// ── Image sourcing (reuses existing pipeline) ────────────────────────────────
-async function sourceImageForSpace(
-  db: Pool,
-  space: ISpaceRow,
-  websiteUrl: string,
-  userId: string,
-  progress: string,
-): Promise<boolean> {
-  const candidates = await crawlForImages(websiteUrl);
-  if (candidates.length === 0) return false;
-
-  // Try each candidate until one validates
-  for (const candidate of candidates) {
-    const validImage = await downloadAndValidateImage(candidate.imageUrl);
-    if (!validImage) continue;
-
-    console.log(`${progress}   Image found (${candidate.source}): ${validImage.width}x${validImage.height}`);
-
-    const storagePath = await uploadImage(userId, space.id, validImage.buffer, validImage.contentType);
-
-    // Insert media record
-    const mediaResult = await db.query(
-      `INSERT INTO main.media ("fromUserId", "altText", type, path)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id`,
-      [userId, space.notificationMsg, 'user-image-public', storagePath],
-    );
-    const mediaId = mediaResult.rows[0].id;
-
-    // Update space with media references
-    const medias = JSON.stringify([{ path: storagePath, type: 'user-image-public' }]);
-    await db.query(
-      `UPDATE main.spaces
-       SET "mediaIds" = $1::text,
-           medias = $2::jsonb,
-           "updatedAt" = NOW()
-       WHERE id = $3`,
-      [String(mediaId), medias, space.id],
-    );
-
-    console.log(`${progress}   Uploaded image: ${storagePath}`);
-    return true;
-  }
-
-  return false;
-}
-
 // ── Process spaces that need emails ──────────────────────────────────────────
 async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters) {
   let spaces = await querySpacesForEmails(db, args);
@@ -309,11 +247,17 @@ async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters)
         if (args.dryRun) {
           console.log(`${progress}   Would also source image from ${space.websiteUrl}`);
         } else {
-          const imageSourced = await sourceImageForSpace(db, space, space.websiteUrl, space.fromUserId || args.userId, progress);
-          if (imageSourced) {
+          const outcome = await sourceImageForSpace(
+            db,
+            space,
+            space.websiteUrl!,
+            space.fromUserId || args.userId,
+            { progress },
+          );
+          if (outcome.status === 'uploaded') {
             counters.imagesFound++;
             markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
-          } else {
+          } else if (outcome.status === 'no-candidates' || outcome.status === 'no-valid-image') {
             markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
           }
         }
@@ -404,13 +348,17 @@ async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounter
         if (args.dryRun) {
           console.log(`${progress}   Would also source image from ${searchResult.websiteUrl}`);
         } else {
-          const imageSourced = await sourceImageForSpace(
-            db, space, searchResult.websiteUrl, space.fromUserId || args.userId, progress,
+          const outcome = await sourceImageForSpace(
+            db,
+            space,
+            searchResult.websiteUrl,
+            space.fromUserId || args.userId,
+            { progress },
           );
-          if (imageSourced) {
+          if (outcome.status === 'uploaded') {
             counters.imagesFound++;
             markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
-          } else {
+          } else if (outcome.status === 'no-candidates' || outcome.status === 'no-valid-image') {
             markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
           }
         }
@@ -450,16 +398,8 @@ async function main() {
   console.log('');
 
   const db = createDbPool();
-
-  // Test connection
-  try {
-    await db.query('SELECT 1');
-    console.log('Database connection established.\n');
-  } catch (err: any) {
-    console.error(`Database connection failed: ${err.message}`);
-    console.error('Make sure .env is configured with DB_HOST_MAIN_WRITE, DB_USER_MAIN_WRITE, etc.');
-    process.exit(1);
-  }
+  await assertDbConnection(db);
+  console.log('');
 
   const counters: ICounters = {
     emailsFound: 0,
