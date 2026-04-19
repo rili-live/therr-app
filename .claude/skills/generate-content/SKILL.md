@@ -223,6 +223,68 @@ Adds up to N new spaces to the last `space-list` section (drawing from the post'
 
 ---
 
+## Locale workflow (multilingual guides)
+
+Guides can carry translated content under `locales.es` / `locales.fr-ca`. The SSR layer (`resolveGuideForLocale()`) swaps in the localized `title`, `description`, `lead`, and `sections` when the request comes in at `/es/guides/<slug>` or `/fr-ca/guides/<slug>`. Pick target locales per city based on local-language population density and weak competitor coverage — see `docs/CONTENT_LOCALE_FIRST_PLAN.md` for the target-market table.
+
+### Step 1: generate a translator-ready prompt
+
+```
+npx ts-node scripts/generate-content/translate-post --slug <slug> --locale <es|fr-ca>
+```
+
+Output is a single prompt string (instructions + source JSON) that you can paste into any translator:
+
+- **Claude / ChatGPT.** Default path. Paste the prompt, get back the `locales.<X>` block, merge it into the post, ship it. The prompt already spells out register, length caps, and the "don't touch identifiers" rule.
+- **DeepL / Google Translate.** Fine for gisting; poor at preserving JSON structure — use `--format skeleton` instead and fill in manually.
+- **Native speaker / professional translator.** Optional — only reach for this if a specific post matters enough to warrant outside cost (e.g., a flagship city guide). Not gated on by default.
+
+Alternate outputs:
+- `--format source-json` — just the source payload, for headless integrations.
+- `--format skeleton` — a zeroed-out locale block with ids/rows preserved, for hand-filling.
+
+### Step 2: fold the translated block into the post
+
+The translator returns a JSON object matching `{ title, description, lead, sections }`. Merge it into the post under `locales.<locale>`:
+
+```json
+{
+  "slug": "editors-picks-bars-chicago",
+  "title": "...",
+  "description": "...",
+  "lead": "...",
+  "sections": [ /* English */ ],
+  "locales": {
+    "es": { "title": "...", "description": "...", "lead": "...", "sections": [ /* parallel to sections */ ] }
+  }
+}
+```
+
+The validator enforces parallel structure: `locales.<X>.sections` must have the same length and the same `type` in the same order as the default-locale `sections`. This keeps the renderer safe — section shapes and identifiers (spaceId, rank, href, numeric rows) are not translated.
+
+### Step 3: save with a required-locales gate
+
+When publishing a city where we've committed to a second locale (e.g., Chicago → `es`), require the translation upfront:
+
+```
+cat draft.json | npx ts-node scripts/generate-content/save-post --stdin --require-locales es
+```
+
+`--require-locales <a,b,...>` fails validation if any listed locale is missing from the `locales` block. Use this to prevent en-us-only posts from shipping in cities where the locale plan says otherwise.
+
+### Locale-selection rules of thumb
+
+| Locale | Publish with guide when city is… | Skip when city is… |
+|--------|----------------------------------|--------------------|
+| `es` | Chicago, Houston, Atlanta, Phoenix, Charlotte | Miami, LA, San Antonio (Yelp es coverage) |
+| `fr-ca` | Boston, NYC, Burlington VT, Plattsburgh NY | Montreal, Quebec City, Gatineau |
+
+For cities where we'd publish **only** in `es` or `fr-ca` (e.g., Mexico City, Montreal), skip the en-us doorway page entirely and emit the localized URL as `x-default`. Current slug routing uses one slug across all locales; localized slugs (e.g., `mejores-bares-chicago`) are an open question — see plan doc.
+
+### LLM-assisted translation (in-process, future)
+
+`translate-post.ts` currently emits a translator prompt only. A future enhancement can wire the Anthropic SDK in directly so the script returns the translated block rather than a prompt — flag it as `--mode llm`. Until that ships, the assistant running this skill produces the translation by reading the emitted prompt, drafting the JSON, and piping it to `save-post --require-locales <X>`.
+
 ## Workflow tips
 
 - **Pilot before scaling.** Generate 1 list post + 1 data post, get the user to review URLs in `/guides/<slug>`, then iterate.
@@ -244,8 +306,9 @@ Adds up to N new spaces to the last `space-list` section (drawing from the post'
 - Schema: `scripts/generate-content/utils/contentSchema.ts`
 - Query (rank by engagement OR completeness with auto-fallback): `scripts/generate-content/query-top-spaces.ts`
 - Activity stats (data posts): `scripts/generate-content/query-activity-stats.ts`
-- Save/validate post: `scripts/generate-content/save-post.ts`
+- Save/validate post: `scripts/generate-content/save-post.ts` (supports `--require-locales <es,fr-ca>`)
 - Refresh existing post: `scripts/generate-content/refresh-post.ts`
+- Translate post: `scripts/generate-content/translate-post.ts` (emits a translator prompt for a given locale)
 - Discovery helpers: `scripts/generate-content/discover-categories.ts`
 - Diagnostics (ad-hoc): `scripts/generate-content/diagnostics/discover-impressions.ts`, `diagnostics/discover-metrics.ts`
 - Frontend renderer: `therr-client-web/src/routes/Guide/index.tsx`
