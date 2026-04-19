@@ -160,12 +160,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         goToViewMap(area.latitude, area.longitude);
     };
 
-    // Lists support spaces only. Moments/events/thoughts don't set `category`
-    // or `addressReadable`, so either field is a reliable space signal.
-    isSpaceArea = (area) => area?.areaType === 'spaces'
-        || !!area?.isSpace
-        || typeof area?.category === 'string'
-        || typeof area?.addressReadable === 'string';
+    // Lists are a spaces-only feature. Moments set `category` and events set
+    // `addressReadable`, so those fields aren't reliable space signals.
+    isSpaceArea = (area) => area?.areaType === 'spaces' || !!area?.isSpace;
 
     toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
