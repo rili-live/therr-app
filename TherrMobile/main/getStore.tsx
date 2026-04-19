@@ -7,6 +7,11 @@ import SecureStorage from './utilities/SecureStorage';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
+// Redux-logger serializes the full prev/next state on every dispatch, which
+// stalls the JS thread during action bursts (route transitions + REST responses).
+// Keep it off by default; flip to true only when actively debugging dispatches.
+const ENABLE_REDUX_LOGGER = false;
+
 declare global {
     interface Window {
         __REDUX_DEVTOOLS_EXTENSION_COMPOSE__: any;
@@ -34,7 +39,7 @@ const getMiddleware = (getDefaultMiddleware: any) => {
         },
     });
 
-    if (__DEV__) {
+    if (__DEV__ && ENABLE_REDUX_LOGGER) {
         return middleware.concat(socketIOMiddleWare).concat(logger);
     }
 
