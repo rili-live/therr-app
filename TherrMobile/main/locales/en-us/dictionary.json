@@ -782,7 +782,8 @@
         "settingsEmailReminders": "Social App reminder e-mails",
         "settingsEmailBackground": "Social App automated e-mails",
         "on": "On",
-        "off": "Off"
+        "off": "Off",
+        "myQRCodes": "Manage My QR Codes"
       },
       "errorMessages": {
         "repeatPassword": "Passwords do not match",
@@ -852,6 +853,10 @@
         "twitterHandle": "username",
         "youtubeChannelId": "channel ID"
       }
+    },
+    "myQRCodeDetail": {
+      "share": "Share Link",
+      "copy": "Copy Link"
     }
   },
   "interests": {
@@ -1723,6 +1728,32 @@
         "done": "Done",
         "spaceUnavailable": "Space unavailable"
       }
+    },
+    "myQRCodes": {
+      "headerTitle": "My QR Codes",
+      "subtitle": "Share any of your Therr content with a scan.",
+      "profileCardHint": "Tap to view the full QR for your profile.",
+      "profileAccessibilityLabel": "View full QR code for your profile",
+      "profileFallbackName": "My Profile",
+      "rowAccessibilityLabel": "View QR code for {{title}}",
+      "sections": {
+        "profile": "My Profile",
+        "spaces": "My Spaces",
+        "events": "My Events",
+        "groups": "My Groups"
+      },
+      "emptySpaces": "You don't own any spaces yet.",
+      "emptyEvents": "You haven't created any events yet.",
+      "emptyGroups": "You haven't created any groups yet."
+    },
+    "myQRCodeDetail": {
+      "headerTitle": "QR Code",
+      "helperText": "Have anyone scan this with their camera to open it in Therr.",
+      "accessibility": "QR code linking to {{title}}",
+      "copied": "Link Copied",
+      "privateNote": "Your profile is private — scanners will see a limited view until you connect.",
+      "missingEntity": "No QR code details were provided.",
+      "backButton": "Go Back"
     }
   },
   "modals": {
@@ -2037,12 +2068,14 @@
         "report": "Report This User?",
         "syncSocials": "Sync Socials",
         "shareALink": "Copy Profile Link",
-        "unconnect": "Remove Connection?"
+        "unconnect": "Remove Connection?",
+        "myQRCodes": "Show My QR Codes"
       },
       "buttons": {
         "editProfile": "Edit Profile",
         "syncSocials": "Sync Socials",
-        "message": "Message"
+        "message": "Message",
+        "myQRCode": "My QR Code"
       },
       "labels": {
         "connections": "connections",
