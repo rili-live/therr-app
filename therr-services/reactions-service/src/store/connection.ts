@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import config from '../config';
 
 export interface IConnection {
     read: Pool;
@@ -8,11 +9,11 @@ export interface IConnection {
 }
 
 const read: Pool = new Pool({
-    host: process.env.DB_HOST_MAIN_READ,
-    user: process.env.DB_USER_MAIN_READ,
-    password: process.env.DB_PASSWORD_MAIN_READ,
-    database: process.env.REACTIONS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_READ),
+    host: config.db.read.host,
+    user: config.db.read.user,
+    password: config.db.read.password,
+    database: config.db.name,
+    port: config.db.read.port,
     max: 12, // right-sized for cloud-sql-proxy limits (20 total across read+write)
     idleTimeoutMillis: 30000, // keep idle connections longer to reduce reconnect overhead
     connectionTimeoutMillis: 5000,
@@ -22,11 +23,11 @@ const read: Pool = new Pool({
 } as any);
 
 const write: Pool = new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.REACTIONS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_WRITE),
+    host: config.db.write.host,
+    user: config.db.write.user,
+    password: config.db.write.password,
+    database: config.db.name,
+    port: config.db.write.port,
     max: 5, // writes are less frequent; keep pool small to avoid proxy bottleneck
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
@@ -41,8 +42,8 @@ read.on('error', (err, _client) => {
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            'db.host': process.env.DB_HOST_MAIN_READ,
-            'db.name': process.env.REACTIONS_SERVICE_DATABASE,
+            'db.host': config.db.read.host,
+            'db.name': config.db.name,
             'process.id': process.pid,
             'error.isUncaughtException': true,
             'error.message': err?.message,
@@ -59,8 +60,8 @@ write.on('error', (err, _client) => {
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            'db.host': process.env.DB_HOST_MAIN_WRITE,
-            'db.name': process.env.REACTIONS_SERVICE_DATABASE,
+            'db.host': config.db.write.host,
+            'db.name': config.db.name,
             'process.id': process.pid,
             'error.isUncaughtException': true,
             'error.message': err?.message,

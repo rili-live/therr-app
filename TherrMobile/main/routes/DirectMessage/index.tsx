@@ -9,7 +9,7 @@ import { IUserState, IMessagesState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import TextMessage from '../../components/TextMessage';
 import RoundInput from '../../components/Input/Round';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -241,6 +241,9 @@ class DirectMessage extends React.Component<
                                     // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                                     onEndReached={this.tryLoadMore}
                                     onEndReachedThreshold={0.5}
+                                    initialNumToRender={15}
+                                    maxToRenderPerBatch={10}
+                                    windowSize={11}
                                     ListEmptyComponent={<View>
                                         <ListEmpty theme={this.theme} text={this.translate(
                                             'pages.directMessage.noMessagesFound',

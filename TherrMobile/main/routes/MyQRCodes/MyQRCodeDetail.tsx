@@ -19,7 +19,7 @@ import { IUserState } from 'therr-react/types';
 import { Button } from '../../components/BaseButton';
 import { Image } from '../../components/BaseImage';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import {

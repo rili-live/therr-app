@@ -13,6 +13,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitUseStrict": false,
     "noImplicitAny": false,
-    "noImplicitReturns": false
+    "noImplicitReturns": false,
+    "skipLibCheck": true
   }
 }

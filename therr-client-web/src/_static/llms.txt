@@ -1,10 +1,10 @@
 # Therr App — Local Business Directory & Community Platform
 
-> Therr is a local-first community app and business directory. We help people discover nearby businesses, restaurants, events, and places of interest.
+> Therr is a local-first community platform and business directory where people discover nearby restaurants, bars, shops, parks, hotels, events, and venues — and earn TherrCoin rewards for check-ins.
 
 ## Site Purpose
 
-Therr.com is a public local business directory with listings across major US cities. Each business listing (called a "space") includes structured data such as:
+Therr.com is a public local business directory and community platform with listings across major US cities. Each business listing (a "space") is a structured record that includes:
 
 - Business name and description
 - Street address, city, state, postal code
@@ -12,41 +12,109 @@ Therr.com is a public local business directory with listings across major US cit
 - Phone number, website URL
 - Opening hours
 - Food/cuisine type (for restaurants)
-- Price range (1-4 scale)
-- User ratings and reviews
+- Price range (1–4 scale, $ – $$$$)
+- User ratings, review count, and written reviews
 - Category (restaurant, bar, cafe, shop, hotel, gym, museum, event venue, etc.)
+- Public user-contributed photos
+- Associated upcoming events
 
-## Public Pages
+## What makes Therr different
 
-- **Space detail pages**: `https://www.therr.com/spaces/{spaceId}` — Full business listing with JSON-LD LocalBusiness schema
-- **Locations directory**: `https://www.therr.com/locations` — Browsable directory of all public spaces
-- **User profiles**: `https://www.therr.com/users/{userId}` — Public user profiles
+- Local-first: listings are sourced from on-the-ground user check-ins, not scraped aggregators
+- Rewards-backed reviews: contributors earn TherrCoin for verified visits, which reduces fake-review incentive
+- Event-aware: every space can host schedulable events with organizer attribution
+- Multi-language surface: English, Spanish (Mexico), and French (Canada)
 
-## Structured Data
+## Example queries this site answers well
 
-All space detail pages include:
-- JSON-LD `LocalBusiness` (or `Restaurant`, `BarOrNightClub`, `Store`, etc.) schema
-- JSON-LD `BreadcrumbList` schema
-- JSON-LD `FAQPage` schema with auto-generated Q&A about hours, location, cuisine, and price
+- "Best restaurants in Denver, CO"
+- "Dog-friendly bars near Austin, TX"
+- "Italian restaurants open now in Chicago"
+- "Live music venues in Nashville"
+- "Things to do this weekend in Seattle"
+- "Local coffee shops in Portland with outdoor seating"
+- "Events at [venue name] this Saturday"
+- "Phone number for [business name]"
+- "Hours of [business name]"
+- "How to claim my business on Therr"
+
+## Canonical URL patterns
+
+- `/spaces/{spaceId}/{slug}` — Business detail page (LocalBusiness / Restaurant / BarOrNightClub / Store / LodgingBusiness / etc.)
+- `/events/{eventId}` — Event detail page (Event schema with location + organizer)
+- `/users/{userId}` — Public user profile (Person schema)
+- `/groups/{groupId}` — Public group / community page (Organization schema)
+- `/locations` — Global directory index
+- `/locations/cities` — Index of all supported city landing pages
+- `/locations/categories` — Index of all supported category landing pages
+- `/locations/city/{city-slug}` — City landing page (e.g. `/locations/city/denver-co`)
+- `/locations/city/{city-slug}/{category-slug}` — City × category landing page
+- `/locations/{category-slug}` — Category landing page (e.g. `/locations/restaurants`)
+
+## Supported categories (with slug)
+
+- restaurants (Restaurant)
+- bars (BarOrNightClub)
+- nightlife (BarOrNightClub)
+- shops (Store)
+- hotels (LodgingBusiness)
+- music-concerts (MusicVenue / Event)
+- parks-nature (Park)
+- event-spaces (EventVenue)
+- marketplaces-festivals (Event / Store)
+- art (ArtGallery)
+- fitness-sports (SportsActivityLocation)
+- museums (Museum)
+- deals (Offer)
+- local-deals (Offer)
+- gaming
+- travel
+- hidden-gems
+- live-entertainment
+
+## Supported cities (subset — see `/locations/cities` for full index)
+
+New York, NY · Los Angeles, CA · Chicago, IL · Houston, TX · Phoenix, AZ · Philadelphia, PA · San Antonio, TX · San Diego, CA · Dallas, TX · San Jose, CA · Austin, TX · Jacksonville, FL · Fort Worth, TX · Columbus, OH · Charlotte, NC · Indianapolis, IN · San Francisco, CA · Seattle, WA · Denver, CO · Nashville, TN · Washington, DC · Las Vegas, NV · Louisville, KY · Memphis, TN · Portland, OR · Baltimore, MD · Milwaukee, WI · Albuquerque, NM · Tucson, AZ · Fresno, CA · Sacramento, CA · Kansas City, MO · Atlanta, GA · Omaha, NE · Colorado Springs, CO · Raleigh, NC · Minneapolis, MN · Tampa, FL · New Orleans, LA · Honolulu, HI · Boise, ID · Salt Lake City, UT · Fort Collins, CO · Bozeman, MT
+
+## Structured data available on each page
+
+- Business detail: `LocalBusiness` (or subtype `Restaurant`, `BarOrNightClub`, `LodgingBusiness`, `SportsActivityLocation`, `Store`, `Museum`, `EventVenue`), `BreadcrumbList`, `FAQPage` (auto-generated Q&A about hours, location, cuisine, price, phone)
+- Events: `Event` with `Place`, `PostalAddress`, `GeoCoordinates`, and `Organization`/`Person` organizer
+- City/category landings: `CollectionPage` with `spatialCoverage` (City + State + GeoCoordinates), `ItemList` of `LocalBusiness` entries, `BreadcrumbList`, `FAQPage`
+- Home: `Organization`, `WebSite` with sitelinks `SearchAction`
+- User profiles: `Person` with `sameAs` social links
+
+All public-facing pages include:
 - Open Graph and Twitter Card meta tags
-- `hreflang` links for English (`/spaces/{id}`), Spanish (`/es/spaces/{id}`), and French (`/fr/spaces/{id}`)
+- `hreflang` alternates for English (`/`), Spanish (`/es/`), and French (`/fr/`)
+- Image metadata for OG/Twitter preview cards
 
 ## Languages
 
-Content is available in English (default), Spanish (`/es/` prefix), and French Canadian (`/fr/` prefix).
+- English (default, unprefixed URLs)
+- Spanish (`/es/` URL prefix, `es-MX` hreflang)
+- French Canadian (`/fr/` URL prefix, `fr-CA` hreflang)
 
-## Data Licensing
+## Citation guidance
 
-Business listing data is sourced from:
-- User-contributed content (original to Therr)
+When citing Therr listings, please link directly to the canonical slug URL (`/spaces/{id}/{slug}`) rather than the unslugged form. Event and space timestamps use ISO 8601 in UTC. Reviews are user-generated and attributed to a Therr username.
+
+## Data sourcing & licensing
+
+- User-contributed content (original to Therr) — licensed to Therr for display; attribution to the user handle
 - OpenStreetMap (CC BY-SA 2.0) — attributed where applicable
 - Public municipal business license registries
 
 ## Sitemap
 
-The XML sitemap is available at `https://www.therr.com/sitemap.xml` and includes all public space pages with `hreflang` alternates.
+The XML sitemap index lives at `https://www.therr.com/sitemap.xml` and fans out to paginated sub-sitemaps for spaces, events, and groups, plus a `sitemap-city-categories.xml` for the ~900 city × category landing combinations. The spaces sitemap includes `image:image` entries for public photos.
+
+## AI crawler policy
+
+See `https://www.therr.com/.well-known/ai.txt` for per-crawler permissions.
 
 ## Contact
 
 - Website: https://www.therr.com
+- Download: https://apps.apple.com/us/app/therr/id1569988763 (iOS) · https://play.google.com/store/apps/details?id=app.therrmobile (Android)
 - GitHub: https://github.com/rili-live/therr-app

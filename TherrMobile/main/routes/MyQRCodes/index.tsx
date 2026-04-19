@@ -21,7 +21,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { Image } from '../../components/BaseImage';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildUserUrl } from '../../utilities/shareUrls';

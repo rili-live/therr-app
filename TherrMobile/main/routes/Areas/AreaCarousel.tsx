@@ -4,7 +4,6 @@ import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import {
     Content,
 } from 'therr-js-utilities/constants';
-// import Carousel from 'react-native-snap-carousel';
 import { buildStyles as buildRootStyles } from '../../styles';
 import { buildStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../styles/forms';

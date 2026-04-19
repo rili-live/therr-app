@@ -2,8 +2,8 @@ import React from 'react'; // eslint-disable-line @typescript-eslint/no-unused-v
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
-import { AccessLevels, FeatureFlags } from 'therr-js-utilities/constants';
-import { IAccess, AccessCheckType } from 'therr-react/types';
+import { FeatureFlags } from 'therr-js-utilities/constants';
+import { IAccess } from 'therr-react/types';
 import ActivityGenerator from './Activities/ActivityGenerator';
 import ActivityScheduler from './Activities/ActivityScheduler';
 import AdvancedSearch from './AdvancedSearch';
@@ -51,31 +51,8 @@ import MyQRCodeDetail from './MyQRCodes/MyQRCodeDetail';
 import Invite from './Invite';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
-
-const momentTransitionSpec: any = {
-    open: {
-        animation: 'spring',
-        config: {
-            stiffness: 100,
-            damping: 200,
-            mass: 3,
-            overshootClamping: true,
-            restDisplacementThreshold: 0.9,
-            restSpeedThreshold: 0.1,
-        },
-    },
-    close: {
-        animation: 'spring',
-        config: {
-            stiffness: 250,
-            damping: 300,
-            mass: 3,
-            overshootClamping: true,
-            restDisplacementThreshold: 0.1,
-            restSpeedThreshold: 0.5,
-        },
-    },
-};
+import { AccessPresets } from './access';
+import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
 
 export interface ExtendedRouteOptions extends StackNavigationOptions {
     access?: IAccess;
@@ -95,11 +72,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Landing',
             headerShown: false,
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
+            access: AccessPresets.PUBLIC_DEFAULT,
         }),
     },
     {
@@ -107,11 +80,7 @@ const routes: RouteConfig<
         component: Login,
         options: () => ({
             title: 'Login',
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
+            access: AccessPresets.PUBLIC_DEFAULT,
         }),
     },
     {
@@ -119,10 +88,7 @@ const routes: RouteConfig<
         component: CreateProfile,
         options: () => ({
             title: 'Create Profile',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-            },
+            access: AccessPresets.EMAIL_VERIFIED_MISSING_PROPERTIES,
         }),
     },
     {
@@ -131,11 +97,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Map',
             requiredFeatures: [FeatureFlags.ENABLE_MAP],
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
+            access: AccessPresets.PUBLIC_PARTIAL,
         }),
     },
     {
@@ -144,10 +106,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Achievements',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -156,10 +115,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'ActivityGenerator',
             requiredFeatures: [FeatureFlags.ENABLE_ACTIVITIES],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -168,10 +124,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'ActivityScheduler',
             requiredFeatures: [FeatureFlags.ENABLE_ACTIVITY_SCHEDULER],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -180,10 +133,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'AchievementClaim',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -192,10 +142,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Activated Areas',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -204,10 +151,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Areas',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -216,10 +160,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Advanced Search',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -228,10 +169,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Bookmarked',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -240,10 +178,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'My Lists',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -252,10 +187,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'List',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -264,10 +196,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'My Drafts',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -275,11 +204,7 @@ const routes: RouteConfig<
         component: Home,
         options: () => ({
             title: 'Home',
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
+            access: AccessPresets.PUBLIC_PARTIAL,
         }),
     },
     {
@@ -288,10 +213,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Connect',
             requiredFeatures: [FeatureFlags.ENABLE_CONNECT],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -299,10 +221,7 @@ const routes: RouteConfig<
         component: Invite,
         options: () => ({
             title: 'Invite',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -310,10 +229,7 @@ const routes: RouteConfig<
         component: PhoneContacts,
         options: () => ({
             title: 'Phone Contacts',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -322,12 +238,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Direct Message',
             requiredFeatures: [FeatureFlags.ENABLE_DIRECT_MESSAGING],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...momentStackOptions,
         }),
     },
     {
@@ -343,11 +255,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Map Search Filters',
             requiredFeatures: [FeatureFlags.ENABLE_MAP],
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
+            access: AccessPresets.PUBLIC_PARTIAL,
         }),
     },
     {
@@ -356,10 +264,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Nearby',
             requiredFeatures: [FeatureFlags.ENABLE_AREAS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -368,10 +273,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Notifications',
             requiredFeatures: [FeatureFlags.ENABLE_NOTIFICATIONS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -379,11 +281,7 @@ const routes: RouteConfig<
         component: EmailVerification,
         options: () => ({
             title: 'Email Verification',
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
+            access: AccessPresets.PUBLIC_AUTHENTICATED,
         }),
     },
     {
@@ -391,11 +289,7 @@ const routes: RouteConfig<
         component: Register,
         options: () => ({
             title: 'Create Account',
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
+            access: AccessPresets.PUBLIC_DEFAULT,
         }),
     },
     {
@@ -403,10 +297,7 @@ const routes: RouteConfig<
         component: Settings,
         options: () => ({
             title: 'Settings',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -414,10 +305,7 @@ const routes: RouteConfig<
         component: ManageAccount,
         options: () => ({
             title: 'ManageAccount',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -425,10 +313,7 @@ const routes: RouteConfig<
         component: ManageSpaces,
         options: () => ({
             title: 'ManageSpaces',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -436,10 +321,7 @@ const routes: RouteConfig<
         component: ManageNotifications,
         options: () => ({
             title: 'ManageNotifications',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -447,10 +329,7 @@ const routes: RouteConfig<
         component: ManagePreferences,
         options: () => ({
             title: 'ManagePreferences',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -458,10 +337,7 @@ const routes: RouteConfig<
         component: MyQRCodes,
         options: () => ({
             title: 'My QR Codes',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -469,10 +345,7 @@ const routes: RouteConfig<
         component: MyQRCodeDetail,
         options: () => ({
             title: 'QR Code',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -480,10 +353,7 @@ const routes: RouteConfig<
         component: SocialSync,
         options: () => ({
             title: 'Social Sync',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -492,14 +362,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Create/Edit Group',
             requiredFeatures: [FeatureFlags.ENABLE_GROUPS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...editStackOptions,
         }),
     },
     {
@@ -507,10 +371,7 @@ const routes: RouteConfig<
         component: ExchangePointsDisclaimer,
         options: () => ({
             title: 'Exchange Points',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -519,10 +380,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Groups',
             requiredFeatures: [FeatureFlags.ENABLE_GROUPS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -531,14 +389,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'View Group',
             requiredFeatures: [FeatureFlags.ENABLE_GROUPS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...editStackOptions,
         }),
     },
     {
@@ -547,12 +399,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'View Event',
             requiredFeatures: [FeatureFlags.ENABLE_EVENTS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...viewStackOptions,
         }),
     },
     {
@@ -561,12 +409,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'View Moment',
             requiredFeatures: [FeatureFlags.ENABLE_MOMENTS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...viewStackOptions,
         }),
     },
     {
@@ -575,14 +419,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Edit Moment',
             requiredFeatures: [FeatureFlags.ENABLE_MOMENTS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...editStackOptions,
         }),
     },
     {
@@ -591,14 +429,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Edit Event',
             requiredFeatures: [FeatureFlags.ENABLE_EVENTS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...editStackOptions,
         }),
     },
     {
@@ -607,13 +439,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'View Space',
             requiredFeatures: [FeatureFlags.ENABLE_SPACES],
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
+            access: AccessPresets.PUBLIC_PARTIAL,
+            ...viewStackOptions,
         }),
     },
     {
@@ -622,14 +449,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Edit Space',
             requiredFeatures: [FeatureFlags.ENABLE_SPACES],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...editStackOptions,
         }),
     },
     {
@@ -638,14 +459,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Edit Thought',
             requiredFeatures: [FeatureFlags.ENABLE_THOUGHTS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...editStackOptions,
         }),
     },
     {
@@ -653,12 +468,7 @@ const routes: RouteConfig<
         component: ViewUser,
         options: () => ({
             title: 'View User',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            // cardStyleInterpolator: undefined,
-            // transitionSpec: momentTransitionSpec,
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -667,12 +477,8 @@ const routes: RouteConfig<
         options: () => ({
             title: 'View Thought',
             requiredFeatures: [FeatureFlags.ENABLE_THOUGHTS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerLeft: () => null,
-            headerTitleAlign: 'left',
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...viewStackOptions,
         }),
     },
 ];

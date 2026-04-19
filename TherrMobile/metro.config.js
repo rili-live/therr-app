@@ -61,6 +61,16 @@ const axiosCjsPath = path.resolve(rootNodeModules, 'axios/dist/browser/axios.cjs
 const useLatestCallbackPath = path.resolve(__dirname, 'node_modules/use-latest-callback/lib/src/index.js');
 
 const config = {
+    transformer: {
+        // Evaluate `require(...)` lazily (on first symbol access) rather than eagerly at module load.
+        // Significantly reduces cold-start JS evaluation for apps with many routes.
+        getTransformOptions: async () => ({
+            transform: {
+                experimentalImportSupport: false,
+                inlineRequires: true,
+            },
+        }),
+    },
     resolver: {
         blockList,
         resolveRequest: (context, moduleName, platform) => {

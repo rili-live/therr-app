@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import 'react-native-gesture-handler';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
@@ -18,7 +17,6 @@ import { isUserAuthenticated } from '../../utilities/authUtils';
 import getConfig from '../../utilities/getConfig';
 import Toast from 'react-native-toast-message';
 import LottieView from 'lottie-react-native';
-// import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 const { width: screenWidth } = Dimensions.get('window');
 

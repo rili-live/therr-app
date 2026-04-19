@@ -23,6 +23,9 @@ enum FeatureFlags {
 
     // Search Providers
     ENABLE_MAPBOX_SEARCH = 'ENABLE_MAPBOX_SEARCH',
+
+    // Monetization
+    ENABLE_COIN_RECHARGE = 'ENABLE_COIN_RECHARGE',
 }
 
 export {
