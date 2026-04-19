@@ -92,7 +92,7 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
                 }
             });
 
-            const sc = new SuperCluster({ radius: 40, maxZoom: 20, minZoom: 1 });
+            const sc = new SuperCluster({ radius: 80, maxZoom: 20, minZoom: 1 });
             sc.load(
                 markers.map((m, i) => ({
                     type: 'Feature' as const,
@@ -155,23 +155,31 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
                         const { cluster_id, point_count } = item.properties;
                         const [longitude, latitude] = item.geometry.coordinates;
                         const { size, fontSize } = getClusterStyle(point_count);
+                        const haloSize = size + 14;
                         return (
                             <Marker
                                 key={`cluster-${cluster_id}`}
                                 coordinate={{ latitude, longitude }}
                                 style={{ zIndex: point_count + 1 }}
                                 onPress={() => handleClusterPress(item)}
-                                tracksViewChanges={false}
                             >
-                                <View style={[styles.clusterOuter, { width: size + 10, height: size + 10 }]}>
+                                <View
+                                    style={[
+                                        styles.clusterOuter,
+                                        {
+                                            width: haloSize,
+                                            height: haloSize,
+                                        },
+                                    ]}
+                                >
                                     <View
                                         style={[
                                             styles.clusterHalo,
                                             {
                                                 backgroundColor: clusterColor,
-                                                width: size + 10,
-                                                height: size + 10,
-                                                borderRadius: (size + 10) / 2,
+                                                width: haloSize,
+                                                height: haloSize,
+                                                borderRadius: haloSize / 2,
                                             },
                                         ]}
                                     />
@@ -192,6 +200,7 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
                                                 {
                                                     color: clusterTextColor,
                                                     fontSize,
+                                                    lineHeight: fontSize + 2,
                                                     fontFamily: clusterFontFamily,
                                                 },
                                             ]}
@@ -216,7 +225,7 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
 
 const styles = StyleSheet.create({
     clusterOuter: { justifyContent: 'center', alignItems: 'center' },
-    clusterHalo: { position: 'absolute', opacity: 0.5 },
+    clusterHalo: { position: 'absolute', opacity: 0.35 },
     clusterInner: { justifyContent: 'center', alignItems: 'center', zIndex: 1 },
     clusterText: { fontWeight: 'bold' },
 });

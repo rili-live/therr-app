@@ -247,7 +247,7 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
             <View style={staticStyles.rowContent}>
                 <Text
                     numberOfLines={1}
-                    style={[staticStyles.rowTitle, { color: this.theme.colors.textBlack }]}
+                    style={[staticStyles.rowTitle, { color: this.theme.colors.textWhite }]}
                 >
                     {title}
                 </Text>
@@ -354,7 +354,7 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
                 <View style={staticStyles.profileTextBlock}>
                     <Text
                         numberOfLines={1}
-                        style={[staticStyles.profileName, { color: this.theme.colors.textBlack }]}
+                        style={[staticStyles.profileName, { color: this.theme.colors.textWhite }]}
                     >
                         {fullName}
                     </Text>
@@ -399,7 +399,7 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
                 { borderBottomColor: this.theme.colors.accentDivider },
             ]}
         >
-            <Text style={[staticStyles.sectionHeaderText, { color: this.theme.colors.textBlack }]}>
+            <Text style={[staticStyles.sectionHeaderText, { color: this.theme.colors.textWhite }]}>
                 {this.translate(labelKey)}
             </Text>
         </View>

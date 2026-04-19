@@ -259,9 +259,9 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
         const { navigation } = this.props;
 
         navigation.navigate('ViewSpace', {
-            isMySpace: true,
+            isMyContent: true,
             previousView: 'ManageSpaces',
-            spaceDetails: space,
+            space,
         });
     };
 
@@ -299,7 +299,7 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
             ]}>
                 <View style={staticStyles.spaceRowContent}>
                     <Text
-                        style={[staticStyles.spaceNameText, { color: this.theme.colors?.textBlack || '#000' }]}
+                        style={[staticStyles.spaceNameText, { color: this.theme.colors?.textWhite || '#000' }]}
                         numberOfLines={1}
                     >
                         {space.notificationMsg || '—'}

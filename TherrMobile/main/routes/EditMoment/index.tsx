@@ -285,9 +285,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
         // before preventDefault is called in the beforeRemove listener
         navigation.setOptions({
-            // animation: 'none', // navigation v6
-            animationEnabled: false,
-            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+            animation: 'none',
         });
     };
 

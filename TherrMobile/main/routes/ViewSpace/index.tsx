@@ -376,8 +376,7 @@ const ViewSpace = ({
         if (isUserAuthenticated(user)) {
             setIsViewingIncentives(true);
             navigation.setOptions({
-                animationEnabled: false,
-                gestureEnabled: true,
+                animation: 'none',
             });
         } else {
             navigation.push('Login');
@@ -392,6 +391,12 @@ const ViewSpace = ({
                     reaction: { ...space.reaction, ...data },
                 },
             });
+            // spaceInView spreads fetchedSpace last, so the fetched reaction
+            // would otherwise clobber the optimistic update.
+            setFetchedSpace((prev) => ({
+                ...prev,
+                reaction: { ...(prev?.reaction || {}), ...data },
+            }));
             return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
         } else {
             navigation.push('Login');
