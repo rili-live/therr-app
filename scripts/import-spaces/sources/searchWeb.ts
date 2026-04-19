@@ -6,6 +6,7 @@
  * domain must clearly match the business name, so we don't associate the wrong
  * website with a space.
  */
+import { withRetry, isTransientNetworkError } from '../utils/withRetry';
 
 // Social media, directory, and review sites that are never a business's own website
 const REJECT_DOMAINS = [
@@ -220,15 +221,24 @@ async function webSearch(query: string): Promise<ISearchResult[]> {
   // Try Bing first (more tolerant of programmatic access)
   const bingUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=en`;
   try {
-    const response = await fetch(bingUrl, {
-      signal: AbortSignal.timeout(10000),
-      redirect: 'follow',
-      headers: {
-        'User-Agent': randomUserAgent(),
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
+    const response = await withRetry(
+      () => fetch(bingUrl, {
+        signal: AbortSignal.timeout(10000),
+        redirect: 'follow',
+        headers: {
+          'User-Agent': randomUserAgent(),
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      }),
+      {
+        retries: 1,
+        baseDelayMs: 2000,
+        shouldRetry: isTransientNetworkError,
+        label: 'searchWeb bing',
+        log: console.warn,
       },
-    });
+    );
 
     if (response.ok) {
       const html = await response.text();

@@ -25,6 +25,8 @@ import * as path from 'path';
 import { Pool } from 'pg';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { CITIES } from './config';
+import { createDbPool } from './utils/db';
+import { withRetry, isTransientNetworkError } from './utils/withRetry';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -35,6 +37,18 @@ const METRIC_VALUE_TYPE = 'NUMBER';
 const THERR_HOST = process.env.THERR_HOST || 'https://therr.com';
 const FROM_EMAIL = process.env.AWS_SES_FROM_EMAIL || 'info@therr.com';
 const FROM_EMAIL_TITLE = 'Therr App';
+
+// SUPER_ADMIN_ID mirrors therr-services/*/src/constants/index.ts. Imported
+// spaces are inserted with fromUserId = this value; the handler treats such
+// spaces as "unclaimed" when no user has requested to claim them.
+const SUPER_ADMIN_ID_BY_ENV: Record<string, string> = {
+  development: '04e65180-3cff-48b1-988f-4b6e0ab25def',
+  stage: '04e65180-3cff-48b1-988f-4b6e0ab25def',
+  production: '568bf5d2-8595-4fd6-95da-32cc318618d3',
+};
+const SUPER_ADMIN_ID = process.env.SUPER_ADMIN_ID
+  || SUPER_ADMIN_ID_BY_ENV[process.env.NODE_ENV || 'development']
+  || SUPER_ADMIN_ID_BY_ENV.development;
 
 // ── Help ──────────────────────────────────────────────────────────────────────
 function printHelp() {
@@ -101,33 +115,6 @@ function parseArgs(): ICliArgs {
   };
 }
 
-// ── DB helpers ────────────────────────────────────────────────────────────────
-function createMapsPool(): Pool {
-  return new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.MAPS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_WRITE) || 5432,
-    max: 3,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 10000,
-  });
-}
-
-function createUsersPool(): Pool {
-  return new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.USERS_SERVICE_DATABASE || 'therr_dev_users',
-    port: Number(process.env.DB_PORT_MAIN_WRITE) || 5432,
-    max: 3,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 10000,
-  });
-}
-
 // ── Space query ───────────────────────────────────────────────────────────────
 interface ISpaceRow {
   id: string;
@@ -139,13 +126,20 @@ interface ISpaceRow {
 }
 
 async function queryUnclaimedSpaces(mapsPool: Pool, args: ICliArgs): Promise<ISpaceRow[]> {
+  // Replicates handlers/spaces.ts:360's computed `isUnclaimed` rule:
+  // fromUserId === SUPER_ADMIN_ID && !requestedByUserId. Also requires the
+  // space is public and has no pending claim so we only email live, unowned
+  // listings.
+  const params: (string | number)[] = [SUPER_ADMIN_ID];
   const conditions = [
     `"businessEmail" IS NOT NULL`,
     `"businessEmail" != ''`,
-    `"isUnclaimed" = true`,
+    `"fromUserId" = $1`,
+    `"requestedByUserId" IS NULL`,
+    `"isClaimPending" = false`,
+    `"isPublic" = true`,
   ];
-  const params: (string | number)[] = [];
-  let paramIdx = 1;
+  let paramIdx = 2;
 
   if (args.city !== 'all') {
     const cityConfig = CITIES[args.city];
@@ -162,7 +156,7 @@ async function queryUnclaimedSpaces(mapsPool: Pool, args: ICliArgs): Promise<ISp
     paramIdx++;
   }
 
-  let query = `SELECT id, "notificationMsg", "businessEmail", "addressLocality", "addressRegion", category
+  const query = `SELECT id, "notificationMsg", "businessEmail", "addressLocality", "addressRegion", category
     FROM main.spaces
     WHERE ${conditions.join(' AND ')}
     ORDER BY RANDOM()
@@ -283,7 +277,13 @@ async function sendEmail(
     },
   });
 
-  await ses.send(command);
+  await withRetry(() => ses.send(command), {
+    retries: 2,
+    baseDelayMs: 2000,
+    shouldRetry: isTransientNetworkError,
+    label: 'ses.send',
+    log: console.warn,
+  });
 }
 
 // ── Metric write ──────────────────────────────────────────────────────────────
@@ -333,8 +333,8 @@ async function main() {
     process.exit(1);
   }
 
-  const mapsPool = createMapsPool();
-  const usersPool = createUsersPool();
+  const mapsPool = createDbPool({ target: 'maps', max: 3 });
+  const usersPool = createDbPool({ target: 'users', max: 3 });
   const ses = createSesClient();
 
   // Test DB connections

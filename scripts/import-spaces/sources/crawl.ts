@@ -2,6 +2,7 @@
  * Website crawling for image extraction.
  * Extracts the best representative image from a business website.
  */
+import { withRetry, isTransientNetworkError } from '../utils/withRetry';
 
 export interface ICrawlResult {
   imageUrl: string;
@@ -109,15 +110,24 @@ export async function crawlForImages(url: string): Promise<ICrawlResult[]> {
       normalizedUrl = `https://${normalizedUrl}`;
     }
 
-    const response = await fetch(normalizedUrl, {
-      signal: AbortSignal.timeout(10000),
-      redirect: 'follow',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
+    const response = await withRetry(
+      () => fetch(normalizedUrl, {
+        signal: AbortSignal.timeout(10000),
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      }),
+      {
+        retries: 1,
+        baseDelayMs: 2000,
+        shouldRetry: isTransientNetworkError,
+        label: `crawlImages ${normalizedUrl}`,
+        log: console.warn,
       },
-    });
+    );
 
     if (!response.ok) {
       console.warn(`  [crawlImages] HTTP ${response.status} for ${normalizedUrl}`);
