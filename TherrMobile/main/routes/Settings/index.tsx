@@ -1,7 +1,7 @@
 import React from 'react';
 import { SafeAreaView, View, Text } from 'react-native';
 import { SegmentedButtons, Switch } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -128,6 +128,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { navigation } = this.props;
 
         navigation.push('ManagePreferences');
+    };
+
+    goToMyQRCodes = () => {
+        const { navigation } = this.props;
+
+        navigation.push('MyQRCodes');
     };
 
     isFormDisabled() {
@@ -496,6 +502,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         onPress={this.goToManageNotifications}>{this.translate('forms.settings.buttons.manageNotifications')}</Text>
                                 </Text>
                             </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToMyQRCodes}>{this.translate('forms.settings.buttons.myQRCodes')}</Text>
+                                </Text>
+                            </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderContentSettings}
@@ -659,13 +672,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         onPress={this.goToManageAccount}>{this.translate('forms.settings.buttons.manageAccount')}</Text>
                                 </Text>
                             </View>
-                            <View style={this.themeSettingsForm.styles.advancedContainer}>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    <Text
-                                        style={this.themeForms.styles.buttonLink}
-                                        onPress={this.goToManageSpaces}>{this.translate('forms.settings.buttons.manageSpaces')}</Text>
-                                </Text>
-                            </View>
+                            {user.details?.isBusinessAccount && (
+                                <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                    <Text style={this.theme.styles.sectionDescription}>
+                                        <Text
+                                            style={this.themeForms.styles.buttonLink}
+                                            onPress={this.goToManageSpaces}>{this.translate('forms.settings.buttons.manageSpaces')}</Text>
+                                    </Text>
+                                </View>
+                            )}
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderPassword}

@@ -87,17 +87,18 @@ class DirectMessage extends React.Component<
     }
 
     componentDidMount() {
-        const { messages, navigation, route } = this.props;
+        const { navigation, route } = this.props;
         const { connectionDetails } = route.params;
 
         navigation.setOptions({
             title: connectionDetails.userName,
         });
 
-        // TODO: Add logic to update this when user navigates away then returns
-        if (!messages.dms || !messages.dms[connectionDetails.id]) {
-            this.searchDmsByPage(1);
-        }
+        // Always refetch on mount. A cached `dms[peerId]` may hold a single
+        // socket-pushed message or a stale snapshot, which otherwise short-
+        // circuits the fetch and leaves the user staring at an empty/partial
+        // thread (typical when opening from the Connect → Messages tab).
+        this.searchDmsByPage(1);
 
         // TODO: Fetch user details if missing username, name, image, etc.
     }

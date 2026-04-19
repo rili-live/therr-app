@@ -6,7 +6,7 @@ import { Button } from '../../components/BaseButton';
 import EditFormFooter from '../../components/EditFormFooter';
 import LottieView from 'lottie-react-native';
 import { Image } from '../../components/BaseImage';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
@@ -393,9 +393,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
         // before preventDefault is called in the beforeRemove listener
         navigation.setOptions({
-            // animation: 'none', // navigation v6
-            animationEnabled: false,
-            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+            animation: 'none',
         });
     };
 

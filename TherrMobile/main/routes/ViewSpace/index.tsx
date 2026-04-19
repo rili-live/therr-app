@@ -13,7 +13,7 @@ import {
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Text as PaperText } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { showToast } from '../../utilities/toasts';
 import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
@@ -376,8 +376,7 @@ const ViewSpace = ({
         if (isUserAuthenticated(user)) {
             setIsViewingIncentives(true);
             navigation.setOptions({
-                animationEnabled: false,
-                gestureEnabled: true,
+                animation: 'none',
             });
         } else {
             navigation.push('Login');
@@ -392,6 +391,12 @@ const ViewSpace = ({
                     reaction: { ...space.reaction, ...data },
                 },
             });
+            // spaceInView spreads fetchedSpace last, so the fetched reaction
+            // would otherwise clobber the optimistic update.
+            setFetchedSpace((prev) => ({
+                ...prev,
+                reaction: { ...(prev?.reaction || {}), ...data },
+            }));
             return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
         } else {
             navigation.push('Login');

@@ -11,11 +11,13 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { Pool } from 'pg';
-import { CITIES, BATCH_SIZE, IMPORT_USER_ID, OSM_CATEGORY_MAP } from './config';
+import { CITIES, IMPORT_USER_ID, OSM_CATEGORY_MAP } from './config';
 import { fetchOsmData } from './sources/osm';
 import { mapOsmToSpace, ISpaceInsertParams } from './transforms/mapToSpace';
 import { findDuplicates, deduplicateWithinBatch } from './utils/deduplicate';
 import { validateSpace } from './utils/validate';
+import { assertDbConnection, createDbPool } from './utils/db';
+import { insertSpacesBatch } from './utils/insertSpaces';
 
 // Load .env from scripts/import-spaces/ first, fall back to root .env
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -98,84 +100,6 @@ function parseArgs(): ICliArgs {
   };
 }
 
-// ── DB connection ────────────────────────────────────────────────────────────
-function createDbPool(): Pool {
-  return new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.MAPS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_WRITE) || 5432,
-    max: 5,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 5000,
-  });
-}
-
-// ── Insert spaces ────────────────────────────────────────────────────────────
-async function insertSpaces(db: Pool, spaces: ISpaceInsertParams[]): Promise<number> {
-  let inserted = 0;
-
-  for (let i = 0; i < spaces.length; i += BATCH_SIZE) {
-    const batch = spaces.slice(i, i + BATCH_SIZE);
-
-    for (const space of batch) {
-      try {
-        const result = await db.query(
-          `INSERT INTO main.spaces
-            ("fromUserId", locale, "isPublic", message, "notificationMsg",
-             "mediaIds", "mentionsIds", "hashTags", "maxViews",
-             latitude, longitude, radius, "polygonCoords", "maxProximity",
-             "doesRequireProximityToView", "isMatureContent", "isModeratorApproved",
-             "isForSale", "isHirable", "isPromotional", "isExclusiveToGroups",
-             category, "areaType", valuation, region,
-             "addressReadable", "addressStreetAddress", "addressRegion", "addressLocality", "postalCode",
-             "phoneNumber", "businessEmail", "websiteUrl", "isPointOfInterest", "openingHours",
-             geom, "geomCenter")
-          VALUES
-            ($1, $2, $3, $4, $5,
-             $6, $7, $8, $9,
-             $10::float8, $11::float8, $12::float8, $13::jsonb, $14::float8,
-             $15, $16, $17,
-             $18, $19, $20, $21,
-             $22, $23, $24, $25,
-             $26, $27, $28, $29, $30::integer,
-             $31, $32, $33, $34, $35::jsonb,
-             ST_SetSRID(ST_Buffer(ST_MakePoint($11::float8, $10::float8)::geography, $36::float8)::geometry, 4326),
-             ST_SetSRID(ST_MakePoint($11::float8, $10::float8), 4326))
-          ON CONFLICT DO NOTHING
-          RETURNING id`,
-          [
-            space.fromUserId, space.locale, space.isPublic, space.message, space.notificationMsg,
-            space.mediaIds, space.mentionsIds, space.hashTags, space.maxViews,
-            space.latitude, space.longitude, space.radius, space.polygonCoords, space.maxProximity,
-            space.doesRequireProximityToView, space.isMatureContent, space.isModeratorApproved,
-            space.isForSale, space.isHirable, space.isPromotional, space.isExclusiveToGroups,
-            space.category, space.areaType, space.valuation, space.region,
-            space.addressReadable, space.addressStreetAddress, space.addressRegion, space.addressLocality, space.postalCode,
-            space.phoneNumber, space.businessEmail, space.websiteUrl, space.isPointOfInterest, space.openingHours,
-            space.radius, // $36: separate param for ST_Buffer to avoid type ambiguity
-          ],
-        );
-        if (result.rowCount && result.rowCount > 0) {
-          inserted++;
-        }
-      } catch (err: any) {
-        // Log and continue — overlapping geometries or other constraints may cause failures
-        if (err.message?.includes('no_area_overlaps') || err.message?.includes('exclude')) {
-          // Geometry overlap — expected for nearby businesses
-        } else {
-          console.error(`  Failed to insert "${space.notificationMsg}": ${err.message}`);
-        }
-      }
-    }
-
-    console.log(`  Batch progress: ${Math.min(i + BATCH_SIZE, spaces.length)}/${spaces.length} processed, ${inserted} inserted`);
-  }
-
-  return inserted;
-}
-
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   const args = parseArgs();
@@ -202,21 +126,14 @@ async function main() {
   let db: Pool | null = null;
   if (!args.dryRun) {
     db = createDbPool();
-    // Test connection
-    try {
-      await db.query('SELECT 1');
-      console.log('Database connection established.\n');
-    } catch (err: any) {
-      console.error(`Database connection failed: ${err.message}`);
-      console.error('Make sure .env is configured with DB_HOST_MAIN_WRITE, DB_USER_MAIN_WRITE, etc.');
-      process.exit(1);
-    }
+    await assertDbConnection(db);
   }
 
   let totalFetched = 0;
   let totalInserted = 0;
   let totalSkippedValidation = 0;
   let totalSkippedDuplicate = 0;
+  let totalFailed = 0;
   let remaining = args.limit || Infinity;
 
   for (const cityKey of cityKeys) {
@@ -284,10 +201,12 @@ async function main() {
     // Insert
     if (db && spaces.length > 0) {
       console.log(`  Inserting ${spaces.length} spaces...`);
-      const inserted = await insertSpaces(db, spaces);
+      const { inserted, skipped, failed } = await insertSpacesBatch(db, spaces);
       totalInserted += inserted;
+      totalSkippedDuplicate += skipped;
+      totalFailed += failed;
       remaining -= inserted;
-      console.log(`  Inserted: ${inserted}`);
+      console.log(`  Inserted: ${inserted} (skipped ${skipped}, failed ${failed})`);
     }
   }
 
@@ -296,6 +215,7 @@ async function main() {
   console.log(`Total fetched from OSM:   ${totalFetched}`);
   console.log(`Skipped (validation):     ${totalSkippedValidation}`);
   console.log(`Skipped (duplicate):      ${totalSkippedDuplicate}`);
+  console.log(`Failed (DB errors):       ${totalFailed}`);
   console.log(`${args.dryRun ? 'Would insert' : 'Inserted'}:              ${totalInserted}`);
   console.log('══════════════════════════════════════\n');
 

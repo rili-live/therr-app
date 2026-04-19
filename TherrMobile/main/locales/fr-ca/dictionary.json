@@ -782,7 +782,8 @@
         "settingsEmailReminders": "Courriels de rappel de l'application",
         "settingsEmailBackground": "Courriels automatisés de l'application",
         "on": "Activé",
-        "off": "Désactivé"
+        "off": "Désactivé",
+        "myQRCodes": "Gérer mes codes QR"
       },
       "errorMessages": {
         "repeatPassword": "Les mots de passe ne correspondent pas",
@@ -852,6 +853,10 @@
         "twitterHandle": "nom d'utilisateur",
         "youtubeChannelId": "ID de chaîne"
       }
+    },
+    "myQRCodeDetail": {
+      "share": "Partager le lien",
+      "copy": "Copier le lien"
     }
   },
   "interests": {
@@ -1723,6 +1728,32 @@
         "done": "Terminé",
         "spaceUnavailable": "Espace indisponible"
       }
+    },
+    "myQRCodes": {
+      "headerTitle": "Mes codes QR",
+      "subtitle": "Partagez n’importe quel contenu Therr d’un simple scan.",
+      "profileCardHint": "Touchez pour afficher le code QR complet de votre profil.",
+      "profileAccessibilityLabel": "Afficher le code QR complet de votre profil",
+      "profileFallbackName": "Mon profil",
+      "rowAccessibilityLabel": "Afficher le code QR pour {{title}}",
+      "sections": {
+        "profile": "Mon profil",
+        "spaces": "Mes espaces",
+        "events": "Mes événements",
+        "groups": "Mes groupes"
+      },
+      "emptySpaces": "Vous n’avez encore aucun espace.",
+      "emptyEvents": "Vous n’avez encore créé aucun événement.",
+      "emptyGroups": "Vous n’avez encore créé aucun groupe."
+    },
+    "myQRCodeDetail": {
+      "headerTitle": "Code QR",
+      "helperText": "Faites scanner ce code avec un appareil photo pour l’ouvrir dans Therr.",
+      "accessibility": "Code QR menant à {{title}}",
+      "copied": "Lien copié",
+      "privateNote": "Votre profil est privé — les personnes qui scannent verront une vue limitée jusqu’à ce qu’elles se connectent.",
+      "missingEntity": "Aucun détail de code QR n’a été fourni.",
+      "backButton": "Retour"
     }
   },
   "modals": {
@@ -2037,12 +2068,14 @@
         "report": "Signaler cet utilisateur?",
         "syncSocials": "Synchroniser les réseaux sociaux",
         "shareALink": "Copier le lien du profil",
-        "unconnect": "Supprimer la connexion?"
+        "unconnect": "Supprimer la connexion?",
+        "myQRCodes": "Afficher mes codes QR"
       },
       "buttons": {
         "editProfile": "Modifier le profil",
         "syncSocials": "Synchroniser les réseaux sociaux",
-        "message": "Message"
+        "message": "Message",
+        "myQRCode": "Mon code QR"
       },
       "labels": {
         "connections": "connexions",
