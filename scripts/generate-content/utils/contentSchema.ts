@@ -32,11 +32,15 @@ export interface IPostMetadata {
     description: string;
     /** City slug (matches CITIES key from scripts/import-spaces/config.ts). */
     city?: string;
-    /** Category slug (matches space.category). */
+    /** Category slug (matches space.category). Mutually exclusive with hashtag. */
     category?: string;
-    // TODO: add `hashtag?: string` for hashtag-anchored posts.
-    // See docs/CONTENT_HASHTAG_GUIDES_PLAN.md (Phase 3). Validator must enforce
-    // that exactly one of {category, hashtag} is set.
+    /**
+     * Hashtag anchor for intent-based guides (e.g., "firstdate", "latenight").
+     * Stored without the leading '#', lowercase, normalized to match the
+     * `spaces.hashTags` column format. Mutually exclusive with category.
+     * See docs/CONTENT_HASHTAG_GUIDES_PLAN.md.
+     */
+    hashtag?: string;
     /** ISO date string (yyyy-mm-dd). */
     publishedAt: string;
     /** ISO date string (yyyy-mm-dd). */
@@ -134,6 +138,9 @@ export interface IPost extends IPostMetadata {
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+// Hashtags are stored lowercase and without whitespace or '#' — matches the
+// format produced by `buildHashTags` in scripts/import-spaces/transforms/mapToSpace.ts.
+const HASHTAG_RE = /^[a-z0-9][a-z0-9-]{0,49}$/;
 const VALID_TYPES: PostType[] = ['list', 'data', 'mixed'];
 const VALID_STATUSES: PostStatus[] = ['draft', 'published'];
 const VALID_LOCALES: PostLocale[] = ['es', 'fr-ca'];
@@ -237,6 +244,16 @@ export function validatePost(input: unknown, options: IValidatePostOptions = {})
     }
     if (typeof p.author !== 'string' || !p.author.trim()) {
         errors.push({ field: 'author', message: 'Required, non-empty (E-E-A-T signal).' });
+    }
+    const hasCategory = typeof p.category === 'string' && p.category.trim().length > 0;
+    const hasHashtag = typeof p.hashtag === 'string' && p.hashtag.trim().length > 0;
+    if (hasCategory && hasHashtag) {
+        errors.push({ field: 'category|hashtag', message: 'Exactly one of `category` or `hashtag` must be set, not both.' });
+    } else if (!hasCategory && !hasHashtag) {
+        errors.push({ field: 'category|hashtag', message: 'Exactly one of `category` or `hashtag` is required.' });
+    }
+    if (hasHashtag && !HASHTAG_RE.test(p.hashtag as string)) {
+        errors.push({ field: 'hashtag', message: 'Must be lowercase letters/digits/hyphens, no leading `#` (e.g., "firstdate", "live-music").' });
     }
     if (typeof p.lead !== 'string' || !p.lead.trim()) {
         errors.push({ field: 'lead', message: 'Required, non-empty (intro paragraph).' });

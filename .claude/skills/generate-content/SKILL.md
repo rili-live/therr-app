@@ -4,7 +4,7 @@ description: Generate editorial guides and data-driven posts for /guides using p
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Bash(npx ts-node scripts/generate-content/*), Read, Write, Edit
-argument-hint: [--list --city slug --category slug [--curated]] [--data --topic name --city slug] [--review slug] [--refresh slug [--apply] [--add-new n]] [--limit n] [--draft]
+argument-hint: [--list --city slug --category slug [--curated]] [--data --topic name --city slug] [--hashtag --city slug --hashtag tag] [--review slug] [--refresh slug [--apply] [--add-new n]] [--limit n] [--draft]
 ---
 
 # Generate Content (Editorial Guides)
@@ -19,6 +19,7 @@ Output goes to `therr-client-web/src/content/guides/<slug>.json` and is rendered
 |-----------|------|-------------|
 | `--list` | **Curated list post** | Rank top spaces in a city + category; write commentary blurbs |
 | `--data` | **Data-driven post** | Aggregate Therr activity (e.g., busiest hour for bars in Denver) |
+| `--hashtag` | **Hashtag-anchored post** | Rank spaces by user-applied intent tag (e.g., `firstdate`, `latenight`) in a city |
 | `--review <slug>` | **Review existing post** | Read the post JSON and check headline, lead, blurbs, FAQ for quality |
 | `--refresh <slug>` | **Refresh existing post** | Re-check space references against production; optionally prune/bump updatedAt |
 
@@ -223,6 +224,70 @@ Adds up to N new spaces to the last `space-list` section (drawing from the post'
 
 ---
 
+## Mode 5: Hashtag-anchored post (`--hashtag`)
+
+Hashtag posts rank spaces by user-applied intent tags (`firstdate`, `latenight`, `worksession`, `livemusic`) rather than by category. The goal is to serve intent-based long-tail queries — "first date bars chicago", "late night food portland", "coffee shops to work seattle" — that category-driven directories can't.
+
+The post's anchor is stored as `hashtag: "<tag>"` in `IPostMetadata` **instead of** `category`. The validator enforces exactly one of `{category, hashtag}`. A hashtag filter listing is served at `/guides/hashtag/<tag>` and hashtag URLs are included in `/sitemap-guides.xml`.
+
+### Before you start: check the data
+
+The `spaces.hashTags` column is today mostly populated by the OSM ingester (`scripts/import-spaces/transforms/mapToSpace.ts`), which derives tags from OSM `cuisine` / `amenity` / `shop` / `tourism` values. These look more like categories (`italian`, `bar`, `coffee`) than user intent (`firstdate`, `latenight`). **Run discovery first to confirm there's meaningful intent-shaped signal in the target city before writing a post**:
+
+```
+npx ts-node scripts/generate-content/discover-hashtags --city <city> --minSpaces 8 --intentOnly
+```
+
+- Drop `--intentOnly` to see all tags (useful for understanding what's actually there).
+- `--intentOnly` filters to an allowlist of intent-shaped tags (see `INTENT_HASHTAG_ALLOWLIST` in the script).
+- If the intent-only output is empty or thin, this plan is blocked on enriching user-applied tags upstream; don't force it.
+
+### Step 1: Query spaces by hashtag
+
+```
+npx ts-node scripts/generate-content/query-by-hashtag --city <slug> --hashtag <tag> --limit <n> [--window <days>] [--mode auto|engagement|curated]
+```
+
+Same ranking discipline as `query-top-spaces` (engagement / curated / auto with `modeReason`). The matcher does an **exact, normalized tag match** after splitting `hashTags` on commas — `firstdate` will not match `firstdateandlast`. A leading `#` on `--hashtag` is stripped.
+
+### Step 2: Write the post
+
+Build the post JSON with `hashtag` in place of `category`:
+
+```json
+{
+  "slug": "first-date-bars-chicago",
+  "type": "list",
+  "status": "published",
+  "title": "8 First-Date Bars in Chicago",
+  "description": "Editor-picked bars with the right vibe for a first date — conversational, not too loud, easy to find.",
+  "city": "chicago-il",
+  "hashtag": "firstdate",
+  "publishedAt": "2026-04-19",
+  "updatedAt": "2026-04-19",
+  "author": "Therr Editorial",
+  "lead": "...",
+  "sections": [ /* same section types as Mode 1 */ ]
+}
+```
+
+All other rules from Mode 1 apply: title ≤ 70 chars, description ≤ 165, honest mode framing, at least one `space-list`, 3–5 FAQ items.
+
+### Step 3: Save
+
+```
+echo '<post-json>' | npx ts-node scripts/generate-content/save-post --stdin
+```
+
+The validator enforces `category XOR hashtag` — setting both or neither fails.
+
+### When to use this vs. Mode 1
+
+- **Category post (`--list` + `--category`)**: "best bars in Chicago" — broad, covers the whole category.
+- **Hashtag post (`--hashtag`)**: "best first-date bars in Chicago" — narrower, intent-anchored. Sibling to the category post, not a replacement.
+
+Cross-link hashtag posts from their category-post sibling in prose ("for date-night specifically, see our first-date bars guide") and vice versa.
+
 ## Locale workflow (multilingual guides)
 
 Guides can carry translated content under `locales.es` / `locales.fr-ca`. The SSR layer (`resolveGuideForLocale()`) swaps in the localized `title`, `description`, `lead`, and `sections` when the request comes in at `/es/guides/<slug>` or `/fr-ca/guides/<slug>`. Pick target locales per city based on local-language population density and weak competitor coverage — see `docs/CONTENT_LOCALE_FIRST_PLAN.md` for the target-market table.
@@ -321,7 +386,8 @@ When implementing any of these, the relevant schema/script files contain `TODO:`
 - Save/validate post: `scripts/generate-content/save-post.ts` (supports `--require-locales <es,fr-ca>`)
 - Refresh existing post: `scripts/generate-content/refresh-post.ts`
 - Translate post: `scripts/generate-content/translate-post.ts` (emits a translator prompt for a given locale)
-- Discovery helpers: `scripts/generate-content/discover-categories.ts`
+- Discovery helpers: `scripts/generate-content/discover-categories.ts`, `scripts/generate-content/discover-hashtags.ts`
+- Query by hashtag: `scripts/generate-content/query-by-hashtag.ts`
 - Diagnostics (ad-hoc): `scripts/generate-content/diagnostics/discover-impressions.ts`, `diagnostics/discover-metrics.ts`
 - Frontend renderer: `therr-client-web/src/routes/Guide/index.tsx`
 - JSON-LD builder: `therr-client-web/src/utilities/guideJsonLd.ts`

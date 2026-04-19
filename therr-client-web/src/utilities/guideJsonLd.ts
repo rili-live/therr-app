@@ -19,6 +19,17 @@ export interface IGuideSchemas {
 
 const escapeForJsonLd = (input: any): string => JSON.stringify(input);
 
+function humanizeHashtag(tag: string): string {
+    return tag
+        .replace(/-/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+}
+
 const buildArticle = ({ post, resolved, canonicalPath }: IBuildArgs) => {
     const article: any = {
         '@context': 'https://schema.org',
@@ -49,6 +60,9 @@ const buildArticle = ({ post, resolved, canonicalPath }: IBuildArgs) => {
     if (post.heroImage?.url) {
         article.image = post.heroImage.url;
     }
+    if (post.hashtag) {
+        article.keywords = post.hashtag;
+    }
     return article;
 };
 
@@ -64,9 +78,17 @@ const buildBreadcrumb = ({ post, resolved, canonicalPath }: IBuildArgs) => {
     if (post.city) {
         items.push({
             '@type': 'ListItem',
-            position: 3,
+            position: items.length + 1,
             name: post.city,
             item: `${SITE_ORIGIN}/guides/city/${post.city}`,
+        });
+    }
+    if (post.hashtag) {
+        items.push({
+            '@type': 'ListItem',
+            position: items.length + 1,
+            name: humanizeHashtag(post.hashtag),
+            item: `${SITE_ORIGIN}/guides/hashtag/${post.hashtag}`,
         });
     }
     items.push({

@@ -305,6 +305,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/guides/hashtag/:hashtag',
+        head: {
+            title: 'Hashtag Guides',
+            description: 'Local guides organized by intent — first date, late night, work-friendly, live music, and more.',
+        },
+        view: 'index',
+    },
+    {
         route: '/guides/:slug',
         head: {
             // Per-post title/description are injected by server-client.tsx from the post JSON.

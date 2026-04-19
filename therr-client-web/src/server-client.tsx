@@ -446,9 +446,11 @@ app.get('/sitemap-guides.xml', (req, res) => {
     const posts = getPublishedGuides();
     const cities = new Set<string>();
     const categories = new Set<string>();
+    const hashtags = new Set<string>();
     posts.forEach((p) => {
         if (p.city) cities.add(p.city);
         if (p.category) categories.add(p.category);
+        if (p.hashtag) hashtags.add(p.hashtag);
     });
 
     const urls: string[] = [];
@@ -458,6 +460,7 @@ app.get('/sitemap-guides.xml', (req, res) => {
         const slug = getCategoryUrlSlug(c);
         if (slug) urls.push(buildUrlSet(`/guides/category/${slug}`, today, '0.75'));
     });
+    hashtags.forEach((h) => urls.push(buildUrlSet(`/guides/hashtag/${h}`, today, '0.75')));
     posts.forEach((p) => {
         const lastmod = (p.updatedAt || p.publishedAt || today).slice(0, 10);
         urls.push(buildUrlSet(`/guides/${p.slug}`, lastmod, '0.80'));
