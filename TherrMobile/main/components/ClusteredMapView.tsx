@@ -155,6 +155,7 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
                         const { cluster_id, point_count } = item.properties;
                         const [longitude, latitude] = item.geometry.coordinates;
                         const { size, fontSize } = getClusterStyle(point_count);
+                        const haloSize = size + 14;
                         return (
                             <Marker
                                 key={`cluster-${cluster_id}`}
@@ -164,28 +165,49 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
                             >
                                 <View
                                     style={[
-                                        styles.clusterInner,
+                                        styles.clusterOuter,
                                         {
-                                            backgroundColor: clusterColor,
-                                            width: size,
-                                            height: size,
-                                            borderRadius: size / 2,
+                                            width: haloSize,
+                                            height: haloSize,
                                         },
                                     ]}
                                 >
-                                    <Text
+                                    <View
                                         style={[
-                                            styles.clusterText,
+                                            styles.clusterHalo,
                                             {
-                                                color: clusterTextColor,
-                                                fontSize,
-                                                lineHeight: fontSize + 2,
-                                                fontFamily: clusterFontFamily,
+                                                backgroundColor: clusterColor,
+                                                width: haloSize,
+                                                height: haloSize,
+                                                borderRadius: haloSize / 2,
+                                            },
+                                        ]}
+                                    />
+                                    <View
+                                        style={[
+                                            styles.clusterInner,
+                                            {
+                                                backgroundColor: clusterColor,
+                                                width: size,
+                                                height: size,
+                                                borderRadius: size / 2,
                                             },
                                         ]}
                                     >
-                                        {point_count}
-                                    </Text>
+                                        <Text
+                                            style={[
+                                                styles.clusterText,
+                                                {
+                                                    color: clusterTextColor,
+                                                    fontSize,
+                                                    lineHeight: fontSize + 2,
+                                                    fontFamily: clusterFontFamily,
+                                                },
+                                            ]}
+                                        >
+                                            {point_count}
+                                        </Text>
+                                    </View>
                                 </View>
                             </Marker>
                         );
@@ -203,7 +225,7 @@ const ClusteredMapView = forwardRef<MapView, ClusteredMapViewProps>(
 
 const styles = StyleSheet.create({
     clusterOuter: { justifyContent: 'center', alignItems: 'center' },
-    clusterHalo: { position: 'absolute', opacity: 0.5 },
+    clusterHalo: { position: 'absolute', opacity: 0.35 },
     clusterInner: { justifyContent: 'center', alignItems: 'center', zIndex: 1 },
     clusterText: { fontWeight: 'bold' },
 });

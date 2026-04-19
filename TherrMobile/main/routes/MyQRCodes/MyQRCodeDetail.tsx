@@ -151,7 +151,7 @@ class MyQRCodeDetail extends React.Component<IMyQRCodeDetailProps, IMyQRCodeDeta
                 {!!title && (
                     <Text
                         numberOfLines={2}
-                        style={[staticStyles.headerTitle, { color: this.theme.colors.textBlack }]}
+                        style={[staticStyles.headerTitle, { color: this.theme.colors.textWhite }]}
                     >
                         {title}
                     </Text>

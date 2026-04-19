@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, View, Modal, ScrollView, Animated, Dimensions } from 'react-native';
+import { Pressable, Text, View, Modal, ScrollView, Animated, Dimensions, Easing, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge, Drawer } from 'react-native-paper';
@@ -120,12 +120,16 @@ class HeaderMenuRight extends React.PureComponent<
         const { isModalVisible } = this.state;
         const menuWidth = Dimensions.get('window').width * 0.75;
         const nextVisible = shouldClose ? false : !isModalVisible;
+        // Keep in sync with the spring/easing feel below.
+        const duration = 280;
+        const easing = Easing.out(Easing.cubic);
 
         return new Promise((resolve) => {
             if (!nextVisible && isModalVisible) {
                 Animated.timing(this.slideAnim, {
                     toValue: menuWidth,
-                    duration: 250,
+                    duration,
+                    easing: Easing.in(Easing.cubic),
                     useNativeDriver: true,
                 }).start(() => {
                     this.setState({ isModalVisible: false }, () => resolve(null));
@@ -133,11 +137,18 @@ class HeaderMenuRight extends React.PureComponent<
             } else if (nextVisible && !isModalVisible) {
                 this.slideAnim.setValue(menuWidth);
                 this.setState({ isModalVisible: true }, () => {
-                    Animated.timing(this.slideAnim, {
-                        toValue: 0,
-                        duration: 250,
-                        useNativeDriver: true,
-                    }).start(() => resolve(null));
+                    // Defer the opening animation until the Modal's native window
+                    // has mounted and laid out. Under Fabric + Android, starting
+                    // the native-driver animation in the same frame as the Modal
+                    // mount can drop frames and cause a visible stutter.
+                    InteractionManager.runAfterInteractions(() => {
+                        Animated.timing(this.slideAnim, {
+                            toValue: 0,
+                            duration,
+                            easing,
+                            useNativeDriver: true,
+                        }).start(() => resolve(null));
+                    });
                 });
             } else {
                 resolve(null);

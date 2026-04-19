@@ -27,7 +27,9 @@ const getButtonContainerStyle: any = () => ( {
     flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
+    paddingTop: 8,
+    paddingBottom: 4,
     margin: 0,
     height: '100%',
     borderRadius: 0,
@@ -36,8 +38,9 @@ const getButtonContainerStyle: any = () => ( {
 const getButtonsTitleStyle = (theme: ITherrTheme) => ({
     backgroundColor: 'transparent',
     fontSize: 10,
-    marginTop: 5,
-    paddingBottom: Platform.OS === 'ios' ? 10 : 0,
+    lineHeight: 12,
+    marginTop: 3,
+    paddingBottom: 0,
     fontFamily: therrFontFamily,
     ...getIconStyle(theme),
 });

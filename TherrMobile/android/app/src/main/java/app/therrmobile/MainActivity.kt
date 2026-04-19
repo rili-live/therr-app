@@ -42,25 +42,32 @@ class MainActivity : ReactActivity() {
         val intentAction = intent.action
         someEvent.putString("action", intentAction)
 
-        // Bugfix: https://stackoverflow.com/questions/48445010/send-data-from-android-activity-to-react-native
-        while (reactInstanceManager.currentReactContext == null);
-        reactInstanceManager.currentReactContext!!
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit("new-intent-action", someEvent)
-        if (uri != null) {
-            val deepLinkURL = uri.toString()
-            if (deepLinkURL.contains("verify-account")) {
-                val event = Arguments.createMap()
-                // Put data to map
-                event.putString("url", deepLinkURL)
-                // Get EventEmitter from context and send event thanks to it
-                reactInstanceManager.currentReactContext!!
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                    .emit("url", event)
+        // Under the New Architecture, reactInstanceManager is null; the
+        // bridgeless runtime exposes the context via reactHost instead.
+        val reactContext = reactHost?.currentReactContext
+            ?: runCatching { reactInstanceManager.currentReactContext }.getOrNull()
+
+        if (reactContext != null) {
+            reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                .emit("new-intent-action", someEvent)
+            if (uri != null) {
+                val deepLinkURL = uri.toString()
+                if (deepLinkURL.contains("verify-account")) {
+                    val event = Arguments.createMap()
+                    event.putString("url", deepLinkURL)
+                    reactContext
+                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                        .emit("url", event)
+                } else {
+                    setIntent(intent)
+                }
             } else {
                 setIntent(intent)
             }
         } else {
+            // React context isn't ready yet — persist the intent so JS can
+            // pick it up once it boots (via getInitialURL / getInitialNotification).
             setIntent(intent)
         }
         super.onNewIntent(intent)

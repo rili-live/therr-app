@@ -326,6 +326,17 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 },
             },
         });
+        // momentInView spreads fetchedMoment last, so the fetched reaction
+        // would otherwise clobber the optimistic update.
+        this.setState((prevState) => ({
+            fetchedMoment: {
+                ...prevState.fetchedMoment,
+                reaction: {
+                    ...(prevState.fetchedMoment?.reaction || {}),
+                    ...data,
+                },
+            },
+        }));
         return createOrUpdateMomentReaction(momentId, data, moment.fromUserId, user.details.userName);
     };
 

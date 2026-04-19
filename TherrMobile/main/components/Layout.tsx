@@ -1547,7 +1547,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         if (isSearchRoute) {
                             // native-stack's native headerTitle slot has a constrained width,
                             // so a custom JS header is required to render a full-width search input
-                            // alongside the left/right menu buttons.
+                            // alongside the left/right menu buttons. Left/right padding mirrors
+                            // native-stack's built-in header so non-search and search routes
+                            // align visually.
                             const customHeaderStyle = {
                                 backgroundColor: headerStyle?.backgroundColor,
                                 borderBottomColor: headerStyle?.borderBottomColor,
@@ -1559,10 +1561,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         flexDirection: 'row',
                                         alignItems: 'center',
                                         height: 52,
-                                        paddingLeft: 4,
+                                        paddingHorizontal: 8,
                                     }}>
                                         {headerLeftNode}
-                                        <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 6 }}>
+                                        <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
                                             {searchInputNode}
                                         </View>
                                         {headerRightNode}
