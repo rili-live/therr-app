@@ -1,0 +1,92 @@
+{
+  "slug": "editors-picks-restaurants-portland",
+  "type": "list",
+  "status": "published",
+  "title": "Editor's Picks: 8 Portland Restaurants Worth Knowing",
+  "description": "A hand-picked guide to indie restaurants and cafes across Portland, OR — local favorites with strong neighborhood character.",
+  "city": "portland-or",
+  "category": "categories.restaurant/food",
+  "publishedAt": "2026-04-19",
+  "updatedAt": "2026-04-19",
+  "author": "Therr Editorial",
+  "lead": "Portland's food scene runs deep — beyond the food trucks and the cookbook-circuit names, these are eight independent restaurants and cafes the Therr editorial team picked for distinct character. Order shouldn't be read as a ranking.",
+  "sections": [
+    {
+      "type": "prose",
+      "body": "These picks were curated by the Therr editorial team from venues with complete profiles on Therr — places with a published website, address, and enough information that we could verify they're open and findable. We don't rank by popularity here; the order reflects editorial judgment and venue completeness, not visit counts."
+    },
+    {
+      "type": "space-list",
+      "items": [
+        {
+          "spaceId": "574c5f9a-a114-4efd-9941-eb954882c993",
+          "rank": 1,
+          "blurb": "Australian-style savory and sweet pies in Southeast Portland — a cult favorite for kangaroo, lamb, and the morning sausage roll."
+        },
+        {
+          "spaceId": "950fbfd9-9618-4ffc-a59a-8e7bb2123c62",
+          "rank": 2,
+          "blurb": "A Portland coffee bar focused on the cup itself — small menu, careful pour, and the kind of room that rewards lingering."
+        },
+        {
+          "spaceId": "70712cbd-a753-4c4e-8ab3-cf8986df0996",
+          "rank": 3,
+          "blurb": "Coffee, sandwiches, and a Russian-tinged menu in an unassuming corner spot."
+        },
+        {
+          "spaceId": "61c13d2f-9c18-4924-a666-822456d122d2",
+          "rank": 4,
+          "blurb": "Long-standing Chinese restaurant on Portland's east side — old-school menu, generous portions, and the kind of place locals send out-of-town family."
+        },
+        {
+          "spaceId": "17a01701-ae92-42b1-b0d0-3db44eed885f",
+          "rank": 5,
+          "blurb": "Native-owned coffee house in NE Portland with a community-rooted menu and a steady stream of neighborhood regulars."
+        },
+        {
+          "spaceId": "1cbfbcbd-4544-4cc7-bce9-522350528b91",
+          "rank": 6,
+          "blurb": "Roaster and coffee pub blending the cafe and tasting-room vibe — try the single-origin pours."
+        },
+        {
+          "spaceId": "1a507f01-92a2-4bb4-b7ff-82776e358d15",
+          "rank": 7,
+          "blurb": "Ruse Brewing's Slabtown taproom paired with Crust Collective's Detroit-style pizza — beer flight + square slice is the move."
+        },
+        {
+          "spaceId": "75f11904-b585-4093-9184-305a54eaef15",
+          "rank": 8,
+          "blurb": "Oaxacan-style tamales done with Portland-level care — banana-leaf wraps, mole, and a salsa bar that earns the trip."
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "items": [
+        {
+          "question": "How were these Portland restaurants chosen?",
+          "answer": "These are editor picks from venues with complete profiles on Therr — verified address, website, and enough information that we could confirm the spot is open and findable. We exclude chains and any listings flagged as low-quality."
+        },
+        {
+          "question": "Why is order not a ranking?",
+          "answer": "We don't have enough community visit data in this category yet to support a popularity-based ranking. Rather than fake one, we're upfront: this is an editorial selection, ordered by the editor's preference within the curated set."
+        },
+        {
+          "question": "Will this list be updated?",
+          "answer": "Yes. We re-check featured venues against our database periodically and bump the updatedAt date when changes are applied. Closed or unverifiable spots are pruned and replaced."
+        },
+        {
+          "question": "Where can I find more Portland restaurants?",
+          "answer": "The full directory of Portland restaurants on Therr includes hundreds more spaces — including newer openings that didn't make this curated list."
+        }
+      ]
+    },
+    {
+      "type": "cta",
+      "heading": "More Portland restaurants",
+      "body": "See more local spots and the full directory on Therr.",
+      "href": "/locations/city/portland-or/restaurant-food",
+      "ctaText": "Browse all"
+    }
+  ]
+}

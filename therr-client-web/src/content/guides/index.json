@@ -1,0 +1,35 @@
+[
+  {
+    "slug": "editors-picks-bars-chicago",
+    "type": "list",
+    "status": "published",
+    "title": "Editor's Picks: 8 Local Chicago Bars Worth Knowing",
+    "description": "A hand-picked guide to neighborhood pubs, breweries, and wine bars across Chicago — local favorites with character, not chains.",
+    "city": "chicago-il",
+    "category": "categories.bar/drinks",
+    "publishedAt": "2026-04-19",
+    "updatedAt": "2026-04-19"
+  },
+  {
+    "slug": "editors-picks-bars-seattle",
+    "type": "list",
+    "status": "published",
+    "title": "Editor's Picks: 8 Seattle Bars Worth Knowing",
+    "description": "A hand-picked guide to dive bars, breweries, and craft cocktail spots across Seattle, WA — local favorites you should know.",
+    "city": "seattle-wa",
+    "category": "categories.bar/drinks",
+    "publishedAt": "2026-04-19",
+    "updatedAt": "2026-04-19"
+  },
+  {
+    "slug": "editors-picks-restaurants-portland",
+    "type": "list",
+    "status": "published",
+    "title": "Editor's Picks: 8 Portland Restaurants Worth Knowing",
+    "description": "A hand-picked guide to indie restaurants and cafes across Portland, OR — local favorites with strong neighborhood character.",
+    "city": "portland-or",
+    "category": "categories.restaurant/food",
+    "publishedAt": "2026-04-19",
+    "updatedAt": "2026-04-19"
+  }
+]
