@@ -301,6 +301,18 @@ For cities where we'd publish **only** in `es` or `fr-ca` (e.g., Mexico City, Mo
 - Don't skip the validator. If `save-post` fails, fix the JSON; do not bypass
 - Don't `--apply` a refresh without first reading the report-only output — pruning is irreversible without git
 
+## Roadmap
+
+Planned expansions to this content system are tracked in `docs/`. Read the umbrella first when scoping any non-trivial change to the editorial pipeline:
+
+- `docs/CONTENT_GUIDES_ROADMAP.md` — index + sequencing rationale
+- `docs/CONTENT_LOCALE_FIRST_PLAN.md` (P1) — make every guide trilingual (en-us / es / fr-ca) before scaling
+- `docs/CONTENT_HASHTAG_GUIDES_PLAN.md` (P2) — hashtag-anchored guides as alternative to category posts
+- `docs/CONTENT_WALKABLE_CLUSTERS_PLAN.md` (P2) — geo-clustered "walkable route" sections
+- `docs/CONTENT_MOMENT_DRIVEN_PLAN.md` (P2) — pull user-generated moments into guides (privacy/consent gated)
+
+When implementing any of these, the relevant schema/script files contain `TODO:` comments pointing back at the plan doc — start there.
+
 ## Reference
 
 - Schema: `scripts/generate-content/utils/contentSchema.ts`
