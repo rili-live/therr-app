@@ -251,45 +251,43 @@ async function webSearch(query: string): Promise<ISearchResult[]> {
     console.warn(`  [searchWeb] Bing error: ${err.message}`);
   }
 
-  // Fallback to DuckDuckGo with retry + backoff
+  // Fallback to DuckDuckGo with retry + backoff. DDG returns 403 when
+  // rate-limited; treat that as a retryable signal alongside network blips.
   const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-  const maxRetries = 2;
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    if (attempt > 0) {
-      const backoff = 2000 * Math.pow(2, attempt - 1) + Math.random() * 1000;
-      console.warn(`  [searchWeb] DDG retry ${attempt}/${maxRetries}, waiting ${Math.round(backoff)}ms...`);
-      await new Promise((resolve) => { setTimeout(resolve, backoff); });
-    }
-
-    try {
-      const response = await fetch(ddgUrl, {
-        signal: AbortSignal.timeout(10000),
-        redirect: 'follow',
-        headers: {
-          'User-Agent': randomUserAgent(),
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
-      });
-
-      if (response.ok) {
-        const html = await response.text();
-        return extractDdgResults(html);
-      }
-
-      if (response.status !== 403) {
+  try {
+    return await withRetry(
+      async () => {
+        const response = await fetch(ddgUrl, {
+          signal: AbortSignal.timeout(10000),
+          redirect: 'follow',
+          headers: {
+            'User-Agent': randomUserAgent(),
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+          },
+        });
+        if (response.ok) {
+          return extractDdgResults(await response.text());
+        }
+        if (response.status === 403) {
+          throw new Error('DDG rate limited (HTTP 403)');
+        }
         console.warn(`  [searchWeb] DuckDuckGo returned HTTP ${response.status}`);
         return [];
-      }
-      // 403 = rate limited, retry
-    } catch (err: any) {
-      console.warn(`  [searchWeb] DDG error: ${err.message}`);
-      return [];
-    }
+      },
+      {
+        retries: 2,
+        baseDelayMs: 2000,
+        shouldRetry: (err) => (err instanceof Error && err.message.includes('403'))
+          || isTransientNetworkError(err),
+        label: 'searchWeb ddg',
+        log: console.warn,
+      },
+    );
+  } catch (err: any) {
+    console.warn(`  [searchWeb] DDG error: ${err.message}`);
+    return [];
   }
-
-  console.warn('  [searchWeb] All search engines exhausted');
-  return [];
 }
 
 /**

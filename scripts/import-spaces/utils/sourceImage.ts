@@ -52,12 +52,11 @@ export async function sourceImageForSpace(
   const prefix = progress ? `${progress} ` : '';
 
   // Idempotency: don't re-upload if this space already has media.
-  const hasMedia = Boolean(
-    (space.mediaIds && space.mediaIds !== '')
-    || (Array.isArray(space.medias) && space.medias.length > 0)
-    || (space.medias && typeof space.medias === 'object' && !Array.isArray(space.medias)),
-  );
-  if (hasMedia) {
+  // `mediaIds` is a legacy text column; `medias` is jsonb. Treat empty string,
+  // empty array, and empty object all as "no media".
+  const hasMediaIds = typeof space.mediaIds === 'string' && space.mediaIds !== '';
+  const hasMediasArray = Array.isArray(space.medias) && space.medias.length > 0;
+  if (hasMediaIds || hasMediasArray) {
     return { status: 'skipped-has-media' };
   }
 

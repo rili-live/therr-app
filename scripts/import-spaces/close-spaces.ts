@@ -108,7 +108,7 @@ async function main() {
     const { rows: matched } = await db.query(
       `SELECT id, "notificationMsg", "isPublic", "isClaimPending"
          FROM main.spaces
-        WHERE id = ANY($1)`,
+        WHERE id = ANY($1::uuid[])`,
       [args.ids],
     );
 
@@ -139,7 +139,7 @@ async function main() {
           SET "isPublic" = false,
               "isClaimPending" = false,
               "updatedAt" = NOW()
-        WHERE id = ANY($1)`,
+        WHERE id = ANY($1::uuid[])`,
       [matchedIds],
     );
 

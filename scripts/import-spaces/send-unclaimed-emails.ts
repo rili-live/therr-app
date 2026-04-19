@@ -280,10 +280,21 @@ async function sendEmail(
   await withRetry(() => ses.send(command), {
     retries: 2,
     baseDelayMs: 2000,
-    shouldRetry: isTransientNetworkError,
+    shouldRetry: isTransientSesError,
     label: 'ses.send',
     log: console.warn,
   });
+}
+
+// Retry transient SES/AWS errors (throttling, 5xx) as well as generic network blips.
+function isTransientSesError(err: unknown): boolean {
+  if (err && typeof err === 'object') {
+    const name = (err as { name?: string }).name || '';
+    if (/Throttling|TooManyRequests|ServiceUnavailable|RequestTimeout|InternalFailure/i.test(name)) {
+      return true;
+    }
+  }
+  return isTransientNetworkError(err);
 }
 
 // ── Metric write ──────────────────────────────────────────────────────────────
@@ -294,7 +305,7 @@ async function logEmailSentMetric(usersPool: Pool, spaceId: string, businessEmai
      ON CONFLICT DO NOTHING`,
     [
       METRIC_NAME,
-      '', // system-level metric, no user context
+      null, // system-level metric; userMetrics.userId is a nullable uuid FK
       '1',
       METRIC_VALUE_TYPE,
       JSON.stringify({ spaceId, businessEmail }),

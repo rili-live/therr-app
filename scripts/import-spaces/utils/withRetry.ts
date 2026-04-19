@@ -79,6 +79,9 @@ export function isTransientNetworkError(err: unknown): boolean {
     || msg.includes('enotfound')
     || msg.includes('socket hang up')
     || msg.includes('eai_again')
-    || /\b5\d\d\b/.test(msg)
+    // Match HTTP 5xx only when clearly framed as a status, not any 3-digit number.
+    || /\bhttp\s*5\d\d\b/.test(msg)
+    || /\bstatus(?:\s*(?:code)?)?[:\s]+5\d\d\b/.test(msg)
+    || /\b5\d\d\s+(?:server|bad gateway|service unavailable|gateway timeout|internal server error)\b/.test(msg)
   );
 }

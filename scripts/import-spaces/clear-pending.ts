@@ -99,7 +99,15 @@ function parseArgs(): ICliArgs {
     category: parsed.category || 'all',
     ids,
     beforeDate: parsed['before-date'] || null,
-    limit: parsed.limit ? parseInt(parsed.limit, 10) : 0,
+    limit: (() => {
+      if (!parsed.limit) return 0;
+      const n = parseInt(parsed.limit, 10);
+      if (!Number.isFinite(n) || n < 0) {
+        console.error(`Error: --limit must be a non-negative integer (got "${parsed.limit}").`);
+        process.exit(1);
+      }
+      return n;
+    })(),
     // If neither --dry-run nor --yes was passed, default to dry-run for safety.
     dryRun: parsed.dryRun === 'true' || parsed.yes !== 'true',
     yes: parsed.yes === 'true',
