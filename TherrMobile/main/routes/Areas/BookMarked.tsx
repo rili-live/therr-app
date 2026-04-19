@@ -8,7 +8,7 @@ import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
@@ -269,6 +269,11 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                             <MaterialIcon name="chevron-right" size={20} color="#26a69a" />
                         </TouchableOpacity>
                     </View>
+                    <View style={headerStyles.sectionHeading}>
+                        <Text style={headerStyles.sectionHeadingText}>
+                            {this.translate('pages.bookmarks.postsHeading')}
+                        </Text>
+                    </View>
                     <AreaCarousel
                         activeData={activeData}
                         content={content}
@@ -326,6 +331,15 @@ const headerStyles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#26a69a',
+    },
+    sectionHeading: {
+        paddingHorizontal: 12,
+        paddingTop: 8,
+        paddingBottom: 4,
+    },
+    sectionHeadingText: {
+        fontSize: 16,
+        fontWeight: '700',
     },
 });
 

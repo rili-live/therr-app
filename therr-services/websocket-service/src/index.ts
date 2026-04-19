@@ -22,7 +22,9 @@ import authenticate from './utilities/authenticate';
 import notifyConnections from './utilities/notify-connections';
 import { UserStatus } from './constants';
 import { FORUM_PREFIX } from './handlers/rooms';
+import config, { validateEnv } from './config';
 
+validateEnv();
 tracing.start();
 
 export const rsAppName = 'therrChat';
@@ -71,20 +73,19 @@ const leaveAndNotifyRooms = (socket: Socket) => {
 
 const startExpressSocketIOServer = () => {
     const app = express();
-    const { SOCKET_PORT } = process.env;
 
     // Healthcheck
     app.get('/', (req, res) => { res.status(200).json('OK'); });
     app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); });
 
     const server = http.createServer(app);
-    serverObj = server.listen(Number(SOCKET_PORT), () => {
+    serverObj = server.listen(config.port, () => {
         logSpan({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
-            messages: `Server (websocket service) running on port, ${SOCKET_PORT}, with process id ${process.pid}`,
+            messages: `Server (websocket service) running on port, ${config.port}, with process id ${process.pid}`,
             traceArgs: {
-                port: SOCKET_PORT,
+                port: config.port,
                 'process.id': process.pid,
             },
         });
@@ -320,7 +321,7 @@ interface WebpackHotModule {
 
 declare const module: WebpackHotModule;
 
-if (process.env.NODE_ENV === 'development' && module.hot) {
+if (config.nodeEnv === 'development' && module.hot) {
     module.hot.accept();
     module.hot.dispose(() => serverObj.close());
 }
@@ -331,7 +332,7 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            port: process.env.SOCKET_PORT,
+            port: config.port,
             'process.id': process.pid,
             'error.isUncaughtException': true,
             'error.message': err?.message,

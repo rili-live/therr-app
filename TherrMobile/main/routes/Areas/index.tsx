@@ -23,8 +23,7 @@ import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
-// import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -36,7 +35,7 @@ import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, handleThoughtReaction, loadMorePosts, navToViewContent } from '../../utilities/postViewHelpers';
 import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
-import LazyPlaceholder from './components/LazyPlaceholder';
+import LazyPlaceholder from '../../components/LazyPlaceholder';
 import AreaCarousel from './AreaCarousel';
 import TherrIcon from '../../components/TherrIcon';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
@@ -837,13 +836,13 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         renderScene={this.renderSceneMap}
                         renderLazyPlaceholder={() => (
                             <View style={this.theme.styles.sectionContainer}>
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
                             </View>
                         )}
                         onIndexChange={this.onTabSelect}

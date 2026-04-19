@@ -14,7 +14,7 @@ import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { navToViewContent } from '../../utilities/postViewHelpers';
 
@@ -67,7 +67,24 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
 
     componentDidMount() {
         this.refresh();
+        this.syncNavTitle();
     }
+
+    componentDidUpdate(prevProps: IListDetailProps) {
+        const prevName = prevProps.content?.activeUserList?.name;
+        const currName = this.props.content?.activeUserList?.name;
+        if (prevName !== currName) {
+            this.syncNavTitle();
+        }
+    }
+
+    syncNavTitle = () => {
+        const { navigation, content } = this.props;
+        const activeUserList = content?.activeUserList;
+        if (activeUserList && navigation) {
+            navigation.setOptions({ title: activeUserList.name });
+        }
+    };
 
     refresh = () => {
         const { fetchUserList, route } = this.props;
@@ -106,10 +123,17 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
         const activeUserList = content?.activeUserList;
         const { isLoading } = this.state;
         const spaces = activeUserList?.spaces || [];
-
-        if (activeUserList && this.props.navigation) {
-            this.props.navigation.setOptions({ title: activeUserList.name });
-        }
+        const items = activeUserList?.items || [];
+        // Fall back to junction rows if the space lookup came back empty —
+        // this surfaces that the list has content even when maps-service is
+        // unreachable or a space was deleted.
+        const rows = spaces.length
+            ? spaces
+            : items.map((it: any, idx: number) => ({
+                id: `${it.contentId}-${idx}`,
+                notificationMsg: this.translate('pages.bookmarks.lists.spaceUnavailable'),
+                _placeholder: true,
+            }));
 
         return (
             <>
@@ -126,8 +150,8 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                         )}
                     </View>
                     <FlatList
-                        data={spaces}
-                        keyExtractor={(item: any) => item.id}
+                        data={rows}
+                        keyExtractor={(item: any, index: number) => `${item.id}-${index}`}
                         contentContainerStyle={{ padding: 12 }}
                         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={this.refresh} />}
                         ListEmptyComponent={() => (
@@ -140,7 +164,11 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                             ) : null
                         )}
                         renderItem={({ item }) => (
-                            <TouchableOpacity style={styles.card} onPress={() => this.goToSpace(item)}>
+                            <TouchableOpacity
+                                style={styles.card}
+                                onPress={() => !item._placeholder && this.goToSpace(item)}
+                                disabled={!!item._placeholder}
+                            >
                                 <View style={styles.cardContent}>
                                     <Text style={styles.cardTitle} numberOfLines={1}>
                                         {item.notificationMsg || item.message || '-'}
@@ -151,7 +179,9 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                                         </Text>
                                     )}
                                 </View>
-                                <MaterialIcon name="chevron-right" size={24} color="#aaa" />
+                                {!item._placeholder && (
+                                    <MaterialIcon name="chevron-right" size={24} color="#aaa" />
+                                )}
                             </TouchableOpacity>
                         )}
                     />

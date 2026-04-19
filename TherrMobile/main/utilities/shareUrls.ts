@@ -16,3 +16,19 @@ export const buildEventUrl = (locale: string, id: string) => buildShareUrl(local
 export const buildInviteUrl = (locale: string, userName: string) => buildShareUrl(locale, `/invite/${userName}`);
 export const buildUserUrl = (locale: string, id: string) => buildShareUrl(locale, `/users/${id}`);
 export const buildGroupUrl = (locale: string, id: string) => buildShareUrl(locale, `/groups/${id}`);
+
+export type ShareableEntityType = 'user' | 'space' | 'event' | 'group';
+
+const SHARE_URL_BUILDERS: Record<ShareableEntityType, (locale: string, id: string) => string> = {
+    user: buildUserUrl,
+    space: buildSpaceUrl,
+    event: buildEventUrl,
+    group: buildGroupUrl,
+};
+
+export const buildEntityShareUrl = (
+    entityType: ShareableEntityType,
+    locale: string,
+    id: string,
+): string => SHARE_URL_BUILDERS[entityType](locale, id);
+

@@ -1,5 +1,4 @@
 import { produce } from 'immer';
-// import { SocketServerActionTypes } from 'therr-js-utilities/constants';
 import { MapActionTypes } from 'therr-react/types';
 import {
     ILocationState,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { SafeAreaView, View, Text } from 'react-native';
 import { SegmentedButtons, Switch } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -15,7 +15,7 @@ import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
@@ -128,6 +128,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { navigation } = this.props;
 
         navigation.push('ManagePreferences');
+    };
+
+    goToMyQRCodes = () => {
+        const { navigation } = this.props;
+
+        navigation.push('MyQRCodes');
     };
 
     isFormDisabled() {
@@ -494,6 +500,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     <Text
                                         style={this.themeForms.styles.buttonLink}
                                         onPress={this.goToManageNotifications}>{this.translate('forms.settings.buttons.manageNotifications')}</Text>
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToMyQRCodes}>{this.translate('forms.settings.buttons.myQRCodes')}</Text>
                                 </Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>

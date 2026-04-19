@@ -4,7 +4,7 @@ import { Button } from '../../components/BaseButton';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import { showToast } from '../../utilities/toasts';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
