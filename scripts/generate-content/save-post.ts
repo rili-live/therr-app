@@ -12,34 +12,50 @@
  *   cat draft.json | npx ts-node scripts/generate-content/save-post --stdin
  *
  * Flags:
- *   --force        Overwrite an existing post with the same slug.
- *   --dry-run      Validate and report; do not write files.
+ *   --force                      Overwrite an existing post with the same slug.
+ *   --dry-run                    Validate and report; do not write files.
+ *   --require-locales <es,fr-ca> Fail validation unless those locale blocks
+ *                                are present and well-formed. Use to gate
+ *                                multilingual publishing.
  *
  * Stdout: JSON result `{ ok, written, slug, indexCount }`. Stderr: progress.
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { IPost, IPostMetadata, validatePost } from './utils/contentSchema';
+import {
+    IPost, IPostMetadata, PostLocale, validatePost,
+} from './utils/contentSchema';
+
+const VALID_LOCALES: PostLocale[] = ['es', 'fr-ca'];
 
 const GUIDES_DIR = path.resolve(__dirname, '../../therr-client-web/src/content/guides');
 const INDEX_FILE = path.join(GUIDES_DIR, 'index.json');
 
 function log(msg: string) { process.stderr.write(`${msg}\n`); }
 
-// TODO: add `--require-locales <es,fr-ca>` to fail validation when listed
-// locales are missing from the post's `locales` block. Used to guarantee a
-// post is multilingual before publishing. See docs/CONTENT_LOCALE_FIRST_PLAN.md
-// (Phase 2).
 interface ICliArgs {
     contentPath?: string;
     fromStdin: boolean;
     force: boolean;
     dryRun: boolean;
+    requireLocales: PostLocale[];
+}
+
+function parseLocaleList(raw: string): PostLocale[] {
+    return raw.split(',').map((s) => s.trim()).filter(Boolean).map((s) => {
+        if (!VALID_LOCALES.includes(s as PostLocale)) {
+            log(`Unknown locale "${s}" in --require-locales; valid: ${VALID_LOCALES.join(', ')}.`);
+            process.exit(1);
+        }
+        return s as PostLocale;
+    });
 }
 
 function parseArgs(): ICliArgs {
     const args = process.argv.slice(2);
-    const out: ICliArgs = { fromStdin: false, force: false, dryRun: false };
+    const out: ICliArgs = {
+        fromStdin: false, force: false, dryRun: false, requireLocales: [],
+    };
     for (let i = 0; i < args.length; i++) {
         const a = args[i];
         if (a === '--stdin') out.fromStdin = true;
@@ -47,6 +63,9 @@ function parseArgs(): ICliArgs {
         else if (a === '--dry-run') out.dryRun = true;
         else if (a === '--content' && i + 1 < args.length) {
             out.contentPath = args[i + 1];
+            i++;
+        } else if (a === '--require-locales' && i + 1 < args.length) {
+            out.requireLocales = parseLocaleList(args[i + 1]);
             i++;
         }
     }
@@ -82,6 +101,7 @@ interface IIndexEntry {
     description: string;
     city?: string;
     category?: string;
+    hashtag?: string;
     publishedAt: string;
     updatedAt: string;
 }
@@ -103,6 +123,7 @@ function rebuildIndex(): IIndexEntry[] {
                 description: post.description,
                 city: post.city,
                 category: post.category,
+                hashtag: post.hashtag,
                 publishedAt: post.publishedAt,
                 updatedAt: post.updatedAt,
             });
@@ -126,7 +147,7 @@ async function main() {
         process.exit(1);
     }
 
-    const errors = validatePost(post);
+    const errors = validatePost(post, { requireLocales: args.requireLocales });
     if (errors.length > 0) {
         log('Validation failed:');
         for (const e of errors) log(`  - ${e.field}: ${e.message}`);
@@ -145,7 +166,9 @@ async function main() {
     if (args.dryRun) {
         log(`[dry-run] Would write ${filename} (${exists ? 'overwrite' : 'new'}).`);
         const indexPreview = rebuildIndex();
-        console.log(JSON.stringify({ ok: true, dryRun: true, slug: post.slug, written: false, indexCount: indexPreview.length }, null, 2));
+        console.log(JSON.stringify({
+            ok: true, dryRun: true, slug: post.slug, written: false, indexCount: indexPreview.length,
+        }, null, 2));
         return;
     }
 
@@ -155,7 +178,9 @@ async function main() {
 
     log(`Wrote ${filename}`);
     log(`Index now contains ${index.length} post(s).`);
-    console.log(JSON.stringify({ ok: true, slug: post.slug, written: true, overwrite: exists, indexCount: index.length }, null, 2));
+    console.log(JSON.stringify({
+        ok: true, slug: post.slug, written: true, overwrite: exists, indexCount: index.length,
+    }, null, 2));
 }
 
 main().catch((err) => {
