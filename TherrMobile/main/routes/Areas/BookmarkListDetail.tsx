@@ -110,7 +110,7 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                         try {
                             await deleteUserList(route.params.listId);
                             navigation.goBack();
-                        } catch (_e) { /* noop */ }
+                        } catch { /* noop */ }
                     },
                 },
             ],
