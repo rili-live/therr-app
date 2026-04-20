@@ -1848,7 +1848,7 @@ const renderCityPulseView = (req, res, config, {
 // or /fr-ca/guides, resolveGuideForLocale already swaps in the localized
 // title/description/sections. Phase 1 of the plan is to verify htmlLang and
 // canonicalPath reflect the request locale (not hardcoded en-us).
-const renderGuideView = (req, res, config, { markup, state }, localeVars) => {
+const renderGuideView = (req, res, config, { markup, state }, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
     const slug = req.params?.slug || '';
@@ -1868,10 +1868,25 @@ const renderGuideView = (req, res, config, { markup, state }, localeVars) => {
 
     const urlLocale = req.localeFromUrl || 'en-us';
     const resolved = resolveGuideForLocale(post, urlLocale);
+
+    // Build spaceMeta from spaces hydrated by the route's fetchData (see routes/index.tsx),
+    // so JSON-LD itemList/touristTrip schemas use real names instead of UUIDs.
+    const spaceMeta: Record<string, { name: string; slug?: string }> = {};
+    const spacesById: Record<string, any> = initialState?.map?.spaces || {};
+    Object.keys(spacesById).forEach((id) => {
+        const s = spacesById[id];
+        if (!s?.notificationMsg) return;
+        spaceMeta[id] = {
+            name: s.notificationMsg,
+            slug: buildSpaceSlug(s.notificationMsg, s.locality, s.region),
+        };
+    });
+
     const schemas = buildGuideSchemas({
         post,
         resolved,
         canonicalPath: localeVars.canonicalPath,
+        spaceMeta,
     });
 
     return res.render(routeView, {
@@ -2410,7 +2425,7 @@ routeConfig.forEach((config) => {
                 }
 
                 if (routeView === 'guides') {
-                    return renderGuideView(req, res, config, { markup, state }, localeVars);
+                    return renderGuideView(req, res, config, { markup, state }, initialState, localeVars);
                 }
 
                 return res.render(routeView, {

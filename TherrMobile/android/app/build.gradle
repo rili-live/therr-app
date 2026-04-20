@@ -89,8 +89,8 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 408
-        versionName "3.4.1"
+        versionCode 409
+        versionName "3.4.2"
         manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}"]
         vectorDrawables.useSupportLibrary = true
     }
@@ -139,6 +139,14 @@ configurations.all {
     resolutionStrategy {
         // Force 16KB page-aligned ucrop (fixes Google Play rejection)
         force 'com.github.yalantis:ucrop:2.2.11-native'
+    }
+}
+
+// Ensure CMake's cached glob state is wiped on `./gradlew clean` so
+// externalNativeBuildClean* tasks don't fail with "GLOB mismatch!"
+tasks.named("clean").configure {
+    doLast {
+        delete "${projectDir}/.cxx"
     }
 }
 
