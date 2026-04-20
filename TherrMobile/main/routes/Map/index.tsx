@@ -1856,11 +1856,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const { circleCenter } = this.state;
 
         if (circleCenter.latitude !== center.latitude || circleCenter.longitude !== center.longitude) {
-            const { user, reactions, map } = this.props;
+            const { user, myEventReactions, myMomentReactions, mySpaceReactions, map } = this.props;
             const nearbySpaces = getNearbySpaces({
                 latitude: circleCenter.latitude,
                 longitude: circleCenter.longitude,
-            }, user, reactions, map.spaces);
+            }, user, { myEventReactions, myMomentReactions, mySpaceReactions }, map.spaces);
 
             this.setState({
                 circleCenter: center,

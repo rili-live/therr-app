@@ -41,6 +41,6 @@ module.exports = {
         ...(process.env.NODE_ENV === 'production' || process.env.BABEL_ENV === 'production'
             ? [['transform-remove-console', { exclude: ['error', 'warn'] }]]
             : []),
-        'react-native-reanimated/plugin', // Should always be last
+        'react-native-worklets/plugin', // Should always be last (Reanimated 4 + worklets package)
     ],
 };
