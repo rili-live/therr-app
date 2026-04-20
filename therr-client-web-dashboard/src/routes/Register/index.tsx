@@ -10,7 +10,6 @@ import {
     ToastContainer,
     Button,
 } from 'react-bootstrap';
-import LogRocket from 'logrocket';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebookF } from '@fortawesome/free-brands-svg-icons';
 import Toast from 'react-bootstrap/Toast';
@@ -67,11 +66,6 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     static getDerivedStateFromProps(nextProps: IRegisterProps) {
         // TODO: Choose route based on accessLevels
         if (!shouldRenderLoginForm(nextProps)) {
-            LogRocket.identify(nextProps.user.details.id, {
-                name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
-                email: nextProps.user.details.email,
-                // Add your own custom user variables below:
-            });
             // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
             // Causes a flicker / Need to investigate further
             setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));

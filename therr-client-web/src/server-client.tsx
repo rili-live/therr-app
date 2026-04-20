@@ -10,7 +10,6 @@ import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line impor
 import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 // ReactGA removed from server — analytics should only run client-side
-// LogRocket removed from server — session replay only runs client-side
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { MantineProvider } from '@mantine/core';
@@ -82,11 +81,6 @@ if (process.env.NODE_ENV !== 'development') {
                     "'self'",
                     'https://*.therr.com',
                     'wss://*.therr.com',
-                    // LogRocket
-                    'https://*.lr-in-prod.com',
-                    'https://*.lr-ingest.com',
-                    'https://*.logrocket.io',
-                    'https://*.logrocket.com',
                     // Google Analytics
                     'https://*.google-analytics.com',
                     'https://*.analytics.google.com',
@@ -107,8 +101,6 @@ if (process.env.NODE_ENV !== 'development') {
                     "'unsafe-inline'",
                     'https://*.googletagmanager.com',
                     'https://*.google-analytics.com',
-                    'https://cdn.lr-in-prod.com',
-                    'https://cdn.lr-ingest.com',
                     // Google Sign-In
                     'https://accounts.google.com',
                     // Cloudflare Insights / Web Analytics

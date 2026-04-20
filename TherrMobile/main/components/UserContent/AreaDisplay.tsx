@@ -101,6 +101,7 @@ interface IAreaDisplayProps {
 
 interface IAreaDisplayState {
     isLiked: boolean;
+    isBookmarked: boolean;
     likeCount: number | null;
 }
 
@@ -110,6 +111,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             && (nextState.likeCount == null)) {
             return {
                 isLiked: !!nextProps.area.reaction?.userHasLiked,
+                isBookmarked: !!nextProps.area.reaction?.userBookmarkCategory,
                 likeCount: nextProps.area?.likeCount,
             };
         }
@@ -122,6 +124,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
         this.state = {
             isLiked: !!props.area.reaction?.userHasLiked,
+            isBookmarked: !!props.area.reaction?.userBookmarkCategory,
             likeCount: props.area.likeCount,
         };
     }
@@ -158,28 +161,28 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         goToViewMap(area.latitude, area.longitude);
     };
 
-    // Lists support spaces only. Moments/events/thoughts don't set `category`
-    // or `addressReadable`, so either field is a reliable space signal.
-    isSpaceArea = (area) => area?.areaType === 'spaces'
-        || !!area?.isSpace
-        || typeof area?.category === 'string'
-        || typeof area?.addressReadable === 'string';
+    // Lists are a spaces-only feature. Moments set `category` and events set
+    // `addressReadable`, so those fields aren't reliable space signals.
+    isSpaceArea = (area) => area?.areaType === 'spaces' || !!area?.isSpace;
 
     toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
+        const newIsBookmarked = !this.state.isBookmarked;
+
+        this.setState({
+            isBookmarked: newIsBookmarked,
+        });
 
         updateAreaReaction(area.id, {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, area.fromUserId, user?.details?.userName);
     };
 
     onBookmarkPress = (area) => {
-        this.toggleBookmarkReaction(area);
-    };
-
-    onBookmarkLongPress = (area) => {
-        // Spaces: long-press opens the list picker for curated Space Lists.
-        // Non-spaces mirror tap (plain bookmark toggle).
+        // Spaces: open the list picker so users can discover and choose which
+        // list(s) to save to. The picker also handles the bookmark state via
+        // list membership (adding to a list sets userBookmarkCategory and
+        // ensures the "Saved" default list exists on first bookmark).
         if (this.isSpaceArea(area)) {
             SheetManager.show('list-picker-sheet', {
                 payload: {
@@ -190,6 +193,12 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             });
             return;
         }
+        this.toggleBookmarkReaction(area);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Power-user shortcut: long-press toggles the bookmark directly into
+        // the default list without opening the picker.
         this.toggleBookmarkReaction(area);
     };
 
@@ -390,12 +399,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             translate,
             user,
         } = this.props;
-        const { isLiked, likeCount } = this.state;
+        const { isLiked, isBookmarked, likeCount } = this.state;
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
         const mediaPadding = areaMediaPadding || 0;
-        const isBookmarked = area.reaction?.userBookmarkCategory;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey

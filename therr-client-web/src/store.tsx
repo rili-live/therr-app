@@ -1,4 +1,3 @@
-import LogRocket from 'logrocket';
 import logger from 'redux-logger';
 import { configureStore, Middleware } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
@@ -93,10 +92,10 @@ const getMiddleware = (getDefaultMiddleware: any) => {
     });
 
     if (process.env.NODE_ENV === 'development') {
-        return middleware.concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger as Middleware);
+        return middleware.concat(socketIOMiddleWare).concat(logger as Middleware);
     }
 
-    return middleware.concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware());
+    return middleware.concat(socketIOMiddleWare);
 };
 
 const store: any = configureStore(

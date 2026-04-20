@@ -2,7 +2,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Location, NavigateFunction } from 'react-router-dom';
-import LogRocket from 'logrocket';
 import qs from 'qs';
 import { IUserState } from 'therr-react/types';
 import RegisterForm from '../components/forms/RegisterForm';
@@ -53,10 +52,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
     static getDerivedStateFromProps(nextProps: IRegisterProps) {
         if (!shouldRenderLoginForm(nextProps as any)) {
-            LogRocket.identify(nextProps.user.details.id, {
-                name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
-                email: nextProps.user.details.email,
-            });
             const returnTo = getReturnTo(nextProps.location?.search);
             const destination = getRouteAfterLogin(nextProps.user, returnTo);
             setTimeout(() => nextProps.navigation.navigate(destination));

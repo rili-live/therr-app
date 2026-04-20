@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import LogRocket from 'logrocket';
 import qs from 'qs';
 import { IUserState } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
@@ -80,10 +79,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     static getDerivedStateFromProps(nextProps: ILoginProps) {
         if (!shouldRenderLoginForm(nextProps)) {
-            LogRocket.identify(nextProps.user.details.id, {
-                name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
-                email: nextProps.user.details.email,
-            });
             const returnTo = getReturnTo(nextProps.location?.search);
             const destination = getRouteAfterLogin(nextProps.user, returnTo);
             setTimeout(() => nextProps.navigation.navigate(destination));

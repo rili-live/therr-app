@@ -2,7 +2,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Location, NavigateFunction, Link } from 'react-router-dom';
-import LogRocket from 'logrocket';
 import { IUserState } from 'therr-react/types';
 import {
     Col,
@@ -73,11 +72,6 @@ export class OAuth2LandingComponent extends React.Component<IOAuth2LandingProps,
     static getDerivedStateFromProps(nextProps: IOAuth2LandingProps) {
         // TODO: Choose route based on accessLevels
         if (!shouldRenderLoginForm(nextProps)) {
-            LogRocket.identify(nextProps.user.details.id, {
-                name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
-                email: nextProps.user.details.email,
-                // Add your own custom user variables below:
-            });
             // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
             // Causes a flicker / Need to investigate further
             setTimeout(() => {
