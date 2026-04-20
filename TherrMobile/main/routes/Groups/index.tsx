@@ -29,7 +29,7 @@ import { GROUPS_CAROUSEL_TABS } from '../../constants';
 import GroupTile from '../Groups/GroupTile';
 import GroupCategories from '../Groups/GroupCategories';
 
-const { width: viewportWidth } = Dimensions.get('window');
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
 const tabMap = {
     0: GROUPS_CAROUSEL_TABS.DISCOVER,
@@ -641,7 +641,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             </View>
                         )}
                         onIndexChange={this.onTabSelect}
-                        initialLayout={{ width: viewportWidth }}
+                        initialLayout={{ width: viewportWidth, height: viewportHeight }}
                     />
                 </SafeAreaView>
                 <ConfirmModal

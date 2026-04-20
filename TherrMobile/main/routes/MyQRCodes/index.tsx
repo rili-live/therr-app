@@ -294,7 +294,14 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
 
     mapAreaEntity = (entity: any) => ({
         id: String(entity.id),
-        title: entity.notificationMsg || entity.message || '—',
+        title: entity.notificationMsg
+            || entity.message
+            || entity.title
+            || entity.name
+            || entity.addressReadable
+            || entity.addressName
+            || entity.areaName
+            || '—',
         subtitle: entity.addressReadable || '',
         imageUri: entity.media?.featuredImage
             ? getUserContentUri(entity.media.featuredImage, 150, 150)

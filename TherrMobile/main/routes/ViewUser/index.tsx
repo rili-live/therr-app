@@ -49,7 +49,7 @@ import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
 import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
 
-const { width: viewportWidth } = Dimensions.get('window');
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 const renderIdeaIcon = (props: { size: number; color: string }) => (
     <TherrIcon name="idea" size={props.size} color={props.color} />
@@ -744,7 +744,7 @@ class ViewUser extends React.Component<
                                         </View>
                                     )}
                                     onIndexChange={this.onTabSelect}
-                                    initialLayout={{ width: viewportWidth }}
+                                    initialLayout={{ width: viewportWidth, height: viewportHeight }}
                                     style={this.theme.styles.tabviewContainer}
                                 />
                             </View>

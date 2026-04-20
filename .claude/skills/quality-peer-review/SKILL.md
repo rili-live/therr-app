@@ -227,21 +227,25 @@ Determine which services were modified based on the diff. For each affected serv
 
 ### Unit tests (always run)
 
-Run from the repo root using subshells so the working directory is not changed:
+Run from the repo root using the root-level wrapper scripts (these exist to avoid subshell-with-cd patterns that trigger permission prompts):
 
 ```bash
-(cd therr-services/users-service && npm run test:unit) 2>&1
-(cd therr-services/maps-service && npm run test:unit) 2>&1
+npm run pr:test:unit:users 2>&1
+npm run pr:test:unit:maps 2>&1
 # ... etc for each affected service
 ```
+
+Available wrappers: `pr:test:unit:gateway`, `pr:test:unit:users`, `pr:test:unit:maps`, `pr:test:unit:messages`, `pr:test:unit:reactions`, `pr:test:unit:push`, `pr:test:unit:websocket`.
 
 ### Integration tests
 
 Since Step 0 already confirmed postgres and redis are healthy, run integration tests for each affected service. Service integration tests connect directly to the database — they do not require other service containers to be running.
 
 ```bash
-(cd therr-services/<service-name> && npm run test:integration) 2>&1
+npm run pr:test:integration:<service-short-name> 2>&1
 ```
+
+Available wrappers: `pr:test:integration:gateway`, `pr:test:integration:users`, `pr:test:integration:maps`, `pr:test:integration:messages`, `pr:test:integration:reactions`, `pr:test:integration:push`, `pr:test:integration:websocket`.
 
 ### Test failure handling
 
@@ -277,12 +281,12 @@ Add any files you modified in Step 4 that aren't already in that list. Also chec
 
 Dependent packages (`therr-client-web`, `therr-client-web-dashboard`, `TherrMobile`, every service) consume the **compiled `lib/`** output of `therr-react` and `therr-js-utilities`, not the TypeScript sources. If those libraries were modified in this diff but not rebuilt, downstream `tsc --noEmit` will fail with stale or missing type errors that look like real bugs (e.g. "Property X is missing on type Y" when the prop was just added).
 
-Before running per-package `tsc`, check the diff for changes under either shared library and rebuild any that were touched:
+Before running per-package `tsc`, check the diff for changes under either shared library and rebuild any that were touched using the root-level wrapper scripts:
 
 ```bash
 # Run only the libraries that appear in the diff
-(cd therr-public-library/therr-js-utilities && npm run build) 2>&1
-(cd therr-public-library/therr-react && npm run build) 2>&1
+npm run pr:build:js-utils 2>&1
+npm run pr:build:therr-react 2>&1
 ```
 
 Build `therr-js-utilities` first when both changed — `therr-react` consumes it.
@@ -291,12 +295,14 @@ If neither shared library was modified, skip this step.
 
 ### Lint and type-check
 
-For each affected package, run in parallel:
+For each affected package, run in parallel. ESLint runs per-file; type-checking uses the root-level `pr:typecheck:*` wrapper scripts:
 
 ```bash
 npx eslint <file1> <file2> ... --fix --no-error-on-unmatched-pattern 2>&1
-npx tsc --noEmit -p <package>/tsconfig.json 2>&1
+npm run pr:typecheck:<pkg-short-name> 2>&1
 ```
+
+Available typecheck wrappers: `pr:typecheck:gateway`, `pr:typecheck:users`, `pr:typecheck:maps`, `pr:typecheck:messages`, `pr:typecheck:reactions`, `pr:typecheck:push`, `pr:typecheck:websocket`, `pr:typecheck:js-utils`, `pr:typecheck:therr-react`, `pr:typecheck:web`, `pr:typecheck:dashboard`, `pr:typecheck:mobile`.
 
 Follow the same package-to-tsconfig mapping as the `/quality-check` skill. Fix any remaining lint errors. If TypeScript errors remain after attempting a fix, report them explicitly rather than leaving them unresolved.
 

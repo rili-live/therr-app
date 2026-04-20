@@ -99,6 +99,7 @@ interface IViewSpaceState {
     userLongitude: number | null;
     isLocationLoading: boolean;
     locationError: string;
+    isHeroBlank: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -156,6 +157,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             userLongitude: null,
             isLocationLoading: false,
             locationError: '',
+            isHeroBlank: false,
         };
     }
 
@@ -1267,9 +1269,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {/* Breadcrumbs */}
                     {this.renderBreadcrumbs(space)}
 
-                    {/* Hero Image */}
+                    {/* Hero Image — wrapper collapsed when source is an effectively-blank (single flat color) image.
+                        Uses display:none rather than conditional unmount so ProgressiveImage stays mounted to
+                        re-evaluate blankness when src changes (e.g., navigating between spaces). */}
                     {spaceMedia && (
-                        <div className="space-hero-image-wrapper">
+                        <div
+                            className="space-hero-image-wrapper"
+                            style={this.state.isHeroBlank ? { display: 'none' } : undefined}
+                        >
                             <ProgressiveImage
                                 src={spaceMedia}
                                 alt={space.notificationMsg}
@@ -1277,6 +1284,11 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                 fallbackSrc="/assets/images/meta-image-logo.png"
                                 radius="md"
                                 fetchPriority="high"
+                                onBlankChange={(isBlank) => {
+                                    if (isBlank !== this.state.isHeroBlank) {
+                                        this.setState({ isHeroBlank: isBlank });
+                                    }
+                                }}
                             />
                         </div>
                     )}
