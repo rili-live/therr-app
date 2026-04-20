@@ -161,12 +161,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         goToViewMap(area.latitude, area.longitude);
     };
 
-    // Lists support spaces only. Moments/events/thoughts don't set `category`
-    // or `addressReadable`, so either field is a reliable space signal.
-    isSpaceArea = (area) => area?.areaType === 'spaces'
-        || !!area?.isSpace
-        || typeof area?.category === 'string'
-        || typeof area?.addressReadable === 'string';
+    // Lists are a spaces-only feature. Moments set `category` and events set
+    // `addressReadable`, so those fields aren't reliable space signals.
+    isSpaceArea = (area) => area?.areaType === 'spaces' || !!area?.isSpace;
 
     toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
@@ -182,12 +179,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     };
 
     onBookmarkPress = (area) => {
-        this.toggleBookmarkReaction(area);
-    };
-
-    onBookmarkLongPress = (area) => {
-        // Spaces: long-press opens the list picker for curated Space Lists.
-        // Non-spaces mirror tap (plain bookmark toggle).
+        // Spaces: open the list picker so users can discover and choose which
+        // list(s) to save to. The picker also handles the bookmark state via
+        // list membership (adding to a list sets userBookmarkCategory and
+        // ensures the "Saved" default list exists on first bookmark).
         if (this.isSpaceArea(area)) {
             SheetManager.show('list-picker-sheet', {
                 payload: {
@@ -198,6 +193,12 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             });
             return;
         }
+        this.toggleBookmarkReaction(area);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Power-user shortcut: long-press toggles the bookmark directly into
+        // the default list without opening the picker.
         this.toggleBookmarkReaction(area);
     };
 

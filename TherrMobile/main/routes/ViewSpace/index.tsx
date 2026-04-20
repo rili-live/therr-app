@@ -235,6 +235,7 @@ const ViewSpace = ({
     const spaceInView = useMemo(() => ({
         ...space,
         ...fetchedSpace,
+        areaType: 'spaces',
         associatedMoments: moments,
     }), [space, fetchedSpace, moments]);
 
