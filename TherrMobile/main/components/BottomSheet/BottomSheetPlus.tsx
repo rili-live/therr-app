@@ -1,5 +1,6 @@
 import React,{ useRef, useMemo, useCallback, useState } from 'react';
-import { Easing, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Easing } from 'react-native-reanimated';
 import BottomSheet, { BottomSheetView, useBottomSheetTimingConfigs } from '@gorhom/bottom-sheet';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { ITherrThemeColors } from '../../styles/themes';
