@@ -63,6 +63,7 @@ interface IThoughtDisplayProps {
 
 interface IThoughtDisplayState {
     isLiked: boolean;
+    isBookmarked: boolean;
     likeCount: number | null;
 }
 
@@ -72,6 +73,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             && nextState.likeCount == null) {
             return {
                 isLiked: !!nextProps.thought.reaction?.userHasLiked,
+                isBookmarked: !!nextProps.thought.reaction?.userBookmarkCategory,
                 likeCount: nextProps.thought?.likeCount,
             };
         }
@@ -84,15 +86,21 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
 
         this.state = {
             isLiked: !!props.thought.reaction?.userHasLiked,
+            isBookmarked: !!props.thought.reaction?.userBookmarkCategory,
             likeCount: props.thought.likeCount,
         };
     }
 
     onBookmarkPress = (thought) => {
         const { updateThoughtReaction, user } = this.props;
+        const newIsBookmarked = !this.state.isBookmarked;
+
+        this.setState({
+            isBookmarked: newIsBookmarked,
+        });
 
         updateThoughtReaction(thought.id, {
-            userBookmarkCategory: thought.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, thought.fromUserId, user?.details?.userName);
     };
 
@@ -137,9 +145,8 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             themeForms,
             themeViewContent,
         } = this.props;
-        const { isLiked, likeCount } = this.state;
+        const { isLiked, isBookmarked, likeCount } = this.state;
 
-        const isBookmarked = thought.reaction?.userBookmarkCategory;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const dateTime = formatDate(thought.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
