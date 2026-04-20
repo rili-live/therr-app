@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chip, Divider, FAB, Text } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -275,7 +276,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         style={this.theme.styles.scrollViewFull}

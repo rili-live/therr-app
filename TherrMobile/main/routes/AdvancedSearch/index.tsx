@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -194,7 +195,7 @@ const AdvancedSearch = ({
     return (
         <>
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-            <SafeAreaView style={theme.styles.safeAreaView}>
+            <SafeAreaView edges={[]} style={theme.styles.safeAreaView}>
                 <ScrollView
                     contentInsetAdjustmentBehavior="automatic"
                     style={theme.styles.scrollViewFull}

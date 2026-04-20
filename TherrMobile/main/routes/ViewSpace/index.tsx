@@ -1,15 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     ActivityIndicator,
     Dimensions,
     Platform,
     Pressable,
-    SafeAreaView,
     Share,
     StyleSheet,
     Text,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Text as PaperText } from 'react-native-paper';
@@ -730,7 +729,7 @@ const ViewSpace = ({
     return (
         <>
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-            <SafeAreaView style={theme.styles.safeAreaView}>
+            <SafeAreaView edges={[]} style={theme.styles.safeAreaView}>
                 <KeyboardAwareScrollView
                     contentInsetAdjustmentBehavior="automatic"
                     ref={scrollViewRef}

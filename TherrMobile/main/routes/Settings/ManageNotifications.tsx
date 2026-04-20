@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Switch } from 'react-native-paper';
 import { Button } from '../../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -207,7 +208,6 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         }
     };
 
-
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
@@ -247,7 +247,7 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

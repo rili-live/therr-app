@@ -1,5 +1,6 @@
 import React from 'react';
-import { PermissionsAndroid, Platform, SafeAreaView, View, Text, Pressable, Dimensions } from 'react-native';
+import { PermissionsAndroid, Platform, View, Text, Pressable, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -579,7 +580,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

@@ -6,8 +6,11 @@ import { AppRegistry } from 'react-native';
 import { PushNotifications } from 'therr-js-utilities/constants';
 import App from './main/App';
 import { name as appName } from './app.json';
+import configurePromiseRejections from './main/utilities/configurePromiseRejections';
 import { sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
 import { getAndroidChannelFromClickActionId } from './main/constants';
+
+configurePromiseRejections();
 
 
 // Step 1.) Add PushNotifications.AndroidIntentActions.Therr to the list bellow and the getAndroidChannelFromClickActionId method

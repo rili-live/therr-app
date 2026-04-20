@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -133,7 +134,6 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
     }
 
-
     handleRefresh = () => {
         const { searchBookmarkedEvents, searchBookmarkedMoments, searchBookmarkedSpaces, searchBookmarkedThoughts, user } = this.props;
 
@@ -255,7 +255,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <View style={headerStyles.myListsHeader}>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('MyLists')}

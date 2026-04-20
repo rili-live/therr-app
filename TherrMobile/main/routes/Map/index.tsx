@@ -1,5 +1,6 @@
 import React, { Ref } from 'react';
-import { Dimensions, Modal, PermissionsAndroid, Keyboard, Platform, Pressable, SafeAreaView, View } from 'react-native';
+import { Dimensions, Modal, PermissionsAndroid, Keyboard, Platform, Pressable, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-maps';
 import { bindActionCreators } from 'redux';
@@ -114,7 +115,6 @@ const hapticFeedbackOptions = {
     enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
 };
-
 
 interface IMapDispatchProps {
     captureClickTarget: Function;
@@ -1929,7 +1929,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
                     event.persist();
                     if (event?.target?._nativeTag) {
                         captureClickTarget(event?.target?._nativeTag);
