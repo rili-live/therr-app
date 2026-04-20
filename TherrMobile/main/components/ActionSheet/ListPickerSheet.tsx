@@ -47,7 +47,7 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
             const data: any = await dispatch(ContentActions.getListsForSpace(payload.spaceId) as any);
             const ids: Set<string> = new Set((data?.lists || []).map((l: any) => l.id));
             setMemberIds(ids);
-        } catch (_e) {
+        } catch {
             // noop
         } finally {
             setIsLoading(false);
@@ -78,7 +78,7 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
                 });
             }
             if (payload.onChange) payload.onChange();
-        } catch (_e) {
+        } catch {
             // noop
         } finally {
             setPendingId(null);
@@ -95,7 +95,7 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
             }
             setNewName('');
             setIsCreating(false);
-        } catch (_e) {
+        } catch {
             // noop
         }
     }, [newName, dispatch, handleToggle]);
