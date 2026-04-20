@@ -10,7 +10,6 @@ import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line impor
 import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 // ReactGA removed from server — analytics should only run client-side
-// LogRocket removed from server — session replay only runs client-side
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { MantineProvider } from '@mantine/core';
@@ -82,11 +81,6 @@ if (process.env.NODE_ENV !== 'development') {
                     "'self'",
                     'https://*.therr.com',
                     'wss://*.therr.com',
-                    // LogRocket
-                    'https://*.lr-in-prod.com',
-                    'https://*.lr-ingest.com',
-                    'https://*.logrocket.io',
-                    'https://*.logrocket.com',
                     // Google Analytics
                     'https://*.google-analytics.com',
                     'https://*.analytics.google.com',
@@ -107,8 +101,6 @@ if (process.env.NODE_ENV !== 'development') {
                     "'unsafe-inline'",
                     'https://*.googletagmanager.com',
                     'https://*.google-analytics.com',
-                    'https://cdn.lr-in-prod.com',
-                    'https://cdn.lr-ingest.com',
                     // Google Sign-In
                     'https://accounts.google.com',
                     // Cloudflare Insights / Web Analytics
@@ -1848,7 +1840,7 @@ const renderCityPulseView = (req, res, config, {
 // or /fr-ca/guides, resolveGuideForLocale already swaps in the localized
 // title/description/sections. Phase 1 of the plan is to verify htmlLang and
 // canonicalPath reflect the request locale (not hardcoded en-us).
-const renderGuideView = (req, res, config, { markup, state }, localeVars) => {
+const renderGuideView = (req, res, config, { markup, state }, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
     const slug = req.params?.slug || '';
@@ -1868,10 +1860,25 @@ const renderGuideView = (req, res, config, { markup, state }, localeVars) => {
 
     const urlLocale = req.localeFromUrl || 'en-us';
     const resolved = resolveGuideForLocale(post, urlLocale);
+
+    // Build spaceMeta from spaces hydrated by the route's fetchData (see routes/index.tsx),
+    // so JSON-LD itemList/touristTrip schemas use real names instead of UUIDs.
+    const spaceMeta: Record<string, { name: string; slug?: string }> = {};
+    const spacesById: Record<string, any> = initialState?.map?.spaces || {};
+    Object.keys(spacesById).forEach((id) => {
+        const s = spacesById[id];
+        if (!s?.notificationMsg) return;
+        spaceMeta[id] = {
+            name: s.notificationMsg,
+            slug: buildSpaceSlug(s.notificationMsg, s.locality, s.region),
+        };
+    });
+
     const schemas = buildGuideSchemas({
         post,
         resolved,
         canonicalPath: localeVars.canonicalPath,
+        spaceMeta,
     });
 
     return res.render(routeView, {
@@ -2410,7 +2417,7 @@ routeConfig.forEach((config) => {
                 }
 
                 if (routeView === 'guides') {
-                    return renderGuideView(req, res, config, { markup, state }, localeVars);
+                    return renderGuideView(req, res, config, { markup, state }, initialState, localeVars);
                 }
 
                 return res.render(routeView, {

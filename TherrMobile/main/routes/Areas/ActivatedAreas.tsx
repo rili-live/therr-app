@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, SafeAreaView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -315,7 +316,7 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <AreaCarousel
                         activeData={activatedData}
                         content={content}

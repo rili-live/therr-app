@@ -1,14 +1,13 @@
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     ActivityIndicator,
     Pressable,
     RefreshControl,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -412,7 +411,7 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <ScrollView
                         contentContainerStyle={staticStyles.scrollContent}
                         refreshControl={

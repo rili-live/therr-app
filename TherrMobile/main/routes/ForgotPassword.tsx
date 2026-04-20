@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text } from 'react-native';
+import { ScrollView, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/BaseButton';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -153,7 +154,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <ScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScrollSmall}>
                         <View style={this.theme.styles.sectionContainerAlt}>
                             <Text style={this.theme.styles.sectionTitle}>

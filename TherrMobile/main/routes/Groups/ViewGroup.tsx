@@ -1,14 +1,13 @@
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Dimensions,
     FlatList,
     KeyboardAvoidingView,
     Platform,
     Pressable,
-    SafeAreaView,
     Text,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import { Avatar } from '../../components/BaseAvatar';
 import { Button } from '../../components/BaseButton';
 import { TabBar, TabView } from 'react-native-tab-view';
@@ -683,7 +682,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <View
                         style={[
                             this.theme.styles.bodyFlex,

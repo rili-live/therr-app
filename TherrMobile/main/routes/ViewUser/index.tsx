@@ -1,10 +1,9 @@
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Dimensions,
-    SafeAreaView,
     Text,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import { FAB } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -223,7 +222,9 @@ class ViewUser extends React.Component<
             });
             if (response?.id) {
                 // Media
-                getIntegratedMoments(response?.id); // TODO: Maybe only load after clicking tab
+                // TODO: Maybe only load after clicking tab
+                Promise.resolve(getIntegratedMoments(response?.id))
+                    .catch((err) => console.log('getIntegratedMoments failed:', err));
                 this.fetchMoments();
                 this.fetchThoughts();
             }
@@ -701,7 +702,7 @@ class ViewUser extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     {
                         isLoading ?
                             <LottieLoader id="therr-black-rolling" theme={this.themeLoader} /> :

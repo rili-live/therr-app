@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, Pressable, SafeAreaView, Keyboard, View } from 'react-native';
+import { Dimensions, Pressable, Keyboard, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../../components/BaseButton';
@@ -435,7 +436,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"

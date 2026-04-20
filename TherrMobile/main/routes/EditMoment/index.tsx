@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Dimensions, Platform, Pressable, Keyboard, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../../components/BaseButton';
@@ -1030,7 +1031,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView, iPadDynamicStyles]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView, iPadDynamicStyles]}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"

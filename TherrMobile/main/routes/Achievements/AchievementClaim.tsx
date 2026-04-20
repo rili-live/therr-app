@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { InteractionManager, Pressable, SafeAreaView, StyleSheet, View, Text } from 'react-native';
+import { InteractionManager, Pressable, StyleSheet, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import LottieView from 'lottie-react-native';
@@ -238,11 +239,10 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         const { userAchievement } = route.params;
         // const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
 
-
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]}  style={[this.theme.styles.safeAreaView]}>
                     <ScrollView
                         style={[this.theme.styles.body]}
                         contentContainerStyle={[this.theme.styles.bodyScroll]}

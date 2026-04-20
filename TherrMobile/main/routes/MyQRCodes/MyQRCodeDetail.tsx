@@ -1,15 +1,14 @@
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     ActivityIndicator,
     Dimensions,
     Platform,
-    SafeAreaView,
     ScrollView,
     Share,
     StyleSheet,
     Text,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
@@ -202,7 +201,7 @@ class MyQRCodeDetail extends React.Component<IMyQRCodeDetailProps, IMyQRCodeDeta
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <ScrollView
                         contentContainerStyle={staticStyles.scrollContent}
                     >

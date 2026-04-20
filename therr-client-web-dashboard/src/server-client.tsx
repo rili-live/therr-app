@@ -10,7 +10,6 @@ import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line impor
 import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 import ReactGA from 'react-ga4';
-import LogRocket from 'logrocket';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import printLogs from 'therr-js-utilities/print-logs';
@@ -56,11 +55,6 @@ if (process.env.NODE_ENV !== 'development') {
                     "'self'",
                     'https://*.therr.com',
                     'wss://*.therr.com',
-                    // LogRocket
-                    'https://*.lr-in-prod.com',
-                    'https://*.lr-ingest.com',
-                    'https://*.logrocket.io',
-                    'https://*.logrocket.com',
                     // Google Analytics
                     'https://*.google-analytics.com',
                     'https://*.analytics.google.com',
@@ -71,8 +65,6 @@ if (process.env.NODE_ENV !== 'development') {
                     "'unsafe-inline'",
                     'https://*.googletagmanager.com',
                     'https://*.google-analytics.com',
-                    'https://cdn.lr-in-prod.com',
-                    'https://cdn.lr-ingest.com',
                 ],
                 styleSrc: [
                     "'self'",
@@ -144,7 +136,7 @@ routeConfig.forEach((config) => {
         const store = configureStore({
             reducer: rootReducer,
             preloadedState: initialState,
-            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()),
+            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare),
         });
 
         getRoutes({

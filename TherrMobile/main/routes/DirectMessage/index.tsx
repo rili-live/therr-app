@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -206,7 +207,7 @@ class DirectMessage extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAvoidingView
                         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                         style={this.themeMessage.styles.container}
