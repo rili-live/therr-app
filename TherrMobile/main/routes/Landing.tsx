@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Animated, View, Text, ImageProps, Pressable } from 'react-native';
+import { View, Text, ImageProps, Pressable } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/BaseButton';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
@@ -32,14 +33,23 @@ interface FadeInBackgroundImageProps extends ImageProps {
     opacity: number;
 }
 
-const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = props => {
-    const fadeAnim = useRef(new Animated.Value(props.opacity)).current; // Initial value for opacity: 0
+const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = ({ opacity, style, ...rest }) => {
+    const opacityValue = useSharedValue(opacity);
+
+    useEffect(() => {
+        opacityValue.value = withTiming(opacity, { duration: 400 });
+    }, [opacity, opacityValue]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacityValue.value,
+    }));
 
     return (
         <Animated.Image
+            {...rest}
             resizeMode="cover"
             style={[
-                props.style,
+                style,
                 {
                     position: 'absolute',
                     top: 0,
@@ -51,12 +61,9 @@ const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = props => {
                     height: 'auto',
                     justifyContent: 'center',
                 },
-                {
-                    opacity: fadeAnim, // Bind opacity to animated value
-                },
+                animatedStyle,
             ]}
             progressiveRenderingEnabled={true}
-            { ...props }
         />
     );
 };

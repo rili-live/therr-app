@@ -6,7 +6,7 @@ import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
 import { showToast } from '../../utilities/toasts';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
-import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
+import { AccessCheckType, IMapState as IMapReduxState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
 import { Categories, ErrorCodes, MetricNames, PushNotifications } from 'therr-js-utilities/constants';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
@@ -143,11 +143,12 @@ interface IMapDispatchProps {
 }
 
 interface IStoreProps extends IMapDispatchProps {
-    content: IContentState;
     location: ILocationState;
     map: IMapReduxState;
-    notifications: INotificationsState;
-    reactions: IReactionsState;
+    notificationsHasUnread: boolean;
+    myEventReactions: { [areaId: string]: any };
+    myMomentReactions: { [areaId: string]: any };
+    mySpaceReactions: { [areaId: string]: any };
     user: IUserState;
 }
 
@@ -201,11 +202,15 @@ interface IMapState {
 }
 
 const mapStateToProps = (state: any) => ({
-    content: state.content,
     location: state.location,
     map: state.map,
-    notifications: state.notifications,
-    reactions: state.reactions,
+    // Narrow subscriptions: react-redux short-circuits when these primitives/refs
+    // don't change, so a content/notifications/reactions mutation only re-renders Map
+    // when the specific values it uses changed.
+    notificationsHasUnread: !!(state.notifications?.messages?.some((m: any) => m.isUnread)),
+    myEventReactions: state.reactions?.myEventReactions || {},
+    myMomentReactions: state.reactions?.myMomentReactions || {},
+    mySpaceReactions: state.reactions?.mySpaceReactions || {},
     user: state.user,
 });
 
@@ -276,6 +281,18 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         icon: string;
         title: string;
     }[];
+
+    // Per-collection cache so identical (areas, mapFilters) refs return the same
+    // array. Keeps TherrMapView's PureComponent shallow-equality short-circuit working.
+    private _filteredAreasCache: {
+        [key: string]: {
+            areas: any;
+            filtersAuthor: any;
+            filtersCategory: any;
+            filtersVisibility: any;
+            result: any[];
+        };
+    } = {};
 
     constructor(props) {
         super(props);
@@ -569,26 +586,42 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked);
     };
 
-    getFilteredAreas = (areas, mapFilters) => {
-        // Filter for duplicates
-        if (this.hasNoMapFilters()) {
-            return areas;
-        }
-
-        // Only requires one loop to check each area
-        const filteredAreasMap = {};
-        Object.values(areas).forEach((area: any) => {
-            if (this.shouldRenderArea(area, mapFilters)) {
-                filteredAreasMap[area.id] = area;
+    getFilteredAreas = (areas, mapFilters, cacheKey?: string): any[] => {
+        if (cacheKey) {
+            const cached = this._filteredAreasCache[cacheKey];
+            if (cached
+                && cached.areas === areas
+                && cached.filtersAuthor === mapFilters.filtersAuthor
+                && cached.filtersCategory === mapFilters.filtersCategory
+                && cached.filtersVisibility === mapFilters.filtersVisibility) {
+                return cached.result;
             }
-        });
-
-        if (areas.length === Object.values(filteredAreasMap).length) {
-            // Prevents unnecessary rerenders
-            return areas;
         }
 
-        return filteredAreasMap;
+        let result: any[];
+        if (this.hasNoMapFilters()) {
+            result = Object.values(areas);
+        } else {
+            const filtered: any[] = [];
+            Object.values(areas).forEach((area: any) => {
+                if (this.shouldRenderArea(area, mapFilters)) {
+                    filtered.push(area);
+                }
+            });
+            result = filtered;
+        }
+
+        if (cacheKey) {
+            this._filteredAreasCache[cacheKey] = {
+                areas,
+                filtersAuthor: mapFilters.filtersAuthor,
+                filtersCategory: mapFilters.filtersCategory,
+                filtersVisibility: mapFilters.filtersVisibility,
+                result,
+            };
+        }
+
+        return result;
     };
 
     shouldRenderArea = (area, mapFilters) => {
@@ -1525,21 +1558,21 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     isAreaActivated = (type: IAreaType, area) => {
-        const { reactions, user } = this.props;
+        const { myEventReactions, myMomentReactions, mySpaceReactions, user } = this.props;
 
         if (isMyContent(area, user)) {
             return true;
         }
 
         if (type === 'events') {
-            return !!reactions.myEventReactions[area.id];
+            return !!myEventReactions[area.id];
         }
 
         if (type === 'moments') {
-            return !!reactions.myMomentReactions[area.id];
+            return !!myMomentReactions[area.id];
         }
 
-        return !!reactions.mySpaceReactions[area.id];
+        return !!mySpaceReactions[area.id];
     };
 
     onConfirmModalCancel = () => {
@@ -1845,9 +1878,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
         };
-        const filteredEvents = this.getFilteredAreas(map.events, mapFilters);
-        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters);
-        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
+        const filteredEvents = this.getFilteredAreas(map.events, mapFilters, 'events');
+        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters, 'moments');
+        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters, 'spaces');
         const filteredAreasCount = filteredEvents.length + filteredMoments.length + filteredSpaces.length;
         this.onRegionChangeComplete(region, filteredAreasCount);
     };
@@ -1878,20 +1911,20 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.state;
-        const { captureClickTarget, createMoment, location, map, navigation, notifications, route, updateTour, user } = this.props;
+        const { captureClickTarget, createMoment, location, map, navigation, notificationsHasUnread, route, updateTour, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
         const isAutoCompleteSearching = map?.searchPredictions?.isSearching;
-        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
+        const hasNotifications = notificationsHasUnread;
         const isTouring = !!user?.settings?.isTouring;
         const mapFilters = {
             filtersAuthor: map.filtersAuthor,
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
         };
-        const filteredEvents = this.getFilteredAreas(map.events, mapFilters);
-        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters);
-        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
+        const filteredEvents = this.getFilteredAreas(map.events, mapFilters, 'events');
+        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters, 'moments');
+        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters, 'spaces');
 
         return (
             <>

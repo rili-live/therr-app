@@ -13,14 +13,21 @@ const MAX_MEDIA_ENTRIES = 500;
 
 const trimTail = <T>(arr: T[], max: number): T[] => (arr.length > max ? arr.slice(0, max) : arr);
 
-const trimMedia = (media: { [key: string]: any }, max: number): { [key: string]: any } => {
-    const keys = Object.keys(media);
-    if (keys.length <= max) { return media; }
-    // Keep the most recently inserted entries (object key insertion order).
-    return keys.slice(keys.length - max).reduce((acc: { [key: string]: any }, k: string) => {
-        acc[k] = media[k];
-        return acc;
-    }, {});
+// Mutates draftMedia in place: merges incomingMedia and drops oldest keys past `max`.
+// Why: the previous spread-based trimMedia allocated a full copy of media
+// (~500 keys) on every SEARCH/UPDATE/GET dispatch. With redux-persist throttled,
+// the dominant cost on hot paths shifted to this allocation; in-place mutation
+// inside an immer draft is safe and avoids it.
+const mergeAndTrimMedia = (draftMedia: { [key: string]: any }, incomingMedia: { [key: string]: any } | undefined, max: number): void => {
+    if (incomingMedia) {
+        Object.assign(draftMedia, incomingMedia);
+    }
+    const keys = Object.keys(draftMedia);
+    const overflow = keys.length - max;
+    if (overflow <= 0) { return; }
+    // Delete the oldest entries (object key insertion order) so the newest survive.
+    // eslint-disable-next-line no-param-reassign
+    for (let i = 0; i < overflow; i += 1) { delete draftMedia[keys[i]]; }
 };
 
 // TODO: Rather than using Set to remove duplicates, store this data as a Map keyed on area ID
@@ -101,7 +108,7 @@ const content = produce((draft: IContentState, action: any) => {
         case ContentActionTypes.SEARCH_BOOKMARKED_EVENTS:
             // Add next offset of events to end
             draft.bookmarkedEvents = action.data.events;
-            draft.media = { ...draft.media, ...action.data.media };
+            if (action.data.media) Object.assign(draft.media, action.data.media);
             break;
 
         // Moments
@@ -134,7 +141,7 @@ const content = produce((draft: IContentState, action: any) => {
                 }
             });
             draft.activeMoments = trimTail(Object.values(modifiedActiveMomentsMap), MAX_ACTIVE_ITEMS);
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS:
             // Add next offset of moments to end
@@ -144,25 +151,25 @@ const content = produce((draft: IContentState, action: any) => {
                 }
             });
             draft.activeMoments = trimTail(Object.values(modifiedActiveMomentsMap), MAX_ACTIVE_ITEMS);
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             draft.activeMomentsPagination = { ...action.data.pagination };
             break;
         case ContentActionTypes.UPDATE_ACTIVE_MOMENTS:
             // Reset moments from scratch
             draft.activeMoments = trimTail(action.data.moments, MAX_ACTIVE_ITEMS);
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES); // local cache existing media
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES); // local cache existing media
             draft.activeMomentsPagination = { ...action.data.pagination };
             break;
         case ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS:
             // TODO: Add next offset of moments to end
             draft.bookmarkedMoments = action.data.moments;
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
         case ContentActionTypes.SEARCH_MY_DRAFTS:
             // Add next offset of spaces to end
             draft.myDrafts = [...action.data.results];
             draft.myDraftsPagination = { ...action.data.pagination };
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
         case ContentActionTypes.MOMENT_DRAFT_CREATED:
             draft.myDrafts.unshift(action.data);
@@ -214,7 +221,7 @@ const content = produce((draft: IContentState, action: any) => {
                 }
             });
             draft.activeSpaces = trimTail(Object.values(modifiedActiveSpacesMap), MAX_ACTIVE_ITEMS);
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
         case ContentActionTypes.SEARCH_ACTIVE_SPACES:
             // Add next offset of spaces to end
@@ -224,19 +231,19 @@ const content = produce((draft: IContentState, action: any) => {
                 }
             });
             draft.activeSpaces = trimTail(Object.values(modifiedActiveSpacesMap), MAX_ACTIVE_ITEMS);
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             draft.activeSpacesPagination = { ...action.data.pagination };
             break;
         case ContentActionTypes.UPDATE_ACTIVE_SPACES:
             // Reset spaces from scratch
             draft.activeSpaces = trimTail(action.data.spaces, MAX_ACTIVE_ITEMS);
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES); // local cache existing media
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES); // local cache existing media
             draft.activeSpacesPagination = { ...action.data.pagination };
             break;
         case ContentActionTypes.SEARCH_BOOKMARKED_SPACES:
             // Add next offset of spaces to end
             draft.bookmarkedSpaces = action.data.spaces;
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
 
         // Thoughts
@@ -281,12 +288,12 @@ const content = produce((draft: IContentState, action: any) => {
         case ContentActionTypes.SEARCH_BOOKMARKED_THOUGHTS:
             // Add next offset of thoughts to end
             draft.bookmarkedThoughts = action.data.thoughts;
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
 
         // Other
         case ContentActionTypes.FETCH_MEDIA:
-            draft.media = trimMedia({ ...draft.media, ...action.data }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data, MAX_MEDIA_ENTRIES);
             break;
         case ContentActionTypes.SET_ACTIVE_AREAS_FILTERS:
             draft.activeAreasFilters = { ...draft.activeAreasFilters, ...action.data };
@@ -294,7 +301,7 @@ const content = produce((draft: IContentState, action: any) => {
         case MapActionTypes.GET_EVENT_DETAILS:
         case MapActionTypes.GET_MOMENT_DETAILS:
         case MapActionTypes.GET_SPACE_DETAILS:
-            draft.media = trimMedia({ ...draft.media, ...action.data.media }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
         // User Lists
         case ContentActionTypes.FETCH_USER_LISTS:
@@ -302,7 +309,7 @@ const content = produce((draft: IContentState, action: any) => {
             break;
         case ContentActionTypes.FETCH_USER_LIST_DETAILS:
             draft.activeUserList = action.data.list || null;
-            draft.media = trimMedia({ ...draft.media, ...(action.data.media || {}) }, MAX_MEDIA_ENTRIES);
+            mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
         case ContentActionTypes.CREATE_USER_LIST:
             // Prepend newly created list
