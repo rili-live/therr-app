@@ -24,9 +24,22 @@ interface IGuideProps {
     translate: (key: string, params?: any) => string;
 }
 
+// URL prefix matches the canonical route (server 301s /fr-ca/* → /fr/*);
+// see prefixToLocale in server-client.tsx and localePrefixMap in Header/Home/etc.
+const LOCALE_URL_PREFIX: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+
 function localePrefix(locale: string): string {
-    if (locale === 'es' || locale === 'fr-ca') return `/${locale}`;
-    return '';
+    return LOCALE_URL_PREFIX[locale] || '';
+}
+
+// Prepend the locale prefix to an internal absolute path (starting with /)
+// that isn't already prefixed. External URLs and already-prefixed paths pass through.
+function prefixInternalHref(href: string | undefined, prefix: string): string | undefined {
+    if (!href || !prefix) return href;
+    if (!href.startsWith('/')) return href;
+    if (href.startsWith(`${prefix}/`) || href === prefix) return href;
+    if (href.startsWith('/es/') || href.startsWith('/fr/') || href === '/es' || href === '/fr') return href;
+    return `${prefix}${href}`;
 }
 
 function buildSpaceHref(locale: string, spaceId: string, slug?: string): string {
@@ -58,7 +71,15 @@ function renderSection(
         case 'faq':
             return <FAQSection key={idx} items={section.items} />;
         case 'cta':
-            return <CTASection key={idx} heading={section.heading} body={section.body} href={section.href} ctaText={section.ctaText} />;
+            return (
+                <CTASection
+                    key={idx}
+                    heading={section.heading}
+                    body={section.body}
+                    href={prefixInternalHref(section.href, localePrefix(ctx.locale))}
+                    ctaText={section.ctaText}
+                />
+            );
         case 'walkable-route':
             return (
                 <WalkableRoute

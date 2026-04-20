@@ -17,9 +17,12 @@ interface IProps {
     filterMode?: 'city' | 'category' | 'hashtag';
 }
 
+// URL prefix matches the canonical route (server 301s /fr-ca/* → /fr/*);
+// see prefixToLocale in server-client.tsx and localePrefixMap in Header/Home/etc.
+const LOCALE_URL_PREFIX: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+
 function localePrefix(locale: string): string {
-    if (locale === 'es' || locale === 'fr-ca') return `/${locale}`;
-    return '';
+    return LOCALE_URL_PREFIX[locale] || '';
 }
 
 function cityLabelFromSlug(slug: string): string {
