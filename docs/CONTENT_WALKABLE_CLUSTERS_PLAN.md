@@ -19,36 +19,30 @@ Generate guides that compute a **walkable cluster** of 4–6 spaces within a sma
 
 ### Phase 1 — clustering algorithm (1 day)
 
-- [ ] Build `scripts/generate-content/utils/geo.ts` with:
-  - `haversineMeters(a, b)` — distance between two lat/long points
-  - `clusterByRadius(spaces, maxDiameterMeters)` — DBSCAN-flavored grouping; returns clusters of `{ spaces, centroid, diameterMeters }`
-  - `walkingMinutes(meters)` — rough estimate at 80 m/min
-- [ ] Default cluster constraints: 4–8 spaces, ≤1500m diameter (~12-min walk total).
+- [x] `scripts/generate-content/utils/geo.ts`: `haversineMeters`, `walkingMinutes`, `centroidOf`, `diameterMeters`, `clusterByRadius`, `orderAsWalkingRoute`. Pure functions, no DB. ✓
+- [x] Defaults: 4–8 spaces, ≤1500m diameter. Greedy agglomerative-ish (seed by weight desc, grow by nearest neighbor under the diameter constraint). `orderAsWalkingRoute` uses nearest-neighbor TSP starting from the highest-weight member. ✓
 
 ### Phase 2 — cluster discovery script (0.5 day)
 
-- [ ] Build `scripts/generate-content/discover-clusters.ts` that pulls all spaces in a (city, [optional category]) bucket and surfaces the densest clusters. Output ranks clusters by completeness-weighted density (sum of completeness scores / area).
-- [ ] Allow filtering by primary category (e.g., "find me 5-bar clusters in Chicago neighborhoods").
+- [x] `scripts/generate-content/discover-clusters.ts` — pulls public spaces per (city, [optional category]), runs `clusterByRadius`, ranks by completeness-weighted density (sum of member completeness / πr²; 100m radius floor). ✓
+- [x] Output includes centroid, diameter, walkingMinutes estimate, categories, and member rows with address + completeness fields. ✓
 
 ### Phase 3 — query + ordering (1 day)
 
-- [ ] Build `scripts/generate-content/query-walkable-cluster.ts` that takes `--city <slug> --neighborhood <name>` (or a centerpoint via `--center lat,lng --radius <m>`), pulls the cluster's spaces, and orders them via a simple TSP heuristic (nearest-neighbor walking-tour order from the densest pin outward).
-- [ ] Output includes total walking distance, estimated time, and the ordered space list.
+- [x] `scripts/generate-content/query-walkable-cluster.ts` — two entry modes: `--spaceIds <csv>` (direct from discover-clusters output) or `--center lat,lng --radius <m>` (centerpoint query with re-clustering). Orders via `orderAsWalkingRoute`. ✓
+- [x] Output shape matches the `walkable-route` section payload minus editorial `note`s: `{ query, cluster, route: { totalMeters, estimatedMinutes, stops[] } }`. ✓
 
 ### Phase 4 — schema + new section type (0.5 day)
 
-- [ ] Add a `walkable-route` section type to `utils/contentSchema.ts`:
-  ```ts
-  { type: 'walkable-route'; centroid: { lat: number; lng: number }; totalMeters: number; estimatedMinutes: number; stops: Array<{ spaceId: string; order: number; walkFromPreviousMeters?: number; note?: string }>; }
-  ```
-- [ ] Mirror in `therr-client-web/src/utilities/guideContent.ts`.
-- [ ] Update `validatePost` to accept the new section type.
+- [x] `walkable-route` section added to `utils/contentSchema.ts` with a full runtime validator (stops 1-indexed and dense, `lat`/`lng`/`name` required per stop, `walkFromPreviousMeters` required on 2..n only, `spaceId` unique). ✓
+- [x] Mirrored in `therr-client-web/src/utilities/guideContent.ts`. ✓
+- [x] `lat`/`lng`/`name` are denormalized onto each stop so the SSR map and popup render without a space lookup. ✓
 
 ### Phase 5 — frontend rendering (1 day)
 
-- [ ] Build `therr-client-web/src/routes/Guide/sections/WalkableRoute.tsx` — renders an ordered list with walking-distance badges between stops, plus an embedded map.
-- [ ] Map embed: Mantine doesn't have a map component; integrate the same `react-leaflet` or Mapbox usage already present in `therr-client-web` (verify what's installed) or fall back to an `<img>` of a pre-rendered map for static SSR safety.
-- [ ] Add JSON-LD `TouristAttraction` or `TouristTrip` schema in `guideJsonLd.ts` — there is a `TouristTrip` type that fits walking routes specifically.
+- [x] `therr-client-web/src/routes/Guide/sections/WalkableRoute.tsx` — Mantine-styled stop cards with "Stop N" badges, inter-stop walking-distance text, total+minutes badges, and an embedded `SpacesMap` (existing Leaflet integration). ✓
+- [x] Registered in `Guide/index.tsx` `renderSection` switch. ✓
+- [x] `TouristTrip` JSON-LD added to `guideJsonLd.ts`: `itinerary` list of `TouristAttraction`s with `GeoCoordinates`, emitted via `/views/guides.hbs` when present. ✓
 
 ### Phase 6 — pilot 2 cluster posts (1 day)
 

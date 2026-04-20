@@ -30,6 +30,8 @@ export interface IPostMetadata {
     description: string;
     city?: string;
     category?: string;
+    /** Hashtag anchor (mutually exclusive with category). See CONTENT_HASHTAG_GUIDES_PLAN.md. */
+    hashtag?: string;
     publishedAt: string;
     updatedAt: string;
     author: string;
@@ -44,13 +46,30 @@ export interface ISpaceListItem {
     reason?: string;
 }
 
+export interface IWalkableRouteStop {
+    spaceId: string;
+    order: number;
+    lat: number;
+    lng: number;
+    name: string;
+    walkFromPreviousMeters?: number;
+    note?: string;
+}
+
 export type IPostSection =
     | { type: 'prose'; body: string }
     | { type: 'space-list'; items: ISpaceListItem[] }
     | { type: 'data-callout'; stat: string; statLabel: string; body?: string }
     | { type: 'data-table'; caption: string; headers: string[]; rows: (string | number)[][] }
     | { type: 'faq'; items: { question: string; answer: string }[] }
-    | { type: 'cta'; heading: string; body: string; href?: string; ctaText?: string };
+    | { type: 'cta'; heading: string; body: string; href?: string; ctaText?: string }
+    | {
+        type: 'walkable-route';
+        centroid: { lat: number; lng: number };
+        totalMeters: number;
+        estimatedMinutes: number;
+        stops: IWalkableRouteStop[];
+    };
 
 export interface IPostLocaleContent {
     title: string;
@@ -111,6 +130,11 @@ export function getGuidesByCategory(categorySlug: string): IPost[] {
     return getPublishedGuides().filter((p) => p.category === categoryKey);
 }
 
+export function getGuidesByHashtag(hashtag: string): IPost[] {
+    const normalized = hashtag.toLowerCase();
+    return getPublishedGuides().filter((p) => (p.hashtag || '').toLowerCase() === normalized);
+}
+
 /** URL slug for a post's category, suitable for /guides/category/<slug>. */
 export function getCategoryUrlSlug(categoryKey?: string): string | undefined {
     if (!categoryKey) return undefined;
@@ -148,6 +172,7 @@ export function resolveGuideForLocale(post: IPost, locale: string): IResolvedPos
             description: post.description,
             city: post.city,
             category: post.category,
+            hashtag: post.hashtag,
             publishedAt: post.publishedAt,
             updatedAt: post.updatedAt,
             author: post.author,

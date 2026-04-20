@@ -101,6 +101,7 @@ interface IAreaDisplayProps {
 
 interface IAreaDisplayState {
     isLiked: boolean;
+    isBookmarked: boolean;
     likeCount: number | null;
 }
 
@@ -110,6 +111,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             && (nextState.likeCount == null)) {
             return {
                 isLiked: !!nextProps.area.reaction?.userHasLiked,
+                isBookmarked: !!nextProps.area.reaction?.userBookmarkCategory,
                 likeCount: nextProps.area?.likeCount,
             };
         }
@@ -122,6 +124,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
         this.state = {
             isLiked: !!props.area.reaction?.userHasLiked,
+            isBookmarked: !!props.area.reaction?.userBookmarkCategory,
             likeCount: props.area.likeCount,
         };
     }
@@ -164,9 +167,14 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
     toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
+        const newIsBookmarked = !this.state.isBookmarked;
+
+        this.setState({
+            isBookmarked: newIsBookmarked,
+        });
 
         updateAreaReaction(area.id, {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, area.fromUserId, user?.details?.userName);
     };
 
@@ -391,12 +399,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             translate,
             user,
         } = this.props;
-        const { isLiked, likeCount } = this.state;
+        const { isLiked, isBookmarked, likeCount } = this.state;
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
         const mediaPadding = areaMediaPadding || 0;
-        const isBookmarked = area.reaction?.userBookmarkCategory;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey

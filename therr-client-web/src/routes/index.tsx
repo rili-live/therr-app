@@ -565,6 +565,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <GuidesIndex filterMode="category" />,
     },
     {
+        path: '/guides/hashtag/:hashtag',
+        element: <GuidesIndex filterMode="hashtag" />,
+    },
+    {
         path: '/guides/:slug',
         element: <Guide />,
     },

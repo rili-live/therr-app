@@ -44,10 +44,8 @@ Pick cities where (a) we have strong space coverage and (b) a Spanish- or French
 
 ### Phase 3 — translation workflow (1 day)
 
-- [ ] Add a `translate-post.ts` script that takes a slug + target locale and outputs a draft locale block to stdout. Two strategies:
-  - **Native-write**: emit a structured prompt the editor pastes into a translator (Google, DeepL, native speaker). Translator returns the full `locales.<X>` block, editor pipes back via `save-post`.
-  - **LLM-assisted**: use the Anthropic API directly to draft the translation, then editor reviews. Riskier (idiomatic vs. literal); only acceptable if reviewed by a fluent speaker.
-- [ ] Document both paths in `SKILL.md`. Default recommendation: native-write for the first 5 posts to calibrate, then LLM-assisted with editor review for scale.
+- [x] Add a `translate-post.ts` script that takes a slug + target locale and outputs a translator-ready prompt (plus `--format source-json` and `--format skeleton` variants) for any LLM / translator. The assistant (Claude) drafts the `locales.<X>` block from the prompt and pipes it to `save-post --require-locales <X>`. ✓
+- [x] Documented in `SKILL.md`. No fluent-speaker review gate — Claude-produced translations may ship directly; fixes happen in a refresh if needed. ✓
 
 ### Phase 4 — pilot 3 multilingual posts (1 day)
 
@@ -78,7 +76,7 @@ After publishing, GSC should be checked weekly for impressions on the localized 
 
 ## Open questions
 
-- Do we accept LLM-assisted translation as a permanent path, or always require a human-fluent reviewer? (Recommendation: always require review for the first ~10 posts; reassess.)
+- ~~Do we accept LLM-assisted translation as a permanent path, or always require a human-fluent reviewer?~~ Resolved 2026-04-19: LLM-produced translations may ship directly; no reviewer gate.
 - Should localized `slug`s differ from the en-us slug (e.g., `mejores-bares-chicago`)? Current routing uses one slug across all locales. Worth testing whether Spanish-keyword slugs lift CTR enough to justify the routing change.
 - Hreflang for cities where we publish ONLY in `es` or `fr-ca` — is `x-default` then the localized URL, or do we leave the en-us hreflang absent? (Recommendation: emit the localized URL as `x-default` when no en-us version exists.)
 
