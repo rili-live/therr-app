@@ -12,7 +12,6 @@ import {
     ILocationState,
     IMapState,
     IUserState,
-    IUserConnectionsState,
 } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { UsersService } from 'therr-react/services';
@@ -103,10 +102,11 @@ interface IAreasDispatchProps {
 interface IStoreProps extends IAreasDispatchProps {
     content: IContentState;
     location: ILocationState;
-    map: IMapState;
     user: IUserState;
-    userConnections: IUserConnectionsState;
-    ui: IUIState;
+    filtersCategory: IMapState['filtersCategory'];
+    isLoadingActiveMoments: IUIState['isLoadingActiveMoments'];
+    isLoadingActiveThoughts: IUIState['isLoadingActiveThoughts'];
+    isLoadingActiveEvents: IUIState['isLoadingActiveEvents'];
 }
 
 // Regular component props
@@ -126,13 +126,19 @@ interface IAreasState {
     tabRoutes: { key: string; title: string }[]
 }
 
+// Narrowed from whole-slice subscriptions (content/location/map/user/userConnections/ui)
+// to only the fields Areas actually reads. Prior shape caused 88% of re-renders to be
+// props-driven — every socket presence ping, loading-flag toggle, and map pan dispatched
+// a new object into Areas' props and cascaded through the TabView/AreaCarousel subtree.
+// `userConnections` was declared but never consumed; dropped entirely.
 const mapStateToProps = (state: any) => ({
     content: state.content,
     location: state.location,
-    map: state.map,
     user: state.user,
-    userConnections: state.userConnections,
-    ui: state.ui,
+    filtersCategory: state.map.filtersCategory,
+    isLoadingActiveMoments: state.ui.isLoadingActiveMoments,
+    isLoadingActiveThoughts: state.ui.isLoadingActiveThoughts,
+    isLoadingActiveEvents: state.ui.isLoadingActiveEvents,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -420,10 +426,12 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             updateActiveMomentsStream,
             updateActiveThoughtsStream,
             user,
-            ui,
+            isLoadingActiveMoments,
+            isLoadingActiveThoughts,
+            isLoadingActiveEvents,
         } = this.props;
         let promises: Promise<any>[] = [];
-        if (tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES && !ui.isLoadingActiveMoments && !isLoadingMoments) {
+        if (tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES && !isLoadingActiveMoments && !isLoadingMoments) {
             this.setState({
                 isLoadingMoments: true,
             });
@@ -446,7 +454,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         }
 
         if ((tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES || tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS)
-            && !ui.isLoadingActiveThoughts && !isLoadingThoughts) {
+            && !isLoadingActiveThoughts && !isLoadingThoughts) {
             this.setState({
                 isLoadingThoughts: true,
             });
@@ -468,7 +476,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             }));
         }
 
-        if (tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS && !ui.isLoadingActiveEvents && !isLoadingEvents) {
+        if (tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS && !isLoadingActiveEvents && !isLoadingEvents) {
             this.setState({
                 isLoadingEvents: true,
             });
@@ -639,7 +647,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         } = this.state;
         const {
             content,
-            map,
+            filtersCategory,
             createOrUpdateEventReaction,
             createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction,
@@ -653,7 +661,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         switch (route.key) {
             case CAROUSEL_TABS.DISCOVERIES:
                 const contentTypeFilter = content.activeAreasFilters?.contentType || 'all';
-                const categoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
+                const categoriesFilter = (filtersCategory?.length && filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
                 const socialData = (isLoadingMoments && isLoadingThoughts) ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
@@ -696,7 +704,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     />
                 );
             case CAROUSEL_TABS.THOUGHTS:
-                const thoughtCategoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
+                const thoughtCategoriesFilter = (filtersCategory?.length && filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
                 const thoughtSocialData = isLoadingThoughts ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,

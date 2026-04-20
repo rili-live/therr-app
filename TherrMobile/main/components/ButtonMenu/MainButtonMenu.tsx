@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
@@ -51,21 +51,22 @@ const ViewProfileButton = ({
     themeMenu,
     translate,
     user,
-}) => (
-    <View style={[
-        (activeRoute === 'ViewUser'
-            ? themeMenu.styles.buttonContainerActive
-            : themeMenu.styles.buttonContainer),
-        {
-            width: buttonWidth,
-        },
-    ]}>
+}) => {
+    const isActive = activeRoute === 'ViewUser';
+    return (
         <Button
             type="clear"
             iconTop
-            buttonStyle={themeMenu.styles.buttons}
-            containerStyle={themeMenu.styles.buttonContainerUserProfile}
-            titleStyle={themeMenu.styles.buttonsTitle}
+            buttonStyle={isActive ? themeMenu.styles.buttonsActive : themeMenu.styles.buttons}
+            containerStyle={[
+                isActive
+                    ? themeMenu.styles.buttonContainerUserProfileActive
+                    : themeMenu.styles.buttonContainerUserProfile,
+                {
+                    width: buttonWidth,
+                },
+            ]}
+            titleStyle={isActive ? themeMenu.styles.buttonsTitleActive : themeMenu.styles.buttonsTitle}
             icon={
                 isUserAuthenticated(user) ?
                     <Image
@@ -76,17 +77,14 @@ const ViewProfileButton = ({
                     <TherrIcon
                         name="user-star"
                         size={22}
-                        style={themeMenu.styles.buttonIcon}
+                        style={isActive ? themeMenu.styles.buttonIconActive : themeMenu.styles.buttonIcon}
                     />
             }
             onPress={goToMyProfile}
             title={translate('menus.main.buttons.profile')}
         />
-        {/* {
-            hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
-        } */}
-    </View>
-);
+    );
+};
 
 class MainButtonMenuAlt extends ButtonMenu {
     constructor(props) {
