@@ -85,11 +85,95 @@
       "type": "cta",
       "heading": "More Seattle bars",
       "body": "See more local spots and the full directory on Therr.",
-      "href": "/locations/city/seattle-wa/bar-drinks",
+      "href": "/locations/city/seattle-wa/bars",
       "ctaText": "Browse all"
     }
   ],
   "locales": {
+    "es": {
+      "title": "Selección editorial: 8 bares de Seattle para conocer",
+      "description": "Una guía curada de bares sencillos, cervecerías y coctelerías de autor en Seattle, WA — favoritos locales que vale la pena conocer.",
+      "lead": "La escena de bares de Seattle premia a los habituales — los lugares que vale la pena conocer son los de barrio, no los del centro de convenciones. Ocho bares y salas de coctelería en toda la ciudad, elegidos por el equipo editorial de Therr por su carácter propio.",
+      "sections": [
+        {
+          "type": "prose",
+          "body": "Estas selecciones fueron curadas por el equipo editorial de Therr entre lugares con perfiles completos en Therr — sitios con sitio web publicado, dirección y suficiente información para verificar que están abiertos y son fáciles de encontrar. No ordenamos por popularidad; el orden refleja criterio editorial y qué tan completo está el perfil del lugar, no el número de visitas."
+        },
+        {
+          "type": "space-list",
+          "items": [
+            {
+              "spaceId": "62d881c3-d039-4231-a48c-d26e3fd11c46",
+              "rank": 1,
+              "blurb": "El pub de estilo británico de larga trayectoria en el centro de Seattle — fish and chips, pintas tiradas a mano y una sala que se llena en cada cambio de turno de los hoteles vecinos."
+            },
+            {
+              "spaceId": "81294941-8ea0-4aac-9fb8-25c22e54681c",
+              "rank": 2,
+              "blurb": "Un proyecto de restaurante llevado por una pareja, que trae mariscos del Pacífico Noroeste y una carta de cócteles enfocada a su rincón de Seattle."
+            },
+            {
+              "spaceId": "3e7abbf6-da01-45e5-a0e4-c95c2fd07c84",
+              "rank": 3,
+              "blurb": "Clásico de la cerveza artesanal del Pacífico Noroeste, conocido por la Space Dust IPA y un menú de pub que combina bien con un flight largo en la terraza."
+            },
+            {
+              "spaceId": "de1aa6a9-03ba-4675-af7c-f8c178a3281f",
+              "rank": 4,
+              "blurb": "Una tienda de botellas y taproom — decenas de canillas y un muro de botellas que convierte un \"voy a llevar un sixpack\" en una conversación de 30 minutos."
+            },
+            {
+              "spaceId": "f55edb8d-166f-4052-993b-d35fc94ae67b",
+              "rank": 5,
+              "blurb": "Bar de cócteles en Capitol Hill con una de las mejores cartas de whisky de la ciudad — siéntate en la barra y pide al bartender que elija."
+            },
+            {
+              "spaceId": "73ba2229-98c9-4cc0-a935-fe5e02b28c75",
+              "rank": 6,
+              "blurb": "Lugar de barrio en West Seattle que clava la fórmula de bar sencillo con buena cocina — pull tabs, hamburguesas y cerveza sin pretensiones."
+            },
+            {
+              "spaceId": "983d0228-0e1e-43b4-929f-876c0f3144c1",
+              "rank": 7,
+              "blurb": "Speakeasy de Belltown escondido en un callejón residencial — sala pequeña, carta de cócteles más bien clásica y el tipo de lugar que llevas a una cita cuando vas en serio."
+            },
+            {
+              "spaceId": "12a143b6-43b2-474f-ab59-c71dd584667c",
+              "rank": 8,
+              "blurb": "Un imprescindible de Capitol Hill desde los años 30 — ambiente a la antigua, hamburguesa fiable y una sala trasera que ha sobrevivido a cada giro del barrio."
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "items": [
+            {
+              "question": "¿Cómo se eligieron estos bares de Seattle?",
+              "answer": "El equipo editorial de Therr los eligió entre lugares con perfiles verificados y completos en Therr — cada uno tiene un sitio web funcional, dirección completa y suficiente información para confirmar que está abierto. No ordenamos por popularidad; el orden refleja criterio editorial."
+            },
+            {
+              "question": "¿Son estos los bares más populares de Seattle?",
+              "answer": "No — y lo decimos con franqueza. Aún no tenemos suficientes datos de visitas de la comunidad en esta categoría para sustentar un ranking por popularidad, así que esta es una selección editorial y no una lista de los más visitados."
+            },
+            {
+              "question": "¿Con qué frecuencia se actualiza esta lista?",
+              "answer": "Revisamos periódicamente los lugares destacados contra nuestra base de datos y republicamos con una fecha actualizada cuando un lugar cierra o cambia. El campo updatedAt debajo del título muestra la última revisión."
+            },
+            {
+              "question": "¿Dónde puedo encontrar más bares en Seattle?",
+              "answer": "Explora el directorio completo de bares de Seattle en Therr para ver la lista completa — incluyendo aperturas recientes que no entraron en esta selección editorial."
+            }
+          ]
+        },
+        {
+          "type": "cta",
+          "heading": "Más bares en Seattle",
+          "body": "Explora más sitios locales y el directorio completo en Therr.",
+          "href": "/locations/city/seattle-wa/bars",
+          "ctaText": "Ver todos"
+        }
+      ]
+    },
     "fr-ca": {
       "title": "Sélection éditoriale : 8 bars de Seattle à connaître",
       "description": "Un guide choisi à la main des bars de quartier, microbrasseries et bars à cocktails de Seattle (WA) — les favoris locaux à connaître.",
@@ -169,7 +253,7 @@
           "type": "cta",
           "heading": "Plus de bars à Seattle",
           "body": "Découvre d'autres adresses locales et le répertoire complet sur Therr.",
-          "href": "/locations/city/seattle-wa/bar-drinks",
+          "href": "/locations/city/seattle-wa/bars",
           "ctaText": "Tout parcourir"
         }
       ]

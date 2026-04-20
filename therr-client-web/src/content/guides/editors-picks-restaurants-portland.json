@@ -85,7 +85,7 @@
       "type": "cta",
       "heading": "More Portland restaurants",
       "body": "See more local spots and the full directory on Therr.",
-      "href": "/locations/city/portland-or/restaurant-food",
+      "href": "/locations/city/portland-or/restaurants",
       "ctaText": "Browse all"
     }
   ],
@@ -169,8 +169,92 @@
           "type": "cta",
           "heading": "Más restaurantes en Portland",
           "body": "Explora más sitios locales y el directorio completo en Therr.",
-          "href": "/locations/city/portland-or/restaurant-food",
+          "href": "/locations/city/portland-or/restaurants",
           "ctaText": "Ver todos"
+        }
+      ]
+    },
+    "fr-ca": {
+      "title": "Sélection éditoriale : 8 restaurants de Portland à connaître",
+      "description": "Un guide choisi à la main des restaurants et cafés indépendants de Portland, OR — des favoris locaux au caractère de quartier bien marqué.",
+      "lead": "La scène gastronomique de Portland a de la profondeur — au-delà des food trucks et des noms du circuit des livres de cuisine, voici huit restaurants et cafés indépendants que l'équipe éditoriale de Therr a choisis pour leur caractère propre. L'ordre ne doit pas être lu comme un classement.",
+      "sections": [
+        {
+          "type": "prose",
+          "body": "Ces choix ont été sélectionnés par l'équipe éditoriale de Therr parmi des établissements ayant un profil complet sur Therr — des lieux avec un site web publié, une adresse et suffisamment d'informations pour confirmer qu'ils sont ouverts et faciles à trouver. Nous ne classons pas par popularité ici; l'ordre reflète notre jugement éditorial et la complétude du profil, pas le nombre de visites."
+        },
+        {
+          "type": "space-list",
+          "items": [
+            {
+              "spaceId": "574c5f9a-a114-4efd-9941-eb954882c993",
+              "rank": 1,
+              "blurb": "Tartes salées et sucrées de style australien dans le sud-est de Portland — un favori culte pour le kangourou, l'agneau et le sausage roll du matin."
+            },
+            {
+              "spaceId": "950fbfd9-9618-4ffc-a59a-8e7bb2123c62",
+              "rank": 2,
+              "blurb": "Un bar à café de Portland concentré sur la tasse elle-même — menu court, préparation soignée et le genre de salle où l'on a envie de s'attarder."
+            },
+            {
+              "spaceId": "70712cbd-a753-4c4e-8ab3-cf8986df0996",
+              "rank": 3,
+              "blurb": "Café, sandwichs et un menu aux accents russes dans une adresse de coin sans prétention."
+            },
+            {
+              "spaceId": "61c13d2f-9c18-4924-a666-822456d122d2",
+              "rank": 4,
+              "blurb": "Restaurant chinois de longue date du côté est de Portland — menu à l'ancienne, portions généreuses et le genre d'endroit où les habitants amènent leur famille de l'extérieur."
+            },
+            {
+              "spaceId": "17a01701-ae92-42b1-b0d0-3db44eed885f",
+              "rank": 5,
+              "blurb": "Café autochtone du nord-est de Portland avec un menu enraciné dans la communauté et un flot constant d'habitués du quartier."
+            },
+            {
+              "spaceId": "1cbfbcbd-4544-4cc7-bce9-522350528b91",
+              "rank": 6,
+              "blurb": "Torréfacteur et pub à café qui mélange l'ambiance de café et de salle de dégustation — essaie les préparations d'origine unique."
+            },
+            {
+              "spaceId": "1a507f01-92a2-4bb4-b7ff-82776e358d15",
+              "rank": 7,
+              "blurb": "Le taproom de Ruse Brewing à Slabtown jumelé à la pizza style Detroit de Crust Collective — un flight de bières avec une pointe carrée, c'est la combinaison gagnante."
+            },
+            {
+              "spaceId": "75f11904-b585-4093-9184-305a54eaef15",
+              "rank": 8,
+              "blurb": "Tamales de style oaxaqueño préparés avec le soin caractéristique de Portland — emballés en feuille de bananier, mole et un bar de salsas qui vaut le détour."
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "items": [
+            {
+              "question": "Comment ces restaurants de Portland ont-ils été choisis?",
+              "answer": "Ce sont des choix éditoriaux parmi des établissements ayant un profil complet sur Therr — adresse vérifiée, site web et suffisamment d'informations pour confirmer que l'endroit est ouvert et facile à trouver. Nous excluons les chaînes et tout établissement signalé comme étant de faible qualité."
+            },
+            {
+              "question": "Pourquoi l'ordre n'est-il pas un classement?",
+              "answer": "Nous n'avons pas encore assez de données de visites communautaires dans cette catégorie pour appuyer un classement par popularité. Plutôt que d'en inventer un, nous le disons clairement : c'est une sélection éditoriale, ordonnée selon la préférence de l'éditeur dans l'ensemble curé."
+            },
+            {
+              "question": "Cette liste sera-t-elle mise à jour?",
+              "answer": "Oui. Nous revérifions périodiquement les établissements mis en avant dans notre base de données et mettons à jour la date lorsque des changements sont appliqués. Les lieux fermés ou non vérifiables sont retirés et remplacés."
+            },
+            {
+              "question": "Où puis-je trouver d'autres restaurants à Portland?",
+              "answer": "Le répertoire complet des restaurants de Portland sur Therr inclut des centaines d'autres lieux — y compris les nouvelles ouvertures qui n'ont pas été retenues dans cette sélection curée."
+            }
+          ]
+        },
+        {
+          "type": "cta",
+          "heading": "Plus de restaurants à Portland",
+          "body": "Découvre d'autres adresses locales et le répertoire complet sur Therr.",
+          "href": "/locations/city/portland-or/restaurants",
+          "ctaText": "Tout parcourir"
         }
       ]
     }

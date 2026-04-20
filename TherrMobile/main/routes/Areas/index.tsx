@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, Platform, SafeAreaView, Text, View } from 'react-native';
+import { Dimensions, Platform, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FAB } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -824,7 +825,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     <TabView
                         lazy
                         lazyPreloadDistance={0}

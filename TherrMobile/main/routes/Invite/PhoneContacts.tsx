@@ -1,5 +1,6 @@
 import React from 'react';
-import { Linking, SectionList, SafeAreaView, Text, View } from 'react-native';
+import { Linking, SectionList, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { Button } from 'react-native-paper';
 import { connect } from 'react-redux';
@@ -395,7 +396,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <SectionList
                         sections={sections}
                         keyExtractor={(item) => String(item.recordID)}

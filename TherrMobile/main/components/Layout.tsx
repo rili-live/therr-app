@@ -32,7 +32,7 @@ import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { showToast } from '../utilities/toasts';
 import BackgroundGeolocation, {
@@ -1544,18 +1544,51 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerTitle,
                         };
 
-                        if (isSearchRoute) {
-                            // native-stack's native headerTitle slot has a constrained width,
-                            // so a custom JS header is required to render a full-width search input
-                            // alongside the left/right menu buttons. Left/right padding mirrors
-                            // native-stack's built-in header so non-search and search routes
-                            // align visually.
-                            const customHeaderStyle = {
-                                backgroundColor: headerStyle?.backgroundColor,
-                                borderBottomColor: headerStyle?.borderBottomColor,
-                                borderBottomWidth: headerStyle?.borderBottomWidth,
-                            };
-                            baseOptions.header = () => (
+                        // Use a custom JS header for every route so the left
+                        // logo and right menu button sit flush against the
+                        // screen edges. Native-stack's built-in header adds an
+                        // inset that pushed them inward on non-search routes.
+                        const customHeaderStyle = {
+                            backgroundColor: headerStyle?.backgroundColor,
+                            borderBottomColor: headerStyle?.borderBottomColor,
+                            borderBottomWidth: headerStyle?.borderBottomWidth,
+                        };
+                        baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
+                            let middleNode: React.ReactNode;
+                            if (isSearchRoute) {
+                                middleNode = (
+                                    <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
+                                        {searchInputNode}
+                                    </View>
+                                );
+                            } else if (typeof hOpts?.headerTitle === 'function') {
+                                middleNode = (
+                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                        {hOpts.headerTitle({
+                                            children: hOpts.title ?? hRoute.name,
+                                            tintColor: headerTitleColor,
+                                        })}
+                                    </View>
+                                );
+                            } else {
+                                const titleText = typeof hOpts?.headerTitle === 'string'
+                                    ? hOpts.headerTitle
+                                    : (hOpts?.title ?? hRoute.name);
+                                middleNode = (
+                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[
+                                                this.theme.styles.headerTitleStyle,
+                                                { color: headerTitleColor },
+                                            ]}
+                                        >
+                                            {titleText}
+                                        </Text>
+                                    </View>
+                                );
+                            }
+                            return (
                                 <SafeAreaView edges={['top']} style={customHeaderStyle}>
                                     <View style={{
                                         flexDirection: 'row',
@@ -1564,14 +1597,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         paddingHorizontal: 8,
                                     }}>
                                         {headerLeftNode}
-                                        <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
-                                            {searchInputNode}
-                                        </View>
+                                        {middleNode}
                                         {headerRightNode}
                                     </View>
                                 </SafeAreaView>
                             );
-                        }
+                        };
 
                         return baseOptions;
                     }}

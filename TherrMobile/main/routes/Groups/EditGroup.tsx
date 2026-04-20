@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, Keyboard, Platform, SafeAreaView, Text, View } from 'react-native';
+import { Dimensions, Keyboard, Platform, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -481,7 +482,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

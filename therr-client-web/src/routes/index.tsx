@@ -30,6 +30,7 @@ import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
 import Guide from './Guide';
 import GuidesIndex from './Guide/GuidesIndex';
+import { getGuide, IPostSection } from '../utilities/guideContent';
 
 // Auth-only routes — lazy-loaded client-side to reduce initial bundle size.
 // These are never SSR-rendered (AuthRoute redirects unauthenticated users).
@@ -571,6 +572,25 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/guides/:slug',
         element: <Guide />,
+        fetchData: (dispatch: any, params: any) => {
+            const post = params.slug ? getGuide(params.slug) : null;
+            if (!post || post.status !== 'published') return Promise.resolve();
+            const collectIds = (sections: IPostSection[] = []): string[] => {
+                const ids: string[] = [];
+                sections.forEach((s) => {
+                    if (s.type === 'space-list') s.items.forEach((i) => ids.push(i.spaceId));
+                    if (s.type === 'walkable-route') s.stops.forEach((stop) => ids.push(stop.spaceId));
+                });
+                return ids;
+            };
+            const allIds = new Set<string>(collectIds(post.sections));
+            Object.values(post.locales || {}).forEach((loc) => {
+                if (loc?.sections) collectIds(loc.sections).forEach((id) => allIds.add(id));
+            });
+            return Promise.all(Array.from(allIds).map((spaceId) => MapActions.getSpaceDetails(spaceId as any, {
+                withMedia: true,
+            })(dispatch).catch(() => undefined)));
+        },
     },
 
     // If no route matches, return NotFound component

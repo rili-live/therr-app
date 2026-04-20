@@ -1235,9 +1235,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     public render(): JSX.Element {
-        const { content, map } = this.props;
+        const { content, map, user } = this.props;
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];
+        const isAuthenticated = !!user?.isAuthenticated;
 
         if (!space) {
             return this.renderSkeleton();
@@ -1294,13 +1295,26 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                             </div>
                             <Group gap="xs">
                                 <Tooltip label={this.props.translate('pages.viewSpace.labels.saveToList')}>
-                                    <ListPickerPopover spaceId={space.id}>
-                                        <ActionIcon variant="subtle" size="lg" aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'} className="space-bookmark-icon">
-                                            <InlineSvg
-                                                name={space.reaction?.userBookmarkCategory ? 'bookmark' : 'bookmark-border'}
-                                            />
+                                    {isAuthenticated ? (
+                                        <ListPickerPopover spaceId={space.id}>
+                                            <ActionIcon variant="subtle" size="lg" aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'} className="space-bookmark-icon">
+                                                <InlineSvg
+                                                    name={space.reaction?.userBookmarkCategory ? 'bookmark' : 'bookmark-border'}
+                                                />
+                                            </ActionIcon>
+                                        </ListPickerPopover>
+                                    ) : (
+                                        <ActionIcon
+                                            variant="subtle"
+                                            size="lg"
+                                            aria-label="Bookmark"
+                                            color="gray"
+                                            className="space-bookmark-icon"
+                                            onClick={() => this.setState({ isLoginModalOpen: true, loginModalAction: 'bookmark' })}
+                                        >
+                                            <InlineSvg name="bookmark-border" />
                                         </ActionIcon>
-                                    </ListPickerPopover>
+                                    )}
                                 </Tooltip>
                                 <Tooltip label={this.state.isLinkCopied ? this.props.translate('common.linkCopied') : this.props.translate('common.share')}>
                                     <ActionIcon variant="subtle" size="lg" onClick={this.handleShare} aria-label="Share">

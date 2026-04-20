@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { SegmentedButtons, Switch } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Button } from '../../components/BaseButton';
@@ -29,7 +30,6 @@ import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { getUserImageUri, signImageUrl } from '../../utilities/content';
 import RoundTextInput from '../../components/Input/TextInput/Round';
 import spacingStyles from '../../styles/layouts/spacing';
-
 
 interface ISettingsDispatchProps {
     updateUser: Function;
@@ -393,7 +393,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

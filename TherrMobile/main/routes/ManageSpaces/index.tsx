@@ -1,12 +1,11 @@
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     FlatList,
-    SafeAreaView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -400,7 +399,7 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     {/* Coin Balance Banner */}
                     <View style={[
                         staticStyles.coinBanner,

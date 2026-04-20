@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, SafeAreaView, SectionList, View, Text } from 'react-native';
+import { Pressable, SectionList, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
@@ -279,7 +280,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colors.backgroundGray }]}>
+                <SafeAreaView edges={[]}  style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colors.backgroundGray }]}>
                     <View style={[this.theme.styles.body, { backgroundColor: this.theme.colors.backgroundGray }]}>
                         <SectionList
                             sections={displaySections}

@@ -33,6 +33,7 @@ local.properties
 *.iml
 *.hprof
 .cxx/
+.kotlin/
 
 # Android - App Center
 #

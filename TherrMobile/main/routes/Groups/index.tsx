@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, FlatList, Pressable, SafeAreaView, Text, TextInput, View } from 'react-native';
+import { Dimensions, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -617,7 +618,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <TabView
                         lazy
                         lazyPreloadDistance={1}

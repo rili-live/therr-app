@@ -1,9 +1,11 @@
 /* eslint-disable max-len */
 import * as React from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
     Anchor, Badge, Container, Divider, Group, Image, Stack, Text, Title,
 } from '@mantine/core';
+import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import {
     getGuide, IPost, IPostSection, resolveGuideForLocale,
 } from '../../utilities/guideContent';
@@ -86,11 +88,22 @@ const Guide: React.FC<IGuideProps> = ({ locale }) => {
     const params = useParams<{ slug: string }>();
     const slug = params.slug || '';
     const post: IPost | null = slug ? getGuide(slug) : null;
+    const mapSpaces = useSelector((state: any) => state.map?.spaces || {});
 
     if (!post || post.status !== 'published') return <PageNotFound />;
 
     const resolved = resolveGuideForLocale(post, locale);
     const prefix = localePrefix(locale);
+
+    const spaceMeta: Record<string, { name: string; slug?: string }> = {};
+    Object.keys(mapSpaces).forEach((id) => {
+        const s = mapSpaces[id];
+        if (!s?.notificationMsg) return;
+        spaceMeta[id] = {
+            name: s.notificationMsg,
+            slug: buildSpaceSlug(s.notificationMsg, s.locality, s.region),
+        };
+    });
 
     return (
         <Container size="md" py="xl">
@@ -131,7 +144,7 @@ const Guide: React.FC<IGuideProps> = ({ locale }) => {
                 <Divider />
 
                 <Stack gap="xl">
-                    {resolved.sections.map((s, i) => renderSection(s, i, { locale }))}
+                    {resolved.sections.map((s, i) => renderSection(s, i, { locale, spaceMeta }))}
                 </Stack>
             </Stack>
         </Container>

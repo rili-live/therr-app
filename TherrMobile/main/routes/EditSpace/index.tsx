@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, Dimensions, Pressable, SafeAreaView, Keyboard, Text, View, Platform } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, Keyboard, Text, View, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../../components/BaseButton';
@@ -388,7 +389,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         this.setState({
             isEditingIncentives: true,
         });
-
 
         // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
         // before preventDefault is called in the beforeRemove listener
@@ -1395,7 +1395,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"

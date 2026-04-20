@@ -1,14 +1,13 @@
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Alert,
     FlatList,
     RefreshControl,
-    SafeAreaView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
@@ -111,7 +110,7 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                         try {
                             await deleteUserList(route.params.listId);
                             navigation.goBack();
-                        } catch (_e) { /* noop */ }
+                        } catch { /* noop */ }
                     },
                 },
             ],
@@ -138,7 +137,7 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <View style={styles.header}>
                         <Text style={styles.headerTitle}>
                             {activeUserList?.name || this.translate('pages.bookmarks.lists.loading')}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, RefreshControl, SafeAreaView, FlatList, Text, View } from 'react-native';
+import { Pressable, RefreshControl, FlatList, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -122,7 +123,6 @@ class Notifications extends React.Component<
             user: user.details,
         });
     };
-
 
     onNotificationPress = (event, notification, userConnection?: any, shouldNavigate = true) => {
         const { updateNotification, user } = this.props;
@@ -272,7 +272,7 @@ class Notifications extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <FlatList
                         data={notifications.messages || []}
                         keyExtractor={(item) => String(item.id)}

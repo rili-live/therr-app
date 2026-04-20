@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Dimensions, Platform, Pressable, Keyboard, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../../components/BaseButton';
@@ -1362,7 +1363,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
         if (isLoading) {
             return (
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <LottieView
                         source={searchLoading}
                         // resizeMode="cover"
@@ -1378,7 +1379,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
         if (!userGroups.length) {
             return (
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <View
                         style={this.theme.styles.bodyFlex}
                     >
@@ -1409,7 +1410,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"

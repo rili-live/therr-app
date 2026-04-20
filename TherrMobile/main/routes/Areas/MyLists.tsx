@@ -1,13 +1,12 @@
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     FlatList,
     RefreshControl,
-    SafeAreaView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
@@ -84,7 +83,7 @@ class MyLists extends React.Component<IMyListsProps, IMyListsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <FlatList
                         data={userLists}
                         keyExtractor={(item) => item.id}

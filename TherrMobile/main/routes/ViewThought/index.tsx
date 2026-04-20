@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Keyboard,
     Platform,
-    SafeAreaView,
     StyleSheet,
-    View,
-} from 'react-native';
+    View} from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
@@ -320,7 +319,7 @@ const ViewThought = ({
     return (
         <>
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-            <SafeAreaView style={theme.styles.safeAreaView}>
+            <SafeAreaView edges={[]} style={theme.styles.safeAreaView}>
                 <KeyboardAwareScrollView
                     contentInsetAdjustmentBehavior="automatic"
                     ref={scrollViewRef}
