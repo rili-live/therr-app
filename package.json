@@ -235,8 +235,6 @@
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.0.0",
     "leaflet": "^1.9.4",
-    "logrocket": "^3.0.1",
-    "logrocket-react": "^5.0.1",
     "lottie-react": "^2.4.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
