@@ -44,7 +44,7 @@ import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import { navToViewContent } from '../../utilities/postViewHelpers';
 import { getDisplayTitle } from './groupUtils';
 
-const { width: viewportWidth } = Dimensions.get('window');
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 const ITEMS_PER_PAGE = 50;
 const tabMap = {
@@ -757,7 +757,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                     </View>
                                 )}
                                 onIndexChange={this.onTabSelect}
-                                initialLayout={{ width: viewportWidth }}
+                                initialLayout={{ width: viewportWidth, height: viewportHeight }}
                                 // style={styles.container}
                             />
                         </View>

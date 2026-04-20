@@ -3,6 +3,10 @@ const path = require('path');
 module.exports = {
     presets: ['module:@react-native/babel-preset'],
     plugins: [
+        // React Compiler (annotation mode): only memoizes function components/hooks that
+        // begin their body with a "use memo" directive. Must run before other transforms;
+        // react-native-worklets/plugin stays last.
+        ['babel-plugin-react-compiler', { compilationMode: 'annotation', target: '19' }],
         [
             'module:react-native-dotenv',
             {

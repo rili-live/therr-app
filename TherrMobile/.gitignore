@@ -84,6 +84,9 @@ buck-out/
 # testing
 /coverage
 
+# perf-capture.sh output
+.perf/
+
 # Yarn
 .yarn/*
 !.yarn/patches

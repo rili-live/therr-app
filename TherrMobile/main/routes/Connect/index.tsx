@@ -5,7 +5,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ForumActions, MessageActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { IMessagesState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
@@ -31,7 +31,7 @@ import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 import PeopleYouMayKnow from './components/PeopleYouMayKnow';
 import ReferralStats from '../../components/UserContent/ReferralStats';
 
-const { width: viewportWidth } = Dimensions.get('window');
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
 const tabMap = {
     0: PEOPLE_CAROUSEL_TABS.PEOPLE,
@@ -67,7 +67,7 @@ interface IContactsDispatchProps {
 }
 
 interface IStoreProps extends IContactsDispatchProps {
-    messages: IMessagesState;
+    myDMs: any[];
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -89,7 +89,7 @@ interface IContactsState {
 }
 
 const mapStateToProps = (state) => ({
-    messages: state.messages,
+    myDMs: state.messages?.myDMs,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -163,7 +163,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
     componentDidMount() {
         const {
-            messages, navigation, user, userConnections,
+            myDMs, navigation, user, userConnections,
         } = this.props;
 
         navigation.setOptions({
@@ -175,7 +175,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         }
 
         // TODO: Connect redux UI prefetch
-        if (!messages.myDMs?.length) {
+        if (!myDMs?.length) {
             this.handleRefreshDMsSearch(1);
         }
 
@@ -414,13 +414,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     sortMessages = (): any[] => {
-        const { messages, user } = this.props;
+        const { myDMs, user } = this.props;
         const blockedUsers = user?.details?.blockedUsers || [];
         // TODO: Determine if user is active an list unread message count
-        if (blockedUsers.length && messages?.myDMs?.length) {
-            return messages.myDMs.filter((dm) => !blockedUsers.includes(dm.userDetails?.id));
+        if (blockedUsers.length && myDMs?.length) {
+            return myDMs.filter((dm) => !blockedUsers.includes(dm.userDetails?.id));
         }
-        return messages?.myDMs;
+        return myDMs;
     };
 
     sortUsers = (): {
@@ -646,7 +646,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             </View>
                         )}
                         onIndexChange={this.onTabSelect}
-                        initialLayout={{ width: viewportWidth }}
+                        initialLayout={{ width: viewportWidth, height: viewportHeight }}
                         // style={styles.container}
                     />
                 </SafeAreaView>

@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { produce, original } from 'immer';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IContentState, ContentActionTypes } from '../../types/redux/content';
 import { MapActionTypes } from '../../types';
@@ -12,6 +12,32 @@ const MAX_ACTIVE_ITEMS = 300;
 const MAX_MEDIA_ENTRIES = 500;
 
 const trimTail = <T>(arr: T[], max: number): T[] => (arr.length > max ? arr.slice(0, max) : arr);
+
+// Merge incoming + existing items, dedupe by id, cap at `max`. Caller assigns
+// the result back to the draft slice. Why: the previous concat+forEach+Object.values
+// pattern spread the immer-proxied draft array on every search dispatch —
+// 300 proxy reads + 3 intermediate arrays + a temp object per call, all of
+// which the profiler flagged as dominant cost in the `Areas`/`Map` render path.
+// This walks each list once and allocates a single output array.
+const mergeById = <T extends { id: any }>(
+    incoming: readonly T[] | undefined,
+    existing: readonly T[],
+    max: number,
+): T[] => {
+    const out: T[] = [];
+    const seen = new Set();
+    if (incoming) {
+        for (let i = 0; i < incoming.length && out.length < max; i += 1) {
+            const item = incoming[i];
+            if (item != null && !seen.has(item.id)) { seen.add(item.id); out.push(item); }
+        }
+    }
+    for (let i = 0; i < existing.length && out.length < max; i += 1) {
+        const item = existing[i];
+        if (item != null && !seen.has(item.id)) { seen.add(item.id); out.push(item); }
+    }
+    return out;
+};
 
 // Mutates draftMedia in place: merges incomingMedia and drops oldest keys past `max`.
 // Why: the previous spread-based trimMedia allocated a full copy of media
@@ -59,23 +85,16 @@ const initialState: IContentState = {
 };
 
 const content = produce((draft: IContentState, action: any) => {
-    const modifiedActiveEventsMap: { [key: string]: any } = {};
-    const modifiedActiveMomentsMap: { [key: string]: any } = {};
-    const modifiedActiveSpacesMap: { [key: string]: any } = {};
-    const modifiedActiveThoughtsMap: { [key: string]: any } = {};
-
-    // TODO: consider storing as Set to prevent duplicates
     switch (action.type) {
         // Events
         case ContentActionTypes.INSERT_ACTIVE_EVENTS:
             // Add latest events to start
-            draft.activeEvents = trimTail([...new Set([...action.data, ...draft.activeEvents])], MAX_ACTIVE_ITEMS);
+            draft.activeEvents = mergeById(action.data, original(draft.activeEvents) || [], MAX_ACTIVE_ITEMS);
             break;
         case ContentActionTypes.REMOVE_ACTIVE_EVENTS: {
             // Remove (reported) events
             const idx = draft.activeEvents.findIndex((e) => e.id === action.data?.eventId);
             if (idx !== -1) draft.activeEvents.splice(idx, 1);
-            draft.activeEvents = [...new Set(draft.activeEvents)];
             break;
         }
         case ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION: {
@@ -83,7 +102,6 @@ const content = produce((draft: IContentState, action: any) => {
             if (activeIdx !== -1) {
                 draft.activeEvents[activeIdx].reaction = { ...action.data };
             }
-            draft.activeEvents = [...new Set(draft.activeEvents)];
             const bookmarkIdx = draft.bookmarkedEvents.findIndex((e) => e.id === action.data?.eventId);
             if (bookmarkIdx !== -1) {
                 draft.bookmarkedEvents[bookmarkIdx].reaction = { ...action.data };
@@ -92,12 +110,7 @@ const content = produce((draft: IContentState, action: any) => {
         }
         case ContentActionTypes.SEARCH_ACTIVE_EVENTS:
             // Add next offset of events to end
-            action.data.events.concat([...draft.activeEvents]).forEach((m) => {
-                if (!modifiedActiveEventsMap[m.id]) {
-                    modifiedActiveEventsMap[m.id] = m;
-                }
-            });
-            draft.activeEvents = trimTail(Object.values(modifiedActiveEventsMap), MAX_ACTIVE_ITEMS);
+            draft.activeEvents = mergeById(action.data.events, original(draft.activeEvents) || [], MAX_ACTIVE_ITEMS);
             draft.activeEventsPagination = { ...action.data.pagination };
             break;
         case ContentActionTypes.UPDATE_ACTIVE_EVENTS:
@@ -114,7 +127,7 @@ const content = produce((draft: IContentState, action: any) => {
         // Moments
         case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
             // Add latest moments to start
-            draft.activeMoments = trimTail(action.data.concat([...draft.activeMoments]), MAX_ACTIVE_ITEMS);
+            draft.activeMoments = mergeById(action.data, original(draft.activeMoments) || [], MAX_ACTIVE_ITEMS);
             break;
         case ContentActionTypes.REMOVE_ACTIVE_MOMENTS: {
             // Remove (reported) moments
@@ -135,22 +148,12 @@ const content = produce((draft: IContentState, action: any) => {
         }
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS:
             // Add newly activated moments to the top
-            action.data.moments.concat([...draft.activeMoments]).forEach((m) => {
-                if (!modifiedActiveMomentsMap[m.id]) {
-                    modifiedActiveMomentsMap[m.id] = m;
-                }
-            });
-            draft.activeMoments = trimTail(Object.values(modifiedActiveMomentsMap), MAX_ACTIVE_ITEMS);
+            draft.activeMoments = mergeById(action.data.moments, original(draft.activeMoments) || [], MAX_ACTIVE_ITEMS);
             mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS:
             // Add next offset of moments to end
-            action.data.moments.concat([...draft.activeMoments]).forEach((m) => {
-                if (!modifiedActiveMomentsMap[m.id]) {
-                    modifiedActiveMomentsMap[m.id] = m;
-                }
-            });
-            draft.activeMoments = trimTail(Object.values(modifiedActiveMomentsMap), MAX_ACTIVE_ITEMS);
+            draft.activeMoments = mergeById(action.data.moments, original(draft.activeMoments) || [], MAX_ACTIVE_ITEMS);
             mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             draft.activeMomentsPagination = { ...action.data.pagination };
             break;
@@ -192,13 +195,12 @@ const content = produce((draft: IContentState, action: any) => {
         // Spaces
         case ContentActionTypes.INSERT_ACTIVE_SPACES:
             // Add latest spaces to start
-            draft.activeSpaces = trimTail([...new Set(action.data.concat([...draft.activeSpaces]))], MAX_ACTIVE_ITEMS);
+            draft.activeSpaces = mergeById(action.data, original(draft.activeSpaces) || [], MAX_ACTIVE_ITEMS);
             break;
         case ContentActionTypes.REMOVE_ACTIVE_SPACES: {
             // Remove (reported) spaces
             const idx = draft.activeSpaces.findIndex((s) => s.id === action.data?.spaceId);
             if (idx !== -1) draft.activeSpaces.splice(idx, 1);
-            draft.activeSpaces = [...new Set(draft.activeSpaces)];
             break;
         }
         case ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION: {
@@ -206,7 +208,6 @@ const content = produce((draft: IContentState, action: any) => {
             if (activeIdx !== -1) {
                 draft.activeSpaces[activeIdx].reaction = { ...action.data };
             }
-            draft.activeSpaces = [...new Set(draft.activeSpaces)];
             const bookmarkIdx = draft.bookmarkedSpaces.findIndex((s) => s.id === action.data?.spaceId);
             if (bookmarkIdx !== -1) {
                 draft.bookmarkedSpaces[bookmarkIdx].reaction = { ...action.data };
@@ -215,22 +216,12 @@ const content = produce((draft: IContentState, action: any) => {
         }
         case ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS:
             // Add newly activated space to the top
-            action.data.spaces.concat([...draft.activeSpaces]).forEach((m) => {
-                if (!modifiedActiveSpacesMap[m.id]) {
-                    modifiedActiveSpacesMap[m.id] = m;
-                }
-            });
-            draft.activeSpaces = trimTail(Object.values(modifiedActiveSpacesMap), MAX_ACTIVE_ITEMS);
+            draft.activeSpaces = mergeById(action.data.spaces, original(draft.activeSpaces) || [], MAX_ACTIVE_ITEMS);
             mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             break;
         case ContentActionTypes.SEARCH_ACTIVE_SPACES:
             // Add next offset of spaces to end
-            action.data.spaces.concat([...draft.activeSpaces]).forEach((m) => {
-                if (!modifiedActiveSpacesMap[m.id]) {
-                    modifiedActiveSpacesMap[m.id] = m;
-                }
-            });
-            draft.activeSpaces = trimTail(Object.values(modifiedActiveSpacesMap), MAX_ACTIVE_ITEMS);
+            draft.activeSpaces = mergeById(action.data.spaces, original(draft.activeSpaces) || [], MAX_ACTIVE_ITEMS);
             mergeAndTrimMedia(draft.media, action.data.media, MAX_MEDIA_ENTRIES);
             draft.activeSpacesPagination = { ...action.data.pagination };
             break;
@@ -249,13 +240,12 @@ const content = produce((draft: IContentState, action: any) => {
         // Thoughts
         case ContentActionTypes.INSERT_ACTIVE_THOUGHTS:
             // Add latest thoughts to start
-            draft.activeThoughts = trimTail([...new Set([...action.data, ...draft.activeThoughts])], MAX_ACTIVE_ITEMS);
+            draft.activeThoughts = mergeById(action.data, original(draft.activeThoughts) || [], MAX_ACTIVE_ITEMS);
             break;
         case ContentActionTypes.REMOVE_ACTIVE_THOUGHTS: {
             // Remove (reported) thoughts
             const idx = draft.activeThoughts.findIndex((t) => t.id === action.data?.thoughtId);
             if (idx !== -1) draft.activeThoughts.splice(idx, 1);
-            draft.activeThoughts = [...new Set(draft.activeThoughts)];
             break;
         }
         case ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION: {
@@ -263,7 +253,6 @@ const content = produce((draft: IContentState, action: any) => {
             if (activeIdx !== -1) {
                 draft.activeThoughts[activeIdx].reaction = { ...action.data };
             }
-            draft.activeThoughts = [...new Set(draft.activeThoughts)];
             const bookmarkIdx = draft.bookmarkedThoughts.findIndex((t) => t.id === action.data?.thoughtId);
             if (bookmarkIdx !== -1) {
                 draft.bookmarkedThoughts[bookmarkIdx].reaction = { ...action.data };
@@ -272,12 +261,7 @@ const content = produce((draft: IContentState, action: any) => {
         }
         case ContentActionTypes.SEARCH_ACTIVE_THOUGHTS:
             // Add next offset of thoughts to end
-            action.data.thoughts.concat([...draft.activeThoughts]).forEach((m) => {
-                if (!modifiedActiveThoughtsMap[m.id]) {
-                    modifiedActiveThoughtsMap[m.id] = m;
-                }
-            });
-            draft.activeThoughts = trimTail(Object.values(modifiedActiveThoughtsMap), MAX_ACTIVE_ITEMS);
+            draft.activeThoughts = mergeById(action.data.thoughts, original(draft.activeThoughts) || [], MAX_ACTIVE_ITEMS);
             draft.activeThoughtsPagination = { ...action.data.pagination };
             break;
         case ContentActionTypes.UPDATE_ACTIVE_THOUGHTS:

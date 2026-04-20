@@ -66,20 +66,25 @@ const addMargins = (marginStyles) => {
     return marginStyles;
 };
 
+// Eager top inset used by the custom header. Replaces SafeAreaView, which
+// measures insets asynchronously under Fabric and causes a one-frame jump
+// where the header sits under the translucent Android status bar on mount.
+export const getHeaderTopInset = () => {
+    const safeAreaTop = initialWindowMetrics?.insets?.top;
+    if (safeAreaTop != null) {
+        return safeAreaTop;
+    }
+    if (Platform.OS === 'ios') {
+        return IOS_STATUS_HEIGHT + IOS_TOP_GAP;
+    }
+    return StatusBar.currentHeight || ANDROID_TOP_GAP;
+};
+
 const getHeaderHeight = () => {
     if (Platform.OS === 'ios') {
-        // Use safe area insets for accurate notch/Dynamic Island handling across all iOS devices,
-        // falling back to hardcoded values for older devices
-        const safeAreaTop = initialWindowMetrics?.insets?.top;
-        const statusBarOffset = safeAreaTop || (IOS_STATUS_HEIGHT + IOS_TOP_GAP);
-        return statusBarOffset + HEADER_HEIGHT;
+        return getHeaderTopInset() + HEADER_HEIGHT;
     }
-
-    // Use safe area insets for accurate cutout/notch handling across all Android devices,
-    // falling back to StatusBar.currentHeight or a default gap
-    const safeAreaTop = initialWindowMetrics?.insets?.top;
-    const statusBarHeight = safeAreaTop || StatusBar.currentHeight || ANDROID_TOP_GAP;
-    return HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + statusBarHeight;
+    return HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + getHeaderTopInset();
 };
 
 const getHeaderStyles = (theme: ITherrTheme) => ({

@@ -25,6 +25,30 @@ const isAuthFailure = (err: any): boolean => {
     return status === 401 || status === 403;
 };
 
+// Transient network/gateway errors that should be swallowed on GETs so cached
+// Redux state remains visible. Covers:
+//   - Pure client-side network failures (isOfflineError)
+//   - Node-level socket errors surfaced via the api-gateway (ECONNRESET, ETIMEDOUT, EPIPE)
+//   - Gateway responses (502/503/504) that indicate a transient upstream failure
+//   - "socket hang up" message variants returned by follow-redirects / http
+const TRANSIENT_CODES = new Set(['ECONNRESET', 'ETIMEDOUT', 'EPIPE', 'ECONNABORTED', 'ERR_NETWORK']);
+const TRANSIENT_STATUSES = new Set([502, 503, 504]);
+const isTransientNetworkError = (err: any): boolean => {
+    if (!err) return false;
+    if (isOfflineError(err)) return true;
+
+    const code = err?.code || err?.response?.data?.code;
+    if (code && TRANSIENT_CODES.has(code)) return true;
+
+    const status = Number(err?.response?.status);
+    if (TRANSIENT_STATUSES.has(status)) return true;
+
+    const msg = err?.message || err?.response?.data?.message;
+    if (typeof msg === 'string' && msg.toLowerCase().includes('socket hang up')) return true;
+
+    return false;
+};
+
 const subscribeToTokenRefresh = (resolve: (token: string) => void, reject: (err: any) => void) => {
     refreshSubscribers.push({ resolve, reject });
 };
@@ -178,8 +202,21 @@ const initInterceptors = (
         },
         (error) => {
             const originalRequest = error.config;
+            const isGet = originalRequest?.method?.toLowerCase() === 'get';
+            const isTransient = isTransientNetworkError(error);
 
-            if (__DEV__) {
+            // Graceful transient-error handling: swallow transient network/gateway
+            // errors on GET requests so cached Redux state remains visible without UI errors.
+            // Moved above the generic error log so transient failures don't spam the console.
+            if (isTransient && isGet) {
+                if (__DEV__) {
+                    console.log('[Interceptor] Transient GET error swallowed:', originalRequest?.url, error?.code || error?.message);
+                }
+                numLoadings = Math.max(0, numLoadings - 1);
+                return Promise.resolve({ data: {}, isOfflineFallback: true });
+            }
+
+            if (__DEV__ && !isTransient) {
                 console.log('[Interceptor Error]', error?.config?.url, error?.response?.status, error?.message);
             }
 
@@ -218,13 +255,6 @@ const initInterceptors = (
                     handleLogout(store);
                 }
             } else if (error) {
-                // Graceful offline handling: swallow network errors on GET requests
-                // so cached Redux state remains visible without UI errors
-                if (isOfflineError(error) && originalRequest?.method?.toLowerCase() === 'get') {
-                    numLoadings = Math.max(0, numLoadings - 1);
-                    return Promise.resolve({ data: {}, isOfflineFallback: true });
-                }
-
                 if (isAuthFailure(error)) {
                     // Only logout for definitive auth failures without a response object
                     socketIO.disconnect();
