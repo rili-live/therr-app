@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    Pressable,
     StyleSheet,
     Text,
     TextInput,
-    TouchableOpacity,
     View,
 } from 'react-native';
 import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
@@ -132,6 +132,7 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
                         data={sortedLists}
                         keyExtractor={(item) => item.id}
                         style={{ width: '100%', maxHeight: 260 }}
+                        keyboardShouldPersistTaps="handled"
                         ListEmptyComponent={() => (
                             <Text style={localStyles.emptyText}>
                                 {translate('pages.bookmarks.lists.noListsYet')}
@@ -144,10 +145,11 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
                                 ? `${item.name} (${translate('pages.bookmarks.lists.default')})`
                                 : item.name;
                             return (
-                                <TouchableOpacity
+                                <Pressable
                                     style={localStyles.row}
                                     disabled={disabled}
                                     onPress={() => handleToggle(item.id, !checked)}
+                                    hitSlop={8}
                                 >
                                     <MaterialIcon
                                         name={checked ? 'check-box' : 'check-box-outline-blank'}
@@ -155,7 +157,7 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
                                         color={checked ? '#26a69a' : '#999'}
                                     />
                                     <Text style={localStyles.rowLabel}>{label}</Text>
-                                </TouchableOpacity>
+                                </Pressable>
                             );
                         }}
                     />

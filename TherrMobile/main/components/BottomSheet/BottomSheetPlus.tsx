@@ -1,6 +1,6 @@
 import React,{ useRef, useMemo, useCallback, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { Easing, StyleSheet } from 'react-native';
+import BottomSheet, { BottomSheetView, useBottomSheetTimingConfigs } from '@gorhom/bottom-sheet';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
@@ -40,6 +40,14 @@ const BottomSheetPlus = ({
 
     const [borderRadius, setBorderRadius] = useState(defaultBorderRadius);
 
+    // Gorhom defaults to a spring. Under Fabric + Android the spring
+    // overshoot feels laggy; a short timing curve reaches the snap point
+    // predictably in ~220ms without compromising the visual.
+    const animationConfigs = useBottomSheetTimingConfigs({
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+    });
+
     // callbacks
     const handleSheetChanges = useCallback((index: number) => {
         if (index === -1) {
@@ -67,6 +75,7 @@ const BottomSheetPlus = ({
             enablePanDownToClose
             snapPoints={snapPoints}
             onChange={handleSheetChanges}
+            animationConfigs={animationConfigs}
             containerStyle={localStyles.transparentBackground}
             handleStyle={localStyles.handle}
             handleIndicatorStyle={{}}

@@ -31,7 +31,6 @@ import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { showToast } from '../utilities/toasts';
@@ -42,7 +41,7 @@ import BackgroundGeolocation, {
 import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
-import { buildNavTheme } from '../styles';
+import { buildNavTheme, getHeaderTopInset } from '../styles';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
@@ -1589,7 +1588,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 );
                             }
                             return (
-                                <SafeAreaView edges={['top']} style={customHeaderStyle}>
+                                <View style={[customHeaderStyle, { paddingTop: getHeaderTopInset() }]}>
                                     <View style={{
                                         flexDirection: 'row',
                                         alignItems: 'center',
@@ -1600,7 +1599,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         {middleNode}
                                         {headerRightNode}
                                     </View>
-                                </SafeAreaView>
+                                </View>
                             );
                         };
 

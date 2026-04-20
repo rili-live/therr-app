@@ -1429,6 +1429,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     handleQuickFilterSelect = (index: string) => {
         const { setMapFilters, map, location } = this.props;
 
+        this.setState({
+            activeQuickFilterId: index,
+        });
+
         let authorFilters = this.initialAuthorFilters.map(x => ({ ...x, isChecked: true}));
         let categoryFilters = this.initialCategoryFilters.map(x => ({ ...x, isChecked: true}));
         let visibilityFilters = this.initialVisibilityFilters.map(x => ({ ...x, isChecked: true}));
@@ -1496,10 +1500,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         } else {
             this.expandBottomSheet(0, true);
         }
-
-        this.setState({
-            activeQuickFilterId: index,
-        });
     };
 
     handleSearchThisLocation = (searchRadius?, latitude?, longitude?): Promise<any> => {
