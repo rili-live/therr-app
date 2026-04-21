@@ -308,14 +308,21 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
             : undefined,
     });
 
-    mapGroupEntity = (group: any) => ({
-        id: String(group.id),
-        title: group.title || group.name || '—',
-        subtitle: group.description || '',
-        imageUri: group.media?.featuredImage
-            ? getUserContentUri(group.media.featuredImage, 150, 150)
-            : undefined,
-    });
+    mapGroupEntity = (userGroup: any) => {
+        // myUserGroups stores the membership record keyed by groupId; the
+        // actual group fields (title, description, media) are nested under
+        // `.group` by the users-service `getUserGroups?withGroups=true` call.
+        const group = userGroup.group || {};
+        const media = group.media || userGroup.media;
+        return {
+            id: String(userGroup.groupId || group.id || userGroup.id || ''),
+            title: group.title || group.name || userGroup.title || userGroup.name || '—',
+            subtitle: group.description || userGroup.description || '',
+            imageUri: media?.featuredImage
+                ? getUserContentUri(media.featuredImage, 150, 150)
+                : undefined,
+        };
+    };
 
     renderProfileCard = () => {
         const { user } = this.props;
@@ -467,7 +474,8 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
                         <View style={staticStyles.sectionBody}>
                             {this.renderEntitySection(
                                 'group',
-                                Object.values(user.myUserGroups || {}),
+                                Object.values(user.myUserGroups || {})
+                                    .filter((ug: any) => ug?.group),
                                 this.state.isLoadingGroups,
                                 'pages.myQRCodes.emptyGroups',
                                 this.mapGroupEntity,
