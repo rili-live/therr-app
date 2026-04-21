@@ -10,7 +10,7 @@ import {
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
-import { getCrashlytics, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
+import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
 import {
     getMessaging,
     getToken,
@@ -404,6 +404,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     })
                     .catch((err) => {
                         console.log('NOTIFICATIONS_ERROR', err);
+                        if (!__DEV__) {
+                            try {
+                                const crashlytics = getCrashlytics();
+                                crashlyticsLog(crashlytics, `NOTIFICATIONS_ERROR: ${err?.message || String(err)}`);
+                                recordError(crashlytics, err instanceof Error ? err : new Error(String(err)));
+                            } catch {
+                                // Crashlytics may not be initialized yet on very early startup.
+                            }
+                        }
                     });
             } else {
                 BackgroundGeolocation.stop();

@@ -1,13 +1,47 @@
 /* eslint-disable no-case-declarations */
 import * as admin from 'firebase-admin';
 import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import translate from '../utilities/translator';
+import { clearInvalidDeviceToken } from '../handlers/helpers/user';
 
-const serviceAccount = JSON.parse(Buffer.from(process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString());
+// FCM error codes for tokens that should be removed from the database.
+// See https://firebase.google.com/docs/cloud-messaging/send-message#admin
+const INVALID_TOKEN_ERROR_CODES = new Set([
+    'messaging/registration-token-not-registered',
+    'messaging/invalid-registration-token',
+    'messaging/invalid-argument', // FCM returns this when the token is malformed
+]);
+
+const isInvalidTokenError = (error: any): boolean => INVALID_TOKEN_ERROR_CODES.has(error?.code)
+    || INVALID_TOKEN_ERROR_CODES.has(error?.errorInfo?.code);
+
+const loadServiceAccount = (): admin.ServiceAccount => {
+    const raw = process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64;
+    if (!raw) {
+        throw new Error(
+            'push-notifications-service: PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 is not set. FCM cannot be initialized.',
+        );
+    }
+    let parsed: any;
+    try {
+        parsed = JSON.parse(Buffer.from(raw, 'base64').toString());
+    } catch (err: any) {
+        throw new Error(
+            `push-notifications-service: PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 is not valid base64-encoded JSON (${err?.message || 'parse error'}).`,
+        );
+    }
+    if (!parsed?.project_id || !parsed?.client_email || !parsed?.private_key) {
+        throw new Error(
+            'push-notifications-service: Firebase service account JSON is missing required fields (project_id, client_email, private_key).',
+        );
+    }
+    return parsed as admin.ServiceAccount;
+};
 
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert(loadServiceAccount()),
     // databaseURL: 'https://<DATABASE_NAME>.firebaseio.com',
 });
 
@@ -541,6 +575,7 @@ const predictAndSendNotification = (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     metrics?: INotificationMetrics,
     brandVariation: BrandVariations = BrandVariations.THERR,
+    headers?: InternalConfigHeaders,
 ) => {
     const message = createMessage(type, data, config, brandVariation);
 
@@ -653,21 +688,36 @@ const predictAndSendNotification = (
             }
         })
         .catch((error) => {
+            const fcmErrorCode = error?.code || error?.errorInfo?.code;
+            const tokenInvalid = isInvalidTokenError(error);
+            const targetUserId = typeof config.userId === 'string' ? config.userId : undefined;
+
             logSpan({
                 level: 'error',
                 messageOrigin: 'API_SERVER',
-                messages: ['Failed to send push notification'],
+                messages: [
+                    tokenInvalid
+                        ? 'Invalid FCM device token — scheduling cleanup'
+                        : 'Failed to send push notification',
+                ],
                 traceArgs: {
                     'error.message': error?.message,
+                    'error.code': fcmErrorCode,
                     'error.stack': error?.stack,
                     'pushNotification.messageData': message && message.data,
                     'pushNotification.messageNotification': message && message.notification,
-                    'user.id': config?.userId,
+                    'pushNotification.tokenInvalid': tokenInvalid,
+                    'user.id': targetUserId,
                     'pushNotification.lastMomentNotificationDate': metrics?.lastMomentNotificationDate,
                     'pushNotification.lastSpaceNotificationDate': metrics?.lastSpaceNotificationDate,
-                    issue: 'failed to send push notification',
+                    issue: tokenInvalid ? 'invalid fcm device token' : 'failed to send push notification',
                 },
             });
+
+            if (tokenInvalid && config.deviceToken) {
+                // Fire-and-forget; helper swallows its own errors
+                clearInvalidDeviceToken(headers, targetUserId, config.deviceToken);
+            }
         });
 };
 
