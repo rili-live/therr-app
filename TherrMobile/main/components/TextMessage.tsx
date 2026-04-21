@@ -16,7 +16,9 @@ export default ({
     themeMessage,
     translate,
 }) => {
-    const isYou = () => message.fromUserName?.toLowerCase().includes('you');
+    const isYou = () => (message.fromUserId
+        ? message.fromUserId === userDetails?.id
+        : !!message.fromUserName?.toLowerCase().includes('you'));
     const getName = () => {
         if (isYou()) {
             return 'You';
