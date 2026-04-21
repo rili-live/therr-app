@@ -1332,8 +1332,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     };
 
     getIosNotificationPermissions = () => {
-        // TODO: Determine if 2nd then is even necessary
-        return notifee.requestPermission()
+        // Android 13+ (API 33) requires runtime POST_NOTIFICATIONS permission
+        const androidPermissionPromise = Platform.OS === 'android' && Number(Platform.Version) >= 33
+            ? PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS)
+            : Promise.resolve(null);
+
+        return androidPermissionPromise
+            .then(() => notifee.requestPermission())
             .then((permissions) => {
                 if (permissions?.authorizationStatus !== 1) {
                     console.log('Notifee authorization status:', permissions);

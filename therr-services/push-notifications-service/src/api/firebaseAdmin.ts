@@ -32,6 +32,16 @@ interface INotificationMetrics {
     lastSpaceNotificationDate?: number | null;
 }
 
+// Must match the channel ids created on the mobile client in
+// TherrMobile/main/constants/index.tsx (AndroidChannelIds). Without a matching
+// channelId, Android 8+ will drop display-style notifications.
+enum AndroidChannelId {
+    default = 'default',
+    contentDiscovery = 'contentDiscovery',
+    rewardUpdates = 'rewardUpdates',
+    reminders = 'reminders',
+}
+
 interface ICreateBaseMessage {
     data: { [key: string]: string; };
     deviceToken: any;
@@ -40,6 +50,7 @@ interface ICreateBaseMessage {
 interface ICreateNotificationMessage extends ICreateBaseMessage {
     notificationTitle: string;
     notificationBody: string;
+    channelId?: AndroidChannelId;
 }
 
 const getPostActionId = (postType?: string) => {
@@ -149,6 +160,7 @@ const createNotificationMessage = ({
     deviceToken,
     notificationTitle,
     notificationBody,
+    channelId = AndroidChannelId.default,
 }: ICreateNotificationMessage): admin.messaging.Message | false => ({
     ...createBaseMessage({
         data,
@@ -159,7 +171,7 @@ const createNotificationMessage = ({
             icon: 'ic_notification_icon',
             color: '#0f7b82', // TODO: use brandVariation for icon color
             // clickAction: 'app.therrmobile.VIEW_MOMENT',
-            // channelId: '', // TODO: Add matching channelIds from mobile app
+            channelId,
         },
     },
     notification: {
@@ -196,6 +208,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.createYourProfileReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.createYourProfileReminder.body'),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'CREATE_YOUR_PROFILE_REMINDER');
             return baseMessage;
@@ -205,6 +218,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.createAMomentReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.createAMomentReminder.body'),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'CREATE_A_MOMENT_REMINDER');
             return baseMessage;
@@ -214,6 +228,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.completeDraftReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.completeDraftReminder.body'),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'COMPLETE_DRAFT_REMINDER');
             return baseMessage;
@@ -225,6 +240,7 @@ const createMessage = (
                 notificationBody: translate(config.userLocale, 'notifications.latestPostLikesStats.body', {
                     likeCount: config.likeCount || 0,
                 }),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'LATEST_POST_LIKES_STATS');
             return baseMessage;
@@ -249,6 +265,7 @@ const createMessage = (
                 notificationBody: translate(config.userLocale, 'notifications.unreadNotificationsReminder.body', {
                     notificationsCount: config.notificationsCount || 0,
                 }),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'UNREAD_NOTIFICATIONS_REMINDER');
             return baseMessage;
@@ -260,6 +277,7 @@ const createMessage = (
                 notificationBody: translate(config.userLocale, 'notifications.unclaimedAchievementsReminder.body', {
                     achievementsCount: config.achievementsCount || 0,
                 }),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'UNCLAIMED_ACHIEVEMENTS_REMINDER');
             return baseMessage;
@@ -269,6 +287,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.inviteFriendsReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.inviteFriendsReminder.body'),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'INVITE_FRIENDS_REMINDER');
             return baseMessage;
@@ -280,6 +299,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.achievementCompleted.title'),
                 notificationBody: translate(config.userLocale, 'notifications.achievementCompleted.body'),
+                channelId: AndroidChannelId.rewardUpdates,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'ACHIEVEMENT_COMPLETED');
             return baseMessage;
@@ -387,6 +407,7 @@ const createMessage = (
                     groupName: String(config.groupName || ''),
                     members: String(config.groupMembersList?.slice(0, 3).join(', ') || ''),
                 }),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'NEW_GROUP_MEMBERS');
             return baseMessage;
@@ -399,6 +420,7 @@ const createMessage = (
                     groupName: String(config.groupName || ''),
                     fromUserName: String(config.fromUserName || ''),
                 }),
+                channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'NEW_GROUP_INVITE');
             return baseMessage;
@@ -448,6 +470,7 @@ const createMessage = (
                 notificationBody: translate(config.userLocale, 'notifications.newAreasActivated.body', {
                     totalAreasActivated: Number(config.totalAreasActivated || 0),
                 }),
+                channelId: AndroidChannelId.contentDiscovery,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'NEW_AREAS_ACTIVATED');
             return baseMessage;
@@ -476,6 +499,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
+                channelId: AndroidChannelId.contentDiscovery,
             });
         case PushNotifications.Types.proximityRequiredSpace:
             return createNotificationMessage({
@@ -483,6 +507,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueSpace.title'),
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueSpace.body'),
+                channelId: AndroidChannelId.contentDiscovery,
             });
         case PushNotifications.Types.newThoughtReplyReceived:
             baseMessage = createDataOnlyMessage({
