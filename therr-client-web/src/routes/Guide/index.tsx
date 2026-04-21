@@ -9,6 +9,7 @@ import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import {
     getGuide, IPost, IPostSection, resolveGuideForLocale,
 } from '../../utilities/guideContent';
+import { toIntlLocale } from '../../utilities/formatDate';
 import withTranslation from '../../wrappers/withTranslation';
 import ProseSection from './sections/ProseSection';
 import SpaceListSection from './sections/SpaceListSection';
@@ -98,11 +99,11 @@ function renderSection(
     }
 }
 
-const formatPublished = (iso: string) => {
+const formatPublished = (iso: string, locale: string) => {
     if (!iso) return '';
     const d = new Date(`${iso}T00:00:00Z`);
     if (Number.isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    return d.toLocaleDateString(toIntlLocale(locale), { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
 const Guide: React.FC<IGuideProps> = ({ locale }) => {
@@ -145,11 +146,11 @@ const Guide: React.FC<IGuideProps> = ({ locale }) => {
                             By {post.authorUrl ? <Anchor href={post.authorUrl}>{post.author}</Anchor> : post.author}
                         </Text>
                         <Text size="sm" c="dimmed">·</Text>
-                        <Text size="sm" c="dimmed">Published {formatPublished(post.publishedAt)}</Text>
+                        <Text size="sm" c="dimmed">Published {formatPublished(post.publishedAt, locale)}</Text>
                         {post.updatedAt && post.updatedAt !== post.publishedAt && (
                             <>
                                 <Text size="sm" c="dimmed">·</Text>
-                                <Text size="sm" c="dimmed">Updated {formatPublished(post.updatedAt)}</Text>
+                                <Text size="sm" c="dimmed">Updated {formatPublished(post.updatedAt, locale)}</Text>
                             </>
                         )}
                         {post.category && <Badge variant="light">{post.category}</Badge>}

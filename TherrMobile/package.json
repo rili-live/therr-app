@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "android": "export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
-    "android:clean": "pushd android && ./gradlew clean && rm -rf app/.cxx app/build .gradle build && popd",
+    "android:clean": "pushd android && rm -rf app/.cxx app/build app/build/generated/autolinking .gradle build && ./gradlew clean; popd",
+    "android:clean:cache": "pushd android && rm -rf app/.cxx app/build/generated/autolinking app/build/intermediates/cxx app/build/intermediates/cmake; popd",
     "android:device": "export $(cat .env | xargs) && adb reverse tcp:7770 tcp:7770 && adb reverse tcp:7743 tcp:7743 && adb reverse tcp:8081 tcp:8081 && ./node_modules/.bin/react-native run-android",
     "android:emulator": "emulator -avd Pixel_9 -no-snapshot-load &>/dev/null & echo 'Emulator starting...'",
     "android:log": "adb logcat *:S ReactNative:V ReactNativeJS:V",

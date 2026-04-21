@@ -35,6 +35,7 @@ import {
     IUserState,
 } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
+import { toIntlLocale } from '../utilities/formatDate';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
@@ -97,14 +98,14 @@ const renderMessage = (message: IForumMsg, index: number) => {
     );
 };
 
-const renderEventCard = (event: any) => (
+const renderEventCard = (event: any, locale: string) => (
     <Card key={event.id} shadow="sm" padding="md" radius="md" withBorder mb="sm">
         <Anchor href={`/events/${event.id}`} underline="hover">
             <Title order={4}>{event.notificationMsg || event.title}</Title>
         </Anchor>
         {event.scheduleStartAt && (
             <Text size="sm" c="dimmed">
-                {new Date(event.scheduleStartAt).toLocaleDateString(undefined, {
+                {new Date(event.scheduleStartAt).toLocaleDateString(toIntlLocale(locale), {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -164,6 +165,7 @@ interface IStoreProps extends IViewGroupDispatchProps {
 
 interface IViewGroupProps extends IViewGroupRouterProps, IStoreProps {
     translate: (key: string, params?: any) => string;
+    locale: string;
 }
 
 interface IViewGroupState {
@@ -465,13 +467,13 @@ export class ViewGroupComponent extends React.Component<IViewGroupProps, IViewGr
                 {upcomingEvents.length > 0 && (
                     <div className="events-section">
                         <Title order={3} mb="sm">{this.props.translate('pages.viewGroup.labels.upcomingEvents')}</Title>
-                        {upcomingEvents.map(renderEventCard)}
+                        {upcomingEvents.map((event: any) => renderEventCard(event, this.props.locale))}
                     </div>
                 )}
                 {pastEvents.length > 0 && (
                     <div className="events-section" style={{ marginTop: upcomingEvents.length > 0 ? 'var(--mantine-spacing-lg)' : undefined }}>
                         <Title order={3} mb="sm">{this.props.translate('pages.viewGroup.labels.pastEvents')}</Title>
-                        {pastEvents.map(renderEventCard)}
+                        {pastEvents.map((event: any) => renderEventCard(event, this.props.locale))}
                     </div>
                 )}
             </div>
