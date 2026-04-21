@@ -61,6 +61,7 @@ const MIN_LOAD_TIMEOUT = 350;
 const DEFAULT_MOMENT_PROXIMITY = 25;
 const MIN_ZOOM_LEVEL = 1; // Setting this too high may break animation to regions that excede the minimum zoom
 const MOMENTS_REFRESH_THROTTLE_MS = 30 * 1000;
+const MAP_SEARCH_MIN_DISTANCE_METERS = 150; // Skip refetch when user has moved less than this since the last search
 const LOCATION_PROCESSING_THROTTLE_MS = 5 * 1000;
 const MAX_DISTANCE_TO_NEARBY_SPACE = 120; // Distance in meters (roughly 400 feet)
 const EST_US_RADIUS_METERS = 6250000;
@@ -175,6 +176,7 @@ export {
     MAX_LOAD_TIMEOUT,
     MIN_ZOOM_LEVEL,
     MOMENTS_REFRESH_THROTTLE_MS,
+    MAP_SEARCH_MIN_DISTANCE_METERS,
     LOCATION_PROCESSING_THROTTLE_MS,
     MAX_DISTANCE_TO_NEARBY_SPACE,
     EST_US_RADIUS_METERS,

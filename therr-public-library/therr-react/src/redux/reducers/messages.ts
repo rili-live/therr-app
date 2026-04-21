@@ -2,6 +2,8 @@ import { produce } from 'immer';
 import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import { IMessagesState, MessageActionTypes } from '../../types/redux/messages';
 
+const MAX_THREAD_MESSAGES = 200;
+
 const initialState: IMessagesState = {
     forums: [],
     dms: {},
@@ -40,6 +42,9 @@ const messages = produce((draft: IMessagesState, action: any) => {
             }
             const prevMsgs = draft.forumMsgs[action.data.roomId] as any[];
             prevMsgs.push(...(action.data.messages || []));
+            if (prevMsgs.length > MAX_THREAD_MESSAGES) {
+                prevMsgs.splice(0, prevMsgs.length - MAX_THREAD_MESSAGES);
+            }
             if (action.data.isLastPage && prevMsgs.length) {
                 prevMsgs[prevMsgs.length - 1].isFirstMessage = true;
             }
@@ -61,6 +66,9 @@ const messages = produce((draft: IMessagesState, action: any) => {
             }
             const prevDMs = draft.dms[action.data.contextUserId] as any[];
             prevDMs.push(...(action.data.messages || []));
+            if (prevDMs.length > MAX_THREAD_MESSAGES) {
+                prevDMs.splice(0, prevDMs.length - MAX_THREAD_MESSAGES);
+            }
             if (action.data.isLastPage && prevDMs.length) {
                 prevDMs[prevDMs.length - 1].isFirstMessage = true;
             }
