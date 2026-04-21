@@ -22,11 +22,15 @@ const userConnections = produce((draft: IUserConnectionsState, action: any) => {
             break;
         }
         case SocketServerActionTypes.USER_CONNECTION_CREATED:
-            draft.connections.push(action.data);
+        case SocketServerActionTypes.USER_CONNECTION_UPDATED: {
+            const existingIdx = draft.connections.findIndex((c) => c.id === action.data?.id);
+            if (existingIdx > -1) {
+                draft.connections[existingIdx] = action.data;
+            } else {
+                draft.connections.push(action.data);
+            }
             break;
-        case SocketServerActionTypes.USER_CONNECTION_UPDATED:
-            draft.connections.push(action.data);
-            break;
+        }
         case SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED:
             draft.activeConnections.unshift(action.data);
             break;

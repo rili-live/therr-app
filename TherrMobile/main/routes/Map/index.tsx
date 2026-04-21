@@ -32,6 +32,7 @@ import {
     PRIMARY_LONGITUDE_DELTA,
     MIN_LOAD_TIMEOUT,
     MOMENTS_REFRESH_THROTTLE_MS,
+    MAP_SEARCH_MIN_DISTANCE_METERS,
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
     MAX_ANIMATION_LATITUDE_DELTA,
@@ -253,6 +254,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private initialVisibilityFilters;
     private mapRef: any;
     private mapWatchId;
+    private lastSearchAt?: number;
+    private lastSearchCoords?: { latitude: number, longitude: number };
+    private searchInFlight?: Promise<any>;
+    private searchAbortController?: AbortController;
     private theme = buildStyles();
     private themeAlerts = buildAlertStyles();
     private themeConfirmModal = buildConfirmModalStyles();
@@ -413,6 +418,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         this.unsubscribeBlurListener = navigation.addListener('blur', () => {
             this.clearTimeouts();
+            if (this.mapWatchId !== undefined) {
+                Geolocation.clearWatch(this.mapWatchId);
+                this.mapWatchId = undefined;
+            }
+            if (this.searchAbortController) {
+                this.searchAbortController.abort();
+                this.searchAbortController = undefined;
+            }
         });
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
@@ -485,6 +498,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         this.clearTimeouts();
+        if (this.searchAbortController) {
+            this.searchAbortController.abort();
+            this.searchAbortController = undefined;
+        }
         if (this.unsubscribeNavigationListener) {
             this.unsubscribeNavigationListener();
         }
@@ -1229,7 +1246,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             itemsPerPage: number,
             meItemsPerPage: number,
         },
-        distanceOverride?: any) => {
+        distanceOverride?: any,
+        options?: { signal?: AbortSignal }) => {
         const {
             findEventReactions,
             findMomentReactions,
@@ -1247,7 +1265,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 order: 'desc',
                 filterBy: 'fromUserIds',
                 ...longLat,
-            }, distanceOverride),
+            }, distanceOverride, options),
             searchSpaces({
                 query: 'connections',
                 itemsPerPage: conditions.itemsPerPage,
@@ -1255,7 +1273,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 order: 'desc',
                 filterBy: 'fromUserIds',
                 ...longLat,
-            }, distanceOverride),
+            }, distanceOverride, options),
             searchEvents({
                 query: 'connections',
                 itemsPerPage: conditions.itemsPerPage,
@@ -1263,7 +1281,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 order: 'desc',
                 filterBy: 'fromUserIds',
                 ...longLat,
-            }, distanceOverride),
+            }, distanceOverride, options),
         ];
 
         if (this.isUserAuthenticated()) {
@@ -1275,7 +1293,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     order: 'desc',
                     filterBy: 'fromUserIds',
                     ...longLat,
-                }, distanceOverride),
+                }, distanceOverride, options),
                 searchSpaces({
                     query: 'me',
                     itemsPerPage: conditions.meItemsPerPage,
@@ -1283,7 +1301,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     order: 'desc',
                     filterBy: 'fromUserIds',
                     ...longLat,
-                }, distanceOverride),
+                }, distanceOverride, options),
                 searchEvents({
                     query: 'me',
                     itemsPerPage: conditions.meItemsPerPage,
@@ -1291,7 +1309,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     order: 'desc',
                     filterBy: 'fromUserIds',
                     ...longLat,
-                }, distanceOverride)
+                }, distanceOverride, options)
             );
         }
 
@@ -1502,7 +1520,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }
     };
 
-    handleSearchThisLocation = (searchRadius?, latitude?, longitude?): Promise<any> => {
+    handleSearchThisLocation = (searchRadius?, latitude?, longitude?, overrideThrottle = false): Promise<any> => {
         const { region } = this.state;
         const { location } = this.props;
         this.setState({
@@ -1515,6 +1533,27 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (!latitude || !longitude) {
             lat = region.latitude;
             long = region.longitude;
+        }
+
+        // Skip if we searched recently AND haven't moved far enough. Class fields are used
+        // (not state) so these guards don't trigger re-renders.
+        if (!overrideThrottle && lat && long && this.lastSearchAt && this.lastSearchCoords &&
+            (Date.now() - this.lastSearchAt <= MOMENTS_REFRESH_THROTTLE_MS)) {
+            const movedMeters = distanceTo({
+                lon: this.lastSearchCoords.longitude,
+                lat: this.lastSearchCoords.latitude,
+            }, {
+                lon: long,
+                lat,
+            });
+            if (movedMeters < MAP_SEARCH_MIN_DISTANCE_METERS) {
+                return this.searchInFlight || Promise.resolve();
+            }
+        }
+
+        // Collapse focus-event stampedes onto the already-running search.
+        if (!overrideThrottle && this.searchInFlight) {
+            return this.searchInFlight;
         }
 
         let radius = searchRadius || this.getSearchRadius({
@@ -1530,7 +1569,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 isSearchLoading: true,
             });
 
-            return this.searchMapAreas({
+            // Cancel any prior in-flight search so its stale results don't clobber state.
+            if (this.searchAbortController) {
+                this.searchAbortController.abort();
+            }
+            this.searchAbortController = new AbortController();
+            this.lastSearchAt = Date.now();
+            this.lastSearchCoords = { latitude: lat, longitude: long };
+
+            const promise = this.searchMapAreas({
                 latitude: lat,
                 longitude: long,
             }, {
@@ -1540,11 +1587,19 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 distanceOverride: radius,
                 userLatitude: location?.user?.latitude,
                 userLongitude: location?.user?.longitude,
-            }).finally(() =>{
+            }, {
+                signal: this.searchAbortController.signal,
+            }).finally(() => {
                 this.setState({
                     isSearchLoading: false,
                 });
+                if (this.searchInFlight === promise) {
+                    this.searchInFlight = undefined;
+                    this.searchAbortController = undefined;
+                }
             });
+            this.searchInFlight = promise;
+            return promise;
         }
 
         return Promise.resolve();
