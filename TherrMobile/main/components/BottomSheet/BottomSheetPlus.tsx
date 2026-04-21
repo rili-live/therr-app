@@ -5,6 +5,10 @@ import BottomSheet, { useBottomSheetTimingConfigs } from '@gorhom/bottom-sheet';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
+import { getHeaderTopInset } from '../../styles';
+
+// Header content height (mirrors Layout.tsx custom header inner row).
+const HEADER_CONTENT_HEIGHT = 52;
 
 // bottomInset reserves space for MainButtonMenu, so the first snap only needs
 // the handle visible above it.
@@ -17,6 +21,7 @@ interface IBottomSheetPlus {
     onClose: () => any;
     children: React.ReactNode;
     overrideSnapPoints?: (string | number)[];
+    topInset?: number;
     themeBottomSheet: {
         colors: ITherrThemeColors;
         styles: any;
@@ -30,6 +35,7 @@ const BottomSheetPlus = ({
     isTransparent,
     onClose,
     overrideSnapPoints,
+    topInset,
     themeBottomSheet,
 }: IBottomSheetPlus) => {
     // ref
@@ -40,6 +46,14 @@ const BottomSheetPlus = ({
     const defaultBorderRadius = themeBottomSheet.styles.backgroundStyle.borderRadius;
     const initialSnapPoints = overrideSnapPoints || defaultSnapPoints;
     const snapPoints = useMemo(() => initialSnapPoints, [initialSnapPoints]);
+    // Offset the sheet by the custom header height so percentage snap points
+    // ('50%', '100%') are measured against the visible screen area. Without
+    // this, the fully expanded sheet's top content (handle, section title,
+    // first list item header) slides behind the opaque route header.
+    const resolvedTopInset = useMemo(
+        () => (topInset != null ? topInset : getHeaderTopInset() + HEADER_CONTENT_HEIGHT),
+        [topInset]
+    );
 
     const [borderRadius, setBorderRadius] = useState(defaultBorderRadius);
 
@@ -77,6 +91,7 @@ const BottomSheetPlus = ({
             index={initialIndex || 0}
             enablePanDownToClose
             snapPoints={snapPoints}
+            topInset={resolvedTopInset}
             onChange={handleSheetChanges}
             animationConfigs={animationConfigs}
             bottomInset={buttonMenuHeight}
