@@ -1009,6 +1009,34 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldShowCreateActions: false,
         });
 
+        // Fast path: permissions granted, GPS on, and we already have a cached
+        // user coord. Animate immediately without awaiting the permission/OS
+        // settings promise chain so the press feels instant. The moments refresh
+        // runs off the critical path and respects the existing throttle so
+        // repeated presses don't spam 6+ API calls.
+        if (location?.settings?.isGpsEnabled
+            && isLocationPermissionGranted(location?.permissions || {})
+            && location.user?.longitude && location.user?.latitude
+            && map.hasUserLocationLoaded) {
+            const { region } = this.state;
+            const coords = {
+                longitude: location.user.longitude,
+                latitude: location.user.latitude,
+            };
+            this.updateCircleCenter(coords);
+            const mapDelta = region.longitude && region.latitudeDelta
+                && Math.abs(region.latitudeDelta - MAX_ANIMATION_LATITUDE_DELTA) > 0.001
+                && Math.abs(region.longitude - location.user.longitude) < 0.0001
+                ? {
+                    latitudeDelta: MAX_ANIMATION_LATITUDE_DELTA,
+                    longitudeDelta: MAX_ANIMATION_LONGITUDE_DELTA,
+                }
+                : null;
+            this.handleGpsRecenter(coords, mapDelta, ANIMATE_TO_REGION_DURATION_FAST);
+            this.handleRefreshMoments(false, coords);
+            return Promise.resolve(coords);
+        }
+
         clearTimeout(this.timeoutIdLocationReady);
         this.timeoutIdLocationReady = setTimeout(() => {
             this.setState({
