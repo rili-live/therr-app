@@ -33,6 +33,7 @@ const sendDirectMessage = (internalConfig: IInternalConfig, socket: socketio.Soc
                 contextUserId: data.to.id,
                 message: {
                     id: message.id,
+                    fromUserId: data.userId,
                     fromUserName: 'you',
                     fromUserImgSrc: data.userImgSrc,
                     time: timeFormatted,
@@ -47,6 +48,7 @@ const sendDirectMessage = (internalConfig: IInternalConfig, socket: socketio.Soc
                     contextUserId: data.userId,
                     message: {
                         id: message.id,
+                        fromUserId: data.userId,
                         fromUserName: data.userName,
                         fromUserImgSrc: data.userImgSrc,
                         time: timeFormatted,
