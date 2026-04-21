@@ -47,6 +47,10 @@
     .forum-tabs-container {
         .forum-tabs-list {
             border-bottom: 2px solid rgba($therr-primary-1, 0.15);
+
+            [data-mantine-color-scheme="dark"] & {
+                border-bottom-color: rgba(255, 255, 255, 0.15);
+            }
         }
 
         .forum-tab {
@@ -70,6 +74,20 @@
             &[data-active] {
                 color: $therr-primary-1;
                 border-bottom-color: $therr-primary-1;
+            }
+
+            [data-mantine-color-scheme="dark"] & {
+                color: rgba(255, 255, 255, 0.75);
+
+                &:hover {
+                    color: #48b7c3;
+                    background-color: rgba(72, 183, 195, 0.08);
+                }
+
+                &[data-active] {
+                    color: #48b7c3;
+                    border-bottom-color: #48b7c3;
+                }
             }
         }
     }
