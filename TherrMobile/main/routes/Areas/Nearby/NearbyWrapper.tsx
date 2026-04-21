@@ -5,10 +5,9 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
-import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IContentState, IUserState } from 'therr-react/types';
 import { PushNotificationsService } from 'therr-react/services';
 import { Content } from 'therr-js-utilities/constants';
-// import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Geolocation from 'react-native-geolocation-service';
 import { getReadableDistance } from 'therr-js-utilities/location';
 import { buildStyles } from '../../../styles';
@@ -18,8 +17,7 @@ import { buildStyles as buildLoaderStyles } from '../../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../../styles/navigation/buttonMenu';
 import { buildStyles as buildMomentStyles } from '../../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../../styles/forms';
-// import { buttonMenuHeightCompact } from '../../../styles/navigation/buttonMenu';
-import translator from '../../../services/translator';
+import translator from '../../../utilities/translator';
 import AreaCarousel from '../AreaCarousel';
 import { SheetManager } from 'react-native-actions-sheet';
 import { IContentSelectionType } from '../../../components/ActionSheet/ContentOptionsSheet';
@@ -62,9 +60,11 @@ interface INearbyWrapperDispatchProps {
 interface IStoreProps extends INearbyWrapperDispatchProps {
     content: IContentState;
     location: ILocationState;
-    map: IMapState;
+    mapEvents: { [id: string]: any };
+    mapMoments: { [id: string]: any };
+    radiusOfAwareness: number;
+    radiusOfInfluence: number;
     user: IUserState;
-    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -93,9 +93,11 @@ const shouldRenderNearbyAreaFeed = (location) => {
 const mapStateToProps = (state: any) => ({
     content: state.content,
     location: state.location,
-    map: state.map,
+    mapEvents: state.map.events,
+    mapMoments: state.map.moments,
+    radiusOfAwareness: state.map.radiusOfAwareness,
+    radiusOfInfluence: state.map.radiusOfInfluence,
     user: state.user,
-    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -419,25 +421,32 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
     };
 
     onSliderAwarenessChange = (value) => {
-        const { map, updateUserRadius } = this.props;
+        const { radiusOfAwareness, radiusOfInfluence, updateUserRadius } = this.props;
 
         updateUserRadius({
-            radiusOfAwareness: value || map.radiusOfAwareness,
-            radiusOfInfluence: map.radiusOfInfluence,
+            radiusOfAwareness: value || radiusOfAwareness,
+            radiusOfInfluence,
         });
     };
 
     onSliderInfluenceChange = (value) => {
-        const { map, updateUserRadius } = this.props;
+        const { radiusOfAwareness, radiusOfInfluence, updateUserRadius } = this.props;
 
         updateUserRadius({
-            radiusOfAwareness: map.radiusOfAwareness,
-            radiusOfInfluence: value || map.radiusOfInfluence,
+            radiusOfAwareness,
+            radiusOfInfluence: value || radiusOfInfluence,
         });
     };
 
     positionSuccessCallback = (position) => {
-        const { shouldDisableLocationSendEvent, map, updateUserCoordinates, location, user } = this.props;
+        const {
+            shouldDisableLocationSendEvent,
+            radiusOfAwareness,
+            radiusOfInfluence,
+            updateUserCoordinates,
+            location,
+            user,
+        } = this.props;
         const { isFirstLoad } = this.state;
         // TODO: Throttle to prevent too many requests
         // Only update when Map is not already handling this in the background
@@ -453,8 +462,8 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
                         longitude: position.coords.longitude,
                         latitude: position.coords.latitude,
                         // lastLocationSendForProcessing,
-                        radiusOfAwareness: map.radiusOfAwareness,
-                        radiusOfInfluence: map.radiusOfInfluence,
+                        radiusOfAwareness,
+                        radiusOfInfluence,
                     });
                 }
             }
@@ -654,7 +663,8 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             content,
             displaySize,
             isInMapView,
-            map,
+            mapEvents,
+            mapMoments,
             location,
             user,
         } = this.props;
@@ -665,8 +675,8 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
         const activatedData = isLoading ? [] : getActiveCarouselData({
             activeTab,
             content: {
-                activeEvents: Object.values(map?.events || {}),
-                activeMoments: Object.values(map?.moments || {}),
+                activeEvents: Object.values(mapEvents || {}),
+                activeMoments: Object.values(mapMoments || {}),
             },
             isForBookmarks: false,
             isForDrafts: false,

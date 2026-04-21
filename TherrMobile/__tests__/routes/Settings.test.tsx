@@ -9,7 +9,7 @@ import renderer, { act } from 'react-test-renderer';
 import { it, describe, beforeEach, afterEach, expect } from '@jest/globals';
 
 // Mock dependencies
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
+jest.mock('react-native-keyboard-controller', () => {
     const { View } = require('react-native');
     return {
         KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,

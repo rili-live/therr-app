@@ -1,6 +1,4 @@
 import * as React from 'react';
-import LogRocket from 'logrocket';
-import setupLogRocketReact from 'logrocket-react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -43,7 +41,10 @@ const RootComponent = () => (
     <GoogleOAuthProvider clientId={envVars.googleOAuth2WebClientId}>
         <MantineProvider theme={mantineTheme} defaultColorScheme={getColorScheme()}>
             <Provider store={store} serverState={store.preloadedState}>
-                <BrowserRouter basename={localeBasename}>
+                <BrowserRouter
+                    basename={localeBasename}
+                    future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+                >
                     <ScrollToTop />
                     <Layout />
                 </BrowserRouter>
@@ -60,9 +61,3 @@ if (process.env.NODE_ENV === 'development') {
         <RootComponent />,
     );
 }
-
-// Defer LogRocket initialization to reduce main thread blocking during page load
-requestIdleCallback(() => {
-    LogRocket.init('pibaqj/therr-web-app');
-    setupLogRocketReact(LogRocket);
-}, { timeout: 5000 });

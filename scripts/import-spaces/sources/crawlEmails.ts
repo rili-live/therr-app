@@ -3,6 +3,7 @@
  * Extracts business email addresses from a website by checking mailto links,
  * plaintext patterns, and optionally following a contact page.
  */
+import { withRetry, isTransientNetworkError } from '../utils/withRetry';
 
 export interface IEmailCrawlResult {
   email: string;
@@ -144,15 +145,24 @@ function findContactPageUrl(html: string, baseUrl: string): string | null {
  */
 async function fetchPage(url: string): Promise<string | null> {
   try {
-    const response = await fetch(url, {
-      signal: AbortSignal.timeout(10000),
-      redirect: 'follow',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
+    const response = await withRetry(
+      () => fetch(url, {
+        signal: AbortSignal.timeout(10000),
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      }),
+      {
+        retries: 1,
+        baseDelayMs: 2000,
+        shouldRetry: isTransientNetworkError,
+        label: `crawlEmails ${url}`,
+        log: console.warn,
       },
-    });
+    );
 
     if (!response.ok) {
       console.warn(`  [crawlEmails] HTTP ${response.status} for ${url}`);

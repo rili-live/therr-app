@@ -1,14 +1,13 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
-// import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../../styles';
 import { buildStyles as buildMenuStyles } from '../../../styles/navigation/buttonMenu';
-// import { buttonMenuHeightCompact } from '../../../styles/navigation/buttonMenu';
-import translator from '../../../services/translator';
+import translator from '../../../utilities/translator';
 import MainButtonMenu from '../../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../../components/BaseStatusBar';
 import NearbyWrapper from './NearbyWrapper';
@@ -67,7 +66,6 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         });
     }
 
-
     scrollTop = () => {
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
     };
@@ -84,7 +82,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     <NearbyWrapper
                         carouselRef={(component) => { this.carouselRef = component; }}
                         displaySize={displaySize}

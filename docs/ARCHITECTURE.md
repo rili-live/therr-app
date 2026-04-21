@@ -411,3 +411,36 @@ This pattern allows niche features to be deployed without affecting core app fun
 4. Add route in `therr-api-gateway/src/routes/index.ts`
 5. Create K8s manifests in `k8s/prod/` and `k8s/test/`
 6. Add service URL to `global-config.js`
+
+---
+
+## Offline-First Architecture
+
+The client apps (mobile + web) implement an offline-first strategy to remain usable during network outages and API deploys. This is a **client-side only** concern — no backend changes are required.
+
+### Layers
+
+1. **Network detection** — A shared `network` Redux slice tracks connectivity state. Mobile uses `@react-native-community/netinfo`; web uses `window` `online`/`offline` events.
+2. **State persistence** — `redux-persist` caches `user`, `content`, `notifications`, and `userConnections` slices to AsyncStorage (mobile) or localStorage (web). On app launch, persisted state is rehydrated before rendering.
+3. **Stale-while-revalidate** — Read actions return persisted Redux state immediately, then fetch fresh data in the background. Network failures are silently swallowed for reads.
+4. **Graceful failure** — Axios interceptors catch network errors on GET requests and resolve with empty data instead of throwing.
+5. **OfflineBanner** — A UI indicator appears on both platforms when the device is offline.
+
+### Data Flow (Read Path)
+
+```
+App Launch → redux-persist rehydrates cached state → UI renders cached data
+         → Action creator fires API request in background
+         → Success: Redux state updated, UI re-renders with fresh data
+         → Network error: Swallowed silently, cached data stays visible
+```
+
+### Key Files
+
+| Purpose | Path |
+|---------|------|
+| Network Redux slice | `therr-react/src/redux/reducers/network.ts` |
+| Cache helpers | `therr-react/src/utilities/cacheHelpers.ts` |
+| Mobile network service | `TherrMobile/main/services/networkService.ts` |
+| Web network service | `therr-client-web/src/services/networkService.ts` |
+| Full roadmap | `docs/OFFLINE_FIRST_PLAN.md` |

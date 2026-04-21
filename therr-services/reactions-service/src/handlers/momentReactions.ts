@@ -6,7 +6,6 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
 import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
-// import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
 const createOrUpdateMomentReaction = (req, res) => {

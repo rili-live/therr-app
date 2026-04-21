@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -7,7 +8,7 @@ import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
@@ -135,7 +136,6 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             this.unsubscribeFocusListener();
         }
     }
-
 
     handleRefresh = (withMedia = true) => {
         const { searchMyDrafts } = this.props;
@@ -268,7 +268,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <AreaCarousel
                         activeData={activeData}
                         content={content}

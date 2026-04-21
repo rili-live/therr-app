@@ -11,6 +11,40 @@ $profileImgWidth: rem-calc(100px);
     .info-container {
         color: var(--therr-text-a, $therr-text-a);
     }
+
+    .home-seo-section {
+        h2, h3 {
+            margin-top: 1.5rem;
+        }
+
+        .home-link-grid {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem 1rem;
+
+            a {
+                text-decoration: none;
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        @media only screen and (min-width: $screen-small) {
+            .home-link-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media only screen and (min-width: $screen-medium) {
+            .home-link-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+    }
 }
 
 #page_login {

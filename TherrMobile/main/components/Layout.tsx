@@ -2,13 +2,11 @@ import React from 'react';
 import axios from 'axios';
 import qs from 'qs';
 import {
-    DeviceEventEmitter,
     Image,
     Linking,
     PermissionsAndroid,
     Platform,
 } from 'react-native';
-import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
@@ -31,8 +29,9 @@ import { ContentActions, ForumActions, NotificationActions, SocketActions, UserC
 import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { showToast } from '../utilities/toasts';
 import BackgroundGeolocation, {
@@ -42,7 +41,7 @@ import BackgroundGeolocation, {
 import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
-import { buildNavTheme } from '../styles';
+import { buildNavTheme, getHeaderTopInset } from '../styles';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
@@ -51,7 +50,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import UIActions from '../redux/actions/UIActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import { buildStyles } from '../styles';
 import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
@@ -77,13 +76,7 @@ import { buildGroupUrl } from '../utilities/shareUrls';
 
 const preLoadImageList = [background1, background2, background3];
 
-const Stack = createStackNavigator();
-
-const forFade = ({ current }) => ({
-    cardStyle: {
-        opacity: current.progress,
-    },
-});
+const Stack = createNativeStackNavigator<ParamListBase, undefined>();
 
 const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
@@ -228,19 +221,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             });
         }
 
-        // Socket reconnection handlers (ensure token is refreshed on reconnect)
-        socketIO.on('reconnect_attempt', () => {
-            updateSocketToken(this.props.user);
-        });
-        socketIO.on('reconnect', () => {
-            if (this.props.user && this.props.user.isAuthenticated) {
-                this.props.refreshConnection(this.props.user);
-            }
-        });
-
-        DeviceEventEmitter.addListener('locationProviderStatusChange', (status) => { // only trigger when "providerListener" is enabled
-            this.props.updateGpsStatus(status);
-        });
+        // Socket reconnection handlers (ensure token is refreshed on reconnect).
+        // Store references so we can detach them in componentWillUnmount; otherwise
+        // each Layout remount (login/logout cycle) accumulates duplicate handlers.
+        socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
+        socketIO.on('reconnect', this.handleSocketReconnect);
 
         this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
             logEvent(getAnalytics(),'background_location_on_location', {
@@ -259,8 +244,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         //     console.log('BackgroundGeolocation-[onActivityChange]', event);
         // }));
         this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-            // TODO: This might be the same as DeviceEventEmitter.addListener('locationProviderStatusChange'...above
-            console.log('BackgroundGeolocation-[onProviderChange]', event);
+            // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
+            // listener (emitted by react-native-android-location-services-dialog-box,
+            // which was removed in the New Architecture migration). Fires on
+            // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
+            // changes (iOS). Reducer checks status === 'enabled'.
+            this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
         }));
 
         this.readyAndStartBackgroundGeolocation();
@@ -426,17 +415,26 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.nativeEventListener?.remove();
         this.urlEventListener?.remove();
 
-        if (Platform.OS !== 'ios') {
-            LocationServicesDialogBox.stopListener();
-        }
-
         if (this.authCredentialListener) {
             this.authCredentialListener();
         }
 
+        socketIO.off('reconnect_attempt', this.handleSocketReconnectAttempt);
+        socketIO.off('reconnect', this.handleSocketReconnect);
+
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         this.subscriptions.forEach((subscription) => subscription.remove());
     }
+
+    handleSocketReconnectAttempt = () => {
+        updateSocketToken(this.props.user);
+    };
+
+    handleSocketReconnect = () => {
+        if (this.props.user && this.props.user.isAuthenticated) {
+            this.props.refreshConnection(this.props.user);
+        }
+    };
 
     // IMPORTANT: This should only be called once per session
     readyAndStartBackgroundGeolocation = () => {
@@ -1333,18 +1331,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    getCurrentScreen = (navigation) => {
-        const navState = navigation.getState();
-
-        return navState.routes[navState.routes.length - 1]?.name;
-    };
-
-    getCurrentScreenParams = (navigation) => {
-        const navState = navigation.getState();
-
-        return navState.routes?.[navState.routes.length - 1]?.params || {};
-    };
-
     getIosNotificationPermissions = () => {
         // TODO: Determine if 2nd then is even necessary
         return notifee.requestPermission()
@@ -1413,7 +1399,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
-                key={`${this.props.user?.settings?.mobileThemeName || 'light'}-${this.props.user?.settings?.locale || 'en-us'}`}
+                // Keyed on locale only so theme toggles do not remount the entire nav tree.
+                // Locale change still requires a remount because route translators close over locale at construction.
+                key={this.props.user?.settings?.locale || 'en-us'}
                 theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                 ref={navigationRef}
                 onReady={() => {
@@ -1445,10 +1433,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 }}
             >
                 <Stack.Navigator
-                    screenOptions={({ navigation }) => {
+                    id={undefined}
+                    screenOptions={({ route, navigation }) => {
                         const themeName = this.props?.user?.settings?.mobileThemeName;
-                        const currentScreen = this.getCurrentScreen(navigation);
-                        const currentScreenParams = this.getCurrentScreenParams(navigation);
+                        const currentScreen = route.name;
+                        const currentScreenParams = (route.params as Record<string, any>) || {};
                         const isConnect = currentScreen === 'Connect';
                         const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
@@ -1485,8 +1474,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         if (hasLogoHeaderTitle) {
                             headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
                         }
+                        const isSearchRoute = isAreas || isMap || isConnect;
+                        let searchInputNode: React.ReactNode = null;
                         if (isAreas) {
-                            headerTitle = () => <HeaderSearchInput
+                            searchInputNode = <HeaderSearchInput
                                 isAdvancedSearch
                                 navigation={navigation}
                                 theme={this.theme}
@@ -1495,7 +1486,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             />;
                         }
                         if (isMap) {
-                            headerTitle = () => <HeaderSearchInput
+                            searchInputNode = <HeaderSearchInput
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
@@ -1503,48 +1494,51 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             />;
                         }
                         if (isConnect) {
-                            headerTitle = () => <HeaderSearchUsersInput
+                            searchInputNode = <HeaderSearchUsersInput
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
                             />;
                         }
 
-                        return ({
-                            animationEnabled: true,
-                            cardStyleInterpolator: forFade,
-                            headerLeft: () => <HeaderMenuLeft
-                                styleName={headerStyleName}
+                        const headerLeftNode = <HeaderMenuLeft
+                            styleName={headerStyleName}
+                            navigation={navigation}
+                            isAuthenticated={user.isAuthenticated}
+                            isEmailVerifed={this.isUserEmailVerified()}
+                            theme={this.theme}
+                        />;
+                        const headerRightNode = this.shouldShowTopRightMenu() ?
+                            <HeaderMenuRight
+                                currentScreen={currentScreen}
+                                currentScreenParams={currentScreenParams}
                                 navigation={navigation}
-                                isAuthenticated={user.isAuthenticated}
+                                notifications={notifications}
+                                styleName={headerStyleName}
                                 isEmailVerifed={this.isUserEmailVerified()}
+                                isVisible={this.shouldShowTopRightMenu()}
+                                location={location}
+                                logout={this.logout}
+                                updateGpsStatus={updateGpsStatus}
+                                user={user}
+                                showActionSheet={this.actionSheetShow}
+                                startNavigationTour={this.props.startNavigationTour}
                                 theme={this.theme}
-                            />,
-                            headerRight: () => this.shouldShowTopRightMenu() ?
-                                <HeaderMenuRight
-                                    currentScreen={currentScreen}
-                                    currentScreenParams={currentScreenParams}
-                                    navigation={navigation}
-                                    notifications={notifications}
-                                    styleName={headerStyleName}
-                                    isEmailVerifed={this.isUserEmailVerified()}
-                                    isVisible={this.shouldShowTopRightMenu()}
-                                    location={location}
-                                    logout={this.logout}
-                                    updateGpsStatus={updateGpsStatus}
-                                    user={user}
-                                    showActionSheet={this.actionSheetShow}
-                                    startNavigationTour={this.props.startNavigationTour}
-                                    theme={this.theme}
-                                    themeButtons={this.themeButtons}
-                                    themeInfoModal={this.themeInfoModal}
-                                    themeMenu={this.themeMenu}
-                                /> :
-                                <HeaderLinkRight
-                                    navigation={navigation}
-                                    themeForms={this.themeForms}
-                                    styleName={headerStyleName}
-                                />,
+                                themeButtons={this.themeButtons}
+                                themeInfoModal={this.themeInfoModal}
+                                themeMenu={this.themeMenu}
+                            /> :
+                            <HeaderLinkRight
+                                navigation={navigation}
+                                themeForms={this.themeForms}
+                                styleName={headerStyleName}
+                            />;
+
+                        const baseOptions: any = {
+                            animation: 'fade',
+                            freezeOnBlur: true,
+                            headerLeft: () => headerLeftNode,
+                            headerRight: () => headerRightNode,
                             headerTitleStyle: {
                                 ...this.theme.styles.headerTitleStyle,
                                 color: headerTitleColor,
@@ -1555,9 +1549,71 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerStyle,
                             headerTransparent: false,
                             headerBackVisible: false,
-                            headerBackTitleVisible: false,
+                            headerBackTitle: '',
                             headerTitle,
-                        });
+                        };
+
+                        // Use a custom JS header for every route so the left
+                        // logo and right menu button sit flush against the
+                        // screen edges. Native-stack's built-in header adds an
+                        // inset that pushed them inward on non-search routes.
+                        const customHeaderStyle = {
+                            backgroundColor: headerStyle?.backgroundColor,
+                            borderBottomColor: headerStyle?.borderBottomColor,
+                            borderBottomWidth: headerStyle?.borderBottomWidth,
+                        };
+                        baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
+                            let middleNode: React.ReactNode;
+                            if (isSearchRoute) {
+                                middleNode = (
+                                    <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
+                                        {searchInputNode}
+                                    </View>
+                                );
+                            } else if (typeof hOpts?.headerTitle === 'function') {
+                                middleNode = (
+                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                        {hOpts.headerTitle({
+                                            children: hOpts.title ?? hRoute.name,
+                                            tintColor: headerTitleColor,
+                                        })}
+                                    </View>
+                                );
+                            } else {
+                                const titleText = typeof hOpts?.headerTitle === 'string'
+                                    ? hOpts.headerTitle
+                                    : (hOpts?.title ?? hRoute.name);
+                                middleNode = (
+                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[
+                                                this.theme.styles.headerTitleStyle,
+                                                { color: headerTitleColor },
+                                            ]}
+                                        >
+                                            {titleText}
+                                        </Text>
+                                    </View>
+                                );
+                            }
+                            return (
+                                <View style={[customHeaderStyle, { paddingTop: getHeaderTopInset() }]}>
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        height: 52,
+                                        paddingHorizontal: 8,
+                                    }}>
+                                        {headerLeftNode}
+                                        {middleNode}
+                                        {headerRightNode}
+                                    </View>
+                                </View>
+                            );
+                        };
+
+                        return baseOptions;
                     }}
                 >
                     {routes

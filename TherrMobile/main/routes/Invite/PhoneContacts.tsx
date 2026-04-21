@@ -1,5 +1,6 @@
 import React from 'react';
-import { Linking, SectionList, SafeAreaView, Text, View } from 'react-native';
+import { Linking, SectionList, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { Button } from 'react-native-paper';
 import { connect } from 'react-redux';
@@ -13,7 +14,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildInviteUrl } from '../../utilities/shareUrls';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -395,7 +396,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <SectionList
                         sections={sections}
                         keyExtractor={(item) => String(item.recordID)}

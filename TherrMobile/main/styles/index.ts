@@ -1,6 +1,6 @@
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
-import { Theme } from '@react-navigation/native';
+import { DefaultTheme, Theme } from '@react-navigation/native';
 import { initialWindowMetrics } from 'react-native-safe-area-context';
 import { buttonMenuHeight } from './navigation/buttonMenu';
 import { getTheme, isDarkTheme, ITherrTheme } from './themes';
@@ -66,20 +66,25 @@ const addMargins = (marginStyles) => {
     return marginStyles;
 };
 
+// Eager top inset used by the custom header. Replaces SafeAreaView, which
+// measures insets asynchronously under Fabric and causes a one-frame jump
+// where the header sits under the translucent Android status bar on mount.
+export const getHeaderTopInset = () => {
+    const safeAreaTop = initialWindowMetrics?.insets?.top;
+    if (safeAreaTop != null) {
+        return safeAreaTop;
+    }
+    if (Platform.OS === 'ios') {
+        return IOS_STATUS_HEIGHT + IOS_TOP_GAP;
+    }
+    return StatusBar.currentHeight || ANDROID_TOP_GAP;
+};
+
 const getHeaderHeight = () => {
     if (Platform.OS === 'ios') {
-        // Use safe area insets for accurate notch/Dynamic Island handling across all iOS devices,
-        // falling back to hardcoded values for older devices
-        const safeAreaTop = initialWindowMetrics?.insets?.top;
-        const statusBarOffset = safeAreaTop || (IOS_STATUS_HEIGHT + IOS_TOP_GAP);
-        return statusBarOffset + HEADER_HEIGHT;
+        return getHeaderTopInset() + HEADER_HEIGHT;
     }
-
-    // Use safe area insets for accurate cutout/notch handling across all Android devices,
-    // falling back to StatusBar.currentHeight or a default gap
-    const safeAreaTop = initialWindowMetrics?.insets?.top;
-    const statusBarHeight = safeAreaTop || StatusBar.currentHeight || ANDROID_TOP_GAP;
-    return HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + statusBarHeight;
+    return HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + getHeaderTopInset();
 };
 
 const getHeaderStyles = (theme: ITherrTheme) => ({
@@ -118,6 +123,7 @@ const buildNavTheme = (theme: ITherrTheme, themeName?: IMobileThemeName): Theme 
             border: theme.colors.primary3,
             notification: theme.colors.primary3,
         },
+        fonts: DefaultTheme.fonts,
     });
 };
 
@@ -385,8 +391,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingBottom: 2,
         },
         headerSearchContainer: {
-            ...headerTitleStyles,
-            marginBottom: (Platform.OS === 'ios' && Platform.isPad) ? HEADER_PADDING_BOTTOM : HEADER_PADDING_BOTTOM / 2,
+            flex: 1,
+            margin: 0,
+            padding: 0,
         },
         headerSearchInputContainer: {
             height: 36,

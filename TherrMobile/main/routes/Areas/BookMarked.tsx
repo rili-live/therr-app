@@ -1,5 +1,7 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -7,7 +9,7 @@ import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
@@ -132,7 +134,6 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
     }
 
-
     handleRefresh = () => {
         const { searchBookmarkedEvents, searchBookmarkedMoments, searchBookmarkedSpaces, searchBookmarkedThoughts, user } = this.props;
 
@@ -254,7 +255,25 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
+                    <View style={headerStyles.myListsHeader}>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('MyLists')}
+                            style={headerStyles.myListsButton}
+                            accessibilityLabel={this.translate('pages.bookmarks.lists.title')}
+                        >
+                            <MaterialIcon name="bookmarks" size={18} color="#26a69a" />
+                            <Text style={headerStyles.myListsLabel}>
+                                {this.translate('pages.bookmarks.lists.title')}
+                            </Text>
+                            <MaterialIcon name="chevron-right" size={20} color="#26a69a" />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={headerStyles.sectionHeading}>
+                        <Text style={headerStyles.sectionHeadingText}>
+                            {this.translate('pages.bookmarks.postsHeading')}
+                        </Text>
+                    </View>
                     <AreaCarousel
                         activeData={activeData}
                         content={content}
@@ -291,5 +310,37 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         );
     }
 }
+
+const headerStyles = StyleSheet.create({
+    myListsHeader: {
+        paddingHorizontal: 12,
+        paddingTop: 10,
+        paddingBottom: 4,
+    },
+    myListsButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderRadius: 8,
+        backgroundColor: 'rgba(38, 166, 154, 0.08)',
+    },
+    myListsLabel: {
+        flex: 1,
+        marginLeft: 8,
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#26a69a',
+    },
+    sectionHeading: {
+        paddingHorizontal: 12,
+        paddingTop: 8,
+        paddingBottom: 4,
+    },
+    sectionHeadingText: {
+        fontSize: 16,
+        fontWeight: '700',
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(BookMarked);

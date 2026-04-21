@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, Platform, SafeAreaView, Text, View } from 'react-native';
+import { Dimensions, Platform, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FAB } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -11,7 +12,6 @@ import {
     ILocationState,
     IMapState,
     IUserState,
-    IUserConnectionsState,
 } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { UsersService } from 'therr-react/services';
@@ -23,8 +23,7 @@ import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
-// import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -36,7 +35,7 @@ import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, handleThoughtReaction, loadMorePosts, navToViewContent } from '../../utilities/postViewHelpers';
 import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
-import LazyPlaceholder from './components/LazyPlaceholder';
+import LazyPlaceholder from '../../components/LazyPlaceholder';
 import AreaCarousel from './AreaCarousel';
 import TherrIcon from '../../components/TherrIcon';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
@@ -103,10 +102,11 @@ interface IAreasDispatchProps {
 interface IStoreProps extends IAreasDispatchProps {
     content: IContentState;
     location: ILocationState;
-    map: IMapState;
     user: IUserState;
-    userConnections: IUserConnectionsState;
-    ui: IUIState;
+    filtersCategory: IMapState['filtersCategory'];
+    isLoadingActiveMoments: IUIState['isLoadingActiveMoments'];
+    isLoadingActiveThoughts: IUIState['isLoadingActiveThoughts'];
+    isLoadingActiveEvents: IUIState['isLoadingActiveEvents'];
 }
 
 // Regular component props
@@ -126,13 +126,19 @@ interface IAreasState {
     tabRoutes: { key: string; title: string }[]
 }
 
+// Narrowed from whole-slice subscriptions (content/location/map/user/userConnections/ui)
+// to only the fields Areas actually reads. Prior shape caused 88% of re-renders to be
+// props-driven — every socket presence ping, loading-flag toggle, and map pan dispatched
+// a new object into Areas' props and cascaded through the TabView/AreaCarousel subtree.
+// `userConnections` was declared but never consumed; dropped entirely.
 const mapStateToProps = (state: any) => ({
     content: state.content,
     location: state.location,
-    map: state.map,
     user: state.user,
-    userConnections: state.userConnections,
-    ui: state.ui,
+    filtersCategory: state.map.filtersCategory,
+    isLoadingActiveMoments: state.ui.isLoadingActiveMoments,
+    isLoadingActiveThoughts: state.ui.isLoadingActiveThoughts,
+    isLoadingActiveEvents: state.ui.isLoadingActiveEvents,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -420,10 +426,12 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             updateActiveMomentsStream,
             updateActiveThoughtsStream,
             user,
-            ui,
+            isLoadingActiveMoments,
+            isLoadingActiveThoughts,
+            isLoadingActiveEvents,
         } = this.props;
         let promises: Promise<any>[] = [];
-        if (tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES && !ui.isLoadingActiveMoments && !isLoadingMoments) {
+        if (tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES && !isLoadingActiveMoments && !isLoadingMoments) {
             this.setState({
                 isLoadingMoments: true,
             });
@@ -446,7 +454,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         }
 
         if ((tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES || tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS)
-            && !ui.isLoadingActiveThoughts && !isLoadingThoughts) {
+            && !isLoadingActiveThoughts && !isLoadingThoughts) {
             this.setState({
                 isLoadingThoughts: true,
             });
@@ -468,7 +476,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             }));
         }
 
-        if (tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS && !ui.isLoadingActiveEvents && !isLoadingEvents) {
+        if (tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS && !isLoadingActiveEvents && !isLoadingEvents) {
             this.setState({
                 isLoadingEvents: true,
             });
@@ -639,7 +647,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         } = this.state;
         const {
             content,
-            map,
+            filtersCategory,
             createOrUpdateEventReaction,
             createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction,
@@ -653,7 +661,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         switch (route.key) {
             case CAROUSEL_TABS.DISCOVERIES:
                 const contentTypeFilter = content.activeAreasFilters?.contentType || 'all';
-                const categoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
+                const categoriesFilter = (filtersCategory?.length && filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
                 const socialData = (isLoadingMoments && isLoadingThoughts) ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
@@ -696,7 +704,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     />
                 );
             case CAROUSEL_TABS.THOUGHTS:
-                const thoughtCategoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
+                const thoughtCategoriesFilter = (filtersCategory?.length && filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
                 const thoughtSocialData = isLoadingThoughts ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
@@ -825,7 +833,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     <TabView
                         lazy
                         lazyPreloadDistance={0}
@@ -837,13 +845,13 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         renderScene={this.renderSceneMap}
                         renderLazyPlaceholder={() => (
                             <View style={this.theme.styles.sectionContainer}>
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
-                                <LazyPlaceholder />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
+                                <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
                             </View>
                         )}
                         onIndexChange={this.onTabSelect}

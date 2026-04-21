@@ -29,6 +29,16 @@ import {
     searchActiveThoughtsValidation,
     searchBookmarkedThoughtsValidation,
 } from './validation/thoughtReactions';
+import {
+    createUserListValidation,
+    getUserListsValidation,
+    getUserListByIdValidation,
+    updateUserListValidation,
+    deleteUserListValidation,
+    addSpaceToListValidation,
+    removeSpaceFromListValidation,
+    getListsForSpaceValidation,
+} from './validation/userLists';
 
 const reactionsServiceRouter = express.Router();
 
@@ -179,6 +189,47 @@ reactionsServiceRouter.post('/thoughts/active/search', searchActiveThoughtsValid
 reactionsServiceRouter.post('/thoughts/bookmarked/search', searchBookmarkedThoughtsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'post',
+}));
+
+// User Lists (bookmark collections, Google Maps-style)
+reactionsServiceRouter.post('/user-lists', createUserListValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.get('/user-lists', getUserListsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+reactionsServiceRouter.get('/user-lists/for-space/:spaceId', getListsForSpaceValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+reactionsServiceRouter.get('/user-lists/:listId', getUserListByIdValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+reactionsServiceRouter.patch('/user-lists/:listId', updateUserListValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'patch',
+}));
+
+reactionsServiceRouter.delete('/user-lists/:listId', deleteUserListValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'delete',
+}));
+
+reactionsServiceRouter.post('/user-lists/:listId/spaces', addSpaceToListValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.delete('/user-lists/:listId/spaces/:spaceId', removeSpaceFromListValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'delete',
 }));
 
 export default reactionsServiceRouter;

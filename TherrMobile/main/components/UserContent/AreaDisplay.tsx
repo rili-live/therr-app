@@ -15,7 +15,6 @@ import {
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { showToast } from '../../utilities/toasts';
 import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
@@ -28,7 +27,6 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
-// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
@@ -36,6 +34,7 @@ import SpaceRating from '../../components/Input/SpaceRating';
 import { buildSpaceUrl } from '../../utilities/shareUrls';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
+import { SheetManager } from 'react-native-actions-sheet';
 
 
 const envConfig = getConfig();
@@ -102,6 +101,7 @@ interface IAreaDisplayProps {
 
 interface IAreaDisplayState {
     isLiked: boolean;
+    isBookmarked: boolean;
     likeCount: number | null;
 }
 
@@ -111,6 +111,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             && (nextState.likeCount == null)) {
             return {
                 isLiked: !!nextProps.area.reaction?.userHasLiked,
+                isBookmarked: !!nextProps.area.reaction?.userBookmarkCategory,
                 likeCount: nextProps.area?.likeCount,
             };
         }
@@ -123,6 +124,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
         this.state = {
             isLiked: !!props.area.reaction?.userHasLiked,
+            isBookmarked: !!props.area.reaction?.userBookmarkCategory,
             likeCount: props.area.likeCount,
         };
     }
@@ -159,12 +161,45 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         goToViewMap(area.latitude, area.longitude);
     };
 
-    onBookmarkPress = (area) => {
+    // Lists are a spaces-only feature. Moments set `category` and events set
+    // `addressReadable`, so those fields aren't reliable space signals.
+    isSpaceArea = (area) => area?.areaType === 'spaces' || !!area?.isSpace;
+
+    toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
+        const newIsBookmarked = !this.state.isBookmarked;
+
+        this.setState({
+            isBookmarked: newIsBookmarked,
+        });
 
         updateAreaReaction(area.id, {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, area.fromUserId, user?.details?.userName);
+    };
+
+    onBookmarkPress = (area) => {
+        // Spaces: open the list picker so users can discover and choose which
+        // list(s) to save to. The picker also handles the bookmark state via
+        // list membership (adding to a list sets userBookmarkCategory and
+        // ensures the "Saved" default list exists on first bookmark).
+        if (this.isSpaceArea(area)) {
+            SheetManager.show('list-picker-sheet', {
+                payload: {
+                    spaceId: area.id,
+                    translate: this.props.translate as any,
+                    themeForms: this.props.themeForms,
+                },
+            });
+            return;
+        }
+        this.toggleBookmarkReaction(area);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Power-user shortcut: long-press toggles the bookmark directly into
+        // the default list without opening the picker.
+        this.toggleBookmarkReaction(area);
     };
 
     onLikePress = (area) => {
@@ -224,7 +259,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         };
 
         return (
-            <View style={[
+            <View key={moment.id} style={[
                 { width: viewportWidth },
                 spacingStyles.marginBotMd,
                 spacingStyles.flexRow,
@@ -364,12 +399,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             translate,
             user,
         } = this.props;
-        const { isLiked, likeCount } = this.state;
+        const { isLiked, isBookmarked, likeCount } = this.state;
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
         const mediaPadding = areaMediaPadding || 0;
-        const isBookmarked = area.reaction?.userBookmarkCategory;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
@@ -610,6 +644,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     />
                                 }
                                 onPress={() => this.onBookmarkPress(area)}
+                                onLongPress={() => this.onBookmarkLongPress(area)}
                                 type="clear"
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
@@ -897,6 +932,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 />
                             }
                             onPress={() => this.onBookmarkPress(area)}
+                            onLongPress={() => this.onBookmarkLongPress(area)}
                             type="clear"
                             TouchableComponent={TouchableWithoutFeedbackComponent}
                         />

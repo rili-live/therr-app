@@ -65,7 +65,8 @@
     "joinedGroup": "You joined the group",
     "waitlistSuccess": "Registration Success!",
     "reactionSent": "Reaction Sent!",
-    "reactionFailed": "Reaction Failed"
+    "reactionFailed": "Reaction Failed",
+    "mediaUploadFailed": "Image Upload Failed"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -100,7 +101,8 @@
     "newAreasActivated": "You recently activated {total} new moments/spaces.",
     "draftReminder": "Did you remember to finish your drafted post?",
     "requestClaimSent": "Check your e-mail for confirmation and next steps",
-    "waitlistSuccess": "Check your e-mail to verify your account"
+    "waitlistSuccess": "Check your e-mail to verify your account",
+    "mediaUploadFailed": "Your image could not be uploaded. Please try again."
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -309,6 +311,9 @@
       "coinsLabel": "Coins Earned",
       "shareLink": "Share Your Invite Link"
     },
+    "offlineBanner": {
+      "tooltip": "You are offline. Showing cached data."
+    },
     "header": {
       "buttons": {
         "login": "Login"
@@ -347,7 +352,8 @@
         "myDrafts": "My Drafts",
         "notifications": "Notifications",
         "tour": "Take a Tour",
-        "wallet": "Wallet"
+        "wallet": "Wallet",
+        "manageSpaces": "My Business Spaces"
       }
     },
     "imagePicker": {
@@ -776,7 +782,8 @@
         "settingsEmailReminders": "Social App reminder e-mails",
         "settingsEmailBackground": "Social App automated e-mails",
         "on": "On",
-        "off": "Off"
+        "off": "Off",
+        "myQRCodes": "Manage My QR Codes"
       },
       "errorMessages": {
         "repeatPassword": "Passwords do not match",
@@ -846,6 +853,10 @@
         "twitterHandle": "username",
         "youtubeChannelId": "channel ID"
       }
+    },
+    "myQRCodeDetail": {
+      "share": "Share Link",
+      "copy": "Copy Link"
     }
   },
   "interests": {
@@ -1664,14 +1675,85 @@
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",
-      "noSpacesFound": "No spaces found. Claim a business location from the Map to get started.",
+      "noSpacesFound": "You haven't claimed or created a space yet. Get started by claiming your business location or creating a new one.",
+      "fetchError": "Unable to load your spaces. Pull down to try again.",
       "coinBalanceLabel": "Your TherrCoin Balance",
       "rewardActive": "Rewards On",
       "rewardInactive": "No Rewards",
       "buttons": {
         "view": "View",
-        "edit": "Edit"
+        "edit": "Edit",
+        "createSpace": "Claim or Create a Space",
+        "createShort": "+ New"
+      },
+      "recharge": {
+        "title": "Fuel Your Space with TherrCoins",
+        "subtitle": "Reward your visitors. Grow your space.",
+        "marketingBlurb": "Every TherrCoin you spend turns into a moment that brings customers through your door. Fund rewards that convert passive discovery into real foot traffic, turn first-time visitors into regulars, and keep your space trending at the top of every nearby feed. Top up once — let your community do the rest.",
+        "comingSoon": "Coming soon — coin purchases launch in the next update.",
+        "packages": {
+          "coinsLabel": "{count} coins",
+          "bonusLabel": "+{count} bonus",
+          "buyButton": "Buy"
+        },
+        "autoRecharge": {
+          "title": "Auto-Recharge",
+          "description": "Never run out of coins. When your balance drops below your threshold, we'll automatically top it up.",
+          "enableToggle": "Enable auto-recharge",
+          "thresholdLabel": "Recharge when balance drops below (coins)",
+          "amountLabel": "Recharge amount",
+          "saveButton": "Save preferences",
+          "savedConfirmation": "Auto-recharge preferences saved."
+        }
       }
+    },
+    "bookmarks": {
+      "postsHeading": "Bookmarked Posts",
+      "lists": {
+        "title": "My Space Lists",
+        "addToList": "Save to list",
+        "newList": "+ New list",
+        "newListPlaceholder": "List name",
+        "createList": "Create",
+        "cancel": "Cancel",
+        "default": "Saved",
+        "itemCount": "{count} saved",
+        "emptyState": "You don't have any lists yet. Save a space to create your first list.",
+        "emptyList": "This list is empty. Open a space and long-press the bookmark to add it.",
+        "browseSpaces": "Browse spaces",
+        "noListsYet": "No lists yet",
+        "deleteList": "Delete list",
+        "deleteConfirm": "Delete this list? Saved spaces will be removed from it.",
+        "loading": "Loading list...",
+        "done": "Done",
+        "spaceUnavailable": "Space unavailable"
+      }
+    },
+    "myQRCodes": {
+      "headerTitle": "My QR Codes",
+      "subtitle": "Share any of your Therr content with a scan.",
+      "profileCardHint": "Tap to view the full QR for your profile.",
+      "profileAccessibilityLabel": "View full QR code for your profile",
+      "profileFallbackName": "My Profile",
+      "rowAccessibilityLabel": "View QR code for {{title}}",
+      "sections": {
+        "profile": "My Profile",
+        "spaces": "My Spaces",
+        "events": "My Events",
+        "groups": "My Groups"
+      },
+      "emptySpaces": "You don't own any spaces yet.",
+      "emptyEvents": "You haven't created any events yet.",
+      "emptyGroups": "You haven't created any groups yet."
+    },
+    "myQRCodeDetail": {
+      "headerTitle": "QR Code",
+      "helperText": "Have anyone scan this with their camera to open it in Therr.",
+      "accessibility": "QR code linking to {{title}}",
+      "copied": "Link Copied",
+      "privateNote": "Your profile is private — scanners will see a limited view until you connect.",
+      "missingEntity": "No QR code details were provided.",
+      "backButton": "Go Back"
     }
   },
   "modals": {
@@ -1986,12 +2068,14 @@
         "report": "Report This User?",
         "syncSocials": "Sync Socials",
         "shareALink": "Copy Profile Link",
-        "unconnect": "Remove Connection?"
+        "unconnect": "Remove Connection?",
+        "myQRCodes": "Show My QR Codes"
       },
       "buttons": {
         "editProfile": "Edit Profile",
         "syncSocials": "Sync Socials",
-        "message": "Message"
+        "message": "Message",
+        "myQRCode": "My QR Code"
       },
       "labels": {
         "connections": "connections",

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Platform, Share, View, KeyboardAvoidingView, Text } from 'react-native';
 import { Button } from '../../../components/BaseButton';
-// import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -13,9 +12,8 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../../../components/Alert';
 import UsersActions from '../../../redux/actions/UsersActions';
-import translator from '../../../services/translator';
+import translator from '../../../utilities/translator';
 import { buildInviteUrl } from '../../../utilities/shareUrls';
-// import SquareInput from '../../../components/Input/Square';
 import RoundInput from '../../../components/Input/Round';
 import PhoneNumberInput from '../../../components/Input/PhoneNumberInput';
 import { buildStyles, addMargins } from '../../../styles';

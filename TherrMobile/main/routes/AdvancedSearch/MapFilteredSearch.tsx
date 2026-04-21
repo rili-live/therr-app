@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chip, Divider, FAB, Text } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -11,7 +12,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import {
@@ -275,7 +276,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         style={this.theme.styles.scrollViewFull}

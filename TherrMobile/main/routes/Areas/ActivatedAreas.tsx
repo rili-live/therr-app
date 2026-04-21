@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, SafeAreaView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -10,7 +11,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import AreaCarousel from './AreaCarousel';
 import { navToViewContent, handleAreaReaction } from '../../utilities/postViewHelpers';
@@ -315,7 +316,7 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <AreaCarousel
                         activeData={activatedData}
                         content={content}

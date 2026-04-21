@@ -11,6 +11,13 @@ import {
     CurrentCheckInValuations,
     ReferralRewards,
 } from './Currencies';
+import {
+    COIN_PACKAGES,
+    COIN_PACKAGE_IDS,
+    CoinPackageId,
+    ICoinPackage,
+    getCoinPackageById,
+} from './CoinPackages';
 import OAuthIntegrationProviders from './OAuthIntegrationProviders';
 import {
     DefaultUserResources,
@@ -81,6 +88,11 @@ export {
     CurrentMomentValuations,
     CurrentCheckInValuations,
     ReferralRewards,
+    COIN_PACKAGES,
+    COIN_PACKAGE_IDS,
+    CoinPackageId,
+    ICoinPackage,
+    getCoinPackageById,
     DefaultUserResources,
     ResourceExchangeRates,
     SocketClientActionTypes,

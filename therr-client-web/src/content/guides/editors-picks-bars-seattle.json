@@ -1,0 +1,262 @@
+{
+  "slug": "editors-picks-bars-seattle",
+  "type": "list",
+  "status": "published",
+  "title": "Editor's Picks: 8 Seattle Bars Worth Knowing",
+  "description": "A hand-picked guide to dive bars, breweries, and craft cocktail spots across Seattle, WA — local favorites you should know.",
+  "city": "seattle-wa",
+  "category": "categories.bar/drinks",
+  "publishedAt": "2026-04-19",
+  "updatedAt": "2026-04-19",
+  "author": "Therr Editorial",
+  "lead": "Seattle's bar scene rewards regulars — the spots worth knowing are the neighborhood ones, not the convention-center stops. Eight bars and cocktail rooms across the city, picked by the Therr editorial team for distinct character.",
+  "sections": [
+    {
+      "type": "prose",
+      "body": "These picks were curated by the Therr editorial team from venues with complete profiles on Therr — places with a published website, address, and enough information that we could verify they're open and findable. We don't rank by popularity here; the order reflects editorial judgment and venue completeness, not visit counts."
+    },
+    {
+      "type": "space-list",
+      "items": [
+        {
+          "spaceId": "62d881c3-d039-4231-a48c-d26e3fd11c46",
+          "rank": 1,
+          "blurb": "Downtown Seattle's long-running British-style pub — fish and chips, hand-pulled pints, and a room that fills up at every shift change at the nearby hotels."
+        },
+        {
+          "spaceId": "81294941-8ea0-4aac-9fb8-25c22e54681c",
+          "rank": 2,
+          "blurb": "A husband-and-wife restaurant project bringing Pacific Northwest seafood and a tight cocktail menu to its corner of Seattle."
+        },
+        {
+          "spaceId": "3e7abbf6-da01-45e5-a0e4-c95c2fd07c84",
+          "rank": 3,
+          "blurb": "PNW craft staple known for Space Dust IPA and a pub menu that pairs well with a long flight on the patio."
+        },
+        {
+          "spaceId": "de1aa6a9-03ba-4675-af7c-f8c178a3281f",
+          "rank": 4,
+          "blurb": "A bottle shop and taproom — dozens of taps and a bottle wall that turns \"I'll grab a six-pack\" into a 30-minute conversation."
+        },
+        {
+          "spaceId": "f55edb8d-166f-4052-993b-d35fc94ae67b",
+          "rank": 5,
+          "blurb": "Capitol Hill cocktail bar with one of the city's best whisky lists — sit at the bar and ask the bartender to pick."
+        },
+        {
+          "spaceId": "73ba2229-98c9-4cc0-a935-fe5e02b28c75",
+          "rank": 6,
+          "blurb": "West Seattle neighborhood spot doing the dive-with-a-good-kitchen formula well — pull tabs, burgers, and unfussy beer."
+        },
+        {
+          "spaceId": "983d0228-0e1e-43b4-929f-876c0f3144c1",
+          "rank": 7,
+          "blurb": "Belltown speakeasy hidden in a residential alley — small room, classic-leaning cocktail list, and the sort of place you bring a date when you mean it."
+        },
+        {
+          "spaceId": "12a143b6-43b2-474f-ab59-c71dd584667c",
+          "rank": 8,
+          "blurb": "A Capitol Hill mainstay since the '30s — old-school feel, reliable burger, and a back room that has outlasted every neighborhood pivot."
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "items": [
+        {
+          "question": "How were these Seattle bars chosen?",
+          "answer": "The Therr editorial team selected these from venues with verified, complete profiles on Therr — each has a working website, full address, and enough information that we could confirm it's open. We don't rank by popularity; the order reflects editorial judgment."
+        },
+        {
+          "question": "Are these the most popular bars in Seattle?",
+          "answer": "No — and we're upfront about that. We don't yet have enough community visit data in this category to support a popularity ranking, so this is an editorial pick rather than a most-visited list."
+        },
+        {
+          "question": "How often is this list updated?",
+          "answer": "We re-check featured venues against our database periodically and republish with an updated date when spaces close or change. The updatedAt below the title shows the most recent review."
+        },
+        {
+          "question": "Where can I find more Seattle bars?",
+          "answer": "Browse the full directory of Seattle bars on Therr for the complete list — including newer openings that didn't make this editorial selection."
+        }
+      ]
+    },
+    {
+      "type": "cta",
+      "heading": "More Seattle bars",
+      "body": "See more local spots and the full directory on Therr.",
+      "href": "/locations/city/seattle-wa/bars",
+      "ctaText": "Browse all"
+    }
+  ],
+  "locales": {
+    "es": {
+      "title": "Selección editorial: 8 bares de Seattle para conocer",
+      "description": "Una guía curada de bares sencillos, cervecerías y coctelerías de autor en Seattle, WA — favoritos locales que vale la pena conocer.",
+      "lead": "La escena de bares de Seattle premia a los habituales — los lugares que vale la pena conocer son los de barrio, no los del centro de convenciones. Ocho bares y salas de coctelería en toda la ciudad, elegidos por el equipo editorial de Therr por su carácter propio.",
+      "sections": [
+        {
+          "type": "prose",
+          "body": "Estas selecciones fueron curadas por el equipo editorial de Therr entre lugares con perfiles completos en Therr — sitios con sitio web publicado, dirección y suficiente información para verificar que están abiertos y son fáciles de encontrar. No ordenamos por popularidad; el orden refleja criterio editorial y qué tan completo está el perfil del lugar, no el número de visitas."
+        },
+        {
+          "type": "space-list",
+          "items": [
+            {
+              "spaceId": "62d881c3-d039-4231-a48c-d26e3fd11c46",
+              "rank": 1,
+              "blurb": "El pub de estilo británico de larga trayectoria en el centro de Seattle — fish and chips, pintas tiradas a mano y una sala que se llena en cada cambio de turno de los hoteles vecinos."
+            },
+            {
+              "spaceId": "81294941-8ea0-4aac-9fb8-25c22e54681c",
+              "rank": 2,
+              "blurb": "Un proyecto de restaurante llevado por una pareja, que trae mariscos del Pacífico Noroeste y una carta de cócteles enfocada a su rincón de Seattle."
+            },
+            {
+              "spaceId": "3e7abbf6-da01-45e5-a0e4-c95c2fd07c84",
+              "rank": 3,
+              "blurb": "Clásico de la cerveza artesanal del Pacífico Noroeste, conocido por la Space Dust IPA y un menú de pub que combina bien con un flight largo en la terraza."
+            },
+            {
+              "spaceId": "de1aa6a9-03ba-4675-af7c-f8c178a3281f",
+              "rank": 4,
+              "blurb": "Una tienda de botellas y taproom — decenas de canillas y un muro de botellas que convierte un \"voy a llevar un sixpack\" en una conversación de 30 minutos."
+            },
+            {
+              "spaceId": "f55edb8d-166f-4052-993b-d35fc94ae67b",
+              "rank": 5,
+              "blurb": "Bar de cócteles en Capitol Hill con una de las mejores cartas de whisky de la ciudad — siéntate en la barra y pide al bartender que elija."
+            },
+            {
+              "spaceId": "73ba2229-98c9-4cc0-a935-fe5e02b28c75",
+              "rank": 6,
+              "blurb": "Lugar de barrio en West Seattle que clava la fórmula de bar sencillo con buena cocina — pull tabs, hamburguesas y cerveza sin pretensiones."
+            },
+            {
+              "spaceId": "983d0228-0e1e-43b4-929f-876c0f3144c1",
+              "rank": 7,
+              "blurb": "Speakeasy de Belltown escondido en un callejón residencial — sala pequeña, carta de cócteles más bien clásica y el tipo de lugar que llevas a una cita cuando vas en serio."
+            },
+            {
+              "spaceId": "12a143b6-43b2-474f-ab59-c71dd584667c",
+              "rank": 8,
+              "blurb": "Un imprescindible de Capitol Hill desde los años 30 — ambiente a la antigua, hamburguesa fiable y una sala trasera que ha sobrevivido a cada giro del barrio."
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "items": [
+            {
+              "question": "¿Cómo se eligieron estos bares de Seattle?",
+              "answer": "El equipo editorial de Therr los eligió entre lugares con perfiles verificados y completos en Therr — cada uno tiene un sitio web funcional, dirección completa y suficiente información para confirmar que está abierto. No ordenamos por popularidad; el orden refleja criterio editorial."
+            },
+            {
+              "question": "¿Son estos los bares más populares de Seattle?",
+              "answer": "No — y lo decimos con franqueza. Aún no tenemos suficientes datos de visitas de la comunidad en esta categoría para sustentar un ranking por popularidad, así que esta es una selección editorial y no una lista de los más visitados."
+            },
+            {
+              "question": "¿Con qué frecuencia se actualiza esta lista?",
+              "answer": "Revisamos periódicamente los lugares destacados contra nuestra base de datos y republicamos con una fecha actualizada cuando un lugar cierra o cambia. El campo updatedAt debajo del título muestra la última revisión."
+            },
+            {
+              "question": "¿Dónde puedo encontrar más bares en Seattle?",
+              "answer": "Explora el directorio completo de bares de Seattle en Therr para ver la lista completa — incluyendo aperturas recientes que no entraron en esta selección editorial."
+            }
+          ]
+        },
+        {
+          "type": "cta",
+          "heading": "Más bares en Seattle",
+          "body": "Explora más sitios locales y el directorio completo en Therr.",
+          "href": "/locations/city/seattle-wa/bars",
+          "ctaText": "Ver todos"
+        }
+      ]
+    },
+    "fr-ca": {
+      "title": "Sélection éditoriale : 8 bars de Seattle à connaître",
+      "description": "Un guide choisi à la main des bars de quartier, microbrasseries et bars à cocktails de Seattle (WA) — les favoris locaux à connaître.",
+      "lead": "La scène des bars de Seattle récompense les habitués — les endroits qui valent la peine d'être connus sont ceux des quartiers, pas ceux près du centre des congrès. Huit bars et salons à cocktails de la ville, choisis par l'équipe éditoriale de Therr pour leur caractère propre.",
+      "sections": [
+        {
+          "type": "prose",
+          "body": "Ces choix ont été sélectionnés par l'équipe éditoriale de Therr parmi des établissements ayant un profil complet sur Therr — des lieux avec un site web publié, une adresse et suffisamment d'informations pour confirmer qu'ils sont ouverts et faciles à trouver. Nous ne classons pas par popularité ici; l'ordre reflète notre jugement éditorial et la complétude du profil, pas le nombre de visites."
+        },
+        {
+          "type": "space-list",
+          "items": [
+            {
+              "spaceId": "62d881c3-d039-4231-a48c-d26e3fd11c46",
+              "rank": 1,
+              "blurb": "Le pub de style britannique bien établi du centre-ville de Seattle — fish and chips, pintes tirées à la main et une salle qui se remplit à chaque changement de quart dans les hôtels voisins."
+            },
+            {
+              "spaceId": "81294941-8ea0-4aac-9fb8-25c22e54681c",
+              "rank": 2,
+              "blurb": "Un projet de restaurant mené par un couple, qui amène les fruits de mer du Pacific Northwest et une carte de cocktails ciblée dans son coin de Seattle."
+            },
+            {
+              "spaceId": "3e7abbf6-da01-45e5-a0e4-c95c2fd07c84",
+              "rank": 3,
+              "blurb": "Classique de la bière artisanale du Pacific Northwest, connu pour la Space Dust IPA et un menu de pub qui se marie bien avec un flight sur la terrasse."
+            },
+            {
+              "spaceId": "de1aa6a9-03ba-4675-af7c-f8c178a3281f",
+              "rank": 4,
+              "blurb": "Une boutique-taverne — des dizaines de robinets et un mur de bouteilles qui transforme un simple « je prends une caisse de six » en conversation de 30 minutes."
+            },
+            {
+              "spaceId": "f55edb8d-166f-4052-993b-d35fc94ae67b",
+              "rank": 5,
+              "blurb": "Bar à cocktails de Capitol Hill avec l'une des meilleures cartes de whisky de la ville — assieds-toi au bar et demande au barman de choisir."
+            },
+            {
+              "spaceId": "73ba2229-98c9-4cc0-a935-fe5e02b28c75",
+              "rank": 6,
+              "blurb": "Adresse de quartier à West Seattle qui réussit la formule bar simple mais bonne cuisine — pull tabs, burgers et bière sans chichi."
+            },
+            {
+              "spaceId": "983d0228-0e1e-43b4-929f-876c0f3144c1",
+              "rank": 7,
+              "blurb": "Speakeasy de Belltown caché dans une ruelle résidentielle — petite salle, carte de cocktails plutôt classique, et le genre d'endroit qu'on amène un rendez-vous quand on est sérieux."
+            },
+            {
+              "spaceId": "12a143b6-43b2-474f-ab59-c71dd584667c",
+              "rank": 8,
+              "blurb": "Un incontournable de Capitol Hill depuis les années 30 — ambiance à l'ancienne, burger fiable et une arrière-salle qui a survécu à tous les virages du quartier."
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "items": [
+            {
+              "question": "Comment ces bars de Seattle ont-ils été choisis?",
+              "answer": "L'équipe éditoriale de Therr les a sélectionnés parmi des établissements aux profils vérifiés et complets sur Therr — chacun a un site web fonctionnel, une adresse complète et suffisamment d'informations pour qu'on puisse confirmer qu'il est ouvert. Nous ne classons pas par popularité; l'ordre reflète notre jugement éditorial."
+            },
+            {
+              "question": "Est-ce que ce sont les bars les plus populaires de Seattle?",
+              "answer": "Non — et on le dit franchement. Nous n'avons pas encore assez de données de visites communautaires dans cette catégorie pour appuyer un classement par popularité; c'est donc un choix éditorial plutôt qu'une liste des plus fréquentés."
+            },
+            {
+              "question": "À quelle fréquence cette liste est-elle mise à jour?",
+              "answer": "Nous vérifions périodiquement les établissements mis en avant dans notre base de données et republions avec une date mise à jour lorsqu'un lieu ferme ou change. Le champ updatedAt sous le titre indique la plus récente révision."
+            },
+            {
+              "question": "Où puis-je trouver d'autres bars à Seattle?",
+              "answer": "Parcours le répertoire complet des bars de Seattle sur Therr pour voir la liste complète — y compris les nouvelles ouvertures qui n'ont pas été retenues dans cette sélection éditoriale."
+            }
+          ]
+        },
+        {
+          "type": "cta",
+          "heading": "Plus de bars à Seattle",
+          "body": "Découvre d'autres adresses locales et le répertoire complet sur Therr.",
+          "href": "/locations/city/seattle-wa/bars",
+          "ctaText": "Tout parcourir"
+        }
+      ]
+    }
+  }
+}

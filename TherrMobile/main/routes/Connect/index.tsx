@@ -1,10 +1,11 @@
 import React from 'react';
-import { Dimensions, FlatList, SafeAreaView, Text, View } from 'react-native';
+import { Dimensions, FlatList, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ForumActions, MessageActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { IMessagesState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
@@ -14,13 +15,13 @@ import { buildStyles as buildTileStyles } from '../../styles/user-content/groups
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import spacingStyles from '../../styles/layouts/spacing';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import ConnectionItem from './components/ConnectionItem';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
 import { RefreshControl } from 'react-native-gesture-handler';
-import LazyPlaceholder from './components/LazyPlaceholder';
+import LazyPlaceholder from '../../components/LazyPlaceholder';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -66,7 +67,7 @@ interface IContactsDispatchProps {
 }
 
 interface IStoreProps extends IContactsDispatchProps {
-    messages: IMessagesState;
+    myDMs: any[];
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -88,7 +89,7 @@ interface IContactsState {
 }
 
 const mapStateToProps = (state) => ({
-    messages: state.messages,
+    myDMs: state.messages?.myDMs,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -162,7 +163,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
     componentDidMount() {
         const {
-            messages, navigation, user, userConnections,
+            myDMs, navigation, user, userConnections,
         } = this.props;
 
         navigation.setOptions({
@@ -174,7 +175,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         }
 
         // TODO: Connect redux UI prefetch
-        if (!messages.myDMs?.length) {
+        if (!myDMs?.length) {
             this.handleRefreshDMsSearch(1);
         }
 
@@ -274,7 +275,6 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     trySearchMoreUsers = () => {
 
     };
-
 
     handleRefreshDMsSearch = (pageNumber = 1) => {
         const { searchMyDMs, user } = this.props;
@@ -414,13 +414,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     sortMessages = (): any[] => {
-        const { messages, user } = this.props;
+        const { myDMs, user } = this.props;
         const blockedUsers = user?.details?.blockedUsers || [];
         // TODO: Determine if user is active an list unread message count
-        if (blockedUsers.length && messages?.myDMs?.length) {
-            return messages.myDMs.filter((dm) => !blockedUsers.includes(dm.userDetails?.id));
+        if (blockedUsers.length && myDMs?.length) {
+            return myDMs.filter((dm) => !blockedUsers.includes(dm.userDetails?.id));
         }
-        return messages?.myDMs;
+        return myDMs;
     };
 
     sortUsers = (): {
@@ -529,6 +529,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
                         ListFooterComponentStyle={{ marginBottom: 80 }}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.MESSAGES:
@@ -564,6 +567,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             onRefresh={this.handleRefreshDMsSearch}
                         />}
                         onContentSizeChange={this.scrollTop}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.CONNECTIONS:
@@ -599,6 +605,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             onRefresh={this.handleRefreshUserConnections}
                         />}
                         onContentSizeChange={this.scrollTop}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
         }
@@ -614,7 +623,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <TabView
                         lazy
                         lazyPreloadDistance={1}

@@ -13,7 +13,7 @@ import { getReadableDistance } from 'therr-js-utilities/location';
 import { distanceTo, insideCircle, isLatLon } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ILocationState } from '../../types/redux/location';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import {
     ANIMATE_TO_REGION_DURATION_FAST,
     ANIMATE_TO_REGION_DURATION_VERY_FAST,
@@ -83,9 +83,9 @@ export interface ITherrMapViewProps extends IStoreProps {
     circleCenter: { longitude: number, latitude: number };
     exchangeRate: number;
     expandBottomSheet: any;
-    filteredEvents: any;
-    filteredMoments: any;
-    filteredSpaces: any;
+    filteredEvents: any[];
+    filteredMoments: any[];
+    filteredSpaces: any[];
     hideCreateActions: () => any;
     isQuickReportOpen: boolean;
     closeQuickReport: () => void;
@@ -346,7 +346,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             return this.openPreviewBottomSheet(nativeEvent.coordinate, restoreScrollIndex);
         }
 
-        const pressedSpaces: any[] = Object.values(filteredSpaces).filter((space: any) => {
+        const pressedSpaces: any[] = filteredSpaces.filter((space: any) => {
             if (!space.longitude || !space.latitude) {
                 return false;
             }
@@ -421,7 +421,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 activeSpaceDetails: {},
             });
 
-            const pressedMoments: any[] = Object.values(filteredMoments).filter((moment: any) => {
+            const pressedMoments: any[] = filteredMoments.filter((moment: any) => {
                 if (!moment.longitude || !moment.latitude) {
                     return false;
                 }
@@ -524,7 +524,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             // When overlapping areas are provided (e.g. multiple moments at same location), use them directly
             const baseAreas = overlappingAreas?.length
                 ? overlappingAreas
-                : Object.values(filteredSpaces).concat(Object.values(filteredEvents));
+                : filteredSpaces.concat(filteredEvents);
 
             // Label with user's location if available, but sort by distance from pressedCoord
             const sortedAreasWithDistance = baseAreas
@@ -928,9 +928,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             map,
         } = this.props;
         const { areasInPreview, areaInPreviewIndex, isPreviewBottomSheetVisible, isMapReady } = this.state;
-        const filteredEventValues = Object.values(filteredEvents);
-        const filteredMomentValues = Object.values(filteredMoments);
-        const filteredSpaceValues = Object.values(filteredSpaces);
         const animatedOverlayHeight = CARD_HEIGHT
             + this.themeBottomSheet.styles.scrollViewOuterContainer.bottom;
         // This converts degrees to miles then miles to meters (divided by 10)
@@ -983,7 +980,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         />
                     }
                     {
-                        isMapReady && filteredEventValues.map((event: any) => {
+                        isMapReady && filteredEvents.map((event: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -1007,7 +1004,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        isMapReady && filteredMomentValues.map((moment: any) => {
+                        isMapReady && filteredMoments.map((moment: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -1032,7 +1029,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     }
                     {
                         // (!areasInPreview?.length || Platform.OS === 'android') &&
-                        isMapReady && filteredSpaceValues.map((space: any) => {
+                        isMapReady && filteredSpaces.map((space: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -1143,7 +1140,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             })
                     }
                     {
-                        isMapReady && shouldRenderMapCircles && filteredMomentValues.map((moment: any) => {
+                        isMapReady && shouldRenderMapCircles && filteredMoments.map((moment: any) => {
                             return (
                                 <Circle
                                     key={moment.id}
@@ -1161,7 +1158,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        isMapReady && shouldRenderMapCircles && filteredSpaceValues.map((space: any) => {
+                        isMapReady && shouldRenderMapCircles && filteredSpaces.map((space: any) => {
                             return (
                                 <Circle
                                     key={space.id}
@@ -1188,7 +1185,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             ref={(ref) => { this.scrollViewRef = ref; }}
                             horizontal
                             removeClippedSubviews={false}
-                            scrollEventThrottle={0}
+                            scrollEventThrottle={16}
                             showsHorizontalScrollIndicator={false}
                             snapToInterval={CARD_WIDTH}
                             onScroll={Animated.event(

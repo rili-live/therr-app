@@ -1,6 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Animated, SafeAreaView, View, Text, ImageProps, Pressable } from 'react-native';
+import { View, Text, ImageProps, Pressable } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/BaseButton';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import 'react-native-gesture-handler';
@@ -12,9 +14,8 @@ import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticati
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import spacingStyles from '../styles/layouts/spacing';
 import UsersActions from '../redux/actions/UsersActions';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
-// import ftuiClaim from '../assets/discover.json';
 import ftuiClaim from '../assets/ftui-claim.json';
 import ftuiDiscover from '../assets/ftui-discover.json';
 import ftuiMoment from '../assets/ftui-moment.json';
@@ -32,14 +33,23 @@ interface FadeInBackgroundImageProps extends ImageProps {
     opacity: number;
 }
 
-const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = props => {
-    const fadeAnim = useRef(new Animated.Value(props.opacity)).current; // Initial value for opacity: 0
+const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = ({ opacity, style, ...rest }) => {
+    const opacityValue = useSharedValue(opacity);
+
+    useEffect(() => {
+        opacityValue.value = withTiming(opacity, { duration: 400 });
+    }, [opacity, opacityValue]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacityValue.value,
+    }));
 
     return (
         <Animated.Image
+            {...rest}
             resizeMode="cover"
             style={[
-                props.style,
+                style,
                 {
                     position: 'absolute',
                     top: 0,
@@ -51,12 +61,9 @@ const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = props => {
                     height: 'auto',
                     justifyContent: 'center',
                 },
-                {
-                    opacity: fadeAnim, // Bind opacity to animated value
-                },
+                animatedStyle,
             ]}
             progressiveRenderingEnabled={true}
-            { ...props }
         />
     );
 };
@@ -79,6 +86,7 @@ const ContentOverlay = ({
     themeForms,
     themeFTUI,
 }) => {
+    const insets = useSafeAreaInsets();
     const onSwipeLeft = () => {
         onButtonPress();
     };
@@ -102,7 +110,7 @@ const ContentOverlay = ({
                     spacingStyles.padHorizLg,
                     {
                         position: 'absolute',
-                        top: 150,
+                        top: insets.top + 80,
                     },
                 ]}>
                 {backgroundText}
@@ -111,7 +119,7 @@ const ContentOverlay = ({
                 themeAuthForm.styles.submitButtonContainer,
                 {
                     position: 'absolute',
-                    bottom: 50,
+                    bottom: insets.bottom + 32,
                 },
             ]}>
                 <Button
@@ -314,13 +322,11 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={'dark'}/>
-                <SafeAreaView style={[
-                    this.theme.styles.safeAreaView,
-                    {
-                        flex: 1,
-                        position: 'relative',
-                    },
-                ]}>
+                <View style={{
+                    flex: 1,
+                    position: 'relative',
+                    width: '100%',
+                }}>
                     <FadeInBackgroundImage
                         source={background1}
                         opacity={backgroundIndex === 0 ? 1 : 0}
@@ -346,7 +352,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                         themeForms={this.themeForms}
                         themeFTUI={this.themeFTUI}
                     />
-                </SafeAreaView>
+                </View>
             </>
         );
     }

@@ -2,9 +2,11 @@ import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { UserConnectionActionTypes } from '../../types/redux/userConnections';
 import UserConnectionsService from '../../services/UserConnectionsService';
 import { UserActionTypes } from '../../types/redux/user';
+import { isOfflineError } from '../../utilities/cacheHelpers';
 
 const UserConnections = {
-    search: (query: any, userId: number) => (dispatch: any) => UserConnectionsService.search(query).then((response) => {
+    search: (query: any, userId: number) => (dispatch: any) => UserConnectionsService.search(query).then((response: any) => {
+        if (response?.isOfflineFallback) return;
         dispatch({
             type: SocketClientActionTypes.LOAD_ACTIVE_CONNECTIONS,
             data: {
@@ -16,7 +18,7 @@ const UserConnections = {
             type: UserConnectionActionTypes.GET_USER_CONNECTIONS,
             data: response.data.results,
         });
-    }),
+    }).catch((err) => { if (!isOfflineError(err)) { throw err; } }),
     create: (data: any, user) => (dispatch: any) => UserConnectionsService.create(data).then((response) => {
         dispatch({
             type: SocketClientActionTypes.CREATE_USER_CONNECTION,

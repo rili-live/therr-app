@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { Pressable, SafeAreaView, StyleSheet, View, Text } from 'react-native';
+import { InteractionManager, Pressable, StyleSheet, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import LottieView from 'lottie-react-native';
@@ -9,7 +10,7 @@ import { achievementsByClass } from 'therr-js-utilities/config';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import SharePromptModal from '../../components/Modals/SharePromptModal';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
@@ -45,6 +46,7 @@ export interface IAchievementClaimProps extends IStoreProps {
 }
 
 interface IAchievementClaimState {
+    hasTransitioned: boolean;
     isSharePromptVisible: boolean;
 }
 
@@ -65,11 +67,13 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
     private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
     private themeAchievements = buildAchievementStyles();
+    private interactionHandle: { cancel: () => void } | null = null;
 
     constructor(props) {
         super(props);
 
         this.state = {
+            hasTransitioned: false,
             isSharePromptVisible: false,
         };
 
@@ -101,8 +105,21 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
             this.setState({ isSharePromptVisible: true });
         }
 
+        // Defer heavy Lottie animations until after the navigation transition
+        // completes, otherwise mounting them on the JS thread blocks the screen
+        // push and makes card taps feel unresponsive.
+        this.interactionHandle = InteractionManager.runAfterInteractions(() => {
+            this.setState({ hasTransitioned: true });
+        });
+
         this.handleRefresh();
     };
+
+    componentWillUnmount() {
+        if (this.interactionHandle) {
+            this.interactionHandle.cancel();
+        }
+    }
 
     handleRefresh = () => {
         console.log('refresh');
@@ -217,16 +234,15 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
 
     render() {
         const { navigation, route, user } = this.props;
-        const { isSharePromptVisible } = this.state;
+        const { hasTransitioned, isSharePromptVisible } = this.state;
         // const pageHeaderAchievements = this.translate('pages.achievements.pageHeader');
         const { userAchievement } = route.params;
         // const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
 
-
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]}  style={[this.theme.styles.safeAreaView]}>
                     <ScrollView
                         style={[this.theme.styles.body]}
                         contentContainerStyle={[this.theme.styles.bodyScroll]}
@@ -237,28 +253,28 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                             </Text>
                         </View> */}
                         <View style={localStyles.cardContainer}>
-                            <LottieView
-                                source={achievementConfetti}
-                                resizeMode="cover"
-                                speed={1}
-                                autoPlay
-                                loop
-                                style={localStyles.absoluteFill}
-                            />
+                            {hasTransitioned && (
+                                <LottieView
+                                    source={achievementConfetti}
+                                    resizeMode="cover"
+                                    speed={1}
+                                    autoPlay
+                                    loop
+                                    style={localStyles.absoluteFill}
+                                />
+                            )}
                             <View style={this.themeAchievements.styles.cardImageContainerLarge}>
-                                {/* <Image
-                                    source={cardImages[userAchievement.achievementClass]}
-                                    style={this.themeAchievements.styles.cardImageLarge}
-                                /> */}
                                 <View style={this.themeAchievements.styles.cardImageLarge}>
-                                    <LottieView
-                                        source={cardImagesLottie[userAchievement.achievementClass]}
-                                        resizeMode="cover"
-                                        speed={2.4}
-                                        autoPlay
-                                        loop={false}
-                                        style={localStyles.absoluteFill}
-                                    />
+                                    {hasTransitioned && (
+                                        <LottieView
+                                            source={cardImagesLottie[userAchievement.achievementClass]}
+                                            resizeMode="cover"
+                                            speed={2.4}
+                                            autoPlay
+                                            loop={false}
+                                            style={localStyles.absoluteFill}
+                                        />
+                                    )}
                                 </View>
                             </View>
                         </View>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -9,7 +10,7 @@ import { IUserState, IMessagesState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import TextMessage from '../../components/TextMessage';
 import RoundInput from '../../components/Input/Round';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -87,17 +88,18 @@ class DirectMessage extends React.Component<
     }
 
     componentDidMount() {
-        const { messages, navigation, route } = this.props;
+        const { navigation, route } = this.props;
         const { connectionDetails } = route.params;
 
         navigation.setOptions({
             title: connectionDetails.userName,
         });
 
-        // TODO: Add logic to update this when user navigates away then returns
-        if (!messages.dms || !messages.dms[connectionDetails.id]) {
-            this.searchDmsByPage(1);
-        }
+        // Always refetch on mount. A cached `dms[peerId]` may hold a single
+        // socket-pushed message or a stale snapshot, which otherwise short-
+        // circuits the fetch and leaves the user staring at an empty/partial
+        // thread (typical when opening from the Connect → Messages tab).
+        this.searchDmsByPage(1);
 
         // TODO: Fetch user details if missing username, name, image, etc.
     }
@@ -175,7 +177,12 @@ class DirectMessage extends React.Component<
     isFirstOfMessage = (messages, index) => {
         if (!messages[index + 1]) { return true; }
 
-        return messages[index].fromUserName !== messages[index + 1].fromUserName;
+        const curr = messages[index];
+        const next = messages[index + 1];
+        if (curr.fromUserId && next.fromUserId) {
+            return curr.fromUserId !== next.fromUserId;
+        }
+        return curr.fromUserName?.toLowerCase() !== next.fromUserName?.toLowerCase();
     };
 
     tryLoadMore = () => {
@@ -205,7 +212,7 @@ class DirectMessage extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAvoidingView
                         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                         style={this.themeMessage.styles.container}
@@ -223,24 +230,35 @@ class DirectMessage extends React.Component<
                                     data={dms}
                                     inverted
                                     keyExtractor={(item) => String(item.id || item.key)}
-                                    renderItem={({ item, index }) => (
-                                        <TextMessage
-                                            connectionDetails={connectionDetails}
-                                            goToUser={this.goToUser}
-                                            userDetails={user.details}
-                                            message={item}
-                                            isLeft={!item.fromUserName?.toLowerCase().includes('you')}
-                                            isFirstOfMessage={this.isFirstOfMessage(dms, index)}
-                                            theme={this.theme}
-                                            themeMessage={this.themeMessage}
-                                            translate={this.translate}
-                                        />
-                                    )}
+                                    renderItem={({ item, index }) => {
+                                        // Prefer fromUserId when available (authoritative); fall back
+                                        // to the 'you' name convention for messages cached before
+                                        // fromUserId started being persisted.
+                                        const isFromMe = item.fromUserId
+                                            ? item.fromUserId === user.details?.id
+                                            : !!item.fromUserName?.toLowerCase().includes('you');
+                                        return (
+                                            <TextMessage
+                                                connectionDetails={connectionDetails}
+                                                goToUser={this.goToUser}
+                                                userDetails={user.details}
+                                                message={item}
+                                                isLeft={!isFromMe}
+                                                isFirstOfMessage={this.isFirstOfMessage(dms, index)}
+                                                theme={this.theme}
+                                                themeMessage={this.themeMessage}
+                                                translate={this.translate}
+                                            />
+                                        );
+                                    }}
                                     ref={(component) => (this.flatListRef = component)}
                                     style={this.theme.styles.stretch}
                                     // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                                     onEndReached={this.tryLoadMore}
                                     onEndReachedThreshold={0.5}
+                                    initialNumToRender={15}
+                                    maxToRenderPerBatch={10}
+                                    windowSize={11}
                                     ListEmptyComponent={<View>
                                         <ListEmpty theme={this.theme} text={this.translate(
                                             'pages.directMessage.noMessagesFound',

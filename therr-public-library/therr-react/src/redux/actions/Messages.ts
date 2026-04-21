@@ -3,9 +3,12 @@ import MessagesService from '../../services/MessagesService';
 
 const Messages = {
     searchDMs: (query: any, contextUserDetails) => (dispatch: any) => MessagesService.searchDMs(query).then((response: any) => {
+        if (response?.isOfflineFallback) return;
         const data = { // TODO: Consider doing this mapping on the server side
             messages: response.data.results.map((directMessage) => ({
+                id: directMessage.id,
                 key: directMessage.id,
+                fromUserId: directMessage.fromUserId,
                 fromUserName: directMessage.fromUserId === contextUserDetails.id
                     ? contextUserDetails.userName
                     : 'You',
@@ -22,6 +25,7 @@ const Messages = {
         });
     }).catch((err) => { console.log(err); throw err; }),
     searchMyDMs: (query: any, userDetails) => (dispatch: any) => MessagesService.searchMyDMs(query).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: query.pageNumber > 1 ? MessageActionTypes.GET_MORE_OF_MY_DIRECT_MESSAGES : MessageActionTypes.GET_MY_DIRECT_MESSAGES,
             data: response?.data,
@@ -35,6 +39,7 @@ const Messages = {
     searchForumMessages: (forumId: string, userId: string, query: any) => (dispatch: any) => MessagesService
         .searchForumMessages(forumId, query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             const messages = response.data.results.map((forumMessage) => ({
                 ...forumMessage,
                 key: forumMessage.id,

@@ -1,18 +1,15 @@
 import React from 'react';
-import { Dimensions, Platform, StyleSheet, TextInputProps } from 'react-native';
+import { Platform, StyleSheet, TextInput as RNTextInput, TextInputProps } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import 'react-native-gesture-handler';
 import { IMapState as IMapReduxState } from 'therr-react/types';
-import DeviceInfo from 'react-native-device-info';
 import RoundInput from '.';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import UsersActions from '../../redux/actions/UsersActions';
 import TherrIcon from '../TherrIcon';
 
-
-const { width: screenWidth } = Dimensions.get('window');
 
 interface IHeaderSearchUsersInputState {
     inputText: string;
@@ -102,16 +99,13 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
-        const containerWidth = DeviceInfo.isTablet()
-            ? screenWidth - 248
-            : screenWidth - 124;
-
+        const placeholderText = this.translate('components.header.searchUsersInput.placeholder');
         return (
             <>
                 <RoundInput
                     errorStyle={localStyles.hidden}
                     style={textStyle}
-                    containerStyle={[theme.styles.headerSearchContainer, { width: containerWidth }]}
+                    containerStyle={theme.styles.headerSearchContainer}
                     inputStyle={
                         [
                             Platform.OS !== 'ios'
@@ -125,8 +119,15 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
                     roundness={18}
                     onChangeText={this.onInputChange}
-                    placeholder={this.translate('components.header.searchUsersInput.placeholder')}
+                    placeholder={placeholderText}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
+                    render={(inputProps) => (
+                        <RNTextInput
+                            {...inputProps}
+                            placeholder={placeholderText}
+                            placeholderTextColor={theme.colorVariations.textGrayFade}
+                        />
+                    )}
                     underlineColor="transparent"
                     activeUnderlineColor="transparent"
                     rightIcon={

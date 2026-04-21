@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, FlatList, Pressable, SafeAreaView, Text, TextInput, View } from 'react-native';
+import { Dimensions, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -15,12 +16,12 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import spacingStyles from '../../styles/layouts/spacing';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
 import { RefreshControl } from 'react-native-gesture-handler';
-import LazyPlaceholder from './components/LazyPlaceholder';
+import LazyPlaceholder from '../../components/LazyPlaceholder';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -546,6 +547,9 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefreshDiscoverSearch}
                         />}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             }
@@ -596,6 +600,9 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             refreshing={isMyGroupsRefreshing}
                             onRefresh={this.handleRefreshMyGroupsSearch}
                         />}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
             }
@@ -611,7 +618,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <TabView
                         lazy
                         lazyPreloadDistance={1}

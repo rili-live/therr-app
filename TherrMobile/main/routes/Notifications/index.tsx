@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, RefreshControl, SafeAreaView, FlatList, Text, View } from 'react-native';
+import { Pressable, RefreshControl, FlatList, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -18,7 +19,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { notifications as notificationStyles, buildStyles as buildNotificationStyles } from '../../styles/notifications';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import Notification from './Notification';
 import ListEmpty from '../../components/ListEmpty';
@@ -122,7 +123,6 @@ class Notifications extends React.Component<
             user: user.details,
         });
     };
-
 
     onNotificationPress = (event, notification, userConnection?: any, shouldNavigate = true) => {
         const { updateNotification, user } = this.props;
@@ -272,7 +272,7 @@ class Notifications extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <FlatList
                         data={notifications.messages || []}
                         keyExtractor={(item) => String(item.id)}
@@ -306,6 +306,9 @@ class Notifications extends React.Component<
                             onRefresh={this.handleRefresh}
                         />}
                         style={notificationStyles.container}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 </SafeAreaView>
                 <MainButtonMenu

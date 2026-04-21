@@ -1,6 +1,7 @@
 import React from 'react';
-import { PermissionsAndroid, Platform, SafeAreaView, View, Text, Pressable, Dimensions } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { PermissionsAndroid, Platform, View, Text, Pressable, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Geolocation from 'react-native-geolocation-service';
@@ -17,7 +18,7 @@ import OctIcon from 'react-native-vector-icons/Octicons';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import LocationActions from '../../redux/actions/LocationActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { isDarkTheme } from '../../styles/themes';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -579,7 +580,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

@@ -4,7 +4,6 @@ import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import {
     Content,
 } from 'therr-js-utilities/constants';
-// import Carousel from 'react-native-snap-carousel';
 import { buildStyles as buildRootStyles } from '../../styles';
 import { buildStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
@@ -197,13 +196,20 @@ const AreaCarousel = ({
     // viewportWidth,
 }: IAreaCarouselProps) => {
     const [refreshing, setRefreshing] = React.useState(false);
+    const mobileThemeName = user.settings?.mobileThemeName;
 
-    // TODO: Move to top level
-    const themeRoot = buildRootStyles(user.settings?.mobileThemeName);
-    const theme = buildStyles(user.settings?.mobileThemeName);
-    const themeArea = buildAreaStyles(user.settings?.mobileThemeName, isDarkTheme(user.settings?.mobileThemeName));
-    const themeThought = buildThoughtStyles(user.settings?.mobileThemeName, isDarkTheme(user.settings?.mobileThemeName));
-    const themeForms = buildFormStyles(user.settings?.mobileThemeName);
+    const { themeRoot, theme, themeArea, themeThought, themeForms, isDarkMode } = React.useMemo(() => {
+        const dark = isDarkTheme(mobileThemeName);
+        return {
+            themeRoot: buildRootStyles(mobileThemeName),
+            theme: buildStyles(mobileThemeName),
+            themeArea: buildAreaStyles(mobileThemeName, dark),
+            themeThought: buildThoughtStyles(mobileThemeName, dark),
+            themeForms: buildFormStyles(mobileThemeName),
+            isDarkMode: dark,
+        };
+    }, [mobileThemeName]);
+
     const isUsingBottomSheet = (displaySize === 'small' || displaySize === 'medium');
     const FlatListComponent = isUsingBottomSheet ? BottomSheetFlatList : FlatList;
 
@@ -211,6 +217,75 @@ const AreaCarousel = ({
         setRefreshing(true);
         handleRefresh()?.finally(() => setRefreshing(false));
     }, [handleRefresh]);
+
+    const media = content?.media;
+
+    const flatRenderItem = React.useCallback((itemObj) => {
+        let updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
+            ? updateThoughtReaction
+            : (itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction);
+        if (itemObj.item.areaType === 'events') {
+            updateReaction = updateEventReaction;
+        }
+        const toggleContentOptions = (!itemObj.item.areaType && !!toggleThoughtOptions)
+            ? toggleThoughtOptions
+            : toggleAreaOptions;
+        return renderItem(itemObj, {
+            media,
+            displaySize: displaySize || 'large', // default to large
+            inspectContent,
+            goToViewMap,
+            goToViewUser,
+            toggleContentOptions,
+            translate,
+            theme,
+            themeViewPost: itemObj.item.areaType ? themeArea : themeThought,
+            themeForms,
+            updateReaction,
+            user,
+            isDarkMode,
+        });
+    }, [
+        media, displaySize, inspectContent, goToViewMap, goToViewUser,
+        toggleAreaOptions, toggleThoughtOptions, translate,
+        theme, themeArea, themeThought, themeForms,
+        updateEventReaction, updateMomentReaction, updateSpaceReaction, updateThoughtReaction,
+        user, isDarkMode,
+    ]);
+
+    const listEmptyComponent = React.useMemo(
+        () => <ListEmpty iconName={emptyIconName} text={emptyListMessage} theme={themeRoot} />,
+        [emptyIconName, emptyListMessage, themeRoot]
+    );
+
+    const listHeaderComponent = React.useMemo(
+        () => renderHeader(),
+        [renderHeader, activeData]
+    );
+
+    const listFooterComponent = React.useMemo(
+        () => (renderFooter
+            ? renderFooter({ content: activeData })
+            : <View style={theme.styles.areaCarouselFooter} />),
+        [renderFooter, activeData, theme]
+    );
+
+    const refreshControl = React.useMemo(
+        () => <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />,
+        [refreshing, onRefresh]
+    );
+
+    const listStyle = React.useMemo(
+        () => [rootStyles.stretch, theme.styles.areaCarousel],
+        [rootStyles, theme]
+    );
+
+    const keyExtractor = React.useCallback((item) => String(item.id), []);
+
+    const setListRef = React.useCallback((component) => {
+        containerRef && containerRef(component);
+        return component;
+    }, [containerRef]);
 
     // if (Platform.OS === 'ios') {
     //     return (
@@ -246,53 +321,18 @@ const AreaCarousel = ({
         <>
             <FlatListComponent
                 data={activeData}
-                keyExtractor={(item) => String(item.id)}
-                renderItem={(itemObj) => {
-                    let updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
-                        ? updateThoughtReaction
-                        : (itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction);
-                    if (itemObj.item.areaType === 'events') {
-                        updateReaction = updateEventReaction;
-                    }
-                    const toggleContentOptions = (!itemObj.item.areaType && !!toggleThoughtOptions)
-                        ? toggleThoughtOptions
-                        : toggleAreaOptions;
-                    return renderItem(itemObj, {
-                        media: content?.media,
-                        displaySize: displaySize || 'large', // default to large
-                        inspectContent,
-                        goToViewMap,
-                        goToViewUser,
-                        toggleContentOptions,
-                        translate,
-                        theme,
-                        themeViewPost: itemObj.item.areaType ? themeArea : themeThought,
-                        themeForms,
-                        updateReaction,
-                        user,
-                        isDarkMode: isDarkTheme(user.settings?.mobileThemeName),
-                    });
-                }}
+                keyExtractor={keyExtractor}
+                renderItem={flatRenderItem}
                 initialNumToRender={1}
-                ListEmptyComponent={<ListEmpty iconName={emptyIconName} text={emptyListMessage} theme={themeRoot} />}
-                ListHeaderComponent={renderHeader()}
-                ListFooterComponent={
-                    renderFooter
-                        ? renderFooter({ content: activeData })
-                        : <View style={theme.styles.areaCarouselFooter} />
-                }
-                ref={(component) => {
-                    containerRef && containerRef(component);
-                    return component;
-                }}
+                ListEmptyComponent={listEmptyComponent}
+                ListHeaderComponent={listHeaderComponent}
+                ListFooterComponent={listFooterComponent}
+                ref={setListRef}
                 // refreshControl is not yet supported by BottomSheet
-                refreshControl={<RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                />}
+                refreshControl={refreshControl}
                 refreshing={isUsingBottomSheet ? refreshing : undefined}
                 onRefresh={isUsingBottomSheet ? onRefresh : undefined}
-                style={[rootStyles.stretch, theme.styles.areaCarousel]}
+                style={listStyle}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.65}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}

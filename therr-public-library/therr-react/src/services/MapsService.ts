@@ -15,6 +15,10 @@ export interface ISearchAreasArgs {
     userLongitude?: number;
 }
 
+export interface IMapsRequestOptions {
+    signal?: AbortSignal;
+}
+
 interface IGetAreaDetailsArgs {
     withEvents?: boolean;
     withMedia?: boolean;
@@ -177,23 +181,25 @@ class MapsService {
         data: args,
     });
 
-    searchAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}) => {
+    searchAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => {
         const queryString = getSearchQueryString(query);
 
         return axios({
             method: 'post',
             url: `/maps-service/${areaType}/search${queryString}`,
             data,
+            signal: options?.signal,
         });
     };
 
-    searchMyAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}) => {
+    searchMyAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => {
         const queryString = getSearchQueryString(query);
 
         return axios({
             method: 'post',
             url: `/maps-service/${areaType}/search/me${queryString}`,
             data,
+            signal: options?.signal,
         });
     };
 
@@ -222,7 +228,7 @@ class MapsService {
         });
     };
 
-    searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('events', query, data);
+    searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => this.searchAreas('events', query, data, options);
 
     searchMyEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('events', query, data);
 
@@ -263,7 +269,7 @@ class MapsService {
         url: `/maps-service/moments/integrated/${userId}`,
     });
 
-    searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('moments', query, data);
+    searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => this.searchAreas('moments', query, data, options);
 
     searchMyMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('moments', query, data);
 
@@ -286,7 +292,7 @@ class MapsService {
         });
     };
 
-    searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data);
+    searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => this.searchAreas('spaces', query, data, options);
 
     searchMySpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('spaces', query, data);
 
@@ -522,6 +528,13 @@ class MapsService {
     geocodeLocation = (query: string) => axios({
         method: 'get',
         url: `/maps-service/geocode?q=${encodeURIComponent(query)}`,
+        headers: {},
+    });
+
+    // City Pulse (editorial + Therr-data aggregate for city landing pages)
+    getCityPulse = (slug: string, locale?: string) => axios({
+        method: 'get',
+        url: `/maps-service/cities/${encodeURIComponent(slug)}/pulse${locale ? `?locale=${encodeURIComponent(locale)}` : ''}`,
         headers: {},
     });
 

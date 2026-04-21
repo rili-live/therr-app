@@ -12,15 +12,14 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { Pool } from 'pg';
 import { CITIES, IMPORT_USER_ID } from './config';
-import { crawlForImages, ICrawlResult } from './sources/crawl';
-import { downloadAndValidateImage } from './utils/imageValidation';
-import { uploadImage } from './utils/gcs';
 import {
   ProcessedType,
   markProcessed,
   filterProcessedSpaces,
   getProcessedStats,
 } from './utils/processedSpaces';
+import { assertDbConnection, createDbPool } from './utils/db';
+import { sourceImageForSpace } from './utils/sourceImage';
 
 // Load .env from scripts/import-spaces/ first, fall back to root .env
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -94,20 +93,6 @@ function parseArgs(): ICliArgs {
   };
 }
 
-// ── DB connection ────────────────────────────────────────────────────────────
-function createDbPool(): Pool {
-  return new Pool({
-    host: process.env.DB_HOST_MAIN_WRITE,
-    user: process.env.DB_USER_MAIN_WRITE,
-    password: process.env.DB_PASSWORD_MAIN_WRITE,
-    database: process.env.MAPS_SERVICE_DATABASE,
-    port: Number(process.env.DB_PORT_MAIN_WRITE) || 5432,
-    max: 5,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 10000,
-  });
-}
-
 interface ISpaceRow {
   id: string;
   notificationMsg: string;
@@ -174,16 +159,8 @@ async function main() {
   console.log('');
 
   const db = createDbPool();
-
-  // Test connection
-  try {
-    await db.query('SELECT 1');
-    console.log('Database connection established.\n');
-  } catch (err: any) {
-    console.error(`Database connection failed: ${err.message}`);
-    console.error('Make sure .env is configured with DB_HOST_MAIN_WRITE, DB_USER_MAIN_WRITE, etc.');
-    process.exit(1);
-  }
+  await assertDbConnection(db);
+  console.log('');
 
   let spaces = await querySpaces(db, args);
 
@@ -217,77 +194,49 @@ async function main() {
     const progress = `[${i + 1}/${spaces.length}]`;
 
     try {
-      // Step 1: Crawl website for image candidates
-      const candidates = await crawlForImages(space.websiteUrl);
-      if (candidates.length === 0) {
-        console.log(`${progress} SKIP (no image found): ${space.notificationMsg} — ${space.websiteUrl}`);
-        if (!args.dryRun) {
-          markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
+      const userId = space.fromUserId || args.userId;
+      const outcome = await sourceImageForSpace(
+        db,
+        space,
+        space.websiteUrl,
+        userId,
+        { dryRun: args.dryRun, progress },
+      );
+
+      switch (outcome.status) {
+        case 'no-candidates': {
+          console.log(`${progress} SKIP (no image found): ${space.notificationMsg} — ${space.websiteUrl}`);
+          if (!args.dryRun) {
+            markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
+          }
+          skippedNoImage++;
+          break;
         }
-        skippedNoImage++;
-        if (i < spaces.length - 1) await sleep(args.delay);
-        continue;
-      }
-
-      console.log(`${progress} Found ${candidates.length} candidate(s) for: ${space.notificationMsg}`);
-
-      if (args.dryRun) {
-        const best = candidates[0];
-        console.log(`  DRY RUN — best candidate: ${best.source} ${best.imageUrl.substring(0, 80)}...`);
-        dryRunFound++;
-        if (i < spaces.length - 1) await sleep(args.delay);
-        continue;
-      }
-
-      // Step 2: Try each candidate until one validates
-      let validImage = null;
-      let matchedCandidate = candidates[0];
-      for (const candidate of candidates) {
-        validImage = await downloadAndValidateImage(candidate.imageUrl);
-        if (validImage) {
-          matchedCandidate = candidate;
+        case 'dry-run': {
+          console.log(`${progress} DRY RUN — ${outcome.candidateCount} candidate(s) for: ${space.notificationMsg}`);
+          dryRunFound++;
+          break;
+        }
+        case 'no-valid-image': {
+          console.log(`${progress}  SKIP (all candidates invalid/too small): ${space.notificationMsg}`);
+          markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
+          skippedTooSmall++;
+          break;
+        }
+        case 'uploaded': {
+          markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
+          updated++;
+          break;
+        }
+        case 'skipped-has-media': {
+          // Space already has media — nothing to do.
+          break;
+        }
+        default: {
+          // exhaustive
           break;
         }
       }
-
-      if (!validImage) {
-        console.log(`  SKIP (all candidates invalid/too small): ${space.notificationMsg}`);
-        markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
-        skippedTooSmall++;
-        if (i < spaces.length - 1) await sleep(args.delay);
-        continue;
-      }
-
-      console.log(`  Image validated (${matchedCandidate.source}): ${validImage.width}x${validImage.height} ${validImage.contentType}`);
-
-      // Step 3: Upload to GCS
-      const userId = space.fromUserId || args.userId;
-      const storagePath = await uploadImage(userId, space.id, validImage.buffer, validImage.contentType);
-      console.log(`  Uploaded to GCS: ${storagePath}`);
-
-      // Step 4: Insert media record
-      const mediaResult = await db.query(
-        `INSERT INTO main.media ("fromUserId", "altText", type, path)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id`,
-        [userId, space.notificationMsg, 'user-image-public', storagePath],
-      );
-      const mediaId = mediaResult.rows[0].id;
-
-      // Step 5: Update space with media references
-      const medias = JSON.stringify([{ path: storagePath, type: 'user-image-public' }]);
-      await db.query(
-        `UPDATE main.spaces
-         SET "mediaIds" = $1::text,
-             medias = $2::jsonb,
-             "updatedAt" = NOW()
-         WHERE id = $3`,
-        [String(mediaId), medias, space.id],
-      );
-
-      console.log(`  Updated space ${space.id} with media ${mediaId}`);
-      markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
-      updated++;
     } catch (err: any) {
       console.error(`${progress} ERROR: ${space.notificationMsg} — ${err.message}`);
       errors++;

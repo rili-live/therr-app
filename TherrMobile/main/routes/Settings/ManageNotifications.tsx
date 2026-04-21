@@ -1,8 +1,9 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Switch } from 'react-native-paper';
 import { Button } from '../../components/BaseButton';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
@@ -11,7 +12,7 @@ import { showToast } from '../../utilities/toasts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -207,7 +208,6 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         }
     };
 
-
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
@@ -247,7 +247,7 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

@@ -1,14 +1,14 @@
 import React from 'react';
-import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Dimensions, Platform, Pressable, Keyboard, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../../components/BaseButton';
 import EditFormFooter from '../../components/EditFormFooter';
 import { Image } from '../../components/BaseImage';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
@@ -21,9 +21,8 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import LottieView from 'lottie-react-native';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../../components/Input/DropDown';
-// import Alert from '../components/Alert';
 import { FeatureFlags } from 'therr-js-utilities/constants';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import getConfig from '../../utilities/getConfig';
 import { isDarkTheme } from '../../styles/themes';
 import { buildStyles, addMargins } from '../../styles';
@@ -355,9 +354,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
         // before preventDefault is called in the beforeRemove listener
         navigation.setOptions({
-            // animation: 'none', // navigation v6
-            animationEnabled: false,
-            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+            animation: 'none',
         });
     };
 
@@ -1366,7 +1363,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
         if (isLoading) {
             return (
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <LottieView
                         source={searchLoading}
                         // resizeMode="cover"
@@ -1382,7 +1379,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
         if (!userGroups.length) {
             return (
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <View
                         style={this.theme.styles.bodyFlex}
                     >
@@ -1413,7 +1410,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"

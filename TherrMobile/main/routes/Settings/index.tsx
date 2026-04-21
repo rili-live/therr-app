@@ -1,7 +1,8 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { SegmentedButtons, Switch } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -15,7 +16,7 @@ import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
@@ -29,7 +30,6 @@ import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { getUserImageUri, signImageUrl } from '../../utilities/content';
 import RoundTextInput from '../../components/Input/TextInput/Round';
 import spacingStyles from '../../styles/layouts/spacing';
-
 
 interface ISettingsDispatchProps {
     updateUser: Function;
@@ -128,6 +128,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { navigation } = this.props;
 
         navigation.push('ManagePreferences');
+    };
+
+    goToMyQRCodes = () => {
+        const { navigation } = this.props;
+
+        navigation.push('MyQRCodes');
     };
 
     isFormDisabled() {
@@ -387,7 +393,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
@@ -494,6 +500,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     <Text
                                         style={this.themeForms.styles.buttonLink}
                                         onPress={this.goToManageNotifications}>{this.translate('forms.settings.buttons.manageNotifications')}</Text>
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToMyQRCodes}>{this.translate('forms.settings.buttons.myQRCodes')}</Text>
                                 </Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
@@ -659,13 +672,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         onPress={this.goToManageAccount}>{this.translate('forms.settings.buttons.manageAccount')}</Text>
                                 </Text>
                             </View>
-                            <View style={this.themeSettingsForm.styles.advancedContainer}>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    <Text
-                                        style={this.themeForms.styles.buttonLink}
-                                        onPress={this.goToManageSpaces}>{this.translate('forms.settings.buttons.manageSpaces')}</Text>
-                                </Text>
-                            </View>
+                            {user.details?.isBusinessAccount && (
+                                <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                    <Text style={this.theme.styles.sectionDescription}>
+                                        <Text
+                                            style={this.themeForms.styles.buttonLink}
+                                            onPress={this.goToManageSpaces}>{this.translate('forms.settings.buttons.manageSpaces')}</Text>
+                                    </Text>
+                                </View>
+                            )}
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderPassword}

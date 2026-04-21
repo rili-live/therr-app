@@ -57,7 +57,7 @@ react {
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -89,8 +89,8 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 406
-        versionName "3.3.2"
+        versionCode 412
+        versionName "3.6.0"
         manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}"]
         vectorDrawables.useSupportLibrary = true
     }
@@ -116,6 +116,9 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = false
+            // libconceal.so (archived com.facebook.conceal) is not 16 KB page-aligned
+            // and has no updated release. Strip it so Play Store accepts the AAB.
+            excludes += ["**/libconceal.so"]
         }
     }
     buildTypes {
@@ -127,7 +130,7 @@ android {
             // see https://facebook.github.io/react-native/docs/signed-apk-android.
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
-            shrinkResources false
+            shrinkResources enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             // background_geolocation requires custom Proguard Rules
             proguardFiles "${background_geolocation_path}/proguard-rules.pro"
@@ -139,6 +142,14 @@ configurations.all {
     resolutionStrategy {
         // Force 16KB page-aligned ucrop (fixes Google Play rejection)
         force 'com.github.yalantis:ucrop:2.2.11-native'
+    }
+}
+
+// Ensure CMake's cached glob state is wiped on `./gradlew clean` so
+// externalNativeBuildClean* tasks don't fail with "GLOB mismatch!"
+tasks.named("clean").configure {
+    doLast {
+        delete "${projectDir}/.cxx"
     }
 }
 

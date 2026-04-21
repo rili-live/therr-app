@@ -14,14 +14,12 @@ import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Categories } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../PressableWithDoubleTap';
-// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import RichText from '../RichText';
@@ -52,6 +50,7 @@ interface IAreaDisplayContentProps {
     areaMedia: string;
     goToViewUser?: Function;
     inspectContent: () => any;
+    isBookmarked?: boolean;
     onBookmarkPress?: () => any;
     onDoubleTap?: () => any;
     theme: {
@@ -79,6 +78,7 @@ interface IAreaDisplayMediumProps extends IAreaDisplayContentProps {
 
 interface IAreaDisplayMediumState {
     isLiked: boolean;
+    isBookmarked: boolean;
     likeCount: number | null;
     mediaWidth: number;
 }
@@ -89,6 +89,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
             && (nextState.likeCount == null)) {
             return {
                 isLiked: !!nextProps.area.reaction?.userHasLiked,
+                isBookmarked: !!nextProps.area.reaction?.userBookmarkCategory,
                 likeCount: nextProps.area?.likeCount,
             };
         }
@@ -101,6 +102,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
 
         this.state = {
             isLiked: !!props.area.reaction?.userHasLiked,
+            isBookmarked: !!props.area.reaction?.userBookmarkCategory,
             likeCount: props.area.likeCount,
             mediaWidth: viewportWidth / 4,
         };
@@ -114,9 +116,14 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
 
     onBookmarkPress = (area) => {
         const { updateAreaReaction, user } = this.props;
+        const newIsBookmarked = !this.state.isBookmarked;
+
+        this.setState({
+            isBookmarked: newIsBookmarked,
+        });
 
         updateAreaReaction(area.id, {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, area.fromUserId, user?.details?.userName);
     };
 
@@ -212,6 +219,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         areaMedia={areaMedia}
                         goToViewUser={goToViewUser}
                         inspectContent={inspectContent}
+                        isBookmarked={this.state.isBookmarked}
                         onDoubleTap={() => this.onLikePress(area)}
                         onBookmarkPress={() => this.onBookmarkPress(area)}
                         theme={theme}
@@ -236,6 +244,7 @@ export const AreaDisplayContent = ({
     areaMedia,
     goToViewUser,
     inspectContent,
+    isBookmarked: isBookmarkedProp,
     onBookmarkPress,
     onDoubleTap,
     theme,
@@ -244,7 +253,9 @@ export const AreaDisplayContent = ({
 }: IAreaDisplayContentProps) => {
     // const [mediaWidth, setMediaWidth] = useState<number>(viewportWidth / 4);
     const [mediaWidth] = useState<number>(viewportWidth / 4);
-    const isBookmarked = area.reaction?.userBookmarkCategory;
+    const isBookmarked = isBookmarkedProp !== undefined
+        ? isBookmarkedProp
+        : !!area.reaction?.userBookmarkCategory;
     // const onUserMediaLayout = (event) => {
     //     const { width } = event.nativeEvent.layout;
     //     setMediaWidth(width);

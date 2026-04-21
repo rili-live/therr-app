@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View, Modal, ScrollView, Animated, Dimensions } from 'react-native';
+import { Pressable, Text, View, Modal, ScrollView, Dimensions, InteractionManager } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS } from 'react-native-reanimated';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge, Drawer } from 'react-native-paper';
@@ -9,13 +10,11 @@ import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-// import therrIconConfig from '../assets/therr-font-config.json';
-// import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { ITherrThemeColors } from '../styles/themes';
@@ -31,6 +30,119 @@ import { Sheets } from 'react-native-actions-sheet';
 //     'TherrFont',
 //     'TherrFont.ttf'
 // );
+
+const DRAWER_ANIM_DURATION = 280;
+const DRAWER_EASING_IN = Easing.in(Easing.cubic);
+const DRAWER_EASING_OUT = Easing.out(Easing.cubic);
+
+interface IDrawerOverlayProps {
+    isOpen: boolean;
+    onRequestClose: () => void;
+    onTransitionEnd?: () => void;
+    overlayStyle: any;
+    drawerContainerStyle: any;
+    drawerBodyStyle: any;
+    children: React.ReactNode;
+}
+
+const DrawerOverlay: React.FC<IDrawerOverlayProps> = ({
+    isOpen,
+    onRequestClose,
+    onTransitionEnd,
+    overlayStyle,
+    drawerContainerStyle,
+    drawerBodyStyle,
+    children,
+}) => {
+    const slide = useSharedValue(Dimensions.get('window').width * 0.75);
+    const backdropOpacity = useSharedValue(0);
+    const [isMounted, setIsMounted] = React.useState(false);
+    const onTransitionEndRef = React.useRef(onTransitionEnd);
+    React.useEffect(() => {
+        onTransitionEndRef.current = onTransitionEnd;
+    });
+    const notifyTransitionEnd = React.useCallback(() => {
+        if (onTransitionEndRef.current) {
+            onTransitionEndRef.current();
+        }
+    }, []);
+
+    React.useEffect(() => {
+        const menuWidth = Dimensions.get('window').width * 0.75;
+        if (isOpen) {
+            if (!isMounted) {
+                slide.value = menuWidth;
+                backdropOpacity.value = 0;
+                setIsMounted(true);
+                return undefined;
+            }
+            // Defer the opening animation until after the Modal's native window
+            // has mounted; starting in the same frame drops frames on Android.
+            const task = InteractionManager.runAfterInteractions(() => {
+                slide.value = withTiming(0, {
+                    duration: DRAWER_ANIM_DURATION,
+                    easing: DRAWER_EASING_OUT,
+                });
+                backdropOpacity.value = withTiming(
+                    1,
+                    { duration: DRAWER_ANIM_DURATION, easing: DRAWER_EASING_OUT },
+                    (finished) => {
+                        'worklet';
+                        if (finished) {
+                            runOnJS(notifyTransitionEnd)();
+                        }
+                    }
+                );
+            });
+            return () => task.cancel();
+        }
+        if (isMounted) {
+            slide.value = withTiming(menuWidth, {
+                duration: DRAWER_ANIM_DURATION,
+                easing: DRAWER_EASING_IN,
+            });
+            backdropOpacity.value = withTiming(
+                0,
+                { duration: DRAWER_ANIM_DURATION, easing: DRAWER_EASING_IN },
+                (finished) => {
+                    'worklet';
+                    if (finished) {
+                        runOnJS(setIsMounted)(false);
+                        runOnJS(notifyTransitionEnd)();
+                    }
+                }
+            );
+        }
+        return undefined;
+    }, [isOpen, isMounted, notifyTransitionEnd, slide, backdropOpacity]);
+
+    const backdropStyle = useAnimatedStyle(() => ({
+        opacity: backdropOpacity.value,
+    }));
+
+    const drawerStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: slide.value }],
+    }));
+
+    return (
+        <Modal
+            animationType="none"
+            visible={isMounted}
+            onRequestClose={onRequestClose}
+            transparent={true}
+        >
+            <Animated.View style={[{ flex: 1 }, backdropStyle]}>
+                <Pressable onPress={onRequestClose} style={overlayStyle}>
+                    <Animated.View style={[drawerContainerStyle, drawerStyle]}>
+                        <Pressable style={drawerBodyStyle} onPress={() => { /* Prevent dismissal when tapping inside */ }}>
+                            {children}
+                        </Pressable>
+                    </Animated.View>
+                </Pressable>
+            </Animated.View>
+        </Modal>
+    );
+};
 
 interface IHeaderMenuRightDispatchProps {
     updateTour: Function;
@@ -100,7 +212,7 @@ class HeaderMenuRight extends React.PureComponent<
 
     private bottomSheetRef;
 
-    private slideAnim: Animated.Value;
+    private pendingOverlayResolver: ((value: null) => void) | null = null;
 
     constructor(props) {
         super(props);
@@ -110,7 +222,6 @@ class HeaderMenuRight extends React.PureComponent<
             isPointsInfoModalVisible: false,
         };
 
-        this.slideAnim = new Animated.Value(Dimensions.get('window').width * 0.75);
         this.translate = (key: string, params: any) => translator(props.user?.settings?.locale || 'en-us', key, params);
     }
 
@@ -120,31 +231,33 @@ class HeaderMenuRight extends React.PureComponent<
 
     toggleOverlay = (shouldClose?: boolean) => {
         const { isModalVisible } = this.state;
-        const menuWidth = Dimensions.get('window').width * 0.75;
         const nextVisible = shouldClose ? false : !isModalVisible;
 
-        return new Promise((resolve) => {
-            if (!nextVisible && isModalVisible) {
-                Animated.timing(this.slideAnim, {
-                    toValue: menuWidth,
-                    duration: 250,
-                    useNativeDriver: true,
-                }).start(() => {
-                    this.setState({ isModalVisible: false }, () => resolve(null));
-                });
-            } else if (nextVisible && !isModalVisible) {
-                this.slideAnim.setValue(menuWidth);
-                this.setState({ isModalVisible: true }, () => {
-                    Animated.timing(this.slideAnim, {
-                        toValue: 0,
-                        duration: 250,
-                        useNativeDriver: true,
-                    }).start(() => resolve(null));
-                });
-            } else {
+        return new Promise<null>((resolve) => {
+            if (nextVisible === isModalVisible) {
                 resolve(null);
+                return;
             }
+            if (this.pendingOverlayResolver) {
+                const prev = this.pendingOverlayResolver;
+                this.pendingOverlayResolver = null;
+                prev(null);
+            }
+            this.pendingOverlayResolver = resolve;
+            this.setState({ isModalVisible: nextVisible });
         });
+    };
+
+    handleDrawerTransitionEnd = () => {
+        const pending = this.pendingOverlayResolver;
+        if (pending) {
+            this.pendingOverlayResolver = null;
+            pending(null);
+        }
+    };
+
+    handleRequestDrawerClose = () => {
+        this.toggleOverlay(true);
     };
 
     expandBottomSheet = (index = 1) => {
@@ -448,305 +561,316 @@ class HeaderMenuRight extends React.PureComponent<
                             </Pressable>
                         }
                     </View>
-                    <Modal
-                        animationType="none"
-                        visible={isModalVisible}
-                        onRequestClose={() => this.toggleOverlay(true)}
-                        transparent={true}
+                    <DrawerOverlay
+                        isOpen={isModalVisible}
+                        onRequestClose={this.handleRequestDrawerClose}
+                        onTransitionEnd={this.handleDrawerTransitionEnd}
+                        overlayStyle={theme.styles.overlay}
+                        drawerContainerStyle={themeMenu.styles.overlayContainer}
+                        drawerBodyStyle={themeMenu.styles.container}
                     >
-                        <Pressable
-                            onPress={() => this.toggleOverlay(true)}
-                            style={theme.styles.overlay}
-                        >
-                            <Animated.View
-                                style={[themeMenu.styles.overlayContainer, { transform: [{ translateX: this.slideAnim }] }]}
-                            >
+                        <View style={themeMenu.styles.header}>
+                            <View style={themeMenu.styles.headerTitle}>
                                 <Pressable
-                                    style={themeMenu.styles.container}
-                                    onPress={() => {}} // Prevent dismissal when tapping inside
+                                    onPress={this.viewUser}
                                 >
-                                    <View style={themeMenu.styles.header}>
-                                        <View style={themeMenu.styles.headerTitle}>
-                                            <Pressable
-                                                onPress={this.viewUser}
-                                            >
-                                                <Image
-                                                    source={{ uri: getUserImageUri(user, 50) }}
-                                                    style={themeMenu.styles.headerTitleIcon}
-                                                    height={themeMenu.styles.headerTitleIcon.height}
-                                                    width={themeMenu.styles.headerTitleIcon.width}
-                                                    transition={false}
-                                                />
-                                                {
-                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle3} />
-                                                }
-                                            </Pressable>
-                                            <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
-                                                {user.details?.userName || ''}
-                                            </Text>
-                                        </View>
-                                        <Button
-                                            icon={
-                                                <Icon
-                                                    name="close"
-                                                    size={30}
-                                                    color={theme.colors.primary3}
-                                                />
-                                            }
-                                            iconRight
-                                            onPress={() => this.toggleOverlay(true)}
-                                            type="clear"
-                                        />
-                                    </View>
-                                    <View style={themeMenu.styles.subheader}>
-                                        <View style={themeMenu.styles.subheaderTitle}>
-                                            <Button
-                                                type="clear"
-                                                icon={
-                                                    <TherrIcon
-                                                        name="therr-logo"
-                                                        size={24}
-                                                        style={themeMenu.styles.subheaderTitleIcon}
-                                                    />
-                                                }
-                                            />
-                                            <Text numberOfLines={1} style={themeMenu.styles.subheaderTitleText}>
-                                                {`${this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal)} coins`}
-                                            </Text>
-                                        </View>
-                                        <Pressable onPress={() => this.navTo('ExchangePointsDisclaimer')}>
-                                            <Text style={themeMenu.styles.subheaderLinkText}>
-                                                {this.translate('components.headerMenuRight.buttons.exchange')}
-                                            </Text>
-                                        </Pressable>
-                                        <Button
-                                            icon={
-                                                <TherrIcon
-                                                    name="info"
-                                                    size={24}
-                                                    color={theme.colors.brandingWhite}
-                                                />
-                                            }
-                                            iconRight
-                                            onPress={this.togglePointsInfoModal}
-                                            type="clear"
-                                        />
-                                    </View>
-                                    <ScrollView
-                                        showsVerticalScrollIndicator
-                                        persistentScrollbar
-                                        style={themeMenu.styles.body}
-                                    >
-                                        <Drawer.Section>
-                                            <View style={themeMenu.styles.notificationsItemContainer}>
-                                                <Drawer.Item
-                                                    label={this.translate('components.headerMenuRight.menuItems.notifications')}
-                                                    icon={() => (
-                                                        <TherrIcon
-                                                            style={
-                                                                currentScreen === 'Notifications'
-                                                                    ? themeMenu.styles.iconStyleActive
-                                                                    : themeMenu.styles.iconStyle
-                                                            }
-                                                            name="bell"
-                                                            size={24}
-                                                        />
-                                                    )}
-                                                    active={currentScreen === 'Notifications'}
-                                                    onPress={() => this.navTo('Notifications')}
-                                                />
-                                                {
-                                                    hasNotifications && (
-                                                        <Badge style={themeMenu.styles.notificationBadge} size={20}>
-                                                            {unreadCount}
-                                                        </Badge>
-                                                    )
-                                                }
-                                            </View>
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.achievements')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'Achievements'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="achievement"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'Achievements'}
-                                                onPress={() => this.navTo('Achievements')}
-                                            />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.chat')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === `Connect`
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="chat-smile"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === `Connect`}
-                                                onPress={() => this.navTo('Connect', {
-                                                    activeTab: PEOPLE_CAROUSEL_TABS.MESSAGES,
-                                                })}
-                                            />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.groups')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'Groups'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="group"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === `Groups`}
-                                                onPress={() => this.navTo('Groups', {
-                                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                                                })}
-                                            />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.addConnection')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'Invite'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="key-plus"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'Invite'}
-                                                onPress={() => this.navTo('Invite')}
-                                            />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.myDrafts')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'MyDrafts'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="edit"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'MyDrafts'}
-                                                onPress={() => this.navTo('MyDrafts')}
-                                            />
-                                        </Drawer.Section>
-                                        <Drawer.Section>
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.account')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'Settings'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="settings"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'Settings'}
-                                                onPress={() => this.navTo('Settings')}
-                                            />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.wallet')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'ExchangePointsDisclaimer'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="wallet"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'ExchangePointsDisclaimer'}
-                                                onPress={() => this.navTo('ExchangePointsDisclaimer')}
-                                            />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.bookmarks')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'BookMarked'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="bookmark"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'BookMarked'}
-                                                onPress={() => this.navTo('BookMarked')}
-                                            />
-                                            <Drawer.Item
-                                                label={this.translate('components.headerMenuRight.menuItems.feedback')}
-                                                icon={() => (
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'Home'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="question"
-                                                        size={24}
-                                                    />
-                                                )}
-                                                active={currentScreen === 'Home'}
-                                                onPress={() => this.navTo('Home')}
-                                            />
-                                        </Drawer.Section>
-                                    </ScrollView>
-                                    <View style={themeMenu.styles.footer}>
-                                        <Button
-                                            titleStyle={themeMenu.styles.buttonsTitle}
-                                            buttonStyle={[themeMenu.styles.buttons, themeMenu.styles.footerButtonCenter, themeMenu.styles.footerButtonMargin]}
-                                            title={this.translate('components.headerMenuRight.menuItems.tour')}
-                                            icon={
-                                                <FontAwesomeIcon
-                                                    style={themeMenu.styles.iconStyle}
-                                                    name="info"
-                                                    size={18}
-                                                />
-                                            }
-                                            onPress={this.startNavigationTour}
-                                        />
-                                        <Button
-                                            titleStyle={themeMenu.styles.buttonsTitle}
-                                            buttonStyle={[themeMenu.styles.buttons, themeMenu.styles.footerButtonCenter]}
-                                            title={this.translate('components.headerMenuRight.menuItems.logout')}
-                                            icon={
-                                                <TherrIcon
-                                                    style={themeMenu.styles.iconStyle}
-                                                    name="door-open"
-                                                    size={24}
-                                                />
-                                            }
-                                            onPress={() => this.handleLogout(() => this.toggleOverlay(true))}
-                                        />
-                                    </View>
+                                    <Image
+                                        source={{ uri: getUserImageUri(user, 50) }}
+                                        style={themeMenu.styles.headerTitleIcon}
+                                        height={themeMenu.styles.headerTitleIcon.height}
+                                        width={themeMenu.styles.headerTitleIcon.width}
+                                        transition={false}
+                                    />
+                                    {
+                                        hasNotifications && <View style={themeMenu.styles.notificationCircle3} />
+                                    }
                                 </Pressable>
-                            </Animated.View>
-                        </Pressable>
-                    </Modal>
+                                <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
+                                    {user.details?.userName || ''}
+                                </Text>
+                            </View>
+                            <Button
+                                icon={
+                                    <Icon
+                                        name="close"
+                                        size={30}
+                                        color={theme.colors.primary3}
+                                    />
+                                }
+                                iconRight
+                                onPress={() => this.toggleOverlay(true)}
+                                type="clear"
+                            />
+                        </View>
+                        <View style={themeMenu.styles.subheader}>
+                            <View style={themeMenu.styles.subheaderTitle}>
+                                <Button
+                                    type="clear"
+                                    icon={
+                                        <TherrIcon
+                                            name="therr-logo"
+                                            size={24}
+                                            style={themeMenu.styles.subheaderTitleIcon}
+                                        />
+                                    }
+                                />
+                                <Text numberOfLines={1} style={themeMenu.styles.subheaderTitleText}>
+                                    {`${this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal)} coins`}
+                                </Text>
+                            </View>
+                            <Pressable onPress={() => this.navTo('ExchangePointsDisclaimer')}>
+                                <Text style={themeMenu.styles.subheaderLinkText}>
+                                    {this.translate('components.headerMenuRight.buttons.exchange')}
+                                </Text>
+                            </Pressable>
+                            <Button
+                                icon={
+                                    <TherrIcon
+                                        name="info"
+                                        size={24}
+                                        color={theme.colors.brandingWhite}
+                                    />
+                                }
+                                iconRight
+                                onPress={this.togglePointsInfoModal}
+                                type="clear"
+                            />
+                        </View>
+                        <ScrollView
+                            showsVerticalScrollIndicator
+                            persistentScrollbar
+                            style={themeMenu.styles.body}
+                        >
+                            <Drawer.Section>
+                                <View style={themeMenu.styles.notificationsItemContainer}>
+                                    <Drawer.Item
+                                        label={this.translate('components.headerMenuRight.menuItems.notifications')}
+                                        icon={() => (
+                                            <TherrIcon
+                                                style={
+                                                    currentScreen === 'Notifications'
+                                                        ? themeMenu.styles.iconStyleActive
+                                                        : themeMenu.styles.iconStyle
+                                                }
+                                                name="bell"
+                                                size={24}
+                                            />
+                                        )}
+                                        active={currentScreen === 'Notifications'}
+                                        onPress={() => this.navTo('Notifications')}
+                                    />
+                                    {
+                                        hasNotifications && (
+                                            <Badge style={themeMenu.styles.notificationBadge} size={20}>
+                                                {unreadCount}
+                                            </Badge>
+                                        )
+                                    }
+                                </View>
+                                <Drawer.Item
+                                    label={this.translate('components.headerMenuRight.menuItems.achievements')}
+                                    icon={() => (
+                                        <TherrIcon
+                                            style={
+                                                currentScreen === 'Achievements'
+                                                    ? themeMenu.styles.iconStyleActive
+                                                    : themeMenu.styles.iconStyle
+                                            }
+                                            name="achievement"
+                                            size={24}
+                                        />
+                                    )}
+                                    active={currentScreen === 'Achievements'}
+                                    onPress={() => this.navTo('Achievements')}
+                                />
+                                <Drawer.Item
+                                    label={this.translate('components.headerMenuRight.menuItems.chat')}
+                                    icon={() => (
+                                        <TherrIcon
+                                            style={
+                                                currentScreen === `Connect`
+                                                    ? themeMenu.styles.iconStyleActive
+                                                    : themeMenu.styles.iconStyle
+                                            }
+                                            name="chat-smile"
+                                            size={24}
+                                        />
+                                    )}
+                                    active={currentScreen === `Connect`}
+                                    onPress={() => this.navTo('Connect', {
+                                        activeTab: PEOPLE_CAROUSEL_TABS.MESSAGES,
+                                    })}
+                                />
+                                <Drawer.Item
+                                    label={this.translate('components.headerMenuRight.menuItems.groups')}
+                                    icon={() => (
+                                        <TherrIcon
+                                            style={
+                                                currentScreen === 'Groups'
+                                                    ? themeMenu.styles.iconStyleActive
+                                                    : themeMenu.styles.iconStyle
+                                            }
+                                            name="group"
+                                            size={24}
+                                        />
+                                    )}
+                                    active={currentScreen === `Groups`}
+                                    onPress={() => this.navTo('Groups', {
+                                        activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                                    })}
+                                />
+                                <Drawer.Item
+                                    label={this.translate('components.headerMenuRight.menuItems.addConnection')}
+                                    icon={() => (
+                                        <TherrIcon
+                                            style={
+                                                currentScreen === 'Invite'
+                                                    ? themeMenu.styles.iconStyleActive
+                                                    : themeMenu.styles.iconStyle
+                                            }
+                                            name="key-plus"
+                                            size={24}
+                                        />
+                                    )}
+                                    active={currentScreen === 'Invite'}
+                                    onPress={() => this.navTo('Invite')}
+                                />
+                                <Drawer.Item
+                                    label={this.translate('components.headerMenuRight.menuItems.myDrafts')}
+                                    icon={() => (
+                                        <TherrIcon
+                                            style={
+                                                currentScreen === 'MyDrafts'
+                                                    ? themeMenu.styles.iconStyleActive
+                                                    : themeMenu.styles.iconStyle
+                                            }
+                                            name="edit"
+                                            size={24}
+                                        />
+                                    )}
+                                    active={currentScreen === 'MyDrafts'}
+                                    onPress={() => this.navTo('MyDrafts')}
+                                />
+                            </Drawer.Section>
+                            <Drawer.Section>
+                                <Drawer.Item
+                                    label={this.translate('components.headerMenuRight.menuItems.account')}
+                                    icon={() => (
+                                        <TherrIcon
+                                            style={
+                                                currentScreen === 'Settings'
+                                                    ? themeMenu.styles.iconStyleActive
+                                                    : themeMenu.styles.iconStyle
+                                            }
+                                            name="settings"
+                                            size={24}
+                                        />
+                                    )}
+                                    active={currentScreen === 'Settings'}
+                                    onPress={() => this.navTo('Settings')}
+                                />
+                                {user.details?.isBusinessAccount ? (
+                                    <Drawer.Item
+                                        label={this.translate('components.headerMenuRight.menuItems.manageSpaces')}
+                                        icon={() => (
+                                            <TherrIcon
+                                                style={
+                                                    currentScreen === 'ManageSpaces'
+                                                        ? themeMenu.styles.iconStyleActive
+                                                        : themeMenu.styles.iconStyle
+                                                }
+                                                name="storefront"
+                                                size={24}
+                                            />
+                                        )}
+                                        active={currentScreen === 'ManageSpaces'}
+                                        onPress={() => this.navTo('ManageSpaces')}
+                                    />
+                                ) : (
+                                    <Drawer.Item
+                                        label={this.translate('components.headerMenuRight.menuItems.wallet')}
+                                        icon={() => (
+                                            <TherrIcon
+                                                style={
+                                                    currentScreen === 'ExchangePointsDisclaimer'
+                                                        ? themeMenu.styles.iconStyleActive
+                                                        : themeMenu.styles.iconStyle
+                                                }
+                                                name="wallet"
+                                                size={24}
+                                            />
+                                        )}
+                                        active={currentScreen === 'ExchangePointsDisclaimer'}
+                                        onPress={() => this.navTo('ExchangePointsDisclaimer')}
+                                    />
+                                )}
+                                <Drawer.Item
+                                    label={this.translate('components.headerMenuRight.menuItems.bookmarks')}
+                                    icon={() => (
+                                        <TherrIcon
+                                            style={
+                                                currentScreen === 'BookMarked'
+                                                    ? themeMenu.styles.iconStyleActive
+                                                    : themeMenu.styles.iconStyle
+                                            }
+                                            name="bookmark"
+                                            size={24}
+                                        />
+                                    )}
+                                    active={currentScreen === 'BookMarked'}
+                                    onPress={() => this.navTo('BookMarked')}
+                                />
+                                <Drawer.Item
+                                    label={this.translate('components.headerMenuRight.menuItems.feedback')}
+                                    icon={() => (
+                                        <TherrIcon
+                                            style={
+                                                currentScreen === 'Home'
+                                                    ? themeMenu.styles.iconStyleActive
+                                                    : themeMenu.styles.iconStyle
+                                            }
+                                            name="question"
+                                            size={24}
+                                        />
+                                    )}
+                                    active={currentScreen === 'Home'}
+                                    onPress={() => this.navTo('Home')}
+                                />
+                            </Drawer.Section>
+                        </ScrollView>
+                        <View style={themeMenu.styles.footer}>
+                            <Button
+                                titleStyle={themeMenu.styles.buttonsTitle}
+                                buttonStyle={[
+                                    themeMenu.styles.buttons,
+                                    themeMenu.styles.footerButtonCenter,
+                                    themeMenu.styles.footerButtonMargin,
+                                ]}
+                                title={this.translate('components.headerMenuRight.menuItems.tour')}
+                                icon={
+                                    <FontAwesomeIcon
+                                        style={themeMenu.styles.iconStyle}
+                                        name="info"
+                                        size={18}
+                                    />
+                                }
+                                onPress={this.startNavigationTour}
+                            />
+                            <Button
+                                titleStyle={themeMenu.styles.buttonsTitle}
+                                buttonStyle={[themeMenu.styles.buttons, themeMenu.styles.footerButtonCenter]}
+                                title={this.translate('components.headerMenuRight.menuItems.logout')}
+                                icon={
+                                    <TherrIcon
+                                        style={themeMenu.styles.iconStyle}
+                                        name="door-open"
+                                        size={24}
+                                    />
+                                }
+                                onPress={() => this.handleLogout(() => this.toggleOverlay(true))}
+                            />
+                        </View>
+                    </DrawerOverlay>
                     <InfoModal
                         isVisible={isPointsInfoModalVisible}
                         translate={this.translate}

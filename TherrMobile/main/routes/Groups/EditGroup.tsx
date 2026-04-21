@@ -1,6 +1,7 @@
 import React from 'react';
-import { Dimensions, Keyboard, Platform, SafeAreaView, Text, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Dimensions, Keyboard, Platform, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -13,7 +14,7 @@ import { IContentState, IForumsState, IUserState } from 'therr-react/types';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import { SheetManager } from 'react-native-actions-sheet';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { isDarkTheme } from '../../styles/themes';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
@@ -481,7 +482,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

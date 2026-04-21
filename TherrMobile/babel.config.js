@@ -3,6 +3,10 @@ const path = require('path');
 module.exports = {
     presets: ['module:@react-native/babel-preset'],
     plugins: [
+        // React Compiler (annotation mode): only memoizes function components/hooks that
+        // begin their body with a "use memo" directive. Must run before other transforms;
+        // react-native-worklets/plugin stays last.
+        ['babel-plugin-react-compiler', { compilationMode: 'annotation', target: '19' }],
         [
             'module:react-native-dotenv',
             {
@@ -36,6 +40,11 @@ module.exports = {
             },
         ],
         'react-native-paper/babel',
-        'react-native-reanimated/plugin', // Should always be last
+        // Strip console.* calls in production bundles (keep error/warn for Crashlytics/LogRocket).
+        // Runs only on production builds so dev logs are preserved.
+        ...(process.env.NODE_ENV === 'production' || process.env.BABEL_ENV === 'production'
+            ? [['transform-remove-console', { exclude: ['error', 'warn'] }]]
+            : []),
+        'react-native-worklets/plugin', // Should always be last (Reanimated 4 + worklets package)
     ],
 };

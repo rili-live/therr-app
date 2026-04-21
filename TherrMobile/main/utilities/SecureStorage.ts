@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKV } from 'react-native-mmkv';
 
 // Keys that contain sensitive data and should use secure storage when available
 const SECURE_KEYS = ['therrRefreshToken', 'therrUser'];
@@ -8,11 +9,15 @@ let Keychain: any = null;
 try {
     Keychain = require('react-native-keychain');
 } catch (e) {
-    // react-native-keychain not installed, fall back to AsyncStorage
+    // react-native-keychain not installed, fall back to MMKV
 }
 
 const KEYCHAIN_SERVICE = 'therr-secure-storage';
 const MIGRATION_FLAG = 'therr_secure_migration_v1';
+const MMKV_MIGRATION_FLAG = 'therr_mmkv_migration_v1';
+const MMKV_NON_SECURE_KEYS = ['therrSession', 'therrUserSettings'];
+
+const mmkv = new MMKV({ id: 'therr-storage' });
 
 const SecureStorage = {
     setItem: async (key: string, value: string): Promise<void> => {
@@ -26,10 +31,10 @@ const SecureStorage = {
                 );
                 return;
             } catch (e) {
-                // Fall through to AsyncStorage
+                // Fall through to MMKV
             }
         }
-        await AsyncStorage.setItem(key, value);
+        mmkv.set(key, value);
     },
 
     getItem: async (key: string): Promise<string | null> => {
@@ -39,12 +44,19 @@ const SecureStorage = {
                 if (credentials) {
                     return credentials.password;
                 }
-                // Keychain returned nothing — fall through to check AsyncStorage
+                // Keychain returned nothing — fall through to MMKV / AsyncStorage
                 // (handles pre-migration data)
             } catch (e) {
-                // Fall through to AsyncStorage
+                // Fall through to MMKV / AsyncStorage
             }
         }
+        const mmkvValue = mmkv.getString(key);
+        if (mmkvValue !== undefined) {
+            return mmkvValue;
+        }
+        // Pre-MMKV-migration fallback: legacy data may still live in AsyncStorage.
+        // Kept for one release to tolerate downgrades and stragglers that haven't
+        // executed migrateAsyncStorageToMMKV yet. Safe to remove in a follow-up PR.
         return AsyncStorage.getItem(key);
     },
 
@@ -53,15 +65,16 @@ const SecureStorage = {
             try {
                 await Keychain.resetInternetCredentials(key);
             } catch (e) {
-                // Continue to also clean AsyncStorage
+                // Continue to also clean MMKV / AsyncStorage
             }
         }
+        mmkv.delete(key);
+        // Also clean legacy AsyncStorage copy to avoid stale reads in mixed-state installs.
         await AsyncStorage.removeItem(key);
     },
 
     multiRemove: async (keys: string[]): Promise<void> => {
         const secureKeys = keys.filter((k) => SECURE_KEYS.includes(k));
-        const regularKeys = keys.filter((k) => !SECURE_KEYS.includes(k));
 
         if (Keychain && secureKeys.length > 0) {
             await Promise.all(
@@ -69,12 +82,46 @@ const SecureStorage = {
             );
         }
 
-        if (regularKeys.length > 0) {
-            await AsyncStorage.multiRemove(regularKeys);
-        }
-        // Also remove secure keys from AsyncStorage in case of migration
-        if (secureKeys.length > 0) {
-            await AsyncStorage.multiRemove(secureKeys);
+        keys.forEach((k) => mmkv.delete(k));
+        // Also clean legacy AsyncStorage copies (covers both secure and non-secure keys).
+        await AsyncStorage.multiRemove(keys);
+    },
+
+    // One-shot copy of non-secure keys from AsyncStorage to MMKV. Runs once per
+    // install (gated by MMKV_MIGRATION_FLAG). Legacy AsyncStorage data is NOT
+    // deleted here so users can downgrade safely; a follow-up release will
+    // clean it up and drop the AsyncStorage dependency.
+    migrateAsyncStorageToMMKV: async (): Promise<void> => {
+        try {
+            if (mmkv.getString(MMKV_MIGRATION_FLAG)) return;
+
+            for (const key of MMKV_NON_SECURE_KEYS) {
+                try {
+                    const value = await AsyncStorage.getItem(key);
+                    if (value) {
+                        mmkv.set(key, value);
+                    }
+                } catch (e) {
+                    // Per-key migration failed; the flag is still set below so we
+                    // don't block startup. Missing data will surface as a re-login
+                    // or settings reset at worst — not a crash.
+                }
+            }
+
+            // Forward the Keychain-migration flag so migrateToSecureStorage doesn't
+            // re-run after AsyncStorage is eventually removed.
+            try {
+                const secureFlag = await AsyncStorage.getItem(MIGRATION_FLAG);
+                if (secureFlag) {
+                    mmkv.set(MIGRATION_FLAG, secureFlag);
+                }
+            } catch (e) {
+                // Non-fatal; migrateToSecureStorage will re-check AsyncStorage this run
+            }
+
+            mmkv.set(MMKV_MIGRATION_FLAG, '1');
+        } catch (e) {
+            // Migration check failed; will retry on next launch
         }
     },
 
@@ -83,7 +130,10 @@ const SecureStorage = {
         if (!Keychain) return;
 
         try {
-            const alreadyMigrated = await AsyncStorage.getItem(MIGRATION_FLAG);
+            // Check MMKV first, then AsyncStorage (supports installs before and after
+            // migrateAsyncStorageToMMKV has forwarded the flag).
+            const alreadyMigrated = mmkv.getString(MIGRATION_FLAG)
+                || (await AsyncStorage.getItem(MIGRATION_FLAG));
             if (alreadyMigrated) return;
 
             for (const key of SECURE_KEYS) {
@@ -102,6 +152,7 @@ const SecureStorage = {
                 }
             }
 
+            mmkv.set(MIGRATION_FLAG, '1');
             await AsyncStorage.setItem(MIGRATION_FLAG, '1');
         } catch (e) {
             // Migration check failed; will retry on next launch

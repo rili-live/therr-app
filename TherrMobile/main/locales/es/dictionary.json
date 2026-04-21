@@ -65,7 +65,8 @@
     "joinedGroup": "Te uniste al grupo",
     "waitlistSuccess": "¡Registro exitoso!",
     "reactionSent": "¡Reacción enviada!",
-    "reactionFailed": "Reacción fallida"
+    "reactionFailed": "Reacción fallida",
+    "mediaUploadFailed": "Error al cargar imagen"
   },
   "alertMessages": {
     "activityCreated": "Se creó un nuevo grupo y evento. Se enviaron invitaciones a cada miembro del grupo.",
@@ -100,7 +101,8 @@
     "newAreasActivated": "Recientemente activaste {total} nuevos momentos/espacios.",
     "draftReminder": "¿Recordaste terminar tu publicación en borrador?",
     "requestClaimSent": "Revisa tu correo electrónico para confirmación y próximos pasos",
-    "waitlistSuccess": "Revisa tu correo electrónico para verificar tu cuenta"
+    "waitlistSuccess": "Revisa tu correo electrónico para verificar tu cuenta",
+    "mediaUploadFailed": "No se pudo cargar tu imagen. Por favor, inténtalo de nuevo."
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -309,6 +311,9 @@
       "coinsLabel": "Monedas ganadas",
       "shareLink": "Comparte tu enlace de invitación"
     },
+    "offlineBanner": {
+      "tooltip": "Estás sin conexión. Mostrando datos en caché."
+    },
     "header": {
       "buttons": {
         "login": "Iniciar sesión"
@@ -347,7 +352,8 @@
         "myDrafts": "Mis borradores",
         "notifications": "Notificaciones",
         "tour": "Hacer un recorrido",
-        "wallet": "Billetera"
+        "wallet": "Billetera",
+        "manageSpaces": "Mis Negocios"
       }
     },
     "imagePicker": {
@@ -776,7 +782,8 @@
         "settingsEmailReminders": "Correos de recordatorios de la app social",
         "settingsEmailBackground": "Correos automatizados de la app social",
         "on": "Activado",
-        "off": "Desactivado"
+        "off": "Desactivado",
+        "myQRCodes": "Gestionar mis códigos QR"
       },
       "errorMessages": {
         "repeatPassword": "Las contraseñas no coinciden",
@@ -846,6 +853,10 @@
         "twitterHandle": "nombre de usuario",
         "youtubeChannelId": "ID del canal"
       }
+    },
+    "myQRCodeDetail": {
+      "share": "Compartir enlace",
+      "copy": "Copiar enlace"
     }
   },
   "interests": {
@@ -1664,14 +1675,85 @@
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
-      "noSpacesFound": "No se encontraron espacios. Reclama una ubicación de negocio desde el Mapa para comenzar.",
+      "noSpacesFound": "Aún no has reclamado ni creado un espacio. Comienza reclamando la ubicación de tu negocio o creando uno nuevo.",
+      "fetchError": "No se pudieron cargar tus espacios. Desliza hacia abajo para reintentar.",
       "coinBalanceLabel": "Tu Balance de TherrCoins",
       "rewardActive": "Recompensas Activas",
       "rewardInactive": "Sin Recompensas",
       "buttons": {
         "view": "Ver",
-        "edit": "Editar"
+        "edit": "Editar",
+        "createSpace": "Reclamar o Crear un Espacio",
+        "createShort": "+ Nuevo"
+      },
+      "recharge": {
+        "title": "Impulsa tu Espacio con TherrCoins",
+        "subtitle": "Recompensa a tus visitantes. Haz crecer tu espacio.",
+        "marketingBlurb": "Cada TherrCoin que gastas se convierte en un momento que atrae clientes a tu puerta. Financia recompensas que convierten el descubrimiento pasivo en tráfico real, transforman a los visitantes ocasionales en clientes habituales y mantienen tu espacio en la parte superior de cada feed cercano. Recarga una vez — deja que tu comunidad haga el resto.",
+        "comingSoon": "Próximamente — las compras de monedas llegan en la próxima actualización.",
+        "packages": {
+          "coinsLabel": "{count} monedas",
+          "bonusLabel": "+{count} de bono",
+          "buyButton": "Comprar"
+        },
+        "autoRecharge": {
+          "title": "Recarga Automática",
+          "description": "Nunca te quedes sin monedas. Cuando tu saldo caiga por debajo del umbral, recargaremos automáticamente.",
+          "enableToggle": "Habilitar recarga automática",
+          "thresholdLabel": "Recargar cuando el saldo baje de (monedas)",
+          "amountLabel": "Monto de recarga",
+          "saveButton": "Guardar preferencias",
+          "savedConfirmation": "Preferencias de recarga automática guardadas."
+        }
       }
+    },
+    "bookmarks": {
+      "postsHeading": "Publicaciones guardadas",
+      "lists": {
+        "title": "Mis listas de espacios",
+        "addToList": "Guardar en lista",
+        "newList": "+ Nueva lista",
+        "newListPlaceholder": "Nombre de la lista",
+        "createList": "Crear",
+        "cancel": "Cancelar",
+        "default": "Guardados",
+        "itemCount": "{count} guardados",
+        "emptyState": "Aún no tienes listas. Guarda un espacio para crear tu primera lista.",
+        "emptyList": "Esta lista está vacía. Abre un espacio y mantén presionado el marcador para agregarlo.",
+        "browseSpaces": "Explorar espacios",
+        "noListsYet": "Aún no hay listas",
+        "deleteList": "Eliminar lista",
+        "deleteConfirm": "¿Eliminar esta lista? Los espacios guardados serán removidos.",
+        "loading": "Cargando lista...",
+        "done": "Listo",
+        "spaceUnavailable": "Espacio no disponible"
+      }
+    },
+    "myQRCodes": {
+      "headerTitle": "Mis códigos QR",
+      "subtitle": "Comparte cualquier contenido de Therr con un escaneo.",
+      "profileCardHint": "Toca para ver el código QR completo de tu perfil.",
+      "profileAccessibilityLabel": "Ver código QR completo de tu perfil",
+      "profileFallbackName": "Mi perfil",
+      "rowAccessibilityLabel": "Ver código QR de {{title}}",
+      "sections": {
+        "profile": "Mi perfil",
+        "spaces": "Mis espacios",
+        "events": "Mis eventos",
+        "groups": "Mis grupos"
+      },
+      "emptySpaces": "Aún no tienes espacios.",
+      "emptyEvents": "Aún no has creado eventos.",
+      "emptyGroups": "Aún no has creado grupos."
+    },
+    "myQRCodeDetail": {
+      "headerTitle": "Código QR",
+      "helperText": "Pide a alguien que escanee esto con su cámara para abrirlo en Therr.",
+      "accessibility": "Código QR que enlaza a {{title}}",
+      "copied": "Enlace copiado",
+      "privateNote": "Tu perfil es privado — quienes escaneen verán una vista limitada hasta que se conecten.",
+      "missingEntity": "No se proporcionaron detalles del código QR.",
+      "backButton": "Volver"
     }
   },
   "modals": {
@@ -1986,12 +2068,14 @@
         "report": "¿Reportar a este usuario?",
         "syncSocials": "Sincronizar redes sociales",
         "shareALink": "Copiar enlace de perfil",
-        "unconnect": "¿Eliminar conexión?"
+        "unconnect": "¿Eliminar conexión?",
+        "myQRCodes": "Mostrar mis códigos QR"
       },
       "buttons": {
         "editProfile": "Editar perfil",
         "syncSocials": "Sincronizar redes sociales",
-        "message": "Mensaje"
+        "message": "Mensaje",
+        "myQRCode": "Mi código QR"
       },
       "labels": {
         "connections": "conexiones",

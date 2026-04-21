@@ -1,11 +1,14 @@
 import React,{ useRef, useMemo, useCallback, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { Easing } from 'react-native-reanimated';
+import BottomSheet, { useBottomSheetTimingConfigs } from '@gorhom/bottom-sheet';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 
-export const defaultSnapPoints = [buttonMenuHeight + 28, '50%', '100%'];
+// bottomInset reserves space for MainButtonMenu, so the first snap only needs
+// the handle visible above it.
+export const defaultSnapPoints = [28, '50%', '100%'];
 
 interface IBottomSheetPlus {
     sheetRef: (sheetRef: React.RefObject<BottomSheetMethods>) => any;
@@ -40,6 +43,14 @@ const BottomSheetPlus = ({
 
     const [borderRadius, setBorderRadius] = useState(defaultBorderRadius);
 
+    // Gorhom defaults to a spring. Under Fabric + Android the spring
+    // overshoot feels laggy; a short timing curve reaches the snap point
+    // predictably in ~220ms without compromising the visual.
+    const animationConfigs = useBottomSheetTimingConfigs({
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+    });
+
     // callbacks
     const handleSheetChanges = useCallback((index: number) => {
         if (index === -1) {
@@ -67,14 +78,14 @@ const BottomSheetPlus = ({
             enablePanDownToClose
             snapPoints={snapPoints}
             onChange={handleSheetChanges}
+            animationConfigs={animationConfigs}
+            bottomInset={buttonMenuHeight}
             containerStyle={localStyles.transparentBackground}
             handleStyle={localStyles.handle}
             handleIndicatorStyle={{}}
             backgroundStyle={backgroundStyle}
         >
-            <BottomSheetView style={localStyles.sheetContent}>
-                { children }
-            </BottomSheetView>
+            { children }
         </BottomSheet>
     );
 };
@@ -85,10 +96,6 @@ const localStyles = StyleSheet.create({
     },
     handle: {
         height: 30,
-    },
-    sheetContent: {
-        flex: 1,
-        width: '100%',
     },
 });
 

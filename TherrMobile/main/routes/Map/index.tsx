@@ -1,19 +1,19 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView } from 'react-native';
+import { Dimensions, Modal, PermissionsAndroid, Keyboard, Platform, Pressable, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-maps';
-import AnimatedOverlay from 'react-native-modal-overlay';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
 import { showToast } from '../../utilities/toasts';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
-import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
+import { AccessCheckType, IMapState as IMapReduxState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
 import { Categories, ErrorCodes, MetricNames, PushNotifications } from 'therr-js-utilities/constants';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
-import AnimatedLoader from 'react-native-animated-loader';
+import EarthLoader from '../../components/Loaders/EarthLoader';
 import { distanceTo } from 'geolocation-utils';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -24,7 +24,7 @@ import Alert from '../../components/Alert';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import { ILocationState } from '../../types/redux/location';
 import LocationActions from '../../redux/actions/LocationActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import {
     ANIMATE_TO_REGION_DURATION,
     ANIMATE_TO_REGION_DURATION_SLOW,
@@ -32,6 +32,7 @@ import {
     PRIMARY_LONGITUDE_DELTA,
     MIN_LOAD_TIMEOUT,
     MOMENTS_REFRESH_THROTTLE_MS,
+    MAP_SEARCH_MIN_DISTANCE_METERS,
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
     MAX_ANIMATION_LATITUDE_DELTA,
@@ -42,7 +43,7 @@ import {
     MIN_TIME_BTW_CHECK_INS_MS,
     HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
-import { buildStyles, loaderStyles } from '../../styles';
+import { buildStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
@@ -61,7 +62,6 @@ import {
     isLocationPermissionGranted,
     checkAndroidPermission,
 } from '../../utilities/requestOSPermissions';
-// import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
@@ -83,7 +83,6 @@ import MapTourRenderer from './MapTourRenderer';
 import { connect } from 'react-redux';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
-const earthLoader = require('../../assets/earth-loader.json');
 const matchUpLoader = require('../../assets/match-up.json');
 const createAMomentLoader = require('../../assets/ftui-moment.json');
 const AREAS_SEARCH_COUNT = Platform.OS === 'android' ? 250 : 400;
@@ -118,7 +117,6 @@ const hapticFeedbackOptions = {
     ignoreAndroidSystemSettings: false,
 };
 
-
 interface IMapDispatchProps {
     captureClickTarget: Function;
     createOrUpdateMomentReaction: Function;
@@ -146,11 +144,12 @@ interface IMapDispatchProps {
 }
 
 interface IStoreProps extends IMapDispatchProps {
-    content: IContentState;
     location: ILocationState;
     map: IMapReduxState;
-    notifications: INotificationsState;
-    reactions: IReactionsState;
+    notificationsHasUnread: boolean;
+    myEventReactions: { [areaId: string]: any };
+    myMomentReactions: { [areaId: string]: any };
+    mySpaceReactions: { [areaId: string]: any };
     user: IUserState;
 }
 
@@ -204,11 +203,15 @@ interface IMapState {
 }
 
 const mapStateToProps = (state: any) => ({
-    content: state.content,
     location: state.location,
     map: state.map,
-    notifications: state.notifications,
-    reactions: state.reactions,
+    // Narrow subscriptions: react-redux short-circuits when these primitives/refs
+    // don't change, so a content/notifications/reactions mutation only re-renders Map
+    // when the specific values it uses changed.
+    notificationsHasUnread: !!(state.notifications?.messages?.some((m: any) => m.isUnread)),
+    myEventReactions: state.reactions?.myEventReactions || {},
+    myMomentReactions: state.reactions?.myMomentReactions || {},
+    mySpaceReactions: state.reactions?.mySpaceReactions || {},
     user: state.user,
 });
 
@@ -251,6 +254,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private initialVisibilityFilters;
     private mapRef: any;
     private mapWatchId;
+    private lastSearchAt?: number;
+    private lastSearchCoords?: { latitude: number, longitude: number };
+    private searchInFlight?: Promise<any>;
+    private searchAbortController?: AbortController;
     private theme = buildStyles();
     private themeAlerts = buildAlertStyles();
     private themeConfirmModal = buildConfirmModalStyles();
@@ -279,6 +286,18 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         icon: string;
         title: string;
     }[];
+
+    // Per-collection cache so identical (areas, mapFilters) refs return the same
+    // array. Keeps TherrMapView's PureComponent shallow-equality short-circuit working.
+    private _filteredAreasCache: {
+        [key: string]: {
+            areas: any;
+            filtersAuthor: any;
+            filtersCategory: any;
+            filtersVisibility: any;
+            result: any[];
+        };
+    } = {};
 
     constructor(props) {
         super(props);
@@ -399,6 +418,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         this.unsubscribeBlurListener = navigation.addListener('blur', () => {
             this.clearTimeouts();
+            if (this.mapWatchId !== undefined) {
+                Geolocation.clearWatch(this.mapWatchId);
+                this.mapWatchId = undefined;
+            }
+            if (this.searchAbortController) {
+                this.searchAbortController.abort();
+                this.searchAbortController = undefined;
+            }
         });
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
@@ -471,6 +498,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         this.clearTimeouts();
+        if (this.searchAbortController) {
+            this.searchAbortController.abort();
+            this.searchAbortController = undefined;
+        }
         if (this.unsubscribeNavigationListener) {
             this.unsubscribeNavigationListener();
         }
@@ -572,26 +603,42 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked);
     };
 
-    getFilteredAreas = (areas, mapFilters) => {
-        // Filter for duplicates
-        if (this.hasNoMapFilters()) {
-            return areas;
-        }
-
-        // Only requires one loop to check each area
-        const filteredAreasMap = {};
-        Object.values(areas).forEach((area: any) => {
-            if (this.shouldRenderArea(area, mapFilters)) {
-                filteredAreasMap[area.id] = area;
+    getFilteredAreas = (areas, mapFilters, cacheKey?: string): any[] => {
+        if (cacheKey) {
+            const cached = this._filteredAreasCache[cacheKey];
+            if (cached
+                && cached.areas === areas
+                && cached.filtersAuthor === mapFilters.filtersAuthor
+                && cached.filtersCategory === mapFilters.filtersCategory
+                && cached.filtersVisibility === mapFilters.filtersVisibility) {
+                return cached.result;
             }
-        });
-
-        if (areas.length === Object.values(filteredAreasMap).length) {
-            // Prevents unnecessary rerenders
-            return areas;
         }
 
-        return filteredAreasMap;
+        let result: any[];
+        if (this.hasNoMapFilters()) {
+            result = Object.values(areas);
+        } else {
+            const filtered: any[] = [];
+            Object.values(areas).forEach((area: any) => {
+                if (this.shouldRenderArea(area, mapFilters)) {
+                    filtered.push(area);
+                }
+            });
+            result = filtered;
+        }
+
+        if (cacheKey) {
+            this._filteredAreasCache[cacheKey] = {
+                areas,
+                filtersAuthor: mapFilters.filtersAuthor,
+                filtersCategory: mapFilters.filtersCategory,
+                filtersVisibility: mapFilters.filtersVisibility,
+                result,
+            };
+        }
+
+        return result;
     };
 
     shouldRenderArea = (area, mapFilters) => {
@@ -945,6 +992,22 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }
     };
 
+    recenterToKnownUserLocation = (coords: { longitude: number, latitude: number }) => {
+        const { region } = this.state;
+        this.updateCircleCenter(coords);
+        // Widen the delta when the region is already on the target longitude
+        // so the animation is visible instead of being a near-no-op.
+        const mapDelta = region.longitude && region.latitudeDelta
+            && Math.abs(region.latitudeDelta - MAX_ANIMATION_LATITUDE_DELTA) > 0.001
+            && Math.abs(region.longitude - coords.longitude) < 0.0001
+            ? {
+                latitudeDelta: MAX_ANIMATION_LATITUDE_DELTA,
+                longitudeDelta: MAX_ANIMATION_LONGITUDE_DELTA,
+            }
+            : null;
+        this.handleGpsRecenter(coords, mapDelta, ANIMATE_TO_REGION_DURATION_FAST);
+    };
+
     handleGpsRecenterPress = () => {
         const {
             location,
@@ -958,9 +1021,26 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
-        this.setState({
-            shouldShowCreateActions: false,
-        });
+        if (this.state.shouldShowCreateActions) {
+            this.setState({ shouldShowCreateActions: false });
+        }
+
+        // Skip the permission/OS-settings promise chain when we already have
+        // permissions and a cached coord — that chain is what made the press
+        // feel latent. handleRefreshMoments still throttles internally so
+        // repeat presses won't refire the 6+ search requests.
+        if (location?.settings?.isGpsEnabled
+            && isLocationPermissionGranted(location?.permissions || {})
+            && location.user?.longitude && location.user?.latitude
+            && map.hasUserLocationLoaded) {
+            const coords = {
+                longitude: location.user.longitude,
+                latitude: location.user.latitude,
+            };
+            this.recenterToKnownUserLocation(coords);
+            this.handleRefreshMoments(false, coords);
+            return Promise.resolve(coords);
+        }
 
         clearTimeout(this.timeoutIdLocationReady);
         this.timeoutIdLocationReady = setTimeout(() => {
@@ -1024,22 +1104,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
                             // User has already logged in initially and loaded the map
                             if (location.user?.longitude && location.user?.latitude && map.hasUserLocationLoaded) {
-                                const { region } = this.state;
                                 const coords = {
-                                    longitude: location.user?.longitude,
-                                    latitude: location.user?.latitude,
+                                    longitude: location.user.longitude,
+                                    latitude: location.user.latitude,
                                 };
-                                this.updateCircleCenter(coords);
                                 updateUserCoordinates(coords);
-                                const mapDelta = region.longitude && region.latitudeDelta
-                                    && Math.abs(region.latitudeDelta - MAX_ANIMATION_LATITUDE_DELTA) > 0.001
-                                    && Math.abs(region.longitude - location.user?.longitude) < 0.0001
-                                    ? {
-                                        latitudeDelta: MAX_ANIMATION_LATITUDE_DELTA,
-                                        longitudeDelta: MAX_ANIMATION_LONGITUDE_DELTA,
-                                    }
-                                    : null;
-                                this.handleGpsRecenter(coords, mapDelta, ANIMATE_TO_REGION_DURATION_FAST);
+                                this.recenterToKnownUserLocation(coords);
                                 return resolve(coords);
                             }
                             // Get Location Success Handler
@@ -1199,7 +1269,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             itemsPerPage: number,
             meItemsPerPage: number,
         },
-        distanceOverride?: any) => {
+        distanceOverride?: any,
+        options?: { signal?: AbortSignal }) => {
         const {
             findEventReactions,
             findMomentReactions,
@@ -1217,7 +1288,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 order: 'desc',
                 filterBy: 'fromUserIds',
                 ...longLat,
-            }, distanceOverride),
+            }, distanceOverride, options),
             searchSpaces({
                 query: 'connections',
                 itemsPerPage: conditions.itemsPerPage,
@@ -1225,7 +1296,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 order: 'desc',
                 filterBy: 'fromUserIds',
                 ...longLat,
-            }, distanceOverride),
+            }, distanceOverride, options),
             searchEvents({
                 query: 'connections',
                 itemsPerPage: conditions.itemsPerPage,
@@ -1233,7 +1304,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 order: 'desc',
                 filterBy: 'fromUserIds',
                 ...longLat,
-            }, distanceOverride),
+            }, distanceOverride, options),
         ];
 
         if (this.isUserAuthenticated()) {
@@ -1245,7 +1316,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     order: 'desc',
                     filterBy: 'fromUserIds',
                     ...longLat,
-                }, distanceOverride),
+                }, distanceOverride, options),
                 searchSpaces({
                     query: 'me',
                     itemsPerPage: conditions.meItemsPerPage,
@@ -1253,7 +1324,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     order: 'desc',
                     filterBy: 'fromUserIds',
                     ...longLat,
-                }, distanceOverride),
+                }, distanceOverride, options),
                 searchEvents({
                     query: 'me',
                     itemsPerPage: conditions.meItemsPerPage,
@@ -1261,7 +1332,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     order: 'desc',
                     filterBy: 'fromUserIds',
                     ...longLat,
-                }, distanceOverride)
+                }, distanceOverride, options)
             );
         }
 
@@ -1399,6 +1470,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     handleQuickFilterSelect = (index: string) => {
         const { setMapFilters, map, location } = this.props;
 
+        this.setState({
+            activeQuickFilterId: index,
+        });
+
         let authorFilters = this.initialAuthorFilters.map(x => ({ ...x, isChecked: true}));
         let categoryFilters = this.initialCategoryFilters.map(x => ({ ...x, isChecked: true}));
         let visibilityFilters = this.initialVisibilityFilters.map(x => ({ ...x, isChecked: true}));
@@ -1466,13 +1541,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         } else {
             this.expandBottomSheet(0, true);
         }
-
-        this.setState({
-            activeQuickFilterId: index,
-        });
     };
 
-    handleSearchThisLocation = (searchRadius?, latitude?, longitude?): Promise<any> => {
+    handleSearchThisLocation = (searchRadius?, latitude?, longitude?, overrideThrottle = false): Promise<any> => {
         const { region } = this.state;
         const { location } = this.props;
         this.setState({
@@ -1485,6 +1556,27 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (!latitude || !longitude) {
             lat = region.latitude;
             long = region.longitude;
+        }
+
+        // Skip if we searched recently AND haven't moved far enough. Class fields are used
+        // (not state) so these guards don't trigger re-renders.
+        if (!overrideThrottle && lat && long && this.lastSearchAt && this.lastSearchCoords &&
+            (Date.now() - this.lastSearchAt <= MOMENTS_REFRESH_THROTTLE_MS)) {
+            const movedMeters = distanceTo({
+                lon: this.lastSearchCoords.longitude,
+                lat: this.lastSearchCoords.latitude,
+            }, {
+                lon: long,
+                lat,
+            });
+            if (movedMeters < MAP_SEARCH_MIN_DISTANCE_METERS) {
+                return this.searchInFlight || Promise.resolve();
+            }
+        }
+
+        // Collapse focus-event stampedes onto the already-running search.
+        if (!overrideThrottle && this.searchInFlight) {
+            return this.searchInFlight;
         }
 
         let radius = searchRadius || this.getSearchRadius({
@@ -1500,7 +1592,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 isSearchLoading: true,
             });
 
-            return this.searchMapAreas({
+            // Cancel any prior in-flight search so its stale results don't clobber state.
+            if (this.searchAbortController) {
+                this.searchAbortController.abort();
+            }
+            this.searchAbortController = new AbortController();
+            this.lastSearchAt = Date.now();
+            this.lastSearchCoords = { latitude: lat, longitude: long };
+
+            const promise = this.searchMapAreas({
                 latitude: lat,
                 longitude: long,
             }, {
@@ -1510,11 +1610,19 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 distanceOverride: radius,
                 userLatitude: location?.user?.latitude,
                 userLongitude: location?.user?.longitude,
-            }).finally(() =>{
+            }, {
+                signal: this.searchAbortController.signal,
+            }).finally(() => {
                 this.setState({
                     isSearchLoading: false,
                 });
+                if (this.searchInFlight === promise) {
+                    this.searchInFlight = undefined;
+                    this.searchAbortController = undefined;
+                }
             });
+            this.searchInFlight = promise;
+            return promise;
         }
 
         return Promise.resolve();
@@ -1528,21 +1636,21 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     isAreaActivated = (type: IAreaType, area) => {
-        const { reactions, user } = this.props;
+        const { myEventReactions, myMomentReactions, mySpaceReactions, user } = this.props;
 
         if (isMyContent(area, user)) {
             return true;
         }
 
         if (type === 'events') {
-            return !!reactions.myEventReactions[area.id];
+            return !!myEventReactions[area.id];
         }
 
         if (type === 'moments') {
-            return !!reactions.myMomentReactions[area.id];
+            return !!myMomentReactions[area.id];
         }
 
-        return !!reactions.mySpaceReactions[area.id];
+        return !!mySpaceReactions[area.id];
     };
 
     onConfirmModalCancel = () => {
@@ -1826,11 +1934,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const { circleCenter } = this.state;
 
         if (circleCenter.latitude !== center.latitude || circleCenter.longitude !== center.longitude) {
-            const { user, reactions, map } = this.props;
+            const { user, myEventReactions, myMomentReactions, mySpaceReactions, map } = this.props;
             const nearbySpaces = getNearbySpaces({
                 latitude: circleCenter.latitude,
                 longitude: circleCenter.longitude,
-            }, user, reactions, map.spaces);
+            }, user, { myEventReactions, myMomentReactions, mySpaceReactions }, map.spaces);
 
             this.setState({
                 circleCenter: center,
@@ -1848,9 +1956,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
         };
-        const filteredEvents = this.getFilteredAreas(map.events, mapFilters);
-        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters);
-        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
+        const filteredEvents = this.getFilteredAreas(map.events, mapFilters, 'events');
+        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters, 'moments');
+        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters, 'spaces');
         const filteredAreasCount = filteredEvents.length + filteredMoments.length + filteredSpaces.length;
         this.onRegionChangeComplete(region, filteredAreasCount);
     };
@@ -1881,25 +1989,25 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.state;
-        const { captureClickTarget, createMoment, location, map, navigation, notifications, route, updateTour, user } = this.props;
+        const { captureClickTarget, createMoment, location, map, navigation, notificationsHasUnread, route, updateTour, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
         const isAutoCompleteSearching = map?.searchPredictions?.isSearching;
-        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
+        const hasNotifications = notificationsHasUnread;
         const isTouring = !!user?.settings?.isTouring;
         const mapFilters = {
             filtersAuthor: map.filtersAuthor,
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
         };
-        const filteredEvents = this.getFilteredAreas(map.events, mapFilters);
-        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters);
-        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
+        const filteredEvents = this.getFilteredAreas(map.events, mapFilters, 'events');
+        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters, 'moments');
+        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters, 'spaces');
 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
                     event.persist();
                     if (event?.target?._nativeTag) {
                         captureClickTarget(event?.target?._nativeTag);
@@ -1907,11 +2015,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     return false;
                 }}>
                     {!(isLocationReady && isMinLoadTimeComplete) ? (
-                        <AnimatedLoader
+                        <EarthLoader
                             visible={true}
-                            overlayColor="rgba(255,255,255,0.75)"
-                            source={earthLoader}
-                            animationStyle={loaderStyles.lottie}
                             speed={1.5}
                         />
                     ) : (
@@ -1953,24 +2058,27 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 // onClusterPress={this.onClusterPress}
                                 updateCircleCenter={this.updateCircleCenter}
                             />
-                            <AnimatedOverlay
-                                animationType="swing"
-                                animationDuration={500}
-                                easing="linear"
+                            <Modal
+                                animationType="fade"
+                                transparent
                                 visible={isAreaAlertVisible}
-                                onClose={this.cancelAreaAlert}
-                                closeOnTouchOutside
-                                containerStyle={this.theme.styles.overlay}
-                                childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
+                                onRequestClose={this.cancelAreaAlert}
                             >
-                                <Alert
-                                    containerStyles={{}}
-                                    isVisible={isAreaAlertVisible}
-                                    message={alertMessage}
-                                    type="error"
-                                    themeAlerts={this.themeAlerts}
-                                />
-                            </AnimatedOverlay>
+                                <Pressable
+                                    style={this.theme.styles.overlay}
+                                    onPress={this.cancelAreaAlert}
+                                >
+                                    <View style={mapStyles.momentAlertOverlayContainer}>
+                                        <Alert
+                                            containerStyles={{}}
+                                            isVisible={isAreaAlertVisible}
+                                            message={alertMessage}
+                                            type="error"
+                                            themeAlerts={this.themeAlerts}
+                                        />
+                                    </View>
+                                </Pressable>
+                            </Modal>
                         </>
                     )}
                     <QuickFiltersList

@@ -6,6 +6,7 @@ import MapsService, {
     IGetSpaceEngagementArgs,
     IGetSpaceMetricsArgs,
     IMapboxSearchArgs,
+    IMapsRequestOptions,
     IPlacesAutoCompleteArgs,
     ISearchAreasArgs,
     ISearchPrediction,
@@ -27,6 +28,7 @@ const Maps = {
         mediaIds: string[],
         medias?: { path: string; type: string; }[],
     ) => (dispatch: any) => MapsService.fetchMedia(mediaIds, medias).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: ContentActionTypes.FETCH_MEDIA,
             data: response.data.media,
@@ -100,6 +102,7 @@ const Maps = {
         }),
     getEventDetails: (id: number, data: any) => (dispatch: any) => MapsService.getEventDetails(id, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.GET_EVENT_DETAILS,
                 data: {
@@ -110,8 +113,9 @@ const Maps = {
 
             return response.data;
         }),
-    searchEvents: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchEvents(query, data).then((response: any) => {
+    searchEvents: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchEvents(query, data, options).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
                     type: MapActionTypes.GET_EVENTS,
@@ -203,6 +207,7 @@ const Maps = {
         }),
     getMomentDetails: (id: number, data: any) => (dispatch: any) => MapsService.getMomentDetails(id, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.GET_MOMENT_DETAILS,
                 data: {
@@ -215,6 +220,7 @@ const Maps = {
         }),
     getIntegratedMoments: (userId: string) => (dispatch: any) => MapsService.getIntegratedMoments(userId)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             // TODO: Dispatch something
             dispatch({
                 type: ContentActionTypes.FETCH_MEDIA,
@@ -227,8 +233,9 @@ const Maps = {
                 },
             });
         }),
-    searchMoments: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchMoments(query, data).then((response: any) => {
+    searchMoments: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchMoments(query, data, options).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
                     type: MapActionTypes.GET_MOMENTS,
@@ -297,6 +304,7 @@ const Maps = {
         }),
     getSpaceDetails: (id: number, data: any) => (dispatch: any) => MapsService.getSpaceDetails(id, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.GET_SPACE_DETAILS,
                 data: {
@@ -309,6 +317,7 @@ const Maps = {
         }),
     listSpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .listSpaces(query, data).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.LIST_SPACES,
                 data: response.data,
@@ -317,8 +326,9 @@ const Maps = {
             // Return so we can react by searching for associated reactions
             return Promise.resolve(response.data);
         }),
-    searchSpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchSpaces(query, data).then((response: any) => {
+    searchSpaces: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchSpaces(query, data, options).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
                     type: MapActionTypes.GET_SPACES,
@@ -338,6 +348,7 @@ const Maps = {
         }),
     searchMySpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .searchMySpaces(query, data).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.GET_MY_SPACES,
                 data: response.data,
@@ -508,6 +519,22 @@ const Maps = {
         .catch((error) => {
             console.log(error);
             return { results: [] };
+        }),
+
+    // City Pulse
+    getCityPulse: (slug: string, locale?: string) => (dispatch: any) => MapsService
+        .getCityPulse(slug, locale)
+        .then((response: any) => {
+            if (response?.isOfflineFallback) return null;
+            dispatch({
+                type: MapActionTypes.GET_CITY_PULSE,
+                data: response.data,
+            });
+            return response.data;
+        })
+        .catch((error: any) => {
+            console.log(error);
+            return null;
         }),
 };
 

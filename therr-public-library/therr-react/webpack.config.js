@@ -15,6 +15,7 @@ const {
     redux,
     services,
     types,
+    utilities,
 } = require('./src');
 
 const PATHS = {
@@ -33,7 +34,7 @@ components.forEach((filePath) => {
     const name = isIndexFile ? filePath.split('/index')[0] : filePath;
     entry[name] = `${PATHS.app}/${filePath}.${isIndexFile ? 'ts' : 'tsx'}`;
 });
-[...redux, ...constants, ...services, ...types].forEach((filePath) => {
+[...redux, ...constants, ...services, ...types, ...utilities].forEach((filePath) => {
     const name = filePath.includes('index') ? filePath.split('/index')[0] : filePath;
     entry[name] = `${PATHS.app}/${filePath}.ts`;
 });
