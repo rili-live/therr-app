@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StyleSheet, TextInputProps } from 'react-native';
+import { Platform, StyleSheet, TextInput as RNTextInput, TextInputProps } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import 'react-native-gesture-handler';
@@ -99,6 +99,7 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
+        const placeholderText = this.translate('components.header.searchUsersInput.placeholder');
         return (
             <>
                 <RoundInput
@@ -118,8 +119,15 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
                     roundness={18}
                     onChangeText={this.onInputChange}
-                    placeholder={this.translate('components.header.searchUsersInput.placeholder')}
+                    placeholder={placeholderText}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
+                    render={(inputProps) => (
+                        <RNTextInput
+                            {...inputProps}
+                            placeholder={placeholderText}
+                            placeholderTextColor={theme.colorVariations.textGrayFade}
+                        />
+                    )}
                     underlineColor="transparent"
                     activeUnderlineColor="transparent"
                     rightIcon={

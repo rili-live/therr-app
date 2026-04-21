@@ -36,6 +36,11 @@ export interface IBaseInputProps extends TextInputProps {
     underlineStyle?: any;
     dense?: boolean;
     roundness?: number;
+    // Paper TextInput render override. Useful to bypass Paper's deferred
+    // placeholder state (which is initialized to ' ' and only swapped to
+    // the real value via a 50ms timer that races with native-stack header
+    // animations, leaving headers blank on first render).
+    render?: (props: any) => React.ReactNode;
 }
 
 // BaseInput wrapping react-native-paper TextInput.
