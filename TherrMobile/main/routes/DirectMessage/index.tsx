@@ -177,7 +177,12 @@ class DirectMessage extends React.Component<
     isFirstOfMessage = (messages, index) => {
         if (!messages[index + 1]) { return true; }
 
-        return messages[index].fromUserName !== messages[index + 1].fromUserName;
+        const curr = messages[index];
+        const next = messages[index + 1];
+        if (curr.fromUserId && next.fromUserId) {
+            return curr.fromUserId !== next.fromUserId;
+        }
+        return curr.fromUserName?.toLowerCase() !== next.fromUserName?.toLowerCase();
     };
 
     tryLoadMore = () => {
@@ -225,19 +230,27 @@ class DirectMessage extends React.Component<
                                     data={dms}
                                     inverted
                                     keyExtractor={(item) => String(item.id || item.key)}
-                                    renderItem={({ item, index }) => (
-                                        <TextMessage
-                                            connectionDetails={connectionDetails}
-                                            goToUser={this.goToUser}
-                                            userDetails={user.details}
-                                            message={item}
-                                            isLeft={!item.fromUserName?.toLowerCase().includes('you')}
-                                            isFirstOfMessage={this.isFirstOfMessage(dms, index)}
-                                            theme={this.theme}
-                                            themeMessage={this.themeMessage}
-                                            translate={this.translate}
-                                        />
-                                    )}
+                                    renderItem={({ item, index }) => {
+                                        // Prefer fromUserId when available (authoritative); fall back
+                                        // to the 'you' name convention for messages cached before
+                                        // fromUserId started being persisted.
+                                        const isFromMe = item.fromUserId
+                                            ? item.fromUserId === user.details?.id
+                                            : !!item.fromUserName?.toLowerCase().includes('you');
+                                        return (
+                                            <TextMessage
+                                                connectionDetails={connectionDetails}
+                                                goToUser={this.goToUser}
+                                                userDetails={user.details}
+                                                message={item}
+                                                isLeft={!isFromMe}
+                                                isFirstOfMessage={this.isFirstOfMessage(dms, index)}
+                                                theme={this.theme}
+                                                themeMessage={this.themeMessage}
+                                                translate={this.translate}
+                                            />
+                                        );
+                                    }}
                                     ref={(component) => (this.flatListRef = component)}
                                     style={this.theme.styles.stretch}
                                     // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}

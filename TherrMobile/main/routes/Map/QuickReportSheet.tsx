@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
+import { BottomSheetView } from '@gorhom/bottom-sheet';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Categories, ErrorCodes } from 'therr-js-utilities/constants';
@@ -171,7 +172,7 @@ const QuickReportSheet = ({
     };
 
     return (
-        <View style={styles.container}>
+        <BottomSheetView style={styles.container}>
             <Text style={[styles.title, { color: theme.colors.textWhite }]}>
                 {translate('quickReports.title')}
             </Text>
@@ -220,7 +221,7 @@ const QuickReportSheet = ({
                     <ActivityIndicator size="small" color={theme.colors.primary3} />
                 </View>
             )}
-        </View>
+        </BottomSheetView>
     );
 };
 

@@ -260,7 +260,7 @@ const AreaCarousel = ({
 
     const listHeaderComponent = React.useMemo(
         () => renderHeader(),
-        [renderHeader]
+        [renderHeader, activeData]
     );
 
     const listFooterComponent = React.useMemo(
