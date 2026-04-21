@@ -992,6 +992,22 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }
     };
 
+    recenterToKnownUserLocation = (coords: { longitude: number, latitude: number }) => {
+        const { region } = this.state;
+        this.updateCircleCenter(coords);
+        // Widen the delta when the region is already on the target longitude
+        // so the animation is visible instead of being a near-no-op.
+        const mapDelta = region.longitude && region.latitudeDelta
+            && Math.abs(region.latitudeDelta - MAX_ANIMATION_LATITUDE_DELTA) > 0.001
+            && Math.abs(region.longitude - coords.longitude) < 0.0001
+            ? {
+                latitudeDelta: MAX_ANIMATION_LATITUDE_DELTA,
+                longitudeDelta: MAX_ANIMATION_LONGITUDE_DELTA,
+            }
+            : null;
+        this.handleGpsRecenter(coords, mapDelta, ANIMATE_TO_REGION_DURATION_FAST);
+    };
+
     handleGpsRecenterPress = () => {
         const {
             location,
@@ -1005,9 +1021,26 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
-        this.setState({
-            shouldShowCreateActions: false,
-        });
+        if (this.state.shouldShowCreateActions) {
+            this.setState({ shouldShowCreateActions: false });
+        }
+
+        // Skip the permission/OS-settings promise chain when we already have
+        // permissions and a cached coord — that chain is what made the press
+        // feel latent. handleRefreshMoments still throttles internally so
+        // repeat presses won't refire the 6+ search requests.
+        if (location?.settings?.isGpsEnabled
+            && isLocationPermissionGranted(location?.permissions || {})
+            && location.user?.longitude && location.user?.latitude
+            && map.hasUserLocationLoaded) {
+            const coords = {
+                longitude: location.user.longitude,
+                latitude: location.user.latitude,
+            };
+            this.recenterToKnownUserLocation(coords);
+            this.handleRefreshMoments(false, coords);
+            return Promise.resolve(coords);
+        }
 
         clearTimeout(this.timeoutIdLocationReady);
         this.timeoutIdLocationReady = setTimeout(() => {
@@ -1071,22 +1104,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
                             // User has already logged in initially and loaded the map
                             if (location.user?.longitude && location.user?.latitude && map.hasUserLocationLoaded) {
-                                const { region } = this.state;
                                 const coords = {
-                                    longitude: location.user?.longitude,
-                                    latitude: location.user?.latitude,
+                                    longitude: location.user.longitude,
+                                    latitude: location.user.latitude,
                                 };
-                                this.updateCircleCenter(coords);
                                 updateUserCoordinates(coords);
-                                const mapDelta = region.longitude && region.latitudeDelta
-                                    && Math.abs(region.latitudeDelta - MAX_ANIMATION_LATITUDE_DELTA) > 0.001
-                                    && Math.abs(region.longitude - location.user?.longitude) < 0.0001
-                                    ? {
-                                        latitudeDelta: MAX_ANIMATION_LATITUDE_DELTA,
-                                        longitudeDelta: MAX_ANIMATION_LONGITUDE_DELTA,
-                                    }
-                                    : null;
-                                this.handleGpsRecenter(coords, mapDelta, ANIMATE_TO_REGION_DURATION_FAST);
+                                this.recenterToKnownUserLocation(coords);
                                 return resolve(coords);
                             }
                             // Get Location Success Handler
