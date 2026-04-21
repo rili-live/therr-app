@@ -76,9 +76,9 @@ export class ViewCityPulseComponent extends React.Component<IViewCityPulseProps>
     // eslint-disable-next-line class-methods-use-this
     getSectionOrder(pulse: ICityPulseData): 'therrFirst' | 'wikiFirst' {
         const therrSignals = [
-            (pulse.therr.trendingSpaces?.length || 0) >= 6,
+            (pulse.therr.trendingSpaces?.length || 0) >= 3,
             (pulse.therr.upcomingEvents?.length || 0) >= 1,
-            (pulse.therr.recentMoments?.length || 0) >= 9,
+            (pulse.therr.recentMoments?.length || 0) >= 4,
             (pulse.therr.topGroups?.length || 0) >= 1,
         ].filter(Boolean).length;
 

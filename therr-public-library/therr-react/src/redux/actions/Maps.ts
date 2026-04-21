@@ -6,6 +6,7 @@ import MapsService, {
     IGetSpaceEngagementArgs,
     IGetSpaceMetricsArgs,
     IMapboxSearchArgs,
+    IMapsRequestOptions,
     IPlacesAutoCompleteArgs,
     ISearchAreasArgs,
     ISearchPrediction,
@@ -112,8 +113,8 @@ const Maps = {
 
             return response.data;
         }),
-    searchEvents: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchEvents(query, data).then((response: any) => {
+    searchEvents: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchEvents(query, data, options).then((response: any) => {
             if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
@@ -232,8 +233,8 @@ const Maps = {
                 },
             });
         }),
-    searchMoments: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchMoments(query, data).then((response: any) => {
+    searchMoments: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchMoments(query, data, options).then((response: any) => {
             if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
@@ -325,8 +326,8 @@ const Maps = {
             // Return so we can react by searching for associated reactions
             return Promise.resolve(response.data);
         }),
-    searchSpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchSpaces(query, data).then((response: any) => {
+    searchSpaces: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchSpaces(query, data, options).then((response: any) => {
             if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({

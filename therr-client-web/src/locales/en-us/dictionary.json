@@ -208,12 +208,13 @@
       "getInSubheading": "Getting There",
       "getAroundSubheading": "Getting Around Town",
       "trendingSpacesHeading": "Trending places in {city}",
+      "browseAllSpacesLink": "Browse all places in {city} →",
       "upcomingEventsHeading": "Upcoming events in {city}",
       "momentsWallHeading": "Recent moments from {city}",
       "groupsHeading": "Active groups in {city}",
       "browseByCategoryHeading": "Browse {city} by category",
       "nearbyCitiesHeading": "Nearby cities",
-      "ctaHeading": "Get the Therr app for {city}",
+      "ctaHeading": "Get Therr app for {city}",
       "ctaBody": "Discover more local spots, share moments with the community, and earn rewards.",
       "attributionLead": "Some content on this page is sourced from Wikipedia and Wikivoyage, licensed under CC BY-SA 4.0. Excerpts have been summarized and reformatted.",
       "attributionSource": "Source",
@@ -246,7 +247,7 @@
       "description": "We're sorry to see you go. If you'd like to delete your Therr account and all associated data, you can do so using one of the options below.",
       "optionMobileTitle": "Option 1: Delete via the Mobile App",
       "steps": {
-        "openApp": "Open the Therr app on your mobile device.",
+        "openApp": "Open Therr app on your mobile device.",
         "goToSettings": "Navigate to Settings.",
         "manageAccount": "Tap \"Manage Account\".",
         "deleteAccount": "Tap \"Delete Account\".",
@@ -968,7 +969,7 @@
       },
       "checkinBanner": {
         "title": "Earn rewards by checking in here",
-        "body": "Download the Therr app to check in at {businessName}, earn ThrrCoins, and share your visit with friends.",
+        "body": "Download Therr app to check in at {businessName}, earn ThrrCoins, and share your visit with friends.",
         "bodyLoggedIn": "Open Therr app to check in at {businessName} and earn ThrrCoins rewards.",
         "orSignUp": "Don't have the app yet?",
         "signUpLink": "Create a free account"

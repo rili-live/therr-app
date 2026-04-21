@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, TextInput as RNTextInput, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge } from 'react-native-paper';
@@ -172,6 +172,13 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                     onFocus={() => this.handlePress('onfocus')}
                     placeholder={placeholderText}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
+                    render={(inputProps) => (
+                        <RNTextInput
+                            {...inputProps}
+                            placeholder={placeholderText}
+                            placeholderTextColor={theme.colorVariations.textGrayFade}
+                        />
+                    )}
                     underlineColor="transparent"
                     activeUnderlineColor="transparent"
                     dense
