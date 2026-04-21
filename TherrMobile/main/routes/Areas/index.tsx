@@ -44,7 +44,7 @@ import LocationUseDisclosureModal from '../../components/Modals/LocationUseDiscl
 import { isUserAuthenticated } from '../../utilities/authUtils';
 import UsersActions from '../../redux/actions/UsersActions';
 
-const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+const { width: viewportWidth } = Dimensions.get('window');
 
 const renderIdeaIcon = (props: { size: number; color: string }) => (
     <TherrIcon name="idea" size={props.size} color={props.color} />
@@ -855,7 +855,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                             </View>
                         )}
                         onIndexChange={this.onTabSelect}
-                        initialLayout={{ width: viewportWidth, height: viewportHeight }}
+                        initialLayout={{ width: viewportWidth }}
                         // style={styles.container}
                     />
                 </SafeAreaView>

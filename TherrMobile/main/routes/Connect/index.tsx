@@ -31,7 +31,7 @@ import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 import PeopleYouMayKnow from './components/PeopleYouMayKnow';
 import ReferralStats from '../../components/UserContent/ReferralStats';
 
-const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
 const tabMap = {
     0: PEOPLE_CAROUSEL_TABS.PEOPLE,
@@ -646,7 +646,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             </View>
                         )}
                         onIndexChange={this.onTabSelect}
-                        initialLayout={{ width: viewportWidth, height: viewportHeight }}
+                        initialLayout={{ width: viewportWidth }}
                         // style={styles.container}
                     />
                 </SafeAreaView>
