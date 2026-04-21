@@ -116,6 +116,9 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = false
+            // libconceal.so (archived com.facebook.conceal) is not 16 KB page-aligned
+            // and has no updated release. Strip it so Play Store accepts the AAB.
+            excludes += ["**/libconceal.so"]
         }
     }
     buildTypes {

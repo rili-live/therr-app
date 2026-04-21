@@ -6,7 +6,9 @@ const Messages = {
         if (response?.isOfflineFallback) return;
         const data = { // TODO: Consider doing this mapping on the server side
             messages: response.data.results.map((directMessage) => ({
+                id: directMessage.id,
                 key: directMessage.id,
+                fromUserId: directMessage.fromUserId,
                 fromUserName: directMessage.fromUserId === contextUserDetails.id
                     ? contextUserDetails.userName
                     : 'You',
