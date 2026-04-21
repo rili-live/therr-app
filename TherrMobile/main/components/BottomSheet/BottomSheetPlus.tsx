@@ -1,12 +1,14 @@
 import React,{ useRef, useMemo, useCallback, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Easing } from 'react-native-reanimated';
-import BottomSheet, { BottomSheetView, useBottomSheetTimingConfigs } from '@gorhom/bottom-sheet';
+import BottomSheet, { useBottomSheetTimingConfigs } from '@gorhom/bottom-sheet';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 
-export const defaultSnapPoints = [buttonMenuHeight + 28, '50%', '100%'];
+// bottomInset reserves space for MainButtonMenu, so the first snap only needs
+// the handle visible above it.
+export const defaultSnapPoints = [28, '50%', '100%'];
 
 interface IBottomSheetPlus {
     sheetRef: (sheetRef: React.RefObject<BottomSheetMethods>) => any;
@@ -77,14 +79,13 @@ const BottomSheetPlus = ({
             snapPoints={snapPoints}
             onChange={handleSheetChanges}
             animationConfigs={animationConfigs}
+            bottomInset={buttonMenuHeight}
             containerStyle={localStyles.transparentBackground}
             handleStyle={localStyles.handle}
             handleIndicatorStyle={{}}
             backgroundStyle={backgroundStyle}
         >
-            <BottomSheetView style={localStyles.sheetContent}>
-                { children }
-            </BottomSheetView>
+            { children }
         </BottomSheet>
     );
 };
@@ -95,10 +96,6 @@ const localStyles = StyleSheet.create({
     },
     handle: {
         height: 30,
-    },
-    sheetContent: {
-        flex: 1,
-        width: '100%',
     },
 });
 
