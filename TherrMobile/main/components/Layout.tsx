@@ -221,15 +221,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             });
         }
 
-        // Socket reconnection handlers (ensure token is refreshed on reconnect)
-        socketIO.on('reconnect_attempt', () => {
-            updateSocketToken(this.props.user);
-        });
-        socketIO.on('reconnect', () => {
-            if (this.props.user && this.props.user.isAuthenticated) {
-                this.props.refreshConnection(this.props.user);
-            }
-        });
+        // Socket reconnection handlers (ensure token is refreshed on reconnect).
+        // Store references so we can detach them in componentWillUnmount; otherwise
+        // each Layout remount (login/logout cycle) accumulates duplicate handlers.
+        socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
+        socketIO.on('reconnect', this.handleSocketReconnect);
 
         this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
             logEvent(getAnalytics(),'background_location_on_location', {
@@ -423,9 +419,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             this.authCredentialListener();
         }
 
+        socketIO.off('reconnect_attempt', this.handleSocketReconnectAttempt);
+        socketIO.off('reconnect', this.handleSocketReconnect);
+
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         this.subscriptions.forEach((subscription) => subscription.remove());
     }
+
+    handleSocketReconnectAttempt = () => {
+        updateSocketToken(this.props.user);
+    };
+
+    handleSocketReconnect = () => {
+        if (this.props.user && this.props.user.isAuthenticated) {
+            this.props.refreshConnection(this.props.user);
+        }
+    };
 
     // IMPORTANT: This should only be called once per session
     readyAndStartBackgroundGeolocation = () => {
@@ -1527,6 +1536,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
                         const baseOptions: any = {
                             animation: 'fade',
+                            freezeOnBlur: true,
                             headerLeft: () => headerLeftNode,
                             headerRight: () => headerRightNode,
                             headerTitleStyle: {
