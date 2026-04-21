@@ -208,6 +208,7 @@
       "getInSubheading": "Getting There",
       "getAroundSubheading": "Getting Around Town",
       "trendingSpacesHeading": "Trending places in {city}",
+      "browseAllSpacesLink": "Browse all places in {city} →",
       "upcomingEventsHeading": "Upcoming events in {city}",
       "momentsWallHeading": "Recent moments from {city}",
       "groupsHeading": "Active groups in {city}",

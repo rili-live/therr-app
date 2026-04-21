@@ -170,7 +170,7 @@ export const CityTrendingSpaces: React.FC<ISectionProps> = ({ pulse, translate }
     // the locale automatically. Don't prepend localePrefix here — that would
     // double-prefix client-side navigation.
     const spaces = pulse.therr.trendingSpaces || [];
-    if (spaces.length < 6) return null;
+    if (spaces.length < 1) return null;
     return (
         <Stack gap="sm">
             <Title order={2}>{translate('pages.cityPulse.trendingSpacesHeading', { city: pulse.city.name })}</Title>
@@ -205,6 +205,9 @@ export const CityTrendingSpaces: React.FC<ISectionProps> = ({ pulse, translate }
                     );
                 })}
             </SimpleGrid>
+            <Anchor component={Link} to={`/locations/city/${pulse.city.slug}/1`} size="sm">
+                {translate('pages.cityPulse.browseAllSpacesLink', { city: pulse.city.name })}
+            </Anchor>
         </Stack>
     );
 };
@@ -236,7 +239,7 @@ export const CityUpcomingEvents: React.FC<ISectionProps> = ({ pulse, translate }
 
 export const CityMomentsWall: React.FC<ISectionProps> = ({ pulse, translate }) => {
     const moments = pulse.therr.recentMoments || [];
-    if (moments.length < 9) return null;
+    if (moments.length < 4) return null;
     return (
         <Stack gap="sm">
             <Title order={2}>{translate('pages.cityPulse.momentsWallHeading', { city: pulse.city.name })}</Title>
@@ -278,18 +281,45 @@ export const CityGroups: React.FC<ISectionProps> = ({ pulse, translate }) => {
     );
 };
 
+// Popular category slugs shown as fallback tiles when a city has no counted
+// categories yet. Keeps every city page internally linked for crawlers and
+// useful for readers even before Therr has indexed local spaces.
+const POPULAR_CATEGORY_FALLBACK: { urlSlug: string; label: string }[] = [
+    { urlSlug: 'restaurants', label: 'Restaurants' },
+    { urlSlug: 'bars', label: 'Bars' },
+    { urlSlug: 'shops', label: 'Shops' },
+    { urlSlug: 'hotels', label: 'Hotels' },
+    { urlSlug: 'parks-nature', label: 'Parks & Nature' },
+    { urlSlug: 'nightlife', label: 'Nightlife' },
+    { urlSlug: 'music-concerts', label: 'Music & Concerts' },
+    { urlSlug: 'art', label: 'Art' },
+];
+
 export const CityCategoryTiles: React.FC<ISectionProps> = ({ pulse, translate }) => {
     // Map backend category keys (e.g. "categories.restaurant/food") to URL slugs
     // ("restaurants") via the canonical CategorySlugMap. Skip categories without
     // a URL slug mapping so users never land on a 404 tile.
-    const tiles = (pulse.therr.categoriesWithCounts || [])
+    const countedTiles = (pulse.therr.categoriesWithCounts || [])
         .map((cat) => ({
-            categoryKey: cat.categorySlug,
-            count: cat.count,
+            key: cat.categorySlug,
+            label: formatCategoryLabel(cat.categorySlug),
+            countSuffix: ` (${cat.count})`,
             urlSlug: Categories.CategorySlugMap[cat.categorySlug],
         }))
         .filter((t) => !!t.urlSlug);
 
+    // Fill with popular categories so the page always carries internal links.
+    const usedSlugs = new Set(countedTiles.map((t) => t.urlSlug));
+    const fallbackTiles = POPULAR_CATEGORY_FALLBACK
+        .filter((t) => !usedSlugs.has(t.urlSlug))
+        .map((t) => ({
+            key: `popular-${t.urlSlug}`,
+            label: t.label,
+            countSuffix: '',
+            urlSlug: t.urlSlug,
+        }));
+
+    const tiles = [...countedTiles, ...fallbackTiles];
     if (!tiles.length) return null;
     return (
         <Stack gap="sm">
@@ -297,13 +327,14 @@ export const CityCategoryTiles: React.FC<ISectionProps> = ({ pulse, translate })
             <Group gap="xs" wrap="wrap">
                 {tiles.map((tile) => (
                     <Button
-                        key={tile.categoryKey}
+                        key={tile.key}
                         component={Link}
                         to={`/locations/city/${pulse.city.slug}/${tile.urlSlug}`}
                         variant="light"
                         size="sm"
                     >
-                        {formatCategoryLabel(tile.categoryKey)} ({tile.count})
+                        {tile.label}
+                        {tile.countSuffix}
                     </Button>
                 ))}
             </Group>
