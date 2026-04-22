@@ -182,6 +182,16 @@ const createDataOnlyMessage = (
     // Android is unaffected: it still receives a data-only payload (no `aps`
     // equivalent) and setBackgroundMessageHandler still converts it to a
     // Notifee notification with custom channel and action buttons.
+    //
+    // TODO(iOS-NSE): add an iOS Notification Service Extension so iOS can
+    // match Android's custom action buttons (e.g. "Reply", "View") below the
+    // alert. Without an NSE, the OS-rendered alert can only show title/body
+    // and does not expose Notifee's android.actions to the user. The NSE
+    // target would live in TherrMobile/ios/ as a separate bundle, read the
+    // data payload, and call UNNotificationAttachment / UNNotificationAction
+    // APIs. Tracked for a future PR — the data payload this function sends
+    // already contains everything the NSE would need (notificationLinkPress-
+    // Actions, notificationPressActionId, clickActionId).
     const iosTitle = typeof data.notificationTitle === 'string' ? data.notificationTitle : '';
     const iosBody = typeof data.notificationBody === 'string' ? data.notificationBody : '';
     baseMessage.apns = {
