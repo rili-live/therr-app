@@ -354,7 +354,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
 
-                this.getIosNotificationPermissions()
+                this.requestNotificationPermissions()
                     .then(() => {
                         return registerDeviceForRemoteMessages(getMessaging());
                     })
@@ -1386,7 +1386,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    getIosNotificationPermissions = () => {
+    requestNotificationPermissions = () => {
         // Android 13+ (API 33) requires runtime POST_NOTIFICATIONS permission
         const androidPermissionPromise = Platform.OS === 'android' && Number(Platform.Version) >= 33
             ? PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS)
