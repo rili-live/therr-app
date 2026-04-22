@@ -1,13 +1,17 @@
 /**
  * See ../getHostContext.ts in therr-client-web-dashboard for similar logic
  */
+import { BrandVariations } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
+
+const isBrandValid = (brand: string) => Object.values(BrandVariations).includes(brand as BrandVariations);
 
 interface IBrandConfig {
     host: string;
 
     // Branding
     brandName: string;
+    brandShortName: string;
     brandGreeting: string;
     brandGoLinkText: string;
     websiteName: string;
@@ -28,6 +32,14 @@ interface IBrandConfig {
     emailTemplates: {
         brandBackgroundHexDark: string;
         brandBackgroundLight: string;
+        brandAccentHex?: string;
+        brandAccentHexDark?: string;
+        contentBgDark?: string;
+        textColorLight?: string;
+        textColorDark?: string;
+        footerTextColorLight?: string;
+        warningColorLight?: string;
+        warningColorDark?: string;
         fromEmail: string;
         fromEmailTitle: string;
         homepageLinkUri: string;
@@ -39,6 +51,14 @@ interface IBrandConfig {
         legalBusinessName: string;
         businessCopyrightYear: string;
         shouldIncludeSocialIcons?: string;
+        socialLinks?: {
+            facebook?: string;
+            twitter?: string;
+            instagram?: string;
+            linkedin?: string;
+            youtube?: string;
+            tiktok?: string;
+        };
     }
 }
 
@@ -52,6 +72,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Therr App',
+        brandShortName: 'Therr',
         brandGreeting: 'Hey Therr',
         brandGoLinkText: 'Go Therr',
         websiteName: 'Therr App',
@@ -72,6 +93,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#1C7F8A',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#1C7F8A',
+            brandAccentHexDark: '#22A5B4',
             fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
             fromEmailTitle: 'Therr App',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
@@ -79,8 +102,16 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'Therr logo',
             unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'Therr Inc.',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
             shouldIncludeSocialIcons: 'true',
+            socialLinks: {
+                facebook: 'https://www.facebook.com/therrapp',
+                twitter: 'https://twitter.com/therr_app',
+                instagram: 'https://www.instagram.com/therr.app/',
+                linkedin: 'https://www.linkedin.com/company/therr',
+                youtube: 'https://www.youtube.com/@therrapp',
+                tiktok: 'https://www.tiktok.com/@therr.app',
+            },
         },
     },
     'teem-social.com': {
@@ -88,6 +119,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Teem App',
+        brandShortName: 'Teem',
         brandGreeting: 'Hey Teem',
         brandGoLinkText: 'Teem up!',
         websiteName: 'Teem App',
@@ -108,15 +140,22 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#9748FF',
             brandBackgroundLight: '#ffffff',
-            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@teem-social.com',
+            brandAccentHex: '#9748FF',
+            brandAccentHexDark: '#B070FF',
+            fromEmail: 'info@teem-social.com',
             fromEmailTitle: 'Teem App',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
             logoRelativePath: 'assets/images/teem-splash-logo-200.png',
             logoAltText: 'Teem logo',
             unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'Teem app by Teem Inc.',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
             shouldIncludeSocialIcons: 'true',
+            socialLinks: {
+                facebook: 'https://www.facebook.com/teemapp',
+                twitter: 'https://twitter.com/teem_app',
+                instagram: 'https://www.instagram.com/teem.app/',
+            },
         },
     },
     'dashboard.therr.com': {
@@ -124,6 +163,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Therr for Business',
+        brandShortName: 'Therr for Biz',
         brandGreeting: 'Hey Therr',
         brandGoLinkText: 'Go Therr',
         websiteName: 'Therr for Business',
@@ -144,6 +184,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#1C7F8A',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#1C7F8A',
+            brandAccentHexDark: '#22A5B4',
             fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
             fromEmailTitle: 'Therr for Business',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].dashboardHostFull,
@@ -151,7 +193,7 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'Therr For Business logo',
             unsubscribeUrl: 'https://dashboard.therr.com/emails/unsubscribe',
             legalBusinessName: 'Therr Inc.',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
         },
     },
     'adsly.app': {
@@ -159,6 +201,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Adsly Marketing',
+        brandShortName: 'Adsly,',
         brandGreeting: 'Hello',
         brandGoLinkText: 'Go Adsly',
         websiteName: 'Adsly Marketing',
@@ -179,6 +222,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#d45d1c',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#d45d1c',
+            brandAccentHexDark: '#E87A3A',
             fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
             fromEmailTitle: 'Adsly',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].dashboardHostFull,
@@ -186,7 +231,7 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'Adsly logo',
             unsubscribeUrl: 'https://dashboard.therr.com/emails/unsubscribe',
             legalBusinessName: 'Therr Inc.',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
         },
     },
     'dashboard.appymeal.com': {
@@ -194,6 +239,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'AppyMeal',
+        brandShortName: 'AppyMeal',
         brandGreeting: 'Hey',
         brandGoLinkText: 'Get Appy',
         websiteName: 'AppyMeal Marketing',
@@ -214,6 +260,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#bf1f2e',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#bf1f2e',
+            brandAccentHexDark: '#E03040',
             fromEmail: 'team@appymeal.com',
             fromEmailTitle: 'AppyMeal',
             homepageLinkUri: 'https://dashboard.appymeal.com',
@@ -221,13 +269,24 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'AppyMeal logo',
             unsubscribeUrl: 'https://dashboard.appymeal.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'AppyMeal LLC',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
+            socialLinks: {
+                facebook: 'https://www.facebook.com/AppyMealApp',
+                twitter: 'https://twitter.com/AppyMealApp',
+                instagram: 'https://www.instagram.com/appy_meal/',
+            },
         },
     },
 };
 
 export const getHostContext = (host: string, brandVariation?: string) => {
+    // Mobile or local development
     if (!host) {
+        if (brandVariation && isBrandValid(brandVariation)) {
+            if (brandVariation === BrandVariations.TEEM) {
+                return hostContext['teem-social.com'];
+            }
+        }
         return hostContext['therr.com'];
     }
 

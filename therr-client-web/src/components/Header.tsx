@@ -2,18 +2,47 @@ import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { ActionIcon, Menu } from '@mantine/core';
 import {
     AccessControl,
     SvgButton,
 } from 'therr-react/components';
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
-import translator from '../services/translator';
 import { INavMenuContext } from '../types';
+import withTranslation from '../wrappers/withTranslation';
 import UsersActions from '../redux/actions/UsersActions';
+import ColorSchemeToggle from './ColorSchemeToggle';
+
+const localeLabels: Record<string, string> = { 'en-us': 'EN', es: 'ES', 'fr-ca': 'FR' };
+
+const localeOptions = [
+    { code: 'en-us', label: 'EN', name: 'English' },
+    { code: 'es', label: 'ES', name: 'Español' },
+    { code: 'fr-ca', label: 'FR', name: 'Français' },
+];
+
+const globeIcon = (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={18}
+        height={18}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z" />
+    </svg>
+);
 
 interface IHeaderDispatchProps {
     logout: Function;
+    updateUser: Function;
 }
 
 interface IStoreProps extends IHeaderDispatchProps {
@@ -28,6 +57,8 @@ interface IHeaderProps extends IStoreProps {
   isAuthorized: boolean;
   toggleNavMenu: Function;
   isLandingStylePage?: boolean;
+  translate: (key: string, params?: any) => string;
+  locale: string;
 }
 
 interface IHeaderState {
@@ -41,19 +72,16 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     logout: UsersActions.logout,
+    updateUser: UsersActions.update,
 }, dispatch);
 
 export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState> {
-    static getDerivedStateFromProps(nextProps: IHeaderProps, nextState: IHeaderState) {
-        if (!nextState.hasUnreadNotifications && nextProps.notifications.messages.filter((m: INotification) => m.isUnread).length) {
-            return {
-                hasUnreadNotifications: true,
-            };
-        }
-        return {};
+    static getDerivedStateFromProps(nextProps: IHeaderProps) {
+        const hasUnread = nextProps.notifications.messages.filter((m: INotification) => m.isUnread).length > 0;
+        return {
+            hasUnreadNotifications: hasUnread,
+        };
     }
-
-    private translate: Function;
 
     constructor(props) {
         super(props);
@@ -61,9 +89,47 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
         this.state = {
             hasUnreadNotifications: false,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
+
+    handleLocaleChange = (newLocale: string) => {
+        const {
+            user, updateUser,
+        } = this.props;
+        const currentPath = window.location.pathname;
+
+        // Set cookie for API calls and SSR
+        document.cookie = `therr-locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+
+        // Persist to storage
+        try {
+            [localStorage, sessionStorage].forEach((storage) => {
+                const storedSettings = JSON.parse(storage.getItem('therrUserSettings') || '{}');
+                storedSettings.locale = newLocale;
+                storedSettings.settingsLocale = newLocale;
+                storage.setItem('therrUserSettings', JSON.stringify(storedSettings));
+            });
+        } catch (err) {
+            // Ignore storage errors
+        }
+
+        // Persist to backend for authenticated users
+        if (user?.isAuthenticated && user?.details?.id) {
+            updateUser(user.details.id, { settingsLocale: newLocale });
+        }
+
+        // Strip any existing locale prefix from the path
+        const strippedPath = currentPath.replace(/^\/(es|fr)(\/|$)/, '/') || '/';
+
+        // Build new path with locale prefix (English has no prefix)
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const prefix = localePrefixMap[newLocale] || '';
+        let newPath = strippedPath;
+        if (prefix) {
+            newPath = strippedPath === '/' ? prefix : `${prefix}${strippedPath}`;
+        }
+
+        window.location.href = newPath + window.location.search;
+    };
 
     handleLogout = () => {
         const {
@@ -110,30 +176,60 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         aria-label="Therr logo text home link"
                     />
                 </div>
-                <AccessControl isAuthorized={isAuthorized} publicOnly>
-                    <div className="login-link flex-box row center align-center">
+                <div className="header-right">
+                    <Menu shadow="md" width={160} position="bottom-end">
+                        <Menu.Target>
+                            <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                className="locale-switcher"
+                                title="Switch language"
+                                aria-label="Switch language"
+                                style={{ color: 'inherit' }}
+                            >
+                                <span className="locale-label">
+                                    {localeLabels[this.props.locale] || 'EN'}
+                                </span>
+                                {globeIcon}
+                            </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown className="locale-menu">
+                            {localeOptions.map((opt) => (
+                                <Menu.Item
+                                    key={opt.code}
+                                    onClick={() => this.handleLocaleChange(opt.code)}
+                                >
+                                    {opt.label} - {opt.name}
+                                </Menu.Item>
+                            ))}
+                        </Menu.Dropdown>
+                    </Menu>
+                    <ColorSchemeToggle />
+                    <AccessControl isAuthorized={isAuthorized} publicOnly>
+                        <div className="login-link">
+                            <SvgButton
+                                id="header_login_icon"
+                                name="account"
+                                onClick={() => goTo('/login')}
+                                buttonType="primary"
+                                aria-label="Sign in to Therr web app"
+                            />
+                            <Link to="/login">{this.props.translate('components.header.buttons.login')}</Link>
+                        </div>
+                    </AccessControl>
+                    <AccessControl isAuthorized={isAuthorized}>
                         <SvgButton
-                            id="header_login_icon"
+                            id="header_account_button"
                             name="account"
-                            onClick={() => goTo('/login')}
+                            className={`account-button ${hasUnreadNotifications ? 'has-notifications' : ''}`}
+                            onClick={(e) => toggleNavMenu(e, INavMenuContext.HEADER_PROFILE)}
                             buttonType="primary"
-                            aria-label="Sign in to Therr web app"
                         />
-                        <Link to="/login">{this.translate('components.header.buttons.login')}</Link>
-                    </div>
-                </AccessControl>
-                <AccessControl isAuthorized={isAuthorized}>
-                    <SvgButton
-                        id="header_account_button"
-                        name="account"
-                        className={`account-button ${hasUnreadNotifications ? 'has-notifications' : ''}`}
-                        onClick={(e) => toggleNavMenu(e, INavMenuContext.HEADER_PROFILE)}
-                        buttonType="primary"
-                    />
-                </AccessControl>
+                    </AccessControl>
+                </div>
             </header>
         );
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(HeaderComponent);
+export default withTranslation(connect(mapStateToProps, mapDispatchToProps)(HeaderComponent));

@@ -3,14 +3,16 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 // background-geolocation
-Project background_geolocation = project(':react-native-background-geolocation')
-apply from: "${background_geolocation.projectDir}/app.gradle"
+def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
+apply from: "${background_geolocation_path}/app.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 react {
+    /* Autolinking */
+    autolinkLibrariesWithApp()
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
     // root = file("../")
@@ -27,7 +29,7 @@ react {
     // debuggableVariants = ["liteDebug", "prodDebug"]
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
-    // nodeExecutableAndArgs = ["node"]
+    nodeExecutableAndArgs = ["/Users/zacharyanselm/.nvm/versions/node/v24.12.0/bin/node"]
     //
     //   The command to run when bundling. By default is 'bundle'
     // bundleCommand = "ram-bundle"
@@ -55,7 +57,7 @@ react {
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -87,9 +89,9 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 368
-        versionName "2.71.0"
-        manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "$System.env.GOOGLE_APIS_ANDROID_KEY"]
+        versionCode 416
+        versionName "3.6.3"
+        manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}"]
         vectorDrawables.useSupportLibrary = true
     }
     signingConfigs {
@@ -108,6 +110,17 @@ android {
             }
         }
     }
+    lintOptions {
+        checkReleaseBuilds false
+    }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+            // libconceal.so (archived com.facebook.conceal) is not 16 KB page-aligned
+            // and has no updated release. Strip it so Play Store accepts the AAB.
+            excludes += ["**/libconceal.so"]
+        }
+    }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -117,11 +130,26 @@ android {
             // see https://facebook.github.io/react-native/docs/signed-apk-android.
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
-            shrinkResources false
+            shrinkResources enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             // background_geolocation requires custom Proguard Rules
-            proguardFiles "${background_geolocation.projectDir}/proguard-rules.pro"
+            proguardFiles "${background_geolocation_path}/proguard-rules.pro"
         }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        // Force 16KB page-aligned ucrop (fixes Google Play rejection)
+        force 'com.github.yalantis:ucrop:2.2.11-native'
+    }
+}
+
+// Ensure CMake's cached glob state is wiped on `./gradlew clean` so
+// externalNativeBuildClean* tasks don't fail with "GLOB mismatch!"
+tasks.named("clean").configure {
+    doLast {
+        delete "${projectDir}/.cxx"
     }
 }
 
@@ -129,7 +157,7 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    implementation platform('com.google.firebase:firebase-bom:26.8.0')
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-messaging'
@@ -142,8 +170,6 @@ dependencies {
         implementation jscFlavor
     }
 }
-
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 
 // Font Icons
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

@@ -1,7 +1,7 @@
 import React, { Ref } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
-import MapView from 'react-native-map-clustering';
-import { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
+import ClusteredMapView from '../../components/ClusteredMapView';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { PushNotificationsService } from 'therr-react/services';
@@ -13,7 +13,7 @@ import { getReadableDistance } from 'therr-js-utilities/location';
 import { distanceTo, insideCircle, isLatLon } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ILocationState } from '../../types/redux/location';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import {
     ANIMATE_TO_REGION_DURATION_FAST,
     ANIMATE_TO_REGION_DURATION_VERY_FAST,
@@ -83,10 +83,12 @@ export interface ITherrMapViewProps extends IStoreProps {
     circleCenter: { longitude: number, latitude: number };
     exchangeRate: number;
     expandBottomSheet: any;
-    filteredEvents: any;
-    filteredMoments: any;
-    filteredSpaces: any;
+    filteredEvents: any[];
+    filteredMoments: any[];
+    filteredSpaces: any[];
     hideCreateActions: () => any;
+    isQuickReportOpen: boolean;
+    closeQuickReport: () => void;
     isScrollEnabled: boolean;
     onPreviewBottomSheetClose: any;
     onPreviewBottomSheetOpen: any;
@@ -150,6 +152,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapViewRef: any;
+    private scrollViewRef: any;
     private theme = buildStyles();
     private themeBottomSheet = buildBottomSheetStyles();
     private themeViewArea = buildViewAreaStyles();
@@ -176,7 +179,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
@@ -277,10 +280,10 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     };
 
     removeAnimation = () => {
-        // removes the listener
-        this.previewAnimation = new Animated.Value(0, {
-            useNativeDriver: true,
-        });
+        // Reset value and listeners without replacing the Animated.Value reference,
+        // so the onScroll binding in the ScrollView stays valid
+        this.previewAnimation.removeAllListeners();
+        this.previewAnimation.setValue(0);
         clearTimeout(this.timeoutIdPreviewRegion);
         this.previewScrollIndex = 0;
     };
@@ -315,7 +318,12 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     /**
      * On press handler for any map press. Handles pressing an area, and determines when view or bottom-sheet menu to open
      */
-    handleMapPress = (event: MapPressEvent | MarkerPressEvent, shouldToggleOnly = false) => {
+    handleMapPress = (event: MapPressEvent | MarkerPressEvent, shouldToggleOnly = false, restoreScrollIndex = 0) => {
+        if (this.props.isQuickReportOpen) {
+            this.props.closeQuickReport();
+            return;
+        }
+
         const { nativeEvent } = event;
         const {
             circleCenter,
@@ -335,10 +343,10 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         if (shouldToggleOnly) {
             // This is a bit of a hack when mapRef.props.onPress is called from Map/index
-            return this.openPreviewBottomSheet(nativeEvent.coordinate);
+            return this.openPreviewBottomSheet(nativeEvent.coordinate, restoreScrollIndex);
         }
 
-        const pressedSpaces: any[] = Object.values(filteredSpaces).filter((space: any) => {
+        const pressedSpaces: any[] = filteredSpaces.filter((space: any) => {
             if (!space.longitude || !space.latitude) {
                 return false;
             }
@@ -413,7 +421,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 activeSpaceDetails: {},
             });
 
-            const pressedMoments: any[] = Object.values(filteredMoments).filter((moment: any) => {
+            const pressedMoments: any[] = filteredMoments.filter((moment: any) => {
                 if (!moment.longitude || !moment.latitude) {
                     return false;
                 }
@@ -424,7 +432,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             });
 
             // TODO: Allow viewing public moments?
-            if (pressedMoments.length) {
+            if (pressedMoments.length > 1) {
+                // Multiple overlapping moments: show preview bottom sheet for user to pick
+                ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+                this.setState({
+                    activeMoment: {},
+                    activeMomentDetails: {},
+                });
+                this.togglePreviewBottomSheet(nativeEvent.coordinate, undefined, 0, pressedMoments);
+            } else if (pressedMoments.length === 1) {
                 const selectedMoment = pressedMoments[0];
 
                 // this.props.expandBottomSheet();
@@ -477,14 +493,17 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         }
     };
 
-    openPreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }) => {
+    openPreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, restoreScrollIndex = 0) => {
         this.setState({
             isPreviewBottomSheetVisible: false,
             areaInPreviewIndex: -1,
-        }, () => this.togglePreviewBottomSheet(pressedCoords));
+        }, () => this.togglePreviewBottomSheet(pressedCoords, undefined, restoreScrollIndex));
     };
 
-    togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any) => {
+    togglePreviewBottomSheet = (
+        pressedCoords: { latitude: number, longitude: number },
+        pressedAreaId?: any, restoreScrollIndex = 0, overlappingAreas?: any[],
+    ) => {
         const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
         // Reset to zero to review marker highlight
         this.removeAnimation();
@@ -502,8 +521,13 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             // TODO: Fetch media
             const { content, filteredEvents, filteredSpaces, location } = this.props;
 
+            // When overlapping areas are provided (e.g. multiple moments at same location), use them directly
+            const baseAreas = overlappingAreas?.length
+                ? overlappingAreas
+                : filteredSpaces.concat(filteredEvents);
+
             // Label with user's location if available, but sort by distance from pressedCoord
-            const sortedAreasWithDistance = Object.values(filteredSpaces).concat(Object.values(filteredEvents))
+            const sortedAreasWithDistance = baseAreas
                 .filter((a: any) => a.latitude && a.longitude).map((area: any) => {
                     const milesFromPress = distanceTo({
                         lon: pressedCoords.longitude,
@@ -585,9 +609,19 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             this.removeAnimation();
         }
 
+        const shouldOpen = modifiedAreasInPreview?.length < 1 ? false : !isPreviewBottomSheetVisible;
         this.setState({
             areasInPreview: modifiedAreasInPreview,
-            isPreviewBottomSheetVisible: modifiedAreasInPreview?.length < 1 ? false : !isPreviewBottomSheetVisible,
+            isPreviewBottomSheetVisible: shouldOpen,
+        }, () => {
+            if (shouldOpen && restoreScrollIndex > 0) {
+                const scrollToIndex = Math.min(restoreScrollIndex, modifiedAreasInPreview.length - 1);
+                // Wait for the ScrollView to mount/layout before scrolling
+                setTimeout(() => {
+                    this.scrollViewRef?.scrollTo?.({ x: scrollToIndex * CARD_WIDTH, animated: false });
+                    this.previewScrollIndex = scrollToIndex;
+                }, 100);
+            }
         });
     };
 
@@ -677,7 +711,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
             // Send location to backend for processing
-            if (isUserAuthenticated(user)) {
+            if (isUserAuthenticated(user) && lastLocationSendForProcessing) {
                 PushNotificationsService.postLocationChange({
                     longitude: coords.longitude,
                     latitude: coords.latitude,
@@ -810,23 +844,59 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     };
 
     goToArea = (area: any) => {
-        const { navigation, user } = this.props;
+        const { circleCenter, createOrUpdateMomentReaction, navigation, user } = this.props;
 
         // TODO: Activate spaces on click
         this.getAreaDetails(area)
             .then((details) => {
+                const previewScrollIndex = this.previewScrollIndex || 0;
                 if (area?.areaType === 'events') {
                     navigation.navigate('ViewEvent', {
                         isMyContent: isMyContent(area, user),
+                        previousView: 'Map',
+                        previewScrollIndex,
                         event: area,
                         eventDetails: details,
                     });
                 } else if (area?.areaType === 'spaces') {
                     navigation.navigate('ViewSpace', {
                         isMyContent: isMyContent(area, user),
+                        previousView: 'Map',
+                        previewScrollIndex,
                         space: area,
                         spaceDetails: details,
                     });
+                } else if (area?.areaType === 'moments') {
+                    const distToCenter = distanceTo({
+                        lon: circleCenter.longitude,
+                        lat: circleCenter.latitude,
+                    }, {
+                        lon: area.longitude,
+                        lat: area.latitude,
+                    });
+                    const isProximitySatisfied = distToCenter - area.radius <= area.maxProximity;
+                    if (!isProximitySatisfied
+                        && !isMyContent(area, user)
+                        && !(this.isAreaActivated('moments', area) && !area.doesRequireProximityToView)) {
+                        this.props.showAreaAlert();
+                    } else if (isUserAuthenticated(user)) {
+                        createOrUpdateMomentReaction(area.id, {
+                            userViewCount: 1,
+                            userHasActivated: true,
+                        }, area.fromUserId, user.details.userName);
+                        this.setState({
+                            activeMoment: area,
+                            activeMomentDetails: details,
+                        }, () => {
+                            navigation.navigate('ViewMoment', {
+                                isMyContent: isMyContent(area, user),
+                                previousView: 'Map',
+                                previewScrollIndex,
+                                moment: area,
+                                momentDetails: details,
+                            });
+                        });
+                    }
                 }
             })
             .catch(() => {
@@ -858,9 +928,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             map,
         } = this.props;
         const { areasInPreview, areaInPreviewIndex, isPreviewBottomSheetVisible, isMapReady } = this.state;
-        const filteredEventValues = Object.values(filteredEvents);
-        const filteredMomentValues = Object.values(filteredMoments);
-        const filteredSpaceValues = Object.values(filteredSpaces);
         const animatedOverlayHeight = CARD_HEIGHT
             + this.themeBottomSheet.styles.scrollViewOuterContainer.bottom;
         // This converts degrees to miles then miles to meters (divided by 10)
@@ -869,8 +936,8 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         return (
             <>
-                <MapView
-                    mapRef={(ref: Ref<MapView>) => { this.updateOuterMapRef(ref); this.mapViewRef = ref; }}
+                <ClusteredMapView
+                    ref={(ref: any) => { this.updateOuterMapRef(ref); this.mapViewRef = ref; }}
                     provider={PROVIDER_GOOGLE}
                     style={mapStyles.mapView}
                     customMapStyle={mapCustomStyle}
@@ -892,14 +959,13 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     followsUserLocation={shouldFollowUserLocation}
                     scrollEnabled={isScrollEnabled}
                     minZoomLevel={MIN_ZOOM_LEVEL}
-                    /* react-native-map-clustering */
+                    /* clustering */
                     clusterColor={this.theme.colors.brandingBlueGreen}
                     clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
                     clusterTextColor={this.theme.colors.brandingWhite}
                     onClusterPress={this.onClusterPress}
                     onLayout={this.onMapLayout}
-                    // preserveClusterPressBehavior={true}
-                    animationEnabled={false} // iOS Only
+                    animationEnabled={false}
                     spiderLineColor="#FF0000"
                 >
                     {
@@ -914,7 +980,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         />
                     }
                     {
-                        isMapReady && filteredEventValues.map((event: any) => {
+                        isMapReady && filteredEvents.map((event: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -938,7 +1004,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        isMapReady && filteredMomentValues.map((moment: any) => {
+                        isMapReady && filteredMoments.map((moment: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -963,7 +1029,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     }
                     {
                         // (!areasInPreview?.length || Platform.OS === 'android') &&
-                        isMapReady && filteredSpaceValues.map((space: any) => {
+                        isMapReady && filteredSpaces.map((space: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -1074,7 +1140,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             })
                     }
                     {
-                        isMapReady && shouldRenderMapCircles && filteredMomentValues.map((moment: any) => {
+                        isMapReady && shouldRenderMapCircles && filteredMoments.map((moment: any) => {
                             return (
                                 <Circle
                                     key={moment.id}
@@ -1092,7 +1158,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        isMapReady && shouldRenderMapCircles && filteredSpaceValues.map((space: any) => {
+                        isMapReady && shouldRenderMapCircles && filteredSpaces.map((space: any) => {
                             return (
                                 <Circle
                                     key={space.id}
@@ -1109,15 +1175,17 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             );
                         })
                     }
-                </MapView>
+                </ClusteredMapView>
                 {
                     isPreviewBottomSheetVisible &&
                     <View style={[this.themeBottomSheet.styles.scrollViewOuterContainer, {
                         height: animatedOverlayHeight + 3, // Add for box shadow
                     }]}>
                         <Animated.ScrollView
+                            ref={(ref) => { this.scrollViewRef = ref; }}
                             horizontal
-                            scrollEventThrottle={0}
+                            removeClippedSubviews={false}
+                            scrollEventThrottle={16}
                             showsHorizontalScrollIndicator={false}
                             snapToInterval={CARD_WIDTH}
                             onScroll={Animated.event(

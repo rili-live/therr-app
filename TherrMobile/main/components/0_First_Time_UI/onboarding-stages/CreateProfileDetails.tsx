@@ -1,12 +1,11 @@
 import React from 'react';
-import { Platform, View } from 'react-native';
-import { Button, Text }  from 'react-native-elements';
+import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Button } from '../../BaseButton';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import Alert from '../../Alert';
 import SquareInput from '../../Input/Square';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';
-// import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../constants';
 
 interface ICreateProfileDetailsProps {
     errorMsg: string;
@@ -45,6 +44,7 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
     themeForms,
     themeSettingsForm,
 }) => {
+    const isBusiness = inputs.accountType === 'business';
 
     // TODO: Debug and determine why we need this (Apple SSO BS?)
     // if (inputs?.firstName !== DEFAULT_FIRSTNAME
@@ -62,7 +62,7 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
                 type="error"
                 themeAlerts={themeAlerts}
             />
-            <View style={{ marginBottom: 50 }}>
+            <View style={localStyles.accountTypeContainer}>
                 <Text style={theme.styles.sectionTitleSmallCenter}>
                     {translate(
                         'forms.settings.labels.accountTypeLabel'
@@ -108,7 +108,9 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
                 <>
                     <SquareInput
                         placeholder={translate(
-                            'forms.settings.labels.firstName'
+                            isBusiness
+                                ? 'forms.settings.labels.businessName'
+                                : 'forms.settings.labels.firstName'
                         )}
                         value={inputs.firstName}
                         onChangeText={(text) =>
@@ -116,7 +118,7 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
                         }
                         rightIcon={
                             <FontAwesomeIcon
-                                name="smile"
+                                name={isBusiness ? 'building' : 'smile'}
                                 size={22}
                                 color={themeAlerts.colorVariations.primary3Fade}
                             />
@@ -125,7 +127,9 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
                     />
                     <SquareInput
                         placeholder={translate(
-                            'forms.settings.labels.lastName'
+                            isBusiness
+                                ? 'forms.settings.labels.businessSuffix'
+                                : 'forms.settings.labels.lastName'
                         )}
                         value={inputs.lastName}
                         onChangeText={(text) =>
@@ -156,5 +160,11 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
         </View>
     );
 };
+
+const localStyles = StyleSheet.create({
+    accountTypeContainer: {
+        marginBottom: 50,
+    },
+});
 
 export default CreateProfileDetails;

@@ -1,10 +1,56 @@
 import { RequestHandler } from 'express';
+import KnexBuilder, { Knex } from 'knex';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
+import { ensureDefaultList } from './userLists';
 // import * as globalConfig from '../../../../global-config';
+
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
+
+// Sync the userListItems junction table with a legacy single-tap bookmark toggle.
+// This keeps the new Lists feature consistent with the old userBookmarkCategory flow.
+const syncListMembershipForBookmarkToggle = async (
+    userId: string,
+    spaceId: string,
+    incomingBody: any,
+    previousCategory: string | null | undefined,
+) => {
+    // Bail if the request didn't touch the bookmark field at all — we only care about toggles.
+    if (!Object.prototype.hasOwnProperty.call(incomingBody, 'userBookmarkCategory')) {
+        return;
+    }
+
+    const next = incomingBody.userBookmarkCategory;
+    const hadBookmark = !!previousCategory;
+    const hasBookmark = next !== null && next !== undefined && String(next).trim() !== '';
+
+    if (hasBookmark && !hadBookmark) {
+        // Newly bookmarked — ensure it's in the default "Saved" list
+        const defaultList = await ensureDefaultList(userId);
+        const added = await Store.userListItems.add({
+            listId: defaultList.id,
+            contentId: spaceId,
+            contentType: 'space',
+        });
+        if (added) {
+            await Store.userLists.incrementItemCount(defaultList.id, 1);
+        }
+    } else if (!hasBookmark && hadBookmark) {
+        // Un-bookmarked — remove from ALL of the user's lists
+        const removed = await Store.userListItems.removeAllForContent(userId, spaceId, 'space');
+        // Decrement counts per affected list
+        const byList: Record<string, number> = {};
+        (removed || []).forEach((r: any) => {
+            byList[r.listId] = (byList[r.listId] || 0) + 1;
+        });
+        await Promise.all(
+            Object.entries(byList).map(([listId, n]) => Store.userLists.incrementItemCount(listId, -n)),
+        );
+    }
+};
 
 // CREATE/UPDATE
 const createOrUpdateSpaceReaction = (req, res) => {
@@ -31,10 +77,23 @@ const createOrUpdateSpaceReaction = (req, res) => {
                 userLocale: locale,
                 userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
             })
-                .then(([spaceReaction]) => {
+                .then(async ([spaceReaction]) => {
                     const space = existing[0];
                     if (userId !== space.fromUserId && spaceReaction.rating > 3) {
                         incrementInterestEngagement(space.interestsKeys, 3, req.headers);
+                    }
+                    // Keep the lists junction table in sync when the bookmark category changes.
+                    // Best-effort — failures here should not block the response.
+                    try {
+                        await syncListMembershipForBookmarkToggle(
+                            userId,
+                            req.params.spaceId,
+                            req.body,
+                            existing[0].userBookmarkCategory,
+                        );
+                    } catch (e) {
+                        // eslint-disable-next-line no-console
+                        console.warn('Failed to sync list membership on bookmark toggle:', e);
                     }
                     return res.status(200).send(spaceReaction);
                 });
@@ -45,25 +104,78 @@ const createOrUpdateSpaceReaction = (req, res) => {
             spaceId: req.params.spaceId,
             ...req.body,
             userLocale: locale,
-        }).then(([reaction]) => res.status(200).send(reaction));
+        }).then(async ([reaction]) => {
+            try {
+                await syncListMembershipForBookmarkToggle(
+                    userId,
+                    req.params.spaceId,
+                    req.body,
+                    null,
+                );
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.warn('Failed to sync list membership on bookmark create:', e);
+            }
+            return res.status(200).send(reaction);
+        });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
 };
 
 // CREATE/UPDATE
-const createOrUpdateMultiSpaceReactions = (req, res) => {
+const createOrUpdateMultiSpaceReactions = async (req, res) => {
     // TODO: This endpoint should be secure/non-public so user's cannot activate spaces on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
-    const { spaceIds } = req.body;
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const { spaceIds, recordVisit } = req.body;
+
+    if (!spaceIds?.length) {
+        return handleHttpError({ res, message: 'spaceIds is required', statusCode: 400 });
+    }
+
+    const validSpaceIds = spaceIds.filter((id) => !!id);
+
     const params = { ...req.body };
     delete params.spaceIds;
+    delete params.recordVisit;
+
+    const now = new Date();
+
+    // Build visit-aware params for updates
+    const updateParams: any = {
+        ...params,
+        userLocale: locale,
+    };
+
+    // Build visit-aware params for creates
+    const createParams: any = {
+        ...params,
+        userLocale: locale,
+    };
+
+    if (recordVisit) {
+        // For updates: increment visitCount and set timestamps using raw SQL
+        updateParams.visitCount = knexBuilder.raw('"visitCount" + 1');
+        updateParams.visitedAt = knexBuilder.raw('COALESCE("visitedAt", ?)', [now]);
+        updateParams.lastVisitedAt = now;
+
+        // For creates: set initial visit data
+        createParams.visitedAt = now;
+        createParams.lastVisitedAt = now;
+        createParams.visitCount = 1;
+    }
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
-    return Store.spaceReactions.get({
-        userId,
-    }, spaceIds).then((existing) => {
+    try {
+        const existing = await Store.spaceReactions.get({
+            userId,
+        }, validSpaceIds);
+
         const existingMapped = {};
         const existingReactions: string[][] = existing.map((reaction) => {
             existingMapped[reaction.spaceId] = reaction;
@@ -71,35 +183,38 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
         });
         let updatedReactions;
         if (existing?.length) {
-            Store.spaceReactions.update({}, {
-                ...params,
-                userLocale: locale,
-            }, {
+            updatedReactions = await Store.spaceReactions.update({}, updateParams, {
                 columns: ['userId', 'spaceId'],
                 whereInArray: existingReactions,
-            })
-                .then((spaceReactions) => { updatedReactions = spaceReactions; });
+            });
         }
 
-        const createArray = spaceIds
+        const createArray = validSpaceIds
             .filter((id) => !existingMapped[id])
             .map((spaceId) => ({
                 userId,
                 spaceId,
-                ...params,
-                userLocale: locale,
+                ...createParams,
             }));
 
-        return Store.spaceReactions.create(createArray).then((createdReactions) => res.status(200).send({
+        const createdReactions = await Store.spaceReactions.create(createArray);
+        return res.status(200).send({
             created: createdReactions,
             updated: updatedReactions,
-        }));
-    }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+        });
+    } catch (err) {
+        return handleHttpError({ err: err as Error, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
+    }
 };
 
 // READ
 const getSpaceReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const spaceIds = req.query?.spaceIds?.split(',');
     const queryParams: any = {
         userId,
@@ -143,6 +258,10 @@ const getReactionsBySpaceId: RequestHandler = async (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const { spaceId } = req.params;
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     return Store.spaceReactions.get({
         userId,
         spaceId,
@@ -166,6 +285,11 @@ const getReactionsBySpaceId: RequestHandler = async (req: any, res: any) => {
 const findSpaceReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     // const locale = req.headers['x-localecode'] || 'en-us';
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const {
         spaceIds,
         userHasActivated,
@@ -193,6 +317,29 @@ const findSpaceReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
 };
 
+const getBatchSpaceRatings: RequestHandler = (req: any, res: any) => {
+    const { spaceIds } = req.body;
+
+    if (!spaceIds?.length) {
+        return res.status(200).send({});
+    }
+
+    return Store.spaceReactions.getBatchRatings(spaceIds)
+        .then((rows) => {
+            const ratingsMap = {};
+            rows.forEach((row) => {
+                ratingsMap[row.spaceId] = {
+                    avgRating: row.avgRating ? Math.round(parseFloat(row.avgRating) * 10) / 10 : null,
+                    totalRatings: parseInt(row.totalRatings, 10) || 0,
+                };
+            });
+            res.status(200).send(ratingsMap);
+        })
+        .catch((err) => {
+            handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
+        });
+};
+
 const countSpaceReactions: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -208,10 +355,29 @@ const countSpaceReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
 };
 
+const getVisitedSpaces: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    return Store.spaceReactions.getVisitedSpaces(
+        userId,
+        parseInt(req.query.limit || 100, 10),
+        parseInt(req.query.offset || 0, 10),
+        req.query.order || 'DESC',
+    )
+        .then((reactions) => res.status(200).send({ reactions }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getSpaceReactions,
     getSpaceRatings,
+    getBatchSpaceRatings,
     getReactionsBySpaceId,
+    getVisitedSpaces,
     createOrUpdateSpaceReaction,
     createOrUpdateMultiSpaceReactions,
     findSpaceReactions,

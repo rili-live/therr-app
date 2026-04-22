@@ -1,6 +1,8 @@
 import { RequestHandler } from 'express';
 import { PushNotifications } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import { predictAndSendNotification } from '../api/firebaseAdmin';
 // import translate from '../utilities/translator';
@@ -69,6 +71,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         },
         undefined,
         brandVariation,
+        req.headers as unknown as InternalConfigHeaders,
     )
         .then(() => res.status(201).send({}))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
@@ -104,7 +107,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         viewCount,
     } = req.body;
 
-    const promises = users.filter((user) => !user.shouldMuteNotifs).map((user) => predictAndSendNotification(
+    const recipients: any[] = (users || []).filter((user: any) => !user.shouldMuteNotifs);
+    const promises = recipients.map((user: any) => predictAndSendNotification(
         // TODO: This endpoint should accept a type
         type || PushNotifications.Types.newGroupMessage,
         {
@@ -121,8 +125,10 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         },
         {
             deviceToken: user.deviceMobileFirebaseToken,
-            userId: headers.userId,
-            userLocale: headers.locale,
+            // Identify the recipient, not the request initiator, so invalid-
+            // token cleanup and error logging target the right user.
+            userId: user.id || headers.userId,
+            userLocale: user.settingsLocale || headers.locale,
             fromUserName: fromUserDetails?.userName,
             groupName: groupDetails?.name,
             achievementsCount,
@@ -133,10 +139,31 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         },
         undefined,
         brandVariation,
+        req.headers as unknown as InternalConfigHeaders,
     ));
 
-    return Promise.all(promises)
-        .then(() => res.status(201).send({}))
+    // allSettled (not all) so one bad token doesn't mask the rest. predictAnd-
+    // SendNotification already swallows send errors internally, so these will
+    // usually all fulfill — the fallback is belt-and-suspenders.
+    return Promise.allSettled(promises)
+        .then((results) => {
+            const rejected = results.filter((r) => r.status === 'rejected');
+            if (rejected.length) {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Multi push notification: unexpected rejection(s) escaped predictAndSendNotification'],
+                    traceArgs: {
+                        'pushNotification.recipientCount': recipients.length,
+                        'pushNotification.rejectedCount': rejected.length,
+                    },
+                });
+            }
+            return res.status(201).send({
+                sent: results.length,
+                rejected: rejected.length,
+            });
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };
 
@@ -214,6 +241,7 @@ const testPushNotification: RequestHandler = (req, res) => {
         notificationConfig,
         undefined,
         brandVariation,
+        req.headers as unknown as InternalConfigHeaders,
     ).then(() => res.status(201).send(`Sent ${type} notification!`))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };

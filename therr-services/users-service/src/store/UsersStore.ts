@@ -16,6 +16,7 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
+    brandVariations?: string | undefined;
     email: string;
     billingEmail?: string;
     firstName?: string;
@@ -62,7 +63,7 @@ export default class UsersStore {
         this.db = dbConnection;
     }
 
-    // Deprecated
+    // Deprecated: Use getUserByConditions for single-user lookups
     getUsers(conditions = {}, orConditions = {}, anotherOrConditions = {}, returning = ['*']) {
         const queryString = knexBuilder.select(returning)
             .from(USERS_TABLE_NAME)
@@ -71,6 +72,26 @@ export default class UsersStore {
             .orWhere(orConditions)
             .orWhere(anotherOrConditions)
             .toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Optimized single-user lookup by multiple OR conditions.
+     * Uses LIMIT 1 and avoids full table scan unlike getUsers().
+     */
+    getUserByConditions(conditions: Record<string, any>, orConditions?: Record<string, any>, anotherOrConditions?: Record<string, any>, returning = ['*']) {
+        let queryString: any = knexBuilder.select(returning)
+            .from(USERS_TABLE_NAME)
+            .where(conditions);
+
+        if (orConditions && Object.keys(orConditions).length > 0) {
+            queryString = queryString.orWhere(orConditions);
+        }
+        if (anotherOrConditions && Object.keys(anotherOrConditions).length > 0) {
+            queryString = queryString.orWhere(anotherOrConditions);
+        }
+
+        queryString = queryString.limit(1).toString();
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
@@ -152,50 +173,28 @@ export default class UsersStore {
     findUsersWithInterests({
         ids,
     }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'isSuperUser']) {
+        // Single query with triple JOIN: users -> userInterests -> interests
         let queryString: any = knexBuilder
             .select(returning.map((column) => `${USERS_TABLE_NAME}.${column}`))
-            // .select(returning)
             .from(USERS_TABLE_NAME)
             .leftJoin(USER_INTERESTS_TABLE_NAME, (builder) => {
                 // eslint-disable-next-line quotes
                 builder.on(knexBuilder.raw(`("main"."users"."id" = "main"."userInterests"."userId" and "isEnabled" = true)`));
             })
+            .leftJoin(INTERESTS_TABLE_NAME, `${USER_INTERESTS_TABLE_NAME}.interestId`, `${INTERESTS_TABLE_NAME}.id`)
             .columns([
                 `${USER_INTERESTS_TABLE_NAME}.id as userInterests[].id`,
                 `${USER_INTERESTS_TABLE_NAME}.userId as userInterests[].userId`,
                 `${USER_INTERESTS_TABLE_NAME}.interestId as userInterests[].interestId`,
                 `${USER_INTERESTS_TABLE_NAME}.score as userInterests[].score`,
                 `${USER_INTERESTS_TABLE_NAME}.engagementCount as userInterests[].engagementCount`,
+                `${INTERESTS_TABLE_NAME}.displayNameKey as userInterests[].displayNameKey`,
             ])
             .whereIn(`${USERS_TABLE_NAME}.id`, ids || []);
 
         queryString = queryString.toString();
 
-        return this.db.read.query(queryString).then((response) => {
-            const usersWithInterests = formatSQLJoinAsJSON(response.rows, [{ propKey: 'userInterests', propId: 'id' }]);
-            const interestsIds = usersWithInterests
-                .reduce((acc, cur) => [...acc, ...(cur?.userInterests || []).map((i: any) => i.interestId)], []);
-
-            const interestsQuery: any = knexBuilder
-                .select(['id', 'displayNameKey'])
-                .from(INTERESTS_TABLE_NAME)
-                .whereIn('id', interestsIds);
-
-            return this.db.read.query(interestsQuery.toString()).then((interestsResponse) => {
-                const interestsMap = interestsResponse.rows.reduce((acc, cur) => ({
-                    ...acc,
-                    [cur.id]: cur.displayNameKey,
-                }), {});
-
-                return usersWithInterests.map((user) => ({
-                    ...user,
-                    userInterests: user?.userInterests?.map((userInterest) => ({
-                        ...userInterest,
-                        displayNameKey: interestsMap[userInterest.interestId],
-                    })),
-                }));
-            });
-        });
+        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'userInterests', propId: 'id' }]));
     }
 
     searchUsers(
@@ -209,7 +208,7 @@ export default class UsersStore {
         }: ISearchUsersArgs,
         withConnections = false,
         onlyVerified = false,
-        returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser'],
+        returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser', 'settingsBio'],
     ) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
@@ -471,6 +470,10 @@ export default class UsersStore {
             modifiedParams.settingsIsProfilePublic = params.settingsIsProfilePublic;
         }
 
+        if (params.settingsLocale != null) {
+            modifiedParams.settingsLocale = params.settingsLocale;
+        }
+
         if (params.settingsThemeName != null) {
             modifiedParams.settingsThemeName = params.settingsThemeName;
         }
@@ -519,10 +522,22 @@ export default class UsersStore {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }
 
+        if (params.autoRechargeEnabled !== undefined) {
+            modifiedParams.autoRechargeEnabled = params.autoRechargeEnabled;
+        }
+
+        if (params.autoRechargeThresholdCoins !== undefined) {
+            modifiedParams.autoRechargeThresholdCoins = params.autoRechargeThresholdCoins;
+        }
+
+        if (params.autoRechargePackageId !== undefined) {
+            modifiedParams.autoRechargePackageId = params.autoRechargePackageId;
+        }
+
         if (params.lastKnownLatitude != null && params.lastKnownLongitude != null) {
             modifiedParams.lastKnownLatitude = params.lastKnownLatitude;
             modifiedParams.lastKnownLongitude = params.lastKnownLongitude;
-            modifiedParams.lastKnownLocation = knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.lastKnownLongitude}, ${params.lastKnownLatitude}), 4326)`);
+            modifiedParams.lastKnownLocation = knexBuilder.raw('ST_SetSRID(ST_MakePoint(?, ?), 4326)', [params.lastKnownLongitude, params.lastKnownLatitude]);
         }
 
         // Security: Prevent updating multiple users
@@ -546,6 +561,21 @@ export default class UsersStore {
         }
 
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
+    }
+
+    // Clears the stored FCM device token for a user, but only if the currently
+    // stored token matches the one we know to be invalid. This avoids a race
+    // where the mobile client has already rotated the token between the time a
+    // send failed and the push service noticed the failure.
+    clearDeviceToken(userId: string, invalidToken: string) {
+        const queryString = knexBuilder
+            .update({ deviceMobileFirebaseToken: null, updatedAt: new Date() })
+            .into(USERS_TABLE_NAME)
+            .where({ id: userId, deviceMobileFirebaseToken: invalidToken })
+            .returning(['id'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
     }
 
     transferTherrCoin(fromUserId: string, toUserId: string, amount: number) {

@@ -1,0 +1,22 @@
+diff --git a/node_modules/@react-native-community/slider/android/build.gradle b/node_modules/@react-native-community/slider/android/build.gradle
+index 362ad4a..01f1b03 100644
+--- a/node_modules/@react-native-community/slider/android/build.gradle
++++ b/node_modules/@react-native-community/slider/android/build.gradle
+@@ -1,17 +1,4 @@
+ 
+-buildscript {
+-  repositories {
+-    mavenCentral()
+-    google()
+-  }
+-
+-  dependencies {
+-    classpath("com.android.tools.build:gradle:7.1.1")
+-    classpath("com.facebook.react:react-native-gradle-plugin")
+-    classpath("de.undercouch:gradle-download-task:5.0.1")
+-  }
+-}
+-
+ apply plugin: 'com.android.library'
+ apply plugin: 'com.facebook.react'
+ 

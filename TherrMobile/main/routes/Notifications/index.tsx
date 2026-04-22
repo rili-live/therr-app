@@ -1,5 +1,6 @@
 import React from 'react';
-import { RefreshControl, SafeAreaView, FlatList } from 'react-native';
+import { Pressable, RefreshControl, FlatList, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -15,9 +16,10 @@ import {
 import { Notifications as NotificationsEmuns, UserConnectionTypes } from 'therr-js-utilities/constants';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { notifications as notificationStyles, buildStyles as buildNotificationStyles } from '../../styles/notifications';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import Notification from './Notification';
 import ListEmpty from '../../components/ListEmpty';
@@ -25,6 +27,7 @@ import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../../constants';
 
 interface INotificationsDispatchProps {
     logout: Function;
+    markAllRead: Function;
     searchUserConnections: Function;
     searchNotifications: Function;
     updateNotification: Function;
@@ -52,6 +55,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    markAllRead: NotificationActions.markAllRead,
     searchNotifications: NotificationActions.search,
     updateNotification: NotificationActions.update,
     updateUserConnection: UserConnectionsActions.update,
@@ -64,6 +68,7 @@ class Notifications extends React.Component<
     private flatListRef: any;
     private translate: Function;
     private theme = buildStyles();
+    private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
     private themeNotification = buildNotificationStyles();
 
@@ -75,10 +80,11 @@ class Notifications extends React.Component<
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeNotification = buildNotificationStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -87,6 +93,11 @@ class Notifications extends React.Component<
         });
         this.handleRefresh();
     }
+
+    handleMarkAllRead = () => {
+        const { markAllRead, notifications } = this.props;
+        markAllRead(notifications.messages || []);
+    };
 
     handleConnectionRequestAction = (e: any, notification, isAccepted) => {
         const { user, updateUserConnection } = this.props;
@@ -111,17 +122,6 @@ class Notifications extends React.Component<
             },
             user: user.details,
         });
-    };
-
-    onContentSizeChange = () => {
-        const { notifications } = this.props;
-
-        if (notifications.messages?.length) {
-            this.flatListRef?.scrollToIndex({
-                index: 0,
-                animated: true,
-            });
-        }
     };
 
     onNotificationPress = (event, notification, userConnection?: any, shouldNavigate = true) => {
@@ -149,8 +149,17 @@ class Notifications extends React.Component<
 
     navigateToNotificationContext = (notification) => {
         const { navigation } = this.props;
-        if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
-            || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
+        if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED) {
+            if (notification.messageParams?.activatedMomentIds?.length
+                || notification.messageParams?.activatedSpaceIds?.length) {
+                navigation.navigate('ActivatedAreas', {
+                    activatedMomentIds: notification.messageParams?.activatedMomentIds || [],
+                    activatedSpaceIds: notification.messageParams?.activatedSpaceIds || [],
+                });
+            } else {
+                navigation.navigate('Nearby');
+            }
+        } else if (notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY) {
             if (notification.messageParams?.thoughtId) {
@@ -182,10 +191,6 @@ class Notifications extends React.Component<
                         momentDetails: {},
                     });
                 }
-            } else {
-                // NEW_AREAS_ACTIVATED
-                // TODO: Load a page with a list of the newly activated areas
-                navigation.navigate('Nearby');
             }
         } else if (notification.type === NotificationsEmuns.Types.ACHIEVEMENT_COMPLETED) {
             navigation.navigate('Achievements');
@@ -267,10 +272,19 @@ class Notifications extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <FlatList
                         data={notifications.messages || []}
                         keyExtractor={(item) => String(item.id)}
+                        ListHeaderComponent={notifications.messages?.length ? (
+                            <View style={notificationStyles.markAllReadContainer}>
+                                <Pressable onPress={this.handleMarkAllRead}>
+                                    <Text style={this.themeForms.styles.buttonLinkHeader}>
+                                        {this.translate('pages.notifications.markAllRead')}
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        ) : null}
                         renderItem={({ item, index }) => (
                             <Notification
                                 acknowledgeRequest={this.handleConnectionRequestAction}
@@ -287,13 +301,14 @@ class Notifications extends React.Component<
                             'pages.notifications.noNotifications'
                         )} />}
                         ref={(component) => (this.flatListRef = component)}
-                        initialScrollIndex={notifications?.messages?.length ? 0 : undefined}
-                        onContentSizeChange={this.onContentSizeChange}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefresh}
                         />}
                         style={notificationStyles.container}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 </SafeAreaView>
                 <MainButtonMenu

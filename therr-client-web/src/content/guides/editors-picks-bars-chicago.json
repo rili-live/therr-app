@@ -1,0 +1,262 @@
+{
+  "slug": "editors-picks-bars-chicago",
+  "type": "list",
+  "status": "published",
+  "title": "Editor's Picks: 8 Local Chicago Bars Worth Knowing",
+  "description": "A hand-picked guide to neighborhood pubs, breweries, and wine bars across Chicago — local favorites with character, not chains.",
+  "city": "chicago-il",
+  "category": "categories.bar/drinks",
+  "publishedAt": "2026-04-19",
+  "updatedAt": "2026-04-19",
+  "author": "Therr Editorial",
+  "lead": "These aren't the loud, line-around-the-block spots — they're the Chicago bars locals actually return to. Eight neighborhood pubs, breweries, and wine rooms across the city, hand-picked by the Therr editorial team.",
+  "sections": [
+    {
+      "type": "prose",
+      "body": "These picks were curated by the Therr editorial team from venues with complete profiles on Therr — places with a published website, address, and enough information that we could verify they're open and findable. We don't rank by popularity here; the order reflects editorial judgment and venue completeness, not visit counts."
+    },
+    {
+      "type": "space-list",
+      "items": [
+        {
+          "spaceId": "5bc56a0a-ac69-4a4a-bd53-1224b29c6373",
+          "rank": 1,
+          "blurb": "A no-frills Irish pub in River North that locals reach for when they want a pour and a conversation, not a scene."
+        },
+        {
+          "spaceId": "ec53e77e-1b3f-4326-a8db-e46a66abdebd",
+          "rank": 2,
+          "blurb": "The legendary lower-Michigan-Avenue burger joint — the original \"cheezborger\" counter that inspired the SNL sketch."
+        },
+        {
+          "spaceId": "11e43ed8-28d7-4665-8c60-aad12915164a",
+          "rank": 3,
+          "blurb": "A long-running West Loop tavern that pre-dates the neighborhood's restaurant boom — friendly, unpretentious, and reliably open."
+        },
+        {
+          "spaceId": "d7800db1-9fad-4b3b-9b30-0ae347ec211b",
+          "rank": 4,
+          "blurb": "Northwest-side German tavern slinging stein pours of imported pilsner and a kitchen built for hearty plates."
+        },
+        {
+          "spaceId": "d3b48487-c6d0-4a83-be74-a7bbcccf4a6f",
+          "rank": 5,
+          "blurb": "The Fulton Street brewery that helped put Chicago craft beer on the map — tours, taproom, and the limited bottle drops fans line up for."
+        },
+        {
+          "spaceId": "54a2ef16-e9f3-4da7-a541-332ab0a6ab22",
+          "rank": 6,
+          "blurb": "A Streeterville dive that's outlasted the high-rises around it — late hours, cheap pints, and a pool table that rarely sits idle."
+        },
+        {
+          "spaceId": "78c28d01-9750-4efe-9ac9-e1271dfb4cb1",
+          "rank": 7,
+          "blurb": "Edgewater corner spot built for a game with the volume up and a beer that doesn't require a glossary."
+        },
+        {
+          "spaceId": "d5534da6-95e3-41ff-87d8-fe987f90081b",
+          "rank": 8,
+          "blurb": "Bucktown's neighborhood pub for two decades — strong on the local-art front and the kind of bar where the regulars actually know each other."
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "items": [
+        {
+          "question": "How were these Chicago bars chosen?",
+          "answer": "The Therr editorial team hand-picked these from venues with verified, complete profiles on Therr — meaning each spot has a working website, full address, and enough information that we could confirm it's open. We don't rank by popularity; the order reflects editorial judgment."
+        },
+        {
+          "question": "Are any of these chain bars?",
+          "answer": "No. We deliberately exclude national chains in editorial guides like this one — the goal is to surface independent, locally-owned bars that give Chicago its character."
+        },
+        {
+          "question": "How often is this list updated?",
+          "answer": "We refresh the list when our data shows a featured space has closed or moved, and we publish a new updatedAt date when changes are made. Check the date below the title to see when the guide was last reviewed."
+        },
+        {
+          "question": "Where can I find more bars in Chicago?",
+          "answer": "You can browse the full directory of Chicago bars and other local spaces on Therr — including newer openings that didn't make this editorial cut."
+        }
+      ]
+    },
+    {
+      "type": "cta",
+      "heading": "More Chicago bars",
+      "body": "See more local spots and the full directory on Therr.",
+      "href": "/locations/city/chicago-il/bars",
+      "ctaText": "Browse all"
+    }
+  ],
+  "locales": {
+    "es": {
+      "title": "Selección editorial: 8 bares locales de Chicago para conocer",
+      "description": "Una guía curada de pubs de barrio, cervecerías y bares de vino en Chicago — favoritos locales con personalidad, no cadenas.",
+      "lead": "Estos no son los lugares ruidosos con fila a la vuelta de la cuadra — son los bares de Chicago a los que los locales realmente regresan. Ocho pubs de barrio, cervecerías y salas de vino en toda la ciudad, elegidos a mano por el equipo editorial de Therr.",
+      "sections": [
+        {
+          "type": "prose",
+          "body": "Estas selecciones fueron curadas por el equipo editorial de Therr entre lugares con perfiles completos en Therr — sitios con sitio web publicado, dirección y suficiente información para verificar que están abiertos y son fáciles de encontrar. No ordenamos por popularidad; el orden refleja criterio editorial y qué tan completo está el perfil del lugar, no el número de visitas."
+        },
+        {
+          "type": "space-list",
+          "items": [
+            {
+              "spaceId": "5bc56a0a-ac69-4a4a-bd53-1224b29c6373",
+              "rank": 1,
+              "blurb": "Un pub irlandés sin pretensiones en River North al que los locales acuden cuando quieren una pinta y una buena conversación, no una escena."
+            },
+            {
+              "spaceId": "ec53e77e-1b3f-4326-a8db-e46a66abdebd",
+              "rank": 2,
+              "blurb": "El legendario puesto de hamburguesas en la parte baja de Michigan Avenue — el mostrador original de \"cheezborger\" que inspiró el sketch de SNL."
+            },
+            {
+              "spaceId": "11e43ed8-28d7-4665-8c60-aad12915164a",
+              "rank": 3,
+              "blurb": "Una taberna de West Loop que lleva mucho tiempo abierta y es anterior al auge gastronómico del barrio — amigable, sin pretensiones y con horarios confiables."
+            },
+            {
+              "spaceId": "d7800db1-9fad-4b3b-9b30-0ae347ec211b",
+              "rank": 4,
+              "blurb": "Taberna alemana del noroeste de la ciudad que sirve jarras de pilsner importada y una cocina pensada para platos contundentes."
+            },
+            {
+              "spaceId": "d3b48487-c6d0-4a83-be74-a7bbcccf4a6f",
+              "rank": 5,
+              "blurb": "La cervecería de Fulton Street que ayudó a poner a Chicago en el mapa de la cerveza artesanal — tours, taproom y los lanzamientos limitados en botella por los que los fans hacen fila."
+            },
+            {
+              "spaceId": "54a2ef16-e9f3-4da7-a541-332ab0a6ab22",
+              "rank": 6,
+              "blurb": "Un bar sencillo en Streeterville que ha sobrevivido a los rascacielos a su alrededor — horarios tardíos, cervezas económicas y una mesa de billar que rara vez queda libre."
+            },
+            {
+              "spaceId": "78c28d01-9750-4efe-9ac9-e1271dfb4cb1",
+              "rank": 7,
+              "blurb": "Bar de esquina en Edgewater pensado para ver el partido con volumen alto y pedir una cerveza sin necesidad de glosario."
+            },
+            {
+              "spaceId": "d5534da6-95e3-41ff-87d8-fe987f90081b",
+              "rank": 8,
+              "blurb": "El pub de barrio de Bucktown desde hace dos décadas — fuerte en arte local y el tipo de bar donde los clientes habituales de verdad se conocen entre sí."
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "items": [
+            {
+              "question": "¿Cómo se eligieron estos bares de Chicago?",
+              "answer": "El equipo editorial de Therr los eligió a mano entre lugares con perfiles verificados y completos en Therr — cada sitio tiene un sitio web funcional, dirección completa y suficiente información para confirmar que está abierto. No ordenamos por popularidad; el orden refleja criterio editorial."
+            },
+            {
+              "question": "¿Alguno de estos es una cadena?",
+              "answer": "No. Excluimos deliberadamente las cadenas nacionales en guías editoriales como esta — el objetivo es destacar bares independientes y de propiedad local que le dan su carácter a Chicago."
+            },
+            {
+              "question": "¿Con qué frecuencia se actualiza esta lista?",
+              "answer": "Refrescamos la lista cuando nuestros datos muestran que un lugar cerró o se mudó, y publicamos una nueva fecha de actualización cuando se aplican cambios. Revisa la fecha debajo del título para ver cuándo se repasó la guía por última vez."
+            },
+            {
+              "question": "¿Dónde puedo encontrar más bares en Chicago?",
+              "answer": "Puedes explorar el directorio completo de bares de Chicago y otros lugares locales en Therr — incluyendo aperturas recientes que no entraron en esta selección editorial."
+            }
+          ]
+        },
+        {
+          "type": "cta",
+          "heading": "Más bares en Chicago",
+          "body": "Explora más sitios locales y el directorio completo en Therr.",
+          "href": "/locations/city/chicago-il/bars",
+          "ctaText": "Ver todos"
+        }
+      ]
+    },
+    "fr-ca": {
+      "title": "Sélection éditoriale : 8 bars locaux de Chicago à connaître",
+      "description": "Un guide choisi à la main des pubs de quartier, microbrasseries et bars à vin de Chicago — des favoris locaux qui ont du caractère, pas des chaînes.",
+      "lead": "Ce ne sont pas les endroits bruyants avec une file qui fait le tour du pâté de maisons — ce sont les bars de Chicago où les habitants reviennent vraiment. Huit pubs de quartier, brasseries et salles à vin à travers la ville, sélectionnés par l'équipe éditoriale de Therr.",
+      "sections": [
+        {
+          "type": "prose",
+          "body": "Ces choix ont été sélectionnés par l'équipe éditoriale de Therr parmi des établissements ayant un profil complet sur Therr — des lieux avec un site web publié, une adresse et suffisamment d'informations pour confirmer qu'ils sont ouverts et faciles à trouver. Nous ne classons pas par popularité ici; l'ordre reflète notre jugement éditorial et la complétude du profil, pas le nombre de visites."
+        },
+        {
+          "type": "space-list",
+          "items": [
+            {
+              "spaceId": "5bc56a0a-ac69-4a4a-bd53-1224b29c6373",
+              "rank": 1,
+              "blurb": "Un pub irlandais sans prétention de River North où les habitants viennent pour une pinte et une bonne conversation, pas pour la scène."
+            },
+            {
+              "spaceId": "ec53e77e-1b3f-4326-a8db-e46a66abdebd",
+              "rank": 2,
+              "blurb": "Le légendaire comptoir à hamburgers de la partie basse de Michigan Avenue — le « cheezborger » original qui a inspiré le sketch de SNL."
+            },
+            {
+              "spaceId": "11e43ed8-28d7-4665-8c60-aad12915164a",
+              "rank": 3,
+              "blurb": "Une taverne de longue date dans West Loop, antérieure au boom gastronomique du quartier — accueillante, sans prétention et avec des heures fiables."
+            },
+            {
+              "spaceId": "d7800db1-9fad-4b3b-9b30-0ae347ec211b",
+              "rank": 4,
+              "blurb": "Taverne allemande du nord-ouest de la ville servant des chopes de pilsner importée et une cuisine pensée pour des plats copieux."
+            },
+            {
+              "spaceId": "d3b48487-c6d0-4a83-be74-a7bbcccf4a6f",
+              "rank": 5,
+              "blurb": "La microbrasserie de Fulton Street qui a contribué à mettre la bière artisanale de Chicago sur la carte — visites, taproom et les sorties limitées en bouteille pour lesquelles les amateurs font la queue."
+            },
+            {
+              "spaceId": "54a2ef16-e9f3-4da7-a541-332ab0a6ab22",
+              "rank": 6,
+              "blurb": "Un bar simple de Streeterville qui a survécu aux gratte-ciels qui l'entourent — heures tardives, pintes pas chères et une table de billard rarement libre."
+            },
+            {
+              "spaceId": "78c28d01-9750-4efe-9ac9-e1271dfb4cb1",
+              "rank": 7,
+              "blurb": "Bar de coin à Edgewater pensé pour regarder le match avec le volume au max et commander une bière sans avoir besoin d'un glossaire."
+            },
+            {
+              "spaceId": "d5534da6-95e3-41ff-87d8-fe987f90081b",
+              "rank": 8,
+              "blurb": "Le pub de quartier de Bucktown depuis deux décennies — fort sur l'art local et le genre de bar où les habitués se connaissent vraiment."
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "items": [
+            {
+              "question": "Comment ces bars de Chicago ont-ils été choisis?",
+              "answer": "L'équipe éditoriale de Therr les a sélectionnés à la main parmi des établissements aux profils vérifiés et complets sur Therr — chaque endroit a un site web fonctionnel, une adresse complète et suffisamment d'informations pour qu'on puisse confirmer qu'il est ouvert. Nous ne classons pas par popularité; l'ordre reflète notre jugement éditorial."
+            },
+            {
+              "question": "Est-ce que certaines de ces adresses sont des chaînes?",
+              "answer": "Non. Nous excluons délibérément les chaînes nationales dans les guides éditoriaux comme celui-ci — l'objectif est de mettre en avant des bars indépendants et locaux qui donnent à Chicago son caractère."
+            },
+            {
+              "question": "À quelle fréquence cette liste est-elle mise à jour?",
+              "answer": "Nous rafraîchissons la liste lorsque nos données indiquent qu'un endroit a fermé ou déménagé, et nous publions une nouvelle date de mise à jour quand des changements sont appliqués. Vérifie la date sous le titre pour voir quand le guide a été révisé pour la dernière fois."
+            },
+            {
+              "question": "Où puis-je trouver d'autres bars à Chicago?",
+              "answer": "Tu peux parcourir le répertoire complet des bars de Chicago et d'autres lieux locaux sur Therr — y compris les nouvelles ouvertures qui n'ont pas été retenues dans cette sélection éditoriale."
+            }
+          ]
+        },
+        {
+          "type": "cta",
+          "heading": "Plus de bars à Chicago",
+          "body": "Découvre d'autres adresses locales et le répertoire complet sur Therr.",
+          "href": "/locations/city/chicago-il/bars",
+          "ctaText": "Tout parcourir"
+        }
+      ]
+    }
+  }
+}

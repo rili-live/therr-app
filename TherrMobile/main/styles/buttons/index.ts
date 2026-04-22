@@ -43,6 +43,22 @@ const getBtnGroupBtnStyles = (theme: ITherrTheme): any => ({
     justifyContent: 'center',
 });
 
+const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
+    position: 'absolute',
+    shadowColor: theme.colors.brandingBlack,
+    shadowOffset: {
+        height: 1,
+        width: 1,
+    },
+    shadowRadius: 4,
+    borderRadius: 100,
+    padding: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    display: 'flex',
+    zIndex: floatingButtonContainerZIndex,
+});
+
 const getBottomLeftBtnViewStyles = (theme: ITherrTheme): any => ({
     ...getFloatingBtnContainer(theme),
     left: 18,
@@ -72,22 +88,6 @@ const getLeftMiniButton1ViewStyles = (theme: ITherrTheme): any => ({
     bottom: 120 + buttonMenuHeight - collapseOffset,
 });
 
-const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
-    position: 'absolute',
-    shadowColor: theme.colors.brandingBlack,
-    shadowOffset: {
-        height: 1,
-        width: 1,
-    },
-    shadowRadius: 4,
-    borderRadius: 100,
-    padding: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    display: 'flex',
-    zIndex: floatingButtonContainerZIndex,
-});
-
 const buttonGroupStyles: any = {
     width: '100%',
     position: 'absolute',
@@ -98,25 +98,28 @@ const buttonGroupStyles: any = {
     paddingVertical: 4,
 };
 
-const getQuickFiltersButtonTiny = (theme: ITherrTheme): any => ({
-    backgroundColor: theme.colors.brandingWhite,
-    // borderColor: therrTheme.colors.primary3,
+const quickFiltersButtonTinyBase: any = {
     display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
     height: 28,
     paddingVertical: 2,
-});
-const getQuickFiltersButtonTitle = (theme: ITherrTheme): any => ({
+    paddingHorizontal: 8,
+};
+const quickFiltersButtonTitleBase: any = {
     fontWeight: '500',
     fontFamily: therrFontFamily,
-    color: theme.colors.primary3,
-    paddingLeft: 4,
+    paddingHorizontal: 4,
     fontSize: 14,
-});
+};
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
+    // Use a brighter badge background in dark mode for better contrast
+    // Retro theme has its own distinct palette so only override for 'dark'
+    const badgeBg = themeName === 'dark' ? therrTheme.colors.brandingBlueGreen : therrTheme.colors.tertiary;
 
     const styles = StyleSheet.create({
         buttonGroup: {
@@ -206,17 +209,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             lineHeight: 18,
         },
         quickFiltersButtonTiny: {
-            ...getQuickFiltersButtonTiny(therrTheme),
+            ...quickFiltersButtonTinyBase,
+            backgroundColor: therrTheme.colors.backgroundWhite,
         },
         quickFiltersButtonTinyActive: {
-            ...getQuickFiltersButtonTiny(therrTheme),
+            ...quickFiltersButtonTinyBase,
             backgroundColor: therrTheme.colors.primary3,
         },
         quickFiltersButtonTitle: {
-            ...getQuickFiltersButtonTitle(therrTheme),
+            ...quickFiltersButtonTitleBase,
+            color: therrTheme.colors.primary3,
         },
         quickFiltersButtonTitleActive: {
-            ...getQuickFiltersButtonTitle(therrTheme),
+            ...quickFiltersButtonTitleBase,
             color: therrTheme.colors.brandingWhite,
         },
         quickFiltersButtonIcon: {
@@ -234,12 +239,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         addACheckIn: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
-            bottom: 300 + buttonMenuHeight - collapseOffset,
+            bottom: 360 + buttonMenuHeight - collapseOffset,
         },
         addACheckInBadge: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20 + (btnLargeWidth - 10),
-            bottom: 300 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            bottom: 360 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
             zIndex: 20,
         },
         addACheckInFeatured: {
@@ -258,27 +263,32 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 0,
         },
         checkInRewardsBadge: {
-            backgroundColor: therrTheme.colors.tertiary,
+            backgroundColor: badgeBg,
         },
         claimASpace: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
-            bottom: 180 + buttonMenuHeight - collapseOffset,
+            bottom: 240 + buttonMenuHeight - collapseOffset,
         },
-        createEvent: {
+        quickReport: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
             bottom: 120 + buttonMenuHeight - collapseOffset,
         },
+        createEvent: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 20,
+            bottom: 180 + buttonMenuHeight - collapseOffset,
+        },
         uploadMoment: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
-            bottom: 240 + buttonMenuHeight - collapseOffset,
+            bottom: 300 + buttonMenuHeight - collapseOffset,
         },
         uploadMomentBadge: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20 + (btnLargeWidth - 10),
-            bottom: 240 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            bottom: 300 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
             zIndex: 20,
         },
         uploadMomentFeatured: {
@@ -297,7 +307,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 0,
         },
         momentRewardsBadge: {
-            backgroundColor: therrTheme.colors.tertiary,
+            backgroundColor: badgeBg,
         },
         addAMoment: {
             ...getFloatingBtnContainer(therrTheme),
@@ -384,7 +394,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 0,
         },
         mapFiltersBadge: {
-            backgroundColor: therrTheme.colors.tertiary,
+            backgroundColor: badgeBg,
+            color: therrTheme.colors.brandingWhite,
         },
         recenter: {
             position: 'absolute',
@@ -548,6 +559,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 6,
             fontFamily: therrFontFamily,
             fontSize: 15,
+            color: therrTheme.colors.ternary,
         },
         btnClear: {
             ...btnStyles,
@@ -626,6 +638,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         buttonPillTitle: {
             fontSize: 15,
             fontFamily: therrFontFamily,
+            color: therrTheme.colors.brandingWhite,
         },
     });
 

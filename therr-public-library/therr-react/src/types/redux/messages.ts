@@ -1,5 +1,3 @@
-import * as Immutable from 'seamless-immutable';
-
 export interface IDirectMsg {
     key: number | string;
     fromUserName: string;
@@ -7,6 +5,7 @@ export interface IDirectMsg {
     text: string;
     time: string;
     isAnnouncement?: boolean;
+    isFirstMessage?: boolean;
 }
 
 export interface IForumMsg {
@@ -18,18 +17,16 @@ export interface IForumMsg {
     isAnnouncement?: boolean;
 }
 
-export type IForumMsgList = Immutable.ImmutableArray<IForumMsg>;
-export type IForumMsgs = Immutable.ImmutableObject<{[index: string]: IForumMsgList}>;
+export type IForumMsgList = IForumMsg[];
+export type IForumMsgs = {[index: string]: IForumMsgList};
 
-export interface IMessagesState extends Immutable.ImmutableObject<any> {
-    forums: Immutable.ImmutableArray<any>;
-    dms: {
-        [key: string]: IDirectMsg;
-    } | {};
+export interface IMessagesState {
+    forums: any[];
+    dms: Record<string, IDirectMsg[]>;
     myDMs: any;
-    forumMsgs: {
-        [key: string]: IForumMsg;
-    } | {};
+    myDMsPagination?: any;
+    forumMsgs: Record<string, IForumMsgList>;
+    hasUnreadDms: boolean;
 }
 
 export enum MessageActionTypes {
@@ -38,4 +35,6 @@ export enum MessageActionTypes {
     GET_MY_DIRECT_MESSAGES = 'GET_MY_DIRECT_MESSAGES',
     GET_MORE_OF_MY_DIRECT_MESSAGES = 'GET_MORE_OF_MY_DIRECT_MESSAGES',
     GET_FORUM_MESSAGES = 'GET_FORUM_MESSAGES',
+    GET_MORE_FORUM_MESSAGES = 'GET_MORE_FORUM_MESSAGES',
+    MARK_DMS_READ = 'MARK_DMS_READ',
 }

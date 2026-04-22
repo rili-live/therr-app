@@ -10,11 +10,13 @@ import { ContentActionTypes } from '../../types/redux/content';
 import { ISearchAreasArgs } from '../../services/MapsService';
 import { MapsService } from '../../services';
 import { ISearchQuery } from '../../types';
+import { isOfflineError } from '../../utilities/cacheHelpers';
 
 const POST_FEED_PAGE_SIZE = 31;
 
 interface IActiveMomentsFilters {
-    order: 'ASC' | 'DESC';
+    order?: 'ASC' | 'DESC';
+    contentType?: 'all' | 'moments' | 'thoughts';
 }
 
 const Content = {
@@ -28,27 +30,33 @@ const Content = {
     searchActiveEvents: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveEvents(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_EVENTS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     searchActiveEventsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveEventsByIds(options, ids)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_EVENTS_BY_IDS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     updateActiveEventsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveEvents(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_EVENTS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     createOrUpdateEventReaction: (
         eventId: number,
         params: ICreateOrUpdateEventReactionBody,
@@ -77,15 +85,18 @@ const Content = {
                     },
                 });
             }
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     searchBookmarkedEvents: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedEvents(options, 100)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_BOOKMARKED_EVENTS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
 
     // Moments
     insertActiveMoments: (newActiveMoments: any) => (dispatch: any) => dispatch({
@@ -98,19 +109,23 @@ const Content = {
     ) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_MOMENTS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     searchActiveMomentsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveMomentsByIds(options, ids)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     setActiveMomentsFilters: (filters: IActiveMomentsFilters) => (dispatch: any) => dispatch({
         type: ContentActionTypes.SET_ACTIVE_AREAS_FILTERS,
         data: filters,
@@ -118,11 +133,13 @@ const Content = {
     updateActiveMomentsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_MOMENTS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     createOrUpdateMomentReaction: (
         momentId: number,
         params: ICreateOrUpdateAreaReactionBody,
@@ -151,22 +168,27 @@ const Content = {
                     },
                 });
             }
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     searchBookmarkedMoments: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedMoments(options, 100)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     searchMyDrafts: (query: ISearchQuery, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .searchMyMoments(query, data).then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_MY_DRAFTS,
                 data: response.data,
             });
-        }),
+        })
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     deleteDraft: (id: string) => (dispatch: any) => MapsService.deleteMoments({ ids: [id] }).then(() => {
         dispatch({
             type: ContentActionTypes.MOMENT_DRAFT_DELETED,
@@ -174,7 +196,8 @@ const Content = {
                 id,
             },
         });
-    }),
+    })
+        .catch((err) => { console.log(err); throw err; }),
 
     // Spaces
     insertActiveSpaces: (newActiveSpaces: any) => (dispatch: any) => {
@@ -186,27 +209,33 @@ const Content = {
     searchActiveSpaces: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveSpaces(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_SPACES,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     searchActiveSpacesByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveSpacesByIds(options, ids)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     updateActiveSpacesStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveSpaces(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_SPACES,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     createOrUpdateSpaceReaction: (
         spaceId: number,
         params: ICreateOrUpdateSpaceReactionBody,
@@ -235,15 +264,18 @@ const Content = {
                     },
                 });
             }
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     searchBookmarkedSpaces: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedSpaces(options, 100)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_BOOKMARKED_SPACES,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
 
     // Thoughts
     insertActiveThoughts: (newActiveThoughts: any) => (dispatch: any) => {
@@ -255,21 +287,25 @@ const Content = {
     searchActiveThoughts: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_THOUGHTS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { if (!isOfflineError(err)) { console.log(err); throw err; } }),
     updateActiveThoughtsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_THOUGHTS,
                 data: response?.data,
             });
 
             return response?.data;
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     createOrUpdateThoughtReaction: (
         thoughtId: number,
         params: ICreateOrUpdateAreaReactionBody,
@@ -299,15 +335,107 @@ const Content = {
                 });
             }
             return response?.data;
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
     searchBookmarkedThoughts: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedThoughts(options, 100)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ContentActionTypes.SEARCH_BOOKMARKED_THOUGHTS,
                 data: response?.data,
             });
-        }),
+        })
+        .catch((err) => { console.log(err); throw err; }),
+
+    // User Lists (bookmark collections, Google Maps-style)
+    fetchUserLists: (withPreviews = true) => (dispatch: any) => ReactionsService
+        .fetchUserLists(withPreviews)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.FETCH_USER_LISTS,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    fetchUserList: (listId: string, limit = 100, offset = 0) => (dispatch: any) => ReactionsService
+        .fetchUserList(listId, limit, offset)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.FETCH_USER_LIST_DETAILS,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    createUserList: (params: {
+        name: string;
+        description?: string;
+        iconName?: string;
+        colorHex?: string;
+        isPublic?: boolean;
+    }) => (dispatch: any) => ReactionsService
+        .createUserList(params)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.CREATE_USER_LIST,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    updateUserList: (listId: string, params: Partial<{
+        name: string;
+        description: string;
+        iconName: string;
+        colorHex: string;
+        isPublic: boolean;
+        isDefault: boolean;
+    }>) => (dispatch: any) => ReactionsService
+        .updateUserList(listId, params)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_USER_LIST,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    deleteUserList: (listId: string) => (dispatch: any) => ReactionsService
+        .deleteUserList(listId)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.DELETE_USER_LIST,
+                data: { id: listId, ...(response?.data || {}) },
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    addSpaceToList: (listId: string, spaceId: string) => (dispatch: any) => ReactionsService
+        .addSpaceToList(listId, spaceId)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_USER_LIST_MEMBERSHIP,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    removeSpaceFromList: (listId: string, spaceId: string) => (dispatch: any) => ReactionsService
+        .removeSpaceFromList(listId, spaceId)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_USER_LIST_MEMBERSHIP,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
+    getListsForSpace: (spaceId: string) => () => ReactionsService
+        .getListsForSpace(spaceId)
+        .then((response: any) => response?.data)
+        .catch((err) => { console.log(err); throw err; }),
 };
 
 export default Content;

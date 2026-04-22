@@ -4,5 +4,9 @@ controller:
     use-forwarded-headers: "true"
   service:
     externalTrafficPolicy: "Local"
+  nodeSelector:
+    cloud.google.com/gke-nodepool: main-pool
 
-# helm install --namespace ingress-nginx --name nginx-ingress stable/nginx-ingress -f nginx-ingress-controller-config.yaml
+# helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+# helm install nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-nginx -f nginx-ingress-controller-config.yaml
+# helm upgrade nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-nginx -f nginx-ingress-controller-config.yaml

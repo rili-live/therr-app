@@ -11,6 +11,7 @@ export enum Types {
   DISCOVERED_UNIQUE_MOMENT = 'DISCOVERED_UNIQUE_MOMENT',
   DISCOVERED_UNIQUE_SPACE = 'DISCOVERED_UNIQUE_SPACE',
   THOUGHT_REPLY = 'THOUGHT_REPLY',
+  INVITE_FRIENDS_REMINDER = 'INVITE_FRIENDS_REMINDER',
 }
 
 export enum MessageKeys {
@@ -26,4 +27,5 @@ export enum MessageKeys {
   DISCOVERED_UNIQUE_MOMENT = 'notifications.discoveredUniqueMoment',
   DISCOVERED_UNIQUE_SPACE = 'notifications.discoveredUniqueSpace',
   THOUGHT_REPLY = 'notifications.newThoughtReplyReceived',
+  INVITE_FRIENDS_REMINDER = 'notifications.inviteFriendsReminder',
 }

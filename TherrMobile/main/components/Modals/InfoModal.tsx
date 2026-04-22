@@ -1,11 +1,9 @@
 import React from 'react';
-import { Text, Modal, Pressable, View } from 'react-native';
-import { Button } from 'react-native-elements';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { Text } from 'react-native';
+import { Dialog, Portal } from 'react-native-paper';
 import AnimatedLottieView from 'lottie-react-native';
-import spacingStyles from '../../styles/layouts/spacing';
+import ModalButton from './ModalButton';
 
-// import shareAMoment from '../../assets/share-a-moment.json';
 import shareAMoment from '../../assets/coin-wallet.json';
 
 interface IInfoModal {
@@ -20,29 +18,6 @@ interface IInfoModal {
     };
 }
 
-const ModalButton = ({ title, iconName, onPress, iconRight, themeButtons }) => {
-    const iconStyle = iconRight ? { paddingLeft: 7 } : { paddingRight: 7 };
-    return (
-        <Button
-            containerStyle={spacingStyles.flexOne}
-            buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
-            titleStyle={themeButtons.styles.btnTitleBlack}
-            icon={
-                <MaterialIcon
-                    name={iconName}
-                    size={20}
-                    style={[themeButtons.styles.btnIconBlack, iconStyle]}
-                />
-            }
-            iconRight={iconRight}
-            raised={true}
-            type="clear"
-            onPress={onPress}
-            title={title}
-        />
-    );
-};
-
 export default ({
     isVisible,
     onRequestClose,
@@ -51,22 +26,15 @@ export default ({
     translate,
 }: IInfoModal) => {
     return (
-        <Modal
-            animationType="fade"
-            visible={isVisible}
-            onRequestClose={onRequestClose}
-            transparent={true}
-            style={{
-                zIndex: 1000,
-            }}
-        >
-            <Pressable
-                onPress={onRequestClose}
-                style={themeModal.styles.overlay}>
-                <Pressable style={themeModal.styles.container}>
+        <Portal>
+            <Dialog
+                visible={isVisible}
+                onDismiss={onRequestClose}
+                style={themeModal.styles.container}
+            >
+                <Dialog.Content>
                     <AnimatedLottieView
                         source={shareAMoment}
-                        // resizeMode="cover"
                         resizeMode="contain"
                         speed={1}
                         autoPlay={true}
@@ -75,17 +43,17 @@ export default ({
                     />
                     <Text style={themeModal.styles.header}>{translate('modals.infoModalPoints.header')}</Text>
                     <Text style={themeModal.styles.text}>{translate('modals.infoModalPoints.description')}</Text>
-                    <View style={themeModal.styles.actionsContainer}>
-                        <ModalButton
-                            iconName="check"
-                            title={translate('modals.infoModalPoints.done')}
-                            onPress={onRequestClose}
-                            iconRight
-                            themeButtons={themeButtons}
-                        />
-                    </View>
-                </Pressable>
-            </Pressable>
-        </Modal>
+                </Dialog.Content>
+                <Dialog.Actions style={themeModal.styles.actionsContainer}>
+                    <ModalButton
+                        iconName="check"
+                        title={translate('modals.infoModalPoints.done')}
+                        onPress={onRequestClose}
+                        iconRight
+                        themeButtons={themeButtons}
+                    />
+                </Dialog.Actions>
+            </Dialog>
+        </Portal>
     );
 };

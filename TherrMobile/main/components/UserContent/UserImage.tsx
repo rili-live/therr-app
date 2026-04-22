@@ -2,7 +2,7 @@ import React from 'react';
 import { Dimensions, Pressable, View } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ImageCropPicker from 'react-native-image-crop-picker';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import mixins from '../../styles/mixins';
 import Image from '../../components/BaseImage';
 
@@ -22,9 +22,9 @@ const handleImagePress = (onImageReady, user) => {
     ).then((cameraResponse) => {
         onImageReady(cameraResponse);
     }).catch((err) => {
-        analytics().logEvent('user_image_upload_error', {
+        logEvent(getAnalytics(),'user_image_upload_error', {
             userId: user?.details?.id,
-        }).catch((err) => console.log(err));
+        }).catch((logErr) => console.log(logErr));
         if (err?.message.toLowerCase().includes('cancel')) {
             onImageReady({
                 didCancel: true,

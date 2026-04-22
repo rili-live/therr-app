@@ -1,6 +1,7 @@
-import { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { IContentSelectionType as ISelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { isMyContent } from './content';
 import { getReactionUpdateArgs } from './reactions';
+import { showToast } from './toasts';
 
 
 const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
@@ -9,21 +10,53 @@ const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
     createOrUpdateMomentReaction,
     createOrUpdateSpaceReaction,
     toggleAreaOptions,
+    translate,
+}: {
+    user: any;
+    createOrUpdateEventReaction: Function;
+    createOrUpdateMomentReaction: Function;
+    createOrUpdateSpaceReaction: Function;
+    toggleAreaOptions: Function;
+    translate?: Function;
 }) => {
     const requestArgs: any = getReactionUpdateArgs(reactionType);
 
+    const onSuccess = () => {
+        if (translate) {
+            showToast.success({
+                text1: translate('alertTitles.reactionSent'),
+            });
+        }
+    };
+    const onError = () => {
+        if (translate) {
+            showToast.error({
+                text1: translate('alertTitles.reactionFailed'),
+            });
+        }
+    };
+
     if (selectedArea.areaType === 'events') {
-        createOrUpdateEventReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
-            toggleAreaOptions(selectedArea);
-        });
+        createOrUpdateEventReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName)
+            .then(onSuccess)
+            .catch(onError)
+            .finally(() => {
+                toggleAreaOptions(selectedArea);
+            });
     } else if (selectedArea.areaType === 'spaces') {
-        createOrUpdateSpaceReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
-            toggleAreaOptions(selectedArea);
-        });
+        createOrUpdateSpaceReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName)
+            .then(onSuccess)
+            .catch(onError)
+            .finally(() => {
+                toggleAreaOptions(selectedArea);
+            });
     } else if (selectedArea.areaType === 'moments') {
-        createOrUpdateMomentReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
-            toggleAreaOptions(selectedArea);
-        });
+        createOrUpdateMomentReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName)
+            .then(onSuccess)
+            .catch(onError)
+            .finally(() => {
+                toggleAreaOptions(selectedArea);
+            });
     }
 };
 
@@ -31,12 +64,33 @@ const handleThoughtReaction = (selectedArea, reactionType: ISelectionType, {
     user,
     createOrUpdateThoughtReaction,
     toggleThoughtOptions,
+    translate,
+}: {
+    user: any;
+    createOrUpdateThoughtReaction: Function;
+    toggleThoughtOptions: Function;
+    translate?: Function;
 }) => {
     const requestArgs: any = getReactionUpdateArgs(reactionType);
 
-    createOrUpdateThoughtReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
-        toggleThoughtOptions(selectedArea);
-    });
+    createOrUpdateThoughtReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName)
+        .then(() => {
+            if (translate) {
+                showToast.success({
+                    text1: translate('alertTitles.reactionSent'),
+                });
+            }
+        })
+        .catch(() => {
+            if (translate) {
+                showToast.error({
+                    text1: translate('alertTitles.reactionFailed'),
+                });
+            }
+        })
+        .finally(() => {
+            toggleThoughtOptions(selectedArea);
+        });
 };
 
 interface ILoadMoreAreas {

@@ -1,3 +1,4 @@
+export const API_KEYS_TABLE_NAME = 'main.apiKeys';
 export const INTERESTS_TABLE_NAME = 'main.interests';
 export const ORGANIZATIONS_TABLE_NAME = 'main.organizations';
 export const SOCIAL_SYNCS_TABLE_NAME = 'main.socialSyncs';

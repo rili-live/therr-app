@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Location, NavigateFunction } from 'react-router-dom';
+import { Link, Location, NavigateFunction } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
-import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IUnderConstructionAppRouterProps {
     location: Location;
@@ -24,6 +24,7 @@ interface IStoreProps extends IUnderConstructionAppDispatchProps, IUnderConstruc
 
 // Regular component props
 export interface IUnderConstructionAppProps extends IUnderConstructionAppRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface IUnderConstructionAppState {
@@ -42,47 +43,73 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class UnderConstructionAppComponent extends React.Component<IUnderConstructionAppProps, IUnderConstructionAppState> {
-    private translate: Function;
-
     constructor(props: IUnderConstructionAppProps) {
         super(props);
 
         this.state = {
             inputs: {},
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.underConstruction.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.goMobile.pageTitle')}`;
     }
 
     login = (credentials: any) => this.props.login(credentials);
 
     public render(): JSX.Element | null {
-        const { location } = this.props;
-        const alertSuccessMessage = location.state && (location.state as any).successMessage;
-
         return (
             <div id="page_under_construction" className="flex-box center space-evenly row">
                 <div className="margin-top-lg margin-bot-lg">
                     <div className="flex fill max-wide-40">
                         <div className="flex-box fill">
-                            <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" />
+                            <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" width="400" height="300" />
                         </div>
                         <h2 className="text-title-medium text-center no-bot-margin fill">
-                            {this.translate('pages.underConstruction.welcome')}
+                            {this.props.translate('pages.goMobile.welcome')}
                         </h2>
-                        <p className="info-text text-center fill">{this.translate('pages.underConstruction.info')}</p>
-                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
-                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info3')}</p>
+                        <p className="info-text text-center fill">{this.props.translate('pages.goMobile.subtitle')}</p>
+                        <div className="flex-box center margin-top-lg margin-bot-lg">
+                            <Link to="/explore" className="btn btn-primary explore-link-button">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                                </svg>
+                                <span>{this.props.translate('pages.goMobile.featuresHeading')}</span>
+                            </Link>
+                        </div>
+                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.props.translate('pages.home.info2')}</p>
+                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.props.translate('pages.home.info3')}</p>
                         <div className="store-image-links flex-box row space-around margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                <img className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
+                                <img
+                                    className="max-100"
+                                    src="/assets/images/apple-store-download-button.svg"
+                                    alt="Download Therr on the App Store"
+                                    width="150"
+                                    height="50"
+                                    loading="lazy"
+                                />
                             </a>
                             <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                <img className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
+                                <img
+                                    className="max-100"
+                                    src="/assets/images/play-store-download-button.svg"
+                                    alt="Download Therr on Google Play"
+                                    width="150"
+                                    height="50"
+                                    loading="lazy"
+                                />
                             </a>
                         </div>
                     </div>
@@ -92,4 +119,4 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(UnderConstructionAppComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(UnderConstructionAppComponent)));

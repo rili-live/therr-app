@@ -3,9 +3,11 @@
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
+import translate from '../../../utilities/translator';
 
 export interface ISendCampaignApprovedEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -22,15 +24,16 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendCampaignApprovedEmailConfig, templateParams: ITemplateParams) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const dearUser = `${contextConfig.brandGreeting},`;
     const htmlConfig = {
-        header: 'Approved! Your ads campaign request was reviewed and accepted',
+        header: translate(locale, 'emails.campaignApproved.header'),
         dearUser,
-        body1: `Your campaign, '${templateParams.campaignName}' will beginning running on the target platforms (${templateParams.integrationTargets.join(', ')}) on the scheduled time and date.`,
-        body2: 'Visit the dashboard for a real-time summary of campaign performance.',
-        body3: `If you have any questions, don't hesitate to contact support at info@therr.com.`,
+        body1: translate(locale, 'emails.campaignApproved.body1', { campaignName: templateParams.campaignName, integrationTargets: templateParams.integrationTargets.join(', ') }),
+        body2: translate(locale, 'emails.campaignApproved.body2'),
+        body3: translate(locale, 'emails.campaignApproved.body3'),
         buttonHref: `${globalConfig[process.env.NODE_ENV].dashboardHostFull}`,
         buttonText: contextConfig.brandGoLinkText,
     };

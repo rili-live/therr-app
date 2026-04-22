@@ -11,6 +11,18 @@ interface IArea extends IPost {
     distance: number | string;
 }
 
+const mergeSortByCreatedAt = (leftPosts: IPost[], rightPosts: IPost[], shouldSortByReaction = false) => {
+    return [...leftPosts, ...rightPosts].sort((a, b) => {
+        const aOrderByVal = shouldSortByReaction
+            ? new Date(a.reaction?.createdAt || a.createdAt).getTime()
+            : new Date(a.createdAt).getTime();
+        const bOrderByVal = shouldSortByReaction
+            ? new Date(b.reaction?.createdAt || b.createdAt).getTime()
+            : new Date(b.createdAt).getTime();
+        return bOrderByVal - aOrderByVal;
+    });
+};
+
 /**
  * Merges multiple lists of areas together and orders them by createdAt time
  * @param moments a pre-ordered list of moments (by createdAt)
@@ -50,18 +62,6 @@ const mergeAreas = (moments: IArea[], spaces: IArea[], sortBy = 'createdAt', sho
     }
 };
 
-const mergeSortByCreatedAt = (leftPosts: IPost[], rightPosts: IPost[], shouldSortByReaction = false) => {
-    return [...leftPosts, ...rightPosts].sort((a, b) => {
-        const aOrderByVal = shouldSortByReaction
-            ? new Date(a.reaction?.createdAt || a.createdAt).getTime()
-            : new Date(a.createdAt).getTime();
-        const bOrderByVal = shouldSortByReaction
-            ? new Date(b.reaction?.createdAt || b.createdAt).getTime()
-            : new Date(b.createdAt).getTime();
-        return bOrderByVal - aOrderByVal;
-    });
-};
-
 interface IGetActiveDataArgs {
     activeTab: any;
     content: any;
@@ -91,12 +91,19 @@ export default ({
 
 
     if (isForBookmarks) {
-        // TODO: Add Thought Bookmarks
-        const mapContent = mergeAreas(
+        let mapContent = mergeAreas(
             shouldIncludeMoments ? content.bookmarkedMoments : [],
             shouldIncludeSpaces ? content.bookmarkedSpaces : [],
             sortBy,
         );
+
+        if (shouldIncludeEvents && content.bookmarkedEvents?.length) {
+            mapContent = mergeAreas(mapContent as any, content.bookmarkedEvents, sortBy);
+        }
+
+        if (shouldIncludeThoughts && content.bookmarkedThoughts?.length) {
+            mapContent = mergeSortByCreatedAt(mapContent, content.bookmarkedThoughts, sortBy === 'reaction.createdAt');
+        }
 
         return mapContent;
     }

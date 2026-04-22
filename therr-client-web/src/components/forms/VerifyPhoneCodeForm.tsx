@@ -1,17 +1,19 @@
 import * as React from 'react';
-import { isValidPhoneNumber } from 'react-phone-number-input';
+import { Alert, Stack } from '@mantine/core';
 import {
-    ButtonPrimary,
-    Input,
-} from 'therr-react/components';
-import translator from '../../services/translator';
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
+import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
 interface IVerifyPhoneCodeFormProps {
+  errorMessage?: string;
   isSubmitting: boolean;
   onSubmit: Function;
   onSubmitVerify: Function;
   title: string;
+  translate: (key: string, params?: any) => string;
 }
 
 interface IVerifyPhoneCodeFormState {
@@ -22,8 +24,6 @@ interface IVerifyPhoneCodeFormState {
  * VerifyPhoneCodeForm
  */
 export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCodeFormProps, IVerifyPhoneCodeFormState> {
-    private translate: Function;
-
     constructor(props: IVerifyPhoneCodeFormProps) {
         super(props);
 
@@ -32,8 +32,6 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
                 phoneNumber: '',
             },
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     isFormDisabled() {
@@ -72,32 +70,45 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
         return (
             <div className="register-container">
                 <div className="flex fill">
-                    <h1 className="text-center">{this.props.title}</h1>
+                    <Stack gap="sm">
+                        <h1 className="text-center">{this.props.title}</h1>
+                        {this.props.errorMessage && (
+                            <Alert color="red" variant="light">
+                                {this.props.errorMessage}
+                            </Alert>
+                        )}
 
-                    <label className="required" htmlFor="verification_code">{this.translate('components.createProfileForm.labels.verificationCode')}:</label>
-                    <Input
-                        type="text"
-                        id="verification_code"
-                        name="verificationCode"
-                        value={this.state.inputs.verificationCode}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                    />
+                        <MantineInput
+                            type="text"
+                            id="verification_code"
+                            name="verificationCode"
+                            value={this.state.inputs.verificationCode}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.props.translate}
+                            validations={['isRequired']}
+                            label={this.props.translate('components.createProfileForm.labels.verificationCode')}
+                        />
 
-                    <div className="form-field flex-box space-between row">
-                        <ButtonPrimary
-                            id="resend_phone"
-                            text={this.translate('components.createProfileForm.buttons.resend')} onClick={this.onResendCode} />
-                        <ButtonPrimary
-                            id="verify_phone"
-                            text={this.translate('components.createProfileForm.buttons.submit')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
-                    </div>
+                        <div className="form-field flex-box space-between row">
+                            <MantineButton
+                                id="resend_phone"
+                                text={this.props.translate('components.createProfileForm.buttons.resend')}
+                                onClick={this.onResendCode}
+                                variant="outline"
+                            />
+                            <MantineButton
+                                id="verify_phone"
+                                text={this.props.translate('components.createProfileForm.buttons.submit')}
+                                onClick={this.onSubmit}
+                                disabled={this.isFormDisabled()}
+                            />
+                        </div>
+                    </Stack>
                 </div>
             </div>
         );
     }
 }
 
-export default VerifyPhoneCodeFormComponent;
+export default withTranslation(VerifyPhoneCodeFormComponent);

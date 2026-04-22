@@ -1,6 +1,4 @@
 import * as React from 'react';
-import LogRocket from 'logrocket';
-import setupLogRocketReact from 'logrocket-react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -29,9 +27,6 @@ const RootComponent = () => (
     </Provider>
 );
 
-LogRocket.init('pibaqj/business-dashboard-web-app');
-// after calling LogRocket.init()
-setupLogRocketReact(LogRocket);
 if (process.env.NODE_ENV === 'development') {
     createRoot(rootEl).render(<RootComponent />);
 } else {

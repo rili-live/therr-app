@@ -31,6 +31,7 @@ const utilities = [
     'email-validator',
     'format-sql-join-as-json',
     'http-response',
+    'index-now',
     'internal-rest-request',
     'is-valid-input',
     'is-valid-password',
@@ -41,6 +42,7 @@ const utilities = [
     'normalize-phone-number',
     'print-logs',
     'log-or-update-span',
+    'slugify',
 ];
 
 module.exports = utilities;

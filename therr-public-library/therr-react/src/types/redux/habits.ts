@@ -1,5 +1,3 @@
-import * as Immutable from 'seamless-immutable';
-
 // Habit Goal Types
 export interface IHabitGoal {
     id: string;
@@ -125,7 +123,7 @@ export interface IStreakHistory {
 }
 
 // State Interface
-export interface IHabitsState extends Immutable.ImmutableObject<any> {
+export interface IHabitsState {
     habitGoals: IHabitGoal[];
     templates: IHabitGoal[];
     pacts: IPact[];

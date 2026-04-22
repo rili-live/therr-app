@@ -2,32 +2,40 @@ import React from 'react';
 import axios from 'axios';
 import qs from 'qs';
 import {
-    DeviceEventEmitter,
     Image,
     Linking,
     PermissionsAndroid,
     Platform,
 } from 'react-native';
-import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
-import analytics from '@react-native-firebase/analytics';
-import crashlytics from '@react-native-firebase/crashlytics';
-import messaging from '@react-native-firebase/messaging';
+import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
+import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
+import {
+    getInitialNotification,
+    getMessaging,
+    getToken,
+    onMessage,
+    onNotificationOpenedApp,
+    registerDeviceForRemoteMessages,
+    requestPermission,
+    AuthorizationStatus,
+} from '@react-native-firebase/messaging';
 import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
 import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
-import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../utilities/toasts';
 import BackgroundGeolocation, {
     Config,
     Subscription,
@@ -35,7 +43,7 @@ import BackgroundGeolocation, {
 import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
-import { buildNavTheme } from '../styles';
+import { buildNavTheme, getHeaderTopInset } from '../styles';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
@@ -44,7 +52,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import UIActions from '../redux/actions/UIActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import { buildStyles } from '../styles';
 import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
@@ -58,27 +66,19 @@ import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
 import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroidChannel } from '../constants';
-import { socketIO } from '../socket-io-middleware';
+import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
 import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
-import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
-
-NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
+import { buildGroupUrl } from '../utilities/shareUrls';
 
 const preLoadImageList = [background1, background2, background3];
 
-const Stack = createStackNavigator();
-
-const forFade = ({ current }) => ({
-    cardStyle: {
-        opacity: current.progress,
-    },
-});
+const Stack = createNativeStackNavigator<ParamListBase, undefined>();
 
 const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
@@ -109,6 +109,7 @@ interface ILayoutDispatchProps {
     updateUser: Function;
     updateUserConnection: Function;
     updateUserConnectionType: Function;
+    refreshConnection: Function;
     // Prefetch
     beginPrefetchRequest: Function;
     completePrefetchRequest: Function;
@@ -165,6 +166,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateUser: UsersActions.update,
             updateUserConnection: UserConnectionsActions.update,
             updateUserConnectionType: UserConnectionsActions.updateType,
+            refreshConnection: SocketActions.refreshConnection,
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
             completePrefetchRequest: UIActions.completePrefetchRequest,
@@ -174,6 +176,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private authCredentialListener;
+    private fcmOpenedUnsubscribe;
     private nativeEventListener;
     private translate;
     private unsubscribePushNotifications;
@@ -209,8 +212,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (Platform.OS === 'android') {
             Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
         }
-        // (Firebase) Push Notifications Click Handler
+        // (Firebase) Push Notifications Click Handler (Android intent-filter path)
         this.nativeEventListener = PlatformNativeEventEmitter?.addListener('new-intent-action', this.handleFirebasePushNotificationEvent);
+
+        // (Firebase) iOS APNS-alert path: tap on a backgrounded-state notification
+        this.fcmOpenedUnsubscribe = onNotificationOpenedApp(getMessaging(), (remoteMessage) => {
+            this.handleRemoteMessageTap(remoteMessage);
+        });
+        // (Firebase) iOS APNS-alert path: tap on a killed-state notification that launched the app
+        getInitialNotification(getMessaging())
+            .then((remoteMessage) => {
+                if (remoteMessage) {
+                    this.handleRemoteMessageTap(remoteMessage);
+                }
+            })
+            .catch((err) => console.log('FCM_INITIAL_NOTIFICATION_ERROR', err));
         // Universal links handler
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
 
@@ -221,16 +237,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             });
         }
 
-        DeviceEventEmitter.addListener('locationProviderStatusChange', (status) => { // only trigger when "providerListener" is enabled
-            this.props.updateGpsStatus(status);
-        });
+        // Socket reconnection handlers (ensure token is refreshed on reconnect).
+        // Store references so we can detach them in componentWillUnmount; otherwise
+        // each Layout remount (login/logout cycle) accumulates duplicate handlers.
+        socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
+        socketIO.on('reconnect', this.handleSocketReconnect);
 
         this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
-            analytics().logEvent('background_location_on_location', {
+            logEvent(getAnalytics(),'background_location_on_location', {
                 userId: this.props.user?.details?.id,
             }).catch((err) => console.log(err));
         }, (error) => {
-            analytics().logEvent('background_location_error', {
+            logEvent(getAnalytics(),'background_location_error', {
                 userId: this.props.user?.details?.id,
             }).catch((err) => console.log(err));
             console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
@@ -242,8 +260,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         //     console.log('BackgroundGeolocation-[onActivityChange]', event);
         // }));
         this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-            // TODO: This might be the same as DeviceEventEmitter.addListener('locationProviderStatusChange'...above
-            console.log('BackgroundGeolocation-[onProviderChange]', event);
+            // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
+            // listener (emitted by react-native-android-location-services-dialog-box,
+            // which was removed in the New Architecture migration). Fires on
+            // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
+            // changes (iOS). Reducer checks status === 'enabled'.
+            this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
         }));
 
         this.readyAndStartBackgroundGeolocation();
@@ -276,7 +298,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 }
 
                 if (user.details?.id) {
-                    crashlytics().setUserId(user.details?.id?.toString());
+                    setCrashlyticsUserId(getCrashlytics(), user.details?.id?.toString());
                     if (!__DEV__) {
                         LogRocket.identify(user.details?.id, {
                             name: `${user.details?.firstName} ${user.details?.lastName}`,
@@ -332,20 +354,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
 
-                this.getIosNotificationPermissions()
+                this.requestNotificationPermissions()
                     .then(() => {
-                        return messaging().registerDeviceForRemoteMessages();
+                        return registerDeviceForRemoteMessages(getMessaging());
                     })
                     .then(() => {
                         // Get the token
-                        return messaging().getToken();
+                        return getToken(getMessaging());
                     })
-                    .then((token) => {
-                        axios.defaults.headers['x-user-device-token'] = token;
-                        if (user.details.deviceMobileFirebaseToken !== token) {
-                            updateUser(user.details.id, { deviceMobileFirebaseToken: token });
+                    .then((deviceToken) => {
+                        axios.defaults.headers['x-user-device-token'] = deviceToken;
+                        if (user.details.deviceMobileFirebaseToken !== deviceToken) {
+                            updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
                         }
-                        this.unsubscribePushNotifications = messaging().onMessage(async remoteMessage => {
+                        this.unsubscribePushNotifications = onMessage(getMessaging(), async remoteMessage => {
                             await wrapOnMessageReceived(true, remoteMessage);
 
                             if (remoteMessage?.data?.areasActivated) {
@@ -398,6 +420,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     })
                     .catch((err) => {
                         console.log('NOTIFICATIONS_ERROR', err);
+                        if (!__DEV__) {
+                            try {
+                                const crashlytics = getCrashlytics();
+                                crashlyticsLog(crashlytics, `NOTIFICATIONS_ERROR: ${err?.message || String(err)}`);
+                                recordError(crashlytics, err instanceof Error ? err : new Error(String(err)));
+                            } catch {
+                                // Crashlytics may not be initialized yet on very early startup.
+                            }
+                        }
                     });
             } else {
                 BackgroundGeolocation.stop();
@@ -409,17 +440,27 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.nativeEventListener?.remove();
         this.urlEventListener?.remove();
 
-        if (Platform.OS !== 'ios') {
-            LocationServicesDialogBox.stopListener();
-        }
-
         if (this.authCredentialListener) {
             this.authCredentialListener();
         }
 
+        socketIO.off('reconnect_attempt', this.handleSocketReconnectAttempt);
+        socketIO.off('reconnect', this.handleSocketReconnect);
+
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+        this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
         this.subscriptions.forEach((subscription) => subscription.remove());
     }
+
+    handleSocketReconnectAttempt = () => {
+        updateSocketToken(this.props.user);
+    };
+
+    handleSocketReconnect = () => {
+        if (this.props.user && this.props.user.isAuthenticated) {
+            this.props.refreshConnection(this.props.user);
+        }
+    };
 
     // IMPORTANT: This should only be called once per session
     readyAndStartBackgroundGeolocation = () => {
@@ -439,7 +480,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
                 triggerActivities: 'on_foot, walking, running',
                 notification: {
-                    color: '#0f7b82',
+                    color: this.theme.colors.primary3,
                     smallIcon: 'drawable/ic_notification_icon',
                     text: this.translate('alertTitles.backgroundLocationNotification'),
                     channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
@@ -473,7 +514,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
             /// 2. ready the plugin.
             BackgroundGeolocation.ready(backgroundConfig).then((state) => {
-                analytics().logEvent('background_location_ready', {
+                logEvent(getAnalytics(),'background_location_ready', {
                     isEnabled: state.enabled,
                     userId: this.props.user?.details?.id,
                 }).catch((err) => console.log(err));
@@ -638,7 +679,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             const payload = options.payload as  Partial<Sheets['group-sheet']['payload']>;
             const { user } = this.props;
             const canJoinGroup = !user?.myUserGroups[payload.group.id]?.role;
-            const hasGroupEditAccess = user?.myUserGroups[payload.group.id]?.role === GroupMemberRoles.ADMIN;
+            const hasGroupEditAccess = user?.myUserGroups[payload.group.id]?.role === GroupMemberRoles.ADMIN
+                || user?.details?.id === payload.group?.authorId;
             const isGroupMember = user?.myUserGroups[payload.group.id]?.role && user?.myUserGroups[payload.group.id]?.role !== GroupMemberRoles.ADMIN;
             const hasGroupArchiveAccess = user?.details?.id === payload.group.authorId;
             return SheetManager.show<typeof sheetId>(sheetId, {
@@ -675,19 +717,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewGroup') {
             this.props.archiveForum(group.id).then(() => {
-                Toast.show({
-                    type: 'info',
+                showToast.info({
                     text1: this.translate('forms.editGroup.archiveSuccess'),
-                    visibilityTime: 2500,
                 });
                 RootNavigation.navigate('Groups', {
                     activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                 });
             }).catch(() =>{
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
         }
@@ -711,16 +749,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewGroup') {
             deleteUserGroup(group.id).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.exitedGroup'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
             RootNavigation.navigate('Groups', {
@@ -738,16 +772,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             createUserGroup({
                 groupId: group.id,
             }).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.joinedGroup'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
             RootNavigation.navigate('Groups', {
@@ -761,7 +791,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     onPressShareGroup = (group: any) => {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewGroup') {
-            Clipboard.setString(`https://www.therr.com/groups/${group.id}`);
+            const locale = this.props.user?.settings?.locale || 'en-us';
+            Clipboard.setString(buildGroupUrl(locale, group.id));
 
         }
 
@@ -773,16 +804,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewUser') {
             updateUserConnectionType(userId, type).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.updated'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
         }
@@ -813,6 +840,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'ViewUser';
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER) {
                 targetRouteView = 'Notifications';
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.INVITE_FRIENDS_REMINDER) {
+                targetRouteView = 'Invite';
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MEMBERS) {
                 targetRouteView = 'Groups';
@@ -1090,16 +1119,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         },
                         user: user.details,
                     }).then(() => {
-                        Toast.show({
-                            type: 'success',
+                        showToast.success({
                             text1: this.translate('alertTitles.connectionAccepted'),
-                            visibilityTime: 2500,
                         });
                     }).catch(() => {
-                        Toast.show({
-                            type: 'error',
+                        showToast.error({
                             text1: this.translate('alertTitles.backendErrorMessage'),
-                            visibilityTime: 2500,
                         });
                     }).finally(() => {
                         RootNavigation.navigate('ViewUser', routeParams);
@@ -1130,6 +1155,35 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     handleNotifeeForegroundNotificationEvent = () => {
         return notifee.onForegroundEvent((event) => this.handleNotifeeNotificationEvent(event, true));
+    };
+
+    /**
+     * On iOS, data-only pushes now arrive as APNS alerts (see
+     * push-notifications-service createDataOnlyMessage). When the OS renders
+     * the alert and the user taps it, the tap comes through the Firebase
+     * messaging module — NOT Notifee — so we normalize the FCM RemoteMessage
+     * into the same event shape that handleNotifeeNotificationEvent expects
+     * and reuse all the existing routing logic.
+     */
+    handleRemoteMessageTap = (remoteMessage: any) => {
+        if (!remoteMessage?.data) {
+            return;
+        }
+        const fakeEvent: any = {
+            type: EventType.PRESS,
+            detail: {
+                notification: {
+                    title: remoteMessage.data.notificationTitle?.toString?.() || '',
+                    body: remoteMessage.data.notificationBody?.toString?.() || '',
+                    data: remoteMessage.data,
+                },
+                pressAction: {
+                    id: remoteMessage.data.notificationPressActionId?.toString?.()
+                        || PushNotifications.PressActionIds.default,
+                },
+            },
+        };
+        this.handleNotifeeNotificationEvent(fakeEvent as Event, false, true);
     };
 
     /**
@@ -1177,7 +1231,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             },
             user
         );
-        const isUserEmailVerified = UsersService.isAuthorized(
+        const isEmailVerified = UsersService.isAuthorized(
             {
                 type: AccessCheckType.ANY,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -1203,7 +1257,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } else if (url?.includes('verify-account')) {
             if (urlSplit[1] && urlSplit[1].includes('token=')) {
                 const verificationToken = urlSplit[1]?.split('token=')[1];
-                if (!isUserLoggedIn && !isUserEmailVerified) {
+                if (!isUserLoggedIn && !isEmailVerified) {
                     RootNavigation.navigate('EmailVerification', {
                         verificationToken,
                     });
@@ -1253,12 +1307,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
         } else if (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex)) {
             const spaceId = (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex))[1];
+            const queryParams = qs.parse(urlSplit[1] || '');
+            const shouldTriggerCheckIn = queryParams.checkin === 'true';
             let targetRouteParams: any = {};
             if (spaceId) {
                 targetRouteParams = {
                     space: {
                         id: spaceId,
                     },
+                    shouldTriggerCheckIn,
                 };
             }
             if (isUserLoggedIn && !isUserMissingProps) {
@@ -1329,30 +1386,29 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    getCurrentScreen = (navigation) => {
-        const navState = navigation.getState();
+    // TODO(engagement): wrap this in a "soft opt-in" UX — show an in-app
+    // explainer tied to a user action (first moment / first pact invite /
+    // first DM) before triggering the OS prompt. iOS default opt-in ~50%;
+    // a well-anchored soft-ask typically reaches 70–80%. This is the single
+    // highest-ROI push-notification improvement. See
+    // docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md (item #1).
+    requestNotificationPermissions = () => {
+        // Android 13+ (API 33) requires runtime POST_NOTIFICATIONS permission
+        const androidPermissionPromise = Platform.OS === 'android' && Number(Platform.Version) >= 33
+            ? PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS)
+            : Promise.resolve(null);
 
-        return navState.routes[navState.routes.length - 1]?.name;
-    };
-
-    getCurrentScreenParams = (navigation) => {
-        const navState = navigation.getState();
-
-        return navState.routes?.[navState.routes.length - 1]?.params || {};
-    };
-
-    getIosNotificationPermissions = () => {
-        // TODO: Determine if 2nd then is even necessary
-        return notifee.requestPermission()
+        return androidPermissionPromise
+            .then(() => notifee.requestPermission())
             .then((permissions) => {
                 if (permissions?.authorizationStatus !== 1) {
                     console.log('Notifee authorization status:', permissions);
                 }
-                return messaging().requestPermission();
+                return requestPermission(getMessaging());
             })
             .then((authStatus) => {
-                const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED
-                    || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+                const enabled = authStatus === AuthorizationStatus.AUTHORIZED
+                    || authStatus === AuthorizationStatus.PROVISIONAL;
                 if (!enabled) {
                     console.log('Notifications authorization status:', authStatus);
                 }
@@ -1391,9 +1447,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.subscriptions.forEach((subscription) => subscription.remove());
         BackgroundGeolocation.stop().catch((err) => {
             console.error(`Failed to stop background location after logout: ${err}`);
-            analytics().logEvent('background_location_stop_error', {
+            logEvent(getAnalytics(),'background_location_stop_error', {
                 userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
+            }).catch((logErr) => console.log(logErr));
         });
 
         return logout(userDetails);
@@ -1409,7 +1465,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
-                theme={buildNavTheme(this.theme)}
+                // Keyed on locale only so theme toggles do not remount the entire nav tree.
+                // Locale change still requires a remount because route translators close over locale at construction.
+                key={this.props.user?.settings?.locale || 'en-us'}
+                theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                 ref={navigationRef}
                 onReady={() => {
                     this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
@@ -1430,7 +1489,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     }
 
                     if (previousRouteName !== currentRouteName) {
-                        await analytics().logScreenView({
+                        await logScreenView(getAnalytics(), {
                             screen_name: currentRouteName,
                             screen_class: currentRouteName,
                             is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
@@ -1440,10 +1499,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 }}
             >
                 <Stack.Navigator
-                    screenOptions={({ navigation }) => {
+                    id={undefined}
+                    screenOptions={({ route, navigation }) => {
                         const themeName = this.props?.user?.settings?.mobileThemeName;
-                        const currentScreen = this.getCurrentScreen(navigation);
-                        const currentScreenParams = this.getCurrentScreenParams(navigation);
+                        const currentScreen = route.name;
+                        const currentScreenParams = (route.params as Record<string, any>) || {};
                         const isConnect = currentScreen === 'Connect';
                         const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
@@ -1454,6 +1514,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             || currentScreen === 'ForgotPassword'
                             || currentScreen === 'Nearby'
                             || currentScreen === 'EmailVerification'
+                            || currentScreen === 'CreateProfile'
                             || currentScreen === 'Register';
                         const isAccentPage = currentScreen === 'EditMoment'
                             || currentScreen === 'EditSpace'
@@ -1466,6 +1527,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         let headerTitleColor = themeName === 'light'
                             ? this.theme.colors.primary3
                             : this.theme.colors.textWhite;
+                        const advancedSearchPlaceholderText = currentScreen === 'Areas'
+                            ? this.translate('components.header.searchContentInput.placeholder')
+                            : this.translate('components.header.searchInput.placeholder');
                         if (isMoment) {
                             headerStyleName = 'accent';
                             headerTitleColor = this.theme.colors.accentLogo;
@@ -1476,78 +1540,146 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         if (hasLogoHeaderTitle) {
                             headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
                         }
+                        const isSearchRoute = isAreas || isMap || isConnect;
+                        let searchInputNode: React.ReactNode = null;
                         if (isAreas) {
-                            headerTitle = () => <HeaderSearchInput
+                            searchInputNode = <HeaderSearchInput
                                 isAdvancedSearch
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
+                                placeholderText={advancedSearchPlaceholderText}
                             />;
                         }
                         if (isMap) {
-                            headerTitle = () => <HeaderSearchInput
+                            searchInputNode = <HeaderSearchInput
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
+                                placeholderText={advancedSearchPlaceholderText}
                             />;
                         }
                         if (isConnect) {
-                            headerTitle = () => <HeaderSearchUsersInput
+                            searchInputNode = <HeaderSearchUsersInput
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
                             />;
                         }
 
-                        return ({
-                            animationEnabled: true,
-                            cardStyleInterpolator: forFade,
-                            headerLeft: () => <HeaderMenuLeft
-                                styleName={headerStyleName}
+                        const headerLeftNode = <HeaderMenuLeft
+                            styleName={headerStyleName}
+                            navigation={navigation}
+                            isAuthenticated={user.isAuthenticated}
+                            isEmailVerifed={this.isUserEmailVerified()}
+                            theme={this.theme}
+                        />;
+                        const headerRightNode = this.shouldShowTopRightMenu() ?
+                            <HeaderMenuRight
+                                currentScreen={currentScreen}
+                                currentScreenParams={currentScreenParams}
                                 navigation={navigation}
-                                isAuthenticated={user.isAuthenticated}
+                                notifications={notifications}
+                                styleName={headerStyleName}
                                 isEmailVerifed={this.isUserEmailVerified()}
+                                isVisible={this.shouldShowTopRightMenu()}
+                                location={location}
+                                logout={this.logout}
+                                updateGpsStatus={updateGpsStatus}
+                                user={user}
+                                showActionSheet={this.actionSheetShow}
+                                startNavigationTour={this.props.startNavigationTour}
                                 theme={this.theme}
-                            />,
-                            headerRight: () => this.shouldShowTopRightMenu() ?
-                                <HeaderMenuRight
-                                    currentScreen={currentScreen}
-                                    currentScreenParams={currentScreenParams}
-                                    navigation={navigation}
-                                    notifications={notifications}
-                                    styleName={headerStyleName}
-                                    isEmailVerifed={this.isUserEmailVerified()}
-                                    isVisible={this.shouldShowTopRightMenu()}
-                                    location={location}
-                                    logout={this.logout}
-                                    updateGpsStatus={updateGpsStatus}
-                                    user={user}
-                                    showActionSheet={this.actionSheetShow}
-                                    startNavigationTour={this.props.startNavigationTour}
-                                    theme={this.theme}
-                                    themeButtons={this.themeButtons}
-                                    themeInfoModal={this.themeInfoModal}
-                                    themeMenu={this.themeMenu}
-                                /> :
-                                <HeaderLinkRight
-                                    navigation={navigation}
-                                    themeForms={this.themeForms}
-                                    styleName={headerStyleName}
-                                />,
+                                themeButtons={this.themeButtons}
+                                themeInfoModal={this.themeInfoModal}
+                                themeMenu={this.themeMenu}
+                            /> :
+                            <HeaderLinkRight
+                                navigation={navigation}
+                                themeForms={this.themeForms}
+                                styleName={headerStyleName}
+                            />;
+
+                        const baseOptions: any = {
+                            animation: 'fade',
+                            freezeOnBlur: true,
+                            headerLeft: () => headerLeftNode,
+                            headerRight: () => headerRightNode,
                             headerTitleStyle: {
                                 ...this.theme.styles.headerTitleStyle,
                                 color: headerTitleColor,
                                 textShadowOffset: { width: 0, height: 0 },
                                 textShadowRadius: 0,
-                                maxWidth: 250,
                             },
                             headerTitleAlign: 'center',
                             headerStyle,
                             headerTransparent: false,
                             headerBackVisible: false,
-                            headerBackTitleVisible: false,
+                            headerBackTitle: '',
                             headerTitle,
-                        });
+                        };
+
+                        // Use a custom JS header for every route so the left
+                        // logo and right menu button sit flush against the
+                        // screen edges. Native-stack's built-in header adds an
+                        // inset that pushed them inward on non-search routes.
+                        const customHeaderStyle = {
+                            backgroundColor: headerStyle?.backgroundColor,
+                            borderBottomColor: headerStyle?.borderBottomColor,
+                            borderBottomWidth: headerStyle?.borderBottomWidth,
+                        };
+                        baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
+                            let middleNode: React.ReactNode;
+                            if (isSearchRoute) {
+                                middleNode = (
+                                    <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
+                                        {searchInputNode}
+                                    </View>
+                                );
+                            } else if (typeof hOpts?.headerTitle === 'function') {
+                                middleNode = (
+                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                        {hOpts.headerTitle({
+                                            children: hOpts.title ?? hRoute.name,
+                                            tintColor: headerTitleColor,
+                                        })}
+                                    </View>
+                                );
+                            } else {
+                                const titleText = typeof hOpts?.headerTitle === 'string'
+                                    ? hOpts.headerTitle
+                                    : (hOpts?.title ?? hRoute.name);
+                                middleNode = (
+                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[
+                                                this.theme.styles.headerTitleStyle,
+                                                { color: headerTitleColor },
+                                            ]}
+                                        >
+                                            {titleText}
+                                        </Text>
+                                    </View>
+                                );
+                            }
+                            return (
+                                <View style={[customHeaderStyle, { paddingTop: getHeaderTopInset() }]}>
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        height: 52,
+                                        paddingHorizontal: 8,
+                                    }}>
+                                        {headerLeftNode}
+                                        {middleNode}
+                                        {headerRightNode}
+                                    </View>
+                                </View>
+                            );
+                        };
+
+                        return baseOptions;
                     }}
                 >
                     {routes
@@ -1589,6 +1721,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         })
                         .map((route: any) => {
                             route.name = this.translate(route.name);
+                            delete route.key;
                             return <Stack.Screen key={route.name} {...route} />;
                         })}
                 </Stack.Navigator>

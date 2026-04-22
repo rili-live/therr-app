@@ -19,6 +19,11 @@ export interface ICreateForumBody {
     maxCommentsPerMin?: number;
     doesExpire?: boolean;
     isPublic?: boolean;
+    city?: string;
+    region?: string;
+    country?: string;
+    localLatitude?: number;
+    localLongitude?: number;
 }
 
 export interface ICreateActivityBody {
@@ -30,6 +35,10 @@ export interface ISearchForumsArgs {
     categoryTags?: number[];
     forumIds?: number[];
     usersInvitedForumIds?: number[];
+    nearbyCity?: string;
+    nearbyLatitude?: number;
+    nearbyLongitude?: number;
+    nearbyMaxDistanceKm?: number;
 }
 
 class ForumsService {

@@ -1,6 +1,21 @@
-import * as Immutable from 'seamless-immutable';
+export interface IUserList {
+    id: string;
+    userId: string;
+    name: string;
+    description?: string;
+    iconName?: string;
+    colorHex?: string;
+    isPublic: boolean;
+    isDefault: boolean;
+    itemCount: number;
+    createdAt: string;
+    updatedAt: string;
+    itemPreviews?: any[];
+    items?: any[];
+    spaces?: any[];
+}
 
-export interface IContentState extends Immutable.ImmutableObject<any> {
+export interface IContentState {
     activeEvents: any;
     activeEventsPagination: any;
     bookmarkedEvents: any;
@@ -15,6 +30,9 @@ export interface IContentState extends Immutable.ImmutableObject<any> {
     bookmarkedThoughts: any;
     myDrafts: any;
     myDraftsPagination: any;
+
+    userLists: IUserList[];
+    activeUserList: IUserList | null;
 
     activeAreasFilters: any;
     media: any;
@@ -63,4 +81,12 @@ export enum ContentActionTypes {
     SEARCH_ACTIVE_THOUGHTS = 'SEARCH_ACTIVE_THOUGHTS',
     UPDATE_ACTIVE_THOUGHTS = 'UPDATE_ACTIVE_THOUGHTS',
     SEARCH_BOOKMARKED_THOUGHTS = 'SEARCH_BOOKMARKED_THOUGHTS',
+
+    // User Lists (bookmark collections)
+    FETCH_USER_LISTS = 'FETCH_USER_LISTS',
+    FETCH_USER_LIST_DETAILS = 'FETCH_USER_LIST_DETAILS',
+    CREATE_USER_LIST = 'CREATE_USER_LIST',
+    UPDATE_USER_LIST = 'UPDATE_USER_LIST',
+    DELETE_USER_LIST = 'DELETE_USER_LIST',
+    UPDATE_USER_LIST_MEMBERSHIP = 'UPDATE_USER_LIST_MEMBERSHIP',
 }

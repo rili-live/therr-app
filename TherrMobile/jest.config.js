@@ -17,6 +17,7 @@ module.exports = {
         '@react-native-firebase/messaging': '<rootDir>/__mocks__/firebase/messaging.ts',
         '@invertase/react-native-apple-authentication': '<rootDir>/__mocks__/@invertase/react-native-apple-authentication.js',
         'react-native-device-info': '<rootDir>/__mocks__/react-native-device-info.ts',
+        '^pretty-format$': '<rootDir>/../node_modules/pretty-format',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],
     setupFiles: ['./test-setup.ts'],
@@ -28,7 +29,7 @@ module.exports = {
     //     '^.+\\.jsx?$': 'babel-jest',
     // },
     transformIgnorePatterns: [
-        'node_modules/(?!(jest-)?react-native(-.*)?|@react-native|@react-native-community|@react-native-picker|validator/es/lib/*)',
+        'node_modules/(?!(jest-)?react-native(-.*)?|@react-native|@react-native-community|@react-native-picker|react-redux|validator/es/lib/*)',
     ],
     testRegex: '/__tests__/.*\\.(tsx?|jsx?)$',
 };

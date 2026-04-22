@@ -18,9 +18,11 @@ module.exports = {
     },
     setupFiles: [],
     setupFilesAfterEnv: ['./test-setup.ts'],
-    testURL: 'https://www.example.com/',
+    testEnvironmentOptions: {
+        url: 'https://www.example.com/',
+    },
     transform: {
-        '^.+\\.tsx?$': 'ts-jest',
+        '^.+\\.tsx?$': ['ts-jest', { tsconfig: './tsconfig.test.json' }],
         '^.+\\.jsx?$': 'babel-jest',
     },
     testRegex: '/__tests__/.*\\.(tsx?|jsx?)$',

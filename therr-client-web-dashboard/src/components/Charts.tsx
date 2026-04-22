@@ -14,7 +14,7 @@ export const CircleChart = (props) => {
         donutSolid: true,
         fullWidth: false,
         showLabel: false,
-        labelInterpolationFnc: (value) => `${Math.round(value / series.reduce(sum) * 100)}%`,
+        labelInterpolationFnc: (value) => `${Math.round((value / series.reduce(sum)) * 100)}%`,
     };
 
     const plugins = [

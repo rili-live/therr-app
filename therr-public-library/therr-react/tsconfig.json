@@ -13,6 +13,7 @@
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"experimentalDecorators": true,
+		"skipLibCheck": true,
 		"inlineSourceMap": true,               /* Emit a single file with source maps instead of having a separate file. */
     "inlineSources": true,
 		"paths": {

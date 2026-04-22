@@ -1,15 +1,16 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
-import Toast from 'react-native-toast-message';
-import analytics from '@react-native-firebase/analytics';
+import { showToast } from '../../utilities/toasts';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -40,7 +41,7 @@ interface IManageAccountState {
     inputs: any;
     isCropping: boolean;
     isDeleteAccountModalVisible: boolean;
-    isNightMode: boolean;
+    isDeleting: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
 }
@@ -81,15 +82,15 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
             isCropping: false,
-            isNightMode: props.user.settings.mobileThemeName === 'retro',
             isDeleteAccountModalVisible: false,
+            isDeleting: false,
             isSubmitting: false,
             passwordErrorMessage: '',
         };
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
@@ -101,30 +102,32 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
     onDeleteAccountConfirm = () => {
         const { logout, user } = this.props;
 
-        analytics().logEvent('account_delete_start', {
+        this.setState({ isDeleting: true });
+
+        logEvent(getAnalytics(),'account_delete_start', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
 
         // TODO: Add are you sure modal and test
         UsersService.delete(user.details.id).then(() => {
-            analytics().logEvent('account_delete_success', {
+            logEvent(getAnalytics(),'account_delete_success', {
                 userId: user.details.id,
             }).catch((err) => console.log(err));
 
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
-                visibilityTime: 2000,
                 onHide: () => {
                     logout();
                 },
             });
         }).catch((error) => {
-            analytics().logEvent('account_delete_failed', {
+            logEvent(getAnalytics(),'account_delete_failed', {
                 userId: user.details.id,
                 error: error?.message,
             }).catch((err) => console.log(err));
+        }).finally(() => {
+            this.setState({ isDeleting: false });
         });
     };
 
@@ -165,31 +168,21 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountDeactived'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeactived'),
-                visibilityTime: 3000,
             });
         })
         .catch((error: any) => {
             console.log(error);
-            Toast.show({
-                type: 'error',
+            showToast.error({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountError'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeactivedError'),
-                visibilityTime: 3000,
             });
         })
         .finally(() => {
             this.scrollViewRef?.scrollToPosition(0, 0);
         });
-
-    onThemeChange = (isNightMode: boolean) => {
-        this.setState({
-            isNightMode,
-        });
-    };
 
     toggleDeleteAccountModal = (shouldOpen: boolean) => {
         this.setState({
@@ -215,13 +208,13 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
 
     render() {
         const { navigation, user } = this.props;
-        const  { isDeleteAccountModalVisible } = this.state;
+        const  { isDeleteAccountModalVisible, isDeleting } = this.state;
         const pageHeaderAdvancedSettings = this.translate('pages.advancedSettings.pageHeaderAccountActions');
 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
@@ -251,6 +244,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                     themeMenu={this.themeMenu}
                 />
                 <DeleteAccountModal
+                    isDeleting={isDeleting}
                     isVisible={isDeleteAccountModalVisible}
                     translate={this.translate}
                     onRequestClose={(action) => this.onDeleteAccountModalClose(action)}

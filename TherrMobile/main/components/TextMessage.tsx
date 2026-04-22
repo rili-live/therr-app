@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { ActivityIndicator, View, Text, Pressable } from 'react-native';
-import { Image } from 'react-native-elements';
-import Autolink from 'react-native-autolink';
+import { ActivityIndicator, StyleSheet, View, Text, Pressable } from 'react-native';
+import { Image } from './BaseImage';
 import { getUserImageUri } from '../utilities/content';
+import RichText from './RichText';
+import handleMentionPress from '../utilities/handleMentionPress';
 
 export default ({
     connectionDetails,
@@ -15,7 +16,9 @@ export default ({
     themeMessage,
     translate,
 }) => {
-    const isYou = () => message.fromUserName?.toLowerCase().includes('you');
+    const isYou = () => (message.fromUserId
+        ? message.fromUserId === userDetails?.id
+        : !!message.fromUserName?.toLowerCase().includes('you'));
     const getName = () => {
         if (isYou()) {
             return 'You';
@@ -32,20 +35,19 @@ export default ({
     return (
         <>
             <View style={isLeft ? themeMessage.styles.messageContainerLeft : themeMessage.styles.messageContainerRight}>
-                <Text style={isLeft ? themeMessage.styles.messageTextLeft : themeMessage.styles.messageTextRight}>
-                    <Autolink
-                        text={message.text}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={isLeft ? themeMessage.styles.messageTextLeft : themeMessage.styles.messageTextRight}
+                    text={message.text}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={(username) => handleMentionPress(username, goToUser)}
+                />
                 <Text style={isLeft ? themeMessage.styles.messageDateLeft : themeMessage.styles.messageDateRight}>
                     {message.time}
                 </Text>
             </View>
             {
                 isFirstOfMessage &&
-                <View style={[themeMessage.styles.sectionContainer, { justifyContent: isYou() ? 'flex-end' : 'flex-start' }]}>
+                <View style={[themeMessage.styles.sectionContainer, isYou() ? localStyles.justifyEnd : localStyles.justifyStart]}>
                     <Pressable
                         onPress={onUserPress}
                     >
@@ -63,3 +65,12 @@ export default ({
         </>
     );
 };
+
+const localStyles = StyleSheet.create({
+    justifyEnd: {
+        justifyContent: 'flex-end',
+    },
+    justifyStart: {
+        justifyContent: 'flex-start',
+    },
+});

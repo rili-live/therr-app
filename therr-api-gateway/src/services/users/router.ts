@@ -1,8 +1,17 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
+import {
+    blacklistToken,
+    invalidateApiKeyCache,
+    revokeAllUserRefreshTokens,
+    revokeRefreshToken,
+    storeRefreshToken,
+} from '../../store/redisClient';
 import { validate } from '../../validation';
 import {
     authenticateUserValidation,
@@ -33,14 +42,18 @@ import {
 import { updateNotificationValidation } from './validation/notifications';
 import {
     feedbackAttemptLimiter,
+    forgotPasswordLimiter,
     loginAttemptLimiter,
+    refreshTokenLimiter,
     registerAttemptLimiter,
+    resendVerificationLimiter,
     rewardRequestAttemptLimiter,
     userConnectionLimiter,
     multiInviteLimiter,
     subscribeAttemptLimiter,
     unsubscribeAttemptLimiter,
 } from './limitation/auth';
+import { createApiKeyValidation, revokeApiKeyValidation } from './validation/apiKeys';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 import {
     createThoughtValidation,
@@ -51,9 +64,41 @@ import {
 import CacheStore from '../../store';
 import authorize, { AccessCheckType } from '../../middleware/authorize';
 import { createGroupLimiter } from './limitation/groups';
+import { apiKeyCreateLimiter } from './limitation/apiKeys';
 import authenticateUnsubscribe from '../../middleware/authenticateUnsubscribe';
 
 const usersServiceRouter = express.Router();
+
+// API Keys (management - requires JWT auth)
+usersServiceRouter.post('/api-keys', apiKeyCreateLimiter, createApiKeyValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.get('/api-keys', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.delete('/api-keys/:id', revokeApiKeyValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}, (response) => {
+    // Invalidate cached API key context on revocation
+    if (response?.keyPrefix) {
+        invalidateApiKeyCache(response.keyPrefix);
+    }
+}));
+
+usersServiceRouter.delete('/api-keys', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}, (response) => {
+    // Invalidate all cached API key contexts on bulk revocation
+    if (response?.revokedKeyPrefixes?.length) {
+        response.revokedKeyPrefixes.forEach((prefix) => invalidateApiKeyCache(prefix));
+    }
+}));
 
 // Achievements
 usersServiceRouter.get('/users/achievements', handleServiceRequest({
@@ -71,9 +116,51 @@ usersServiceRouter.post('/users/achievements/:id/claim', handleServiceRequest({
 usersServiceRouter.post('/auth', authenticateOptional, loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}, (responseData) => {
+    // Store refresh token JTI on login for rotation tracking (fail-open)
+    try {
+        if (responseData?.refreshToken) {
+            const decoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number } | null;
+            if (decoded?.jti && decoded?.id && decoded?.exp) {
+                const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+                if (ttl > 0) {
+                    storeRefreshToken(decoded.id, decoded.jti, ttl);
+                }
+            }
+        }
+    } catch (err) {
+        // Non-critical: don't block login
+    }
 }));
 
-usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, handleServiceRequest({
+usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, async (req, res, next) => {
+    // Blacklist the current access token on server-side logout
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (token) {
+            const decoded = jwt.decode(token) as { jti?: string; exp?: number; id?: string } | null;
+            if (decoded?.jti && decoded?.exp) {
+                const remainingTtl = decoded.exp - Math.floor(Date.now() / 1000);
+                if (remainingTtl > 0) {
+                    await blacklistToken(decoded.jti, remainingTtl);
+                }
+                // Also revoke all refresh tokens for this user
+                if (decoded.id) {
+                    await revokeAllUserRefreshTokens(decoded.id);
+                }
+            }
+        }
+    } catch (err) {
+        // Log but don't block logout if blacklisting fails
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_GATEWAY_USERS_ROUTER',
+            messages: ['Failed to blacklist token on logout'],
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
+        });
+    }
+    return next();
+}, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -81,6 +168,40 @@ usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, handleSe
 usersServiceRouter.post('/auth/user-token/validate', authenticateUserTokenValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}));
+
+usersServiceRouter.post('/auth/token/refresh', refreshTokenLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}, (responseData, reqBody) => {
+    // Server-side refresh token rotation tracking (fail-open)
+    try {
+        // Revoke the old refresh token
+        if (reqBody?.refreshToken) {
+            const oldDecoded = jwt.decode(reqBody.refreshToken) as { jti?: string } | null;
+            if (oldDecoded?.jti) {
+                revokeRefreshToken(oldDecoded.jti);
+            }
+        }
+        // Store the new refresh token for reuse detection
+        if (responseData?.refreshToken) {
+            const newDecoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number } | null;
+            if (newDecoded?.jti && newDecoded?.id && newDecoded?.exp) {
+                const ttl = newDecoded.exp - Math.floor(Date.now() / 1000);
+                if (ttl > 0) {
+                    storeRefreshToken(newDecoded.id, newDecoded.jti, ttl);
+                }
+            }
+        }
+    } catch (err) {
+        // Non-critical: log but don't block the refresh response
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_GATEWAY_USERS_ROUTER',
+            messages: ['Failed to track refresh token rotation'],
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
+        });
+    }
 }));
 
 // Rewards
@@ -118,6 +239,10 @@ usersServiceRouter.post('/users/interests/me', validate, handleServiceRequest({
 
 // Payments
 usersServiceRouter.post('/payments/checkout/sessions/:id', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/payments/customer-portal/sessions', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -246,12 +371,12 @@ usersServiceRouter.post('/users/search-pairings', searchUsersValidation, authori
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/forgot-password', forgotPasswordValidation, handleServiceRequest({
+usersServiceRouter.post('/users/forgot-password', forgotPasswordLimiter, forgotPasswordValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/verify/resend', resendVerificationValidation, handleServiceRequest({
+usersServiceRouter.post('/users/verify/resend', resendVerificationLimiter, resendVerificationValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

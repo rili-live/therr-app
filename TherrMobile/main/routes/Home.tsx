@@ -1,17 +1,18 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Button } from '../components/BaseButton';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import Alert from '../components/Alert';
 import RoundTextInput from '../components/Input/TextInput/Round';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
@@ -72,7 +73,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const quote = this.translate('quoteOfTheDay');
         const quoteSplit = quote.split(' - ');
@@ -136,7 +137,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         style={this.theme.styles.scrollViewFull}
@@ -177,8 +178,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 />
                                 <View style={this.theme.styles.sectionContainer}>
                                     <Button
-                                        buttonStyle={this.themeForms.styles.button}
+                                        buttonStyle={this.themeForms.styles.buttonPrimary}
                                         disabledStyle={this.themeForms.styles.buttonDisabled}
+                                        titleStyle={this.themeForms.styles.buttonTitle}
+                                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                         title={this.translate(
                                             'pages.userProfile.buttons.send'
                                         )}

@@ -1,6 +1,4 @@
-import Immutable from 'seamless-immutable';
-
-export interface ILocationState extends Immutable.ImmutableObject<any> {
+export interface ILocationState {
     permissions: any;
     settings: any;
     user: any;

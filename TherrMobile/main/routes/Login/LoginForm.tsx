@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { Platform, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
-import Toast from 'react-native-toast-message';
-import translator from '../../services/translator';
+import { showToast } from '../../utilities/toasts';
+import translator from '../../utilities/translator';
 import { addMargins } from '../../styles';
 import spacingStyles from '../../styles/layouts/spacing';
 import Alert from '../../components/Alert';
@@ -51,8 +51,8 @@ interface ILoginFormProps {
 
 interface ILoginFormState {
     inputs: any;
-    prevLoginError: string;
     isSubmitting: boolean;
+    prevLoginError: string;
 }
 
 /**
@@ -69,20 +69,21 @@ export class LoginFormComponent extends React.Component<
 
         this.state = {
             inputs: {},
-            prevLoginError: '',
             isSubmitting: false,
+            prevLoginError: '',
         };
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.userSettings?.locale || 'en-us', key, params);
     }
 
-    isLoginFormDisabled() {
-        return (
-            !this.state.inputs.userName ||
-            !this.state.inputs.password ||
-            this.state.isSubmitting
-        );
+    isLoginFormDisabled = () => {
+        const { inputs, isSubmitting } = this.state;
+        return !inputs.userName || !inputs.password || isSubmitting;
+    };
+
+    isLoginButtonLoading() {
+        return this.state.isSubmitting;
     }
 
     onSSOLoginError = (err) => {
@@ -94,20 +95,17 @@ export class LoginFormComponent extends React.Component<
             // Google SSO User Canceled
             return;
         } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.errorWithAppleSSO'),
                 text2: this.translate('alertMessages.errorWithAppleSSO'),
             });
         } else if (err?.message?.includes('RNGoogleSignInError')) {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.errorWithGoogleSSO'),
                 text2: this.translate('alertMessages.errorWithGoogleSSO'),
             });
         } else {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.backendErrorMessage'),
                 text2: this.translate('alertMessages.backendErrorMessage'),
             });
@@ -140,6 +138,23 @@ export class LoginFormComponent extends React.Component<
     onSubmit = (ssoUserDetails?: ISSOUserDetails) => {
         const { password, rememberMe, userName } = this.state.inputs;
 
+        if (!ssoUserDetails) {
+            if (!userName) {
+                showToast.error({
+                    text1: this.translate('alertTitles.loginError'),
+                    text2: this.translate('forms.loginForm.missingEmail'),
+                });
+                return;
+            }
+            if (!password) {
+                showToast.error({
+                    text1: this.translate('alertTitles.loginError'),
+                    text2: this.translate('forms.loginForm.missingPassword'),
+                });
+                return;
+            }
+        }
+
         let loginArgs: any = {
             userName: userName?.toLowerCase().trim(),
             password,
@@ -166,16 +181,22 @@ export class LoginFormComponent extends React.Component<
                     error.statusCode === 401 ||
                     error.statusCode === 404
                 ) {
-                    this.setState({
-                        prevLoginError: this.translate(
-                            'forms.loginForm.invalidUsernamePassword'
-                        ),
+                    const msg = this.translate(
+                        'forms.loginForm.invalidUsernamePassword'
+                    );
+                    this.setState({ prevLoginError: msg });
+                    showToast.error({
+                        text1: this.translate('alertTitles.loginError'),
+                        text2: msg,
                     });
                 } else if (error.statusCode >= 500) {
-                    this.setState({
-                        prevLoginError: this.translate(
-                            'forms.loginForm.backendErrorMessage'
-                        ),
+                    const msg = this.translate(
+                        'forms.loginForm.backendErrorMessage'
+                    );
+                    this.setState({ prevLoginError: msg });
+                    showToast.error({
+                        text1: this.translate('alertTitles.backendErrorMessage'),
+                        text2: msg,
                     });
                 }
                 this.setState({
@@ -199,7 +220,7 @@ export class LoginFormComponent extends React.Component<
     };
 
     public render() {
-        const { isSubmitting, prevLoginError } = this.state;
+        const { isSubmitting } = this.state;
         const {
             navigation,
             themeAlerts,
@@ -238,6 +259,7 @@ export class LoginFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                     testID="login-username"
                     inputStyle={{ fontSize: 17 }}
                 />
@@ -267,7 +289,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <View style={themeAuthForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={themeForms.styles.buttonPrimary}
+                        buttonStyle={[themeForms.styles.buttonPrimary, { paddingHorizontal: 20 }]}
                         titleStyle={themeForms.styles.buttonTitle}
                         disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         disabledStyle={themeForms.styles.buttonDisabled}
@@ -275,8 +297,8 @@ export class LoginFormComponent extends React.Component<
                             'forms.loginForm.buttons.login'
                         )}
                         onPress={() => this.onSubmit()}
+                        disabled={this.isLoginButtonLoading()}
                         loading={isSubmitting}
-                        // raised={true}
                         icon={
                             <FontAwesomeIcon
                                 name="sign-in-alt"
@@ -315,15 +337,6 @@ export class LoginFormComponent extends React.Component<
                         />
                     </View>
                 }
-                <Alert
-                    containerStyles={addMargins({
-                        marginBottom: 24,
-                    })}
-                    isVisible={!!prevLoginError}
-                    message={prevLoginError}
-                    type={'error'}
-                    themeAlerts={themeAlerts}
-                />
                 <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd]}>
                     <Button
                         type="clear"
@@ -334,7 +347,7 @@ export class LoginFormComponent extends React.Component<
                         onPress={() => navigation.navigate('Register')}
                     />
                 </View>
-                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd]}>
+                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd, spacingStyles.marginTopMd]}>
                     <Button
                         type="clear"
                         titleStyle={themeForms.styles.buttonLink}

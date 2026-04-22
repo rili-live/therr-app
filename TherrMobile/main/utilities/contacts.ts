@@ -1,17 +1,31 @@
 import Contacts from 'react-native-contacts';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { UserConnectionsService } from 'therr-react/services';
 import { requestOSContactsPermissions } from './requestOSPermissions';
+
+interface IMatchedUser {
+    id: string;
+    email?: string;
+    phoneNumber?: string;
+    firstName?: string;
+    lastName?: string;
+    userName?: string;
+}
+
+interface ISyncResult {
+    contacts: Contacts.Contact[];
+    matchedUsers: IMatchedUser[];
+}
 
 const synceMobileContacts = ({
     storePermissions,
     user,
-}) => requestOSContactsPermissions(storePermissions).then((response) => {
+}): Promise<ISyncResult> => requestOSContactsPermissions(storePermissions).then((response) => {
     const permissionsDenied = Object.keys(response).some((key) => {
         return response[key] !== 'granted';
     });
     if (!permissionsDenied) {
-        analytics().logEvent('phone_contacts_perm_granted', {
+        logEvent(getAnalytics(),'phone_contacts_perm_granted', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
         return Contacts.getAllWithoutPhotos().then(contacts => {
@@ -23,10 +37,10 @@ const synceMobileContacts = ({
                 isStarred: contact.isStarred,
             })).filter((c) => c.emailAddresses.length || c.phoneNumbers.length);
 
-            let promises: Promise<any>[] = [];
+            const promises: Promise<any>[] = [];
             let pointer = 0;
 
-            // Request in batches of 1000 to prevent over too much data in payload
+            // Request in batches of 500 to prevent too much data in payload
             while (pointer < Math.min(contactsFiltered.length, 10000)) {
                 promises.push(UserConnectionsService.findPeopleYouKnow({
                     contacts: contactsFiltered.slice(pointer, pointer + 500),
@@ -35,15 +49,29 @@ const synceMobileContacts = ({
                 pointer += 500;
             }
 
-            // Used to find people already on the app that the user may know
-            Promise.all(promises).catch((error) => {
-                console.log(error);
-            });
+            // Collect matched users from all batches
+            return Promise.all(promises).then((responses) => {
+                const allMatchedUsers: IMatchedUser[] = [];
+                responses.forEach((resp) => {
+                    if (resp?.data?.matchedUsers) {
+                        allMatchedUsers.push(...resp.data.matchedUsers);
+                    }
+                });
 
-            return contacts;
+                return {
+                    contacts,
+                    matchedUsers: allMatchedUsers,
+                };
+            }).catch((error) => {
+                console.log(error);
+                return {
+                    contacts,
+                    matchedUsers: [],
+                };
+            });
         });
     } else {
-        analytics().logEvent('phone_contacts_perm_denied', {
+        logEvent(getAnalytics(),'phone_contacts_perm_denied', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
 
@@ -54,3 +82,5 @@ const synceMobileContacts = ({
 export  {
     synceMobileContacts,
 };
+
+export type { IMatchedUser, ISyncResult };

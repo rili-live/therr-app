@@ -2,7 +2,7 @@ import {
     body,
     header,
     oneOf,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 
 export const searchActiveAreasValidation = [
     header('authorization').exists(),

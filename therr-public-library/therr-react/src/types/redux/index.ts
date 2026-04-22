@@ -55,6 +55,10 @@ import {
     UserConnectionActionTypes,
 } from './userConnections';
 import {
+    INetworkState,
+    NetworkActionTypes,
+} from './network';
+import {
     IUserInterfaceState,
     UserInterfaceActionTypes,
 } from './userInterface';
@@ -115,6 +119,10 @@ export {
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
+
+    // Network
+    INetworkState,
+    NetworkActionTypes,
 
     // User Interface
     IUserInterfaceState,

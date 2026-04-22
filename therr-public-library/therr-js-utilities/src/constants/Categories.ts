@@ -31,6 +31,12 @@ const CategoriesMap: {
     27: 'categories.sports', // remove
     28: 'categories.fitness/sports',
     29: 'categories.museum/academia',
+    30: 'categories.happeningNow',
+    31: 'categories.longWait',
+    32: 'categories.liveEntertainment',
+    33: 'categories.crowdAlert',
+    34: 'categories.hiddenGem',
+    35: 'categories.localDeal',
 };
 
 const CategoryToInterestsMap = {
@@ -258,6 +264,30 @@ const CategoryToInterestsMap = {
         'interests.business.businessTravel',
         'interests.business.collegeLife',
     ],
+    [CategoriesMap[30]]: [
+        'interests.business.localBusiness',
+    ],
+    [CategoriesMap[31]]: [
+        'interests.business.localBusiness',
+        'interests.foodDrink.dining',
+    ],
+    [CategoriesMap[32]]: [
+        'interests.arts.liveMusic',
+        'interests.arts.comedy',
+        'interests.arts.dance',
+    ],
+    [CategoriesMap[33]]: [
+        'interests.business.localBusiness',
+    ],
+    [CategoriesMap[34]]: [
+        'interests.business.localBusiness',
+        'interests.foodDrink.dining',
+        'interests.travelTransport.travel',
+    ],
+    [CategoriesMap[35]]: [
+        'interests.business.localBusiness',
+        'interests.foodDrink.happyHour',
+    ],
 };
 
 const MomentCategories = [
@@ -274,6 +304,12 @@ const MomentCategories = [
     CategoriesMap[13],
     CategoriesMap[24],
     CategoriesMap[23],
+    CategoriesMap[30],
+    CategoriesMap[31],
+    CategoriesMap[32],
+    CategoriesMap[33],
+    CategoriesMap[34],
+    CategoriesMap[35],
 ];
 
 const SpaceCategories = [
@@ -298,11 +334,86 @@ const EventCategories = [
     CategoriesMap[12],
 ];
 
+const ComplementaryCategoriesMap: { [key: string]: string[] } = {
+    [CategoriesMap[3]]: [CategoriesMap[4], CategoriesMap[2], CategoriesMap[7], CategoriesMap[26], CategoriesMap[6]], // restaurant → bar, shop, music, nightlife, art
+    [CategoriesMap[4]]: [CategoriesMap[3], CategoriesMap[7], CategoriesMap[26], CategoriesMap[6], CategoriesMap[5]], // bar → restaurant, music, nightlife, art, marketplace
+    [CategoriesMap[2]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[6], CategoriesMap[29]], // shop → restaurant, bar, art, museum
+    [CategoriesMap[7]]: [CategoriesMap[4], CategoriesMap[3], CategoriesMap[26], CategoriesMap[6]], // music → bar, restaurant, nightlife, art
+    [CategoriesMap[6]]: [CategoriesMap[2], CategoriesMap[3], CategoriesMap[29], CategoriesMap[7]], // art → shop, restaurant, museum, music
+    [CategoriesMap[8]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[28]], // nature → restaurant, bar, fitness
+    [CategoriesMap[9]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[29], CategoriesMap[2]], // hotels → restaurant, bar, museum, shop
+    [CategoriesMap[10]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[7], CategoriesMap[26]], // event → restaurant, bar, music, nightlife
+    [CategoriesMap[26]]: [CategoriesMap[4], CategoriesMap[3], CategoriesMap[7], CategoriesMap[6]], // nightlife → bar, restaurant, music, art
+    [CategoriesMap[28]]: [CategoriesMap[3], CategoriesMap[8], CategoriesMap[2]], // fitness → restaurant, nature, shop
+    [CategoriesMap[29]]: [CategoriesMap[3], CategoriesMap[6], CategoriesMap[2], CategoriesMap[9]], // museum → restaurant, art, shop, hotel
+    [CategoriesMap[5]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[7], CategoriesMap[6]], // marketplace → restaurant, bar, music, art
+    [CategoriesMap[30]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[7], CategoriesMap[2]], // happeningNow → restaurant, bar, music, shop
+    [CategoriesMap[31]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[2]], // longWait → restaurant, bar, shop
+    [CategoriesMap[32]]: [CategoriesMap[4], CategoriesMap[3], CategoriesMap[7], CategoriesMap[26]], // liveEntertainment → bar, restaurant, music, nightlife
+    [CategoriesMap[33]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[2]], // crowdAlert → restaurant, bar, shop
+    [CategoriesMap[34]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[2], CategoriesMap[8]], // hiddenGem → restaurant, bar, shop, nature
+    [CategoriesMap[35]]: [CategoriesMap[3], CategoriesMap[2], CategoriesMap[4]], // localDeal → restaurant, shop, bar
+};
+
+const QuickReportCategories = [
+    CategoriesMap[16], // deals (existing)
+    CategoriesMap[23], // warning (existing)
+    CategoriesMap[30], // happeningNow
+    CategoriesMap[31], // longWait
+    CategoriesMap[32], // liveEntertainment
+    CategoriesMap[33], // crowdAlert
+    CategoriesMap[34], // hiddenGem
+    CategoriesMap[35], // localDeal
+];
+
+const QuickReportExpiryHoursMap: { [key: string]: number } = {
+    [CategoriesMap[16]]: 4, // deals - 4h
+    [CategoriesMap[23]]: 2, // warning - 2h
+    [CategoriesMap[30]]: 2, // happeningNow - 2h
+    [CategoriesMap[31]]: 2, // longWait - 2h
+    [CategoriesMap[32]]: 3, // liveEntertainment - 3h
+    [CategoriesMap[33]]: 2, // crowdAlert - 2h
+    [CategoriesMap[34]]: 24, // hiddenGem - 24h
+    [CategoriesMap[35]]: 4, // localDeal - 4h
+};
+
+// URL-friendly slugs for category landing pages (SEO)
+const CategorySlugMap: Record<string, string> = {
+    [CategoriesMap[3]]: 'restaurants',
+    [CategoriesMap[4]]: 'bars',
+    [CategoriesMap[2]]: 'shops',
+    [CategoriesMap[7]]: 'music-concerts',
+    [CategoriesMap[8]]: 'parks-nature',
+    [CategoriesMap[9]]: 'hotels',
+    [CategoriesMap[10]]: 'event-spaces',
+    [CategoriesMap[5]]: 'marketplaces-festivals',
+    [CategoriesMap[6]]: 'art',
+    [CategoriesMap[28]]: 'fitness-sports',
+    [CategoriesMap[29]]: 'museums',
+    [CategoriesMap[26]]: 'nightlife',
+    [CategoriesMap[16]]: 'deals',
+    [CategoriesMap[12]]: 'gaming',
+    [CategoriesMap[22]]: 'travel',
+    [CategoriesMap[34]]: 'hidden-gems',
+    [CategoriesMap[35]]: 'local-deals',
+    [CategoriesMap[32]]: 'live-entertainment',
+};
+
+// Reverse lookup: slug → category key
+const SlugToCategoryMap: Record<string, string> = Object.fromEntries(
+    Object.entries(CategorySlugMap).map(([k, v]) => [v, k]),
+);
+
 export default {
     CategoriesMap,
+    CategorySlugMap,
     CategoryToInterestsMap,
+    ComplementaryCategoriesMap,
     EventCategories,
     MomentCategories,
+    QuickReportCategories,
+    QuickReportExpiryHoursMap,
+    SlugToCategoryMap,
     SpaceCategories,
     ThoughtCategories,
 };

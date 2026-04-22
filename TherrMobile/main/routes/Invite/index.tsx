@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -9,7 +10,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import CreateConnection from './components/CreateConnection';
@@ -38,6 +39,7 @@ export interface IContactsProps extends IStoreProps {
 }
 
 interface IContactsState {
+    didIgnoreNameConfirm: boolean;
     isNameConfirmModalVisible: boolean;
     isRefreshing: boolean;
     isRefreshingUserSearch: boolean;
@@ -73,9 +75,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.state = {
+            didIgnoreNameConfirm: false,
             isNameConfirmModalVisible: false,
             isRefreshing: false,
             isRefreshingUserSearch: false,
@@ -240,6 +243,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         });
     };
 
+    handleNameCancel = () => {
+        this.setState({
+            didIgnoreNameConfirm: true,
+            isNameConfirmModalVisible: false,
+        });
+    };
+
     scrollTop = () => {
         const { userConnections, user } = this.props;
 
@@ -261,23 +271,24 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     render() {
-        const { isNameConfirmModalVisible } = this.state;
+        const { didIgnoreNameConfirm, isNameConfirmModalVisible } = this.state;
         const { navigation, user } = this.props;
         const shouldLaunchContacts = this.props.route?.params?.shouldLaunchContacts;
 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <CreateConnection
                         navigation={navigation}
                         shouldLaunchContacts={shouldLaunchContacts}
+                        didIgnoreNameConfirm={didIgnoreNameConfirm}
                         toggleNameConfirmModal={this.toggleNameConfirmModal}
                     />
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isNameConfirmModalVisible}
-                    onCancel={this.toggleNameConfirmModal}
+                    onCancel={this.handleNameCancel}
                     onConfirm={this.handleNameConfirm}
                     text={this.translate('forms.createConnection.modal.nameConfirm')}
                     textCancel={this.translate('forms.createConnection.modal.noThanks')}

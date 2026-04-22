@@ -2,6 +2,15 @@ import { ForumActionTypes } from '../../types/redux/forums';
 import ForumsService, { ICreateForumBody, ISearchForumsArgs } from '../../services/ForumsService';
 
 const Forums = {
+    getForumDetails: (forumId: string) => (dispatch: any) => ForumsService.getForum(forumId).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
+        dispatch({
+            type: ForumActionTypes.GET_FORUM_DETAILS,
+            data: { forumId, forum: response?.data },
+        });
+
+        return response?.data;
+    }),
     createForum: (data: ICreateForumBody) => (dispatch: any) => ForumsService.createForum(data).then((response) => {
         dispatch({
             type: ForumActionTypes.CREATE_FORUM,
@@ -37,6 +46,7 @@ const Forums = {
     }),
     searchCategories: (query: any) => (dispatch: any) => ForumsService.searchCategories(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ForumActionTypes.SEARCH_FORUM_CATEGORIES,
                 data: response.data,
@@ -44,8 +54,17 @@ const Forums = {
         }),
     searchForums: (query: any, args: ISearchForumsArgs = {}) => (dispatch: any) => ForumsService.searchForums(query, args)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             dispatch({
                 type: ForumActionTypes.SEARCH_FORUMS,
+                data: response.data,
+            });
+        }),
+    searchMyForums: (query: any, args: ISearchForumsArgs = {}) => (dispatch: any) => ForumsService.searchForums(query, args)
+        .then((response: any) => {
+            if (response?.isOfflineFallback) return;
+            dispatch({
+                type: ForumActionTypes.SEARCH_MY_FORUMS,
                 data: response.data,
             });
         }),

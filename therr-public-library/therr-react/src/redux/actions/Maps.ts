@@ -5,8 +5,11 @@ import MapsService, {
     ICreateSpaceCheckInMetricsArgs,
     IGetSpaceEngagementArgs,
     IGetSpaceMetricsArgs,
+    IMapboxSearchArgs,
+    IMapsRequestOptions,
     IPlacesAutoCompleteArgs,
     ISearchAreasArgs,
+    ISearchPrediction,
 } from '../../services/MapsService';
 import { ContentActionTypes } from '../../types';
 
@@ -25,6 +28,7 @@ const Maps = {
         mediaIds: string[],
         medias?: { path: string; type: string; }[],
     ) => (dispatch: any) => MapsService.fetchMedia(mediaIds, medias).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: ContentActionTypes.FETCH_MEDIA,
             data: response.data.media,
@@ -98,6 +102,7 @@ const Maps = {
         }),
     getEventDetails: (id: number, data: any) => (dispatch: any) => MapsService.getEventDetails(id, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.GET_EVENT_DETAILS,
                 data: {
@@ -108,8 +113,9 @@ const Maps = {
 
             return response.data;
         }),
-    searchEvents: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchEvents(query, data).then((response: any) => {
+    searchEvents: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchEvents(query, data, options).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
                     type: MapActionTypes.GET_EVENTS,
@@ -201,6 +207,7 @@ const Maps = {
         }),
     getMomentDetails: (id: number, data: any) => (dispatch: any) => MapsService.getMomentDetails(id, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.GET_MOMENT_DETAILS,
                 data: {
@@ -213,6 +220,7 @@ const Maps = {
         }),
     getIntegratedMoments: (userId: string) => (dispatch: any) => MapsService.getIntegratedMoments(userId)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return;
             // TODO: Dispatch something
             dispatch({
                 type: ContentActionTypes.FETCH_MEDIA,
@@ -225,8 +233,9 @@ const Maps = {
                 },
             });
         }),
-    searchMoments: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchMoments(query, data).then((response: any) => {
+    searchMoments: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchMoments(query, data, options).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
                     type: MapActionTypes.GET_MOMENTS,
@@ -295,6 +304,7 @@ const Maps = {
         }),
     getSpaceDetails: (id: number, data: any) => (dispatch: any) => MapsService.getSpaceDetails(id, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.GET_SPACE_DETAILS,
                 data: {
@@ -307,6 +317,7 @@ const Maps = {
         }),
     listSpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .listSpaces(query, data).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: MapActionTypes.LIST_SPACES,
                 data: response.data,
@@ -315,8 +326,9 @@ const Maps = {
             // Return so we can react by searching for associated reactions
             return Promise.resolve(response.data);
         }),
-    searchSpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-        .searchSpaces(query, data).then((response: any) => {
+    searchSpaces: (query: any, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => (dispatch: any) => MapsService
+        .searchSpaces(query, data, options).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
                     type: MapActionTypes.GET_SPACES,
@@ -332,6 +344,16 @@ const Maps = {
             }
 
             // Return so we can react by searching for associated reactions
+            return Promise.resolve(response.data);
+        }),
+    searchMySpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
+        .searchMySpaces(query, data).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: MapActionTypes.GET_MY_SPACES,
+                data: response.data,
+            });
+
             return Promise.resolve(response.data);
         }),
     deleteSpace: (args: { ids: string[] }) => (dispatch: any) => MapsService.deleteSpaces(args).then(() => {
@@ -406,19 +428,82 @@ const Maps = {
             return response.data;
         }),
 
-    // Google API
-    getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs) => (dispatch: any) => MapsService.getPlacesSearchAutoComplete(args)
-        .then((response) => {
-            dispatch({
-                type: MapActionTypes.AUTOCOMPLETE_UPDATE,
-                data: {
-                    predictions: response.data?.predictions || [],
-                },
+    // Search Autocomplete (supports Google Places and Mapbox providers)
+    getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs, useMapboxSearch = false) => (dispatch: any) => {
+        dispatch({
+            type: MapActionTypes.AUTOCOMPLETE_SEARCHING,
+        });
+
+        if (useMapboxSearch) {
+            const mapboxArgs: IMapboxSearchArgs = {
+                longitude: args.longitude,
+                latitude: args.latitude,
+                input: args.input,
+            };
+
+            return MapsService.getMapboxSearchAutoComplete(mapboxArgs)
+                .then((response) => {
+                    const suggestions = response.data?.suggestions || [];
+                    const predictions: ISearchPrediction[] = suggestions.map((s: any) => {
+                        let description = s.full_address || '';
+                        if (!description && s.name) {
+                            description = s.place_formatted ? `${s.name}, ${s.place_formatted}` : s.name;
+                        }
+                        return {
+                            place_id: s.mapbox_id,
+                            description,
+                            provider: 'mapbox' as const,
+                            mapbox_id: s.mapbox_id,
+                        };
+                    });
+                    dispatch({
+                        type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                        data: { predictions },
+                    });
+                })
+                .catch((error) => {
+                    console.log('Mapbox search failed, falling back to Google Places', error);
+                    // Fallback to Google Places on Mapbox failure
+                    return MapsService.getPlacesSearchAutoComplete(args)
+                        .then((response) => {
+                            const googlePredictions = (response.data?.predictions || []).map((p: any) => ({
+                                ...p,
+                                provider: 'google',
+                            }));
+                            dispatch({
+                                type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                                data: { predictions: googlePredictions },
+                            });
+                        })
+                        .catch((fallbackError) => {
+                            console.log(fallbackError);
+                            dispatch({
+                                type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                                data: { predictions: [] },
+                            });
+                        });
+                });
+        }
+
+        return MapsService.getPlacesSearchAutoComplete(args)
+            .then((response) => {
+                const predictions = (response.data?.predictions || []).map((p: any) => ({
+                    ...p,
+                    provider: 'google',
+                }));
+                dispatch({
+                    type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                    data: { predictions },
+                });
+            })
+            .catch((error) => {
+                console.log(error);
+                dispatch({
+                    type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                    data: { predictions: [] },
+                });
             });
-        })
-        .catch((error) => {
-            console.log(error);
-        }),
+    },
     setSearchDropdownVisibility: (isVisible: boolean) => (dispatch: any) => {
         dispatch({
             type: MapActionTypes.SET_DROPDOWN_VISIBILITY,
@@ -427,6 +512,30 @@ const Maps = {
             },
         });
     },
+
+    // Geocoding (Nominatim via server-side proxy)
+    geocodeLocation: (query: string) => () => MapsService.geocodeLocation(query)
+        .then((response) => response.data)
+        .catch((error) => {
+            console.log(error);
+            return { results: [] };
+        }),
+
+    // City Pulse
+    getCityPulse: (slug: string, locale?: string) => (dispatch: any) => MapsService
+        .getCityPulse(slug, locale)
+        .then((response: any) => {
+            if (response?.isOfflineFallback) return null;
+            dispatch({
+                type: MapActionTypes.GET_CITY_PULSE,
+                data: response.data,
+            });
+            return response.data;
+        })
+        .catch((error: any) => {
+            console.log(error);
+            return null;
+        }),
 };
 
 export default Maps;

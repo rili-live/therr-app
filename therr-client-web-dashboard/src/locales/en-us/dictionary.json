@@ -254,8 +254,8 @@
       "createProfileError": "Oops, something went wrong",
       "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
       "invalidCode": "Code is invalid or expired. Try again or resend.",
-      "infoTitle": "Why Require Phone #?",
-      "info": "We are dedicated to preventing fake users, so Multi-Factor Auth is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically limits the potential for fake users."
+      "infoTitle": "Why We Verify Your Phone Number",
+      "info": "Your security matters to us. Phone verification helps us keep the community authentic and free from fake accounts. Combined with email and location-based safeguards, it ensures you're connecting with real people in a trusted environment."
     },
     "login": {
       "pageTitle": "Login",
@@ -263,10 +263,38 @@
       "pageSubheader": "...to view customer metrics"
     },
     "influencerPairingResults": {
-      "pageTitle": "Influencer Pairings"
+      "pageTitle": "Local Advocates"
     },
     "manageSpaces": {
       "pageTitle": "Manage Spaces"
+    },
+    "manageRewards": {
+      "pageTitle": "Customer Rewards",
+      "subtitle": "Reward customers for visiting and engaging with your business",
+      "emptyState": "No spaces found. Claim a business location first to set up rewards.",
+      "coinBalanceLabel": "Your TherrCoin Balance",
+      "lowBalanceWarning": "Your coin balance is low. Customers may not receive check-in rewards until your balance is replenished.",
+      "upgradeHeader": "Unlock Customer Rewards",
+      "upgradeSubtitle": "Drive repeat foot traffic by rewarding customers with TherrCoins when they check in or share a photo at your location.",
+      "claimBusinessButton": "Claim a Business Location"
+    },
+    "createEditReward": {
+      "pageTitle": "Configure Reward",
+      "stepOneTitle": "Choose Customer Action",
+      "stepTwoTitle": "Choose Reward",
+      "stepThreeTitle": "Review & Activate",
+      "rewardTypeLockedLabel": "Subscriber Feature",
+      "saveButton": "Save Reward",
+      "successMessage": "Reward activated! Customers will see this when they visit your space.",
+      "coinExplainer": "Customers earn 2 TherrCoins per qualifying visit (~$0.02 value). Coins are deducted from your account balance.",
+      "rewardSummaryHeader": "Reward Summary",
+      "upgradeUnlockMessage": "Upgrade your plan to unlock this reward type.",
+      "saveErrorMessage": "Failed to save reward. Please try again.",
+      "rewardActiveLabel": "Reward is Active",
+      "rewardInactiveLabel": "Reward is Inactive",
+      "loadingSpaceDetails": "Loading space details…",
+      "backToRewards": "← Back to Rewards",
+      "rewardInfoText": "When active, customers will see a reward badge when they view your space on Therr app. TherrCoins are transferred from your account to customers upon qualifying actions."
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
@@ -289,10 +317,10 @@
       "pageTitle": "Dashboard"
     },
     "acquisitionOverview": {
-      "pageTitle": "Acquisition Overview"
+      "pageTitle": "Your Customers"
     },
     "adminAcquisitionOverview": {
-      "pageTitle": "Acquisition Overview"
+      "pageTitle": "Your Customers"
     },
     "campaignsOverview": {
       "pageTitle": "Campaigns Overview"

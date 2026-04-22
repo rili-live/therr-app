@@ -22,7 +22,9 @@ import authenticate from './utilities/authenticate';
 import notifyConnections from './utilities/notify-connections';
 import { UserStatus } from './constants';
 import { FORUM_PREFIX } from './handlers/rooms';
+import config, { validateEnv } from './config';
 
+validateEnv();
 tracing.start();
 
 export const rsAppName = 'therrChat';
@@ -71,16 +73,19 @@ const leaveAndNotifyRooms = (socket: Socket) => {
 
 const startExpressSocketIOServer = () => {
     const app = express();
-    const { SOCKET_PORT } = process.env;
+
+    // Healthcheck
+    app.get('/', (req, res) => { res.status(200).json('OK'); });
+    app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); });
 
     const server = http.createServer(app);
-    serverObj = server.listen(Number(SOCKET_PORT), () => {
+    serverObj = server.listen(config.port, () => {
         logSpan({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
-            messages: `Server (websocket service) running on port, ${SOCKET_PORT}, with process id ${process.pid}`,
+            messages: `Server (websocket service) running on port, ${config.port}, with process id ${process.pid}`,
             traceArgs: {
-                port: SOCKET_PORT,
+                port: config.port,
                 'process.id': process.pid,
             },
         });
@@ -92,18 +97,6 @@ const startExpressSocketIOServer = () => {
         pingInterval: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingInterval),
         // how many ms without a pong packet to consider the connection closed
         pingTimeout: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingTimeout),
-    });
-
-    io.on('connect_error', (errorMsg: string) => {
-        logSpan({
-            level: 'error',
-            messageOrigin: 'SOCKET_IO_LOGS',
-            messages: errorMsg,
-            traceArgs: {
-                'error.message': errorMsg,
-                source: 'connect_error',
-            },
-        });
     });
 
     io.adapter(redisAdapter);
@@ -120,6 +113,23 @@ const startExpressSocketIOServer = () => {
         });
     });
 
+    const fetchAndEmitRoomsList = (emitFn: (roomsList: any) => void) => {
+        (io.of('/').adapter as any).allRooms()
+            .then((allRooms) => getSocketRoomsList(io, allRooms))
+            .then(emitFn)
+            .catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'SOCKET_IO_LOGS',
+                    messages: err?.toString(),
+                    traceArgs: {
+                        'error.message': err?.message,
+                        source: 'fetchAndEmitRoomsList',
+                    },
+                });
+            });
+    };
+
     io.on('connection', async (socket: Socket) => {
         logSpan({
             level: 'info',
@@ -130,27 +140,12 @@ const startExpressSocketIOServer = () => {
             },
         });
 
-        const allRooms = await (io.of('/').adapter as any).allRooms();
-        const roomsList = await getSocketRoomsList(io, allRooms);
-
-        logSpan({
-            level: 'info',
-            messageOrigin: 'SOCKET_IO_LOGS',
-            messages: `All Rooms: ${JSON.stringify(roomsList)}`,
-            traceArgs: {
-                'socket.id': socket.id,
-            },
-        });
-
-        // Send a list of the currently active chat rooms when user connects
-        socket.emit(SOCKET_MIDDLEWARE_ACTION, {
-            type: SocketServerActionTypes.SEND_ROOMS_LIST,
-            data: roomsList,
-        });
-
         // Event sent from socket.io, redux store middleware
         socket.on(SOCKET_MIDDLEWARE_ACTION, async (action: any) => {
-            const decodedAuthenticationToken: any = await authenticate(socket);
+            // Skip JWT cache for actions that may carry a refreshed token
+            const shouldSkipCache = action.type === SocketClientActionTypes.LOGIN
+                || action.type === SocketClientActionTypes.UPDATE_SESSION;
+            const decodedAuthenticationToken: any = await authenticate(socket, { skipCache: shouldSkipCache });
             if (decodedAuthenticationToken) {
                 decodedAuthenticationToken.locale = decodedAuthenticationToken.locale || 'en-us';
             }
@@ -166,13 +161,25 @@ const startExpressSocketIOServer = () => {
             };
 
             switch (action.type) {
+                case SocketClientActionTypes.REQUEST_ROOMS_LIST:
+                    if (decodedAuthenticationToken) {
+                        fetchAndEmitRoomsList((roomsList) => {
+                            socket.emit(SOCKET_MIDDLEWARE_ACTION, {
+                                type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                                data: roomsList,
+                            });
+                        });
+                    }
+                    break;
                 case SocketClientActionTypes.JOIN_ROOM:
                     if (decodedAuthenticationToken) {
                         socketHandlers.joinRoom(internalRestConfig, socket, action.data, decodedAuthenticationToken);
-                        // Notify all users
-                        socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
-                            type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                            data: roomsList,
+                        // Notify all users with fresh rooms list
+                        fetchAndEmitRoomsList((roomsList) => {
+                            socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
+                                type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                                data: roomsList,
+                            });
                         });
                     }
 
@@ -180,10 +187,12 @@ const startExpressSocketIOServer = () => {
                 case SocketClientActionTypes.EXIT_ROOM:
                     if (decodedAuthenticationToken) {
                         socketHandlers.leaveRoom(internalRestConfig, socket, action.data, decodedAuthenticationToken);
-                        // Notify all users
-                        socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
-                            type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                            data: roomsList,
+                        // Notify all users with fresh rooms list
+                        fetchAndEmitRoomsList((roomsList) => {
+                            socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
+                                type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                                data: roomsList,
+                            });
                         });
                     }
 
@@ -312,7 +321,7 @@ interface WebpackHotModule {
 
 declare const module: WebpackHotModule;
 
-if (process.env.NODE_ENV === 'development' && module.hot) {
+if (config.nodeEnv === 'development' && module.hot) {
     module.hot.accept();
     module.hot.dispose(() => serverObj.close());
 }
@@ -323,7 +332,7 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            port: process.env.SOCKET_PORT,
+            port: config.port,
             'process.id': process.pid,
             'error.isUncaughtException': true,
             'error.message': err?.message,
@@ -331,4 +340,17 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
             source: origin,
         },
     });
+});
+
+process.on('uncaughtException', (err, origin) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Uncaught Exception - Shutting down'],
+        traceArgs: {
+            'error.message': err?.message,
+            'process.origin': origin,
+        },
+    });
+    setTimeout(() => process.exit(1), 1000);
 });

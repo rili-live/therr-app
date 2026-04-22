@@ -1,17 +1,13 @@
 import { RequestHandler } from 'express';
-import { AccessLevels, ErrorCodes, UserConnectionTypes } from 'therr-js-utilities/constants';
+import {
+    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, ReferralRewards, UserConnectionTypes,
+} from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import normalizeEmail from 'normalize-email';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
-import { hashPassword } from '../utilities/userHelpers';
-import generateCode from '../utilities/generateCode';
-import { sendVerificationEmail } from '../api/email';
-import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
-import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import {
@@ -24,6 +20,11 @@ import { getAccessForCodeType } from '../store/InviteCodesStore';
 import sendAdminUrgentErrorEmail from '../api/email/admin/sendAdminUrgentErrorEmail';
 import sendClaimPendingReviewEmail from '../api/email/for-business/sendClaimPendingReviewEmail';
 import sendClaimApprovedEmail from '../api/email/for-business/sendClaimApprovedEmail';
+import {
+    createOneTimePassword,
+    verifyUserAccount,
+    resendVerification,
+} from './userVerification';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
@@ -153,13 +154,38 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 }).then((inviter) => {
                     if (inviter.length) {
                         // TODO: Send confirmation e-mail to inviter
-                        return createOrUpdateAchievement({
+                        createOrUpdateAchievement({
                             'x-userid': inviter[0].id,
                             ...req.headers,
                         }, {
                             achievementClass: 'communityLeader',
                             achievementTier: '1_1',
                             progressCount: 1,
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Error while updating inviter achievement'],
+                                traceArgs: {
+                                    'error.message': err?.message,
+                                },
+                            });
+                        });
+
+                        // Award the inviter coins for the successful referral
+                        Store.users.updateUser({
+                            settingsTherrCoinTotal: ReferralRewards.inviterCoins,
+                        }, {
+                            id: inviter[0].id,
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Error while awarding inviter referral coins'],
+                                traceArgs: {
+                                    'error.message': err?.message,
+                                },
+                            });
                         });
                     }
                 }).catch((err) => {
@@ -218,7 +244,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
 const getMe = (req, res) => {
     const userId = req.headers['x-userid'];
 
-    return Store.users.getUsers({ id: userId, settingsIsAccountSoftDeleted: false })
+    return Store.users.getUserByConditions({ id: userId, settingsIsAccountSoftDeleted: false })
         .then((results) => {
             if (!results.length) {
                 return handleHttpError({
@@ -389,14 +415,17 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
             }))
         : Promise.resolve([]);
 
-    return mightKnowPromise.then((mightKnowResults) => Store.users.searchUsers(userId, {
+    // Run mightKnow and searchUsers in parallel for better latency
+    const searchPromise = Store.users.searchUsers(userId, {
         ids,
         query,
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
-    }, true, true)
-        .then((results) => {
+    }, true, true);
+
+    return Promise.all([mightKnowPromise, searchPromise])
+        .then(([mightKnowResults, results]) => {
             res.status(200).send({
                 results: results.map((user) => {
                     // Remove credentials from object
@@ -412,7 +441,7 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
                     pageNumber: actualOffset + 1,
                 },
             });
-        })).catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+        }).catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
 /**
@@ -555,6 +584,37 @@ const updateUser = (req, res) => {
                 }
             }
 
+            const rawAutoRechargePackageId = req.body.autoRechargePackageId;
+            if (rawAutoRechargePackageId !== undefined
+                && rawAutoRechargePackageId !== null
+                && !(typeof rawAutoRechargePackageId === 'string' && (COIN_PACKAGE_IDS as string[]).includes(rawAutoRechargePackageId))) {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid autoRechargePackageId',
+                    statusCode: 400,
+                });
+            }
+            const rawAutoRechargeThreshold = req.body.autoRechargeThresholdCoins;
+            if (rawAutoRechargeThreshold !== undefined
+                && rawAutoRechargeThreshold !== null
+                && !(Number.isInteger(rawAutoRechargeThreshold) && rawAutoRechargeThreshold >= 0)) {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid autoRechargeThresholdCoins',
+                    statusCode: 400,
+                });
+            }
+            const rawAutoRechargeEnabled = req.body.autoRechargeEnabled;
+            if (rawAutoRechargeEnabled !== undefined
+                && rawAutoRechargeEnabled !== null
+                && typeof rawAutoRechargeEnabled !== 'boolean') {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid autoRechargeEnabled',
+                    statusCode: 400,
+                });
+            }
+
             // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
@@ -579,8 +639,12 @@ const updateUser = (req, res) => {
                 settingsIsProfilePublic: req.body.settingsIsProfilePublic,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
+                settingsLocale: req.body.settingsLocale,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
+                autoRechargeEnabled: rawAutoRechargeEnabled,
+                autoRechargeThresholdCoins: rawAutoRechargeThreshold,
+                autoRechargePackageId: rawAutoRechargePackageId,
             };
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
@@ -995,207 +1059,9 @@ const deleteUser = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
-const createOneTimePassword = (req, res) => {
-    const {
-        whiteLabelOrigin,
-        brandVariation,
-    } = parseHeaders(req.headers);
-    const { email, isDashboardRegistration } = req.body;
-
-    return Store.users.getUsers({ email: normalizeEmail(email) })
-        .then((userDetails) => {
-            if (!userDetails.length) {
-                return handleHttpError({
-                    res,
-                    message: 'User not found',
-                    statusCode: 404,
-                });
-            }
-
-            const msExpiresAt = Date.now() + (1000 * 60 * 60 * 48); // 48 hours
-            const otPassword = generateOneTimePassword(8);
-
-            return hashPassword(otPassword)
-                .then((hash) => Store.users.updateUser({
-                    oneTimePassword: `${hash}:${msExpiresAt}`,
-                }, {
-                    email,
-                }))
-                .then(() => sendOneTimePasswordEmail({
-                    subject: '[Forgot Password?] Therr One-Time Password',
-                    toAddresses: [email],
-                    agencyDomainName: whiteLabelOrigin,
-                    brandVariation,
-                }, {
-                    name: email,
-                    oneTimePassword: otPassword,
-                }, isDashboardRegistration || userDetails[0].accessLevels.includes(AccessLevels.DASHBOARD_SIGNUP)))
-                .then(() => res.status(200).send({ message: 'One time password created and sent' }))
-                .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
-        });
-};
-
-const verifyUserAccount = (req, res) => {
-    const {
-        token,
-    } = req.params;
-
-    let decodedToken;
-
-    try {
-        decodedToken = token && Buffer.from(token, 'base64').toString('ascii');
-        decodedToken = JSON.parse(decodedToken);
-    } catch (e: any) {
-        return handleHttpError({ err: e, res, message: 'SQL:USER_ROUTES:ERROR' });
-    }
-
-    return Store.users.getUsers({ email: normalizeEmail(decodedToken.email) })
-        .then((userSearchResults) => {
-            if (!userSearchResults.length) {
-                return handleHttpError({
-                    res,
-                    message: `No user found with email ${decodedToken.email}.`,
-                    statusCode: 404,
-                });
-            }
-            const userVerificationCodes = userSearchResults[0].verificationCodes;
-            return Store.verificationCodes.getCode({
-                code: decodedToken.code,
-                type: req.body.type,
-            })
-                .then(async (codeResults) => {
-                    if (!codeResults.length) {
-                        return handleHttpError({
-                            res,
-                            message: 'No verification code found',
-                            statusCode: 404,
-                        });
-                    }
-
-                    const isExpired = codeResults[0].msExpiresAt <= Date.now();
-
-                    if (isExpired) {
-                        return handleHttpError({
-                            res,
-                            message: 'Token has expired',
-                            statusCode: 400,
-                        });
-                    }
-
-                    const userHasMatchingCode = userVerificationCodes[codeResults[0].type]
-                        && userVerificationCodes[codeResults[0].type].code
-                        && userVerificationCodes[codeResults[0].type].code === codeResults[0].code;
-
-                    if (userHasMatchingCode) {
-                        userVerificationCodes[codeResults[0].type] = {}; // clear out used code
-
-                        const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0]);
-                        const userAccessLevels = new Set(
-                            userSearchResults[0].accessLevels,
-                        );
-                        if (isMissingUserProps) {
-                            userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-                        } else {
-                            userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
-                        }
-
-                        await Store.users.updateUser({
-                            accessLevels: JSON.stringify([...userAccessLevels]),
-                            verificationCodes: JSON.stringify(userVerificationCodes),
-                        }, {
-                            email: decodedToken.email,
-                        });
-
-                        // Set expire rather than delete (gives a window for user to see if already verified)
-                        await Store.verificationCodes.updateCode({ msExpiresAt: Date.now() }, { id: codeResults[0].id });
-
-                        return res.status(200).send({
-                            message: 'Account successfully verified',
-                        });
-                    }
-
-                    return handleHttpError({
-                        res,
-                        message: 'Invalid token',
-                        statusCode: 400,
-                    });
-                })
-                .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
-        });
-};
-
-const resendVerification: RequestHandler = (req: any, res: any) => {
-    const {
-        whiteLabelOrigin,
-        brandVariation,
-    } = parseHeaders(req.headers);
-    // TODO: Supply user agent to determine if web or mobile
-    const codeDetails = generateCode({ email: req.body.email, type: req.body.type });
-    const verificationCode = { type: codeDetails.type, code: codeDetails.code };
-    let userVerificationCodes;
-
-    return Store.users.getUsers({
-        email: normalizeEmail(req.body.email),
-    })
-        .then((users) => {
-            if (!users.length) {
-                return handleHttpError({
-                    res,
-                    message: 'User not found',
-                    statusCode: 404,
-                });
-            }
-
-            if (users[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
-                return handleHttpError({
-                    res,
-                    message: 'Email already verified',
-                    statusCode: 400,
-                });
-            }
-
-            userVerificationCodes = users[0].verificationCodes;
-            userVerificationCodes[codeDetails.type] = {
-                code: codeDetails.code,
-            };
-
-            return Store.verificationCodes.createCode(verificationCode)
-                .then(() => Store.users.updateUser({
-                    verificationCodes: JSON.stringify(userVerificationCodes),
-                }, {
-                    email: req.body.email,
-                }))
-                .then((results) => {
-                    const user = results[0];
-                    // Remove credentials from object
-                    redactUserCreds(user);
-
-                    return sendVerificationEmail({
-                        subject: '[Account Verification] Therr User Account',
-                        toAddresses: [req.body.email],
-                        agencyDomainName: whiteLabelOrigin,
-                        brandVariation,
-                    }, {
-                        name: users[0].firstName && users[0].lastName ? `${users[0].firstName} ${users[0].lastName}` : users[0].email,
-                        verificationCodeToken: codeDetails.token,
-                    }, req.body.isDashboardRegistration || users[0].accessLevels.includes(AccessLevels.DASHBOARD_SIGNUP))
-                        .then(() => res.status(200).send({ message: 'New verification E-mail sent' }))
-                        .catch((error) => {
-                            // Delete user to allow re-registration
-                            Store.users.deleteUsers({ id: user.id });
-                            throw error;
-                        });
-                })
-                .catch((err) => handleHttpError({
-                    err,
-                    res,
-                    message: 'SQL:USER_ROUTES:ERROR',
-                }));
-        });
-};
-
 const requestSpace: RequestHandler = (req: any, res: any) => {
     const {
+        locale,
         userId,
         whiteLabelOrigin,
         brandVariation,
@@ -1225,6 +1091,7 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
             return Promise.all([
                 sendClaimPendingReviewEmail({
                     subject: 'Business Space Request in Review',
+                    locale,
                     toAddresses: [users[0].email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
@@ -1299,6 +1166,7 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
 
             return sendClaimApprovedEmail({
                 subject: 'Approved: Business Space Request',
+                locale,
                 toAddresses: [users[0].email],
                 agencyDomainName: whiteLabelOrigin,
                 brandVariation,
@@ -1324,6 +1192,34 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
         }));
 };
 
+// Internal (service-to-service): clears a user's stored FCM device token when
+// the push-notifications-service confirms it's no longer registered with FCM.
+// Matches on (userId, token) so we don't clobber a freshly rotated token.
+const clearUserDeviceToken: RequestHandler = (req, res) => {
+    const { userId, deviceToken } = req.body || {};
+    if (!userId || !deviceToken) {
+        return handleHttpError({
+            res,
+            message: 'userId and deviceToken are required',
+            statusCode: 400,
+        });
+    }
+    return Store.users.clearDeviceToken(userId, deviceToken)
+        .then((rows: any[]) => {
+            logSpan({
+                level: 'info',
+                messageOrigin: 'API_SERVER',
+                messages: ['Cleared invalid FCM device token'],
+                traceArgs: {
+                    'user.id': userId,
+                    'pushNotification.tokenCleared': rows?.length > 0,
+                },
+            });
+            return res.status(200).send({ cleared: rows?.length > 0 });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
 export {
     createUser,
     getMe,
@@ -1347,4 +1243,5 @@ export {
     resendVerification,
     requestSpace,
     approveSpaceRequest,
+    clearUserDeviceToken,
 };

@@ -3,10 +3,12 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Location, NavigateFunction } from 'react-router-dom';
 import qs from 'qs';
-import translator from '../services/translator';
+import { IUserState } from 'therr-react/types';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
+import { getReturnTo, getRouteAfterLogin, shouldRenderLoginForm } from './Login';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IRegisterRouterProps {
     navigation: {
@@ -15,14 +17,18 @@ interface IRegisterRouterProps {
 }
 
 interface IRegisterDispatchProps {
+    login: Function;
     register: Function;
     location: Location;
 }
 
-type IStoreProps = IRegisterDispatchProps
+interface IStoreProps extends IRegisterDispatchProps {
+    user: IUserState;
+}
 
 // Regular component props
 interface IRegisterProps extends IRegisterRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface IRegisterState {
@@ -32,9 +38,11 @@ interface IRegisterState {
 }
 
 const mapStateToProps = (state: any) => ({
+    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    login: UsersActions.login,
     register: UsersActions.register,
 }, dispatch);
 
@@ -42,7 +50,15 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
-    private translate: Function;
+    static getDerivedStateFromProps(nextProps: IRegisterProps) {
+        if (!shouldRenderLoginForm(nextProps as any)) {
+            const returnTo = getReturnTo(nextProps.location?.search);
+            const destination = getRouteAfterLogin(nextProps.user, returnTo);
+            setTimeout(() => nextProps.navigation.navigate(destination));
+            return null;
+        }
+        return {};
+    }
 
     constructor(props: IRegisterProps) {
         super(props);
@@ -54,12 +70,10 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             inputs: {},
             inviteCode: searchParams?.['invite-code'] as string || '',
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.register.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.register.pageTitle')}`;
 
         if (window?.location) {
             // eslint-disable-next-line no-inner-declarations
@@ -75,15 +89,41 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         }
     }
 
+    registerSSO = (ssoData: any) => {
+        console.log('[RegisterSSO] Dispatching login with SSO data', { // eslint-disable-line no-console
+            isSSO: ssoData.isSSO,
+            ssoProvider: ssoData.ssoProvider,
+            userEmail: ssoData.userEmail,
+            hasIdToken: !!ssoData.idToken,
+        });
+        return this.props.login(ssoData, { google: ssoData.idToken })
+            .then((result: any) => {
+                console.log('[RegisterSSO] Login succeeded', result); // eslint-disable-line no-console
+                return result;
+            })
+            .catch((error: any) => {
+                console.error('[RegisterSSO] Login failed', { // eslint-disable-line no-console
+                    statusCode: error?.statusCode,
+                    message: error?.message,
+                    error,
+                });
+                this.setState({
+                    errorMessage: error?.message || this.props.translate('pages.register.registerError'),
+                });
+            });
+    };
+
     register = (credentials: any) => {
         const { inviteCode } = this.state;
         this.props.register({
             ...credentials,
-            inviteCode,
+            inviteCode: credentials.inviteCode || inviteCode,
         }).then((response: any) => {
-            this.props.navigation.navigate('/login', {
+            const returnTo = getReturnTo(this.props.location?.search);
+            const returnToParam = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+            this.props.navigation.navigate(`/login${returnToParam}`, {
                 state: {
-                    successMessage: this.translate('pages.register.registerSuccess'),
+                    successMessage: this.props.translate('pages.register.registerSuccess'),
                 },
             });
         }).catch((error: any) => {
@@ -93,7 +133,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 });
             } else {
                 this.setState({
-                    errorMessage: this.translate('pages.register.registerError'),
+                    errorMessage: this.props.translate('pages.register.registerError'),
                 });
             }
         });
@@ -105,7 +145,12 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         return (
             <>
                 <div id="page_register" className="flex-box space-evenly center row wrap-reverse">
-                    <RegisterForm register={this.register} title={this.translate('pages.register.pageTitle')} inviteCode={inviteCode} />
+                    <RegisterForm
+                        register={this.register}
+                        onGoogleRegister={this.registerSSO}
+                        title={this.props.translate('pages.register.pageTitle')}
+                        inviteCode={inviteCode}
+                    />
                 </div>
                 {
                     errorMessage
@@ -116,4 +161,4 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(RegisterComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(RegisterComponent)));

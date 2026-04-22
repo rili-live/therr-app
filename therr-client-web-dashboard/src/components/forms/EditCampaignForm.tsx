@@ -6,7 +6,9 @@ import {
 import classNames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { CampaignAssetTypes, CampaignStatuses, CampaignTypes, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
+import {
+    CampaignAssetTypes, CampaignStatuses, CampaignTypes, OAuthIntegrationProviders,
+} from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -52,8 +54,8 @@ const statusOptions = [
 
 const disabledProvidersStatus = {
     [OAuthIntegrationProviders.THERR]: false,
-    [OAuthIntegrationProviders.FACEBOOK]: false,
-    [OAuthIntegrationProviders.INSTAGRAM]: false,
+    [OAuthIntegrationProviders.FACEBOOK]: true,
+    [OAuthIntegrationProviders.INSTAGRAM]: true,
     [OAuthIntegrationProviders.LINKEDIN]: true,
     [OAuthIntegrationProviders.GOOGLE]: true,
     [OAuthIntegrationProviders.TWITTER]: true,

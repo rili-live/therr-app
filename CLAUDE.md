@@ -102,7 +102,10 @@ Read these files when relevant to the task:
 - `docs/NICHE_APP_DATABASE_GUIDELINES.md` - Schema isolation, migration patterns for niche features
 - `docs/niche-sub-apps/PROJECT_BRIEF.md` - Core Therr App product vision and roadmap
 - `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` - Niche app variant context (see "Project Brief Context" above)
+- `docs/LOCALE_URL_ROUTING.md` - Locale-prefixed URL routing, i18n architecture, SEO strategy
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
+- `docs/TARGET_MARKETS.md` - Consumer and business target market definitions (core Therr App)
+- `docs/FEATURES.md` - **High-level feature list for mobile & web clients. Update this file when adding or removing features.**
 
 ## Monorepo Structure
 
@@ -131,6 +134,47 @@ Place utility functions in shared libraries only when:
 2. Clearly reusable and stable (not likely to diverge per use case)
 
 Avoid creating abstractions for hypothetical future reuse.
+
+## TanStack Query (React Query) — Case-by-Case Adoption
+
+TanStack Query is **not** the default data-fetching tool in this codebase — Redux Toolkit with custom action creators is. TanStack Query **may** be introduced for specific, isolated use cases where its features (request deduplication, background refetch, stale-while-revalidate, `useInfiniteQuery`, optimistic mutations) provide clear value over hand-rolled Redux thunks.
+
+Before reaching for it, check the rules below. When in doubt, stay with Redux.
+
+### When it is a good fit
+
+- **New, read-heavy screens** that are self-contained within one app (web, mobile, or dashboard) and do not share state with other features.
+- **Infinite lists / pagination** where `useInfiniteQuery` replaces manual pagination state in Redux.
+- **Mutations with optimistic updates** that don't cascade into other Redux slices.
+- **Polling / background refresh** (`refetchInterval`, `refetchOnReconnect`, `refetchOnWindowFocus`) — especially useful for dashboards.
+
+### When it is NOT appropriate (keep in Redux)
+
+Do not move any of the following to TanStack Query. These slices are tightly coupled to existing infrastructure and splitting them will cause sync bugs:
+
+| Slice / feature | Why it stays in Redux |
+|-----------------|-----------------------|
+| `user`, auth, session | Consumed by axios interceptors, socket middleware, route guards, and redux-persist |
+| `notifications`, `messages`, reactions | Pushed by `socket-io-middleware` directly into Redux — TanStack has no socket story |
+| `userConnections`, presence | Updated by WebSocket events |
+| Anything in `therr-react/redux/actions` | Shared across web, dashboard, and mobile; changing shape breaks all three consumers |
+| SSR-rendered data on `therr-client-web` | Server pre-populates `__PRELOADED_STATE__` into Redux; TanStack SSR hydration is a separate integration |
+| Persisted state (see "Offline-First" in docs) | `redux-persist` already caches key slices; TanStack would need a parallel persister |
+
+### Required precautions before introducing it
+
+If a feature genuinely fits the "good fit" list above, follow these rules:
+
+1. **Scope it to a single app.** Do not add TanStack Query to `therr-react` (the shared library). Add it to `therr-client-web`, `therr-client-web-dashboard`, or `TherrMobile` only, and keep the queries in that app's source.
+2. **Reuse existing API clients.** Call into the singleton services in `therr-react/services` (e.g., `MapsService.searchSpaces`) from inside the `queryFn` — do not reimplement the HTTP layer. This preserves auth headers, brand variation header, and interceptor behavior.
+3. **Do not duplicate state.** If the data you'd put in TanStack is already read from Redux elsewhere, either (a) keep it in Redux, or (b) migrate the other reader too. Never have both.
+4. **Document the decision.** Add a brief comment at the top of the new query file explaining why TanStack was chosen over a Redux action (e.g., "infinite scroll", "needs polling", "optimistic mutation with rollback").
+5. **QueryClient placement.** Provide `QueryClient` at the feature subtree or app root — not inside `therr-react`. Use sensible defaults (`staleTime`, `retry: 1`) so it doesn't thrash on mobile data connections.
+6. **No socket events into the query cache.** If the data is also pushed by WebSocket, pick one: Redux (preferred) or TanStack with manual `queryClient.invalidateQueries` on socket events. Never both.
+
+### Default answer
+
+If you're unsure whether to use TanStack Query for a new feature: **don't**. Use a Redux action in the existing pattern. The cost of two state paradigms in the same app outweighs the ergonomic gains except for the narrow cases listed above.
 
 ## Package-Level Documentation
 
@@ -225,6 +269,56 @@ Feature flags will be implemented via:
 - Backend: Service-level configuration
 - Frontend: Redux state or context
 - Mobile: Similar pattern with AsyncStorage persistence
+
+## Localization / i18n
+
+When adding or modifying user-facing text, always maintain translation strings in **all** locale dictionaries for the relevant package. Never add a key to one dictionary without adding it to all others in that package.
+
+### therr-client-web (3 locales)
+- `therr-client-web/src/locales/en-us/dictionary.json` (English)
+- `therr-client-web/src/locales/es/dictionary.json` (Spanish)
+- `therr-client-web/src/locales/fr-ca/dictionary.json` (Canadian French)
+
+Use the `useTranslation` hook (or `withTranslation` HOC for class components) instead of hardcoded strings.
+
+### TherrMobile (3 locales)
+- `TherrMobile/main/locales/en-us/dictionary.json` (English)
+- `TherrMobile/main/locales/es/dictionary.json` (Spanish)
+- `TherrMobile/main/locales/fr-ca/dictionary.json` (Canadian French)
+
+Use the `translator` utility imported from `../../services/translator` instead of hardcoded strings.
+
+### Hardcoded Locale Strings in Frontend Code
+
+When frontend or mobile code contains hardcoded strings that are matched against locale-translated text (e.g., keyword highlighting, substring matching, pattern detection), **always include variants for all supported locales** (currently `en-us`, `es`, and `fr-ca`). The translated message from the server may be in any supported language, so matching only English strings will silently fail for other locales.
+
+Affected locations:
+- `TherrMobile/main/routes/Notifications/Notification.tsx` — `getHighlightValues()` uses keyword matching against translated notification messages
+
+Backend locale dictionaries to reference (in-app notifications use users-service strings; push notifications use push-notifications-service strings):
+- `therr-services/users-service/src/locales/en-us/dictionary.json` (in-app notification list)
+- `therr-services/users-service/src/locales/es/dictionary.json` (in-app notification list)
+- `therr-services/users-service/src/locales/fr-ca/dictionary.json` (in-app notification list)
+- `therr-services/push-notifications-service/src/locales/en-us/dictionary.json` (push notifications only)
+- `therr-services/push-notifications-service/src/locales/fr-ca/dictionary.json` (push notifications only)
+
+## Offline-First Architecture
+
+The app implements an offline-first strategy so users see cached content during network outages or API deploys. The architecture is layered:
+
+1. **Network detection** — `therr-react` exposes a shared `network` Redux slice. Mobile uses `@react-native-community/netinfo`; web uses `online`/`offline` window events. Both dispatch `SET_NETWORK_STATUS`.
+2. **State persistence** — `redux-persist` caches key Redux slices (`user`, `content`, `notifications`, `userConnections`) to AsyncStorage (mobile) or localStorage (web). On app launch, persisted state is rehydrated before rendering.
+3. **Stale-while-revalidate** — Read actions return cached Redux state immediately, then fetch fresh data in the background. If the fetch fails (offline), cached data stays visible with no error shown.
+4. **Graceful axios failure** — The shared axios interceptor catches network errors on GET requests and resolves with empty data instead of throwing, preventing blank screens.
+5. **OfflineBanner** — A dismissable UI banner appears on both platforms when the network is down.
+
+Key files:
+- `therr-react/src/redux/reducers/network.ts` — Network state slice
+- `therr-react/src/utilities/cacheHelpers.ts` — `isOfflineError()` and `isCacheStale()` helpers
+- `TherrMobile/main/services/networkService.ts` — Mobile NetInfo listener
+- `therr-client-web/src/services/networkService.ts` — Web connectivity listener
+
+See `docs/OFFLINE_FIRST_PLAN.md` for the full phased roadmap (Phases 2-5 cover write queue, service worker, image caching, and local DB).
 
 ## Notes
 

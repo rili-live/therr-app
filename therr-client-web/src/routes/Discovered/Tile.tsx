@@ -1,62 +1,190 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { SvgButton } from 'therr-react/components';
+import React, { useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { ContentActions } from 'therr-react/redux/actions';
+import { Content } from 'therr-js-utilities/constants';
+import {
+    ActionIcon,
+    Badge,
+    Card,
+    Group,
+    Image,
+    Text,
+    Tooltip,
+} from '@mantine/core';
+import { InlineSvg } from 'therr-react/components';
+import getUserContentUri from '../../utilities/getUserContentUri';
+import useTranslation from '../../hooks/useTranslation';
+import ListPickerPopover from '../Bookmarks/ListPickerPopover';
 
-interface MomentProps {
+interface ITileProps {
     area: any;
-    updateAreaReaction: any;
+    areaType: string;
     userDetails: any;
 }
 
-const Tile: React.FC<MomentProps> = ({ area, updateAreaReaction, userDetails }: MomentProps) => {
-    const content: any = useSelector((state: any) => state.content);
+const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
+    const { t: translate } = useTranslation();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const content = useSelector((state: any) => state.content);
+
     const isBookmarked = area.reaction?.userBookmarkCategory;
     const isLiked = area.reaction?.userHasLiked;
 
-    const onBookmarkPress = () => {
-        updateAreaReaction(area.id, {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
-        }, area.fromUserId, userDetails.userName);
-    };
+    const mediaPath = area.medias?.[0]?.path;
+    const mediaType = area.medias?.[0]?.type;
+    const mediaObj = area.medias?.[0];
 
-    const onLikePress = () => {
-        if (!area.isDraft) {
-            updateAreaReaction(area.id, {
-                userHasLiked: !area.reaction?.userHasLiked,
-            }, area.fromUserId, userDetails.userName);
+    let imageUrl: string | undefined;
+    if (mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC && mediaObj) {
+        imageUrl = getUserContentUri(mediaObj, 480, 480, true);
+    } else if (mediaPath) {
+        imageUrl = content.media?.[mediaPath];
+    }
+
+    const isSpace = areaType === 'spaces';
+    const isThought = areaType === 'thoughts';
+
+    const dispatchReaction = useCallback((reactionData: any) => {
+        if (isSpace) {
+            const spaceReactionData = { ...reactionData, spaceId: area.id };
+            dispatch(ContentActions.createOrUpdateSpaceReaction(area.id, spaceReactionData, area.fromUserId, userDetails.userName) as any);
+        } else if (isThought) {
+            dispatch(ContentActions.createOrUpdateThoughtReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
+        } else {
+            dispatch(ContentActions.createOrUpdateMomentReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
         }
-    };
+    }, [dispatch, isSpace, isThought, area.id, area.fromUserId, userDetails.userName]);
+
+    const onBookmarkPress = useCallback(() => {
+        dispatchReaction({
+            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+        });
+    }, [dispatchReaction, area.reaction?.userBookmarkCategory]);
+
+    const onLikePress = useCallback(() => {
+        if (!area.isDraft) {
+            dispatchReaction({
+                userHasLiked: !area.reaction?.userHasLiked,
+            });
+        }
+    }, [dispatchReaction, area.isDraft, area.reaction?.userHasLiked]);
+
+    const handleCardClick = useCallback(() => {
+        let route;
+        if (isSpace) {
+            route = `/spaces/${area.id}`;
+        } else if (isThought) {
+            route = `/thoughts/${area.id}`;
+        } else {
+            route = `/moments/${area.id}`;
+        }
+        navigate(route);
+    }, [navigate, isSpace, isThought, area.id]);
+
+    let typeLabel = 'Moment';
+    let badgeColor = 'blue';
+    if (isSpace) {
+        typeLabel = 'Space';
+        badgeColor = 'teal';
+    }
+    if (isThought) {
+        typeLabel = 'Thought';
+        badgeColor = 'grape';
+    }
 
     return (
-        <div className='tile_wrapper'>
-            <div className="tile">
-                <p className="tile-username">{area.fromUserName}</p>
-                {area.media.length > 0
-                && <img
-                    className="tile-image"
-                    src={content.media?.[area.medias?.[0]?.path]}
-                    alt={area.fromUserName}
-                />}
-                <div className='tile-lower-content'>
-                    <p className="tile-title">{area.notificationMsg}</p>
-                    <SvgButton
-                        id="bookmark_button"
-                        name={isBookmarked ? 'bookmark' : 'bookmark-border'}
-                        className={isBookmarked ? 'tile-button-bookmarked' : 'tile-button-unbookmarked'}
-                        onClick={onBookmarkPress}
-                        buttonType="primary"
+        <Card shadow="sm" padding={0} radius="md" withBorder className="discovered-tile">
+            {imageUrl && (
+                <Card.Section
+                    onClick={handleCardClick}
+                    style={{ cursor: 'pointer' }}
+                >
+                    <Image
+                        src={imageUrl}
+                        alt={area.notificationMsg || area.fromUserName}
+                        height={200}
+                        fit="cover"
+                        loading="lazy"
                     />
-                    <SvgButton
-                        id="like_button"
-                        name={isLiked ? 'favorite' : 'favorite-border'}
-                        className={isLiked ? 'tile-button-liked' : 'tile-button-unliked'}
-                        onClick={onLikePress}
-                        buttonType="primary"
-                    />
-                </div>
-                <p className="tile-message">{area.message}</p>
-            </div>
-        </div>
+                </Card.Section>
+            )}
+
+            <Card.Section p="sm">
+                <Group justify="space-between" align="flex-start" wrap="nowrap" mb={4}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text
+                            fw={600}
+                            size="sm"
+                            lineClamp={1}
+                            onClick={handleCardClick}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            {area.notificationMsg || area.message || translate('components.tile.untitled')}
+                        </Text>
+                        <Text size="xs" c="dimmed" lineClamp={1}>
+                            {area.fromUserName}
+                        </Text>
+                    </div>
+                    <Badge variant="light" size="xs" color={badgeColor}>
+                        {typeLabel}
+                    </Badge>
+                </Group>
+
+                {area.message && area.notificationMsg && (
+                    <Text size="xs" c="dimmed" lineClamp={2} mb="xs">
+                        {area.message}
+                    </Text>
+                )}
+
+                <Group gap="xs" justify="flex-end">
+                    <Tooltip label={isLiked ? 'Unlike' : 'Like'}>
+                        <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            onClick={onLikePress}
+                            color={isLiked ? 'red' : 'gray'}
+                        >
+                            <InlineSvg
+                                name={isLiked ? 'favorite' : 'favorite-border'}
+                                className={`discovered-tile-icon ${isLiked ? 'discovered-tile-icon-liked' : ''}`}
+                            />
+                        </ActionIcon>
+                    </Tooltip>
+                    {isSpace ? (
+                        <Tooltip label={isBookmarked ? translate('components.tile.saveToList') : translate('components.tile.saveToList')}>
+                            <ListPickerPopover spaceId={area.id}>
+                                <ActionIcon
+                                    variant="subtle"
+                                    size="sm"
+                                    color={isBookmarked ? 'dark' : 'gray'}
+                                >
+                                    <InlineSvg
+                                        name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                        className={`discovered-tile-icon ${isBookmarked ? 'discovered-tile-icon-bookmarked' : ''}`}
+                                    />
+                                </ActionIcon>
+                            </ListPickerPopover>
+                        </Tooltip>
+                    ) : (
+                        <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
+                            <ActionIcon
+                                variant="subtle"
+                                size="sm"
+                                onClick={onBookmarkPress}
+                                color={isBookmarked ? 'dark' : 'gray'}
+                            >
+                                <InlineSvg
+                                    name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                    className={`discovered-tile-icon ${isBookmarked ? 'discovered-tile-icon-bookmarked' : ''}`}
+                                />
+                            </ActionIcon>
+                        </Tooltip>
+                    )}
+                </Group>
+            </Card.Section>
+        </Card>
     );
 };
 

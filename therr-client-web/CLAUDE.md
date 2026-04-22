@@ -45,7 +45,18 @@ src/
 └── interceptors.ts           # Axios config
 ```
 
+## Localization
+
+All user-facing text must use translation keys from `src/locales/`. When adding or modifying UI strings:
+1. Add the key to **all three** dictionaries: `en-us/dictionary.json`, `es/dictionary.json`, and `fr-ca/dictionary.json`
+2. Use `useTranslation` hook or `withTranslation` HOC — never hardcode strings
+3. URLs are locale-prefixed: English = unprefixed (`/locations`), Spanish = `/es/locations`, French = `/fr-ca/locations`
+4. The URL prefix is the source of truth for locale — see `server-client.tsx` middleware
+5. All `<Link>` and `navigate()` calls auto-include the locale prefix via React Router's `basename`
+
 ## Key Routes
+
+Routes below are shown without locale prefix. All public routes are also served at `/es/<route>`.
 
 | Route | Component | Auth |
 |-------|-----------|------|
@@ -116,6 +127,14 @@ npm start             # Start SSR server (requires build)
 npm test              # Run Jest tests
 ```
 
+## CSS Cache Busting (`update-views.js`)
+
+Production builds output CSS with content hashes (e.g., `app.abc123.css`) for cache busting. The Handlebars templates in `src/views/` reference CSS by name (e.g., `/app.css`), so `update-views.js` runs post-build to replace those references with the actual hashed filenames.
+
+**When adding a new `.hbs` view template, you must add it to the `viewFiles` array in `update-views.js`.** Otherwise the template will reference `/app.css` and `/vendor.css` which won't exist in production, causing the page to load without styles on first visit.
+
+This only affects SSR first-load. Client-side navigation appears to work because CSS was already loaded from a different page's correctly-updated template.
+
 ## Theming
 
 Multiple SCSS theme bundles:
@@ -130,6 +149,7 @@ Multiple SCSS theme bundles:
 - SSR requires both `webpack.app.config.js` and `webpack.server.config.js`
 - Socket.IO middleware for real-time messaging and notifications
 - Brand variation: `BrandVariations.THERR`
+- Locale-prefixed URL routing: see `docs/LOCALE_URL_ROUTING.md` for architecture details
 
 ## Code Quality
 

@@ -5,6 +5,8 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       component: server-websocket
@@ -27,12 +29,39 @@ spec:
       containers:
       - name: server-websocket
         image: therrapp/websocket-service:latest
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         resources:
+          requests:
+            memory: "96Mi"
+            cpu: "10m"
           limits:
             memory: "192Mi"
-            cpu: "50m"
+            cpu: "100m"
         ports:
         - containerPort: 7743
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7743
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7743
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
         env:
         - name: MESSAGES_SERVICE_API_PORT
           value: "7772"

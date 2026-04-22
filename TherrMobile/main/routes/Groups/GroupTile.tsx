@@ -1,13 +1,17 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, Badge, Button, ListItem } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
+import { Avatar } from '../../components/BaseAvatar';
+import { ListItem } from '../../components/BaseListItem';
+import { Badge } from 'react-native-paper';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import therrIconConfig from '../../assets/therr-font-config.json';
-import { getUserImageUri } from '../../utilities/content';
+import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import spacingStyles from '../../styles/layouts/spacing';
+import { getDisplayTitle } from './groupUtils';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -17,7 +21,6 @@ const TherrIcon = createIconSetFromIcoMoon(
 
 const renderChatIcon = (item, style = {}) => {
     const props = {
-        key: item.tag,
         color: item.iconColor,
         name: item.iconId,
         size: 14,
@@ -31,14 +34,14 @@ const renderChatIcon = (item, style = {}) => {
     };
 
     if (item.iconGroup === 'font-awesome-5') {
-        return (<FontAwesome5Icon {...props} />);
+        return (<FontAwesome5Icon key={item.tag} {...props} />);
     }
 
     if (item.iconGroup === 'therr') {
-        return (<TherrIcon {...props} />);
+        return (<TherrIcon key={item.tag} {...props} />);
     }
 
-    return (<MaterialIcon {...props} />);
+    return (<MaterialIcon key={item.tag} {...props} />);
 };
 
 export default ({
@@ -51,8 +54,10 @@ export default ({
     handleJoinGroup,
     user,
 }) => {
-    const membershipStatus = user?.myUserGroups[group.id]?.status || '';
+    const [isJoining, setIsJoining] = React.useState(false);
+    const membershipStatus = user?.myUserGroups?.[group.id]?.status || '';
     const onPressJoinGroup = () => {
+        setIsJoining(true);
         handleJoinGroup(group);
     };
     const unreadMsgCount = 0;
@@ -68,17 +73,29 @@ export default ({
                 onPress={() => onChatTilePress(group)}
             >
                 <Avatar
-                    title={`${group.title?.substring(0, 1)}`}
+                    title={`${getDisplayTitle(group.title)?.substring(0, 1)}`}
                     rounded
-                    // TODO: Include use media in list groups response
-                    source={{ uri: getUserImageUri({ details: { id: group.authorId, media: group.author?.media } }, 150) }}
+                    source={{
+                        uri: group.media?.featuredImage
+                            ? getUserContentUri(group.media.featuredImage, 150, 150)
+                            : getUserImageUri({ details: { id: group.authorId, media: group.author?.media } }, 150),
+                    }}
                     size="medium"
                 />
             </Pressable>
             <View style={spacingStyles.flexOne}>
-                <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{group.title}</ListItem.Title>
+                <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{getDisplayTitle(group.title)}</ListItem.Title>
                 {
-                    group.memberCount &&
+                    group.city &&
+                    <ListItem.Subtitle
+                        style={{ fontWeight: '400', fontSize: 12, color: '#888', marginBottom: 2 }}
+                        numberOfLines={1}
+                    >
+                        {[group.city, group.region].filter(Boolean).join(', ')}
+                    </ListItem.Subtitle>
+                }
+                {
+                    group.memberCount > 0 &&
                     <ListItem.Subtitle
                         style={[{ fontWeight: '300', fontSize: 13 }, spacingStyles.marginBotSm]}
                         numberOfLines={2}>{translate('pages.groups.labels.memberCount', {
@@ -86,7 +103,7 @@ export default ({
                         })}
                     </ListItem.Subtitle>
                 }
-                <ListItem.Subtitle numberOfLines={4}>{group.description}</ListItem.Subtitle>
+                <ListItem.Subtitle numberOfLines={3}>{group.description}</ListItem.Subtitle>
                 <View style={themeChatTile.styles.footer}>
                     <View style={themeChatTile.styles.footerIconsContainer}>
                         {
@@ -98,9 +115,10 @@ export default ({
             {
                 isUserInGroup && unreadMsgCount > 0 &&
                     <Badge
-                        badgeStyle={{ backgroundColor: theme.colors.brandingRed }}
-                        value={unreadMsgCount}
-                    />
+                        style={{ backgroundColor: theme.colors.brandingRed }}
+                    >
+                        {unreadMsgCount}
+                    </Badge>
             }
             <View>
                 {
@@ -115,6 +133,8 @@ export default ({
                                     ? 'menus.connections.buttons.accept'
                                     : 'menus.connections.buttons.join')
                             }
+                            loading={isJoining}
+                            disabled={isJoining}
                         />
                 }
             </View>

@@ -67,7 +67,7 @@ function AppleSignInButton({
 
     return (
         <AppleButton
-            cornerRadius={3}
+            cornerRadius={15}
             onPress={() => onAppleButtonPress({
                 onLoginError,
                 onLoginSuccess,

@@ -1,15 +1,16 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
-import Toast from 'react-native-toast-message';
-import analytics from '@react-native-firebase/analytics';
+import { showToast } from '../../utilities/toasts';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -76,7 +77,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
@@ -140,24 +141,24 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             interests,
         })
             .then(() => {
-                analytics().logEvent('account_update_interests', {
+                logEvent(getAnalytics(),'account_update_interests', {
                     userId: this.props.user.details.id,
                 }).catch((err) => console.log(err));
-                Toast.show({
-                    type: 'successBig',
+                showToast.success({
                     text1: this.translate('pages.managePreferences.alertTitles.preferenceSettingsUpdated'),
                     text2: this.translate('pages.managePreferences.alertMessages.preferenceSettingsUpdated'),
-                    visibilityTime: 3000,
                     onHide: () => {
-                        this.props.navigation.navigate('Settings');
+                        if (this.props.navigation.canGoBack()) {
+                            this.props.navigation.goBack();
+                        } else {
+                            this.props.navigation.navigate('Settings');
+                        }
                     },
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('pages.manageNotifications.alertTitles.accountError'),
                     text2: this.translate('pages.manageNotifications.alertMessages.preferenceSettingsUpdatedError'),
-                    visibilityTime: 3000,
                 });
             }).finally(() => {
                 this.setState({
@@ -179,7 +180,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

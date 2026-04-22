@@ -2,10 +2,11 @@
 import sendEmail from './sendEmail';
 import * as globalConfig from '../../../../../global-config';
 import { getHostContext } from '../../constants/hostContext';
+import translate from '../../utilities/translator';
 
 export interface ISendSSONewUserConfig {
     charset?: string;
-    subject: string;
+    locale?: string;
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
@@ -16,25 +17,26 @@ export interface ITemplateParams {
     oneTimePassword: string;
 }
 
-// TODO: Localize email
 export default (emailParams: ISendSSONewUserConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const linkUrl = isDashboardRegistration
         ? `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`
         : `${globalConfig[process.env.NODE_ENV].hostFull}/login`;
     const htmlConfig = {
-        header: `${contextConfig.brandName}: User Account Created`,
-        dearUser: `Hi ${templateParams.name},`,
-        body1: 'A new user account was successfully created. Click the following link to login, choose a username, and set your password. You can login with SSO or directly with your account password.',
-        body2: 'Your temporary, one time password:',
+        header: translate(locale, 'emails.ssoNewUser.header', { brandName: contextConfig.brandName }),
+        dearUser: translate(locale, 'emails.ssoNewUser.dearUser', { name: templateParams.name }),
+        body1: translate(locale, 'emails.ssoNewUser.body1'),
+        body2: translate(locale, 'emails.ssoNewUser.body2'),
         bodyBold: templateParams.oneTimePassword,
         buttonHref: linkUrl,
         buttonText: contextConfig.brandGoLinkText,
-        postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${linkUrl}`,
+        postBody1: translate(locale, 'emails.ssoNewUser.postBody1', { linkUrl }),
     };
 
     return sendEmail({
         ...emailParams,
+        subject: translate(locale, 'emails.ssoNewUser.subject', { brandShortName: contextConfig.brandShortName }),
     }, htmlConfig);
 };

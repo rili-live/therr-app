@@ -11,6 +11,7 @@ const activitiesLimitReachedMessage = `Activities are limited to ${MAX_ACTIVITIE
 const eventsLimitReachedMessage = `Events are limited to ${MAX_EVENTS_PER_USER_PER_DAY} per day. Try again later.`;
 const momentsLimitReachedMessage = 'Content creation is limited per day. Try again tomorrow.';
 const spacesLimitReachedMessage = 'Space creation is limited per day. Try again tomorrow.';
+const pairingFeedbackLimitReachedMessage = 'Pairing feedback is limited. Try again later.';
 
 const buildRateLimiter = (msg, count = 1, minutes = 1, keySuffix = '') => RateLimit({
     store: RateLimiterRedisStore,
@@ -35,10 +36,21 @@ const createMomentLimiter = buildRateLimiter(momentsLimitReachedMessage, 5, 60 *
 // TODO: Reduce this or limit to admin users
 const createSpaceLimiter = buildRateLimiter(spacesLimitReachedMessage, 100, 60 * 24);
 
+const pairingFeedbackLimiter = buildRateLimiter(pairingFeedbackLimitReachedMessage, 20, 60); // 20 per hour per IP
+
+const placesApiLimitReachedMessage = 'Places search is limited. Try again later.';
+const placesApiLimiter = buildRateLimiter(placesApiLimitReachedMessage, 60, 1); // 60 per minute per IP
+
+const geocodeApiLimitReachedMessage = 'Geocoding is limited. Try again later.';
+const geocodeApiLimiter = buildRateLimiter(geocodeApiLimitReachedMessage, 30, 1); // 30 per minute per IP
+
 export {
     createCheckInLimiter,
     createActivityLimiter,
     createEventLimiter,
     createMomentLimiter,
     createSpaceLimiter,
+    pairingFeedbackLimiter,
+    placesApiLimiter,
+    geocodeApiLimiter,
 };

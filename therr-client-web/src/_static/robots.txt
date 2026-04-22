@@ -1,0 +1,32 @@
+User-agent: *
+Allow: /
+Allow: /locations
+Allow: /spaces/
+Allow: /events/
+Allow: /moments/
+Allow: /users/
+Disallow: /user/profile
+Disallow: /create-profile
+Disallow: /create-forum
+Disallow: /groups
+Disallow: /explore
+Disallow: /discovered
+Disallow: /posts/
+Disallow: /users/change-password
+Disallow: /reset-password
+Disallow: /verify-account
+Disallow: /emails/
+
+User-agent: bingbot
+Crawl-delay: 1
+
+User-agent: YandexBot
+Crawl-delay: 2
+
+User-agent: Baiduspider
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+
+Sitemap: https://www.therr.com/sitemap.xml

@@ -1,0 +1,27 @@
+diff --git a/node_modules/react-native-worklets/android/build.gradle b/node_modules/react-native-worklets/android/build.gradle
+index e189e1c..2349be5 100644
+--- a/node_modules/react-native-worklets/android/build.gradle
++++ b/node_modules/react-native-worklets/android/build.gradle
+@@ -132,6 +132,22 @@ version WORKLETS_VERSION
+ 
+ def workletsPrefabHeadersDir = project.file("${getLayout().getBuildDirectory().getAsFile().get().absolutePath}/prefab-headers/worklets")
+ 
++// Populate prefab headers eagerly during configuration so that dependent modules
++// (e.g. react-native-reanimated) can resolve `react-native-worklets::worklets` at
++// CMake configure time — including during Android Studio's Gradle sync, which
++// does not run `preBuild` first.
++workletsPrefabHeadersDir.mkdirs()
++[project.file("${projectDir}/src/main/cpp"), project.file("${projectDir}/../Common/cpp")].each { srcDir ->
++    if (srcDir.exists()) {
++        project.copy {
++            from(srcDir) {
++                include("worklets/**/*.h")
++            }
++            into(workletsPrefabHeadersDir)
++        }
++    }
++}
++
+ def JS_RUNTIME = {
+     // Override JS runtime with environment variable
+     if (System.getenv("JS_RUNTIME")) {

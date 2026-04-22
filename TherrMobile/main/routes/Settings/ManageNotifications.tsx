@@ -1,16 +1,18 @@
 import React from 'react';
-import { SafeAreaView, View, Text, Switch } from 'react-native';
-import { Button } from 'react-native-elements';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Switch } from 'react-native-paper';
+import { Button } from '../../components/BaseButton';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
-import Toast from 'react-native-toast-message';
-import analytics from '@react-native-firebase/analytics';
+import { showToast } from '../../utilities/toasts';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -76,9 +78,7 @@ const NotificationSettingSwitch = ({
                     spacingStyles.marginLtLg,
                     spacingStyles.marginRtLg,
                 ]}
-                trackColor={{ false: theme.colors.primary2, true: theme.colors.primary4 }}
-                thumbColor={true ? theme.colors.primary3 : theme.colorVariations.primary3Fade}
-                ios_backgroundColor={theme.colors.primary4}
+                color={theme.colors.primary3}
                 onValueChange={onChange}
                 value={value}
                 disabled={disabled}
@@ -137,7 +137,7 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
@@ -149,27 +149,25 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
     onDeleteAccountConfirm = () => {
         const { logout, user } = this.props;
 
-        analytics().logEvent('account_delete_start', {
+        logEvent(getAnalytics(),'account_delete_start', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
 
         // TODO: Add are you sure modal and test
         UsersService.delete(user.details.id).then(() => {
-            analytics().logEvent('account_delete_success', {
+            logEvent(getAnalytics(),'account_delete_success', {
                 userId: user.details.id,
             }).catch((err) => console.log(err));
 
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
-                visibilityTime: 2000,
                 onHide: () => {
                     logout();
                 },
             });
         }).catch((error) => {
-            analytics().logEvent('account_delete_failed', {
+            logEvent(getAnalytics(),'account_delete_failed', {
                 userId: user.details.id,
                 error: error?.message,
             }).catch((err) => console.log(err));
@@ -210,23 +208,18 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         }
     };
 
-
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.manageNotifications.alertTitles.notificationSettingsUpdated'),
                 text2: this.translate('pages.manageNotifications.alertMessages.notificationSettingsUpdated'),
-                visibilityTime: 3000,
             });
         })
         .catch(() => {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('pages.manageNotifications.alertTitles.accountError'),
                 text2: this.translate('pages.manageNotifications.alertMessages.notificationSettingsUpdatedError'),
-                visibilityTime: 3000,
             });
         })
         .finally(() => {
@@ -254,7 +247,7 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
@@ -353,13 +346,15 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                 </SafeAreaView>
                 <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
-                        buttonStyle={this.themeForms.styles.button}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'forms.settings.buttons.submit'
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isFormDisabled()}
-                        raised={true}
                     />
                 </View>
                 <MainButtonMenu

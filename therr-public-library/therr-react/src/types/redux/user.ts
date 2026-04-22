@@ -1,10 +1,8 @@
-import * as Immutable from 'seamless-immutable';
-
 type IAccessLevel = Array<string>;
 
-export type IMobileThemeName = 'retro';
+export type IMobileThemeName = 'light' | 'dark' | 'retro';
 
-export interface IUser extends Immutable.ImmutableObject<any>{
+export interface IUser {
   accessLevels: IAccessLevel;
   id: string;
   idToken: string;
@@ -14,23 +12,27 @@ export interface IUser extends Immutable.ImmutableObject<any>{
   phoneNumber: string;
   userName: string;
   media?: any;
+  settingsTherrCoinTotal?: any;
+  [key: string]: any;
 }
 
-export interface IUserSettings extends Immutable.ImmutableObject<any>{
+export interface IUserSettings {
   locale: string;
   mobileThemeName: string;
   navigationTourCount?: number;
+  settingsTherrCoinTotal?: any;
+  [key: string]: any;
 }
 
-export interface ISocketDetails extends Immutable.ImmutableObject<any> {
+export interface ISocketDetails {
   userName?: string;
   currentRoom?: string;
   session?: any;
 }
 
-export interface IAchievementsState extends Immutable.ImmutableObject<any> { [key: string]: any }
+export interface IAchievementsState { [key: string]: any }
 
-export interface IUserState extends Immutable.ImmutableObject<any> {
+export interface IUserState {
   achievements: IAchievementsState;
   details: IUser;
   settings: IUserSettings;
@@ -41,6 +43,7 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
   myThoughts: any;
   users: any;
   usersMightKnow: any;
+  influencerPairings: any;
   myUserGroups: any;
 }
 

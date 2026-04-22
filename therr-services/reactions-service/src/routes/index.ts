@@ -7,6 +7,7 @@ import spaceReactionsRouter from './spaceReactionsRouter';
 import spacesRouter from './spacesRouter';
 import thoughtReactionsRouter from './thoughtReactionsRouter';
 import thoughtsRouter from './thoughtsRouter';
+import userListsRouter from './userListsRouter';
 import deleteUserData from '../handlers/deleteUserData';
 
 const router = express.Router();
@@ -21,5 +22,6 @@ router.use('/space-reactions', spaceReactionsRouter);
 router.use('/spaces', spacesRouter);
 router.use('/thought-reactions', thoughtReactionsRouter);
 router.use('/thoughts', thoughtsRouter);
+router.use('/user-lists', userListsRouter);
 
 export default router;

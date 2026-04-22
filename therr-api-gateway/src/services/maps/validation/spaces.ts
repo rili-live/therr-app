@@ -2,7 +2,7 @@ import {
     body,
     header,
     param,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 import { createAreaValidation, updateAreaValidation } from './areas';
 
 export const getAsPostSpaceDetailsValidation = [
@@ -34,4 +34,14 @@ export const createSpaceValidation = [
 export const updateSpaceValidation = [
     ...updateAreaValidation,
     param('spaceId'),
+];
+
+export const getSpacePairingsValidation = [
+    param('spaceId').exists(),
+];
+
+export const submitPairingFeedbackValidation = [
+    param('spaceId').exists(),
+    body('pairedSpaceId').isString().notEmpty(),
+    body('isHelpful').isBoolean(),
 ];

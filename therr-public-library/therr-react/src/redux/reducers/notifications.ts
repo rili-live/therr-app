@@ -1,44 +1,34 @@
-import * as Immutable from 'seamless-immutable';
+import { produce } from 'immer';
 import { SocketServerActionTypes, SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { INotificationsState, NotificationActionTypes } from '../../types/redux/notifications';
 
-const initialState: INotificationsState = Immutable.from({
-    messages: Immutable.from([]),
-});
+const initialState: INotificationsState = {
+    messages: [],
+};
 
-const notifications = (state: INotificationsState = initialState, action: any) => {
-    // If state is initialized by server-side rendering, it may not be a proper immutable object yet
-    if (!state.setIn) {
-        state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
-    }
-
-    let modifiedMessages = [...state.messages];
-
+const notifications = produce((draft: INotificationsState, action: any) => {
     switch (action.type) {
-        // TODO: Rethink this
         case NotificationActionTypes.GET_NOTIFICATIONS:
-            return state.setIn(['messages'], action.data);
+            draft.messages = action.data;
+            break;
         case NotificationActionTypes.ADD_NOTIFICATION:
         case SocketServerActionTypes.NOTIFICATION_CREATED:
-            modifiedMessages.unshift(action.data);
-            return state.setIn(['messages'], modifiedMessages);
-        case SocketServerActionTypes.NOTIFICATION_UPDATED:
-            modifiedMessages = state.messages.map((message) => { // eslint-disable-line no-case-declarations
-                if (message.id === action.data.id) {
-                    return {
-                        ...message,
-                        ...action.data,
-                    };
-                }
-
-                return message;
-            });
-            return state.setIn(['messages'], modifiedMessages);
+            draft.messages.unshift(action.data);
+            break;
+        case NotificationActionTypes.NOTIFICATION_UPDATED:
+        case SocketServerActionTypes.NOTIFICATION_UPDATED: {
+            const idx = draft.messages.findIndex((message) => message.id === action.data.id);
+            if (idx !== -1) {
+                draft.messages[idx] = { ...draft.messages[idx], ...action.data };
+            }
+            break;
+        }
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['messages'], Immutable.from([]));
+            draft.messages = [];
+            break;
         default:
-            return state;
+            break;
     }
-};
+}, initialState);
 
 export default notifications;

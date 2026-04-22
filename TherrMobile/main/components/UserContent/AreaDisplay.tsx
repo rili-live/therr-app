@@ -7,16 +7,16 @@ import {
     Linking,
     Pressable,
     Share,
+    StyleSheet,
     Text,
     TouchableWithoutFeedbackComponent,
     View,
 } from 'react-native';
-import { Button, Image } from 'react-native-elements';
-import Autolink from 'react-native-autolink';
+import { Button } from '../BaseButton';
+import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import Toast from 'react-native-toast-message';
-import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
+import { showToast } from '../../utilities/toasts';
+import { Categories, IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { MapsService } from 'therr-react/services';
 import getConfig from '../../utilities/getConfig';
@@ -27,15 +27,26 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
-// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
 import SpaceRating from '../../components/Input/SpaceRating';
+import { buildSpaceUrl } from '../../utilities/shareUrls';
+import RichText from '../RichText';
+import handleMentionPress from '../../utilities/handleMentionPress';
+import { SheetManager } from 'react-native-actions-sheet';
 
 
 const envConfig = getConfig();
 const { width: viewportWidth } = Dimensions.get('window');
+
+const formatCategoryLabel = (category: string): string => {
+    if (!category) return '';
+    const label = category.replace('categories.', '').replace('/', ' & ');
+    return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
+const formatPriceRange = (priceRange: number): string => '$'.repeat(priceRange);
 // const hapticFeedbackOptions = {
 //     enableVibrateFallback: false,
 //     ignoreAndroidSystemSettings: false,
@@ -89,6 +100,8 @@ interface IAreaDisplayProps {
 }
 
 interface IAreaDisplayState {
+    isLiked: boolean;
+    isBookmarked: boolean;
     likeCount: number | null;
 }
 
@@ -97,6 +110,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         if (nextProps.area?.likeCount != null
             && (nextState.likeCount == null)) {
             return {
+                isLiked: !!nextProps.area.reaction?.userHasLiked,
+                isBookmarked: !!nextProps.area.reaction?.userBookmarkCategory,
                 likeCount: nextProps.area?.likeCount,
             };
         }
@@ -108,6 +123,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         super(props);
 
         this.state = {
+            isLiked: !!props.area.reaction?.userHasLiked,
+            isBookmarked: !!props.area.reaction?.userBookmarkCategory,
             likeCount: props.area.likeCount,
         };
     }
@@ -144,30 +161,62 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         goToViewMap(area.latitude, area.longitude);
     };
 
-    onBookmarkPress = (area) => {
+    // Lists are a spaces-only feature. Moments set `category` and events set
+    // `addressReadable`, so those fields aren't reliable space signals.
+    isSpaceArea = (area) => area?.areaType === 'spaces' || !!area?.isSpace;
+
+    toggleBookmarkReaction = (area) => {
         const { updateAreaReaction, user } = this.props;
+        const newIsBookmarked = !this.state.isBookmarked;
+
+        this.setState({
+            isBookmarked: newIsBookmarked,
+        });
 
         updateAreaReaction(area.id, {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, area.fromUserId, user?.details?.userName);
+    };
+
+    onBookmarkPress = (area) => {
+        // Spaces: open the list picker so users can discover and choose which
+        // list(s) to save to. The picker also handles the bookmark state via
+        // list membership (adding to a list sets userBookmarkCategory and
+        // ensures the "Saved" default list exists on first bookmark).
+        if (this.isSpaceArea(area)) {
+            SheetManager.show('list-picker-sheet', {
+                payload: {
+                    spaceId: area.id,
+                    translate: this.props.translate as any,
+                    themeForms: this.props.themeForms,
+                },
+            });
+            return;
+        }
+        this.toggleBookmarkReaction(area);
+    };
+
+    onBookmarkLongPress = (area) => {
+        // Power-user shortcut: long-press toggles the bookmark directly into
+        // the default list without opening the picker.
+        this.toggleBookmarkReaction(area);
     };
 
     onLikePress = (area) => {
         if (!area.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
+            const newIsLiked = !this.state.isLiked;
 
-            // Only display on own user post
-            if (this.props.area.likeCount != null) {
-                this.setState({
-                    likeCount: !area.reaction?.userHasLiked
-                        ? (this.state.likeCount || 0) + 1
-                        : (this.state.likeCount || 0) - 1,
-                });
-            }
+            this.setState({
+                isLiked: newIsLiked,
+                likeCount: this.props.area.likeCount != null
+                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
+                    : this.state.likeCount,
+            });
 
             updateAreaReaction(area.id, {
-                userHasLiked: !area.reaction?.userHasLiked,
+                userHasLiked: newIsLiked,
             }, area.fromUserId, user?.details?.userName);
         }
     };
@@ -188,7 +237,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 spacingStyles.justifyCenter,
                 spacingStyles.padHorizMd,
             ]}>
-                <Text>
+                <Text style={themeViewArea.styles.eventText}>
                     {/* eslint-disable-next-line max-len */}
                     {formatDate(event.scheduleStartAt, 'short').date} {formatDate(event.scheduleStartAt).time} - {formatDate(event.scheduleStopAt, 'short').date} {formatDate(event.scheduleStopAt).time}
                 </Text>
@@ -210,7 +259,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         };
 
         return (
-            <View style={[
+            <View key={moment.id} style={[
                 { width: viewportWidth },
                 spacingStyles.marginBotMd,
                 spacingStyles.flexRow,
@@ -233,7 +282,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                         height={themeViewArea.styles.areaUserAvatarImg.height}
                         width={themeViewArea.styles.areaUserAvatarImg.width}
-                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen} />}
                         transition={false}
                     />
                 </Pressable>
@@ -257,11 +306,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         source={{
                             uri: getUserContentUri(moment.medias[0], 100, 100),
                         }}
-                        style={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: 5,
-                        }}
+                        style={localStyles.momentThumbnail}
                         resizeMode="contain"
                         PlaceholderContent={<ActivityIndicator />}
                     />
@@ -276,11 +321,14 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         let onPress = () => Linking.openURL(item.url);
 
         if (item.icon === 'share') {
+            const locale = this.props.user?.settings?.locale || 'en-us';
+            const shareUrl = buildSpaceUrl(locale, area.id);
             onPress = () => Share.share({
                 message: translate('modals.contentOptions.shareLink.message', {
                     spaceId: area.id,
+                    shareUrl,
                 }),
-                url: `https://www.therr.com/spaces/${area.id}`,
+                url: shareUrl,
                 title: translate('modals.contentOptions.shareLink.title', {
                     spaceTitle: area.notificationMsg,
                 }),
@@ -302,9 +350,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         return (
             <Button
                 containerStyle={[spacingStyles.marginVertSm, spacingStyles.marginHorizSm]}
-                buttonStyle={[themeForms.styles.buttonRoundAltSmall, spacingStyles.heightMd]}
+                buttonStyle={[themeForms.styles.buttonRoundAltSmall, spacingStyles.heightMd, spacingStyles.padHorizMd]}
                 // disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
-                titleStyle={[themeForms.styles.buttonTitleAlt, { fontSize: 12 }]}
+                titleStyle={[themeForms.styles.buttonTitleAlt, localStyles.actionLinkTitle]}
                 title={item.title}
                 type="outline"
                 onPress={onPress}
@@ -323,11 +371,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     claimSpace = () => {
         const { area, translate } = this.props;
         MapsService.claimSpace(area.id).then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: translate('alertTitles.requestClaimSent'),
                 text2: translate('alertMessages.requestClaimSent'),
-                visibilityTime: 3500,
             });
         });
     };
@@ -353,24 +399,26 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             translate,
             user,
         } = this.props;
-        const { likeCount } = this.state;
+        const { isLiked, isBookmarked, likeCount } = this.state;
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
         const mediaPadding = areaMediaPadding || 0;
-        const isBookmarked = area.reaction?.userBookmarkCategory;
-        const isLiked = area.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
         const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
+        const isQuickReport = Categories.QuickReportCategories.includes(area.category);
         const toggleOptions = () => toggleAreaOptions(area);
         const isEvent = area.areaType === 'events';
         const isSpace = area.areaType === 'spaces';
+        const isMoment = !isEvent && !isSpace;
         const mediaDimensions = {
             width: viewportWidth - (mediaPadding * 2),
-            height: isEvent ? ((viewportWidth - (mediaPadding * 2)) * (3 / 4)) : viewportWidth - (mediaPadding * 2),
+            height: (isEvent || isSpace)
+                ? ((viewportWidth - (mediaPadding * 2)) * (3 / 4))
+                : viewportWidth - (mediaPadding * 2),
         };
         const actionLinks = !isSpace ? [] : [
             {
@@ -394,7 +442,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 title: translate('pages.viewSpace.actionLinks.reserve'),
             },
             {
-                url: isSpace ? `https://www.therr.com/spaces/${area.id}` : undefined,
+                url: isSpace ? buildSpaceUrl(this.props.user?.settings?.locale || 'en-us', area.id) : undefined,
                 icon: 'share',
                 title: translate('pages.viewSpace.actionLinks.share'),
             },
@@ -410,12 +458,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }
 
         return (
-            <>
+            <View style={themeViewArea.styles.areaCard}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     {
-                        // (isSpace && areaUserDetails?.userName === translate('alertTitles.nameUnknown'))
-                        isSpace
-                            ? <View style={{ flex: 1 }} />
+                        isSpace && !isExpanded
+                            ? <View style={localStyles.spacerFlex} />
                             : <>
                                 <Pressable
                                     onPress={() => goToViewUser(area.fromUserId)}
@@ -434,7 +481,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                         containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                                         height={themeViewArea.styles.areaUserAvatarImg.height}
                                         width={themeViewArea.styles.areaUserAvatarImg.width}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen} />}
                                         transition={false}
                                     />
                                 </Pressable>
@@ -489,52 +536,62 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         data={actionLinks}
                         renderItem={this.renderActionLink}
                         keyExtractor={item => item.url}
-                        style={{ width: '100%' }}
+                        style={localStyles.fullWidth}
                         showsHorizontalScrollIndicator={false}
                     />
                 }
-                <PresssableWithDoubleTap
-                    style={{}}
-                    onPress={inspectContent}
-                    onDoubleTap={() => this.onLikePress(area)}
-                >
-                    {/* <UserMedia
-                        viewportWidth={viewportWidth}
-                        media={areaMedia}
-                        isVisible={!!areaMedia}
-                        isSingleView={isExpanded}
-                    /> */}
-                    {
-                        areaMedia ?
-                            <Image
-                                source={{
-                                    uri: areaMedia,
-                                }}
-                                style={{
-                                    width: mediaDimensions.width,
-                                    height: mediaDimensions.height,
-                                }}
-                                resizeMode="contain"
-                                PlaceholderContent={<ActivityIndicator />}
-                            /> :
-                            placeholderMediaType && <MissingImagePlaceholder
-                                area={area}
-                                themeViewArea={themeViewArea}
-                                placeholderMediaType={placeholderMediaType}
-                                dimensions={{
-                                    height: mediaDimensions.width,
-                                    width: mediaDimensions.height,
-                                }}
-                            />
-                    }
-                </PresssableWithDoubleTap>
-                <View style={themeViewArea.styles.areaContentTitleContainer}>
-                    <Text
-                        style={themeViewArea.styles.areaContentTitle}
-                        numberOfLines={2}
+                <View>
+                    <PresssableWithDoubleTap
+                        style={{}}
+                        onPress={inspectContent}
+                        onDoubleTap={() => this.onLikePress(area)}
                     >
-                        {sanitizeNotificationMsg(area.notificationMsg)}
-                    </Text>
+                        {/* <UserMedia
+                            viewportWidth={viewportWidth}
+                            media={areaMedia}
+                            isVisible={!!areaMedia}
+                            isSingleView={isExpanded}
+                        /> */}
+                        {
+                            areaMedia ?
+                                <Image
+                                    source={{
+                                        uri: areaMedia,
+                                    }}
+                                    style={{
+                                        width: mediaDimensions.width,
+                                        height: mediaDimensions.height,
+                                    }}
+                                    resizeMode="contain"
+                                    PlaceholderContent={<ActivityIndicator />}
+                                /> :
+                                placeholderMediaType && <MissingImagePlaceholder
+                                    area={area}
+                                    themeViewArea={themeViewArea}
+                                    placeholderMediaType={placeholderMediaType}
+                                    dimensions={{
+                                        height: Math.min(mediaDimensions.height, 160),
+                                        width: mediaDimensions.width,
+                                    }}
+                                />
+                        }
+                    </PresssableWithDoubleTap>
+                </View>
+                <View style={themeViewArea.styles.areaContentTitleContainer}>
+                    <View style={localStyles.titleWithBadge}>
+                        <Text
+                            style={[themeViewArea.styles.areaContentTitle, localStyles.titleText]}
+                            numberOfLines={2}
+                        >
+                            {sanitizeNotificationMsg(area.notificationMsg)}
+                        </Text>
+                        {isQuickReport && (
+                            <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                                <Icon name="schedule" size={12} color={theme.colors.brandingWhite} />
+                                <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                            </View>
+                        )}
+                    </View>
                     {
                         <Button
                             containerStyle={themeViewArea.styles.areaReactionButtonContainer}
@@ -552,7 +609,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         />
                     }
                     {
-                        !area.isDraft &&
+                        !area.isDraft && !isMoment &&
                         <>
                             {
                                 area?.viewCount != null &&
@@ -587,6 +644,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     />
                                 }
                                 onPress={() => this.onBookmarkPress(area)}
+                                onLongPress={() => this.onBookmarkLongPress(area)}
                                 type="clear"
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
@@ -616,15 +674,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     isEvent &&
                     <View style={themeViewArea.styles.banner}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="calendar"
-                                        size={26}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
+                            <TherrIcon
+                                name="calendar"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
                                 {/* eslint-disable-next-line max-len */}
@@ -637,16 +690,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     shouldDisplayRewardsBanner &&
                     <Pressable style={themeViewArea.styles.banner} onPress={this.onClaimRewardPress}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="gift"
-                                        size={28}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
-                                onPress={this.onClaimRewardPress}
+                            <TherrIcon
+                                name="gift"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
                                 {translate('pages.viewSpace.buttons.coinReward', {
@@ -654,39 +701,21 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 })}
                             </Text>
                         </View>
-                        <Pressable onPress={this.onClaimRewardPress}>
+                        <Pressable onPress={this.onClaimRewardPress} style={spacingStyles.marginRtMd}>
                             <Text style={themeViewArea.styles.bannerLinkText}>
                                 {translate('pages.viewSpace.buttons.claimRewards')}
                             </Text>
                         </Pressable>
-                        <Button
-                            icon={
-                                <TherrIcon
-                                    name="hand-coin"
-                                    size={28}
-                                    color={theme.colors.accentYellow}
-                                />
-                            }
-                            iconRight
-                            onPress={this.onClaimRewardPress}
-                            type="clear"
-                        />
                     </Pressable>
                 }
                 {
                     shouldDisplayRelatedSpaceBanner &&
                     <Pressable style={themeViewArea.styles.banner} onPress={this.onGoToSpace}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="road-map"
-                                        size={26}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
-                                onPress={this.onGoToSpace}
+                            <TherrIcon
+                                name="road-map"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             {
                                 area.space &&
@@ -702,6 +731,36 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </Pressable>
                     </Pressable>
                 }
+                {
+                    isSpace && isExpanded && (area.category || area.priceRange > 0) &&
+                    <View style={[spacingStyles.flexRow, spacingStyles.alignCenter, spacingStyles.padHorizMd, spacingStyles.padVertSm, localStyles.metaRow]}>
+                        {area.category ? (
+                            <View style={[localStyles.categoryBadge, { backgroundColor: theme.colors.primary3 }]}>
+                                <Text style={[localStyles.categoryBadgeText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.primary4,
+                                }]}>
+                                    {formatCategoryLabel(area.category)}
+                                </Text>
+                            </View>
+                        ) : null}
+                        {area.priceRange > 0 ? (
+                            <Text style={[localStyles.priceRangeText, { color: theme.colors.textGray }]}>
+                                {formatPriceRange(area.priceRange)}
+                            </Text>
+                        ) : null}
+                    </View>
+                }
+                {
+                    isSpace && isExpanded && area.addressReadable &&
+                    <View style={[spacingStyles.padHorizMd, localStyles.addressSection]}>
+                        <View style={[spacingStyles.flexRow, spacingStyles.alignCenter]}>
+                            <Icon name="place" size={16} color={theme.colors.textGray} />
+                            <Text style={[localStyles.addressText, { color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark }]}>
+                                {area.addressReadable}
+                            </Text>
+                        </View>
+                    </View>
+                }
                 <View style={[
                     spacingStyles.flexRow,
                 ]}>
@@ -716,12 +775,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 spacingStyles.alignCenter,
                                 spacingStyles.flexRow,
                             ]}>
-                                <Text style={[
-                                    spacingStyles.padRtTiny,
-                                    {
-                                        fontWeight: '300',
-                                    },
-                                ]}>{area.rating?.avgRating}</Text>
+                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary }]}>
+                                    {area.rating?.avgRating}
+                                </Text>
                                 <SpaceRating
                                     themeForms={themeForms}
                                     initialRating={area.rating?.avgRating}
@@ -729,17 +786,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     style={[
                                         spacingStyles.alignCenter,
                                         spacingStyles.justifyStart,
-                                        {
-                                            width: 'auto',
-                                        },
+                                        localStyles.ratingStars,
                                     ]}
                                 />
-                                <Text style={[
-                                    spacingStyles.padLtTiny,
-                                    {
-                                        fontWeight: '300',
-                                    },
-                                ]}>
+                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary }]}>
                                     ({area.rating.totalRatings})
                                 </Text>
                             </View>
@@ -747,21 +798,18 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     </View>
                     {
                         area.distance != null &&
-                        <Text style={[
-                            themeViewArea.styles.areaDistanceRight,
-                            {
-                                width: 'auto',
-                            },
-                        ]}>{`${area.distance}`}</Text>
+                        <Text style={[themeViewArea.styles.areaDistanceRight, localStyles.distanceText]}>
+                            {`${area.distance}`}
+                        </Text>
                     }
                 </View>
-                <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
-                    <Autolink
-                        text={area.message}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={themeViewArea.styles.areaMessage}
+                    text={area.message}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={!isSpace ? (username) => handleMentionPress(username, goToViewUser) : undefined}
+                    numberOfLines={isExpanded ? undefined : 3}
+                />
                 {
                     isExpanded && isEvent &&
                     <View style={[
@@ -849,6 +897,137 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     />
                 </View>
                 {
+                    isMoment && !area.isDraft &&
+                    <View style={themeViewArea.styles.areaReactionsContainer}>
+                        {
+                            area?.viewCount != null &&
+                            <Button
+                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                buttonStyle={themeViewArea.styles.areaReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name="bar-chart"
+                                        size={22}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={() => {}}
+                                type="clear"
+                                title={area?.viewCount}
+                                titleStyle={[
+                                    themeViewArea.styles.areaReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                        }
+                        <Button
+                            containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                            buttonStyle={themeViewArea.styles.areaReactionButton}
+                            icon={
+                                <Icon
+                                    name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                    size={24}
+                                    color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                />
+                            }
+                            onPress={() => this.onBookmarkPress(area)}
+                            onLongPress={() => this.onBookmarkLongPress(area)}
+                            type="clear"
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                        <Button
+                            containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                            buttonStyle={themeViewArea.styles.areaReactionButton}
+                            icon={
+                                <TherrIcon
+                                    name={isLiked ? 'heart-filled' : 'heart'}
+                                    size={22}
+                                    color={likeColor}
+                                />
+                            }
+                            onPress={() => this.onLikePress(area)}
+                            type="clear"
+                            title={(likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                            titleStyle={[
+                                themeViewArea.styles.areaReactionButtonTitle,
+                                { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                            ]}
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                    </View>
+                }
+                {
+                    isSpace && isExpanded && area.openingHours?.schema?.length > 0
+                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.hours')}
+                        </Text>
+                        <View style={localStyles.hoursGrid}>
+                            {area.openingHours.schema.map((entry: string) => {
+                                const parts = entry.split(' ');
+                                const days = parts[0] || '';
+                                const hours = parts.slice(1).join(' ') || '';
+                                return (
+                                    <View key={entry} style={localStyles.hoursRow}>
+                                        <Text style={[localStyles.hoursDayText, {
+                                            color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                                        }]}>
+                                            {days}
+                                        </Text>
+                                        <Text style={[localStyles.hoursTimeText, { color: theme.colors.textGray }]}>
+                                            {hours}
+                                        </Text>
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    </View>
+                }
+                {
+                    isSpace && isExpanded && (area.addressStreetAddress || area.addressLocality || area.addressRegion || area.phoneNumber)
+                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertSm]}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.contactAndLocation')}
+                        </Text>
+                        {area.addressStreetAddress ? (
+                            <Text style={[localStyles.contactText, {
+                                color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                            }]}>
+                                {area.addressStreetAddress}
+                            </Text>
+                        ) : null}
+                        {(area.addressLocality || area.addressRegion) ? (
+                            <Text style={[localStyles.contactText, {
+                                color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                            }]}>
+                                {[area.addressLocality, area.addressRegion].filter(Boolean).join(', ')}
+                                {area.postalCode ? ` ${area.postalCode}` : ''}
+                            </Text>
+                        ) : null}
+                        {area.phoneNumber ? (
+                            <Pressable onPress={() => Linking.openURL(`tel:${area.phoneNumber}`)}>
+                                <Text style={[localStyles.contactLinkText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen,
+                                }]}>
+                                    {area.phoneNumber}
+                                </Text>
+                            </Pressable>
+                        ) : null}
+                        {area.latitude && area.longitude ? (
+                            <Pressable onPress={() => Linking.openURL(
+                                `https://www.google.com/maps/search/?api=1&query=${area.latitude},${area.longitude}`
+                            )}>
+                                <Text style={[localStyles.contactLinkText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen,
+                                }]}>
+                                    {translate('pages.viewSpace.labels.viewOnGoogleMaps')}
+                                </Text>
+                            </Pressable>
+                        ) : null}
+                    </View>
+                }
+                {
                     isSpace && isExpanded && area.events?.length > 0
                     && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
                         <Text style={theme.styles.sectionTitleCenter}>
@@ -897,7 +1076,111 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         />
                     </View>
                 }
-            </>
+            </View>
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    momentThumbnail: {
+        width: 100,
+        height: 100,
+        borderRadius: 5,
+    },
+    actionLinkTitle: {
+        fontSize: 12,
+    },
+    spacerFlex: {
+        flex: 1,
+    },
+    fullWidth: {
+        width: '100%',
+    },
+    ratingText: {
+        fontWeight: '300',
+    },
+    ratingStars: {
+        width: 'auto',
+    },
+    distanceText: {
+        width: 'auto',
+    },
+    metaRow: {
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    categoryBadge: {
+        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    categoryBadgeText: {
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    priceRangeText: {
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    addressSection: {
+        paddingBottom: 4,
+    },
+    addressText: {
+        fontSize: 13,
+        marginLeft: 4,
+        flexShrink: 1,
+    },
+    hoursGrid: {
+        marginTop: 8,
+    },
+    hoursRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+    },
+    hoursDayText: {
+        fontSize: 14,
+        fontWeight: '600',
+        minWidth: 80,
+    },
+    hoursTimeText: {
+        fontSize: 14,
+        flex: 1,
+        textAlign: 'right',
+    },
+    contactText: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 4,
+    },
+    contactLinkText: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 8,
+    },
+    titleWithBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexShrink: 1,
+        gap: 8,
+    },
+    titleText: {
+        flexShrink: 1,
+    },
+    quickReportBadge: {
+        flexShrink: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 10,
+        gap: 4,
+    },
+    quickReportBadgeText: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+});

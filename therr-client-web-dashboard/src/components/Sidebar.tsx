@@ -26,6 +26,7 @@ import {
     faComments,
     faCommentAlt,
     faCommentDots,
+    faGift,
     faHandHoldingHeart,
     faHandHoldingUsd,
     faHome,
@@ -55,6 +56,7 @@ import { AccessCheckType } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import getUserImageUri from '../utilities/getUserImageUri';
 import { getBrandContext } from '../utilities/getHostContext';
+import * as globalConfig from '../../../global-config';
 
 interface ISidebarProps {
     onLogout: (event: any) => any;
@@ -169,7 +171,7 @@ const Sidebar = (props: ISidebarProps) => {
                 </Navbar.Toggle>
             </Navbar>
             <CSSTransition timeout={300} in={show} classNames="sidebar-transition">
-                <SimpleBar className={`collapse ${contractClass} ${showClass} sidebar d-md-block bg-primary text-white`}>
+                <SimpleBar role="navigation" aria-label="Main navigation" className={`collapse ${contractClass} ${showClass} sidebar d-md-block bg-primary text-white`}>
                     <div className="sidebar-inner px-4 pt-3 overflow-hidden">
                         <div className="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
                             <div className="d-flex align-items-center">
@@ -193,11 +195,12 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Admin Dashboard" link={'/dashboard-admin'} icon={faTasks} />
                             </AccessControl>
                             <NavItem title="Claim a Space" link={'/claim-a-space'} icon={faMapMarked} />
+                            <NavItem title="Customer Rewards" icon={faGift} link={'/rewards'} />
                             <NavItem title="My Ad Campaigns" icon={faBullhorn} link={'/campaigns/overview'} />
                             {/* <AccessControl isAuthorized={isSuperAdmin}>
                                 <NavItem title="Admin Campaigns" link={'/campaigns-admin/overview'} icon={faTasks} />
                             </AccessControl> */}
-                            <NavItem title="Influencer Pairings" icon={faPeopleArrows} link={'/influencer-pairings'} />
+                            <NavItem title="Local Advocates" icon={faPeopleArrows} link={'/influencer-pairings'} />
 
                             {/* <CollapsableNavItem eventKey="tables/" title="Tables" icon={faTable}>
                                 <NavItem title="Bootstrap Table" link={'/'} />
@@ -215,7 +218,7 @@ const Sidebar = (props: ISidebarProps) => {
 
                             <Dropdown.Divider className="my-3 border-indigo" />
 
-                            <CollapsableNavItem eventKey="acquisition/" title="Customer Acquisition" icon={faBullseye}>
+                            <CollapsableNavItem eventKey="acquisition/" title="Your Customers" icon={faBullseye}>
                                 <NavItem title="Overview" link={'/customer-acquisition/overview'} />
                                 {/* <NavItem title="Awareness" link={'/'} icon={faChartLine} />
                                 <NavItem title="Engagement" link={'/'} icon={faHandHoldingHeart} /> */}
@@ -242,6 +245,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Overview" link={'/documentation/overview'} />
                                 <NavItem title="Quick Start" link={'/claim-a-space'} />
                                 <NavItem title="Claim a Space" link={'/claim-a-space'} />
+                                <NavItem title="API Reference" external target="_blank" link={`${globalConfig[process.env.NODE_ENV].baseApiGatewayRoute}/docs`} />
                             </CollapsableNavItem>
                             {/* <CollapsableNavItem eventKey="components/" title="Components" icon={faBoxOpen}>
                                 <NavItem title="Accordion" link={'/'} />

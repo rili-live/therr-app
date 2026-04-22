@@ -4,7 +4,9 @@ metadata:
   name: maps-service-deployment
   namespace: default
 spec:
-  replicas: 2
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       component: server-maps
@@ -23,18 +25,54 @@ spec:
               matchExpressions:
               - key: cloud.google.com/gke-preemptible
                 operator: Exists
-            weight: 100
-      nodeSelector:
-        cloud.google.com/gke-preemptible: "true"
+            weight: 80
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                  - server-maps
+              topologyKey: kubernetes.io/hostname
       containers:
       - name: server-maps
         image: therrapp/maps-service:latest
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         resources:
-          limits:
+          requests:
             memory: "128Mi"
-            cpu: "75m"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
         ports:
         - containerPort: 7773
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7773
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7773
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
         env:
         - name: MAPS_SERVICE_API_PORT
           value: "7773"
@@ -91,6 +129,9 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        # IndexNow: Must match the same key set on client-web deployment
+        - name: INDEXNOW_API_KEY
+          value: "bf9415ba04c845a797fdc30bc27df2d7"
         - name: SIGHTENGINE_API_KEY
           value: "109708716"
         - name: SIGHTENGINE_API_SECRET
@@ -112,6 +153,7 @@ spec:
 
           # Replace DB_PORT with the port the proxy should listen on
           - "--port=5432"
+          - "--max-connections=20"
           - "therr-app:us-central1:therr-db-main-prod-14"
         securityContext:
           # The default Cloud SQL proxy image runs as the
@@ -123,12 +165,9 @@ spec:
             # application needs. For details, see
             # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
           limits:
-            # The proxy's memory use scales linearly with the number of active
-            # connections. Fewer open connections will use less memory. Adjust
-            # this value based on your application's requirements.
-            memory: "64Mi"
-            # The proxy's CPU use scales linearly with the amount of IO between
-            # the database and the application. Adjust this value based on your
-            # application's requirements.
-            cpu: "50m"
+            memory: "96Mi"
+            cpu: "100m"

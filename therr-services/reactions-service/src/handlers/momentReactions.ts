@@ -6,7 +6,6 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
 import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
-// import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
 const createOrUpdateMomentReaction = (req, res) => {
@@ -79,7 +78,18 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const { momentIds } = req.body;
+
+    if (!momentIds?.length) {
+        return handleHttpError({ res, message: 'momentIds is required', statusCode: 400 });
+    }
+
+    const validMomentIds = momentIds.filter((id) => !!id);
+
     const params = { ...req.body };
     delete params.momentIds;
 
@@ -87,7 +97,7 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.momentReactions.get({
         userId,
-    }, momentIds).then((existing) => {
+    }, validMomentIds).then((existing) => {
         const existingMapped = {};
         const existingReactions = existing.map((reaction) => {
             existingMapped[reaction.momentId] = reaction;
@@ -105,7 +115,7 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
                 .then((momentReactions) => { updatedReactions = momentReactions; });
         }
 
-        const createArray = momentIds
+        const createArray = validMomentIds
             .filter((id) => !existingMapped[id])
             .map((momentId) => ({
                 userId,
@@ -124,6 +134,11 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
 // READ
 const getMomentReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const momentIds = req.query?.momentIds?.split(',');
     const queryParams: any = {
         userId,
@@ -149,6 +164,10 @@ const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const { momentId } = req.params;
 
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     Store.momentReactions.get({
         userId,
         momentId,
@@ -172,6 +191,11 @@ const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
 const findMomentReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     // const locale = req.headers['x-localecode'] || 'en-us';
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
     const {
         momentIds,
         userHasActivated,

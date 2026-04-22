@@ -1,6 +1,7 @@
 import * as countryGeo from 'country-reverse-geocoding';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
+import submitToIndexNow from 'therr-js-utilities/index-now';
 import {
     AccessLevels,
     Content,
@@ -29,6 +30,7 @@ import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
 import areaMetricsService from '../api/areaMetricsService';
 import getUserGroup from '../utilities/getUserGroup';
+import getGroupDetails from '../utilities/getGroupDetails';
 import { DEFAULT_RADIUS_MEDIUM } from '../store/SpacesStore';
 import { countReactions } from '../utilities/getReactions';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
@@ -456,10 +458,25 @@ const createEvent = async (req, res) => {
                                 });
                             });
                         }
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed sightengine media safety check'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                            },
+                        });
                     });
                 }
 
                 updateAchievements(req.headers, req.body);
+
+                // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
+                if (process.env.INDEXNOW_API_KEY && event.id && !event.isDraft) {
+                    submitToIndexNow([`https://www.therr.com/events/${event.id}`], process.env.INDEXNOW_API_KEY)
+                        .catch(() => undefined); // already handled internally
+                }
 
                 return res.status(201).send({
                     ...event,
@@ -580,10 +597,17 @@ const updateEvent = (req, res) => {
             locale,
             fromUserId: userId,
         })
-            .then(([response]) => res.status(201).send({
-                ...response,
-                therrCoinRewarded,
-            })))
+            .then(([response]) => {
+                // Fire-and-forget: notify search engines of updated content via IndexNow (skip drafts)
+                if (process.env.INDEXNOW_API_KEY && eventId && !response.isDraft) {
+                    submitToIndexNow([`https://www.therr.com/events/${eventId}`], process.env.INDEXNOW_API_KEY)
+                        .catch(() => undefined); // already handled internally
+                }
+                return res.status(201).send({
+                    ...response,
+                    therrCoinRewarded,
+                });
+            }))
             .catch((err) => {
                 if (err?.message === CurrencyTransactionMessages.INSUFFICIENT_FUNDS) {
                     return handleHttpError({
@@ -706,6 +730,47 @@ const getEventDetails = (req, res) => {
             // Verify that user has activated event and has access to view it
             return userHasAccessPromise().then((isActivated) => {
                 if (!isActivated) {
+                    // For unauthenticated users, check if the group is public
+                    // and return limited event details accordingly
+                    if (!userId && event.groupId) {
+                        return getGroupDetails(event.groupId, req.headers).then((groupDetails) => {
+                            const isGroupPublic = groupDetails?.isPublic;
+
+                            if (isGroupPublic) {
+                                // Public group: return limited event details
+                                return res.status(200).send({
+                                    event: {
+                                        id: event.id,
+                                        notificationMsg: event.notificationMsg,
+                                        message: event.message,
+                                        category: event.category,
+                                        hashTags: event.hashTags,
+                                        scheduleStartAt: event.scheduleStartAt,
+                                        scheduleStopAt: event.scheduleStopAt,
+                                        groupId: event.groupId,
+                                        spaceId: event.spaceId,
+                                        isPublic: event.isPublic,
+                                    },
+                                    media,
+                                    isGroupPublic: true,
+                                    accessRestricted: true,
+                                });
+                            }
+
+                            // Private group: return minimal info with restricted flag
+                            return res.status(200).send({
+                                event: {
+                                    id: event.id,
+                                    notificationMsg: event.notificationMsg,
+                                    groupId: event.groupId,
+                                    isPublic: event.isPublic,
+                                },
+                                isGroupPublic: false,
+                                accessRestricted: true,
+                            });
+                        });
+                    }
+
                     return handleHttpError({
                         res,
                         message: translate(locale, 'eventReactions.eventNotActivated'),

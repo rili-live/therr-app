@@ -4,24 +4,26 @@ import {
     ActivityIndicator,
     Dimensions,
     Pressable,
+    StyleSheet,
     Text,
     TouchableWithoutFeedbackComponent,
     View,
 } from 'react-native';
-import { Button, Image } from 'react-native-elements';
-import Autolink from 'react-native-autolink';
+import { Button } from '../BaseButton';
+import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Categories } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../PressableWithDoubleTap';
-// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
+import RichText from '../RichText';
+import handleMentionPress from '../../utilities/handleMentionPress';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -46,7 +48,9 @@ interface IAreaDisplayContentProps {
     isDarkMode: boolean;
     area: any;
     areaMedia: string;
+    goToViewUser?: Function;
     inspectContent: () => any;
+    isBookmarked?: boolean;
     onBookmarkPress?: () => any;
     onDoubleTap?: () => any;
     theme: {
@@ -73,14 +77,33 @@ interface IAreaDisplayMediumProps extends IAreaDisplayContentProps {
 }
 
 interface IAreaDisplayMediumState {
+    isLiked: boolean;
+    isBookmarked: boolean;
+    likeCount: number | null;
     mediaWidth: number;
 }
 
 export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediumProps, IAreaDisplayMediumState> {
+    static getDerivedStateFromProps(nextProps: IAreaDisplayMediumProps, nextState: IAreaDisplayMediumState) {
+        if (nextProps.area?.likeCount != null
+            && (nextState.likeCount == null)) {
+            return {
+                isLiked: !!nextProps.area.reaction?.userHasLiked,
+                isBookmarked: !!nextProps.area.reaction?.userBookmarkCategory,
+                likeCount: nextProps.area?.likeCount,
+            };
+        }
+
+        return null;
+    }
+
     constructor(props: IAreaDisplayMediumProps) {
         super(props);
 
         this.state = {
+            isLiked: !!props.area.reaction?.userHasLiked,
+            isBookmarked: !!props.area.reaction?.userBookmarkCategory,
+            likeCount: props.area.likeCount,
             mediaWidth: viewportWidth / 4,
         };
     }
@@ -93,9 +116,14 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
 
     onBookmarkPress = (area) => {
         const { updateAreaReaction, user } = this.props;
+        const newIsBookmarked = !this.state.isBookmarked;
+
+        this.setState({
+            isBookmarked: newIsBookmarked,
+        });
 
         updateAreaReaction(area.id, {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, area.fromUserId, user?.details?.userName);
     };
 
@@ -103,9 +131,17 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         if (!area.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
+            const newIsLiked = !this.state.isLiked;
+
+            this.setState({
+                isLiked: newIsLiked,
+                likeCount: this.props.area.likeCount != null
+                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
+                    : this.state.likeCount,
+            });
 
             updateAreaReaction(area.id, {
-                userHasLiked: !area.reaction?.userHasLiked,
+                userHasLiked: newIsLiked,
             }, area.fromUserId, user?.details?.userName);
         }
     };
@@ -129,7 +165,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         const toggleOptions = () => toggleAreaOptions(area);
 
         return (
-            <>
+            <View style={themeViewArea.styles.areaCard}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     <Pressable
                         onPress={() => goToViewUser(area.fromUserId)}
@@ -146,7 +182,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                             containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                             height={themeViewArea.styles.areaUserAvatarImg.height}
                             width={themeViewArea.styles.areaUserAvatarImg.width}
-                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
+                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen}/>}
                             transition={false}
                         />
                     </Pressable>
@@ -173,27 +209,30 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         }
                         onPress={toggleOptions}
                         type="clear"
-                        TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <AreaDisplayContent
-                    hashtags={hashtags}
-                    isDarkMode={isDarkMode}
-                    area={area}
-                    areaMedia={areaMedia}
-                    inspectContent={inspectContent}
-                    onDoubleTap={() => this.onLikePress(area)}
-                    onBookmarkPress={() => this.onBookmarkPress(area)}
-                    theme={theme}
-                    themeForms={themeForms}
-                    themeViewArea={themeViewArea}
-                    translate={this.props.translate}
-                />
+                <View>
+                    <AreaDisplayContent
+                        hashtags={hashtags}
+                        isDarkMode={isDarkMode}
+                        area={area}
+                        areaMedia={areaMedia}
+                        goToViewUser={goToViewUser}
+                        inspectContent={inspectContent}
+                        isBookmarked={this.state.isBookmarked}
+                        onDoubleTap={() => this.onLikePress(area)}
+                        onBookmarkPress={() => this.onBookmarkPress(area)}
+                        theme={theme}
+                        themeForms={themeForms}
+                        themeViewArea={themeViewArea}
+                        translate={this.props.translate}
+                    />
+                </View>
                 {
                     area.distance != null &&
-                    <Text  style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
+                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                 }
-            </>
+            </View>
         );
     }
 }
@@ -203,7 +242,9 @@ export const AreaDisplayContent = ({
     isDarkMode,
     area,
     areaMedia,
+    goToViewUser,
     inspectContent,
+    isBookmarked: isBookmarkedProp,
     onBookmarkPress,
     onDoubleTap,
     theme,
@@ -212,59 +253,67 @@ export const AreaDisplayContent = ({
 }: IAreaDisplayContentProps) => {
     // const [mediaWidth, setMediaWidth] = useState<number>(viewportWidth / 4);
     const [mediaWidth] = useState<number>(viewportWidth / 4);
-    const isBookmarked = area.reaction?.userBookmarkCategory;
+    const isBookmarked = isBookmarkedProp !== undefined
+        ? isBookmarkedProp
+        : !!area.reaction?.userBookmarkCategory;
     // const onUserMediaLayout = (event) => {
     //     const { width } = event.nativeEvent.layout;
     //     setMediaWidth(width);
     // };
 
+    const isQuickReport = Categories.QuickReportCategories.includes(area.category);
+
     return (
-        <View style={{ display: 'flex', flexDirection: 'row', flex: 1 }}>
+        <View style={localStyles.rowContainer}>
             <PresssableWithDoubleTap
                 onPress={inspectContent}
                 onDoubleTap={onDoubleTap || (() => {})}
-                style={{ paddingLeft: 14, paddingTop: 8 }}
+                style={localStyles.mediaPressable}
             >
-                {/* <UserMedia
-                    viewportWidth={mediaWidth}
-                    media={areaMedia}
-                    isVisible={!!areaMedia}
-                    isSingleView={false}
-                    onLayout={onUserMediaLayout}
-                /> */}
-                {
-                    areaMedia ?
-                        <Image
-                            source={{
-                                uri: areaMedia,
-                            }}
-                            style={{
-                                width: mediaWidth,
-                                height: mediaWidth,
-                                borderRadius: 7,
-                            }}
-                            resizeMode="contain"
-                            PlaceholderContent={<ActivityIndicator />}
-                        /> :
-                        <MissingImagePlaceholder
-                            area={area}
-                            themeViewArea={themeViewArea}
-                            dimensions={{
-                                width: mediaWidth,
-                                height: mediaWidth,
-                            }}
-                        />
-                }
+                <View style={[localStyles.mediaImageWrapper, {
+                    width: mediaWidth,
+                    height: mediaWidth,
+                }]}>
+                    {
+                        areaMedia ?
+                            <Image
+                                source={{
+                                    uri: areaMedia,
+                                }}
+                                style={[localStyles.mediaImage, {
+                                    width: mediaWidth,
+                                    height: mediaWidth,
+                                }]}
+                                resizeMode="contain"
+                                PlaceholderContent={<ActivityIndicator />}
+                            /> :
+                            <MissingImagePlaceholder
+                                area={area}
+                                themeViewArea={themeViewArea}
+                                dimensions={{
+                                    width: mediaWidth,
+                                    height: mediaWidth,
+                                }}
+                            />
+                    }
+                </View>
             </PresssableWithDoubleTap>
             <View style={spacingStyles.flexOne}>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
-                    <Text
-                        style={themeViewArea.styles.areaContentTitleMedium
-                        }
-                        numberOfLines={2}
-                    >
-                        {sanitizeNotificationMsg(area.notificationMsg)}
-                    </Text>
+                    <View style={localStyles.titleWithBadge}>
+                        <Text
+                            style={[themeViewArea.styles.areaContentTitleMedium, localStyles.titleText]}
+                            numberOfLines={2}
+                        >
+                            {sanitizeNotificationMsg(area.notificationMsg)}
+                        </Text>
+                        {isQuickReport && (
+                            <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
+                                <Icon name="schedule" size={10} color={theme.colors.brandingWhite} />
+                                <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                            </View>
+                        )}
+                    </View>
                     {
                         !area.isDraft && onBookmarkPress &&
                         <>
@@ -285,13 +334,13 @@ export const AreaDisplayContent = ({
                         </>
                     }
                 </View>
-                <Text style={themeViewArea.styles.areaMessage} numberOfLines={3}>
-                    <Autolink
-                        text={area.message}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={themeViewArea.styles.areaMessage}
+                    text={area.message}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={goToViewUser ? (username) => handleMentionPress(username, goToViewUser) : undefined}
+                    numberOfLines={3}
+                />
                 <View>
                     <HashtagsContainer
                         hasIcon={false}
@@ -306,3 +355,46 @@ export const AreaDisplayContent = ({
         </View>
     );
 };
+
+const localStyles = StyleSheet.create({
+    rowContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        flex: 1,
+    },
+    mediaPressable: {
+        paddingLeft: 14,
+        paddingTop: 8,
+    },
+    mediaImageWrapper: {
+        overflow: 'hidden',
+        borderRadius: 7,
+    },
+    mediaImage: {
+        borderRadius: 7,
+    },
+    titleWithBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexShrink: 1,
+        gap: 6,
+    },
+    titleText: {
+        flexShrink: 1,
+    },
+    quickReportBadge: {
+        flexShrink: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 8,
+        gap: 3,
+    },
+    quickReportBadgeText: {
+        color: '#ffffff',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+});
