@@ -139,7 +139,7 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
                 <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>
+                        <Text style={[styles.headerTitle, { color: this.theme.colors.textWhite }]}>
                             {activeUserList?.name || this.translate('pages.bookmarks.lists.loading')}
                         </Text>
                         {activeUserList && !activeUserList.isDefault && (
@@ -156,7 +156,7 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                         ListEmptyComponent={() => (
                             !isLoading ? (
                                 <View style={styles.empty}>
-                                    <Text style={styles.emptyText}>
+                                    <Text style={[styles.emptyText, { color: this.theme.colors.textGray }]}>
                                         {this.translate('pages.bookmarks.lists.emptyList')}
                                     </Text>
                                 </View>
