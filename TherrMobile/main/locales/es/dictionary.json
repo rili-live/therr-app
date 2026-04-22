@@ -1737,7 +1737,10 @@
         "shareList": "Compartir lista",
         "shareMessage": "Mira mi lista \"{listName}\" en Therr: {url}",
         "publicToggleErrorTitle": "No se pudo actualizar la lista",
-        "publicToggleErrorBody": "Algo salió mal. Inténtalo de nuevo."
+        "publicToggleErrorBody": "Algo salió mal. Inténtalo de nuevo.",
+        "privateConfirmTitle": "¿Hacer esta lista privada?",
+        "privateConfirmBody": "El enlace para compartir dejará de funcionar para quienes se lo enviaste y los motores de búsqueda pueden eliminar esta página. Puedes volver a hacerla pública más tarde.",
+        "privateConfirmAction": "Hacer privada"
       }
     },
     "myQRCodes": {

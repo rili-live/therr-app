@@ -11,6 +11,23 @@ import * as globalConfig from '../../../../global-config';
 
 const DEFAULT_LIST_NAME = 'Saved';
 const UNIQUE_VIOLATION = '23505';
+const SLUG_INDEX_NAME = 'idx_userlists_userid_slug_public';
+
+// Maps a PG 23505 into the right 409 message based on which unique index
+// tripped. The slug partial index fires when two would-be-public lists with
+// different names collapse to the same slugify(name) value (e.g. "Date Night"
+// and "Date-Night"). The name index fires when two lists collide on LOWER(name).
+const handleUserListUniqueViolation = (err: any, res: any) => {
+    const constraint = err?.constraint || '';
+    if (constraint === SLUG_INDEX_NAME || constraint.includes('slug')) {
+        return handleHttpError({
+            res,
+            message: 'Another public list of yours would share the same link. Rename one of them first.',
+            statusCode: 409,
+        });
+    }
+    return handleHttpError({ res, message: 'A list with that name already exists', statusCode: 409 });
+};
 
 // Race-safe: two concurrent first-bookmarks from the same user would each see no
 // default list and try to create one. One wins; the other hits the unique index
@@ -62,21 +79,25 @@ const createUserList = async (req, res) => {
             await Store.userLists.update({ userId }, { isDefault: false });
         }
 
+        const trimmedName = name.trim().slice(0, 120);
+
         const created = await Store.userLists.create({
             userId,
-            name: name.trim().slice(0, 120),
+            name: trimmedName,
             description,
             iconName,
             colorHex,
             isPublic,
             isDefault,
+            // Only compute a slug for public lists — private lists skip it so
+            // they don't compete on the partial unique index.
+            slug: isPublic ? slugify(trimmedName) : null,
         });
 
         return res.status(201).send(created);
     } catch (err: any) {
-        // Unique violation on (userId, LOWER(name)) returns 23505
-        if (err?.code === '23505') {
-            return handleHttpError({ res, message: 'A list with that name already exists', statusCode: 409 });
+        if (err?.code === UNIQUE_VIOLATION) {
+            return handleUserListUniqueViolation(err, res);
         }
         return handleHttpError({ err, res, message: 'SQL:USER_LISTS_ROUTES:CREATE_ERROR' });
     }
@@ -231,15 +252,10 @@ const getUserListById = async (req, res) => {
 const getPublicUserListBySlug = async (req, res) => {
     const { ownerUserId, listSlug } = req.params;
 
-    // Find candidate lists for this owner and match by computed slug. Scanning
-    // the owner's lists is cheap (typically < 20 per user) and avoids storing
-    // a denormalized slug column. The per-owner name uniqueness index guarantees
-    // at most one match. Explicit limit raises the Store's 100 default to its
-    // 500 cap so heavy-list users don't silently 404 off the tail.
-    const ownersLists = await Store.userLists.get({ userId: ownerUserId }, { limit: 500, offset: 0, order: 'DESC' });
-    const list = ownersLists.find((l) => slugify(l.name) === listSlug);
+    // Indexed lookup on the partial unique index idx_userlists_userid_slug_public.
+    const list = await Store.userLists.findPublicByOwnerAndSlug(ownerUserId, listSlug);
 
-    if (!list || !list.isPublic) {
+    if (!list) {
         return handleHttpError({ res, message: 'List not found', statusCode: 404 });
     }
 
@@ -292,6 +308,20 @@ const updateUserList = async (req, res) => {
         if (isPublic !== undefined) updates.isPublic = !!isPublic;
         if (isDefault !== undefined) updates.isDefault = !!isDefault;
 
+        // Slug lifecycle:
+        // - Toggle public ON: compute slug from the effective name so the list
+        //   is immediately reachable at /lists/:ownerUserId/:slug.
+        // - Toggle public OFF: null the slug so it doesn't compete on the
+        //   partial unique index and a future re-publish starts fresh.
+        // - Rename while public: recompute slug.
+        const willBePublic = updates.isPublic ?? existing.isPublic;
+        const effectiveName = updates.name ?? existing.name;
+        if (updates.isPublic === false) {
+            updates.slug = null;
+        } else if (willBePublic && (updates.isPublic === true || updates.name !== undefined)) {
+            updates.slug = slugify(effectiveName);
+        }
+
         const [updated] = await Store.userLists.update({ id: listId, userId }, updates);
 
         // If we renamed the list, keep userBookmarkCategory in sync on member reactions.
@@ -311,8 +341,8 @@ const updateUserList = async (req, res) => {
 
         return res.status(200).send(updated);
     } catch (err: any) {
-        if (err?.code === '23505') {
-            return handleHttpError({ res, message: 'A list with that name already exists', statusCode: 409 });
+        if (err?.code === UNIQUE_VIOLATION) {
+            return handleUserListUniqueViolation(err, res);
         }
         return handleHttpError({ err, res, message: 'SQL:USER_LISTS_ROUTES:UPDATE_ERROR' });
     }
