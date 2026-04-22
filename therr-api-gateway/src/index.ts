@@ -113,6 +113,7 @@ app.use(authenticate.unless({
         { url: /\/v1\/maps-service\/cities\/[^/]+\/pulse$/, methods: ['GET'] }, // Public city landing page (uses authenticateOptional)
         { url: /\/v1\/messages-service\/forums\/[0-9a-f-]+$/, methods: ['GET'] }, // Public group/forum view (uses authenticateOptional)
         { url: '/v1/messages-service/forums/search', methods: ['POST'] }, // Public forum search (uses authenticateOptional)
+        { url: /\/v1\/reactions-service\/user-lists\/public\/[0-9a-f-]+\/[a-z0-9-]+$/, methods: ['GET'] }, // Public shareable list page
     ],
 }));
 

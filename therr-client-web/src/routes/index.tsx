@@ -3,7 +3,7 @@ import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
 import { AccessLevels, Categories, Cities } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
-import { ForumActions, MapActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 
 // SSR-rendered / public routes — keep statically imported for renderToString compatibility
@@ -30,6 +30,7 @@ import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
 import Guide from './Guide';
 import GuidesIndex from './Guide/GuidesIndex';
+import PublicListView from './Bookmarks/PublicListView';
 import { getGuide, IPostSection } from '../utilities/guideContent';
 
 // Auth-only routes — lazy-loaded client-side to reduce initial bundle size.
@@ -591,6 +592,19 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
                 withMedia: true,
             })(dispatch).catch(() => undefined)));
         },
+    },
+
+    {
+        // Public shareable list page — SSR-rendered for SEO.
+        // Data is fetched via the auth-optional
+        // /user-lists/public/:ownerUserId/:listSlug endpoint and populates
+        // the `activeUserList` Redux slice.
+        path: '/lists/:ownerUserId/:listSlug',
+        element: <PublicListView />,
+        fetchData: (dispatch: any, params: any) => ContentActions.fetchPublicUserList(
+            params.ownerUserId,
+            params.listSlug,
+        )(dispatch).catch(() => undefined),
     },
 
     // If no route matches, return NotFound component
