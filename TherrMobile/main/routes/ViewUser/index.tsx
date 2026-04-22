@@ -40,6 +40,7 @@ import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import UserDisplayHeader from './UserDisplayHeader';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
+import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { isMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -95,6 +96,7 @@ interface IViewUserState {
     isRefreshingUserMedia: boolean;
     isRefreshingUserMoments: boolean;
     isRefreshingUserThoughts: boolean;
+    isTabViewLaidOut: boolean;
     tabRoutes: { key: string; title: string }[];
     userInViewsMoments: any[];
     userInViewsThoughts: any[];
@@ -163,6 +165,7 @@ class ViewUser extends React.Component<
             isRefreshingUserMedia: false,
             isRefreshingUserMoments: false,
             isRefreshingUserThoughts: false,
+            isTabViewLaidOut: false,
             tabRoutes,
             userInViewsMoments: [],
             userInViewsThoughts: [],
@@ -591,6 +594,16 @@ class ViewUser extends React.Component<
         });
     };
 
+    handleTabContainerLayout = (e) => {
+        if (this.state.isTabViewLaidOut) {
+            return;
+        }
+        const { width, height } = e.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+            this.setState({ isTabViewLaidOut: true });
+        }
+    };
+
     renderTabBar = props => {
         return (
             <TabBar
@@ -696,6 +709,7 @@ class ViewUser extends React.Component<
             confirmModalText,
             isConfirmProcessing,
             isLoading,
+            isTabViewLaidOut,
             tabRoutes,
         } = this.state;
 
@@ -722,31 +736,34 @@ class ViewUser extends React.Component<
                                     user={user}
                                     userInView={user.userInView || {}}
                                 />
-                                <TabView
-                                    lazy
-                                    lazyPreloadDistance={0}
-                                    navigationState={{
-                                        index: activeTabIndex,
-                                        routes: tabRoutes,
-                                    }}
-                                    renderTabBar={this.renderTabBar}
-                                    renderScene={this.renderSceneMap}
-                                    renderLazyPlaceholder={() => (
-                                        <View style={this.theme.styles.sectionContainer}>
-                                            <LazyPlaceholder lines={[undefined, undefined]} />
-                                            <LazyPlaceholder lines={[undefined, undefined]} />
-                                            <LazyPlaceholder lines={[undefined, undefined]} />
-                                            <LazyPlaceholder lines={[undefined, undefined]} />
-                                            <LazyPlaceholder lines={[undefined, undefined]} />
-                                            <LazyPlaceholder lines={[undefined, undefined]} />
-                                            <LazyPlaceholder lines={[undefined, undefined]} />
-                                            <LazyPlaceholder lines={[undefined, undefined]} />
-                                        </View>
-                                    )}
-                                    onIndexChange={this.onTabSelect}
-                                    initialLayout={{ width: viewportWidth }}
-                                    style={this.theme.styles.tabviewContainer}
-                                />
+                                <View style={this.theme.styles.tabviewContainer} onLayout={this.handleTabContainerLayout}>
+                                    <TabView
+                                        lazy
+                                        lazyPreloadDistance={0}
+                                        navigationState={{
+                                            index: activeTabIndex,
+                                            routes: tabRoutes,
+                                        }}
+                                        renderTabBar={this.renderTabBar}
+                                        renderScene={this.renderSceneMap}
+                                        renderLazyPlaceholder={() => (
+                                            <View style={this.theme.styles.sectionContainer}>
+                                                <LazyPlaceholder lines={[undefined, undefined]} />
+                                                <LazyPlaceholder lines={[undefined, undefined]} />
+                                                <LazyPlaceholder lines={[undefined, undefined]} />
+                                                <LazyPlaceholder lines={[undefined, undefined]} />
+                                                <LazyPlaceholder lines={[undefined, undefined]} />
+                                                <LazyPlaceholder lines={[undefined, undefined]} />
+                                                <LazyPlaceholder lines={[undefined, undefined]} />
+                                                <LazyPlaceholder lines={[undefined, undefined]} />
+                                            </View>
+                                        )}
+                                        onIndexChange={this.onTabSelect}
+                                        initialLayout={{ width: viewportWidth }}
+                                        style={this.theme.styles.tabviewContainer}
+                                    />
+                                    {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
+                                </View>
                             </View>
                     }
                 </SafeAreaView>

@@ -22,6 +22,7 @@ import ConnectionItem from './components/ConnectionItem';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
 import { RefreshControl } from 'react-native-gesture-handler';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
+import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -83,6 +84,7 @@ interface IContactsState {
     isRefreshingConnections: boolean;
     isRefreshingDMsSearch: boolean;
     isRefreshingUserSearch: boolean;
+    isTabViewLaidOut: boolean;
     activeTabIndex: number;
     searchFilters: any;
     tabRoutes: { key: string; title: string }[];
@@ -139,6 +141,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             isRefreshingConnections: false,
             isRefreshingDMsSearch: false,
             isRefreshingUserSearch: false,
+            isTabViewLaidOut: false,
             tabRoutes: [
                 { key: PEOPLE_CAROUSEL_TABS.PEOPLE, title: this.translate('menus.headerTabs.people') },
                 { key: PEOPLE_CAROUSEL_TABS.MESSAGES, title: this.translate('menus.headerTabs.messages') },
@@ -259,6 +262,16 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         navigation.navigate('DirectMessage', {
             connectionDetails,
         });
+    };
+
+    handleTabContainerLayout = (e) => {
+        if (this.state.isTabViewLaidOut) {
+            return;
+        }
+        const { width, height } = e.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+            this.setState({ isTabViewLaidOut: true });
+        }
     };
 
     onTabSelect = (index: number) => {
@@ -614,7 +627,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     render() {
-        const { activeTabIndex, isNameConfirmModalVisible, tabRoutes } = this.state;
+        const { activeTabIndex, isNameConfirmModalVisible, isTabViewLaidOut, tabRoutes } = this.state;
         const { navigation, user } = this.props;
         const createButtonTitle = tabMap[activeTabIndex] === PEOPLE_CAROUSEL_TABS.MESSAGES
             ? this.translate('menus.connections.buttons.invite')
@@ -623,7 +636,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView} onLayout={this.handleTabContainerLayout}>
                     <TabView
                         lazy
                         lazyPreloadDistance={1}
@@ -649,6 +662,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         initialLayout={{ width: viewportWidth }}
                         // style={styles.container}
                     />
+                    {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isNameConfirmModalVisible}
