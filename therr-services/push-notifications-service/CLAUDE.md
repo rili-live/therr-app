@@ -34,9 +34,21 @@ src/
 ## Key Patterns
 
 ### Firebase Admin Setup
-- `src/api/firebaseAdmin.ts` - initializes FCM per brand variation
-- Separate Firebase projects per niche app (Therr, Teem, etc.)
-- Uses service account credentials from environment
+- `src/api/firebaseAdmin.ts` initializes one `admin.app` instance per brand,
+  cached in `brandAppCache` and looked up per send via `getAdminAppForBrand(brandVariation)`.
+- Each brand has its own Firebase project (separate FCM keys, APNS auth keys,
+  analytics). Credentials are base64-encoded service account JSON supplied in
+  environment variables:
+  - `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64` — THERR (required at startup;
+    also the fallback for any brand whose own env var is not set).
+  - `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_TEEM` — TEEM (optional).
+  - `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS` — HABITS (optional).
+  - Pattern for new brands: `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_<BRAND_UPPER>`.
+- Brands without a configured env var log a one-time warning at first send and
+  fall back to the THERR default app. This is compatible with deployments that
+  have not yet provisioned per-brand Firebase projects.
+- THERR credentials are validated at module load (project_id / client_email /
+  private_key); a missing or malformed THERR JSON fails the service at startup.
 
 ### Location Caching
 - User locations cached in Redis with TTL

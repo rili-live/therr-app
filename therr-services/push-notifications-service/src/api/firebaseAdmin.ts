@@ -17,33 +17,109 @@ const INVALID_TOKEN_ERROR_CODES = new Set([
 const isInvalidTokenError = (error: any): boolean => INVALID_TOKEN_ERROR_CODES.has(error?.code)
     || INVALID_TOKEN_ERROR_CODES.has(error?.errorInfo?.code);
 
-const loadServiceAccount = (): admin.ServiceAccount => {
-    const raw = process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64;
+// Each brand has its own Firebase project (separate FCM keys, APNS auth keys,
+// analytics). Credentials for each brand come from a base64-encoded service
+// account JSON in environment:
+//
+//   THERR   -> PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64        (required,
+//              historical default; also used as fallback for unconfigured
+//              brands so deployments without per-brand keys stay working)
+//   TEEM    -> PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_TEEM   (optional)
+//   HABITS  -> PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS (optional)
+//   <brand> -> PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_<UPPER>(optional)
+const getCredentialEnvKey = (brandVariation: BrandVariations): string => {
+    if (brandVariation === BrandVariations.THERR) {
+        return 'PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64';
+    }
+    return `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_${String(brandVariation).toUpperCase()}`;
+};
+
+const parseServiceAccount = (envKey: string, brandVariation: BrandVariations): admin.ServiceAccount | null => {
+    const raw = process.env[envKey];
     if (!raw) {
-        throw new Error(
-            'push-notifications-service: PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 is not set. FCM cannot be initialized.',
-        );
+        return null;
     }
     let parsed: any;
     try {
         parsed = JSON.parse(Buffer.from(raw, 'base64').toString());
     } catch (err: any) {
         throw new Error(
-            `push-notifications-service: PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 is not valid base64-encoded JSON (${err?.message || 'parse error'}).`,
+            `push-notifications-service: ${envKey} (${brandVariation}) is not valid base64-encoded JSON (${err?.message || 'parse error'}).`,
         );
     }
     if (!parsed?.project_id || !parsed?.client_email || !parsed?.private_key) {
         throw new Error(
-            'push-notifications-service: Firebase service account JSON is missing required fields (project_id, client_email, private_key).',
+            `push-notifications-service: Firebase service account JSON for ${brandVariation} is missing required fields (project_id, client_email, private_key).`,
         );
     }
     return parsed as admin.ServiceAccount;
 };
 
-admin.initializeApp({
-    credential: admin.credential.cert(loadServiceAccount()),
+// THERR credentials are required at startup (matches the historical
+// single-app contract); absence is a hard failure so misconfigurations can't
+// hide behind a fallback to a brand that doesn't exist.
+const therrServiceAccount = parseServiceAccount(
+    getCredentialEnvKey(BrandVariations.THERR),
+    BrandVariations.THERR,
+);
+if (!therrServiceAccount) {
+    throw new Error(
+        'push-notifications-service: PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 is not set. FCM cannot be initialized.',
+    );
+}
+
+const defaultApp = admin.initializeApp({
+    credential: admin.credential.cert(therrServiceAccount),
     // databaseURL: 'https://<DATABASE_NAME>.firebaseio.com',
 });
+
+// Cache of admin.app instances keyed by BrandVariations. Initialized lazily on
+// first send for each brand: we don't know which brands are in use at boot,
+// and eagerly initializing an app for every enum value would fail for brands
+// whose env var isn't set in this environment. The fallback entry below
+// ensures a brand without credentials still gets pushed (via the THERR/
+// default app) rather than silently dropping the notification.
+const brandAppCache = new Map<BrandVariations, admin.app.App>();
+brandAppCache.set(BrandVariations.THERR, defaultApp);
+
+// Tracks brands we've already warned about falling back to the default app,
+// so we don't spam the logs on every send to a brand whose env var is unset.
+const brandsWithLoggedFallback = new Set<BrandVariations>();
+
+const getAdminAppForBrand = (brandVariation: BrandVariations): admin.app.App => {
+    const cached = brandAppCache.get(brandVariation);
+    if (cached) return cached;
+
+    const envKey = getCredentialEnvKey(brandVariation);
+    const serviceAccount = parseServiceAccount(envKey, brandVariation);
+
+    if (!serviceAccount) {
+        if (!brandsWithLoggedFallback.has(brandVariation)) {
+            brandsWithLoggedFallback.add(brandVariation);
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: [
+                    `No Firebase credentials for brand ${brandVariation} (${envKey} not set) — falling back to default (THERR) Firebase app.`,
+                ],
+                traceArgs: {
+                    'pushNotification.brandVariation': brandVariation,
+                    'pushNotification.missingEnvKey': envKey,
+                },
+            });
+        }
+        // Cache the fallback so subsequent sends skip the env lookup.
+        brandAppCache.set(brandVariation, defaultApp);
+        return defaultApp;
+    }
+
+    const app = admin.initializeApp(
+        { credential: admin.credential.cert(serviceAccount) },
+        String(brandVariation), // name this admin app uniquely per brand
+    );
+    brandAppCache.set(brandVariation, app);
+    return app;
+};
 
 interface ICreateMessageConfig {
     achievementsCount?: number;
@@ -608,6 +684,9 @@ const predictAndSendNotification = (
     headers?: InternalConfigHeaders,
 ) => {
     const message = createMessage(type, data, config, brandVariation);
+    // Route sends through the brand's own Firebase project so FCM delivery
+    // uses the correct APNS auth key / FCM credentials for this brand.
+    const messaging = getAdminAppForBrand(brandVariation).messaging();
 
     return Promise.resolve()
         .then(() => {
@@ -617,85 +696,85 @@ const predictAndSendNotification = (
 
             // Automation
             if (type === PushNotifications.Types.createYourProfileReminder) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
             if (type === PushNotifications.Types.createAMomentReminder) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
             if (type === PushNotifications.Types.completeDraftReminder) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
             if (type === PushNotifications.Types.latestPostLikesStats) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
             if (type === PushNotifications.Types.latestPostViewcountStats) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
             if (type === PushNotifications.Types.unreadNotificationsReminder) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
             if (type === PushNotifications.Types.unclaimedAchievementsReminder) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
             if (type === PushNotifications.Types.inviteFriendsReminder) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             // Event Driven
             if (type === PushNotifications.Types.achievementCompleted) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.connectionRequestAccepted) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newConnectionRequest) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newDirectMessage) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newGroupMessage) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newGroupMembers) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newGroupInvite) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newLikeReceived) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newSuperLikeReceived) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newAreasActivated) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.nudgeSpaceEngagement) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.proximityRequiredMoment) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.proximityRequiredSpace) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             if (type === PushNotifications.Types.newThoughtReplyReceived) {
-                return admin.messaging().send(message);
+                return messaging.send(message);
             }
 
             return null;
