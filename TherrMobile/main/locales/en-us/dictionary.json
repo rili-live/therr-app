@@ -1726,7 +1726,10 @@
         "deleteConfirm": "Delete this list? Saved spaces will be removed from it.",
         "loading": "Loading list...",
         "done": "Done",
-        "spaceUnavailable": "Space unavailable"
+        "spaceUnavailable": "Space unavailable",
+        "createFailedTitle": "Couldn't create list",
+        "createFailedBody": "Something went wrong. Check your connection and try again.",
+        "nameTakenBody": "A list with that name already exists."
       }
     },
     "myQRCodes": {

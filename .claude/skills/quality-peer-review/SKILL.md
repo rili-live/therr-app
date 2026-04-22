@@ -1,6 +1,6 @@
 ---
 name: quality-peer-review
-description: Peer review the diff between general and stage branches. Implements low-risk improvements, fixes bugs, resolves quality issues, and notes deployment steps. Requires local Docker Compose infrastructure to be running.
+description: Peer review the diff between general and stage branches. Implements low-risk improvements, fixes bugs, adds regression tests for bugfixes where valuable, resolves quality issues, and notes deployment steps. Requires local Docker Compose infrastructure to be running.
 user-invocable: true
 allowed-tools: Bash(docker*), Bash(git*), Bash(npx*), Bash(npm*), Bash(node*), Read, Glob, Grep, Edit, Write, Agent
 argument-hint: [--dry-run]
@@ -210,14 +210,53 @@ For each **Category B** improvement and **Category A** bug fix:
 3. Keep each change minimal — fix exactly what was identified, nothing more.
 4. Ensure changes remain backwards compatible (per Step 2 criteria).
 
-After all edits, commit the changes to `general` (the current branch). Stage only the files you modified — do not use `git add -A` or `git add .`:
+### Step 4a: Add regression tests for bugfixes
+
+For each **Category A** bugfix applied above, decide whether a regression test would add meaningful protection against the bug recurring. The goal is to lock in the corrected behavior, not to chase coverage.
+
+**Add a regression test when the fix involves:**
+- A logic error, incorrect conditional, or off-by-one (wrong operator, missing branch, inverted check)
+- Previously unhandled edge cases at a boundary (null/undefined input, empty collection, zero/negative values, boundary dates)
+- Incorrect error handling (swallowed errors, wrong HTTP status codes, wrong error shape)
+- Incorrect data transformation, filtering, sorting, or aggregation
+- A bug that silently returned incorrect results rather than throwing — these are the highest-value tests
+- A missing `await` or race-condition fix that can be expressed as an ordered assertion
+
+**Skip writing a test when:**
+- The fix is a Category B improvement (typo, formatting, dead code, unused import, `let`→`const`) — these do not warrant tests
+- The bug is purely cosmetic, log-only, or affects developer tooling rather than runtime behavior
+- A passing test already covers the corrected behavior (verify by reading it — do not assume)
+- Reproducing the bug requires significant new test scaffolding (new mocks for third-party SDKs, new DB fixtures, standing up services that aren't already covered), and the fix itself is low-risk
+- The surface is UI-only in a package without a test runner configured for that surface
+
+### For each test worth writing
+
+1. **Locate the existing test file** for the affected module. Follow the package's existing convention — check neighboring files:
+   - Services: `therr-services/<service>/tests/unit/**` and `tests/integration/**`
+   - Shared libs: `therr-public-library/<lib>/src/**/__tests__/**` or co-located `*.test.ts`
+   - Web clients: co-located `*.test.tsx` next to the component
+2. **Prefer unit tests over integration tests** when the bug can be exercised at the function or handler level with existing mocks. Only reach for integration tests when the bug involves real DB/Redis behavior that isn't captured by the unit layer.
+3. **If no test file exists** for the module and the module is reasonably testable (pure function, handler with mockable deps), create a minimal new test file matching the package's conventions. Do not introduce a new test framework or runner.
+4. **Write a focused test** that would have failed against the pre-fix code and passes against the post-fix code. If practical, mentally (or literally) revert the fix to confirm the test fails for the right reason before committing.
+5. **Name the test by the observable symptom**, not the implementation detail — e.g. `"returns empty array when user has no connections"` rather than `"calls filter with isActive flag"`.
+6. **Run the new test(s) in isolation** to confirm they pass:
+   ```bash
+   npm run pr:test:unit:<service-short-name> -- --testPathPattern=<new-or-edited-test-file> 2>&1
+   ```
+   (Or the package's equivalent — re-use the `pr:test:unit:*` and `pr:test:integration:*` wrappers from Step 5.)
+
+If a bugfix genuinely cannot be covered without disproportionate effort or domain knowledge you don't have, **do not fabricate a test**. Record it in the final report under "Regression Tests" with a one-line reason so the user can decide whether to add coverage manually.
+
+### Commit
+
+After all edits and new/updated tests, commit the changes to `general` (the current branch). Stage only the files you modified — do not use `git add -A` or `git add .`:
 
 ```bash
-git add <file1> <file2> ...
-git commit -m "peer-review: fix bugs and low-risk improvements from general→stage diff"
+git add <file1> <file2> <test-file> ...
+git commit -m "peer-review: fix bugs, add regression tests, and apply low-risk improvements from general→stage diff"
 ```
 
-If there is nothing to implement (no bugs, no Category B items), skip this step and note it.
+If no tests were added, drop "add regression tests" from the commit message. If there is nothing to implement (no bugs, no Category B items), skip this step and note it.
 
 ---
 
@@ -330,6 +369,11 @@ Output a structured summary:
     - <description> in <file:line>
   Improvements applied:
     - <description> in <file:line>
+  Regression tests added:
+    - <test name> in <test file> — covers <bugfix description>
+    - <or: "None — no bugfixes warranted a new test (see reasons below)">
+  Regression tests skipped (with reason):
+    - <bugfix description> — <one-line reason, e.g. "cosmetic log fix", "would require mocking X SDK">
   Tests fixed:
     - <description>
 

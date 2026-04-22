@@ -260,6 +260,8 @@ const AreaCarousel = ({
 
     const listHeaderComponent = React.useMemo(
         () => renderHeader(),
+        // renderHeader closes over activeData in the parent; re-run when data changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [renderHeader, activeData]
     );
 

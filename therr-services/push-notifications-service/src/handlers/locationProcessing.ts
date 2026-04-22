@@ -357,6 +357,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                         },
                                         {},
                                         headers['x-brand-variation'] as any,
+                                        headers as any,
                                     );
                                     userLocationCache.setLastSpaceNotificationDate(); // fire and forget
                                 }
