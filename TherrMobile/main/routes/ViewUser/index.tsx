@@ -191,8 +191,20 @@ class ViewUser extends React.Component<
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.route?.params?.userInView?.id !== this.props.route?.params?.userInView?.id) {
-            const isMe = this.props.route?.params?.userInView?.id === this.props.user.details.id;
+        const prevRouteUserId = prevProps.route?.params?.userInView?.id;
+        const currentRouteUserId = this.props.route?.params?.userInView?.id;
+        const reduxUserInViewId = this.props.user.userInView?.id;
+        const routeParamChanged = prevRouteUserId !== currentRouteUserId;
+        // Fallback: if Redux userInView is stale relative to the route param
+        // (e.g. after returning to this screen via setParams/navigate where
+        // the diff was missed), force a refetch so the UI never keeps the
+        // previous user's data visible.
+        const reduxOutOfSync = !!currentRouteUserId
+            && reduxUserInViewId !== currentRouteUserId
+            && !this.state.isLoading;
+
+        if (routeParamChanged || reduxOutOfSync) {
+            const isMe = currentRouteUserId === this.props.user.details.id;
             const tabRoutes = [
                 { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
             ];
