@@ -1,5 +1,4 @@
 import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
-import { PushNotifications } from 'therr-js-utilities/constants';
 
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
@@ -108,27 +107,42 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
     vibration,
 });
 
+// Intent-action click ids are prefixed per brand — e.g.
+//   app.therrmobile.NEW_CONNECTION (Therr)
+//   com.therr.mobile.NEW_CONNECTION (Teem)
+//   com.therr.mobile.habits.NEW_CONNECTION (Habits)
+// — so we classify by the key suffix (the last dot-segment) to keep this
+// function brand-agnostic. Any new intent-action key that isn't listed here
+// falls through to the default channel.
+const REMINDER_ACTION_KEYS = new Set<string>([
+    'LATEST_POST_VIEWCOUNT_STATS',
+    'NEW_CONNECTION',
+    'NEW_CONNECTION_REQUEST',
+    'NEW_DIRECT_MESSAGE',
+    'NEW_GROUP_MESSAGE',
+    'NEW_LIKE_RECEIVED',
+    'NEW_SUPER_LIKE_RECEIVED',
+    'NEW_THOUGHT_REPLY_RECEIVED',
+]);
+
+const REWARD_ACTION_KEYS = new Set<string>([
+    'NUDGE_SPACE_ENGAGEMENT',
+]);
+
+const getIntentActionKey = (clickActionId: string): string => {
+    if (!clickActionId || typeof clickActionId !== 'string') return '';
+    const idx = clickActionId.lastIndexOf('.');
+    return idx >= 0 ? clickActionId.slice(idx + 1) : clickActionId;
+};
+
 const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChannel => {
-    if (
-        [
-            PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST,
-            PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_THOUGHT_REPLY_RECEIVED,
-        ].includes(clickActionId)
-    ) {
+    const key = getIntentActionKey(clickActionId);
+
+    if (REMINDER_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.reminders);
     }
 
-    if (
-        [
-            PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
-        ].includes(clickActionId)
-    ) {
+    if (REWARD_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.rewardUpdates);
     }
 
