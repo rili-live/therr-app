@@ -48,7 +48,6 @@ router.put('/:id/verify-phone', updatePhoneVerification); // apply phone verifie
 router.put('/:id/block', blockUser);
 router.put('/:id/report', reportUser);
 router.put('/:id/coins', updateUserCoins);
-router.put('/:id/location', updateUserCoins);
 
 // DELETE
 router.delete('/:id', deleteUser);
