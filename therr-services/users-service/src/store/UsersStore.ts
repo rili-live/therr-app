@@ -563,6 +563,21 @@ export default class UsersStore {
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
     }
 
+    // Clears the stored FCM device token for a user, but only if the currently
+    // stored token matches the one we know to be invalid. This avoids a race
+    // where the mobile client has already rotated the token between the time a
+    // send failed and the push service noticed the failure.
+    clearDeviceToken(userId: string, invalidToken: string) {
+        const queryString = knexBuilder
+            .update({ deviceMobileFirebaseToken: null, updatedAt: new Date() })
+            .into(USERS_TABLE_NAME)
+            .where({ id: userId, deviceMobileFirebaseToken: invalidToken })
+            .returning(['id'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
     transferTherrCoin(fromUserId: string, toUserId: string, amount: number) {
         return this.db.write.connect()
             .then((client) => client.query('BEGIN')

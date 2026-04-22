@@ -75,4 +75,27 @@
   return rootView;
 }
 
+// APNS registration observability.
+//
+// Firebase's method swizzling (enabled by default — no
+// FirebaseAppDelegateProxyEnabled=NO in Info.plist) still intercepts these
+// callbacks and forwards the token to FIRMessaging for us, so we only log
+// here; we do not set APNSToken manually. The goal is making silent APNS
+// registration failures visible in device logs / Console.app so we can
+// diagnose "why doesn't this iPhone get pushes" without guessing.
+//
+// Token contents are not logged — only the byte count — so device logs stay
+// shareable.
+- (void)application:(UIApplication *)application
+    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  NSLog(@"[APNS] Registered for remote notifications. Token length: %lu bytes",
+        (unsigned long)deviceToken.length);
+}
+
+- (void)application:(UIApplication *)application
+    didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+  NSLog(@"[APNS] Failed to register for remote notifications. Domain=%@ Code=%ld Description=%@",
+        error.domain, (long)error.code, error.localizedDescription);
+}
+
 @end

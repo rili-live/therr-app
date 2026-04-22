@@ -118,7 +118,7 @@
   --therr-hover-grey: #333333;
   --therr-light-grey: #404040;
   --therr-divider-grey: #4a4a4a;
-  --therr-ghost-grey: #9E9E9E;
+  --therr-ghost-grey: #B0B0B0;
   --therr-middle-grey: #B0B0B0;
   --therr-dark-grey: #BDBDBD;
   --therr-very-dark-grey: #E0E0E0;
@@ -148,4 +148,8 @@
   // Mantine component overrides
   --mantine-color-body: #1E1E1E;
   --mantine-color-text: #E0E0E0;
+  // Default Mantine dimmed (dark-2 #909296) lacks contrast on our #1E1E1E cards;
+  // bump to a lighter gray so helper text like "Welcome!" and subtitles stay readable.
+  --mantine-color-dimmed: #B0B0B0;
+  --mantine-color-placeholder: #B0B0B0;
 }

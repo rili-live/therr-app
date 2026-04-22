@@ -22,6 +22,7 @@ import {
     requestSpace,
     approveSpaceRequest,
     updateLastKnownLocation,
+    clearUserDeviceToken,
 } from '../handlers/users';
 
 const router = express.Router();
@@ -51,6 +52,9 @@ router.put('/:id/location', updateUserCoins);
 
 // DELETE
 router.delete('/:id', deleteUser);
+
+// Service-to-service only: clear a user's FCM device token after FCM reports it invalid
+router.post('/internal/clear-device-token', clearUserDeviceToken);
 
 // OTHER
 router.post('/forgot-password', createOneTimePassword);

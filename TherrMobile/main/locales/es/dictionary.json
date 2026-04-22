@@ -1726,7 +1726,10 @@
         "deleteConfirm": "¿Eliminar esta lista? Los espacios guardados serán removidos.",
         "loading": "Cargando lista...",
         "done": "Listo",
-        "spaceUnavailable": "Espacio no disponible"
+        "spaceUnavailable": "Espacio no disponible",
+        "createFailedTitle": "No se pudo crear la lista",
+        "createFailedBody": "Algo salió mal. Revisa tu conexión e inténtalo de nuevo.",
+        "nameTakenBody": "Ya existe una lista con ese nombre."
       }
     },
     "myQRCodes": {

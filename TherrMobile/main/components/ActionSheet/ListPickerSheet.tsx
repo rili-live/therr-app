@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     Pressable,
     StyleSheet,
@@ -88,6 +89,7 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
     const handleCreate = useCallback(async () => {
         const name = newName.trim();
         if (!name) return;
+        const translateFn = payload?.translate || ((k: string) => k);
         try {
             const created: any = await dispatch(ContentActions.createUserList({ name }) as any);
             if (created?.id) {
@@ -95,10 +97,18 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
             }
             setNewName('');
             setIsCreating(false);
-        } catch {
-            // noop
+        } catch (err: any) {
+            if (__DEV__) {
+                // eslint-disable-next-line no-console
+                console.warn('[ListPickerSheet] createUserList failed', err?.response?.status, err?.response?.data || err?.message);
+            }
+            const isConflict = Number(err?.response?.status) === 409;
+            Alert.alert(
+                translateFn('pages.bookmarks.lists.createFailedTitle'),
+                translateFn(isConflict ? 'pages.bookmarks.lists.nameTakenBody' : 'pages.bookmarks.lists.createFailedBody'),
+            );
         }
-    }, [newName, dispatch, handleToggle]);
+    }, [newName, dispatch, handleToggle, payload?.translate]);
 
     const translate = payload?.translate || ((k: string) => k);
     const themeStyles = payload?.themeForms?.styles || {};
