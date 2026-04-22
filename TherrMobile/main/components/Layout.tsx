@@ -10,11 +10,13 @@ import {
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
-import { getCrashlytics, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
+import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
 import {
+    getInitialNotification,
     getMessaging,
     getToken,
     onMessage,
+    onNotificationOpenedApp,
     registerDeviceForRemoteMessages,
     requestPermission,
     AuthorizationStatus,
@@ -174,6 +176,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private authCredentialListener;
+    private fcmOpenedUnsubscribe;
     private nativeEventListener;
     private translate;
     private unsubscribePushNotifications;
@@ -209,8 +212,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (Platform.OS === 'android') {
             Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
         }
-        // (Firebase) Push Notifications Click Handler
+        // (Firebase) Push Notifications Click Handler (Android intent-filter path)
         this.nativeEventListener = PlatformNativeEventEmitter?.addListener('new-intent-action', this.handleFirebasePushNotificationEvent);
+
+        // (Firebase) iOS APNS-alert path: tap on a backgrounded-state notification
+        this.fcmOpenedUnsubscribe = onNotificationOpenedApp(getMessaging(), (remoteMessage) => {
+            this.handleRemoteMessageTap(remoteMessage);
+        });
+        // (Firebase) iOS APNS-alert path: tap on a killed-state notification that launched the app
+        getInitialNotification(getMessaging())
+            .then((remoteMessage) => {
+                if (remoteMessage) {
+                    this.handleRemoteMessageTap(remoteMessage);
+                }
+            })
+            .catch((err) => console.log('FCM_INITIAL_NOTIFICATION_ERROR', err));
         // Universal links handler
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
 
@@ -338,7 +354,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
 
-                this.getIosNotificationPermissions()
+                this.requestNotificationPermissions()
                     .then(() => {
                         return registerDeviceForRemoteMessages(getMessaging());
                     })
@@ -404,6 +420,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     })
                     .catch((err) => {
                         console.log('NOTIFICATIONS_ERROR', err);
+                        if (!__DEV__) {
+                            try {
+                                const crashlytics = getCrashlytics();
+                                crashlyticsLog(crashlytics, `NOTIFICATIONS_ERROR: ${err?.message || String(err)}`);
+                                recordError(crashlytics, err instanceof Error ? err : new Error(String(err)));
+                            } catch {
+                                // Crashlytics may not be initialized yet on very early startup.
+                            }
+                        }
                     });
             } else {
                 BackgroundGeolocation.stop();
@@ -423,6 +448,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.off('reconnect', this.handleSocketReconnect);
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+        this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
         this.subscriptions.forEach((subscription) => subscription.remove());
     }
 
@@ -1132,6 +1158,35 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     };
 
     /**
+     * On iOS, data-only pushes now arrive as APNS alerts (see
+     * push-notifications-service createDataOnlyMessage). When the OS renders
+     * the alert and the user taps it, the tap comes through the Firebase
+     * messaging module — NOT Notifee — so we normalize the FCM RemoteMessage
+     * into the same event shape that handleNotifeeNotificationEvent expects
+     * and reuse all the existing routing logic.
+     */
+    handleRemoteMessageTap = (remoteMessage: any) => {
+        if (!remoteMessage?.data) {
+            return;
+        }
+        const fakeEvent: any = {
+            type: EventType.PRESS,
+            detail: {
+                notification: {
+                    title: remoteMessage.data.notificationTitle?.toString?.() || '',
+                    body: remoteMessage.data.notificationBody?.toString?.() || '',
+                    data: remoteMessage.data,
+                },
+                pressAction: {
+                    id: remoteMessage.data.notificationPressActionId?.toString?.()
+                        || PushNotifications.PressActionIds.default,
+                },
+            },
+        };
+        this.handleNotifeeNotificationEvent(fakeEvent as Event, false, true);
+    };
+
+    /**
      * Notifee Push Notification caused app to open
      */
     handleOpenByNotifeeNotification = () => notifee.getInitialNotification()
@@ -1331,9 +1386,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    getIosNotificationPermissions = () => {
-        // TODO: Determine if 2nd then is even necessary
-        return notifee.requestPermission()
+    // TODO(engagement): wrap this in a "soft opt-in" UX — show an in-app
+    // explainer tied to a user action (first moment / first pact invite /
+    // first DM) before triggering the OS prompt. iOS default opt-in ~50%;
+    // a well-anchored soft-ask typically reaches 70–80%. This is the single
+    // highest-ROI push-notification improvement. See
+    // docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md (item #1).
+    requestNotificationPermissions = () => {
+        // Android 13+ (API 33) requires runtime POST_NOTIFICATIONS permission
+        const androidPermissionPromise = Platform.OS === 'android' && Number(Platform.Version) >= 33
+            ? PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS)
+            : Promise.resolve(null);
+
+        return androidPermissionPromise
+            .then(() => notifee.requestPermission())
             .then((permissions) => {
                 if (permissions?.authorizationStatus !== 1) {
                     console.log('Notifee authorization status:', permissions);

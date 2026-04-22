@@ -1192,6 +1192,34 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
         }));
 };
 
+// Internal (service-to-service): clears a user's stored FCM device token when
+// the push-notifications-service confirms it's no longer registered with FCM.
+// Matches on (userId, token) so we don't clobber a freshly rotated token.
+const clearUserDeviceToken: RequestHandler = (req, res) => {
+    const { userId, deviceToken } = req.body || {};
+    if (!userId || !deviceToken) {
+        return handleHttpError({
+            res,
+            message: 'userId and deviceToken are required',
+            statusCode: 400,
+        });
+    }
+    return Store.users.clearDeviceToken(userId, deviceToken)
+        .then((rows: any[]) => {
+            logSpan({
+                level: 'info',
+                messageOrigin: 'API_SERVER',
+                messages: ['Cleared invalid FCM device token'],
+                traceArgs: {
+                    'user.id': userId,
+                    'pushNotification.tokenCleared': rows?.length > 0,
+                },
+            });
+            return res.status(200).send({ cleared: rows?.length > 0 });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
 export {
     createUser,
     getMe,
@@ -1215,4 +1243,5 @@ export {
     resendVerification,
     requestSpace,
     approveSpaceRequest,
+    clearUserDeviceToken,
 };
