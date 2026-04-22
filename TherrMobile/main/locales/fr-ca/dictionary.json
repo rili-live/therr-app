@@ -1737,7 +1737,10 @@
         "shareList": "Partager la liste",
         "shareMessage": "Découvrez ma liste « {listName} » sur Therr : {url}",
         "publicToggleErrorTitle": "Impossible de mettre à jour la liste",
-        "publicToggleErrorBody": "Un problème est survenu. Veuillez réessayer."
+        "publicToggleErrorBody": "Un problème est survenu. Veuillez réessayer.",
+        "privateConfirmTitle": "Rendre cette liste privée ?",
+        "privateConfirmBody": "Le lien de partage cessera de fonctionner pour les personnes à qui vous l'avez envoyé, et les moteurs de recherche pourraient retirer cette page. Vous pourrez la rendre publique à nouveau plus tard.",
+        "privateConfirmAction": "Rendre privée"
       }
     },
     "myQRCodes": {
