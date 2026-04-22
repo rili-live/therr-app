@@ -1386,6 +1386,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
+    // TODO(engagement): wrap this in a "soft opt-in" UX — show an in-app
+    // explainer tied to a user action (first moment / first pact invite /
+    // first DM) before triggering the OS prompt. iOS default opt-in ~50%;
+    // a well-anchored soft-ask typically reaches 70–80%. This is the single
+    // highest-ROI push-notification improvement. See
+    // docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md (item #1).
     requestNotificationPermissions = () => {
         // Android 13+ (API 33) requires runtime POST_NOTIFICATIONS permission
         const androidPermissionPromise = Platform.OS === 'android' && Number(Platform.Version) >= 33
