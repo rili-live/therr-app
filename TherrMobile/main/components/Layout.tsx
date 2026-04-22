@@ -12,9 +12,11 @@ import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
 import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
 import {
+    getInitialNotification,
     getMessaging,
     getToken,
     onMessage,
+    onNotificationOpenedApp,
     registerDeviceForRemoteMessages,
     requestPermission,
     AuthorizationStatus,
@@ -174,6 +176,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private authCredentialListener;
+    private fcmOpenedUnsubscribe;
     private nativeEventListener;
     private translate;
     private unsubscribePushNotifications;
@@ -209,8 +212,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (Platform.OS === 'android') {
             Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
         }
-        // (Firebase) Push Notifications Click Handler
+        // (Firebase) Push Notifications Click Handler (Android intent-filter path)
         this.nativeEventListener = PlatformNativeEventEmitter?.addListener('new-intent-action', this.handleFirebasePushNotificationEvent);
+
+        // (Firebase) iOS APNS-alert path: tap on a backgrounded-state notification
+        this.fcmOpenedUnsubscribe = onNotificationOpenedApp(getMessaging(), (remoteMessage) => {
+            this.handleRemoteMessageTap(remoteMessage);
+        });
+        // (Firebase) iOS APNS-alert path: tap on a killed-state notification that launched the app
+        getInitialNotification(getMessaging())
+            .then((remoteMessage) => {
+                if (remoteMessage) {
+                    this.handleRemoteMessageTap(remoteMessage);
+                }
+            })
+            .catch((err) => console.log('FCM_INITIAL_NOTIFICATION_ERROR', err));
         // Universal links handler
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
 
@@ -432,6 +448,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.off('reconnect', this.handleSocketReconnect);
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+        this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
         this.subscriptions.forEach((subscription) => subscription.remove());
     }
 
@@ -1138,6 +1155,35 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     handleNotifeeForegroundNotificationEvent = () => {
         return notifee.onForegroundEvent((event) => this.handleNotifeeNotificationEvent(event, true));
+    };
+
+    /**
+     * On iOS, data-only pushes now arrive as APNS alerts (see
+     * push-notifications-service createDataOnlyMessage). When the OS renders
+     * the alert and the user taps it, the tap comes through the Firebase
+     * messaging module — NOT Notifee — so we normalize the FCM RemoteMessage
+     * into the same event shape that handleNotifeeNotificationEvent expects
+     * and reuse all the existing routing logic.
+     */
+    handleRemoteMessageTap = (remoteMessage: any) => {
+        if (!remoteMessage?.data) {
+            return;
+        }
+        const fakeEvent: any = {
+            type: EventType.PRESS,
+            detail: {
+                notification: {
+                    title: remoteMessage.data.notificationTitle?.toString?.() || '',
+                    body: remoteMessage.data.notificationBody?.toString?.() || '',
+                    data: remoteMessage.data,
+                },
+                pressAction: {
+                    id: remoteMessage.data.notificationPressActionId?.toString?.()
+                        || PushNotifications.PressActionIds.default,
+                },
+            },
+        };
+        this.handleNotifeeNotificationEvent(fakeEvent as Event, false, true);
     };
 
     /**

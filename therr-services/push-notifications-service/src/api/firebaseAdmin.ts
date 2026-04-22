@@ -164,17 +164,37 @@ const createDataOnlyMessage = (
         return false;
     }
 
-    // Required for background/quit data-only messages on iOS
+    // iOS: deliver as a visible APNS alert (push-type=alert, priority=10).
+    //
+    // The previous design sent these as iOS silent pushes
+    // (push-type=background + content-available) and relied on a JS
+    // setBackgroundMessageHandler to display the notification via Notifee. That
+    // is unreliable on iOS: silent pushes never wake a killed app and can be
+    // throttled under low power, so users frequently never saw anything.
+    //
+    // With an alert payload, iOS renders the notification natively in any app
+    // state (foreground, backgrounded, or killed). The data payload still
+    // arrives, so tapping the notification can be routed the same way as
+    // before via the `notificationTitle` / `clickActionId` data fields. On
+    // iOS foreground, the OS suppresses alerts by default, so `onMessage` in
+    // Layout.tsx continues to fire and display via Notifee as it does today.
+    //
+    // Android is unaffected: it still receives a data-only payload (no `aps`
+    // equivalent) and setBackgroundMessageHandler still converts it to a
+    // Notifee notification with custom channel and action buttons.
+    const iosTitle = typeof data.notificationTitle === 'string' ? data.notificationTitle : '';
+    const iosBody = typeof data.notificationBody === 'string' ? data.notificationBody : '';
     baseMessage.apns = {
         payload: {
             aps: {
+                alert: { title: iosTitle, body: iosBody },
+                sound: 'default',
                 mutableContent: true,
-                contentAvailable: true,
             },
         },
         headers: {
-            'apns-push-type': 'background',
-            'apns-priority': '5',
+            'apns-push-type': 'alert',
+            'apns-priority': '10',
             'apns-topic': getAppBundleIdentifier(brandVariation), // your app bundle identifier
         },
     };
