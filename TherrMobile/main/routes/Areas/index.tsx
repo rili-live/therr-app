@@ -36,6 +36,7 @@ import { handleAreaReaction, handleThoughtReaction, loadMorePosts, navToViewCont
 import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
+import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import AreaCarousel from './AreaCarousel';
 import TherrIcon from '../../components/TherrIcon';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
@@ -122,6 +123,7 @@ interface IAreasState {
     isLoadingThoughts: boolean;
     isLoadingEvents: boolean;
     isLocationUseDisclosureModalVisible: boolean;
+    isTabViewLaidOut: boolean;
     locationDisclosureAreaType: IAreaType;
     tabRoutes: { key: string; title: string }[]
 }
@@ -203,6 +205,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             isLoadingThoughts: false,
             isLoadingEvents: false,
             isLocationUseDisclosureModalVisible: false,
+            isTabViewLaidOut: false,
             locationDisclosureAreaType: 'moments',
             tabRoutes: [
                 { key: CAROUSEL_TABS.DISCOVERIES, title: this.translate('menus.headerTabs.discoveries') },
@@ -561,6 +564,16 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         });
     };
 
+    handleTabContainerLayout = (e) => {
+        if (this.state.isTabViewLaidOut) {
+            return;
+        }
+        const { width, height } = e.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+            this.setState({ isTabViewLaidOut: true });
+        }
+    };
+
     scrollTop = () => {
         const { activeTabIndex } = this.state;
         switch (tabMap[activeTabIndex]) {
@@ -824,6 +837,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             areCreateActionsVisible,
             activeTabIndex,
             isLocationUseDisclosureModalVisible,
+            isTabViewLaidOut,
             locationDisclosureAreaType,
             tabRoutes,
         } = this.state;
@@ -833,7 +847,11 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
+                <SafeAreaView
+                    edges={[]}
+                    style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}
+                    onLayout={this.handleTabContainerLayout}
+                >
                     <TabView
                         lazy
                         lazyPreloadDistance={0}
@@ -858,6 +876,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         initialLayout={{ width: viewportWidth }}
                         // style={styles.container}
                     />
+                    {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
                 </SafeAreaView>
                 {
                     tabName === CAROUSEL_TABS.THOUGHTS
