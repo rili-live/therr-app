@@ -1,6 +1,7 @@
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { slugify } from 'therr-js-utilities/slugify';
 import handleHttpError from '../utilities/handleHttpError';
 // Handlers without custom error branching are wrapped at the router with
 // `asyncHandler` (see ../routes/userListsRouter.ts). Keeping try/catch here
@@ -126,6 +127,61 @@ const getUserLists = async (req, res) => {
     return res.status(200).send({ lists: enriched });
 };
 
+// Hydrate list items into full space objects via maps-service. Returns spaces
+// plus any media payload. Failures are non-fatal — returns empty spaces so the
+// list still renders with placeholder rows.
+const hydrateListSpaces = async (items: any[], reqHeaders: any, listIdForLog: string) => {
+    const spaceIds = items
+        .filter((item) => item.contentType === 'space')
+        .map((item) => item.contentId);
+
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: [`hydrateListSpaces: items=${items.length} spaceIds=${spaceIds.length} contentTypes=${items.map((i: any) => i.contentType).join(',')}`],
+        traceArgs: { listId: listIdForLog },
+    });
+
+    if (!spaceIds.length) {
+        return { spaces: [], media: undefined, spaceIds };
+    }
+
+    try {
+        const response = await internalRestRequest({
+            headers: reqHeaders,
+        }, {
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/spaces/find`,
+            data: {
+                spaceIds,
+                limit: spaceIds.length,
+                withMedia: true,
+                withUser: true,
+                isDraft: false,
+            },
+        });
+        const spaces = response?.data?.spaces || [];
+        const media = response?.data?.media;
+        if (!spaces.length) {
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: ['hydrateListSpaces: maps-service returned 0 spaces for non-empty spaceIds'],
+                traceArgs: { listId: listIdForLog, spaceIdsCount: spaceIds.length },
+            });
+        }
+        return { spaces, media, spaceIds };
+    } catch (err: any) {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [`hydrateListSpaces: maps-service lookup failed: ${err?.message || err}`],
+            traceArgs: { listId: listIdForLog, spaceIdsCount: spaceIds.length },
+        });
+        return { spaces: [], media: undefined, spaceIds };
+    }
+};
+
 // Get a single list with its spaces
 const getUserListById = async (req, res) => {
     const { userId } = parseHeaders(req.headers);
@@ -146,55 +202,7 @@ const getUserListById = async (req, res) => {
         offset: parseInt(req.query.offset, 10) || 0,
     });
 
-    const spaceIds = items
-        .filter((item) => item.contentType === 'space')
-        .map((item) => item.contentId);
-
-    logSpan({
-        level: 'info',
-        messageOrigin: 'API_SERVER',
-        messages: [`getUserListById: items=${items.length} spaceIds=${spaceIds.length} contentTypes=${items.map((i: any) => i.contentType).join(',')}`],
-        traceArgs: { listId },
-    });
-
-    let spaces: any[] = [];
-    let media: any;
-
-    if (spaceIds.length) {
-        try {
-            const response = await internalRestRequest({
-                headers: req.headers,
-            }, {
-                method: 'post',
-                url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/spaces/find`,
-                data: {
-                    spaceIds,
-                    limit: spaceIds.length,
-                    withMedia: true,
-                    withUser: true,
-                    isDraft: false,
-                },
-            });
-            spaces = response?.data?.spaces || [];
-            media = response?.data?.media;
-            if (!spaces.length) {
-                logSpan({
-                    level: 'warn',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['getUserListById: maps-service returned 0 spaces for non-empty spaceIds'],
-                    traceArgs: { listId, spaceIdsCount: spaceIds.length },
-                });
-            }
-        } catch (err: any) {
-            logSpan({
-                level: 'error',
-                messageOrigin: 'API_SERVER',
-                messages: [`getUserListById: maps-service lookup failed: ${err?.message || err}`],
-                traceArgs: { listId, spaceIdsCount: spaceIds.length },
-            });
-            spaces = [];
-        }
-    }
+    const { spaces: hydratedSpaces, media, spaceIds } = await hydrateListSpaces(items, req.headers, listId);
 
     // Attach the reaction for each space (bookmark state, etc.)
     const reactions = spaceIds.length
@@ -204,7 +212,42 @@ const getUserListById = async (req, res) => {
         acc[cur.spaceId] = cur;
         return acc;
     }, {});
-    spaces = spaces.map((s) => ({ ...s, reaction: reactionBySpaceId[s.id] || {} }));
+    const spaces = hydratedSpaces.map((s) => ({ ...s, reaction: reactionBySpaceId[s.id] || {} }));
+
+    return res.status(200).send({
+        list: {
+            ...list,
+            items,
+            spaces,
+        },
+        media,
+    });
+};
+
+// Get a list by (ownerUserId, listSlug) for the public shareable URL.
+// Returns 404 unless the list is marked isPublic=true. Does not require
+// the viewer to be authenticated and does not attach viewer-specific
+// reactions — this response is SSR- and CDN-cache-friendly.
+const getPublicUserListBySlug = async (req, res) => {
+    const { ownerUserId, listSlug } = req.params;
+
+    // Find candidate lists for this owner and match by computed slug. Scanning
+    // the owner's lists is cheap (typically < 20 per user) and avoids storing
+    // a denormalized slug column. The per-owner name uniqueness index guarantees
+    // at most one match.
+    const ownersLists = await Store.userLists.get({ userId: ownerUserId });
+    const list = ownersLists.find((l) => slugify(l.name) === listSlug);
+
+    if (!list || !list.isPublic) {
+        return handleHttpError({ res, message: 'List not found', statusCode: 404 });
+    }
+
+    const items = await Store.userListItems.getByList(list.id, {
+        limit: parseInt(req.query.limit, 10) || 100,
+        offset: parseInt(req.query.offset, 10) || 0,
+    });
+
+    const { spaces, media } = await hydrateListSpaces(items, req.headers, list.id);
 
     return res.status(200).send({
         list: {
@@ -436,6 +479,7 @@ export {
     createUserList,
     getUserLists,
     getUserListById,
+    getPublicUserListBySlug,
     updateUserList,
     deleteUserList,
     addSpaceToList,

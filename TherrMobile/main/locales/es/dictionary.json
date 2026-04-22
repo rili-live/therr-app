@@ -1729,7 +1729,15 @@
         "spaceUnavailable": "Espacio no disponible",
         "createFailedTitle": "No se pudo crear la lista",
         "createFailedBody": "Algo salió mal. Revisa tu conexión e inténtalo de nuevo.",
-        "nameTakenBody": "Ya existe una lista con ese nombre."
+        "nameTakenBody": "Ya existe una lista con ese nombre.",
+        "makePublic": "Hacer pública",
+        "publicHintOn": "Cualquiera con el enlace puede ver esta lista.",
+        "publicHintOff": "Solo tú puedes ver esta lista.",
+        "publicBadge": "Pública",
+        "shareList": "Compartir lista",
+        "shareMessage": "Mira mi lista \"{listName}\" en Therr: {url}",
+        "publicToggleErrorTitle": "No se pudo actualizar la lista",
+        "publicToggleErrorBody": "Algo salió mal. Inténtalo de nuevo."
       }
     },
     "myQRCodes": {

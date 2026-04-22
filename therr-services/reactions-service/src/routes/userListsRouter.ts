@@ -4,6 +4,7 @@ import {
     createUserList,
     getUserLists,
     getUserListById,
+    getPublicUserListBySlug,
     updateUserList,
     deleteUserList,
     addSpaceToList,
@@ -19,6 +20,11 @@ const router = express.Router();
 // with a grep-able context label.
 router.post('/', createUserList);
 router.get('/', asyncHandler('SQL:USER_LISTS_ROUTES:GET', getUserLists));
+
+// Public shareable list (auth-optional at the gateway; does not require the
+// viewer to be the owner). Must be registered BEFORE `/:listId` so the more
+// specific path matches first.
+router.get('/public/:ownerUserId/:listSlug', asyncHandler('SQL:USER_LISTS_ROUTES:GET_PUBLIC', getPublicUserListBySlug));
 
 // Lookup: which of the user's lists contain a given space (used by the picker)
 router.get('/for-space/:spaceId', asyncHandler('SQL:USER_LISTS_ROUTES:FOR_SPACE', getListsForSpace));
