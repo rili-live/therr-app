@@ -234,8 +234,9 @@ const getPublicUserListBySlug = async (req, res) => {
     // Find candidate lists for this owner and match by computed slug. Scanning
     // the owner's lists is cheap (typically < 20 per user) and avoids storing
     // a denormalized slug column. The per-owner name uniqueness index guarantees
-    // at most one match.
-    const ownersLists = await Store.userLists.get({ userId: ownerUserId });
+    // at most one match. Explicit limit raises the Store's 100 default to its
+    // 500 cap so heavy-list users don't silently 404 off the tail.
+    const ownersLists = await Store.userLists.get({ userId: ownerUserId }, { limit: 500, offset: 0, order: 'DESC' });
     const list = ownersLists.find((l) => slugify(l.name) === listSlug);
 
     if (!list || !list.isPublic) {
