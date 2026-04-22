@@ -1737,7 +1737,10 @@
         "shareList": "Share list",
         "shareMessage": "Check out my list \"{listName}\" on Therr: {url}",
         "publicToggleErrorTitle": "Couldn't update list",
-        "publicToggleErrorBody": "Something went wrong. Please try again."
+        "publicToggleErrorBody": "Something went wrong. Please try again.",
+        "privateConfirmTitle": "Make this list private?",
+        "privateConfirmBody": "The share link will stop working for anyone you've sent it to, and search engines may remove this page. You can make the list public again later.",
+        "privateConfirmAction": "Make private"
       }
     },
     "myQRCodes": {

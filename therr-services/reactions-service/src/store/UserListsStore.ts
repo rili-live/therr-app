@@ -13,6 +13,7 @@ export interface ICreateUserListParams {
     colorHex?: string;
     isPublic?: boolean;
     isDefault?: boolean;
+    slug?: string | null;
 }
 
 export interface IUpdateUserListConditions {
@@ -28,6 +29,7 @@ export interface IUpdateUserListParams {
     isPublic?: boolean;
     isDefault?: boolean;
     itemCount?: number;
+    slug?: string | null;
 }
 
 export default class UserListsStore {
@@ -90,6 +92,17 @@ export default class UserListsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows[0]);
     }
 
+    // Direct lookup for the public-list page. Hits the partial unique index
+    // `idx_userlists_userid_slug_public` (userId, slug) WHERE isPublic = true.
+    findPublicByOwnerAndSlug(ownerUserId: string, slug: string) {
+        const queryString = knexBuilder.select('*')
+            .from(USER_LISTS_TABLE_NAME)
+            .where({ userId: ownerUserId, slug, isPublic: true })
+            .limit(1);
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows[0]);
+    }
+
     create(params: ICreateUserListParams) {
         const queryString = knexBuilder(USER_LISTS_TABLE_NAME)
             .insert({
@@ -100,6 +113,7 @@ export default class UserListsStore {
                 colorHex: params.colorHex || null,
                 isPublic: params.isPublic ?? false,
                 isDefault: params.isDefault ?? false,
+                slug: params.slug ?? null,
             })
             .returning('*')
             .toString();

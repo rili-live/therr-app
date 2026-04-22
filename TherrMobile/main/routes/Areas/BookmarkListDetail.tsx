@@ -103,10 +103,8 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
         navToViewContent({ ...space, areaType: 'spaces' }, user, navigation.navigate);
     };
 
-    handleTogglePublic = (nextValue: boolean) => {
-        const { content, route, updateUserList } = this.props;
-        const list = content?.activeUserList;
-        if (!list || list.id !== route.params.listId) return;
+    applyTogglePublic = (list: any, nextValue: boolean) => {
+        const { updateUserList } = this.props;
         this.setState({ isTogglingPublic: true });
         updateUserList(list.id, { isPublic: nextValue })
             .catch((err: any) => {
@@ -116,6 +114,33 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                 );
             })
             .finally(() => this.setState({ isTogglingPublic: false }));
+    };
+
+    handleTogglePublic = (nextValue: boolean) => {
+        const { content, route } = this.props;
+        const list = content?.activeUserList;
+        if (!list || list.id !== route.params.listId) return;
+
+        // Going public: apply immediately. Going private: confirm first because
+        // anyone who has the share link will start getting a 404, and any SEO
+        // equity the list accumulated will decay until it's republished.
+        if (nextValue) {
+            this.applyTogglePublic(list, true);
+            return;
+        }
+
+        Alert.alert(
+            this.translate('pages.bookmarks.lists.privateConfirmTitle'),
+            this.translate('pages.bookmarks.lists.privateConfirmBody'),
+            [
+                { text: this.translate('pages.bookmarks.lists.cancel'), style: 'cancel' },
+                {
+                    text: this.translate('pages.bookmarks.lists.privateConfirmAction'),
+                    style: 'destructive',
+                    onPress: () => this.applyTogglePublic(list, false),
+                },
+            ],
+        );
     };
 
     handleShare = async () => {
