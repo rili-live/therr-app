@@ -18,6 +18,38 @@ const getCurrentUser = (headers: InternalConfigHeaders) => internalRestRequest({
     });
 });
 
+// Calls users-service to clear an FCM token that FCM has reported as no longer
+// valid. Only clears if the stored token still matches, so a freshly rotated
+// token isn't clobbered. Swallows its own errors — token cleanup must never
+// fail the originating push flow.
+const clearInvalidDeviceToken = (
+    headers: InternalConfigHeaders | undefined,
+    userId: string | undefined,
+    deviceToken: string,
+) => {
+    if (!userId || !deviceToken) {
+        return Promise.resolve();
+    }
+    return internalRestRequest({
+        headers: headers || ({} as InternalConfigHeaders),
+    }, {
+        method: 'post',
+        url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/internal/clear-device-token`,
+        data: { userId, deviceToken },
+    }).catch((err) => {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Failed to clear invalid FCM device token'],
+            traceArgs: {
+                'user.id': userId,
+                'error.message': err?.message,
+            },
+        });
+    });
+};
+
 export {
     getCurrentUser,
+    clearInvalidDeviceToken,
 };
