@@ -1,5 +1,4 @@
 import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
-import { PushNotifications } from 'therr-js-utilities/constants';
 
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
@@ -14,6 +13,7 @@ const GROUP_CAROUSEL_TABS = {
     MEMBERS: 'members',
 };
 const GROUPS_CAROUSEL_TABS = {
+    DISCOVER: 'discover',
     GROUPS: 'groups',
 };
 const PEOPLE_CAROUSEL_TABS = {
@@ -60,6 +60,7 @@ const MIN_LOAD_TIMEOUT = 350;
 const DEFAULT_MOMENT_PROXIMITY = 25;
 const MIN_ZOOM_LEVEL = 1; // Setting this too high may break animation to regions that excede the minimum zoom
 const MOMENTS_REFRESH_THROTTLE_MS = 30 * 1000;
+const MAP_SEARCH_MIN_DISTANCE_METERS = 150; // Skip refetch when user has moved less than this since the last search
 const LOCATION_PROCESSING_THROTTLE_MS = 5 * 1000;
 const MAX_DISTANCE_TO_NEARBY_SPACE = 120; // Distance in meters (roughly 400 feet)
 const EST_US_RADIUS_METERS = 6250000;
@@ -106,27 +107,42 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
     vibration,
 });
 
+// Intent-action click ids are prefixed per brand — e.g.
+//   app.therrmobile.NEW_CONNECTION (Therr)
+//   com.therr.mobile.NEW_CONNECTION (Teem)
+//   com.therr.mobile.habits.NEW_CONNECTION (Habits)
+// — so we classify by the key suffix (the last dot-segment) to keep this
+// function brand-agnostic. Any new intent-action key that isn't listed here
+// falls through to the default channel.
+const REMINDER_ACTION_KEYS = new Set<string>([
+    'LATEST_POST_VIEWCOUNT_STATS',
+    'NEW_CONNECTION',
+    'NEW_CONNECTION_REQUEST',
+    'NEW_DIRECT_MESSAGE',
+    'NEW_GROUP_MESSAGE',
+    'NEW_LIKE_RECEIVED',
+    'NEW_SUPER_LIKE_RECEIVED',
+    'NEW_THOUGHT_REPLY_RECEIVED',
+]);
+
+const REWARD_ACTION_KEYS = new Set<string>([
+    'NUDGE_SPACE_ENGAGEMENT',
+]);
+
+const getIntentActionKey = (clickActionId: string): string => {
+    if (!clickActionId || typeof clickActionId !== 'string') return '';
+    const idx = clickActionId.lastIndexOf('.');
+    return idx >= 0 ? clickActionId.slice(idx + 1) : clickActionId;
+};
+
 const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChannel => {
-    if (
-        [
-            PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST,
-            PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_THOUGHT_REPLY_RECEIVED,
-        ].includes(clickActionId)
-    ) {
+    const key = getIntentActionKey(clickActionId);
+
+    if (REMINDER_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.reminders);
     }
 
-    if (
-        [
-            PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
-        ].includes(clickActionId)
-    ) {
+    if (REWARD_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.rewardUpdates);
     }
 
@@ -174,6 +190,7 @@ export {
     MAX_LOAD_TIMEOUT,
     MIN_ZOOM_LEVEL,
     MOMENTS_REFRESH_THROTTLE_MS,
+    MAP_SEARCH_MIN_DISTANCE_METERS,
     LOCATION_PROCESSING_THROTTLE_MS,
     MAX_DISTANCE_TO_NEARBY_SPACE,
     EST_US_RADIUS_METERS,

@@ -7,12 +7,12 @@
 @import '../components';
 
 html {
-    background: $therr-background;
+    background: var(--therr-background, $therr-background);
 }
 
 html,
 body {
-    color: $therr-text-a;
+    color: var(--therr-text-a, $therr-text-a);
     font-family: sans-serif;
     font-size: 16px;
     margin: 0;
@@ -39,19 +39,19 @@ h4 {
 
 #login_button {
     width: 100%;
-    height: rem-calc(52px);
+    height: 3.25rem;
     font-weight: 600;
-    font-size: rem-calc(16px);
+    font-size: 1rem;
 }
 
 .content-container {
-    background: $therr-background-black;
+    background: var(--therr-background-black, $therr-background-black);
     border: none;
     border-radius: 0;
     // border-left: rem-calc(4px) double $therr-primary-2;
     // border-right: rem-calc(4px) double $therr-primary-2;
     margin: $header-height-small 0;
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 1rem $footer-height-small;
     box-shadow: none;
     min-height: calc(100vh - #{$header-height-small} - #{$footer-height-small});
     box-sizing: border-box;
@@ -59,11 +59,9 @@ h4 {
 
 .content-container-home {
     display: flex;
-    background: $therr-background-black;
+    background: var(--therr-background-black, $therr-background-black);
     border: none;
     border-radius: 0;
-    // border-left: rem-calc(4px) double $therr-primary-2;
-    // border-right: rem-calc(4px) double $therr-primary-2;
     margin: $header-height-small 0;
     padding: 1.5rem 1rem;
     box-shadow: none;
@@ -71,7 +69,7 @@ h4 {
     box-sizing: border-box;
     flex-direction: column;
 
-    div {
+    > * {
         flex: 1;
     }
 }
@@ -93,6 +91,17 @@ h4 {
         box-shadow: $box-shadow-tile;
     }
 }
+
+.mantine-Breadcrumbs-root { /* stylelint-disable-line selector-class-pattern */
+    flex-wrap: wrap;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+
+    * {
+        white-space: normal !important;
+    }
+}
+
 hr {
     border-color: $therr-primary-1;
     border-width: rem-calc(2px);
@@ -173,6 +182,53 @@ ul {
 
 .max-tall-75 {
     max-height: 75vh;
+}
+
+.floating-create-button {
+    position: fixed;
+    bottom: calc(#{$footer-height-small} + 1.25rem);
+    right: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--therr-primary-1, $therr-primary-1);
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 90;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+
+    .inline-svg {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+            width: 75%;
+            height: 75%;
+            fill: #fff;
+        }
+    }
+
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+        text-decoration: none;
+    }
+
+    [data-mantine-color-scheme="dark"] & {
+        background: var(--therr-primary-2, #22A5B4);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+        svg {
+            fill: #121212;
+        }
+    }
 }
 
 @media only screen and (min-width: rem-calc(540px)) {

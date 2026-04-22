@@ -1,0 +1,113 @@
+# AI crawler policy for Therr (www.therr.com)
+# https://www.therr.com/.well-known/ai.txt
+# Complements robots.txt. Explicit per-crawler permissions for AI / LLM training
+# and real-time retrieval agents. Where not listed, fall back to robots.txt.
+
+# === Allow: real-time retrieval / citation agents ===
+# These agents fetch pages to answer user queries and typically cite the source.
+
+User-agent: GPTBot
+Allow: /
+Allow: /locations
+Allow: /locations/cities
+Allow: /locations/categories
+Allow: /spaces/
+Allow: /events/
+Allow: /groups/
+Allow: /users/
+Allow: /llms.txt
+Disallow: /user/profile
+Disallow: /create-profile
+Disallow: /create-forum
+Disallow: /explore
+Disallow: /discovered
+Disallow: /posts/
+Disallow: /bookmarks
+Disallow: /users/change-password
+Disallow: /reset-password
+Disallow: /verify-account
+Disallow: /emails/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /user/profile
+Disallow: /create-profile
+Disallow: /users/change-password
+Disallow: /reset-password
+Disallow: /verify-account
+Disallow: /emails/
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /user/profile
+Disallow: /create-profile
+Disallow: /users/change-password
+Disallow: /reset-password
+Disallow: /verify-account
+Disallow: /emails/
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /user/profile
+Disallow: /create-profile
+Disallow: /users/change-password
+Disallow: /reset-password
+Disallow: /verify-account
+Disallow: /emails/
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+Disallow: /user/profile
+Disallow: /create-profile
+Disallow: /users/change-password
+Disallow: /reset-password
+Disallow: /verify-account
+Disallow: /emails/
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+# === Fallback ===
+# For any AI crawler not explicitly listed above, follow robots.txt directives.
+# Listings data that is user-generated content is licensed only for display on
+# Therr surfaces + attributed citation with a link back to the canonical page.
+
+Sitemap: https://www.therr.com/sitemap.xml
+LLM-Index: https://www.therr.com/llms.txt
+Policy: https://www.therr.com/child-safety

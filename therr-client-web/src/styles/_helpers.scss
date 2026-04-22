@@ -27,10 +27,13 @@
     }
 }
 .password-requirements {
-    border: 2px solid #fcfeff;
+    border: 2px solid $therr-divider-grey;
     border-radius: 1rem;
+    margin-top: .5rem;
+
     p {
         font-size: 0.75rem;
+        line-height: 1rem;
     }
 }
 

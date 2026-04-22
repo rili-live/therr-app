@@ -1,22 +1,18 @@
 import React from 'react';
-import { Linking, SafeAreaView, View, Text } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Button }  from 'react-native-elements';
+import { Linking, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import uuid from 'react-native-uuid';
-// import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
-// import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-// import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-// import RNFB from 'react-native-blob-util';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
-// import Alert from '../components/Alert';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildModalStyles } from '../../styles/modal';
 import { buildStyles as buildOAuthModalStyles } from '../../styles/modal/oauthModal';
@@ -31,8 +27,6 @@ import WrapperModal from '../../components/Modals/WrapperModal';
 import OAuthModal from '../../components/Modals/OAuthModal';
 import SocialIconLink from './SocialIconLink';
 import TherrIcon from '../../components/TherrIcon';
-// import UserImage from '../components/UserContent/UserImage';
-// import { getUserImageUri, signImageUrl } from '../utilities/content';
 
 const INSTAGRAM_BASIC_DISPLAY_APP_ID = '8038208602859743';
 const INSTAGRAM_GRAPH_API_APP_ID = '538207404468066';
@@ -111,7 +105,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -171,16 +165,14 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             if (Object.keys(errorsByProvider).length) {
                 const hasMatch = Object.keys(errorsByProvider).some((provider) => {
                     if (syncs.instagram && provider === 'instagram' && errorsByProvider[provider].type === 'IGApiException') {
-                        Toast.show({
-                            type: 'errorBig',
+                        showToast.error({
                             text1: 'Instagram',
                             text2: this.translate('forms.socialSync.errorAlerts.igNoBusinessAccounts'),
                         });
                         return true;
                     }
                     if (syncs.twitter && provider === 'twitter' && errorsByProvider[provider][0]?.title === 'Not Found Error') {
-                        Toast.show({
-                            type: 'errorBig',
+                        showToast.error({
                             text1: 'Instagram',
                             text2: this.translate('forms.socialSync.errorAlerts.twitterNotFound'),
                         });
@@ -188,8 +180,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     }
                 });
                 if (!hasMatch) {
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: this.translate('forms.socialSync.errorTitles.oops'),
                         text2: this.translate('forms.socialSync.errorAlerts.unknownError'),
                     });
@@ -223,13 +214,11 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     isPromiseComplete = true;
                 }
 
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('forms.socialSync.successTitles.success'),
                     text2: this.translate('forms.socialSync.successAlerts.syncSuccess', {
                         providers: Object.keys(syncs).join(', '),
                     }),
-                    visibilityTime: 2000,
                     onHide: () => {
                         if (isPromiseComplete) {
                             goBack();
@@ -393,8 +382,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     onOAuthLoginFailed = (results) => {
         this.onCloseOAuthModal();
         console.log('OAuthFailed: ', results);
-        Toast.show({
-            type: 'errorBig',
+        showToast.error({
             text1: this.translate('forms.socialSync.errorTitles.oops'),
             text2: this.translate('forms.socialSync.errorAlerts.unknownError'),
         });
@@ -422,7 +410,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
@@ -463,7 +451,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                                 <Button
                                     containerStyle={[]}
-                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt, spacingStyles.padHorizMd]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.sync')}
                                     // icon={
@@ -514,7 +502,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 </View>
                                 <Button
                                     containerStyle={[spacingStyles.flexOne]}
-                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt, spacingStyles.padHorizMd]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.syncTikTok')}
                                     // icon={
@@ -554,7 +542,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                                 <Button
                                     containerStyle={[]}
-                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt, spacingStyles.padHorizMd]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.sync')}
                                     // icon={
@@ -593,7 +581,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                                 <Button
                                     containerStyle={[]}
-                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt, spacingStyles.padHorizMd]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.sync')}
                                     // icon={
@@ -611,7 +599,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                 </SafeAreaView>
                 <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
-                        buttonStyle={this.themeForms.styles.button}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
                         titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
                             'forms.socialSync.buttons.backToProfile'
@@ -624,7 +612,6 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                             />
                         }
                         onPress={navigation.goBack}
-                        raised={true}
                     />
                 </View>
                 <OAuthModal

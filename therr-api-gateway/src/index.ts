@@ -10,6 +10,10 @@ import router from './routes';
 import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
 import authenticate from './middleware/authenticate';
+import restrictApiKeyAccess from './middleware/restrictApiKeyAccess';
+import { apiKeyRequestLimiter } from './services/users/limitation/apiKeys';
+import openapiSpec from './docs/openapi.json';
+import getRedocHtml from './docs/redocPage';
 
 tracing.start();
 
@@ -44,7 +48,17 @@ if (process.env.NODE_ENV !== 'production') {
 // Open Telemetry Logging Middleware
 app.use(reqLogDecorator);
 
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            'script-src': ["'self'", 'https://cdn.redoc.ly'],
+            'worker-src': ["'self'", 'blob:'],
+            'connect-src': ["'self'", 'https://cdn.redoc.ly'],
+            'img-src': ["'self'", 'data:', 'https://cdn.redoc.ly'],
+        },
+    },
+}));
 app.use(express.urlencoded({ extended: true }));
 // Use defaults except for specific route in regex
 app.use(/^(?!\/v1\/users-service\/users\/connections\/find-people$)/, express.json({
@@ -61,6 +75,9 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(authenticate.unless({
     path: [
         { url: '/', methods: ['GET'] }, // healthcheck
+        { url: '/healthcheck', methods: ['GET'] }, // healthcheck
+        { url: '/v1/docs', methods: ['GET'] }, // API documentation
+        { url: '/v1/docs/openapi.json', methods: ['GET'] }, // OpenAPI spec
         // { url: '/favicon.ico', methods: ['GET'] }, // favicon
         { url: '/v1/users-service/interests', methods: ['GET'] },
         { url: '/v1/users-service/rewards/exchange-rate', methods: ['GET'] },
@@ -73,6 +90,7 @@ app.use(authenticate.unless({
         { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
         { url: '/v1/users-service/users', methods: ['POST'] }, // register
         { url: /\/v1\/users-service\/users\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, methods: ['GET'] },
+        { url: '/v1/users-service/auth/token/refresh', methods: ['POST'] }, // token refresh
         { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password
         { url: '/v1/users-service/social-sync/oauth2-tiktok', methods: ['GET'] }, // TikTok OAuth
         { url: '/v1/users-service/social-sync/oauth2-facebook', methods: ['GET'] }, // Facebook OAuth
@@ -82,17 +100,40 @@ app.use(authenticate.unless({
         { url: /\/v1\/users-service\/users\/by-username\/.*/, methods: ['GET'] }, // Get public/private profile
         { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy
         { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
+        { url: '/v1/maps-service/geocode', methods: ['GET'] }, // Nominatim geocoding proxy
         { url: /\/v1\/maps-service\/moments\/.*\/details/, methods: ['POST'] },
         { url: '/v1/maps-service/spaces/list', methods: ['POST'] },
         { url: /\/v1\/maps-service\/spaces\/.*\/details/, methods: ['POST'] },
+        { url: /\/v1\/maps-service\/events\/.*\/details/, methods: ['POST'] }, // Public event view (uses authenticateOptional)
         { url: /\/v1\/maps-service\/events\/search/, methods: ['POST'] }, // Optional for public map view
         { url: /\/v1\/maps-service\/moments\/search/, methods: ['POST'] }, // Optional for public map view
         { url: /\/v1\/maps-service\/spaces\/search/, methods: ['POST'] }, // Optional for public map view
+        { url: /\/v1\/maps-service\/spaces\/.*\/pairings$/, methods: ['GET'] }, // Space pairings (optional auth)
+        { url: /\/v1\/maps-service\/spaces\/.*\/pairings\/feedback/, methods: ['POST'] }, // Pairing feedback (optional auth)
+        { url: /\/v1\/maps-service\/cities\/[^/]+\/pulse$/, methods: ['GET'] }, // Public city landing page (uses authenticateOptional)
+        { url: /\/v1\/messages-service\/forums\/[0-9a-f-]+$/, methods: ['GET'] }, // Public group/forum view (uses authenticateOptional)
+        { url: '/v1/messages-service/forums/search', methods: ['POST'] }, // Public forum search (uses authenticateOptional)
     ],
 }));
 
+// API key access restrictions and rate limiting (after auth, before routes)
+app.use(restrictApiKeyAccess);
+app.use((req, res, next) => {
+    // Only apply API key rate limiter to API-key-authenticated requests
+    if (req['x-auth-type'] === 'api-key') {
+        return apiKeyRequestLimiter(req, res, next);
+    }
+    return next();
+});
+
 // Configure routes
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+
+// API Documentation (public, unauthenticated)
+app.get(`${API_BASE_ROUTE}/docs/openapi.json`, (req, res) => { res.json(openapiSpec); });
+app.get(`${API_BASE_ROUTE}/docs`, (req, res) => { res.send(getRedocHtml()); });
+
 app.use(API_BASE_ROUTE, router);
 
 const { API_GATEWAY_PORT } = process.env;
@@ -147,4 +188,17 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
             source: origin,
         },
     });
+});
+
+process.on('uncaughtException', (err, origin) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Uncaught Exception - Shutting down'],
+        traceArgs: {
+            'error.message': err?.message,
+            'process.origin': origin,
+        },
+    });
+    setTimeout(() => process.exit(1), 1000);
 });

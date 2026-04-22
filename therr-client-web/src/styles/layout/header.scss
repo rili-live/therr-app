@@ -1,7 +1,7 @@
 header {
     z-index: 90;
     align-items: center;
-    background: $therr-primary-1;
+    background: var(--therr-header-bg, $therr-primary-1);
     display: flex;
     height: $header-height-small;
     left: 0;
@@ -53,10 +53,39 @@ header {
         }
     }
 
+    .header-right {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+        gap: .5rem;
+        padding-right: 1rem;
+    }
+
+    .locale-switcher.mantine-ActionIcon-root {
+        display: flex;
+        align-items: center;
+        gap: .2rem;
+        width: auto;
+        padding-right: .35rem;
+
+        .locale-label {
+            font-size: rem-calc(12px);
+            font-weight: 600;
+            line-height: 1;
+            padding-right: .5rem;
+        }
+    }
+
+    .locale-menu.mantine-Menu-dropdown {
+        z-index: 100;
+    }
+
+    .mantine-ActionIcon-root {
+        color: $therr-white;
+    }
+
     .login-link,
     #header_account_button {
-        position: absolute;
-        right: 1rem;
         cursor: pointer;
 
         a {
@@ -67,16 +96,42 @@ header {
     }
 
     .login-link {
+        display: flex;
+        align-items: center;
+        gap: .25rem;
+
         a {
             font-weight: 400;
         }
     }
 
+    #header_login_icon,
     #header_account_button {
-        width: 5rem;
+        background: transparent;
+        box-shadow: none;
 
-        &.has-notifications {
-            box-shadow: 0px 0px 2px 1px transparentize($therr-white, .75);
+        .inline-svg svg {
+            fill: $therr-white;
+        }
+
+        &:hover {
+            background: transparentize($therr-white, .85);
+        }
+    }
+
+    #header_account_button {
+        position: relative;
+
+        &.has-notifications::after {
+            position: absolute;
+            content: '';
+            background: $therr-alert-error;
+            top: 2px;
+            right: 2px;
+            height: .5rem;
+            width: .5rem;
+            border-radius: 50%;
+            border: 1px solid $therr-primary-1;
         }
     }
 }
@@ -84,9 +139,5 @@ header {
 @media only screen and (min-width: rem-calc(540px)) {
     header {
         height: $header-height;
-
-        #header_account_button {
-            width: 7rem;
-        }
     }
 }

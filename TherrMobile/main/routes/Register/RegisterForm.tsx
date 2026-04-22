@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { Linking, Platform, View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Linking, Platform, Text, View } from 'react-native';
+import { Button } from '../../components/BaseButton';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { PasswordRegex } from 'therr-js-utilities/constants';
-import translator from '../../services/translator';
+import { showToast } from '../../utilities/toasts';
+import translator from '../../utilities/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
@@ -71,70 +72,98 @@ export class RegisterFormComponent extends React.Component<
         };
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.userSettings?.locale || 'en-us', key, params);
     }
-
-    isRegisterFormDisabled = () => {
-        const { isSubmitting } = this.state;
-        return isSubmitting || !this.state.inputs.email ||
-            !this.state.inputs.password ||
-            !this.isFormValid();
-    };
 
     isFormValid = () => {
         return this.state.inputs.password === this.state.inputs.repeatPassword;
     };
 
+    isRegisterFormDisabled = () => {
+        const { inputs, isSubmitting } = this.state;
+        return !inputs.email || !inputs.password || !inputs.repeatPassword || !this.isFormValid() || isSubmitting;
+    };
+
     onSubmit = () => {
-        const { inputs } = this.state;
+        const { inputs, isSubmitting } = this.state;
 
-        if (!this.isRegisterFormDisabled()) {
-            if (!PasswordRegex.test(inputs.password)) {
-                this.setState({
-                    prevRegisterError: this.translate(
-                        'forms.registerForm.errorMessages.passwordInsecure'
-                    ),
-                });
-                return;
-            }
-
-            const creds = {
-                ...inputs,
-            };
-            delete creds.repeatPassword;
-
-            this.setState({
-                isSubmitting: true,
-            });
-
-            this.props
-                .register(creds)
-                .then(() => {
-                    this.props.onSuccess();
-                })
-                .catch((error: any) => {
-                    if (
-                        error.statusCode === 400
-                    ) {
-                        this.setState({
-                            prevRegisterError: `${error.message}${
-                                error.parameters
-                                    ? ' error (' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
-                        });
-                    } else {
-                        this.setState({
-                            prevRegisterError: this.translate(
-                                'forms.registerForm.backendErrorMessage'
-                            ),
-                        });
-                    }
-                    this.setState({
-                        isSubmitting: false,
-                    });
-                });
+        if (isSubmitting) {
+            return;
         }
+
+        if (!inputs.email) {
+            showToast.error({
+                text1: this.translate('alertTitles.registrationError'),
+                text2: this.translate('forms.registerForm.missingEmail'),
+            });
+            return;
+        }
+        if (!inputs.password) {
+            showToast.error({
+                text1: this.translate('alertTitles.registrationError'),
+                text2: this.translate('forms.registerForm.missingPassword'),
+            });
+            return;
+        }
+        if (!inputs.repeatPassword) {
+            showToast.error({
+                text1: this.translate('alertTitles.registrationError'),
+                text2: this.translate('forms.registerForm.missingRepeatPassword'),
+            });
+            return;
+        }
+        if (!this.isFormValid()) {
+            showToast.error({
+                text1: this.translate('alertTitles.registrationError'),
+                text2: this.translate('forms.registerForm.errorMessages.repeatPassword'),
+            });
+            return;
+        }
+        if (!PasswordRegex.test(inputs.password)) {
+            this.setState({
+                prevRegisterError: this.translate(
+                    'forms.registerForm.errorMessages.passwordInsecure'
+                ),
+            });
+            return;
+        }
+
+        const creds = {
+            ...inputs,
+        };
+        delete creds.repeatPassword;
+
+        this.setState({
+            isSubmitting: true,
+        });
+
+        this.props
+            .register(creds)
+            .then(() => {
+                this.props.onSuccess();
+            })
+            .catch((error: any) => {
+                if (
+                    error.statusCode === 400
+                ) {
+                    this.setState({
+                        prevRegisterError: `${error.message}${
+                            error.parameters
+                                ? ' error (' + error.parameters.toString() + ')'
+                                : ''
+                        }`,
+                    });
+                } else {
+                    this.setState({
+                        prevRegisterError: this.translate(
+                            'forms.registerForm.backendErrorMessage'
+                        ),
+                    });
+                }
+                this.setState({
+                    isSubmitting: false,
+                });
+            });
     };
 
     onInputChange = (name: string, value: string) => {
@@ -220,10 +249,29 @@ export class RegisterFormComponent extends React.Component<
             });
     };
 
-    onSSOLoginError = () => {
+    onSSOLoginError = (err) => {
         this.setState({
             isSubmitting: false,
         });
+
+        if (err?.message?.includes('The user canceled the sign in request')) {
+            return;
+        } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
+            showToast.error({
+                text1: this.translate('alertTitles.errorWithAppleSSO'),
+                text2: this.translate('alertMessages.errorWithAppleSSO'),
+            });
+        } else if (err?.message?.includes('RNGoogleSignInError')) {
+            showToast.error({
+                text1: this.translate('alertTitles.errorWithGoogleSSO'),
+                text2: this.translate('alertMessages.errorWithGoogleSSO'),
+            });
+        } else {
+            showToast.error({
+                text1: this.translate('alertTitles.backendErrorMessage'),
+                text2: this.translate('alertMessages.backendErrorMessage'),
+            });
+        }
     };
 
     onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
@@ -281,6 +329,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -301,7 +350,11 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
+                <Text style={[theme.styles.sectionDescription, { fontSize: 12, textAlign: 'center', marginBottom: 10 }]}>
+                    {this.translate('forms.registerForm.subtitles.inviteCodeHint')}
+                </Text>
                 {
                     isPasswordEntryDirty &&
                         <PasswordRequirements translate={this.translate} password={this.state.inputs.password} themeForms={themeForms} />
@@ -326,6 +379,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -373,12 +427,14 @@ export class RegisterFormComponent extends React.Component<
                     <Button
                         buttonStyle={themeForms.styles.buttonPrimary}
                         titleStyle={themeForms.styles.buttonTitle}
-                        // disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
+                        disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
+                        disabledStyle={themeForms.styles.buttonDisabled}
                         title={this.translate(
                             'forms.registerForm.buttons.register'
                         )}
                         onPress={this.onSubmit}
-                        disabled={this.isRegisterFormDisabled()}
+                        disabled={this.state.isSubmitting}
+                        loading={this.state.isSubmitting}
                     />
                     <OrDivider
                         translate={this.translate}

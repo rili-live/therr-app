@@ -1,77 +1,85 @@
-import React from 'react';
+import './ReactotronConfig';
+import React, { useMemo } from 'react';
+import { InteractionManager, StyleSheet } from 'react-native';
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 import LogRocket from '@logrocket/react-native';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, setAnalyticsCollectionEnabled } from '@react-native-firebase/analytics';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
-import { enableLatestRenderer } from 'react-native-maps';
 import { SheetProvider } from 'react-native-actions-sheet';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import {
     SpotlightTourProvider,
 } from 'react-native-spotlight-tour';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
+import { PaperProvider } from 'react-native-paper';
+import { useSelector } from 'react-redux';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
 import { FeatureFlagProvider } from './context/FeatureFlagContext';
 import Layout from './components/Layout';
+import OfflineBanner from './components/OfflineBanner';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import spacingStyles from './styles/layouts/spacing';
 import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
+import { getPaperTheme } from './styles/themes';
+import { startNetworkListener } from './utilities/networkService';
 import './components/ActionSheet';
 
 // Disable in development
-analytics().setAnalyticsCollectionEnabled(!__DEV__);
+setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__);
 
-enableLatestRenderer();
 
-// import { buildStyles } from './styles';
+// Reads theme name from Redux and provides the correct Paper theme to children
+const ThemedPaperProvider = ({ children }: { children: React.ReactNode }) => {
+    const themeName = useSelector((state: any) => state?.user?.settings?.mobileThemeName);
+    const paperTheme = useMemo(() => getPaperTheme(themeName), [themeName]);
+
+    return <PaperProvider theme={paperTheme}>{children}</PaperProvider>;
+};
+
+const toastStyles = StyleSheet.create({
+    text1: {
+        fontSize: 17,
+        fontWeight: '600',
+        fontFamily: 'Lexend-Regular',
+    },
+    text2: {
+        fontSize: 14,
+        fontFamily: 'Lexend-Regular',
+    },
+    infoBorder: { borderLeftColor: '#1C7F8A' },
+    successBorder: { borderLeftColor: '#00A624' },
+    warnBorder: { borderLeftColor: '#FDBD2E' },
+    errorBorder: { borderLeftColor: '#D70000' },
+});
 
 const toastConfig = {
     info: (props) => (
         <InfoToast
             {...props}
-            style={{ borderLeftColor: '#1C7F8A' }}
-            text1Style={{
-                fontSize: 17,
-                fontWeight: '600',
-                fontFamily: 'Lexend-Regular',
-            }}
-            text2Style={{
-                fontSize: 14,
-                fontFamily: 'Lexend-Regular',
-            }}
+            style={toastStyles.infoBorder}
+            text1Style={toastStyles.text1}
+            text2Style={toastStyles.text2}
         />
     ),
     success: (props) => (
         <BaseToast
             {...props}
-            style={{ borderLeftColor: '#00A624' }}
-            text1Style={{
-                fontSize: 17,
-                fontWeight: '600',
-                fontFamily: 'Lexend-Regular',
-            }}
-            text2Style={{
-                fontSize: 14,
-                fontFamily: 'Lexend-Regular',
-            }}
+            style={toastStyles.successBorder}
+            text1Style={toastStyles.text1}
+            text2Style={toastStyles.text2}
         />
     ),
     successBig: (props) => (
         <BaseToast
             {...props}
-            style={[{ borderLeftColor: '#00A624' }, props?.props?.extraStyle]}
-            text1Style={{
-                fontSize: 17,
-                fontWeight: '600',
-                fontFamily: 'Lexend-Regular',
-            }}
-            text2Style={{
-                fontSize: 14,
-                fontFamily: 'Lexend-Regular',
-            }}
+            style={[toastStyles.successBorder, props?.props?.extraStyle]}
+            text1Style={toastStyles.text1}
+            text2Style={toastStyles.text2}
             text2NumberOfLines={3}
             renderLeadingIcon={props?.props?.renderLeadingIcon}
             renderTrailingIcon={props?.props?.renderTrailingIcon}
@@ -80,47 +88,26 @@ const toastConfig = {
     warn: (props) => (
         <ErrorToast
             {...props}
-            style={{ borderLeftColor: '#FDBD2E' }}
-            text1Style={{
-                fontSize: 17,
-                fontWeight: '600',
-                fontFamily: 'Lexend-Regular',
-            }}
-            text2Style={{
-                fontSize: 14,
-                fontFamily: 'Lexend-Regular',
-            }}
+            style={toastStyles.warnBorder}
+            text1Style={toastStyles.text1}
+            text2Style={toastStyles.text2}
         />
     ),
     warnBig: (props) => (
         <ErrorToast
             {...props}
-            style={{ borderLeftColor: '#FDBD2E' }}
-            text1Style={{
-                fontSize: 17,
-                fontWeight: '600',
-                fontFamily: 'Lexend-Regular',
-            }}
-            text2Style={{
-                fontSize: 14,
-                fontFamily: 'Lexend-Regular',
-            }}
+            style={toastStyles.warnBorder}
+            text1Style={toastStyles.text1}
+            text2Style={toastStyles.text2}
             text2NumberOfLines={3}
         />
     ),
     notifyPublic: (props) => (
         <ErrorToast
             {...props}
-            style={[{ borderLeftColor: '#1C7F8A' }, props?.props?.extraStyle]}
-            text1Style={{
-                fontSize: 17,
-                fontWeight: '600',
-                fontFamily: 'Lexend-Regular',
-            }}
-            text2Style={{
-                fontSize: 14,
-                fontFamily: 'Lexend-Regular',
-            }}
+            style={[toastStyles.infoBorder, props?.props?.extraStyle]}
+            text1Style={toastStyles.text1}
+            text2Style={toastStyles.text2}
             text2NumberOfLines={3}
             renderLeadingIcon={props?.props?.renderLeadingIcon}
             renderTrailingIcon={props?.props?.renderTrailingIcon}
@@ -129,32 +116,18 @@ const toastConfig = {
     error: (props) => (
         <ErrorToast
             {...props}
-            style={{ borderLeftColor: '#D70000' }}
-            text1Style={{
-                fontSize: 17,
-                fontWeight: '600',
-                fontFamily: 'Lexend-Regular',
-            }}
-            text2Style={{
-                fontSize: 14,
-                fontFamily: 'Lexend-Regular',
-            }}
+            style={toastStyles.errorBorder}
+            text1Style={toastStyles.text1}
+            text2Style={toastStyles.text2}
             text2NumberOfLines={2}
         />
     ),
     errorBig: (props) => (
         <ErrorToast
             {...props}
-            style={{ borderLeftColor: '#D70000' }}
-            text1Style={{
-                fontSize: 17,
-                fontWeight: '600',
-                fontFamily: 'Lexend-Regular',
-            }}
-            text2Style={{
-                fontSize: 14,
-                fontFamily: 'Lexend-Regular',
-            }}
+            style={toastStyles.errorBorder}
+            text1Style={toastStyles.text1}
+            text2Style={toastStyles.text2}
             text2NumberOfLines={3}
         />
     ),
@@ -162,7 +135,7 @@ const toastConfig = {
 
 class App extends React.Component<any, any> {
     private store;
-    // private theme = buildStyles()''
+    private persistor;
 
     constructor(props) {
         super(props);
@@ -170,46 +143,49 @@ class App extends React.Component<any, any> {
         this.state = {
             isLoading: true,
         };
-
-        // changeNavigationBarColor(therrTheme.colors.primary, false, true);
     }
 
     componentDidMount() {
         this.loadStorage();
 
         if (!__DEV__) {
-            LogRocket.init('pibaqj/therr-app-mobile', {
-                network: {
-                    requestSanitizer: request => {
-                        if (request.headers.authorization) {
-                            request.headers.authorization = '';
-                        }
-                        if (request.body?.toString().includes('password')) {
-                            request.body = '';
-                        }
+            // Defer SDK init until after first paint to avoid blocking time-to-interactive
+            InteractionManager.runAfterInteractions(() => {
+                LogRocket.init('pibaqj/therr-app-mobile', {
+                    network: {
+                        requestSanitizer: request => {
+                            if (request.headers.authorization) {
+                                request.headers.authorization = '';
+                            }
+                            if (request.body?.toString().includes('password')) {
+                                request.body = '';
+                            }
 
-                        return request;
-                    },
-                    responseSanitizer: response => {
-                        if (response.body?.toString().includes('password') || response.body?.toString().includes('idToken')) {
-                            response.body = '';
-                        }
+                            return request;
+                        },
+                        responseSanitizer: response => {
+                            if (response.body?.toString().includes('password') || response.body?.toString().includes('idToken')) {
+                                response.body = '';
+                            }
 
-                        return response;
+                            return response;
+                        },
                     },
-                },
-                console: {
-                    shouldAggregateConsoleErrors: true,
-                },
-                redactionTags: ['RedactionString'],
+                    console: {
+                        shouldAggregateConsoleErrors: true,
+                    },
+                    redactionTags: ['RedactionString'],
+                });
             });
         }
     }
 
     loadStorage = () => {
-        getStore().then((response) => {
-            this.store = response;
+        getStore().then(({ store, persistor }) => {
+            this.store = store;
+            this.persistor = persistor;
             initInterceptors(this.store);
+            startNetworkListener(this.store.dispatch);
 
             this.setState({
                 isLoading: false,
@@ -227,44 +203,53 @@ class App extends React.Component<any, any> {
         }
 
         return (
-            <Provider store={this.store}>
-                <FeatureFlagProvider>
-                    <GestureHandlerRootView style={spacingStyles.flexOne}>
-                        <SpotlightTourProvider
-                            steps={getTourSteps({
-                                locale: this.store.getState()?.user?.settings?.locale || 'en-us',
-                            })}
-                            onBackdropPress="continue" // In case the tour gets stuck
-                            overlayColor={'gray'}
-                            overlayOpacity={0.4}
-                            // This configurations will apply to all steps
-                            floatingProps={{
-                                placement: 'bottom',
-                            }}
-                            onStop={() => {
-                                return this.store?.dispatch(UsersActions.updateTour({
-                                    isTouring: false,
-                                    isNavigationTouring: false,
-                                }));
-                            }}
-                        >
-                            {
-                                ({ start, stop }) => (
-                                    <SheetProvider>
-                                        <Layout startNavigationTour={start} stopNavigationTour={stop} />
-                                    </SheetProvider>
-                                )
-                            }
-                        </SpotlightTourProvider>
-                    </GestureHandlerRootView>
-                    <Toast
-                        config={toastConfig}
-                        position="bottom"
-                        bottomOffset={buttonMenuHeight + 10}
-                        topOffset={HEADER_HEIGHT_MARGIN + 30}
-                    />
-                </FeatureFlagProvider>
-            </Provider>
+            <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+                <Provider store={this.store}>
+                    <PersistGate loading={null} persistor={this.persistor}>
+                        <OfflineBanner />
+                        <FeatureFlagProvider>
+                            <GestureHandlerRootView style={spacingStyles.flexOne}>
+                                <KeyboardProvider>
+                                    <ThemedPaperProvider>
+                                        <SpotlightTourProvider
+                                            steps={getTourSteps({
+                                                locale: this.store.getState()?.user?.settings?.locale || 'en-us',
+                                            })}
+                                            onBackdropPress="continue" // In case the tour gets stuck
+                                            overlayColor={'gray'}
+                                            overlayOpacity={0.4}
+                                            // This configurations will apply to all steps
+                                            floatingProps={{
+                                                placement: 'bottom',
+                                            }}
+                                            onStop={() => {
+                                                return this.store?.dispatch(UsersActions.updateTour({
+                                                    isTouring: false,
+                                                    isNavigationTouring: false,
+                                                }));
+                                            }}
+                                        >
+                                            {
+                                                ({ start, stop }) => (
+                                                    <SheetProvider>
+                                                        <Layout startNavigationTour={start} stopNavigationTour={stop} />
+                                                    </SheetProvider>
+                                                )
+                                            }
+                                        </SpotlightTourProvider>
+                                    </ThemedPaperProvider>
+                                </KeyboardProvider>
+                            </GestureHandlerRootView>
+                            <Toast
+                                config={toastConfig}
+                                position="bottom"
+                                bottomOffset={buttonMenuHeight + 10}
+                                topOffset={HEADER_HEIGHT_MARGIN + 30}
+                            />
+                        </FeatureFlagProvider>
+                    </PersistGate>
+                </Provider>
+            </SafeAreaProvider>
         );
     }
 }

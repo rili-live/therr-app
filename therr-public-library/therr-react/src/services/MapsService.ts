@@ -6,11 +6,17 @@ import { IAreaType } from 'therr-js-utilities/types';
 import { ISearchQuery } from '../types';
 
 let googleDynamicSessionToken = uuid.v4(); // This gets stored in the local state of this file/module
+let mapboxSessionToken = uuid.v4(); // Session token for Mapbox Search Box API (groups suggest + retrieve into one billing session)
 
 export interface ISearchAreasArgs {
+    category?: string;
     distanceOverride?: number;
     userLatitude?: number;
     userLongitude?: number;
+}
+
+export interface IMapsRequestOptions {
+    signal?: AbortSignal;
 }
 
 interface IGetAreaDetailsArgs {
@@ -102,9 +108,25 @@ export interface IPlacesAutoCompleteArgs {
     latitude: string;
     radius?: number | string;
     types?: string;
-    apiKey: string;
+    apiKey?: string;
     input: string;
     sessiontoken?: string;
+}
+
+export interface IMapboxSearchArgs {
+    longitude: string;
+    latitude: string;
+    input: string;
+    limit?: number;
+    language?: string;
+}
+
+// Normalized prediction format used by both Google and Mapbox providers
+export interface ISearchPrediction {
+    place_id: string;
+    description: string;
+    provider: 'google' | 'mapbox';
+    mapbox_id?: string;
 }
 
 export interface IPlaceDetailsArgs {
@@ -159,23 +181,25 @@ class MapsService {
         data: args,
     });
 
-    searchAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}) => {
+    searchAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => {
         const queryString = getSearchQueryString(query);
 
         return axios({
             method: 'post',
             url: `/maps-service/${areaType}/search${queryString}`,
             data,
+            signal: options?.signal,
         });
     };
 
-    searchMyAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}) => {
+    searchMyAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => {
         const queryString = getSearchQueryString(query);
 
         return axios({
             method: 'post',
             url: `/maps-service/${areaType}/search/me${queryString}`,
             data,
+            signal: options?.signal,
         });
     };
 
@@ -204,7 +228,7 @@ class MapsService {
         });
     };
 
-    searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('events', query, data);
+    searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => this.searchAreas('events', query, data, options);
 
     searchMyEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('events', query, data);
 
@@ -245,7 +269,7 @@ class MapsService {
         url: `/maps-service/moments/integrated/${userId}`,
     });
 
-    searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('moments', query, data);
+    searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => this.searchAreas('moments', query, data, options);
 
     searchMyMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('moments', query, data);
 
@@ -268,7 +292,7 @@ class MapsService {
         });
     };
 
-    searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data);
+    searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}, options: IMapsRequestOptions = {}) => this.searchAreas('spaces', query, data, options);
 
     searchMySpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('spaces', query, data);
 
@@ -304,6 +328,18 @@ class MapsService {
             data: {},
         });
     };
+
+    // Space Pairings
+    getSpacePairings = (spaceId: string) => axios({
+        method: 'get',
+        url: `/maps-service/spaces/${spaceId}/pairings`,
+    });
+
+    submitPairingFeedback = (spaceId: string, pairedSpaceId: string, isHelpful: boolean) => axios({
+        method: 'post',
+        url: `/maps-service/spaces/${spaceId}/pairings/feedback`,
+        data: { pairedSpaceId, isHelpful },
+    });
 
     // Map Metrics
     getSpaceEngagement = (spaceId: string, args: IGetSpaceEngagementArgs) => {
@@ -370,12 +406,10 @@ class MapsService {
         sessiontoken,
     }: IPlacesAutoCompleteArgs) => {
         let url = '/maps-service/place/autocomplete/json?';
+        const searchRadius = radius || 50000;
 
-        url = `${url}input=${input}&location=${latitude},${longitude}&locationbias=circle:radius@lat,lng`;
-
-        if (radius) {
-            url = `${url}&radius=${radius}`;
-        }
+        // eslint-disable-next-line max-len
+        url = `${url}input=${encodeURIComponent(input)}&location=${latitude},${longitude}&radius=${searchRadius}&locationbias=circle:${searchRadius}@${latitude},${longitude}`;
 
         if (types) {
             url = `${url}&types=${types}`;
@@ -458,6 +492,51 @@ class MapsService {
             googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
         });
     };
+
+    // Mapbox Search (via server-side proxy)
+    // Session token groups suggest + retrieve calls into one billing session
+    getMapboxSearchAutoComplete = ({
+        longitude,
+        latitude,
+        input,
+        limit,
+        language,
+    }: IMapboxSearchArgs) => axios({
+        method: 'get',
+        url: '/maps-service/mapbox/search',
+        params: {
+            q: input,
+            latitude,
+            longitude,
+            limit: limit || 5,
+            language: language || 'en',
+            sessionToken: mapboxSessionToken,
+        },
+        headers: {},
+    });
+
+    getMapboxRetrieve = (mapboxId: string) => axios({
+        method: 'get',
+        url: `/maps-service/mapbox/retrieve/${encodeURIComponent(mapboxId)}`,
+        params: { sessionToken: mapboxSessionToken },
+        headers: {},
+    }).finally(() => {
+        mapboxSessionToken = uuid.v4(); // Reset after retrieve to start a new billing session
+    });
+
+    // Geocoding (Nominatim via server-side proxy)
+    geocodeLocation = (query: string) => axios({
+        method: 'get',
+        url: `/maps-service/geocode?q=${encodeURIComponent(query)}`,
+        headers: {},
+    });
+
+    // City Pulse (editorial + Therr-data aggregate for city landing pages)
+    getCityPulse = (slug: string, locale?: string) => axios({
+        method: 'get',
+        url: `/maps-service/cities/${encodeURIComponent(slug)}/pulse${locale ? `?locale=${encodeURIComponent(locale)}` : ''}`,
+        headers: {},
+    });
 
     // Activities
     generateActivity = ({

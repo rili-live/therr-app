@@ -16,9 +16,23 @@ export const translateNotification = (notification?: {
             message: '',
         };
     }
+    let { messageParams } = notification;
+    if (typeof messageParams === 'string') {
+        try {
+            messageParams = JSON.parse(messageParams);
+        } catch (e) {
+            // noop
+        }
+    }
+    if (messageParams && typeof messageParams === 'object') {
+        // Normalize: some notifications store fromUserName but templates use {userName}
+        if (!messageParams.userName && messageParams.fromUserName) {
+            messageParams.userName = messageParams.fromUserName;
+        }
+    }
     return {
         ...notification,
-        message: translate(locale, notification.messageLocaleKey, notification?.messageParams),
+        message: translate(locale, notification.messageLocaleKey, messageParams),
     };
 };
 
@@ -88,8 +102,11 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
     /**
      * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
      * We will probably want to move this to a scheduler to run at a set interval.
+     * Deferred via setImmediate to avoid blocking notification response
      */
-    TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userId], 'updatedAt', 0);
+    setImmediate(() => {
+        TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userId], 'updatedAt', 0);
+    });
 
     // const countPromise = Store.notifications.countRecords({
     //     filterBy,

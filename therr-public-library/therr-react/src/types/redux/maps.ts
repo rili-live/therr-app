@@ -1,11 +1,18 @@
-import * as Immutable from 'seamless-immutable';
-
-export interface IMapState extends Immutable.ImmutableObject<any> {
+export interface IMapState {
     hasUserLocationLoaded?: boolean;
     longitude?: number;
     latitude?: number;
+    longitudeDelta?: number;
+    latitudeDelta?: number;
+    prevLongitude?: number;
+    prevLatitude?: number;
+    prevLongitudeDelta?: number;
+    prevLatitudeDelta?: number;
     activities: { [id: string]: any };
     activityGeneration: { [id: string]: any };
+    // Optional for backwards-compat: the deployed mobile app built before this
+    // field was added may rehydrate persisted state without it.
+    cityPulse?: { [slug: string]: any };
     events: { [id: string]: any };
     moments: { [id: string]: any };
     spaces: { [id: string]: any };
@@ -53,6 +60,9 @@ export enum MapActionTypes {
     UPDATE_USER_RADIUS = 'UPDATE_USER_RADIUS',
     UPDATE_MAP_VIEW_COORDS = 'UPDATE_MAP_VIEW_COORDS',
 
+    // City Pulse
+    GET_CITY_PULSE = 'GET_CITY_PULSE',
+
     // Filters
     SET_MAP_FILTERS = 'SET_MAP_FILTERS',
 
@@ -60,6 +70,7 @@ export enum MapActionTypes {
     UPDATE_RECENT_ENGAGEMENTS = 'UPDATE_RECENT_ENGAGEMENTS',
 
     // Google API
+    AUTOCOMPLETE_SEARCHING = 'AUTOCOMPLETE_SEARCHING',
     AUTOCOMPLETE_UPDATE = 'AUTOCOMPLETE_UPDATE',
     SET_DROPDOWN_VISIBILITY = 'SET_DROPDOWN_VISIBILITY',
 }

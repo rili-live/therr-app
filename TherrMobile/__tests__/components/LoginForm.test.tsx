@@ -3,7 +3,7 @@ import React from 'react';
 import LoginForm from '../../main/routes/Login/LoginForm';
 
 // Note: test renderer must be required after react-native.
-import renderer from 'react-test-renderer';
+import renderer, { act } from 'react-test-renderer';
 
 // Note: import explicitly to use the types shiped with jest.
 import {it} from '@jest/globals';
@@ -32,15 +32,18 @@ describe('LoginForm', () => {
             navigate: jest.fn(),
         };
         const mockLogin = jest.fn();
-        const component = renderer.create(
-            <LoginForm navigation={mockNavigation}
-                login={mockLogin}
-                userSettings={{ mobileThemeName: 'retro' }}
-                themeAuthForm={{ styles: mockStyles }}
-                themeAlerts={{ styles: mockStyles, colors: {} as any }}
-                themeForms={{ styles: mockStyles, colors: {} as any }}
-            />
-        );
-        expect(component.getInstance()?.isLoginFormDisabled()).toEqual(true);
+        let component: renderer.ReactTestRenderer;
+        act(() => {
+            component = renderer.create(
+                <LoginForm navigation={mockNavigation}
+                    login={mockLogin}
+                    userSettings={{ mobileThemeName: 'retro' }}
+                    themeAuthForm={{ styles: mockStyles }}
+                    themeAlerts={{ styles: mockStyles, colors: {} as any }}
+                    themeForms={{ styles: mockStyles, colors: {} as any }}
+                />
+            );
+        });
+        expect(component!.getInstance()?.isLoginFormDisabled()).toEqual(true);
     });
 });

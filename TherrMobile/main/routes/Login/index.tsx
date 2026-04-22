@@ -1,7 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, View, Text, Platform } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { View, Text, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
@@ -14,7 +15,7 @@ import mixins from '../../styles/mixins';
 import LoginForm from './LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { getUserImageUri } from '../../utilities/content';
 
@@ -66,7 +67,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
         this.cachedUserDetails = props.user?.details;
     }
 
@@ -94,7 +95,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         style={this.theme.styles.bodyFlex}

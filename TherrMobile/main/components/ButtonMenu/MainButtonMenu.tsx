@@ -1,9 +1,9 @@
 import React from 'react';
-import { ActivityIndicator, Dimensions, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
-import { Button, Image } from 'react-native-elements';
+import { Button } from '../BaseButton';
+import { Image } from '../BaseImage';
 import 'react-native-gesture-handler';
-// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
@@ -17,7 +17,6 @@ import { isUserAuthenticated } from '../../utilities/authUtils';
 import getConfig from '../../utilities/getConfig';
 import Toast from 'react-native-toast-message';
 import LottieView from 'lottie-react-native';
-// import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -52,41 +51,40 @@ const ViewProfileButton = ({
     themeMenu,
     translate,
     user,
-}) => (
-    <View style={[
-        (activeRoute === 'ViewUser'
-            ? themeMenu.styles.buttonContainerActive
-            : themeMenu.styles.buttonContainer),
-        {
-            width: buttonWidth,
-        },
-    ]}>
+}) => {
+    const isActive = activeRoute === 'ViewUser';
+    return (
         <Button
-            buttonStyle={themeMenu.styles.buttons}
-            containerStyle={themeMenu.styles.buttonContainerUserProfile}
-            titleStyle={themeMenu.styles.buttonsTitle}
+            type="clear"
+            iconTop
+            buttonStyle={isActive ? themeMenu.styles.buttonsActive : themeMenu.styles.buttons}
+            containerStyle={[
+                isActive
+                    ? themeMenu.styles.buttonContainerUserProfileActive
+                    : themeMenu.styles.buttonContainerUserProfile,
+                {
+                    width: buttonWidth,
+                },
+            ]}
+            titleStyle={isActive ? themeMenu.styles.buttonsTitleActive : themeMenu.styles.buttonsTitle}
             icon={
                 isUserAuthenticated(user) ?
                     <Image
                         source={{ uri: getUserImageUri(user, 50) }}
                         style={imageStyle}
-                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.brandingBlueGreen} />}
                     /> :
                     <TherrIcon
                         name="user-star"
                         size={22}
-                        style={themeMenu.styles.buttonIcon}
+                        style={isActive ? themeMenu.styles.buttonIconActive : themeMenu.styles.buttonIcon}
                     />
             }
             onPress={goToMyProfile}
             title={translate('menus.main.buttons.profile')}
-            type="clear"
         />
-        {/* {
-            hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
-        } */}
-    </View>
-);
+    );
+};
 
 class MainButtonMenuAlt extends ButtonMenu {
     constructor(props) {
@@ -258,7 +256,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                         speed={0.5}
                         autoPlay
                         loop
-                        style={{ width: 75, height: '100%', marginRight: 10 }}
+                        style={localStyles.toastLottie}
                     />
                 ),
             },
@@ -282,6 +280,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={2}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.list') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 activeRoute === 'Areas'
                                     ? themeMenu.styles.buttonsActive
@@ -318,6 +318,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <FeatureGate feature={FeatureFlags.ENABLE_GROUPS}>
                     <Button
                         title={!isCompact ? translate('menus.main.buttons.groups') : null}
+                        type="clear"
+                        iconTop
                         buttonStyle={
                             ['Groups', 'ActivityScheduler'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsActive
@@ -354,6 +356,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={6}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.map') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 ['Map', 'ActivityGenerator'].includes(activeRoute)
                                     ? themeMenu.styles.buttonsActive
@@ -391,6 +395,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={5}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.connect') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 isConnectViewActive
                                     ? themeMenu.styles.buttonsActive
@@ -442,5 +448,13 @@ class MainButtonMenuAlt extends ButtonMenu {
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    toastLottie: {
+        width: 75,
+        height: '100%',
+        marginRight: 10,
+    },
+});
 
 export default (connect(mapStateToProps, mapDispatchToProps)(React.memo(MainButtonMenuAlt)));

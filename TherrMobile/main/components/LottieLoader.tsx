@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
 import claimASpace from '../assets/claim-a-space.json';
 import karaokeLoader from '../assets/karaoke.json';
@@ -104,9 +104,17 @@ export default ({
                 speed={1}
                 autoPlay
                 loop
-                style={[{position: 'absolute', width: '100%', height: '100%'}]}
+                style={[localStyles.lottieFullSize]}
             />
             <Text style={textStyles}>Loading...</Text>
         </View>
     );
 };
+
+const localStyles = StyleSheet.create({
+    lottieFullSize: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+    },
+});

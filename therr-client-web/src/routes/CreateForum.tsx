@@ -3,15 +3,24 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import {
-    Input,
-    ButtonPrimary,
-} from 'therr-react/components';
+    Badge,
+    Card,
+    Container,
+    Flex,
+    Group as MantineGroup,
+    Stack,
+    Text,
+    Title,
+} from '@mantine/core';
+import {
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import { ForumActions } from 'therr-react/redux/actions';
 import { IForumsState, IUserState } from 'therr-react/types';
 import withNavigation from '../wrappers/withNavigation';
-import translator from '../services/translator';
+import withTranslation from '../wrappers/withTranslation';
 import formatHashtags from '../utilities/formatHashtags';
-// import * as globalConfig from '../../../global-config';
 
 interface ICreateForumRouterProps {
     navigation: {
@@ -31,6 +40,7 @@ interface IStoreProps extends ICreateForumDispatchProps {
 
 // Regular component props
 interface ICreateForumProps extends ICreateForumRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface ICreateForumState {
@@ -42,9 +52,6 @@ interface ICreateForumState {
     forumsList: any;
 }
 
-// Environment Variables
-// const envVars = globalConfig[process.env.NODE_ENV];
-
 const mapStateToProps = (state: any) => ({
     forums: state.forums,
     user: state.user,
@@ -55,16 +62,10 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     searchCategories: ForumActions.searchCategories,
 }, dispatch);
 
-// const handleSessionUpdate = (message: any) => {
-//     console.log('SESSION_UPDATE:', message); // eslint-disable-line no-console
-// };
-
 /**
  * CreateForum
  */
 export class CreateForumComponent extends React.Component<ICreateForumProps, ICreateForumState> {
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: ICreateForumProps, nextState: ICreateForumState) {
         if (!nextState.categories || !nextState.categories.length) {
             return {
@@ -74,8 +75,6 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
 
         return null;
     }
-
-    // private sessionToken: string;
 
     constructor(props: ICreateForumProps) {
         super(props);
@@ -90,9 +89,6 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             forumsList: [],
             isSubmitting: false,
         };
-
-        // this.sessionToken = '';
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
@@ -100,7 +96,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             forums,
             searchCategories,
         } = this.props;
-        document.title = `Therr | ${this.translate('pages.createForum.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.createForum.pageTitle')}`;
 
         if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
             searchCategories({
@@ -145,6 +141,12 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
         });
     };
 
+    handleCategoryToggle = (tag: string) => {
+        const { categories } = this.state;
+        const updated = categories.map((c) => (c.tag === tag ? { ...c, isActive: !c.isActive } : c));
+        this.setState({ categories: updated });
+    };
+
     isFormDisabled() {
         const { isSubmitting } = this.state;
         const {
@@ -167,6 +169,8 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             title,
             subtitle,
             description,
+            city,
+            region,
             integrationIds,
             invitees,
             iconGroup,
@@ -182,7 +186,9 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             title,
             subtitle: subtitle || title,
             description,
-            categoryTags: categories.filter((c) => c.isActive).map((c) => c.tag) || ['general'],
+            city: city || undefined,
+            region: region || undefined,
+            categoryTags: categories.filter((c) => c.isActive).map((c) => c.tag),
             hashTags: hashtags.join(','),
             integrationIds: integrationIds ? integrationIds.join(',') : '',
             invitees: invitees ? invitees.join('') : '',
@@ -198,13 +204,12 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             this.setState({
                 isSubmitting: true,
             });
-            // TODO: Move success/error alert to hosted chat page andd remove settimeout
             this.props
                 .createHostedChat(createArgs)
                 .then((response) => {
-                    this.props.navigation.navigate(`/forums/${response.id}`, {
+                    this.props.navigation.navigate(`/groups/${response.forum.id}`, {
                         state: {
-                            roomName: response.title,
+                            roomName: response.forum.title,
                         },
                     });
                 })
@@ -214,10 +219,13 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
                             || error.statusCode === 401
                             || error.statusCode === 404
                     ) {
-                        console.log('40x', error);
+                        console.log('40x', error); // eslint-disable-line no-console
                     } else if (error.statusCode >= 500) {
-                        console.log('500', error);
+                        console.log('500', error); // eslint-disable-line no-console
                     }
+                })
+                .finally(() => {
+                    this.setState({ isSubmitting: false });
                 });
         }
     };
@@ -232,79 +240,120 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
     };
 
     public render(): JSX.Element | null {
-        const { hashtags } = this.state;
-        const { forums } = this.props;
+        const { categories, hashtags } = this.state;
         const tagsString = hashtags.map((t) => `#${t}`).join(' ');
 
         return (
             <div id="page_join_forum">
-                <h1>{this.translate('pages.createForum.pageTitle')}</h1>
-                <label htmlFor="forum_title">{this.translate('pages.createForum.labels.title')}:</label>
-                <Input
-                    type="text"
-                    id="forum_title"
-                    name="title"
-                    value={this.state.inputs.title}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    placeholder={this.translate('pages.createForum.placeholders.title')}
-                />
-                <label htmlFor="forum_subtitle">{this.translate('pages.createForum.labels.subtitle')}:</label>
-                <Input
-                    type="text"
-                    id="forum_subtitle"
-                    name="subtitle"
-                    value={this.state.inputs.subtitle}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    placeholder={this.translate('pages.createForum.placeholders.subtitle')}
-                />
-                <label htmlFor="forum_hashtags">{this.translate('pages.createForum.labels.hashTags')}:</label>
-                <Input
-                    type="text"
-                    id="forum_hashtags"
-                    name="hashTags"
-                    value={this.state.inputs.hashTags}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    placeholder={this.translate('pages.createForum.placeholders.hashTags')}
-                />
-                <div>{ tagsString }</div>
-                <label htmlFor="forum_description">{this.translate('pages.createForum.labels.description')}:</label>
-                <Input
-                    type="text"
-                    id="forum_description"
-                    name="description"
-                    value={this.state.inputs.description}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    placeholder={this.translate('pages.createForum.placeholders.description')}
-                />
-                <div className="form-field text-right">
-                    <ButtonPrimary
-                        id="join_forum"
-                        text={this.translate('pages.createForum.buttons.submit')}
-                        onClick={this.onSubmit}
-                        disabled={this.shouldDisableInput('forum')}
-                    />
-                </div>
-                {
-                    forums && forums.activeForums
-                    && <span className="forums-list">
-                        {
-                            forums.activeForums.length < 1
-                                ? <i>{this.translate('pages.createForum.noForumsMessage')}</i>
-                                : <span>{this.translate('pages.createForum.labels.activeForums')}: <i>{forums?.activeForums?.length || 0}</i></span>
-                        }
-                    </span>
-                }
+                <Container size="sm">
+                    <Card shadow="sm" padding="lg" radius="md" withBorder>
+                        <Stack gap="sm">
+                            <Title order={1} size="h2">{this.props.translate('pages.createForum.pageTitle')}</Title>
+                            <MantineInput
+                                type="text"
+                                id="forum_title"
+                                name="title"
+                                value={this.state.inputs.title}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.props.translate}
+                                placeholder={this.props.translate('pages.createForum.placeholders.title')}
+                                label={this.props.translate('pages.createForum.labels.title')}
+                            />
+                            <MantineInput
+                                type="text"
+                                id="forum_subtitle"
+                                name="subtitle"
+                                value={this.state.inputs.subtitle}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.props.translate}
+                                placeholder={this.props.translate('pages.createForum.placeholders.subtitle')}
+                                label={this.props.translate('pages.createForum.labels.subtitle')}
+                            />
+                            <MantineInput
+                                type="text"
+                                id="forum_description"
+                                name="description"
+                                value={this.state.inputs.description}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.props.translate}
+                                placeholder={this.props.translate('pages.createForum.placeholders.description')}
+                                label={this.props.translate('pages.createForum.labels.description')}
+                            />
+                            <Flex gap="sm" direction={{ base: 'column', sm: 'row' }}>
+                                <MantineInput
+                                    type="text"
+                                    id="forum_city"
+                                    name="city"
+                                    value={this.state.inputs.city}
+                                    onChange={this.onInputChange}
+                                    onEnter={this.onSubmit}
+                                    translateFn={this.props.translate}
+                                    placeholder={this.props.translate('pages.createForum.placeholders.city')}
+                                    label={this.props.translate('pages.createForum.labels.city')}
+                                />
+                                <MantineInput
+                                    type="text"
+                                    id="forum_region"
+                                    name="region"
+                                    value={this.state.inputs.region}
+                                    onChange={this.onInputChange}
+                                    onEnter={this.onSubmit}
+                                    translateFn={this.props.translate}
+                                    placeholder={this.props.translate('pages.createForum.placeholders.region')}
+                                    label={this.props.translate('pages.createForum.labels.region')}
+                                />
+                            </Flex>
+                            <MantineInput
+                                type="text"
+                                id="forum_hashtags"
+                                name="hashTags"
+                                value={this.state.inputs.hashTags}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.props.translate}
+                                placeholder={this.props.translate('pages.createForum.placeholders.hashTags')}
+                                label={this.props.translate('pages.createForum.labels.hashTags')}
+                            />
+                            {tagsString && <Text size="sm" c="dimmed">{tagsString}</Text>}
+
+                            {/* Category Selection */}
+                            {categories.length > 0 && (
+                                <div>
+                                    <Text fw={500} size="sm" mb={4}>{this.props.translate('pages.createForum.labels.categories')}</Text>
+                                    <MantineGroup gap={6}>
+                                        {categories.map((cat) => (
+                                            <Badge
+                                                key={cat.tag}
+                                                variant={cat.isActive ? 'filled' : 'outline'}
+                                                size="md"
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => this.handleCategoryToggle(cat.tag)}
+                                            >
+                                                {cat.tag}
+                                            </Badge>
+                                        ))}
+                                    </MantineGroup>
+                                </div>
+                            )}
+
+                            <div className="form-field text-right">
+                                <MantineButton
+                                    id="join_forum"
+                                    text={this.props.translate('pages.createForum.buttons.submit')}
+                                    onClick={this.onSubmit}
+                                    disabled={this.isFormDisabled()}
+                                    fullWidth
+                                />
+                            </div>
+                        </Stack>
+                    </Card>
+                </Container>
             </div>
         );
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateForumComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(CreateForumComponent)));

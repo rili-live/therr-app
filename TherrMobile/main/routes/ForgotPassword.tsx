@@ -1,6 +1,7 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text } from 'react-native';
-import { Button }  from 'react-native-elements';
+import { ScrollView, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '../components/BaseButton';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
@@ -10,10 +11,10 @@ import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticationForms';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
-import VerificationCodesService from '../services/VerificationCodesService';
+import VerificationCodesService from '../utilities/VerificationCodesService';
 import RoundInput from '../components/Input/Round';
 import BaseStatusBar from '../components/BaseStatusBar';
 
@@ -69,7 +70,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
         this.themeAuthForm = buildAuthFormStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -123,6 +124,9 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                             errorMsg: this.translate('forms.forgotPassword.backendErrorMessage'),
                         });
                     }
+                })
+                .finally(() => {
+                    this.setState({ isSubmitting: false });
                 });
         }
     };
@@ -150,7 +154,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <ScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScrollSmall}>
                         <View style={this.theme.styles.sectionContainerAlt}>
                             <Text style={this.theme.styles.sectionTitle}>
@@ -194,12 +198,16 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                         </View>
                         <View style={this.themeAuthForm.styles.submitButtonContainer}>
                             <Button
-                                buttonStyle={this.themeAuthForm.styles.button}
+                                buttonStyle={this.themeForms.styles.buttonPrimary}
+                                titleStyle={this.themeForms.styles.buttonTitle}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                disabledStyle={this.themeForms.styles.buttonDisabled}
                                 title={this.translate(
                                     'forms.forgotPassword.buttons.submit'
                                 )}
                                 onPress={this.onSubmit}
                                 disabled={this.isFormDisabled()}
+                                loading={this.state.isSubmitting}
                             />
                         </View>
                     </ScrollView>

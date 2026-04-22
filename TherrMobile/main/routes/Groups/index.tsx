@@ -1,25 +1,27 @@
 import React from 'react';
-import { Dimensions, FlatList, SafeAreaView, Text, View } from 'react-native';
+import { Dimensions, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ForumActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IForumsState, IUserState } from 'therr-react/types';
+import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import { TabBar, TabView } from 'react-native-tab-view';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
-import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import spacingStyles from '../../styles/layouts/spacing';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
 import { RefreshControl } from 'react-native-gesture-handler';
-import LazyPlaceholder from './components/LazyPlaceholder';
+import LazyPlaceholder from '../../components/LazyPlaceholder';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -30,7 +32,8 @@ import GroupCategories from '../Groups/GroupCategories';
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
 const tabMap = {
-    0: GROUPS_CAROUSEL_TABS.GROUPS,
+    0: GROUPS_CAROUSEL_TABS.DISCOVER,
+    1: GROUPS_CAROUSEL_TABS.GROUPS,
 };
 
 const getActiveTabIndex = (mapOfTabs: { [key: number]: string }, activeTab?: string) => {
@@ -38,14 +41,10 @@ const getActiveTabIndex = (mapOfTabs: { [key: number]: string }, activeTab?: str
         return 0;
     }
 
-    if (activeTab === mapOfTabs[0]) {
-        return 0;
-    }
-    if (activeTab === mapOfTabs[1]) {
-        return 1;
-    }
-    if (activeTab === mapOfTabs[2]) {
-        return 2;
+    for (const key of Object.keys(mapOfTabs)) {
+        if (activeTab === mapOfTabs[key]) {
+            return Number(key);
+        }
     }
 
     return 0;
@@ -58,6 +57,7 @@ interface IGroupsDispatchProps {
     getUserGroups: Function;
     searchCategories: Function;
     searchForums: Function;
+    searchMyForums: Function;
     searchUserConnections: Function;
     searchUsers: Function;
     searchUpdateUser: Function;
@@ -76,12 +76,15 @@ export interface IGroupsProps extends IStoreProps {
 
 interface IGroupsState {
     categories: any[];
+    citySearchText: string;
     isNameConfirmModalVisible: boolean;
     isRefreshing: boolean;
+    isMyGroupsRefreshing: boolean;
     activeTabIndex: number;
     searchFilters: any;
+    searchText: string;
     tabRoutes: { key: string; title: string }[];
-    toggleChevronName: 'refresh',
+    toggleChevronName: 'refresh';
 }
 
 const mapStateToProps = (state) => ({
@@ -97,6 +100,7 @@ const mapDispatchToProps = (dispatch: any) =>
             searchCategories: ForumActions.searchCategories,
             getUserGroups: UsersActions.getUserGroups,
             searchForums: ForumActions.searchForums,
+            searchMyForums: ForumActions.searchMyForums,
             searchUserConnections: UserConnectionsActions.search,
             searchUsers: UsersActions.search,
             searchUpdateUser: UsersActions.searchUpdateUser,
@@ -111,11 +115,11 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
     private themeTile = buildTileStyles();
-    private themeForms = buildFormsStyles();
     private themeCategory = buildCategoryStyles();
     private unsubscribeFocusListener;
-    private peopleListRef;
+    private discoverListRef;
     private groupsListRef;
+    private searchDebounceTimer;
 
     static getDerivedStateFromProps(nextProps: IGroupsProps, nextState: IGroupsState) {
         if (!nextState.categories || !nextState.categories.length) {
@@ -131,21 +135,24 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const { route } = props;
         const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
 
         this.state = {
             categories: props.categories || [],
+            citySearchText: '',
             activeTabIndex,
             isNameConfirmModalVisible: false,
             isRefreshing: false,
+            isMyGroupsRefreshing: false,
             tabRoutes: [
-                { key: GROUPS_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groupsPublic') },
-                // { key: GROUPS_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
+                { key: GROUPS_CAROUSEL_TABS.DISCOVER, title: this.translate('menus.headerTabs.groupsDiscover') },
+                { key: GROUPS_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groupsJoined') },
             ],
             toggleChevronName: 'refresh',
+            searchText: '',
             searchFilters: {
                 itemsPerPage: DEFAULT_PAGE_SIZE,
                 pageNumber: 1,
@@ -158,7 +165,6 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeTile = buildTileStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
         this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
     }
 
@@ -171,13 +177,12 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             title: this.translate('pages.groups.headerTitle'),
         });
 
-        // TODO: Connect redux UI prefetch
-        if (!user.myUserGroups?.length) {
-            getUserGroups();
+        if (!Object.keys(user.myUserGroups || {}).length) {
+            getUserGroups({ withGroups: true });
         }
 
         if (forums && (!forums.searchResults || !forums.searchResults.length)) {
-            this.handleRefreshForumsSearch();
+            this.handleRefreshDiscoverSearch();
         }
 
         if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
@@ -188,6 +193,8 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             }, {});
         }
 
+        this.handleRefreshMyGroupsSearch();
+
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { route } = this.props;
             const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
@@ -195,6 +202,10 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             this.setState({
                 activeTabIndex,
             });
+
+            // Refresh data when returning from ViewGroup/EditGroup
+            this.handleRefreshMyGroupsSearch();
+            this.handleRefreshDiscoverSearch();
         });
     }
 
@@ -202,50 +213,10 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         if (this.unsubscribeFocusListener) {
             this.unsubscribeFocusListener();
         }
+        if (this.searchDebounceTimer) {
+            clearTimeout(this.searchDebounceTimer);
+        }
     }
-
-    getConnectionOrUserDetails = (userOrConnection) => {
-        const { user } = this.props;
-
-        // Active connection format
-        if (!userOrConnection.users) {
-            return userOrConnection;
-        }
-
-        // User <-> User connection format
-        return (
-            userOrConnection.users.find(
-                (u) => user.details && u.id !== user.details.id
-            ) || {}
-        );
-    };
-
-    getConnectionSubtitle = (connectionDetails) => {
-        if (!connectionDetails?.firstName && !connectionDetails?.lastName) {
-            return this.translate('pages.userProfile.anonymous');
-        }
-        return `${connectionDetails.firstName || ''} ${
-            connectionDetails.lastName || ''
-        }`;
-    };
-
-    goToViewUser = (userId) => {
-        const { navigation } = this.props;
-
-        navigation.navigate('ViewUser', {
-            userInView: {
-                id: userId,
-            },
-        });
-    };
-
-    onConnectionPress = (connectionDetails) => {
-        const { navigation } = this.props;
-
-        navigation.navigate('DirectMessage', {
-            connectionDetails,
-        });
-    };
 
     onTabSelect = (index: number) => {
         const { navigation } = this.props;
@@ -258,23 +229,57 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         });
     };
 
-    trySearchMoreUsers = () => {
-
-    };
-
-    handleRefreshForumsSearch = () => {
-        const { searchFilters } = this.state;
+    handleRefreshDiscoverSearch = () => {
+        const { searchFilters, searchText, citySearchText, categories } = this.state;
         this.setState({
             isRefreshing: true,
         });
 
+        const selectedCategoryTags = (categories || []).filter(c => c.isActive).map(c => c.tag);
+        const searchParams: any = {
+            ...searchFilters,
+        };
+        if (searchText) {
+            searchParams.query = searchText;
+            searchParams.filterBy = 'title';
+            searchParams.filterOperator = 'ilike';
+        }
+        const searchArgs: any = {};
+        if (selectedCategoryTags.length) {
+            searchArgs.categoryTags = selectedCategoryTags;
+        }
+        if (citySearchText) {
+            searchArgs.nearbyCity = citySearchText;
+        }
+
         this.props
-            .searchForums(searchFilters, {})
+            .searchForums(searchParams, searchArgs)
             .catch(() => {})
             .finally(() => {
                 this.setState({
                     isRefreshing: false,
                 });
+            });
+    };
+
+    handleRefreshMyGroupsSearch = () => {
+        const { user, searchMyForums } = this.props;
+        const { searchFilters } = this.state;
+
+        const myGroupIds = Object.keys(user.myUserGroups || {}).filter(
+            (groupId) => user.myUserGroups[groupId]?.status === GroupRequestStatuses.APPROVED
+        );
+
+        if (!myGroupIds.length) {
+            return;
+        }
+
+        this.setState({ isMyGroupsRefreshing: true });
+
+        searchMyForums(searchFilters, { forumIds: myGroupIds })
+            .catch(() => {})
+            .finally(() => {
+                this.setState({ isMyGroupsRefreshing: false });
             });
     };
 
@@ -285,26 +290,6 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         navigation.navigate('Settings');
     };
 
-    onSendConnectRequest = (acceptingUser: any) => {
-        const { createUserConnection, user, searchUpdateUser } = this.props;
-        // TODO: Send connection request
-        createUserConnection({
-            requestingUserId: user.details.id,
-            requestingUserFirstName: user.details.firstName,
-            requestingUserLastName: user.details.lastName,
-            requestingUserEmail: user.details.email,
-            acceptingUserId: acceptingUser?.id,
-            acceptingUserPhoneNumber: acceptingUser?.phoneNumber,
-            acceptingUserEmail: acceptingUser?.email,
-        }, {
-            userName: user?.details?.userName,
-        }).then(() => {
-            searchUpdateUser(acceptingUser.id, {
-                isConnected: true,
-            });
-        });
-    };
-
     toggleNameConfirmModal = () => {
         this.setState({
             isNameConfirmModalVisible: !this.state.isNameConfirmModalVisible,
@@ -312,32 +297,20 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     };
 
     onCreatePress = () => {
-        const { activeTabIndex } = this.state;
         const { navigation } = this.props;
-
-        if (tabMap[activeTabIndex] === GROUPS_CAROUSEL_TABS.GROUPS) {
-            navigation.navigate('EditGroup');
-        } else {
-            navigation.navigate('Invite');
-        }
+        navigation.navigate('EditGroup');
     };
 
     scrollTop = () => {
-        const { user } = this.props;
-
-        if (this.sortGroups()?.length) {
+        if (this.state.activeTabIndex === 0) {
+            this.discoverListRef?.scrollToOffset({ animated: true, offset: 0 });
+        } else {
             this.groupsListRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
-        if (Object.keys(user.users || {}).length) {
-            this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
         }
     };
 
-    sortGroups = (): any[] => {
-        const { forums } = this.props;
-        const groups = (forums && forums.searchResults) || [];
-        // TODO: Sort by more recently active
-        return groups;
+    sortGroups = (groups: any[]): any[] => {
+        return groups || [];
     };
 
     handleChatTilePress = (chat) => {
@@ -348,9 +321,26 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         });
     };
 
+    handleSearchTextChange = (text: string) => {
+        this.setState({ searchText: text }, this.debouncedDiscoverSearch);
+    };
+
+    handleCitySearchChange = (text: string) => {
+        this.setState({ citySearchText: text }, this.debouncedDiscoverSearch);
+    };
+
+    debouncedDiscoverSearch = () => {
+        if (this.searchDebounceTimer) {
+            clearTimeout(this.searchDebounceTimer);
+        }
+        this.searchDebounceTimer = setTimeout(() => {
+            this.handleRefreshDiscoverSearch();
+        }, 400);
+    };
+
     searchForumsWithFilters = (text, modifiedCategories?) => {
         const { searchForums } = this.props;
-        const { categories, searchFilters } = this.state;
+        const { categories, searchFilters, citySearchText } = this.state;
 
         const selectedCategoryTags = (modifiedCategories || categories).filter(c => c.isActive).map(c => c.tag);
         const searchParams = {
@@ -363,11 +353,14 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         if (selectedCategoryTags.length) {
             searchArgs.categoryTags = selectedCategoryTags;
         }
+        if (citySearchText) {
+            searchArgs.nearbyCity = citySearchText;
+        }
         searchForums(searchParams, searchArgs);
     };
 
     handleCategoryPress = (category) => {
-        const { categories } = this.state;
+        const { categories, searchText } = this.state;
         const modifiedCategories: any = [ ...categories ];
 
         modifiedCategories.some((c, i) => {
@@ -377,7 +370,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             }
         });
 
-        this.searchForumsWithFilters('', modifiedCategories);
+        this.searchForumsWithFilters(searchText, modifiedCategories);
 
         this.setState({
             categories: modifiedCategories,
@@ -385,13 +378,13 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     };
 
     handleCategoryTogglePress = () => {
-        const { categories } = this.state;
+        const { categories, searchText } = this.state;
         const modifiedCategories: any = [ ...categories ];
         modifiedCategories.forEach((c, i) => {
             modifiedCategories[i] = { ...c, isActive: false };
         });
 
-        this.searchForumsWithFilters('', modifiedCategories);
+        this.searchForumsWithFilters(searchText, modifiedCategories);
 
         this.setState({
             categories: modifiedCategories,
@@ -399,19 +392,26 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     };
 
     onJoinGroup = (group) => {
-        const { createUserGroup } = this.props;
+        const { createUserGroup, searchMyForums, user } = this.props;
+        const { searchFilters } = this.state;
 
         createUserGroup({
             groupId: group.id,
+        }).then(() => {
+            const myGroupIds = Object.keys(user.myUserGroups || {})
+                .filter((id) => user.myUserGroups[id]?.status === GroupRequestStatuses.APPROVED);
+            if (!myGroupIds.includes(group.id)) {
+                myGroupIds.push(group.id);
+            }
+            if (myGroupIds.length) {
+                searchMyForums(searchFilters, { forumIds: myGroupIds });
+            }
         }).catch((err) => {
             console.log(err);
         });
     };
 
-    renderTabBar = props => {
-        if (Object.keys(tabMap).length < 2) {
-            return <></>;
-        }
+    renderTabBar = (props) => {
         return (
             <TabBar
                 {...props}
@@ -430,31 +430,99 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         );
     };
 
+    renderSearchHeader = () => {
+        const { categories, searchText, citySearchText, toggleChevronName } = this.state;
+
+        return (
+            <View>
+                <View style={{
+                    flexDirection: 'row',
+                    paddingHorizontal: 10,
+                    paddingTop: 8,
+                    paddingBottom: 4,
+                    gap: 8,
+                }}>
+                    <View style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: this.theme.colorVariations.primaryFadeMore || '#f0f0f0',
+                        borderRadius: 20,
+                        paddingHorizontal: 10,
+                        height: 38,
+                    }}>
+                        <MaterialIcon name="search" size={20} color={this.theme.colors.placeholderTextColor} />
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                fontSize: 14,
+                                paddingVertical: 4,
+                                paddingHorizontal: 6,
+                                color: this.theme.colors.textWhite,
+                            }}
+                            placeholder={this.translate('forms.groups.searchPlaceholder')}
+                            placeholderTextColor={this.theme.colors.placeholderTextColor}
+                            value={searchText}
+                            onChangeText={this.handleSearchTextChange}
+                            autoCorrect={false}
+                        />
+                    </View>
+                    <View style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: this.theme.colorVariations.primaryFadeMore || '#f0f0f0',
+                        borderRadius: 20,
+                        paddingHorizontal: 10,
+                        height: 38,
+                    }}>
+                        <MaterialIcon name="location-on" size={20} color={this.theme.colors.placeholderTextColor} />
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                fontSize: 14,
+                                paddingVertical: 4,
+                                paddingHorizontal: 6,
+                                color: this.theme.colors.textWhite,
+                            }}
+                            placeholder={this.translate('forms.groups.cityPlaceholder')}
+                            placeholderTextColor={this.theme.colors.placeholderTextColor}
+                            value={citySearchText}
+                            onChangeText={this.handleCitySearchChange}
+                            autoCorrect={false}
+                        />
+                    </View>
+                </View>
+                <GroupCategories
+                    style={{}}
+                    backgroundColor={this.theme.colors.primary}
+                    categories={categories}
+                    onCategoryPress={this.handleCategoryPress}
+                    translate={this.translate}
+                    onCategoryTogglePress={this.handleCategoryTogglePress}
+                    toggleChevronName={toggleChevronName}
+                    theme={this.theme}
+                    themeButtons={this.themeButtons}
+                    themeCategory={this.themeCategory}
+                />
+            </View>
+        );
+    };
+
     renderSceneMap = ({ route }) => {
-        const { categories, toggleChevronName, isRefreshing } = this.state;
-        const { user } = this.props;
+        const { isRefreshing, isMyGroupsRefreshing } = this.state;
+        const { forums, user } = this.props;
 
         switch (route.key) {
-            case GROUPS_CAROUSEL_TABS.GROUPS:
-                const groups = this.sortGroups();
+            case GROUPS_CAROUSEL_TABS.DISCOVER: {
+                const groups = this.sortGroups(forums?.searchResults);
 
                 return (
                     <FlatList
-                        ref={(component) => this.groupsListRef = component}
+                        ref={(component) => { this.discoverListRef = component; }}
                         data={groups}
                         keyExtractor={(item) => String(item.id)}
-                        ListHeaderComponent={<GroupCategories
-                            style={{}}
-                            backgroundColor={this.theme.colors.primary}
-                            categories={categories}
-                            onCategoryPress={this.handleCategoryPress}
-                            translate={this.translate}
-                            onCategoryTogglePress={this.handleCategoryTogglePress}
-                            toggleChevronName={toggleChevronName}
-                            theme={this.theme}
-                            themeButtons={this.themeButtons}
-                            themeCategory={this.themeCategory}
-                        />}
+                        ListHeaderComponent={this.renderSearchHeader()}
                         renderItem={({ item: group }) => (
                             <GroupTile
                                 group={group}
@@ -477,25 +545,80 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
-                            onRefresh={this.handleRefreshForumsSearch}
+                            onRefresh={this.handleRefreshDiscoverSearch}
                         />}
-                        onContentSizeChange={this.scrollTop}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                     />
                 );
+            }
+            case GROUPS_CAROUSEL_TABS.GROUPS: {
+                const myGroups = this.sortGroups(forums?.myForumsSearchResults);
+
+                return (
+                    <FlatList
+                        ref={(component) => { this.groupsListRef = component; }}
+                        data={myGroups}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={({ item: group }) => (
+                            <GroupTile
+                                group={group}
+                                onChatTilePress={this.handleChatTilePress}
+                                theme={this.theme}
+                                themeButtons={this.themeButtons}
+                                themeChatTile={this.themeTile}
+                                translate={this.translate}
+                                handleJoinGroup={this.onJoinGroup}
+                                user={user}
+                            />
+                        )}
+                        ListEmptyComponent={
+                            <View style={spacingStyles.marginHorizLg}>
+                                <ListEmpty iconName="group" theme={this.theme} text={this.translate(
+                                    'pages.groups.noMyGroupsFound'
+                                )} />
+                                <Pressable
+                                    onPress={() => this.onTabSelect(0)}
+                                    style={{
+                                        marginTop: 16,
+                                        marginHorizontal: 40,
+                                        backgroundColor: this.theme.colors.primary3,
+                                        borderRadius: 8,
+                                        paddingVertical: 10,
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <Text style={{ color: this.theme.colors.brandingWhite, fontSize: 16, fontWeight: '600' }}>
+                                        {this.translate('pages.groups.discoverGroups')}
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        }
+                        stickyHeaderIndices={[]}
+                        refreshControl={<RefreshControl
+                            refreshing={isMyGroupsRefreshing}
+                            onRefresh={this.handleRefreshMyGroupsSearch}
+                        />}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
+                    />
+                );
+            }
+            default:
+                return null;
         }
     };
 
     render() {
         const { activeTabIndex, isNameConfirmModalVisible, tabRoutes } = this.state;
         const { navigation, user } = this.props;
-        const createButtonTitle = tabMap[activeTabIndex] === GROUPS_CAROUSEL_TABS.GROUPS
-            ? this.translate('menus.connections.buttons.create')
-            : this.translate('menus.connections.buttons.invite');
 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <TabView
                         lazy
                         lazyPreloadDistance={1}
@@ -519,7 +642,6 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         )}
                         onIndexChange={this.onTabSelect}
                         initialLayout={{ width: viewportWidth }}
-                        // style={styles.container}
                     />
                 </SafeAreaView>
                 <ConfirmModal
@@ -536,7 +658,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                 <CreateConnectionButton
                     onPress={this.onCreatePress}
                     themeButtons={this.themeButtons}
-                    title={createButtonTitle}
+                    title={this.translate('menus.connections.buttons.create')}
                 />
                 <MainButtonMenu
                     activeRoute="Groups"

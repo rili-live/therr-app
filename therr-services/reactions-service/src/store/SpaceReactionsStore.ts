@@ -17,6 +17,9 @@ export interface ICreateSpaceReactionParams {
     userHasSuperDisliked?: boolean;
     userLocale?: string;
     rating?: number;
+    visitedAt?: Date;
+    lastVisitedAt?: Date;
+    visitCount?: number;
 }
 
 export interface IUpdateSpaceReactionConditions {
@@ -34,6 +37,9 @@ export interface IUpdateSpaceReactionParams {
     userHasSuperDisliked?: boolean;
     userLocale?: string;
     rating?: number;
+    visitedAt?: Date;
+    lastVisitedAt?: Date;
+    visitCount?: number;
 }
 
 interface IUpdateWhereInConfig {
@@ -114,6 +120,23 @@ export default class SpaceReactionsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
+    getBatchRatings(spaceIds: string[]) {
+        if (!spaceIds?.length) {
+            return Promise.resolve([]);
+        }
+
+        const queryString = knexBuilder
+            .select('spaceId')
+            .avg('rating as avgRating')
+            .count('rating as totalRatings')
+            .from(SPACE_REACTIONS_TABLE_NAME)
+            .whereIn('spaceId', spaceIds)
+            .whereNotNull('rating')
+            .groupBy('spaceId');
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
     create(params: ICreateSpaceReactionParams | ICreateSpaceReactionParams[]) {
         const queryString = knexBuilder(SPACE_REACTIONS_TABLE_NAME)
             .insert(params)
@@ -138,6 +161,21 @@ export default class SpaceReactionsStore {
         }
 
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
+    }
+
+    getVisitedSpaces(userId: string, limit = 100, offset = 0, order = 'DESC') {
+        const restrictedLimit = Math.min(limit, 1000);
+
+        const queryString = knexBuilder.select('*')
+            .from(SPACE_REACTIONS_TABLE_NAME)
+            .where({ userId })
+            .whereNotNull('visitedAt')
+            .where('visitCount', '>', 0)
+            .limit(restrictedLimit)
+            .offset(offset)
+            .orderBy('lastVisitedAt', order);
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
     delete(userId: string) {

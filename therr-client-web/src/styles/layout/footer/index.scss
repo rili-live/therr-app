@@ -12,7 +12,7 @@ footer {
     width: 100%;
     height: $footer-height-small;
     text-align: center;
-    background: $therr-primary-1;
+    background: var(--therr-footer-bg, $therr-primary-1);
     box-shadow: $box-shadow-fixed-bot;
 
     .footer-menu-item {
@@ -22,8 +22,6 @@ footer {
 
         &:first-child {
             justify-content: flex-start;
-
-            
         }
 
         &:last-child {
@@ -31,22 +29,25 @@ footer {
         }
     }
 
-    .locations-link {
-        margin-right: 1rem;
+    .footer-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
+        gap: 1px;
+        padding: 0.25rem 0.5rem 0.5rem;
 
-        a {
+        .footer-nav-label {
             color: $therr-white;
-            text-decoration: none;
-            font-weight: bold;
+            font-size: rem-calc(10px);
+            line-height: 1;
+            opacity: 0.85;
+            white-space: nowrap;
+            pointer-events: none;
         }
     }
 
-    .locations-link {
-        a {
-            font-weight: 400;
-        }
-    }
 }
 
 button {
@@ -54,44 +55,70 @@ button {
         display: flex;
         align-items: center;
         background: transparent;
+        box-shadow: none;
     }
 
     &#footer_close,
     &#footer_home,
-    &#footer_messages {
+    &#footer_messages,
+    &#footer_explore,
+    &#footer_locations_icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 2.15rem;
+        background: transparent;
+        box-shadow: none;
     }
 
     &#footer_close,
     &#footer_messages {
-        margin-right: $messaging-side-margin;
         padding: rem-calc(7px);
-        background: transparent;
     }
 
-    &#footer_locations_icon {
-        display: flex;
-        align-items: center;
-        background: transparent;
+    &#footer_messages {
+        position: relative;
+
+        &.has-unread-messages::after {
+            position: absolute;
+            content: '';
+            background: $therr-alert-error;
+            top: 2px;
+            right: 2px;
+            height: .5rem;
+            width: .5rem;
+            border-radius: 50%;
+            border: 1px solid $therr-primary-1;
+        }
     }
+
+    &#footer_home,
+    &#footer_explore,
+    &#footer_locations_icon {
+        padding: rem-calc(7px);
+    }
+
 
     &#footer_info {
         display: flex;
         align-items: center;
-        margin-left: $messaging-side-margin-half;
+        justify-content: center;
         background: transparent;
+        box-shadow: none;
     }
 
-    &#footer_messaging {
-        display: flex;
-        align-items: center;
-        margin-left: $messaging-side-margin;
-        background: transparent;
+}
 
-        .inline-svg:nth-child(2),
-        .inline-svg:nth-child(3) {
-            display: none;
+// Ensure all footer icon SVGs are white on the teal footer bar
+footer {
+    .inline-svg {
+        svg {
+            fill: $therr-white;
         }
+    }
+
+    button:hover {
+        background: transparentize($therr-white, .85);
     }
 }
 
@@ -112,17 +139,5 @@ button {
 @media only screen and (min-width: rem-calc(540px)) {
     footer {
         height: $footer-height;
-    }
-
-    button {
-        &#footer_messaging {
-            width: $messaging-toggle-width;
-            background: $therr-secondary-1;
-
-            .inline-svg:nth-child(2),
-            .inline-svg:nth-child(3) {
-                display: inline;
-            }
-        }
     }
 }

@@ -1,6 +1,7 @@
 import React from 'react';
-import { SafeAreaView, FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
-import { Button } from 'react-native-elements';
+import { FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -9,7 +10,7 @@ import { IUserState, IMessagesState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import TextMessage from '../../components/TextMessage';
 import RoundInput from '../../components/Input/Round';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -38,6 +39,7 @@ export interface IDirectMessageProps extends IStoreProps {
 
 interface IDirectMessageState {
     isLoading: boolean;
+    isSending: boolean;
     msgInputVal: string;
     msgScrollPosition: number;
     pageNumber: number;
@@ -72,6 +74,7 @@ class DirectMessage extends React.Component<
 
         this.state = {
             isLoading: false,
+            isSending: false,
             msgInputVal: '',
             msgScrollPosition: 0,
             pageNumber: 1,
@@ -81,21 +84,22 @@ class DirectMessage extends React.Component<
         this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
         this.themeMessage = buildMessageStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
-        const { messages, navigation, route } = this.props;
+        const { navigation, route } = this.props;
         const { connectionDetails } = route.params;
 
         navigation.setOptions({
             title: connectionDetails.userName,
         });
 
-        // TODO: Add logic to update this when user navigates away then returns
-        if (!messages.dms || !messages.dms[connectionDetails.id]) {
-            this.searchDmsByPage(1);
-        }
+        // Always refetch on mount. A cached `dms[peerId]` may hold a single
+        // socket-pushed message or a stale snapshot, which otherwise short-
+        // circuits the fetch and leaves the user staring at an empty/partial
+        // thread (typical when opening from the Connect → Messages tab).
+        this.searchDmsByPage(1);
 
         // TODO: Fetch user details if missing username, name, image, etc.
     }
@@ -144,11 +148,13 @@ class DirectMessage extends React.Component<
 
     handleSend = (e) => {
         e.preventDefault();
-        const { msgInputVal } = this.state;
+        const { isSending, msgInputVal } = this.state;
 
-        if (msgInputVal) {
+        if (msgInputVal && !isSending) {
             const { route, sendDirectMessage, user } = this.props;
             const { connectionDetails } = route.params;
+
+            this.setState({ isSending: true });
 
             sendDirectMessage({
                 message: msgInputVal,
@@ -160,13 +166,23 @@ class DirectMessage extends React.Component<
             this.setState({
                 msgInputVal: '',
             });
+
+            // Brief cooldown to prevent double-tap
+            setTimeout(() => {
+                this.setState({ isSending: false });
+            }, 500);
         }
     };
 
     isFirstOfMessage = (messages, index) => {
         if (!messages[index + 1]) { return true; }
 
-        return messages[index].fromUserName !== messages[index + 1].fromUserName;
+        const curr = messages[index];
+        const next = messages[index + 1];
+        if (curr.fromUserId && next.fromUserId) {
+            return curr.fromUserId !== next.fromUserId;
+        }
+        return curr.fromUserName?.toLowerCase() !== next.fromUserName?.toLowerCase();
     };
 
     tryLoadMore = () => {
@@ -188,7 +204,7 @@ class DirectMessage extends React.Component<
     };
 
     render() {
-        const { isLoading, msgInputVal } = this.state;
+        const { isLoading, isSending, msgInputVal } = this.state;
         const { messages, route, user } = this.props;
         const { connectionDetails } = route.params;
         const dms = messages.dms ? (messages.dms[connectionDetails.id] || []) : [];
@@ -196,12 +212,11 @@ class DirectMessage extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAvoidingView
-                        behavior="padding"
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                         style={this.themeMessage.styles.container}
-                        keyboardVerticalOffset={this.themeMessage.styles.sendInputsContainer.height}
-                        enabled={Platform.OS === 'ios'}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                     >
                         {
                             isLoading ?
@@ -215,24 +230,35 @@ class DirectMessage extends React.Component<
                                     data={dms}
                                     inverted
                                     keyExtractor={(item) => String(item.id || item.key)}
-                                    renderItem={({ item, index }) => (
-                                        <TextMessage
-                                            connectionDetails={connectionDetails}
-                                            goToUser={this.goToUser}
-                                            userDetails={user.details}
-                                            message={item}
-                                            isLeft={!item.fromUserName?.toLowerCase().includes('you')}
-                                            isFirstOfMessage={this.isFirstOfMessage(dms, index)}
-                                            theme={this.theme}
-                                            themeMessage={this.themeMessage}
-                                            translate={this.translate}
-                                        />
-                                    )}
+                                    renderItem={({ item, index }) => {
+                                        // Prefer fromUserId when available (authoritative); fall back
+                                        // to the 'you' name convention for messages cached before
+                                        // fromUserId started being persisted.
+                                        const isFromMe = item.fromUserId
+                                            ? item.fromUserId === user.details?.id
+                                            : !!item.fromUserName?.toLowerCase().includes('you');
+                                        return (
+                                            <TextMessage
+                                                connectionDetails={connectionDetails}
+                                                goToUser={this.goToUser}
+                                                userDetails={user.details}
+                                                message={item}
+                                                isLeft={!isFromMe}
+                                                isFirstOfMessage={this.isFirstOfMessage(dms, index)}
+                                                theme={this.theme}
+                                                themeMessage={this.themeMessage}
+                                                translate={this.translate}
+                                            />
+                                        );
+                                    }}
                                     ref={(component) => (this.flatListRef = component)}
                                     style={this.theme.styles.stretch}
                                     // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                                     onEndReached={this.tryLoadMore}
                                     onEndReachedThreshold={0.5}
+                                    initialNumToRender={15}
+                                    maxToRenderPerBatch={10}
+                                    windowSize={11}
                                     ListEmptyComponent={<View>
                                         <ListEmpty theme={this.theme} text={this.translate(
                                             'pages.directMessage.noMessagesFound',
@@ -260,6 +286,7 @@ class DirectMessage extends React.Component<
                                 buttonStyle={this.themeMessage.styles.sendBtn}
                                 containerStyle={this.themeMessage.styles.sendBtnContainer}
                                 onPress={this.handleSend}
+                                disabled={isSending || !msgInputVal}
                             />
                         </View>
                     </KeyboardAvoidingView>

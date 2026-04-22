@@ -6,6 +6,7 @@ import sendNewGroupMembersEmail from '../api/email/for-social/sendNewGroupMember
 import sendNewGroupInviteEmail from '../api/email/for-social/sendNewGroupInviteEmail';
 import * as globalConfig from '../../../../global-config';
 import { IFindUserArgs } from '../store/UsersStore';
+import translate from './translator';
 
 export interface ISendPushNotification extends PushNotifications.INotificationData {
     authorization: any;
@@ -51,7 +52,7 @@ export default (
         shouldSendPushNotification: true,
         shouldSendEmail: true,
     },
-): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email', 'isUnclaimed', 'settingsEmailInvites'])
+): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email', 'isUnclaimed', 'settingsEmailInvites', 'settingsLocale'])
     .then((userResults) => {
         const destinationUser = userResults?.[0];
         if (!destinationUser || destinationUser.isUnclaimed) {
@@ -59,6 +60,7 @@ export default (
             return Promise.resolve({});
         }
 
+        const emailLocale = (destinationUser as any).settingsLocale || locale || 'en-us';
         let sendEmail: () => Promise<any> = () => Promise.resolve();
 
         // Only send email if configured
@@ -66,7 +68,8 @@ export default (
             if (retentionEmailType === PushNotifications.Types.newConnectionRequest) {
                 if (fromUser?.userName) {
                     sendEmail = () => sendPendingInviteEmail({
-                        subject: `[New Connection Request] ${fromUser.userName} sent you a request`,
+                        subject: translate(emailLocale, 'emails.sendEmailAndOrPush.connectionRequestSubject', { userName: fromUser.userName }),
+                        locale: emailLocale,
                         toAddresses: [destinationUser.email],
                         agencyDomainName: whiteLabelOrigin,
                         brandVariation,
@@ -91,7 +94,8 @@ export default (
             } else if (retentionEmailType === PushNotifications.Types.newGroupMembers
                     && groupName && groupId) {
                 sendEmail = () => sendNewGroupMembersEmail({
-                    subject: 'New Member(s) Joined Your Group!',
+                    subject: translate(emailLocale, 'emails.sendEmailAndOrPush.newGroupMembersSubject'),
+                    locale: emailLocale,
                     toAddresses: [destinationUser.email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
@@ -108,7 +112,8 @@ export default (
             } else if (retentionEmailType === PushNotifications.Types.newGroupInvite
                     && groupName && groupId) {
                 sendEmail = () => sendNewGroupInviteEmail({
-                    subject: `${fromUser?.userName} invited you to join the Group, ${groupName}`,
+                    subject: translate(emailLocale, 'emails.sendEmailAndOrPush.newGroupInviteSubject', { userName: fromUser?.userName || 'A user', groupName }),
+                    locale: emailLocale,
                     toAddresses: [destinationUser.email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
@@ -125,7 +130,16 @@ export default (
             }
         }
 
-        sendEmail();
+        sendEmail().catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Error sending retention email', err?.message],
+                traceArgs: {
+                    issue: 'error with sendEmailAndOrPushNotification email',
+                },
+            });
+        });
 
         const pushNotificationPromise: Promise<any> = config.shouldSendPushNotification
             ? internalRestRequest({

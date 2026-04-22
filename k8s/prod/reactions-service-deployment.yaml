@@ -4,7 +4,9 @@ metadata:
   name: reactions-service-deployment
   namespace: default
 spec:
-  replicas: 3
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       component: server-reactions
@@ -24,17 +26,55 @@ spec:
               - key: cloud.google.com/gke-preemptible
                 operator: Exists
             weight: 100
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                  - server-reactions
+              topologyKey: kubernetes.io/hostname
       nodeSelector:
         cloud.google.com/gke-preemptible: "true"
       containers:
       - name: server-reactions
         image: therrapp/reactions-service:latest
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         resources:
+          requests:
+            memory: "96Mi"
+            cpu: "10m"
           limits:
-            memory: "128Mi"
-            cpu: "75m"
+            memory: "192Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7774
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7774
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7774
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
         env:
         - name: REACTIONS_SERVICE_API_PORT
           value: "7774"
@@ -107,12 +147,9 @@ spec:
             # application needs. For details, see
             # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
+          requests:
+            memory: "16Mi"
+            cpu: "5m"
           limits:
-            # The proxy's memory use scales linearly with the number of active
-            # connections. Fewer open connections will use less memory. Adjust
-            # this value based on your application's requirements.
             memory: "64Mi"
-            # The proxy's CPU use scales linearly with the amount of IO between
-            # the database and the application. Adjust this value based on your
-            # application's requirements.
             cpu: "50m"

@@ -1,7 +1,8 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text } from 'react-native';
+import { ScrollView, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
-import { Button }  from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
@@ -11,10 +12,10 @@ import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticationForms';
-import translator from '../services/translator';
+import translator from '../utilities/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
-import VerificationCodesService from '../services/VerificationCodesService';
+import VerificationCodesService from '../utilities/VerificationCodesService';
 import RoundInput from '../components/Input/Round';
 import EarthLoader from '../components/Loaders/EarthLoader';
 import BaseStatusBar from '../components/BaseStatusBar';
@@ -69,7 +70,7 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAuthForms = buildAuthFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -225,7 +226,7 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
                     <ScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScrollSmall}>
                         <View style={this.theme.styles.sectionContainerAlt}>
                             <Text style={this.theme.styles.sectionTitle}>

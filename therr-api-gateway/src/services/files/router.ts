@@ -33,7 +33,7 @@ filesRouter.get('/*', validate, async (req, res) => {
         const pathSplit = req.path.split('.');
         const backupFileType = `image/${pathSplit[pathSplit.length - 1]}`;
         res.setHeader('Content-Type', meta.contentType || backupFileType);
-        res.setHeader('Content-Length', meta.size);
+        res.setHeader('Content-Length', meta.size || 0);
         res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
         // res.setHeader('Content-Encoding', meta.contentEncoding);
         // use streams if >~ 2MB/s to lower memory usage.

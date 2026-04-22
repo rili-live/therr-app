@@ -8,27 +8,16 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-next-upstream: "error timeout http_502"
     nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
     nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
     nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/use-gzip: "true"
-    nginx.ingress.kubernetes.io/gzip-min-length: "1000"
+    nginx.ingress.kubernetes.io/use-gzip: “true”
+    nginx.ingress.kubernetes.io/gzip-min-length: “1000”
     # nginx.ingress.kubernetes.io/proxy-read-timeout: “3600”
     # nginx.ingress.kubernetes.io/proxy-send-timeout: “3600”
-    nginx.ingress.kubernetes.io/server-snippet: |
-        gzip on;
-        gzip_types      text/plain text/css text/js application/xml application/javascript;
-        gzip_proxied    no-cache no-store private expired auth;
-        gzip_min_length 1000;
-        gzip_disable "MSIE [1-6]\.";
-        gzip_vary on;
-        gzip_proxied any;
-        gzip_comp_level 5;
-        gzip_buffers 16 128k;
 spec:
   tls:
   - hosts:
@@ -39,9 +28,9 @@ spec:
       - api.therr.com
       - www.api.therr.com
       - websocket-service.therr.com
-      - www.websocket-service.therr.com
-      - adsly.app
-      - www.adsly.app
+      # - www.websocket-service.therr.com
+      # - adsly.app
+      # - www.adsly.app
     secretName: therr-network-secret
   rules:
   - host: therr.com
@@ -126,24 +115,24 @@ spec:
         pathType: ImplementationSpecific
         
   # Whitelabel
-  - host: adsly.app
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7071
-        pathType: ImplementationSpecific
-  - host: www.adsly.app
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7071
-        pathType: ImplementationSpecific
+  # - host: adsly.app
+  #   http:
+  #     paths:
+  #     - path: /?(.*)
+  #       backend:
+  #         service:
+  #           name: client-cluster-ip-service
+  #           port:
+  #             number: 7071
+  #       pathType: ImplementationSpecific
+  # - host: www.adsly.app
+  #   http:
+  #     paths:
+  #     - path: /?(.*)
+  #       backend:
+  #         service:
+  #           name: client-cluster-ip-service
+  #           port:
+  #             number: 7071
+  #       pathType: ImplementationSpecific
           

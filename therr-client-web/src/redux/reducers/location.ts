@@ -1,4 +1,4 @@
-import Immutable from 'seamless-immutable';
+import { produce } from 'immer';
 // import { SocketServerActionTypes } from 'therr-js-utilities/constants';
 import { MapActionTypes } from 'therr-react/types';
 import {
@@ -6,45 +6,40 @@ import {
     LocationActionTypes,
 } from '../../types/redux/location';
 
-const initialState: ILocationState = Immutable.from({
+const initialState: ILocationState = {
     permissions: {},
     settings: {},
     user: {},
-});
+};
 
-// eslint-disable-next-line default-param-last
-const locations = (state: ILocationState = initialState, action: any) => {
-    // If state is initialized by server-side rendering, it may not be a proper immutable object yet
-    if (!state.setIn) {
-        // eslint-disable-next-line no-param-reassign
-        state = state ? Immutable.from(state) : initialState;
-    }
-
+/* eslint-disable no-param-reassign */
+const locations = produce((draft: ILocationState, action: any) => {
     switch (action.type) {
         case LocationActionTypes.LOCATION_DISCLOSURE_UPDATED:
-            return state.setIn(
-                ['settings', 'isLocationDislosureComplete'],
-                !!action.data?.complete,
-            );
+            if (!draft.settings) draft.settings = {};
+            draft.settings.isLocationDislosureComplete = !!action.data?.complete;
+            break;
         case LocationActionTypes.GPS_STATUS_UPDATED:
-            return state.setIn(
-                ['settings', 'isGpsEnabled'],
-                action.data?.status === 'enabled',
-            );
+            if (!draft.settings) draft.settings = {};
+            draft.settings.isGpsEnabled = action.data?.status === 'enabled';
+            break;
         case LocationActionTypes.LOCATION_PERMISSIONS_UPDATED:
-            return state.setIn(['permissions'], {
-                ...state.permissions,
+            draft.permissions = {
+                ...draft.permissions,
                 ...action.data,
-            });
+            };
+            break;
         case MapActionTypes.UPDATE_USER_COORDS:
-            return state
-                .setIn(['user', 'prevLongitude'], state.user?.longitude)
-                .setIn(['user', 'prevLatitude'], state.user?.latitude)
-                .setIn(['user', 'longitude'], action.data.longitude || state.user?.longitude)
-                .setIn(['user', 'latitude'], action.data.latitude || state.user?.latitude);
+            if (!draft.user) draft.user = {};
+            draft.user.prevLongitude = draft.user?.longitude;
+            draft.user.prevLatitude = draft.user?.latitude;
+            draft.user.longitude = action.data.longitude || draft.user?.longitude;
+            draft.user.latitude = action.data.latitude || draft.user?.latitude;
+            break;
         default:
-            return state;
+            break;
     }
-};
+}, initialState);
+/* eslint-enable no-param-reassign */
 
 export default locations;

@@ -32,7 +32,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             // left: 20
         },
         containerHeader: {
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.accent1,
             width: '100%',
             borderBottomColor: therrTheme.colors.accentDivider,
             borderBottomWidth: 1,
@@ -66,7 +66,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textWhite,
             justifyContent: 'center',
             backgroundColor: therrTheme.colors.accent1,
-            paddingBottom: 100,
+            paddingBottom: 20,
         },
         bodyView: {
             backgroundColor: therrTheme.colors.accent1,

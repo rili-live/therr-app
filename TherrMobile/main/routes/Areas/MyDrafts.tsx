@@ -1,24 +1,26 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { ContentActions } from 'therr-react/redux/actions';
+import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas';
-import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { isMyContent as checkIsMyMoment } from '../../utilities/content';
 import { CAROUSEL_TABS } from '../../constants';
-import AreaOptionsModal, { ISelectionType, ModalButton } from '../../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getDirections from '../../utilities/getDirections';
 
@@ -30,6 +32,7 @@ function getRandomLoaderId(): ILottieId {
 
 interface IMyDraftsDispatchProps {
     deleteDraft: Function;
+    fetchMedia: Function;
     searchMyDrafts: Function;
     createOrUpdateEventReaction: Function;
     createOrUpdateMomentReaction: Function;
@@ -50,8 +53,6 @@ export interface IMyDraftsProps extends IStoreProps {
 interface IMyDraftsState {
     activeTab: string;
     isLoading: boolean;
-    areAreaOptionsVisible: boolean;
-    selectedArea: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -64,6 +65,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             deleteDraft: ContentActions.deleteDraft,
+            fetchMedia: MapActions.fetchMedia,
             searchMyDrafts: ContentActions.searchMyDrafts,
             createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
@@ -78,10 +80,10 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
     private translate: Function;
     private theme = buildStyles();
     private themeButtons = buildButtonsStyles();
+    private themeForms = buildFormStyles();
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private unsubscribeFocusListener;
 
     constructor(props) {
@@ -90,18 +92,16 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         this.state = {
             activeTab: CAROUSEL_TABS.DISCOVERIES,
             isLoading: true,
-            areAreaOptionsVisible: false,
-            selectedArea: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
         this.loaderId = getRandomLoaderId();
     }
 
@@ -121,9 +121,9 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         });
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
-            const draftMomentsPromise = this.handleRefresh();
+            const focusDraftMomentsPromise = this.handleRefresh();
 
-            Promise.all([draftMomentsPromise]).finally(() => {
+            Promise.all([focusDraftMomentsPromise]).finally(() => {
                 this.setState({
                     isLoading: false,
                 });
@@ -137,16 +137,24 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         }
     }
 
-
     handleRefresh = (withMedia = true) => {
         const { searchMyDrafts } = this.props;
 
-        searchMyDrafts({
+        return searchMyDrafts({
             withMedia,
             pageNumber: 1,
             itemsPerPage: 50,
             query: 'drafts-only',
         });
+    };
+
+    fetchPrivateMedia = (medias: { path: string; type: string }[]) => {
+        const { fetchMedia, user } = this.props;
+        if (medias.length && user?.details?.id) {
+            return fetchMedia(undefined, medias).catch((err) => {
+                console.log(err);
+            });
+        }
     };
 
     onTabSelect = (tabName: string) => {
@@ -188,11 +196,15 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         });
     };
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedArea: areAreaOptionsVisible ? {} : area,
+    toggleAreaOptions = (displayArea) => {
+        const area = displayArea || {};
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onAreaOptionSelect(type, area),
+            },
         });
     };
 
@@ -207,35 +219,31 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         // });
     };
 
-    onAreaOptionSelect = (type: ISelectionType) => {
-        const { selectedArea } = this.state;
+    onAreaOptionSelect = (type: IContentSelectionType, area: any) => {
         const { deleteDraft, user } = this.props;
 
         if (type === 'delete') {
             // TODO: Remove from redux
-            if (checkIsMyMoment(selectedArea, user)) {
-                deleteDraft(selectedArea.id)
+            if (checkIsMyMoment(area, user)) {
+                deleteDraft(area.id)
                     .then(() => {
                         console.log('Moment deleted');
                     })
                     .catch((err) => {
                         console.log('Error deleting moment', err);
-                    })
-                    .finally(() => {
-                        this.toggleAreaOptions(selectedArea);
                     });
             }
         } else if (type === 'getDirections') {
             getDirections({
-                latitude: selectedArea.latitude,
-                longitude: selectedArea.longitude,
-                title: selectedArea.notificationMsg,
+                latitude: area.latitude,
+                longitude: area.longitude,
+                title: area.notificationMsg,
             });
         }
     };
 
     render() {
-        const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
+        const { activeTab, isLoading } = this.state;
         const {
             createOrUpdateEventReaction,
             createOrUpdateMomentReaction,
@@ -245,8 +253,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             user,
         } = this.props;
 
-        // TODO: Fetch missing media
-        const fetchMedia = () => {};
+        const fetchMedia = this.fetchPrivateMedia;
 
         const activeData = isLoading ? [] : getActiveCarouselData({
             activeTab,
@@ -261,7 +268,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <AreaCarousel
                         activeData={activeData}
                         content={content}
@@ -287,27 +294,6 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                         // viewportWidth={viewportWidth}
                     />
                 </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
-                    translate={this.translate}
-                    onSelect={this.onAreaOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                >
-                    <ModalButton
-                        iconName="directions"
-                        title={this.translate('modals.contentOptions.buttons.getDirections')}
-                        onPress={() => this.onAreaOptionSelect('getDirections')}
-                        themeButtons={this.themeButtons}
-                    />
-                    <ModalButton
-                        iconName="delete"
-                        title={this.translate('modals.contentOptions.buttons.delete')}
-                        onPress={() => this.onAreaOptionSelect('delete')}
-                        themeButtons={this.themeButtons}
-                    />
-                </AreaOptionsModal>
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}

@@ -3,7 +3,7 @@ import {
     header,
     param,
     query,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 
 export const createOrUpdateEventReactionValidation = [
     param('eventId').isString().exists(),

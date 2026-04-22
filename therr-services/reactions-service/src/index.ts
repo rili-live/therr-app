@@ -8,19 +8,10 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import router from './routes';
 import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
+import config, { validateEnv } from './config';
 
+validateEnv();
 tracing.start();
-
-const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
-const corsOptions = {
-    origin(origin: any, callback: any) {
-        if (origin === undefined || originWhitelist.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-};
 
 const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
@@ -30,32 +21,27 @@ const app = express();
 app.use(reqLogDecorator);
 
 app.use(helmet());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.json({ limit: '1mb' }));
 
-if (process.env.NODE_ENV !== 'production') {
-    app.use(cors());
-} else {
-    // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have no concept of this
-    app.use(cors());
-}
+// Mobile apps have no concept of CORS, so we allow all origins across environments
+app.use(cors());
 
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
 
 // Configure routes
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
-const { REACTIONS_SERVICE_API_PORT } = process.env;
-
-const server = app.listen(REACTIONS_SERVICE_API_PORT, () => {
+const server = app.listen(config.port, () => {
     logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
-        messages: [`Server (reactions service) running on port ${REACTIONS_SERVICE_API_PORT} with process id`, process.pid],
+        messages: [`Server (reactions service) running on port ${config.port} with process id`, process.pid],
         traceArgs: {
-            port: REACTIONS_SERVICE_API_PORT,
+            port: config.port,
             'process.id': process.pid,
         },
     });
@@ -79,7 +65,7 @@ interface WebpackHotModule {
 
 declare const module: WebpackHotModule;
 
-if (process.env.NODE_ENV === 'development' && module.hot) {
+if (config.nodeEnv === 'development' && module.hot) {
     module.hot.accept();
     module.hot.dispose(() => server.close());
 }
@@ -90,7 +76,7 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            port: REACTIONS_SERVICE_API_PORT,
+            port: config.port,
             'process.id': process.pid,
             'error.isUncaughtException': true,
             'error.message': err?.message,
@@ -98,4 +84,17 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
             source: origin,
         },
     });
+});
+
+process.on('uncaughtException', (err, origin) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Uncaught Exception - Shutting down'],
+        traceArgs: {
+            'error.message': err?.message,
+            'process.origin': origin,
+        },
+    });
+    setTimeout(() => process.exit(1), 1000);
 });

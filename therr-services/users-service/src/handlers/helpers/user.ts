@@ -1,7 +1,9 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
-import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
+import {
+    AccessLevels, BrandVariations, ReferralRewards, UserConnectionTypes,
+} from 'therr-js-utilities/constants';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import normalizeEmail from 'normalize-email';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
@@ -58,6 +60,8 @@ interface IGetUserHelperArgs {
         userName?: string;
     };
 }
+
+const isBrandValid = (brand: string) => Object.values(BrandVariations).includes(brand as BrandVariations);
 
 /**
  * Removed sensitive information from user response so we don't return it in REST responses
@@ -169,7 +173,7 @@ const getUserHelper = ({
     requestingUserId,
     targetUserParams,
     res,
-}: IGetUserHelperArgs): Promise<any> => Store.users.getUsers({ ...targetUserParams, settingsIsAccountSoftDeleted: false })
+}: IGetUserHelperArgs): Promise<any> => Store.users.getUserByConditions({ ...targetUserParams, settingsIsAccountSoftDeleted: false })
     .then((results) => {
         if (!results.length) {
             return handleHttpError({
@@ -213,11 +217,13 @@ const getUserHelper = ({
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 const isUserProfileIncomplete = (updateArgs, existingUser?) => {
+    const isBusiness = updateArgs?.isBusinessAccount || existingUser?.isBusinessAccount;
+
     if (!existingUser) {
         const requestIsMissingProperties = !updateArgs?.phoneNumber
             || !updateArgs?.userName
             || !updateArgs?.firstName
-            || !updateArgs?.lastName;
+            || (!isBusiness && !updateArgs?.lastName);
 
         return requestIsMissingProperties;
     }
@@ -226,7 +232,7 @@ const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
         || !(updateArgs.userName || existingUser.userName)
         || !(updateArgs.firstName || existingUser.firstName)
-        || !(updateArgs.lastName || existingUser.lastName);
+        || (!isBusiness && !(updateArgs.lastName || existingUser.lastName));
 
     return requestDoesNotCompleteProfile;
 };
@@ -273,6 +279,12 @@ const createUserHelper = (
             }
             return Store.users.createUser({
                 accessLevels: JSON.stringify([...userAccessLevels]),
+                brandVariations: (headers['x-brand-variation'] && isBrandValid(headers['x-brand-variation']))
+                    ? JSON.stringify({
+                        brand: headers['x-brand-variation'],
+                        details: {},
+                    })
+                    : undefined,
                 email: userDetails.email,
                 firstName: userDetails.firstName || undefined,
                 hasAgreedToTerms,
@@ -310,6 +322,22 @@ const createUserHelper = (
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: ['Error while crediting new user for invite signup'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
+                });
+
+                // Award the new user (invitee) coins for signing up with an invite code
+                Store.users.updateUser({
+                    settingsTherrCoinTotal: ReferralRewards.inviteeCoins,
+                }, {
+                    id: user.id,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while awarding invitee referral coins'],
                         traceArgs: {
                             'error.message': err?.message,
                         },
@@ -435,7 +463,7 @@ const createUserHelper = (
 
                         if (isSSO) {
                             return sendSSONewUserEmail({
-                                subject: '[Account Created] Therr One-Time Password',
+                                locale: headers['x-localecode'] || 'en-us',
                                 toAddresses: [userDetails.email],
                                 agencyDomainName: headers['x-therr-origin-host'] || '',
                                 brandVariation: headers['x-brand-variation'] || '',
@@ -447,6 +475,7 @@ const createUserHelper = (
 
                         return sendNewUserInviteEmail({
                             subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
+                            locale: headers['x-localecode'] || 'en-us',
                             toAddresses: [userByInviteDetails?.toEmail || ''],
                             agencyDomainName: headers['x-therr-origin-host'] || '',
                             brandVariation: headers['x-brand-variation'] || '',
@@ -479,7 +508,7 @@ const createUserHelper = (
             // STANDARD USER REGISTRATION
             // TODO: If this bounces, update user email preferences and notify admin
             return sendVerificationEmail({
-                subject: '[Account Verification] Therr User Account',
+                locale: headers['x-localecode'] || 'en-us',
                 toAddresses: [userDetails.email],
                 agencyDomainName: headers['x-therr-origin-host'] || '',
                 brandVariation: headers['x-brand-variation'] || '',
@@ -578,7 +607,7 @@ const validateCredentials = (headers: InternalConfigHeaders, userSearchResults, 
                     fbUserLastName = getMeResponse?.data?.last_name;
                     // TODO: Get user
                     existingUsersFromFBEmail = await Store.users
-                        .getUsers(
+                        .getUserByConditions(
                             { email: normalizeEmail(fbUserEmail) },
                         );
                 }

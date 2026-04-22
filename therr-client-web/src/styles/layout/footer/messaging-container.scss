@@ -1,86 +1,266 @@
-$messaging-container-height: rem-calc(400px);
+$messaging-container-height: rem-calc(480px);
 $messaging-toggle-width: 4.4rem;
 $messaging-toggle-width-sm: 2rem;
 $messaging-side-margin: 1rem;
 $messaging-side-margin-half: .5rem;
-$messaging-side-padding: .75rem;
-$messaging-top-padding: .5rem;
-$messaging-space-padding: .5rem;
-$border-color: rgba(0, 0, 0, .12);
+$messaging-side-padding: 1rem;
+$messaging-top-padding: .75rem;
+$messaging-space-padding: .75rem;
+$border-color: rgba(0, 0, 0, .08);
+$recent-chats-width: rem-calc(320px);
+$recent-chats-max-height: rem-calc(400px);
+$recent-chats-min-height: rem-calc(200px);
 
-footer {
-    .messaging-container {
+// Unified messaging panel
+.messaging-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    z-index: 91;
+    display: flex;
+    flex-direction: column;
+
+    // Header sits inside the footer bar area
+    .messaging-panel-header {
         display: flex;
-        flex-direction: column;
-        max-height: calc(100vh - #{$footer-height-small} - #{$header-height-small});
-        height: calc(100vh - #{$footer-height-small} - #{$header-height-small});
-        width: 100%;
-        box-shadow: none;
+        align-items: center;
+        justify-content: space-between;
+        height: $footer-height-small;
+        padding: 0 1rem;
+        background: transparent;
+        color: $therr-white;
+        border: none;
+        cursor: pointer;
+        font-size: .875rem;
+        font-weight: 600;
         box-sizing: border-box;
-        text-align: left;
-        border: 0;
-        border-radius: 0;
-        position: absolute;
-        background: $therr-white;
-        color: $therr-black;
-        top: calc(-100vh + #{$header-height-small} + #{$footer-height-small});
-        bottom: $footer-height-small;
-        left: -100%;
-        transition: left .15s cubic-bezier(.4,0,.2,1);
 
-        &.open {
-            left: 0;
+        &:hover {
+            background: transparentize($therr-white, .85);
         }
 
+        .messaging-panel-title {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .chevron {
+            display: inline-block;
+            width: .5rem;
+            height: .5rem;
+            margin-left: .5rem;
+            border-right: 2px solid $therr-white;
+            border-bottom: 2px solid $therr-white;
+            transition: transform .2s ease;
+
+            &.up {
+                transform: rotate(-135deg);
+            }
+
+            &.down {
+                transform: rotate(45deg);
+            }
+        }
+    }
+
+    // Body opens upward above the footer
+    .messaging-panel-body {
+        order: -1;
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        width: 100vw;
+        background: #fff;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, .12);
+        border-radius: .5rem .5rem 0 0;
+        overflow: hidden;
+    }
+
+    // Recent chats list view
+    .recent-chats-list {
+        min-height: $recent-chats-min-height;
+        max-height: $recent-chats-max-height;
+        overflow-y: auto;
+    }
+
+    .recent-chat-item {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        width: 100%;
+        padding: .75rem 1rem;
+        border: none;
+        border-bottom: 1px solid $border-color;
+        background: #fff;
+        cursor: pointer;
+        text-align: left;
+        box-sizing: border-box;
+
+        &:hover {
+            background: #f5f5f5;
+        }
+
+        .chat-avatar {
+            flex-shrink: 0;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            background: $therr-primary-1;
+            color: $therr-white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
+            font-weight: 600;
+        }
+
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+
+            .chat-name {
+                font-size: .8125rem;
+                font-weight: 600;
+                color: $therr-very-dark-grey;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .chat-preview {
+                font-size: .75rem;
+                color: $therr-ghost-grey;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-top: .125rem;
+            }
+        }
+
+        .chat-date {
+            flex-shrink: 0;
+            font-size: .6875rem;
+            color: $therr-ghost-grey;
+            white-space: nowrap;
+        }
+    }
+
+    .recent-chats-empty {
+        padding: 1.5rem 1rem;
+        text-align: center;
+        color: $therr-ghost-grey;
+        font-size: .8125rem;
+        min-height: $recent-chats-min-height;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    // Conversation view
+    .messaging-conversation {
+        display: flex;
+        flex-direction: column;
+        height: $recent-chats-max-height;
+
         .dms-header {
-            padding: $messaging-top-padding $messaging-side-padding $messaging-space-padding $messaging-side-padding;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: $messaging-top-padding $messaging-side-padding;
             border-bottom: 1px solid $border-color;
+            font-weight: 600;
+            font-size: .9375rem;
+            color: $therr-very-dark-grey;
+            background: #fafafa;
+
+            .back-button {
+                background: none;
+                border: none;
+                cursor: pointer;
+                font-size: 1.125rem;
+                color: $therr-very-dark-grey;
+                padding: 0 .25rem;
+                line-height: 1;
+
+                &:hover {
+                    color: $therr-primary-1;
+                }
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
         }
 
         .dms-body {
             flex: 1;
             padding: $messaging-side-padding;
-            overflow-y: scroll;
+            overflow-y: auto;
+            background: #f7f8fa;
 
             .dms-list {
                 padding: 0;
-                margin: 10;
-                display: 'flex';
-                font-size: rem-calc(17px);
+                margin: 0;
+                display: flex;
+                font-size: .875rem;
                 list-style-type: none;
-                margin-bottom: 1.5rem;
-                flex-direction: 'column';
+                margin-bottom: 1rem;
+                flex-direction: column;
                 flex: 1;
-        
+                gap: .375rem;
+
                 li:last-child {
-                    margin-bottom: 1rem;
+                    margin-bottom: .5rem;
                 }
 
                 .dm-item {
                     display: flex;
                     flex-direction: column;
-                    padding: rem-calc(5px) rem-calc(12px);
-                    border-radius: rem-calc(14px);
-                    margin-bottom: rem-calc(7px);
+                    padding: .5rem .875rem;
+                    border-radius: 1.125rem;
                     margin-left: 2%;
                     margin-right: 2%;
+                    max-width: 75%;
+                    line-height: 1.4;
+                    word-wrap: break-word;
+
+                    .dm-message {
+                        font-size: .875rem;
+                    }
 
                     .dm-date {
-                        font-size: rem-calc(10px);
+                        font-size: .6875rem;
+                        opacity: .55;
+                        margin-top: .125rem;
                     }
                 }
 
                 .message-left {
-                    margin-right: 40%;
-                    background-color: $therr-primary-2;
-                    color: $therr-off-white;
+                    margin-right: auto;
+                    background: $therr-primary-1;
+                    color: #fff;
                     align-self: flex-start;
+                    border-bottom-left-radius: .25rem;
+
+                    .dm-date {
+                        color: rgba(255, 255, 255, .7);
+                    }
                 }
 
                 .message-right {
-                    margin-left: 40%;
-                    background-color: $therr-light-grey;
+                    margin-left: auto;
+                    background: #fff;
+                    color: $therr-very-dark-grey;
                     align-self: flex-end;
+                    border-bottom-right-radius: .25rem;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
 
                     .dm-message {
                         text-align: right;
@@ -94,40 +274,98 @@ footer {
 
             .dms-first-info {
                 text-align: center;
+                color: $therr-ghost-grey;
+                font-size: .875rem;
+                padding: 2rem 0;
             }
         }
 
         .dms-input {
             position: relative;
             box-sizing: border-box;
-            padding: $messaging-space-padding $messaging-side-padding $messaging-top-padding $messaging-side-padding;
+            padding: $messaging-space-padding $messaging-side-padding;
+            background: #fff;
+            border-top: 1px solid $border-color;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+
+            > .mantine-TextInput-root {
+                flex: 1;
+                min-width: 0;
+                margin-bottom: 0;
+
+                input {
+                    margin-bottom: 0;
+                }
+            }
+
+            > .form-field {
+                flex: 0 0 auto;
+                margin: 0;
+                align-self: center;
+
+                button {
+                    width: 2.5rem;
+                    height: 2.5rem;
+                    min-width: unset;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    .inline-svg {
+                        width: 1.5rem;
+                        height: 1.5rem;
+                    }
+
+                    svg {
+                        width: 1.5rem;
+                        height: 1.5rem;
+                        display: block;
+                        margin: auto;
+                    }
+                }
+            }
+
+            button {
+                background: $therr-primary-1;
+                border-color: transparent;
+                transition: background .15s ease, opacity .15s ease;
+
+                svg {
+                    fill: #fff;
+                }
+
+                &:hover:not([disabled]) {
+                    background: darken($therr-primary-1, 8%);
+                }
+
+                &:disabled {
+                    background: $therr-divider-grey;
+                    opacity: .6;
+
+                    svg {
+                        fill: $therr-ghost-grey;
+                    }
+
+                    &:hover {
+                        background: $therr-divider-grey;
+                    }
+                }
+            }
         }
     }
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
-    footer {
-        .messaging-container {
-            max-height: calc(100vh - 1rem);
-            top: unset;
-            height: $messaging-container-height;
-            width: rem-calc(360px);
-            box-shadow: $box-shadow-tile;
-            box-sizing: border-box;
-            text-align: left;
-            border: 1px solid $border-color;
-            border-radius: .125rem;
-            position: absolute;
-            background: $therr-white;
-            color: $therr-black;
-            bottom: -$messaging-container-height;
-            left: $messaging-side-margin + $messaging-toggle-width + .75rem;
-            transition: bottom .15s cubic-bezier(.4,0,.2,1);
+    .messaging-panel {
+        .messaging-panel-header {
+            height: $footer-height;
+        }
 
-            &.open {
-                bottom: .5rem;
-                left: $messaging-side-margin + $messaging-toggle-width + .75rem;
-            }
+        .messaging-panel-body {
+            width: $recent-chats-width;
         }
     }
 }

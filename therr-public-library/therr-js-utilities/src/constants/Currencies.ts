@@ -23,8 +23,14 @@ const CurrentCheckInValuations = {
     10: 10,
 };
 
+const ReferralRewards = {
+    inviterCoins: 10,
+    inviteeCoins: 5,
+};
+
 export {
     CurrentSocialValuations,
     CurrentMomentValuations,
     CurrentCheckInValuations,
+    ReferralRewards,
 };

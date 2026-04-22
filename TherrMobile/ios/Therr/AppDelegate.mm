@@ -1,6 +1,7 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 
 #import <GoogleMaps/GoogleMaps.h>
 #import <RNCConfig.h>
@@ -30,6 +31,7 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   self.moduleName = @"Therr";
+  self.dependencyProvider = [RCTAppDependencyProvider new];
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
@@ -39,7 +41,7 @@
   }
   
   NSString *googleMapsApiKey = [RNCConfig envFor:@"GOOGLE_APIS_IOS_KEY"];
-  +  [GMSServices provideAPIKey:googleMapsApiKey]; // add this line using the api key obtained from Google Console
+  [GMSServices provideAPIKey:googleMapsApiKey];
 
   // [REQUIRED] Register BackgroundFetch
   [[TSBackgroundFetch sharedInstance] didFinishLaunching];
@@ -71,6 +73,29 @@
   [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView]; // ⬅️ initialize the splash screen
 
   return rootView;
+}
+
+// APNS registration observability.
+//
+// Firebase's method swizzling (enabled by default — no
+// FirebaseAppDelegateProxyEnabled=NO in Info.plist) still intercepts these
+// callbacks and forwards the token to FIRMessaging for us, so we only log
+// here; we do not set APNSToken manually. The goal is making silent APNS
+// registration failures visible in device logs / Console.app so we can
+// diagnose "why doesn't this iPhone get pushes" without guessing.
+//
+// Token contents are not logged — only the byte count — so device logs stay
+// shareable.
+- (void)application:(UIApplication *)application
+    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  NSLog(@"[APNS] Registered for remote notifications. Token length: %lu bytes",
+        (unsigned long)deviceToken.length);
+}
+
+- (void)application:(UIApplication *)application
+    didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+  NSLog(@"[APNS] Failed to register for remote notifications. Domain=%@ Code=%ld Description=%@",
+        error.domain, (long)error.code, error.localizedDescription);
 }
 
 @end

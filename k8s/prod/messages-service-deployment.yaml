@@ -5,6 +5,8 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       component: server-messages
@@ -29,12 +31,39 @@ spec:
       containers:
       - name: server-messages
         image: therrapp/messages-service:latest
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         resources:
-          limits:
+          requests:
             memory: "96Mi"
-            cpu: "25m"
+            cpu: "10m"
+          limits:
+            memory: "192Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7772
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7772
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7772
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
         env:
         - name: MESSAGES_SERVICE_API_PORT
           value: "7772"
@@ -103,13 +132,10 @@ spec:
             # application needs. For details, see
             # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
+          requests:
+            memory: "16Mi"
+            cpu: "5m"
           limits:
-            # The proxy's memory use scales linearly with the number of active
-            # connections. Fewer open connections will use less memory. Adjust
-            # this value based on your application's requirements.
             memory: "64Mi"
-            # The proxy's CPU use scales linearly with the amount of IO between
-            # the database and the application. Adjust this value based on your
-            # application's requirements.
             cpu: "50m"
         

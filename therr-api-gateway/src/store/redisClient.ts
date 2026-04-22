@@ -61,7 +61,7 @@ redisEphemeralClient.on('error', (error: any) => {
 /**
  * Connects and reconnects to Redis with custom exponential backoff
  */
-const connectToRedis = (client: Redis.Redis, options, callback) => {
+const connectToRedis = (client: Redis, options, callback) => {
     client.disconnect();
     // We must connect manually since lazyConnect is true
     const redisConnectPromises = [
@@ -128,6 +128,148 @@ redisClient.on('connect', () => {
 redisEphemeralClient.on('connect', () => {
     console.log('Connected to ephemeral Redis');
 });
+
+// Token blacklist helpers for server-side logout
+const TOKEN_BLACKLIST_PREFIX = 'token-blacklist:';
+
+export const blacklistToken = async (jti: string, expiresInSeconds: number): Promise<void> => {
+    if (!jti || expiresInSeconds <= 0) return;
+
+    try {
+        await redisClient.set(`${TOKEN_BLACKLIST_PREFIX}${jti}`, '1', 'EX', expiresInSeconds);
+    } catch (err) {
+        console.error('Failed to blacklist token:', err);
+    }
+};
+
+export const isTokenBlacklisted = async (jti: string): Promise<boolean> => {
+    if (!jti) return false;
+
+    try {
+        const result = await redisClient.get(`${TOKEN_BLACKLIST_PREFIX}${jti}`);
+        return result !== null;
+    } catch (err) {
+        // Fail open: if Redis is down, don't block authenticated users
+        console.error('Failed to check token blacklist:', err);
+        return false;
+    }
+};
+
+// Refresh token store helpers
+const REFRESH_TOKEN_PREFIX = 'refresh-token:';
+
+export const storeRefreshToken = async (userId: string, jti: string, expiresInSeconds: number): Promise<void> => {
+    if (!userId || !jti || expiresInSeconds <= 0) return;
+
+    try {
+        await redisClient.set(`${REFRESH_TOKEN_PREFIX}${jti}`, userId, 'EX', expiresInSeconds);
+    } catch (err) {
+        console.error('Failed to store refresh token:', err);
+    }
+};
+
+export const getRefreshTokenUserId = async (jti: string): Promise<string | null> => {
+    if (!jti) return null;
+
+    try {
+        return await redisClient.get(`${REFRESH_TOKEN_PREFIX}${jti}`);
+    } catch (err) {
+        console.error('Failed to get refresh token:', err);
+        return null;
+    }
+};
+
+export const revokeRefreshToken = async (jti: string): Promise<void> => {
+    if (!jti) return;
+
+    try {
+        await redisClient.del(`${REFRESH_TOKEN_PREFIX}${jti}`);
+    } catch (err) {
+        console.error('Failed to revoke refresh token:', err);
+    }
+};
+
+const scanAndRevokeTokens = (userId: string, keyPrefix: string, cursor: string): Promise<void> => redisClient
+    .scan(cursor, 'MATCH', `${keyPrefix}${REFRESH_TOKEN_PREFIX}*`, 'COUNT', '100')
+    .then(([nextCursor, keys]) => {
+        if (!keys.length) {
+            return nextCursor !== '0' ? scanAndRevokeTokens(userId, keyPrefix, nextCursor) : undefined;
+        }
+
+        // Strip the ioredis keyPrefix so pipeline commands re-add it correctly
+        const strippedKeys = keys.map((key) => key.replace(keyPrefix, ''));
+        const getPipeline = redisClient.pipeline();
+        strippedKeys.forEach((key) => getPipeline.get(key));
+
+        return getPipeline.exec().then((results) => {
+            const delPipeline = redisClient.pipeline();
+            strippedKeys.forEach((key, i) => {
+                if (results && results[i] && results[i][1] === userId) {
+                    delPipeline.del(key);
+                }
+            });
+            return delPipeline.exec();
+        }).then(() => (nextCursor !== '0' ? scanAndRevokeTokens(userId, keyPrefix, nextCursor) : undefined));
+    });
+
+export const revokeAllUserRefreshTokens = async (userId: string): Promise<void> => {
+    if (!userId) return;
+
+    const KEY_PREFIX = 'api-gateway:';
+
+    try {
+        await scanAndRevokeTokens(userId, KEY_PREFIX, '0');
+    } catch (err) {
+        console.error('Failed to revoke all user refresh tokens:', err);
+    }
+};
+
+// API key cache helpers (short TTL for fast auth without DB hit on every request)
+const API_KEY_CACHE_PREFIX = 'api-key-cache:';
+const API_KEY_CACHE_TTL = 300; // 5 minutes
+
+export interface ICachedApiKeyContext {
+    userId: string;
+    userName: string;
+    accessLevels: string[];
+    organizations: { [key: string]: string[] };
+    keyPrefix: string;
+}
+
+export const cacheApiKeyContext = async (keyPrefix: string, context: ICachedApiKeyContext): Promise<void> => {
+    try {
+        await redisClient.set(
+            `${API_KEY_CACHE_PREFIX}${keyPrefix}`,
+            JSON.stringify(context),
+            'EX',
+            API_KEY_CACHE_TTL,
+        );
+    } catch (err) {
+        console.error('Failed to cache API key context:', err);
+    }
+};
+
+export const getCachedApiKeyContext = async (keyPrefix: string): Promise<ICachedApiKeyContext | null> => {
+    try {
+        const result = await redisClient.get(`${API_KEY_CACHE_PREFIX}${keyPrefix}`);
+        if (result) {
+            return JSON.parse(result);
+        }
+        return null;
+    } catch (err) {
+        // Fail open: if Redis is down, fall through to DB validation
+        console.error('Failed to get cached API key context:', err);
+        return null;
+    }
+};
+
+export const invalidateApiKeyCache = async (keyPrefix: string): Promise<void> => {
+    try {
+        await redisClient.del(`${API_KEY_CACHE_PREFIX}${keyPrefix}`);
+    } catch (err) {
+        console.error('Failed to invalidate API key cache:', err);
+    }
+};
 
 export {
     redisEphemeralClient,

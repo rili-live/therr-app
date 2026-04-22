@@ -136,6 +136,11 @@ class UsersService {
         url: `/users-service/users/${id}`,
     });
 
+    getByUserName = (userName: string) => axios({
+        method: 'get',
+        url: `/users-service/users/by-username/${userName}`,
+    });
+
     getMe = () => axios({
         method: 'get',
         url: '/users-service/users/me',
@@ -192,6 +197,12 @@ class UsersService {
         method: 'post',
         url: '/users-service/auth/logout',
         data,
+    });
+
+    refreshToken = (refreshToken: string, rememberMe?: boolean) => axios({
+        method: 'post',
+        url: '/users-service/auth/token/refresh',
+        data: { refreshToken, rememberMe },
     });
 
     // Subscribers
@@ -261,7 +272,7 @@ class UsersService {
         },
     });
 
-    getExchangeRate = (amount: number) => axios({
+    getExchangeRate = () => axios({
         method: 'get',
         url: '/users-service/rewards/exchange-rate',
     });
@@ -352,6 +363,12 @@ class UsersService {
     activateSubscription = (sessionId: string) => axios({
         method: 'post',
         url: `/users-service/payments/checkout/sessions/${sessionId}`,
+    });
+
+    createCustomerPortalSession = (returnUrl?: string) => axios({
+        method: 'post',
+        url: '/users-service/payments/customer-portal/sessions',
+        data: { returnUrl },
     });
 }
 

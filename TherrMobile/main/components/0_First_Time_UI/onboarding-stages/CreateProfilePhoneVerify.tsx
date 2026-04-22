@@ -1,10 +1,10 @@
 import React from 'react';
-import { View } from 'react-native';
-import { Button }  from 'react-native-elements';
+import { StyleSheet, View } from 'react-native';
+import { Button } from '../../BaseButton';
 import { ApiService } from 'therr-react/services';
 import { ErrorCodes } from 'therr-js-utilities/constants';
-import Toast from 'react-native-toast-message';
-import analytics from '@react-native-firebase/analytics';
+import { showToast } from '../../../utilities/toasts';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import Alert from '../../Alert';
 import SquareInput from '../../Input/Square';
 import PhoneNumberInput from '../../Input/PhoneNumberInput';
@@ -77,7 +77,7 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
         });
         ApiService.verifyPhone(phoneNumber)
             .then(() => {
-                analytics().logEvent('phone_verify_success', {
+                logEvent(getAnalytics(),'phone_verify_success', {
                     userId: user?.details?.id,
                     phoneNumber,
                     platform: 'mobile',
@@ -85,37 +85,32 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                 this.setState({
                     isVerifying: true,
                 });
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: translate('alertTitles.codeSent'),
                     text2: translate('alertMessages.codeSent'),
-                    visibilityTime: 2000,
                 });
             })
             .catch((error) => {
                 if (error?.errorCode === ErrorCodes.USER_EXISTS) {
-                    analytics().logEvent('phone_verify_error_already_exists', {
+                    logEvent(getAnalytics(),'phone_verify_error_already_exists', {
                         userId: user?.details?.id,
                         phoneNumber,
                     }).catch((err) => console.log(err));
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.phoneNumberAlreadyInUse'),
                         text2: translate('alertMessages.phoneNumberAlreadyInUse'),
                     });
                 } else if (error?.errorCode === ErrorCodes.INVALID_REGION) {
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.invalidRegionCode'),
                         text2: translate('alertMessages.invalidRegionCode'),
                     });
                 } else {
-                    analytics().logEvent('phone_verify_error', {
+                    logEvent(getAnalytics(),'phone_verify_error', {
                         userId: user?.details?.id,
                         phoneNumber,
                     }).catch((err) => console.log(err));
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.backendErrorMessage'),
                         text2: translate('alertMessages.backendErrorMessage'),
                     });
@@ -136,29 +131,25 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
         });
         ApiService.validateCode(verificationCode)
             .then(() => {
-                analytics().logEvent('phone_verify_code_success', {
+                logEvent(getAnalytics(),'phone_verify_code_success', {
                     userId: user?.details?.id,
                     platform: 'mobile',
                 }).catch((err) => console.log(err));
                 onSubmit && onSubmit();
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: translate('alertTitles.phoneVerifiedSuccess'),
-                    visibilityTime: 2000,
                 });
             })
             .catch((error) => {
                 if (
                     error.statusCode === 400
                 ) {
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.invalidCode'),
                         text2: translate('alertMessages.invalidCode'),
                     });
                 } else {
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.backendErrorMessage'),
                         text2: translate('alertMessages.backendErrorMessage'),
                     });
@@ -263,7 +254,7 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                             />
                             <Button
                                 type="clear"
-                                containerStyle={{ marginTop: 10 }}
+                                containerStyle={localStyles.resendCodeButton}
                                 titleStyle={themeForms.styles.buttonLink}
                                 title={translate(
                                     'forms.createProfile.buttons.resendCode'
@@ -277,5 +268,11 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    resendCodeButton: {
+        marginTop: 10,
+    },
+});
 
 export default CreateProfilePhoneVerify;

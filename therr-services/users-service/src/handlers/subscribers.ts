@@ -93,6 +93,7 @@ const createFeedback: RequestHandler = (req: any, res: any) => {
 
 const createSubscriber: RequestHandler = (req: any, res: any) => {
     const {
+        locale,
         whiteLabelOrigin,
         brandVariation,
     } = parseHeaders(req.headers);
@@ -120,6 +121,7 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
             return Store.subscribers.createSubscriber(req.body).then((subscribers) => {
                 sendSubscriberVerificationEmail({
                     subject: '[Therr] Subscribed to General Updates',
+                    locale,
                     toAddresses: [req.body.email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,

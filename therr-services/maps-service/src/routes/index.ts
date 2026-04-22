@@ -1,9 +1,11 @@
 import * as express from 'express';
 import activitiesRouter from './activitiesRouter';
+import cityPulseRouter from './cityPulseRouter';
 import eventsRouter from './eventsRouter';
 import momentsRouter from './momentsRouter';
 import spacesRouter from './spacesRouter';
 import spaceMetricsRouter from './spaceMetricsRouter';
+import spaceDisplayRequestsRouter from './spaceDisplayRequestsRouter';
 import createMediaUrls from '../handlers/createMediaUrls';
 import deleteUserData from '../handlers/deleteUserData';
 
@@ -14,9 +16,11 @@ router.delete('/delete-user-data', deleteUserData);
 router.post('/media/signed-urls', createMediaUrls);
 
 router.use('/activities', activitiesRouter);
+router.use('/cities', cityPulseRouter);
 router.use('/events', eventsRouter);
 router.use('/moments', momentsRouter);
 router.use('/spaces', spacesRouter);
 router.use('/space-metrics', spaceMetricsRouter);
+router.use('/space-display-requests', spaceDisplayRequestsRouter);
 
 export default router;

@@ -1,12 +1,14 @@
 import React from 'react';
-import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Dimensions, Platform, Pressable, Keyboard, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Image } from 'react-native-elements';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Button } from '../../components/BaseButton';
+import EditFormFooter from '../../components/EditFormFooter';
+import { Image } from '../../components/BaseImage';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
-import Toast from 'react-native-toast-message';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
+import { showToast } from '../../utilities/toasts';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
@@ -17,10 +19,12 @@ import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import LottieView from 'lottie-react-native';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../../components/Input/DropDown';
-// import Alert from '../components/Alert';
-import translator from '../../services/translator';
+import { FeatureFlags } from 'therr-js-utilities/constants';
+import translator from '../../utilities/translator';
+import getConfig from '../../utilities/getConfig';
+import { isDarkTheme } from '../../styles/themes';
 import { buildStyles, addMargins } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
@@ -28,7 +32,6 @@ import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confi
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../../styles/modal';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/editing';
 import { buildStyles as buildSearchStyles } from '../../styles/modal/typeAhead';
 import userContentStyles from '../../styles/user-content';
@@ -56,7 +59,7 @@ import { getUserContentUri, signImageUrl } from '../../utilities/content';
 import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
 import { sendForegroundNotification, sendTriggerNotification } from '../../utilities/pushNotifications';
 import { addAddressParams } from '../../utilities/areaUtils';
-import BottomSheet from '../../components/BottomSheet/BottomSheet';
+import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../../components/TherrIcon';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import SpaceRating from '../../components/Input/SpaceRating';
@@ -109,10 +112,8 @@ interface IEditEventState {
     userGroups: any[];
     hashtags: string[];
     isAddressDropdownVisible: boolean;
-    isImageBottomSheetVisible: boolean;
     isInsufficientFundsModalVisible: boolean;
     isLoading: boolean;
-    isVisibilityBottomSheetVisible: boolean;
     inputs: any;
     isEditingNearbySpaces: boolean;
     isSubmitting: boolean;
@@ -149,7 +150,6 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonStyles();
     private themeAreas = buildAreaStyles();
-    private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
     private themeSearch = buildSearchStyles({ viewPortHeight });
@@ -195,10 +195,8 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             },
             isAddressDropdownVisible: false,
             isEditingNearbySpaces: false,
-            isImageBottomSheetVisible: false,
             isInsufficientFundsModalVisible: false,
             isLoading: true,
-            isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
@@ -211,12 +209,11 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeAreas = buildAreaStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
         this.categoryOptions = Categories.EventCategories.map((category, index) => ({
             id: index,
             label: this.translate(category),
@@ -357,9 +354,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
         // before preventDefault is called in the beforeRemove listener
         navigation.setOptions({
-            // animation: 'none', // navigation v6
-            animationEnabled: false,
-            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+            animation: 'none',
         });
     };
 
@@ -433,11 +428,9 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         };
 
         if (scheduleStopAt - scheduleStartAt <= 0) {
-            Toast.show({
-                type: 'error',
+            showToast.error({
                 text1: this.translate('alertTitles.startDateAfterEndDate'),
                 text2: this.translate('alertMessages.startDateAfterEndDate'),
-                visibilityTime: 3500,
             });
 
             return;
@@ -490,21 +483,17 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                             ],
                                         },
                                     }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
-                                    Toast.show({
-                                        type: 'success',
+                                    showToast.success({
                                         text1: this.translate('alertTitles.coinsReceived'),
                                         text2: this.translate('alertMessages.coinsReceived', {
                                             total: response.therrCoinRewarded,
                                         }),
-                                        visibilityTime: 3500,
                                     });
-                                    Toast.show({
-                                        type: 'success',
+                                    showToast.success({
                                         text1: this.translate('alertTitles.coinsReceived'),
                                         text2: this.translate('alertMessages.coinsReceived', {
                                             total: response.therrCoinRewarded,
                                         }),
-                                        visibilityTime: 3500,
                                     });
                                 }
                             };
@@ -521,12 +510,9 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 text2 = this.translate('alertMessages.eventUpdatedSuccess');
                             }
 
-                            Toast.show({
-                                type: 'successBig',
+                            showToast.success({
                                 text1,
                                 text2,
-                                visibilityTime: 2500,
-                                position: 'top',
                                 onHide,
                             });
                         }
@@ -548,7 +534,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             }, getAndroidChannel(AndroidChannelIds.reminders, true));
                         }
 
-                        analytics().logEvent('event_create', {
+                        logEvent(getAnalytics(),'event_create', {
                             userId: user.details.id,
                             eventLongitude: longitude,
                             eventLatitude: latitude,
@@ -603,26 +589,22 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             error.statusCode === 401 ||
                             error.statusCode === 404
                         ) {
-                            Toast.show({
-                                type: 'error',
+                            showToast.error({
                                 text1: this.translate('alertTitles.backendErrorMessage'),
                                 text2: `${error.message}${
                                     error.parameters
                                         ? '(' + error.parameters.toString() + ')'
                                         : ''
                                 }`,
-                                visibilityTime: 3500,
                             });
 
                             if (error.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
                                 this.toggleInfoModal();
                             }
                         } else if (error.statusCode >= 500) {
-                            Toast.show({
-                                type: 'error',
+                            showToast.error({
                                 text1: this.translate('alertTitles.backendErrorMessage'),
                                 text2: this.translate('forms.editEvent.backendErrorMessage'),
-                                visibilityTime: 3500,
                             });
                         }
                     })
@@ -693,13 +675,14 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         });
 
         this.throttleAddressTimeoutId = setTimeout(() => {
+            const config = getConfig();
+            const useMapboxSearch = config.featureFlags?.[FeatureFlags.ENABLE_MAPBOX_SEARCH] === true;
             getPlacesSearchAutoComplete({
                 longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
                 latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
-                // radius,
                 input: text,
                 types: 'establishment',
-            });
+            }, useMapboxSearch);
         }, 500);
 
         if (invoker === 'input' && text === addressInputText) {
@@ -727,6 +710,11 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
         this.setSearchDropdownVisibility(false);
 
+        if (selection?.provider === 'mapbox' && selection?.mapbox_id) {
+            this.handleMapboxSearchSelect(selection);
+            return;
+        }
+
         MapsService.getPlaceDetails({
             apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
             placeId: selection?.place_id,
@@ -737,43 +725,69 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             shouldIncludeRating: true,
         }).then((response) => {
             const result = response.data?.result;
-            const geometry = result?.geometry;
-            const formatted_address = result?.formatted_address;
-            const modifiedInputs = {
-                ...this.state.inputs,
-            };
-            if (formatted_address) {
-                modifiedInputs.addressInputText = formatted_address;
-                modifiedInputs.addressReadable = formatted_address;
-            }
-            if (result?.name) {
-                modifiedInputs.addressNotificationMsg = result.name;
-            }
-            if (geometry?.location) {
-                modifiedInputs.addressLatitude = geometry.location.lat;
-                modifiedInputs.addressLongitude = geometry.location.lng;
-            }
-            if (result?.website) {
-                modifiedInputs.addressWebsite = result?.website;
-            }
-            if (result?.rating) {
-                modifiedInputs.addressRating = {
-                    rating: result?.rating,
-                    total: result?.user_ratings_total || 0,
-                };
-            }
-            if (result?.opening_hours?.weekday_text) {
-                modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
-            }
-            if (result?.international_phone_number) {
-                modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
-            }
-            this.setState({
-                addressInputText: result?.name || formatted_address,
-                inputs: modifiedInputs,
-            });
+            this.applyPlaceDetailsToInputs(result);
         }).catch((error) => {
             console.log(error);
+        });
+    };
+
+    handleMapboxSearchSelect = (selection) => {
+        MapsService.getMapboxRetrieve(selection.mapbox_id).then((response) => {
+            const feature = response.data?.features?.[0];
+            if (feature) {
+                const props = feature.properties || {};
+                const [lng, lat] = feature.geometry?.coordinates || [];
+                const result = {
+                    name: props.name || '',
+                    formatted_address: props.full_address || props.place_formatted || '',
+                    geometry: lat && lng ? { location: { lat, lng } } : undefined,
+                    website: props.metadata?.website || undefined,
+                    international_phone_number: props.metadata?.phone || undefined,
+                };
+                this.applyPlaceDetailsToInputs(result);
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
+
+    applyPlaceDetailsToInputs = (result) => {
+        if (!result) return;
+
+        const geometry = result?.geometry;
+        const formatted_address = result?.formatted_address;
+        const modifiedInputs = {
+            ...this.state.inputs,
+        };
+        if (formatted_address) {
+            modifiedInputs.addressInputText = formatted_address;
+            modifiedInputs.addressReadable = formatted_address;
+        }
+        if (result?.name) {
+            modifiedInputs.addressNotificationMsg = result.name;
+        }
+        if (geometry?.location) {
+            modifiedInputs.addressLatitude = geometry.location.lat;
+            modifiedInputs.addressLongitude = geometry.location.lng;
+        }
+        if (result?.website) {
+            modifiedInputs.addressWebsite = result?.website;
+        }
+        if (result?.rating) {
+            modifiedInputs.addressRating = {
+                rating: result?.rating,
+                total: result?.user_ratings_total || 0,
+            };
+        }
+        if (result?.opening_hours?.weekday_text) {
+            modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
+        }
+        if (result?.international_phone_number) {
+            modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
+        }
+        this.setState({
+            addressInputText: result?.name || formatted_address,
+            inputs: modifiedInputs,
         });
     };
 
@@ -804,22 +818,8 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             this.setState({
                 selectedImage: imageResponse,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            }, () => this.toggleImageBottomSheet());
+            });
         }
-    };
-
-    toggleImageBottomSheet = () => {
-        const { isImageBottomSheetVisible } = this.state;
-        this.setState({
-            isImageBottomSheetVisible: !isImageBottomSheetVisible,
-        });
-    };
-
-    toggleVisibilityBottomSheet = () => {
-        const { isVisibilityBottomSheetVisible } = this.state;
-        this.setState({
-            isVisibilityBottomSheetVisible: !isVisibilityBottomSheetVisible,
-        });
     };
 
     onAddImage = (action: string) => {
@@ -848,23 +848,21 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         .then((cameraResponse) => this.handleImageSelect(cameraResponse));
                 }
             } else {
-                analytics().logEvent('permissions_denied_issue', {
+                logEvent(getAnalytics(),'permissions_denied_issue', {
                     platform: Platform.OS,
                     userId: user?.details?.id,
                 }).catch((err) => console.log(err));
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('alertTitles.permissionsDenied'),
                     text2: this.translate('alertMessages.cameraOrFilePermissionsDenied'),
                 });
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            analytics().logEvent('camera_permissions_error', {
+            logEvent(getAnalytics(),'camera_permissions_error', {
                 platform: Platform.OS,
                 userId: user?.details?.id,
             }).catch((err) => console.log(err));
-            this.toggleImageBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
                 console.log('canceled');
@@ -897,8 +895,6 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                 isPublic,
             },
         });
-
-        this.toggleVisibilityBottomSheet();
     };
 
     onSliderChange = (name, value) => {
@@ -1009,18 +1005,33 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         return (
             <>
                 <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
-                    {
-                        !!imagePreviewPath &&
-                        <View style={this.themeAreas.styles.mediaContainer}>
-                            <Image
-                                source={{ uri: imagePreviewPath }}
-                                style={[this.themeAreas.styles.mediaImageEvent, {
-                                    width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
-                                }]}
-                                resizeMode="contain"
-                            />
-                        </View>
-                    }
+                    <View style={this.themeAreas.styles.mediaContainer}>
+                        {
+                            imagePreviewPath
+                                ? (
+                                    <Image
+                                        source={{ uri: imagePreviewPath }}
+                                        style={[this.themeAreas.styles.mediaImageEvent, {
+                                            width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                        }]}
+                                        resizeMode="contain"
+                                    />
+                                )
+                                : (
+                                    <LottieView
+                                        source={require('../../assets/missing-image-events.json')}
+                                        resizeMode="contain"
+                                        speed={1}
+                                        autoPlay
+                                        loop={false}
+                                        style={{
+                                            width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                            height: 160,
+                                        }}
+                                    />
+                                )
+                        }
+                    </View>
                     <Button
                         containerStyle={spacingStyles.marginBotMd}
                         buttonStyle={this.themeForms.styles.buttonPrimary}
@@ -1038,9 +1049,34 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 style={{ color: this.theme.colors.primary, paddingRight: 8 }}
                             />
                         }
-                        onPress={() => this.toggleImageBottomSheet()}
+                        onPress={() => SheetManager.show('image-picker-sheet', {
+                            payload: {
+                                galleryText: this.translate('forms.editEvent.buttons.selectExisting'),
+                                cameraText: this.translate('forms.editEvent.buttons.captureNew'),
+                                themeForms: this.themeForms,
+                                onSelect: (source) => this.onAddImage(source),
+                            },
+                        })}
                         raised={false}
                     />
+                    {
+                        !!imagePreviewPath &&
+                        <Button
+                            containerStyle={spacingStyles.marginBotMd}
+                            buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                            titleStyle={this.themeForms.styles.buttonTitleAlt}
+                            title={this.translate('forms.editEvent.buttons.removeImage')}
+                            icon={
+                                <OctIcon
+                                    name="x"
+                                    size={18}
+                                    style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                />
+                            }
+                            onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                            raised={false}
+                        />
+                    }
                     <Text style={this.theme.styles.sectionDescriptionNote}>
                         {this.translate('forms.editEvent.labels.addImageNote')}
                     </Text>
@@ -1082,23 +1118,26 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 disableScroll
                             />
                         }
-                        <InputEventName
-                            autoFocus={!!areaId}
-                            translate={this.translate}
-                            onChangeText={(text) =>
-                                this.onInputChange('notificationMsg', text)
-                            }
-                            themeForms={this.themeForms}
-                            value={inputs.notificationMsg}
-                        />
+                        <View style={[spacingStyles.marginTopMd, spacingStyles.marginBotMd]}>
+                            <InputEventName
+                                autoFocus={!!areaId}
+                                translate={this.translate}
+                                onChangeText={(text) =>
+                                    this.onInputChange('notificationMsg', text)
+                                }
+                                themeForms={this.themeForms}
+                                value={inputs.notificationMsg}
+                            />
+                        </View>
                         <EventStartEndFormGroup
                             themeForms={this.themeForms}
-                            isNightMode={user.settings?.mobileThemeName === 'dark' || user.settings?.mobileThemeName === 'retro'}
+                            isNightMode={isDarkTheme(user.settings?.mobileThemeName)}
                             onConfirm={this.onConfirmDatePicker}
                             translate={this.translate}
                             startsAtValue={inputs.scheduleStartAt}
                             stopsAtValue={inputs.scheduleStopAt}
                         />
+                        <View style={spacingStyles.marginBotMd} />
                         <RoundTextInput
                             placeholder={this.translate(
                                 'forms.editEvent.labels.message'
@@ -1112,7 +1151,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             themeForms={this.themeForms}
                         />
                         <RoundInput
-                            containerStyle={{ marginBottom: !hashtags?.length ? 10 : 0 }}
+                            containerStyle={{ marginBottom: 12 }}
                             autoCorrect={false}
                             errorStyle={this.theme.styles.displayNone}
                             placeholder={this.translate(
@@ -1175,7 +1214,14 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 ? this.translate('forms.editEvent.buttons.visibilityPublic')
                                 : this.translate('forms.editEvent.buttons.visibilityPrivate')}
                             type="outline"
-                            onPress={this.toggleVisibilityBottomSheet}
+                            onPress={() => SheetManager.show('visibility-picker-sheet', {
+                                payload: {
+                                    publicText: this.translate('forms.editEvent.buttons.visibilityPublic'),
+                                    privateText: this.translate('forms.editEvent.buttons.visibilityPrivate'),
+                                    themeForms: this.themeForms,
+                                    onSelect: (isPublic) => this.onSetVisibility(isPublic),
+                                },
+                            })}
                             raised={false}
                             icon={
                                 <OctIcon
@@ -1309,17 +1355,15 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             previewLinkId,
             previewStyleState,
             isEditingNearbySpaces,
-            isImageBottomSheetVisible,
             isInsufficientFundsModalVisible,
             isLoading,
-            isVisibilityBottomSheetVisible,
             userGroups,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
 
         if (isLoading) {
             return (
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <LottieView
                         source={searchLoading}
                         // resizeMode="cover"
@@ -1335,7 +1379,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
         if (!userGroups.length) {
             return (
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <View
                         style={this.theme.styles.bodyFlex}
                     >
@@ -1366,7 +1410,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
@@ -1396,156 +1440,29 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        {/* <Button
-                            buttonStyle={this.themeAccentForms.styles.draftButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={[this.themeAccentForms.styles.submitButtonContainer, { marginRight: 20 }]}
-                            title={this.translate(
-                                'forms.editEvent.buttons.draft'
-                            )}
-                            icon={
-                                <TherrIcon
-                                    name="edit"
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={this.themeAccentForms.styles.submitButtonIcon}
-                                />
-                            }
-                            onPress={() => this.onSubmit({
-                                isDraft: true,
-                                shouldSkipRewards: true,
-                                shouldSkipNavigate: true,
-                            })}
-                            disabled={this.isFormDisabled()}
-                        /> */}
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={continueButtonConfig.title}
-                            icon={
-                                <TherrIcon
-                                    name={continueButtonConfig.icon}
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={continueButtonConfig.iconStyle}
-                                />
-                            }
-                            iconRight={continueButtonConfig.iconRight}
-                            onPress={continueButtonConfig.onPress}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
-                    <BottomSheet
-                        isVisible={isVisibilityBottomSheetVisible}
-                        onRequestClose={this.toggleVisibilityBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editEvent.buttons.visibilityPublic'
-                            )}
-                            onPress={() => this.onSetVisibility(true)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="globe"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editEvent.buttons.visibilityPrivate'
-                            )}
-                            onPress={() => this.onSetVisibility(false)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="people"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
-                    <BottomSheet
-                        isVisible={isImageBottomSheetVisible}
-                        onRequestClose={this.toggleImageBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editEvent.buttons.selectExisting'
-                            )}
-                            onPress={() => this.onAddImage('upload')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="plus"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editEvent.buttons.captureNew'
-                            )}
-                            onPress={() => this.onAddImage('camera')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="device-camera"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
+                    <EditFormFooter
+                        isDarkMode={isDarkTheme(this.props.user.settings?.mobileThemeName)}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editEvent.buttons.back'),
+                                onPress: () => navigation.goBack(),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: continueButtonConfig.title,
+                                onPress: continueButtonConfig.onPress,
+                                mode: 'contained',
+                                icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
+                                disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isInsufficientFundsModalVisible}

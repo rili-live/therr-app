@@ -1,5 +1,4 @@
 /* eslint-disable class-methods-use-this */
-import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
 import UsersService, { ISearchUsersArgs, ISocialSyncs } from '../../services/UsersService';
@@ -68,6 +67,7 @@ class UsersActions {
             settingsPushMessages,
             settingsPushReminders,
             integrations,
+            isBusinessAccount,
             loginCount,
             userOrganizations,
             navigationTourCount,
@@ -82,6 +82,7 @@ class UsersActions {
             phoneNumber,
             userName,
             media,
+            isBusinessAccount,
             lastKnownLatitude,
             lastKnownLongitude,
             userOrganizations,
@@ -90,14 +91,14 @@ class UsersActions {
             // Note: CAREFUL! - if this is undefined it could overwrite stored value an trigger user logout in interceptors.ts
             mutableUserData.idToken = idToken;
         }
-        const userData: IUser = Immutable.from(mutableUserData);
+        const userData: IUser = mutableUserData;
         // TODO: Get user settings data from db response
-        const userSettingsData: IUserSettings = Immutable.from({
+        const userSettingsData: IUserSettings = {
             id, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
             userName, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
-            locale: 'en-us',
+            locale: settingsLocale || 'en-us',
             integrations,
-            mobileThemeName: settingsThemeName || 'retro',
+            mobileThemeName: settingsThemeName || 'light',
             rememberMe,
             settingsBio,
             settingsTherrCoinTotal,
@@ -124,7 +125,7 @@ class UsersActions {
             settingsPushMessages,
             settingsPushReminders,
             navigationTourCount,
-        });
+        };
 
         return {
             userData,
@@ -138,11 +139,11 @@ class UsersActions {
                 blockedUsers,
             } = response && response.data;
             // TODO: Dispatch event to filter blocked users from content display
-            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
-            const userData: IUser = Immutable.from({
+            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || '{}');
+            const userData: IUser = {
                 ...userDetails,
                 ...response.data,
-            });
+            };
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
 
             dispatch({
@@ -168,7 +169,8 @@ class UsersActions {
             return response;
         });
 
-    get = (userId: string) => (dispatch: any) => UsersService.get(userId).then((response) => {
+    get = (userId: string) => (dispatch: any) => UsersService.get(userId).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: UserActionTypes.GET_USER,
             data: response?.data,
@@ -177,7 +179,8 @@ class UsersActions {
         return response?.data;
     });
 
-    search = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.search(args).then((response) => {
+    search = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.search(args).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         if (args.query) {
             dispatch({
                 type: UserActionTypes.GET_USERS_REFETCH,
@@ -193,7 +196,8 @@ class UsersActions {
         return response?.data;
     });
 
-    searchPairings = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.searchPairings(args).then((response) => {
+    searchPairings = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.searchPairings(args).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: UserActionTypes.GET_USERS_PAIRINGS,
             data: response?.data,
@@ -234,6 +238,7 @@ class UsersActions {
             const {
                 id,
                 idToken,
+                refreshToken,
             } = response.data;
             const responseData = {
                 ...response.data,
@@ -290,15 +295,22 @@ class UsersActions {
             this.socketIO.connect();
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
+            if (refreshToken) {
+                (this.NativeStorage || sessionStorage).setItem('therrRefreshToken', refreshToken);
+            }
             if (data.rememberMe && !this.NativeStorage) {
                 localStorage.setItem('therrUser', JSON.stringify(userData));
                 localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
+                if (refreshToken) {
+                    localStorage.setItem('therrRefreshToken', refreshToken);
+                }
             }
         });
     };
 
     getMe = () => async (dispatch: any) => {
-        await UsersService.getMe().then(async (response) => {
+        await UsersService.getMe().then(async (response: any) => {
+            if (response?.isOfflineFallback) return;
             const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || null);
             const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
             const localUserSettings = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || null);
@@ -349,10 +361,12 @@ class UsersActions {
         if (!this.NativeStorage) {
             localStorage.removeItem('therrSession');
             localStorage.removeItem('therrUser');
+            localStorage.removeItem('therrRefreshToken');
             sessionStorage.removeItem('therrSession');
             sessionStorage.removeItem('therrUser');
+            sessionStorage.removeItem('therrRefreshToken');
         } else {
-            await this.NativeStorage.multiRemove(['therrSession', 'therrUser', 'therrUserSettings']);
+            await this.NativeStorage.multiRemove(['therrSession', 'therrUser', 'therrUserSettings', 'therrRefreshToken']);
             await (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify({
                 id: userSettings?.id,
             }));
@@ -444,21 +458,21 @@ class UsersActions {
         } = response?.data || {};
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
-        const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
-        const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || {});
-        const sessionUserSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
-        const localUserSettings = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || {});
-        const userData: IUser = Immutable.from({
+        const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || '{}');
+        const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || '{}');
+        const sessionUserSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || '{}');
+        const localUserSettings = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || '{}');
+        const userData: IUser = {
             ...localUserDetails,
             ...sessionUserDetails,
             ...response.data,
-        });
+        };
         // TODO: Utilize extractUserData()
-        const userSettingsData: IUser = Immutable.from({
+        const userSettingsData: IUser = {
             ...localUserSettings,
             ...sessionUserSettings,
-            locale: 'en-us',
-            mobileThemeName: settingsThemeName || 'retro',
+            locale: settingsLocale || 'en-us',
+            mobileThemeName: settingsThemeName || 'light',
             settingsBio,
             settingsTherrCoinTotal,
             settingsAreaCoinTotal,
@@ -484,7 +498,7 @@ class UsersActions {
             settingsPushMentions,
             settingsPushMessages,
             settingsPushReminders,
-        });
+        };
         (this.NativeStorage || localStorage).setItem('therrUser', JSON.stringify(userData));
         (this.NativeStorage || localStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
         (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
@@ -536,7 +550,7 @@ class UsersActions {
                 ...userSettings,
                 ...sanitizedData,
             };
-            const userSettingsData: IUserSettings = Immutable.from(newData);
+            const userSettingsData: IUserSettings = newData;
 
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
 
@@ -557,16 +571,16 @@ class UsersActions {
 
     claimMyAchievement = (id: string, coins: number | string) => (dispatch: any) => UsersService
         .claimMyAchievement(id).then(async (response) => {
-            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
-            const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
-            const userData: IUser = Immutable.from({
+            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || '{}');
+            const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || '{}');
+            const userData: IUser = {
                 ...userDetails,
                 settingsTherrCoinTotal: parseFloat(coins as string || '0') + parseFloat(userDetails.settingsTherrCoinTotal || '0'),
-            });
-            const userSettingsData: IUser = Immutable.from({
+            };
+            const userSettingsData: IUser = {
                 ...userSettings,
                 settingsTherrCoinTotal: parseFloat(coins as string) + parseFloat(userDetails.settingsTherrCoinTotal),
-            });
+            };
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
 
@@ -584,7 +598,8 @@ class UsersActions {
             return response?.data;
         });
 
-    getMyAchievements = () => (dispatch: any) => UsersService.getMyAchievements().then((response) => {
+    getMyAchievements = () => (dispatch: any) => UsersService.getMyAchievements().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         const mapped = {};
         response.data?.forEach((ach) => { mapped[ach.id] = ach; });
         dispatch({
@@ -609,6 +624,7 @@ class UsersActions {
         withGroups?: boolean;
     } = {}) => (dispatch: any) => UsersService.getUserGroups(query)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: UserActionTypes.GET_USER_GROUPS,
                 data: response.data,
@@ -641,6 +657,7 @@ class UsersActions {
 
     // User Interests
     getUserInterests = () => (dispatch: any) => UsersService.getUserInterests().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
         dispatch({
             type: UserActionTypes.GET_USER_INTERESTS,
             data: response.data,
@@ -676,6 +693,7 @@ class UsersActions {
 
     getThoughtDetails = (id: number, data: any) => (dispatch: any) => UsersService.getThoughtDetails(id, data)
         .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: UserActionTypes.GET_THOUGHT_DETAILS,
                 data: response.data,
@@ -686,6 +704,7 @@ class UsersActions {
 
     searchThoughts = (query: any, data: ISearchThoughtsArgs = {}) => (dispatch: any) => UsersService
         .searchThoughts(query, data).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
             if (query.query === 'connections') {
                 dispatch({
                     type: UserActionTypes.GET_THOUGHTS,

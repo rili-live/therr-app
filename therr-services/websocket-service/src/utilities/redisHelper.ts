@@ -1,4 +1,4 @@
-import * as Redis from 'ioredis';
+import Redis from 'ioredis';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { redisPub } from '../store/redisClient';
 import * as globalConfig from '../../../../global-config';
@@ -7,7 +7,7 @@ const defaultExpire = Number(globalConfig[process.env.NODE_ENV || 'development']
 
 export interface IUserSocketSession {
     app: string;
-    socketId: Redis.KeyType;
+    socketId: string;
     ip: string | number;
     ttl?: number;
     data: any;
@@ -15,12 +15,12 @@ export interface IUserSocketSession {
 
 /**
  * RedisHelper
- * redisClient: Redis.Redis - the ioredis client to enter redis commands
+ * redisClient: Redis - the ioredis client to enter redis commands
  */
 export class RedisHelper {
-    client: Redis.Redis;
+    client: Redis;
 
-    constructor(client: Redis.Redis) {
+    constructor(client: Redis) {
         this.client = client; // NOTE: client should be built from 'ioredis'
     }
 
@@ -84,7 +84,7 @@ export class RedisHelper {
         );
     };
 
-    public removeUser = async (socketId: Redis.KeyType) => {
+    public removeUser = async (socketId: string) => {
         const user = await this.getUserBySocketId(socketId);
         const pipeline = this.client.pipeline();
         if (user && user.id) {
@@ -120,6 +120,7 @@ export class RedisHelper {
         });
 
         return pipeline.exec().then((response) => {
+            if (!response) return activeUsers;
             response.forEach(([err, stringifiedUser]) => {
                 if (err) {
                     logSpan({
@@ -130,7 +131,7 @@ export class RedisHelper {
                     return;
                 }
                 let socketId: string | null | undefined;
-                const user = stringifiedUser && JSON.parse(stringifiedUser);
+                const user = stringifiedUser && JSON.parse(stringifiedUser as string);
 
                 if (user && Object.keys(user).length) {
                     socketId = (user as any).socketId;

@@ -7,6 +7,7 @@ import {
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
+import submitToIndexNow from 'therr-js-utilities/index-now';
 import { RequestHandler } from 'express';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { storage } from '../api/aws';
@@ -31,6 +32,7 @@ const createSpace = async (req, res) => {
         authorization,
         locale,
         userId,
+        userOrgsAccess,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
 
@@ -56,6 +58,23 @@ const createSpace = async (req, res) => {
         message,
         notificationMsg,
     } = req.body;
+
+    // Validate organizationId if provided (user must have admin/manager access for that org)
+    if (req.body.organizationId) {
+        const orgAccess = userOrgsAccess[req.body.organizationId];
+        const hasOrgWriteAccess = orgAccess
+            && (orgAccess.includes(AccessLevels.ORGANIZATIONS_ADMIN)
+                || orgAccess.includes(AccessLevels.ORGANIZATIONS_MANAGER));
+
+        if (!hasOrgWriteAccess) {
+            return handleHttpError({
+                res,
+                message: 'You do not have permission to create spaces for this organization',
+                statusCode: 403,
+                errorCode: ErrorCodes.ACCESS_DENIED,
+            });
+        }
+    }
 
     const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
 
@@ -141,6 +160,15 @@ const createSpace = async (req, res) => {
                             });
                         });
                     }
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed sightengine media safety check'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
                 });
             }
 
@@ -162,10 +190,17 @@ const createSpace = async (req, res) => {
                         featuredIncentiveCurrencyId: spaceIncentive.incentiveCurrencyId,
                     }));
                 }
-            }).then((spaceWithFeaturedIncentive) => res.status(201).send({
-                ...spaceWithFeaturedIncentive,
-                reaction,
-            }));
+            }).then((spaceWithFeaturedIncentive) => {
+                // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
+                if (process.env.INDEXNOW_API_KEY && space.id && !space.isDraft) {
+                    submitToIndexNow([`https://www.therr.com/spaces/${space.id}`], process.env.INDEXNOW_API_KEY)
+                        .catch(() => undefined); // already handled internally
+                }
+                return res.status(201).send({
+                    ...spaceWithFeaturedIncentive,
+                    reaction,
+                });
+            });
         }))
         .catch((err) => {
             if (err?.constraint === 'no_overlaps') {
@@ -304,15 +339,25 @@ const getSpaceDetails = (req, res) => {
                 });
             }
             let userHasAccessPromise = () => Promise.resolve(true);
+            const isNonOwnerNonAdmin = userId && space?.fromUserId !== userId
+                && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN);
+
             // Verify that user has activated space and has access to view it
-            if (userId && space?.fromUserId !== userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+            if (isNonOwnerNonAdmin) {
                 // TODO: Check if user is part of organization and has access to view
                 userHasAccessPromise = () => getReactions('space', spaceId, req.headers);
+            }
+
+            // Fetch user's own reaction for bookmark/like status display (when not already fetched above)
+            let userReactionPromise = () => Promise.resolve(false);
+            if (userId && !isNonOwnerNonAdmin) {
+                userReactionPromise = () => getReactions('space', spaceId, req.headers);
             }
 
             const serializedSpace = {
                 ...space,
                 message: space.message?.replace(/"/g, '\\"'),
+                isUnclaimed: space.fromUserId === SUPER_ADMIN_ID && !space.requestedByUserId,
             };
 
             const promises = [
@@ -321,6 +366,7 @@ const getSpaceDetails = (req, res) => {
                     ...req.headers,
                     'x-userid': userId || undefined,
                 }),
+                userReactionPromise(),
             ];
 
             if (shouldFetchEvents) {
@@ -329,19 +375,26 @@ const getSpaceDetails = (req, res) => {
                 promises.push(Promise.resolve([]));
             }
 
-            return Promise.all(promises).then(([isActivated, eventCount, events]) => {
+            return Promise.all(promises).then(([reactionOrActivated, eventCount, userReaction, events]) => {
                 if (userId && userId !== space.fromUserId) {
                     incrementInterestEngagement(space.interestsKeys, 2, req.headers);
                 }
                 serializedSpace.likeCount = parseInt(eventCount?.count || 0, 10);
                 serializedSpace.events = events;
 
+                // Attach full reaction data if available (for bookmark/like status)
+                const reaction = (reactionOrActivated && typeof reactionOrActivated === 'object' && reactionOrActivated)
+                    || (userReaction && typeof userReaction === 'object' && userReaction);
+                if (reaction) {
+                    serializedSpace.reaction = reaction;
+                }
+
                 return res.status(200).send({
                     events,
                     space: serializedSpace,
                     media,
                     users,
-                    isActivated,
+                    isActivated: !!reactionOrActivated,
                 });
             });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
@@ -365,6 +418,7 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         pageNumber,
     } = req.query;
     const {
+        category,
         distanceOverride,
     } = req.body;
 
@@ -382,6 +436,10 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
     let fromUserIds: any[] = [];
     if (query === 'me') {
         fromUserIds = [userId];
+        searchArgs[0].filterBy = 'fromUserIds';
+    } else if (query === 'user' && req.body.targetUserId) {
+        fromUserIds = [req.body.targetUserId];
+        searchArgs[0].filterBy = 'fromUserIds';
     } else if (query === 'connections') {
         let queryString = getSearchQueryString({
             filterBy: 'acceptingUserId',
@@ -411,13 +469,17 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         fromUserIds = connections
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
             .filter((id) => !!id); // eslint-disable-line eqeqeq
+        searchArgs[0].filterBy = 'fromUserIds';
     }
+    const includePublicResults = query !== 'me' && query !== 'user';
     const searchPromise = Store.spaces.searchSpaces(
         searchArgs[0],
         searchArgs[1],
         fromUserIds,
-        { distanceOverride, shouldLimitDetail, isRequestAuthorized },
-        query !== 'me',
+        {
+            category, distanceOverride, shouldLimitDetail, isRequestAuthorized,
+        },
+        includePublicResults,
     );
     // const countPromise = Store.spaces.countRecords({
     //     filterBy,
@@ -724,6 +786,15 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                                 });
                             });
                         }
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed sightengine media safety check'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                            },
+                        });
                     });
                 }
             })).catch((err) => {
@@ -917,11 +988,12 @@ const getSignedUrlPrivateBucket = (req, res) => getSignedUrl(req, res, process.e
 const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.env.BUCKET_PUBLIC_USER_DATA);
 
 // WRITE
-const updateSpace = (req, res) => {
+const updateSpace = async (req, res) => {
     const {
         userAccessLevels: accessLevels,
         locale,
         userId,
+        userOrgsAccess,
     } = parseHeaders(req.headers);
     const {
         overrideFromUserId,
@@ -938,6 +1010,46 @@ const updateSpace = (req, res) => {
         });
     }
 
+    // Determine the effective fromUserId for the update query
+    let effectiveFromUserId = overrideFromUserId || userId;
+
+    // If not the owner or SUPER_ADMIN, check org-based access
+    if (!overrideFromUserId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+        try {
+            const [existingSpace] = await Store.spaces.getByIdSimple(req.params.spaceId);
+            if (!existingSpace) {
+                return handleHttpError({
+                    res,
+                    message: 'Space not found',
+                    statusCode: 404,
+                });
+            }
+
+            // If user is not the direct owner, check org membership
+            if (existingSpace.fromUserId !== userId) {
+                const orgId = existingSpace.organizationId;
+                const orgAccess = orgId && userOrgsAccess[orgId];
+                const hasOrgWriteAccess = orgAccess
+                    && (orgAccess.includes(AccessLevels.ORGANIZATIONS_ADMIN)
+                        || orgAccess.includes(AccessLevels.ORGANIZATIONS_MANAGER));
+
+                if (!hasOrgWriteAccess) {
+                    return handleHttpError({
+                        res,
+                        message: translate(locale, 'errorMessages.accessDenied'),
+                        statusCode: 403,
+                        errorCode: ErrorCodes.ACCESS_DENIED,
+                    });
+                }
+
+                // Use the space owner's ID to pass the WHERE { id, fromUserId } constraint
+                effectiveFromUserId = existingSpace.fromUserId;
+            }
+        } catch (err) {
+            return handleHttpError({ err: err instanceof Error ? err : undefined, res, message: 'SQL:SPACES_ROUTES:ERROR' });
+        }
+    }
+
     // TODO: Verify address is close to longitude/latitude
     // const canChangeAddress = req.body.addressReadable && req.body.longitude && req.body.latitude;
     // const isNearLongLat = canChangeAddress ? distanceTo({
@@ -952,9 +1064,16 @@ const updateSpace = (req, res) => {
     return Store.spaces.updateSpace(req.params.spaceId, {
         ...req.body,
         // addressReadable,
-        fromUserId: overrideFromUserId || userId,
+        fromUserId: effectiveFromUserId,
     })
-        .then(([space]) => res.status(200).send(space))
+        .then(([space]) => {
+            // Fire-and-forget: notify search engines of updated content via IndexNow
+            if (process.env.INDEXNOW_API_KEY && req.params.spaceId && !space.isDraft) {
+                submitToIndexNow([`https://www.therr.com/spaces/${req.params.spaceId}`], process.env.INDEXNOW_API_KEY)
+                    .catch(() => undefined); // already handled internally
+            }
+            return res.status(200).send(space);
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
@@ -971,15 +1090,91 @@ const deleteSpaces = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+// PAIRINGS
+const getSpacePairings: RequestHandler = async (req: any, res: any) => {
+    const { locale } = parseHeaders(req.headers);
+    const { spaceId } = req.params;
+
+    return Store.spaces.getByIdSimple(spaceId).then(([space]) => {
+        if (!space) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'spaces.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        if (space.latitude == null || space.longitude == null) {
+            return res.status(200).send({ pairings: [] });
+        }
+
+        return Store.spaces.searchPairedSpaces(spaceId, space.latitude, space.longitude, space.category || '')
+            .then((candidates) => {
+                // Diversity filter: prefer max 1 result per category, fill remaining
+                const usedCategories = new Set<string>();
+
+                // First pass: pick one per category
+                const diverse = candidates.reduce((acc, candidate) => {
+                    if (acc.length >= 3) return acc;
+                    if (!usedCategories.has(candidate.category)) {
+                        acc.push(candidate);
+                        usedCategories.add(candidate.category);
+                    }
+                    return acc;
+                }, [] as any[]);
+
+                // Second pass: fill remaining slots
+                if (diverse.length < 3) {
+                    const selectedIds = new Set(diverse.map((s) => s.id));
+                    candidates.forEach((candidate) => {
+                        if (diverse.length >= 3) return;
+                        if (!selectedIds.has(candidate.id)) {
+                            diverse.push(candidate);
+                        }
+                    });
+                }
+
+                return res.status(200).send({ pairings: diverse });
+            });
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
+const submitPairingFeedback: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { spaceId } = req.params;
+    const { pairedSpaceId, isHelpful } = req.body;
+
+    return Store.spacePairingFeedback.create({
+        sourceSpaceId: spaceId,
+        pairedSpaceId,
+        userId: userId || undefined,
+        isHelpful,
+    })
+        .then((result) => res.status(201).send(result))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
+const getSpaceReportsSummary = (req, res) => {
+    const { spaceId } = req.params;
+
+    return Store.moments.getQuickReportsSummary(spaceId)
+        .then((summary) => res.status(200).send(summary))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
 export {
     createSpace,
     getSpaceDetails,
+    getSpaceReportsSummary,
     searchSpaces,
     searchMySpaces,
     claimSpace,
     requestSpace,
     approveSpaceRequest,
     findSpaces,
+    getSpacePairings,
+    submitPairingFeedback,
     getSignedUrlPrivateBucket,
     getSignedUrlPublicBucket,
     updateSpace,

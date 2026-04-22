@@ -2,53 +2,111 @@
 const fs = require('fs-extra');
 const path = require('path');
 
-// We need to keep the css file path up to date becuase we use hashing in the build compilation
-const replaceInFile = (fileToUpdate, replacementString) => {
-    const fileNameToReplaceRegex = new RegExp(/app.*.css/);
+const viewFiles = [
+    path.join(__dirname, 'src/views/index.hbs'),
+    path.join(__dirname, 'src/views/invite.hbs'),
+    path.join(__dirname, 'src/views/locations.hbs'),
+    path.join(__dirname, 'src/views/spaces.hbs'),
+    path.join(__dirname, 'src/views/moments.hbs'),
+    path.join(__dirname, 'src/views/thoughts.hbs'),
+    path.join(__dirname, 'src/views/users.hbs'),
+    path.join(__dirname, 'src/views/events.hbs'),
+    path.join(__dirname, 'src/views/groups.hbs'),
+    path.join(__dirname, 'src/views/hub.hbs'),
+    path.join(__dirname, 'src/views/city-pulse.hbs'),
+    path.join(__dirname, 'src/views/guides.hbs'),
+];
 
-    fs.readFile(fileToUpdate, 'utf8', function (err, data) {
-        if (err) {
-            return console.log(err); // eslint-disable-line
-        }
-
-        const result = data.replace(fileNameToReplaceRegex, replacementString);
-
-        fs.writeFile(fileToUpdate, result, 'utf8', function (err) {
-            if (err) {
-                return console.log(err); // eslint-disable-line
-            }
-            console.log('Success: String was replaced in file'); // eslint-disable-line
-        });
-    });
-};
-
-// We need to keep the css file path up to date because we use hashing in the build compilation
+// We need to keep the css/js file paths up to date because we use content hashing in the build compilation
 fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
-    const fileNameRegex = new RegExp(/^app.*\.css$/);
-    const scrapJsRegex = new RegExp(/^theme-.*\.js$/);
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+
+    const appCssRegex = /^app\.([\w]+\.)?css$/;
+    const vendorCssRegex = /^vendor\.([\w]+\.)?css$/;
+    const runtimeJsRegex = /^runtime\.([\w]+\.)?js$/;
+    const vendorJsRegex = /^vendor\.([\w]+\.)?js$/;
+    const appJsRegex = /^app\.([\w]+\.)?js$/;
+    const scrapJsRegex = /^theme-.*\.js(\.gz|\.br|\.map)?$/;
+
+    let appCssFileName = null;
+    let vendorCssFileName = null;
+    let runtimeJsFileName = null;
+    let vendorJsFileName = null;
+    let appJsFileName = null;
 
     files.forEach(file => {
         // Delete the scrap javascript files that were used to bundle theme specific css files
         if (scrapJsRegex.test(file)) {
-            console.log('FILE', file);
-            fs.unlink(path.join(__dirname, `build/static/${file}`), (err) => {
-                if (err) throw err;
+            console.log('Deleting scrap theme JS:', file);
+            fs.unlink(path.join(__dirname, `build/static/${file}`), (unlinkErr) => {
+                if (unlinkErr) throw unlinkErr;
             });
         }
 
-        // Update view templates with the latest, hashed css file link
-        if (fileNameRegex.test(file)) {
-            // TODO: Loop through all files in src/views and update the css file name
-            const cssFileName = file.toString();
-            const fileToUpdate = path.join(__dirname, 'src/views/index.hbs');
-            replaceInFile(fileToUpdate, cssFileName);
-            const fileToUpdate2 = path.join(__dirname, 'src/views/spaces.hbs');
-            replaceInFile(fileToUpdate2, cssFileName);
-            const fileToUpdate3 = path.join(__dirname, 'src/views/moments.hbs');
-            replaceInFile(fileToUpdate3, cssFileName);
-            const fileToUpdate4 = path.join(__dirname, 'src/views/users.hbs');
-            replaceInFile(fileToUpdate4, cssFileName);
+        if (appCssRegex.test(file)) {
+            appCssFileName = file.toString();
         }
+
+        if (vendorCssRegex.test(file)) {
+            vendorCssFileName = file.toString();
+        }
+
+        if (runtimeJsRegex.test(file)) {
+            runtimeJsFileName = file.toString();
+        }
+
+        if (vendorJsRegex.test(file)) {
+            vendorJsFileName = file.toString();
+        }
+
+        if (appJsRegex.test(file)) {
+            appJsFileName = file.toString();
+        }
+    });
+
+    // Update all view templates in a single pass to avoid race conditions
+    viewFiles.forEach(viewFile => {
+        fs.readFile(viewFile, 'utf8', function (readErr, data) {
+            if (readErr) {
+                console.error(readErr);
+                process.exit(1);
+            }
+
+            let result = data;
+
+            if (appCssFileName) {
+                result = result.replace(/app[\w.]*\.css/g, appCssFileName);
+            }
+
+            if (vendorCssFileName) {
+                result = result.replace(/vendor[\w.]*\.css/g, vendorCssFileName);
+            }
+
+            // Replace JS filenames with hashed versions
+            // Use src="..." anchoring to avoid matching unrelated filenames
+            if (runtimeJsFileName) {
+                result = result.replace(/src="\/runtime[\w.]*\.js"/g, `src="/${runtimeJsFileName}"`);
+            }
+
+            if (vendorJsFileName) {
+                result = result.replace(/src="\/vendor[\w.]*\.js"/g, `src="/${vendorJsFileName}"`);
+            }
+
+            if (appJsFileName) {
+                result = result.replace(/src="\/app[\w.]*\.js"/g, `src="/${appJsFileName}"`);
+            }
+
+            fs.writeFile(viewFile, result, 'utf8', function (writeErr) {
+                if (writeErr) {
+                    console.error(writeErr);
+                    process.exit(1);
+                }
+                console.log('Success: asset paths updated in', path.basename(viewFile));
+            });
+        });
     });
 });
 /* eslint-enable */

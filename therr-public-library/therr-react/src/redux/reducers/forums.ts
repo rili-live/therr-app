@@ -1,62 +1,71 @@
-import Immutable from 'seamless-immutable';
+import { produce } from 'immer';
 import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import { ForumActionTypes, IForumsState } from '../../types/redux/forums';
 
-const initialState: IForumsState = Immutable.from({
-    activeForums: Immutable.from([]),
-    forumCategories: Immutable.from([]),
-    myForumsSearchResults: Immutable.from([]),
-    myForumsPagination: Immutable.from([]),
-    searchResults: Immutable.from([]),
-    pagination: Immutable.from({}),
-});
+const initialState: IForumsState = {
+    activeForums: [],
+    forumCategories: [],
+    forumDetails: {},
+    myForumsSearchResults: [],
+    myForumsPagination: [],
+    searchResults: [],
+    pagination: {},
+};
 
-const messages = (state: IForumsState = initialState, action: any) => {
-    // If state is initialized by server-side rendering, it may not be a proper immutable object yet
-    if (!state.setIn) {
-        state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
-    }
-
-    const modifiedSearchResults = [...state.searchResults];
-    const updatedGroupIdx = modifiedSearchResults.findIndex((group) => group.id === action.data?.id);
-
+const forums = produce((draft: IForumsState, action: any) => {
     switch (action.type) {
+        case ForumActionTypes.GET_FORUM_DETAILS:
+            draft.forumDetails[action.data.forumId] = action.data.forum;
+            break;
         case ForumActionTypes.CREATE_FORUM:
-            return state.setIn(['searchResults'], [
-                (action.data?.forum || action.data), // TODO: Cleanup this backwards compatibility hack
-                ...state.searchResults,
-            ]);
-        case ForumActionTypes.UPDATE_FORUM:
-            if (updatedGroupIdx > -1) {
-                modifiedSearchResults[updatedGroupIdx] = {
-                    ...modifiedSearchResults[updatedGroupIdx],
+            draft.searchResults.unshift(action.data?.forum || action.data);
+            break;
+        case ForumActionTypes.UPDATE_FORUM: {
+            const updateIdx = draft.searchResults.findIndex((group) => group.id === action.data?.id);
+            if (updateIdx > -1) {
+                draft.searchResults[updateIdx] = {
+                    ...draft.searchResults[updateIdx],
                     ...action.data,
                 };
             }
-
-            return state.setIn(['searchResults'], modifiedSearchResults);
-        case ForumActionTypes.DELETE_FORUM:
-            if (updatedGroupIdx > -1) {
-                modifiedSearchResults.splice(updatedGroupIdx, 1);
+            if (action.data?.id && draft.forumDetails[action.data.id]) {
+                draft.forumDetails[action.data.id] = {
+                    ...draft.forumDetails[action.data.id],
+                    ...action.data,
+                };
             }
-
-            return state.setIn(['searchResults'], modifiedSearchResults);
+            break;
+        }
+        case ForumActionTypes.DELETE_FORUM: {
+            const deleteIdx = draft.searchResults.findIndex((group) => group.id === action.data?.id);
+            if (deleteIdx > -1) {
+                draft.searchResults.splice(deleteIdx, 1);
+            }
+            break;
+        }
         case ForumActionTypes.SEARCH_FORUMS:
-            return state.setIn(['searchResults'], action.data.results)
-                .setIn(['pagination'], action.data.pagination);
+            draft.searchResults = action.data.results;
+            draft.pagination = action.data.pagination;
+            break;
+        case ForumActionTypes.SEARCH_MY_FORUMS:
+            draft.myForumsSearchResults = action.data.results;
+            draft.myForumsPagination = action.data.pagination;
+            break;
         case ForumActionTypes.SEARCH_FORUM_CATEGORIES:
-            return state.setIn(['forumCategories'], action.data.results);
+            draft.forumCategories = action.data.results;
+            break;
         case SocketServerActionTypes.SEND_ROOMS_LIST:
-            // Any time this action is called, the data will be a full forum list from the server
-            return state.setIn(['activeForums'], action.data);
+            draft.activeForums = action.data;
+            break;
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['myForumsSearchResults'], Immutable.from([]))
-                .setIn(['myForumsPagination'], Immutable.from([]))
-                .setIn(['searchResults'], Immutable.from([]))
-                .setIn(['pagination'], Immutable.from([]));
+            draft.myForumsSearchResults = [];
+            draft.myForumsPagination = [];
+            draft.searchResults = [];
+            draft.pagination = [];
+            break;
         default:
-            return state;
+            break;
     }
-};
+}, initialState);
 
-export default messages;
+export default forums;

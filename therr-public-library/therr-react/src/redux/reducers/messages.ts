@@ -1,77 +1,106 @@
-import Immutable from 'seamless-immutable';
+import { produce } from 'immer';
 import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
-import { IForumMsgList, IMessagesState, MessageActionTypes } from '../../types/redux/messages';
+import { IMessagesState, MessageActionTypes } from '../../types/redux/messages';
 
-const initialState: IMessagesState = Immutable.from({
-    forums: Immutable.from([]),
+const MAX_THREAD_MESSAGES = 200;
+
+const initialState: IMessagesState = {
+    forums: [],
     dms: {},
     myDMs: {},
     forumMsgs: {},
-});
+    hasUnreadDms: false,
+};
 
-const messages = (state: IMessagesState = initialState, action: any) => {
-    // If state is initialized by server-side rendering, it may not be a proper immutable object yet
-    if (!state.setIn) {
-        state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
-    }
-
-    let prevMessageList: any = [];
-    let prevDMsList: any = [];
-    let initialDMsList: any = [];
-
-    if (action.data?.roomId && action.data?.message) {
-        prevMessageList = state.forumMsgs[action.data.roomId]?.asMutable() || [];
-        prevMessageList.unshift(action.data.message);
-    }
-    const updatedMessageList: IForumMsgList = Immutable(prevMessageList);
-
-    if (action.data?.contextUserId) {
-        prevDMsList = (state.dms[action.data.contextUserId] // eslint-disable-line no-case-declarations
-            && state.dms[action.data.contextUserId].asMutable()) || [];
-        initialDMsList = action.data.messages || [];
-    }
-
+const messages = produce((draft: IMessagesState, action: any) => {
     switch (action.type) {
         // FORUMS
         case SocketServerActionTypes.JOINED_ROOM:
-            return state
-                .setIn(['forumMsgs', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.LEFT_ROOM:
-            return state.setIn(['forumMsgs', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.OTHER_JOINED_ROOM:
         case SocketServerActionTypes.SEND_MESSAGE:
-            return state.setIn(['forumMsgs', action.data.roomId], updatedMessageList);
-        case MessageActionTypes.GET_FORUM_MESSAGES:
-            return state.setIn(['forumMsgs', action.data.roomId], action.data.messages || []);
+            if (action.data?.roomId) {
+                if (!draft.forumMsgs[action.data.roomId]) {
+                    draft.forumMsgs[action.data.roomId] = [];
+                }
+                if (action.data?.message) {
+                    (draft.forumMsgs[action.data.roomId] as any[]).unshift(action.data.message);
+                }
+            }
+            break;
+        case MessageActionTypes.GET_FORUM_MESSAGES: {
+            const initialMsgsList = action.data.messages || [];
+            if (action.data.isLastPage && initialMsgsList.length) {
+                initialMsgsList[initialMsgsList.length - 1].isFirstMessage = true;
+            }
+            draft.forumMsgs[action.data.roomId] = initialMsgsList;
+            break;
+        }
+        case MessageActionTypes.GET_MORE_FORUM_MESSAGES: {
+            if (!draft.forumMsgs[action.data.roomId]) {
+                draft.forumMsgs[action.data.roomId] = [] as any;
+            }
+            const prevMsgs = draft.forumMsgs[action.data.roomId] as any[];
+            prevMsgs.push(...(action.data.messages || []));
+            if (prevMsgs.length > MAX_THREAD_MESSAGES) {
+                prevMsgs.splice(0, prevMsgs.length - MAX_THREAD_MESSAGES);
+            }
+            if (action.data.isLastPage && prevMsgs.length) {
+                prevMsgs[prevMsgs.length - 1].isFirstMessage = true;
+            }
+            break;
+        }
 
         // DMS
-        case MessageActionTypes.GET_DIRECT_MESSAGES:
-            if (action.data.isLastPage && initialDMsList?.length) {
+        case MessageActionTypes.GET_DIRECT_MESSAGES: {
+            const initialDMsList = action.data.messages || [];
+            if (action.data.isLastPage && initialDMsList.length) {
                 initialDMsList[initialDMsList.length - 1].isFirstMessage = true;
             }
-            return state.setIn(['dms', action.data.contextUserId], initialDMsList);
-        case MessageActionTypes.GET_MORE_DIRECT_MESSAGES:
-            prevDMsList.push(...(action.data.messages || []));
-            if (action.data.isLastPage) {
-                prevDMsList[prevDMsList.length - 1].isFirstMessage = true;
+            draft.dms[action.data.contextUserId] = initialDMsList;
+            break;
+        }
+        case MessageActionTypes.GET_MORE_DIRECT_MESSAGES: {
+            if (!draft.dms[action.data.contextUserId]) {
+                draft.dms[action.data.contextUserId] = [] as any;
             }
-            return state.setIn(['dms', action.data.contextUserId], prevDMsList);
+            const prevDMs = draft.dms[action.data.contextUserId] as any[];
+            prevDMs.push(...(action.data.messages || []));
+            if (prevDMs.length > MAX_THREAD_MESSAGES) {
+                prevDMs.splice(0, prevDMs.length - MAX_THREAD_MESSAGES);
+            }
+            if (action.data.isLastPage && prevDMs.length) {
+                prevDMs[prevDMs.length - 1].isFirstMessage = true;
+            }
+            break;
+        }
         case MessageActionTypes.GET_MY_DIRECT_MESSAGES:
-            return state.setIn(['myDMs'], action.data.results)
-                .setIn(['myDMsPagination'], { ...action.data.pagination });
+            draft.myDMs = action.data.results;
+            draft.myDMsPagination = { ...action.data.pagination };
+            break;
         case MessageActionTypes.GET_MORE_OF_MY_DIRECT_MESSAGES:
-            return state.setIn(['myDMs'], [...state.myDMs, ...action.data.results])
-                .setIn(['myDMsPagination'], { ...action.data.pagination });
-        case SocketServerActionTypes.SEND_DIRECT_MESSAGE:
-            prevDMsList.unshift(action.data.message);
-            return state.setIn(['dms', action.data.contextUserId], prevDMsList);
+            draft.myDMs = [...draft.myDMs, ...action.data.results];
+            draft.myDMsPagination = { ...action.data.pagination };
+            break;
+        case SocketServerActionTypes.SEND_DIRECT_MESSAGE: {
+            if (!draft.dms[action.data.contextUserId]) {
+                draft.dms[action.data.contextUserId] = [] as any;
+            }
+            (draft.dms[action.data.contextUserId] as any[]).unshift(action.data.message);
+            draft.hasUnreadDms = true;
+            break;
+        }
+        case MessageActionTypes.MARK_DMS_READ:
+            draft.hasUnreadDms = false;
+            break;
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['forums'], Immutable.from([]))
-                .setIn(['dms'], Immutable.from([]))
-                .setIn(['forumMsgs'], Immutable.from([]));
+            draft.forums = [];
+            draft.dms = {};
+            draft.forumMsgs = {};
+            break;
         default:
-            return state;
+            break;
     }
-};
+}, initialState);
 
 export default messages;

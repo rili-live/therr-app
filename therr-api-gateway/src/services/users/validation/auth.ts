@@ -1,7 +1,7 @@
 import {
     body,
     oneOf,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 
 export const authenticateUserTokenValidation = [
     body('idToken').exists().isString(),

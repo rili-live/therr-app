@@ -57,6 +57,32 @@ const createSpaceMetric = async (req, res) => {
         });
     }
 
+    // For check-in requests, enforce server-side proximity validation.
+    // This prevents users from manually appending ?checkin=true (or calling the API directly)
+    // to earn rewards without being physically present.
+    const isCheckIn = reqPath.includes('/check-in');
+    const hasLocation = latitude != null && longitude != null;
+    let locationVerified = false;
+
+    if (isCheckIn && spaceId) {
+        if (hasLocation) {
+            // 120 m matches the mobile app's MAX_DISTANCE_TO_NEARBY_SPACE constant.
+            const CHECKIN_MAX_DISTANCE_METERS = 120;
+            const isNearby = await Store.spaces.isWithinCheckinDistance(spaceId, latitude, longitude, CHECKIN_MAX_DISTANCE_METERS);
+            if (!isNearby) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'spaces.tooFarToCheckIn'),
+                    statusCode: 403,
+                    errorCode: ErrorCodes.LOCATION_REQUIRED,
+                });
+            }
+            locationVerified = true;
+        }
+        // No location: metric is still recorded (counts for foot-traffic analytics)
+        // but coin reward is withheld — physical QR presence is a soft signal only.
+    }
+
     const params = spaceIds ? spaceIds.map((id) => ({
         // Security measure to ensure this endpoint isn't used to hijack the private metrics create route
         name: reqPath.includes('/check-in') ? MetricNames.SPACE_USER_CHECK_IN : name,
@@ -85,7 +111,9 @@ const createSpaceMetric = async (req, res) => {
         },
     }];
 
-    const rewardUserPromise = (spaceId && space.fromUserId && name === MetricNames.SPACE_USER_CHECK_IN && userId !== space.fromUserId)
+    // Only reward coins when location was verified server-side. QR check-ins without
+    // location still record the metric but do not transfer coins.
+    const rewardUserPromise = (spaceId && space.fromUserId && name === MetricNames.SPACE_USER_CHECK_IN && userId !== space.fromUserId && locationVerified)
         ? internalRestRequest({
             headers: req.headers,
         }, { // Create companion reaction for user's own moment

@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { NavigateFunction } from 'react-router-dom';
-import {
-    ButtonPrimary,
-    SvgButton,
-} from 'therr-react/components';
+import { InlineSvg, SvgButton } from 'therr-react/components';
+import { MantineButton } from 'therr-react/components/mantine';
 import {
     NotificationActions,
     UserConnectionsActions,
@@ -12,9 +10,19 @@ import {
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
+import * as globalConfig from '../../../../global-config';
 import Notification from './Notification';
-import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
+import withTranslation from '../../wrappers/withTranslation';
+import shareMomentAnim from '../../assets/lottie/share-a-moment.json';
+import discoverAnim from '../../assets/lottie/discover.json';
+import thinkerAnim from '../../assets/lottie/thinker-card.json';
+import profileCirclingAnim from '../../assets/lottie/profile-circling.json';
+
+// Lazy-load lottie-react only on client (lottie-web crashes on server due to document.createElement)
+const Lottie = typeof window !== 'undefined'
+    ? React.lazy(() => import('lottie-react'))
+    : (() => null) as any;
 
 interface IUserMenuRouterProps {
     navigation: {
@@ -37,6 +45,7 @@ interface IUserMenuProps extends IUserMenuRouterProps, IStoreProps {
     handleLogout: any;
     handleWidthResize: Function;
     toggleNavMenu: Function;
+    translate: (key: string, params?: any) => string;
 }
 
 interface IUserMenuState {
@@ -54,16 +63,12 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenuState> {
-    private translate: Function;
-
     constructor(props) {
         super(props);
 
         this.state = {
             activeTab: 'notifications',
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     handleTabSelect = (e, tabName) => {
@@ -71,11 +76,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             activeTab: tabName,
         });
 
-        if (tabName === 'location') {
-            this.props.handleWidthResize(true);
-        } else {
-            this.props.handleWidthResize(false);
-        }
+        this.props.handleWidthResize(false);
     };
 
     handleConnectionRequestAction = (e, notification, isAccepted) => {
@@ -93,7 +94,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             requestStatus: isAccepted ? UserConnectionTypes.COMPLETE : UserConnectionTypes.DENIED,
         };
 
-        this.markNotificationAsRead(e, notification, updatedUserConnection);
+        this.toggleNotificationRead(e, notification, updatedUserConnection);
 
         updateUserConnection({
             connection: {
@@ -103,23 +104,38 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         });
     };
 
-    markNotificationAsRead = (event, notification, userConnection?: any) => {
-        if (notification.isUnread || userConnection) {
-            const { updateNotification, user } = this.props;
+    toggleNotificationRead = (event, notification, userConnection?: any) => {
+        const { updateNotification, user } = this.props;
 
-            const message = {
+        const message = {
+            notification: {
+                ...notification,
+                isUnread: !notification.isUnread,
+            },
+            userName: user.details.userName,
+        };
+
+        if (userConnection) {
+            message.notification.isUnread = false;
+            message.notification.userConnection = userConnection;
+        }
+
+        updateNotification(message);
+    };
+
+    markAllNotificationsAsRead = () => {
+        const { notifications, updateNotification, user } = this.props;
+        const unreadNotifications = notifications.messages.filter((n) => n.isUnread);
+
+        unreadNotifications.forEach((notification) => {
+            updateNotification({
                 notification: {
                     ...notification,
                     isUnread: false,
                 },
                 userName: user.details.userName,
-            };
-
-            if (userConnection) {
-                message.notification.userConnection = userConnection;
-            }
-            updateNotification(message);
-        }
+            });
+        });
     };
 
     navigate = (destination) => (e) => {
@@ -131,45 +147,140 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             case 'view-profile':
                 return this.props.navigation.navigate('/user/profile');
             case 'edit-profile':
-                return this.props.navigation.navigate('/user/profile');
+                return this.props.navigation.navigate('/user/edit-profile');
+            case 'discovered':
+                return this.props.navigation.navigate('/discovered');
+            case 'bookmarks':
+                return this.props.navigation.navigate('/bookmarks');
+            case 'explore':
+                return this.props.navigation.navigate('/explore');
+            case 'explore-moments':
+                return this.props.navigation.navigate('/posts/moments');
+            case 'explore-spaces':
+                return this.props.navigation.navigate('/locations');
+            case 'explore-thoughts':
+                return this.props.navigation.navigate('/posts/thoughts');
+            case 'explore-people':
+                return this.props.navigation.navigate('/users');
             default:
         }
     };
 
+    navigateToDashboard = () => {
+        const { user } = this.props;
+        const { details, settings } = user;
+        const refreshToken = settings?.rememberMe
+            ? localStorage.getItem('therrRefreshToken')
+            : sessionStorage.getItem('therrRefreshToken');
+
+        const params = new URLSearchParams({
+            token: details.idToken || '',
+            userId: details.id || '',
+            email: details.email || '',
+            fn: details.firstName || '',
+            ln: details.lastName || '',
+            un: details.userName || '',
+            al: JSON.stringify(details.accessLevels || []),
+            rm: settings?.rememberMe ? '1' : '0',
+            ...(refreshToken ? { rt: refreshToken } : {}),
+        });
+
+        const dashboardUrl = `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/sso?${params.toString()}`;
+        window.open(dashboardUrl, '_blank', 'noopener');
+    };
+
+    isBusinessUser = () => !!this.props.user.details.isBusinessAccount;
+
     renderProfileContent = () => (
         <>
-            <h2>{this.translate('components.userMenu.h2.profileSettings')}</h2>
+            <div className="tab-content-header">
+                <h2>{this.props.translate('components.userMenu.h2.profileSettings')}</h2>
+            </div>
             <div className="profile-settings-menu">
-                <ButtonPrimary
+                {
+                    this.isBusinessUser() && <MantineButton
+                        id="nav_menu_business_dashboard"
+                        className="menu-item left-icon"
+                        leftSection={<InlineSvg name="dashboard" />}
+                        text={this.props.translate('components.userMenu.buttons.businessDashboard')}
+                        onClick={this.navigateToDashboard}
+                        variant="subtle"
+                        fullWidth
+                    />
+                }
+                <MantineButton
                     id="nav_menu_view_profile"
-                    className="menu-item"
-                    name={this.translate('components.userMenu.buttons.viewProfile')}
-                    text={this.translate('components.userMenu.buttons.viewProfile')} onClick={this.navigate('view-profile')} buttonType="primary" />
-                <ButtonPrimary
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="account" />}
+                    text={this.props.translate('components.userMenu.buttons.viewProfile')}
+                    onClick={this.navigate('view-profile')}
+                    variant="subtle"
+                    fullWidth
+                />
+                <MantineButton
                     id="nav_menu_edit_profile"
-                    className="menu-item"
-                    name={this.translate('components.userMenu.buttons.editProfile')}
-                    text={this.translate('components.userMenu.buttons.editProfile')} onClick={this.navigate('edit-profile')} buttonType="primary" />
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="settings" />}
+                    text={this.props.translate('components.userMenu.buttons.editProfile')}
+                    onClick={this.navigate('edit-profile')}
+                    variant="subtle"
+                    fullWidth
+                />
+                <MantineButton
+                    id="nav_menu_discovered"
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="bookmark" />}
+                    text={this.props.translate('components.userMenu.buttons.discovered')}
+                    onClick={this.navigate('discovered')}
+                    variant="subtle"
+                    fullWidth
+                />
+                <MantineButton
+                    id="nav_menu_bookmarks"
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="bookmark" />}
+                    text={this.props.translate('components.userMenu.buttons.bookmarks')}
+                    onClick={this.navigate('bookmarks')}
+                    variant="subtle"
+                    fullWidth
+                />
             </div>
         </>
     );
 
     renderNotificationsContent = () => {
         const { notifications } = this.props;
+        const hasUnread = notifications.messages.some((n) => n.isUnread);
 
         return (
             <>
-                <h2>{this.translate('components.userMenu.h2.notifications')}</h2>
+                <div className="tab-content-header notifications-header">
+                    <h2>{this.props.translate('components.userMenu.h2.notifications')}</h2>
+                    {hasUnread && (
+                        <MantineButton
+                            id="mark_all_read"
+                            className="mark-all-read-button"
+                            text={this.props.translate('components.userMenu.buttons.markAllRead')}
+                            onClick={this.markAllNotificationsAsRead}
+                            variant="subtle"
+                            size="xs"
+                        />
+                    )}
+                </div>
                 <div className="notifications">
                     {
-                        notifications.messages.map((n: INotification) => (
-                            <Notification
-                                key={n.id}
-                                handleSetRead={this.markNotificationAsRead}
-                                handleConnectionRequestAction={this.handleConnectionRequestAction}
-                                notification={n}
-                            />
-                        ))
+                        notifications.messages.length
+                            ? notifications.messages.map((n: INotification) => (
+                                <Notification
+                                    key={n.id}
+                                    handleSetRead={this.toggleNotificationRead}
+                                    handleConnectionRequestAction={this.handleConnectionRequestAction}
+                                    notification={n}
+                                />
+                            ))
+                            : <p className="notifications-empty-text">
+                                {this.props.translate('components.userMenu.noNotifications')}
+                            </p>
                     }
                 </div>
             </>
@@ -178,20 +289,94 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
     renderAccountContent = () => (
         <>
-            <h2>{this.translate('components.userMenu.h2.accountSettings')}</h2>
+            <div className="tab-content-header">
+                <h2>{this.props.translate('components.userMenu.h2.accountSettings')}</h2>
+            </div>
             <div className="account-settings-menu">
-                <ButtonPrimary
+                <MantineButton
                     id="nav_menu_change_password"
-                    className="menu-item"
-                    name={this.translate('components.userMenu.buttons.changePassword')}
-                    text={this.translate('components.userMenu.buttons.changePassword')} onClick={this.navigate('change-password')} buttonType="primary" />
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="door" />}
+                    text={this.props.translate('components.userMenu.buttons.changePassword')}
+                    onClick={this.navigate('change-password')}
+                    variant="subtle"
+                    fullWidth
+                />
             </div>
         </>
     );
 
     renderLocationContent = () => (
         <>
-            <h2>{this.translate('components.userMenu.h2.locationMap')}</h2>
+            <div className="tab-content-header">
+                <h2>{this.props.translate('components.userMenu.h2.locationMap')}</h2>
+            </div>
+            <div className="explore-nav-grid">
+                <button
+                    type="button"
+                    id="nav_menu_explore_moments"
+                    className="explore-nav-tile"
+                    onClick={this.navigate('explore-moments')}
+                >
+                    <div className="explore-nav-tile-lottie">
+                        <React.Suspense fallback={<div style={{ width: 52, height: 52 }} />}>
+                            <Lottie animationData={shareMomentAnim} loop autoplay style={{ width: 52, height: 52 }} />
+                        </React.Suspense>
+                    </div>
+                    <span className="explore-nav-tile-title">{this.props.translate('components.userMenu.buttons.exploreMoments')}</span>
+                    <span className="explore-nav-tile-desc">{this.props.translate('components.userMenu.exploreDescriptions.moments')}</span>
+                </button>
+                <button
+                    type="button"
+                    id="nav_menu_explore_spaces"
+                    className="explore-nav-tile"
+                    onClick={this.navigate('explore-spaces')}
+                >
+                    <div className="explore-nav-tile-lottie">
+                        <React.Suspense fallback={<div style={{ width: 52, height: 52 }} />}>
+                            <Lottie animationData={discoverAnim} loop autoplay style={{ width: 52, height: 52 }} />
+                        </React.Suspense>
+                    </div>
+                    <span className="explore-nav-tile-title">{this.props.translate('components.userMenu.buttons.exploreSpaces')}</span>
+                    <span className="explore-nav-tile-desc">{this.props.translate('components.userMenu.exploreDescriptions.spaces')}</span>
+                </button>
+                <button
+                    type="button"
+                    id="nav_menu_explore_thoughts"
+                    className="explore-nav-tile"
+                    onClick={this.navigate('explore-thoughts')}
+                >
+                    <div className="explore-nav-tile-lottie">
+                        <React.Suspense fallback={<div style={{ width: 52, height: 52 }} />}>
+                            <Lottie animationData={thinkerAnim} loop autoplay style={{ width: 52, height: 52 }} />
+                        </React.Suspense>
+                    </div>
+                    <span className="explore-nav-tile-title">{this.props.translate('components.userMenu.buttons.exploreThoughts')}</span>
+                    <span className="explore-nav-tile-desc">{this.props.translate('components.userMenu.exploreDescriptions.thoughts')}</span>
+                </button>
+                <button
+                    type="button"
+                    id="nav_menu_explore_people"
+                    className="explore-nav-tile"
+                    onClick={this.navigate('explore-people')}
+                >
+                    <div className="explore-nav-tile-lottie">
+                        <React.Suspense fallback={<div style={{ width: 52, height: 52 }} />}>
+                            <Lottie animationData={profileCirclingAnim} loop autoplay style={{ width: 52, height: 52 }} />
+                        </React.Suspense>
+                    </div>
+                    <span className="explore-nav-tile-title">{this.props.translate('components.userMenu.buttons.explorePeople')}</span>
+                    <span className="explore-nav-tile-desc">{this.props.translate('components.userMenu.exploreDescriptions.people')}</span>
+                </button>
+            </div>
+            <MantineButton
+                id="nav_menu_explore_all"
+                className="explore-nav-view-all"
+                text={this.props.translate('components.userMenu.buttons.explore')}
+                onClick={this.navigate('explore')}
+                variant="light"
+                fullWidth
+            />
         </>
     );
 
@@ -265,7 +450,15 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 {
                     activeTab === 'account'
                         && <div className="nav-menu-subfooter">
-                            <button type="button" className="primary text-white logout-button" onClick={handleLogout}>Logout</button>
+                            <MantineButton
+                                id="nav_menu_logout"
+                                className="menu-item left-icon"
+                                leftSection={<InlineSvg name="door" />}
+                                text={this.props.translate('components.userMenu.buttons.logout')}
+                                onClick={handleLogout}
+                                variant="subtle"
+                                fullWidth
+                            />
                         </div>
                 }
                 <div className="nav-menu-footer">
@@ -276,4 +469,4 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(UserMenuComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(UserMenuComponent)));

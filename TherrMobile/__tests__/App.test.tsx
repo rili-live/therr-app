@@ -25,7 +25,8 @@ jest.mock('@react-native-firebase/app', () => ({
 }));
 
 // Mock Firebase analytics
-jest.mock('@react-native-firebase/analytics', () => () => ({
+jest.mock('@react-native-firebase/analytics', () => ({
+    getAnalytics: jest.fn(() => ({})),
     setAnalyticsCollectionEnabled: jest.fn(),
     logEvent: jest.fn(),
     setUserId: jest.fn(),
@@ -40,7 +41,6 @@ jest.mock('@logrocket/react-native', () => ({
 
 // Mock react-native-maps
 jest.mock('react-native-maps', () => ({
-    enableLatestRenderer: jest.fn(),
     default: 'MapView',
     Marker: 'Marker',
     Polyline: 'Polyline',
@@ -79,6 +79,18 @@ jest.mock('react-native-spotlight-tour', () => ({
 // Mock react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => ({
     GestureHandlerRootView: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock @react-native-community/netinfo
+jest.mock('@react-native-community/netinfo', () => ({
+    __esModule: true,
+    default: {
+        addEventListener: jest.fn(() => jest.fn()),
+        fetch: jest.fn(() => Promise.resolve({ isConnected: true, isInternetReachable: true })),
+        configure: jest.fn(),
+    },
+    addEventListener: jest.fn(() => jest.fn()),
+    fetch: jest.fn(() => Promise.resolve({ isConnected: true, isInternetReachable: true })),
 }));
 
 // Mock the Layout component to avoid having to mock all the native modules it imports
@@ -163,7 +175,6 @@ describe('App', () => {
         let component: renderer.ReactTestRenderer;
 
         await act(async () => {
-            // @ts-expect-error - React type mismatch between test-renderer and App component
             component = renderer.create(<App />);
         });
 

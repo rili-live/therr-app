@@ -13,6 +13,7 @@ module.exports = {
         'therr-styles/(.*)': '<rootDir>../therr-styles/$1',
     },
     rootDir: './',
+    testEnvironment: 'jsdom',
     setupFiles: [],
     setupFilesAfterEnv: ['./test-setup.ts'],
     testEnvironmentOptions: {

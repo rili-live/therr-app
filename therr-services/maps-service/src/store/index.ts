@@ -1,4 +1,5 @@
 import connection, { IConnection } from './connection';
+import CityWikiCacheStore from './CityWikiCacheStore';
 import EventsStore from './EventsStore';
 import ExternalMediaIntegrationsStore from './ExternalMediaIntegrationsStore';
 import MediaStore from './MediaStore';
@@ -7,9 +8,13 @@ import SpacesStore from './SpacesStore';
 import SpaceMetricsStore from './SpaceMetricsStore';
 import SpaceIncentivesStore from './SpaceIncentivesStore';
 import SpaceIncentiveCouponsStore from './SpaceIncentiveCouponsStore';
+import SpacePairingFeedbackStore from './SpacePairingFeedbackStore';
+import SpaceDisplayRequestsStore from './SpaceDisplayRequestsStore';
 
 class Store {
     db: IConnection;
+
+    cityWikiCache: CityWikiCacheStore;
 
     events: EventsStore;
 
@@ -27,8 +32,14 @@ class Store {
 
     spaceIncentiveCoupons: SpaceIncentiveCouponsStore;
 
+    spacePairingFeedback: SpacePairingFeedbackStore;
+
+    spaceDisplayRequests: SpaceDisplayRequestsStore;
+
     constructor(dbConnection) {
         this.db = dbConnection;
+
+        this.cityWikiCache = new CityWikiCacheStore(this.db);
 
         this.externalMediaIntegrations = new ExternalMediaIntegrationsStore(this.db);
 
@@ -45,6 +56,10 @@ class Store {
         this.spaceIncentives = new SpaceIncentivesStore(this.db);
 
         this.spaceIncentiveCoupons = new SpaceIncentiveCouponsStore(this.db);
+
+        this.spacePairingFeedback = new SpacePairingFeedbackStore(this.db);
+
+        this.spaceDisplayRequests = new SpaceDisplayRequestsStore(this.db);
     }
 }
 

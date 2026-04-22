@@ -4,6 +4,7 @@
 // Root level components
 const miscellaneousComponents = [
     'components/index',
+    'components/mantine/index',
 ];
 
 // Forms
@@ -25,6 +26,7 @@ const constants = [
 const redux = [
     'redux/actions/index',
     'redux/reducers/index',
+    'redux/persistConfig',
 ];
 
 // Services
@@ -38,10 +40,16 @@ const types = [
     'types/redux/index',
 ];
 
+// Utilities
+const utilities = [
+    'utilities/cacheHelpers',
+];
+
 module.exports = {
     components: miscellaneousComponents.concat(formComponents).concat(routingComponents),
     constants,
     redux,
     services,
     types,
+    utilities,
 };
