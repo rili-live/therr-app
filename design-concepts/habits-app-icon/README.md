@@ -27,8 +27,19 @@ Preview PNGs are 512×512 rasters in [`previews/`](./previews), generated
 from each SVG via `cairosvg`:
 
 ```bash
-python3 -c "import cairosvg; [cairosvg.svg2png(url=f'{n}.svg', write_to=f'previews/{n}.png', output_width=512, output_height=512) for n in ['concept-1-pact-rings','concept-2-streak-flame','concept-3-h-bond','concept-4-daily-check-duo','concept-5-chameleon','concept-6-chameleon-pip','concept-7-chameleon-sage','concept-8-chameleon-echo','concept-9-chameleon-sage-v2']]"
+python3 -c "import cairosvg; [cairosvg.svg2png(url=f'{n}.svg', write_to=f'previews/{n}.png', output_width=512, output_height=512) for n in ['concept-1-pact-rings','concept-2-streak-flame','concept-3-h-bond','concept-4-daily-check-duo','concept-5-chameleon','concept-6-chameleon-pip','concept-7-chameleon-sage','concept-8-chameleon-echo','concept-9-chameleon-sage-v2','concept-10-chameleon-sage-v3']]"
 ```
+
+### Current direction — Sage v3 ([preview](./previews/concept-10-chameleon-sage-v3.png))
+
+10. **`concept-10-chameleon-sage-v3.svg` — "Sage v3"**
+    Final tuning pass over v2: corner radius bumped 80 → 130 (softer
+    triangle, rounder apex), eyes raised 37px and enlarged, eye centers
+    pulled inward for tighter fusion with the head silhouette, pupils
+    drift inward for the independent-eye chameleon look, secondary
+    highlight added to each eye, forehead stripe tapered instead of
+    straight, nostrils raised to match the new eye line, smile slightly
+    widened and softened.
 
 ### Current direction — Sage v2 ([preview](./previews/concept-9-chameleon-sage-v2.png))
 
