@@ -504,29 +504,39 @@ class UsersActions {
         (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
         (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
 
+        // Only sync settings back to Redux when the request actually touched a settings field.
+        // Narrow writes (e.g. deviceMobileFirebaseToken from the FCM registration, hasAgreedToTerms,
+        // lastKnown{Lat,Lng}) race with user-initiated settings saves: their RETURNING * can reflect
+        // pre-commit state of the concurrent settings write and silently revert the Redux slice
+        // (e.g. a theme change that flashes dark and snaps back to light).
+        const requestKeys = Object.keys(data || {});
+        const touchedSettings = requestKeys.some((key) => key.startsWith('settings'));
+        const dispatchData: any = {
+            details: {
+                accessLevels,
+                blockedUsers,
+                email,
+                id,
+                hasAgreedToTerms,
+                isBusinessAccount,
+                isCreatorAccount,
+                isSuperUser,
+                shouldHideMatureContent,
+                firstName,
+                lastName,
+                phoneNumber,
+                userName,
+                media,
+            },
+        };
+        if (touchedSettings) {
+            dispatchData.settings = {
+                ...userSettingsData,
+            };
+        }
         dispatch({
             type: SocketClientActionTypes.UPDATE_USER,
-            data: {
-                details: {
-                    accessLevels,
-                    blockedUsers,
-                    email,
-                    id,
-                    hasAgreedToTerms,
-                    isBusinessAccount,
-                    isCreatorAccount,
-                    isSuperUser,
-                    shouldHideMatureContent,
-                    firstName,
-                    lastName,
-                    phoneNumber,
-                    userName,
-                    media,
-                },
-                settings: {
-                    ...userSettingsData,
-                },
-            },
+            data: dispatchData,
         });
         return {
             email,

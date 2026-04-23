@@ -273,6 +273,16 @@ export default [
         view: 'index',
     },
     {
+        route: '/lists/:ownerUserId/:listSlug',
+        head: {
+            // Per-list title/description are injected by server-client.tsx
+            // `renderPublicListView` from the fetched list data.
+            title: 'Public List',
+            description: 'A public list of places on Therr.',
+        },
+        view: 'public-list',
+    },
+    {
         route: '/go-mobile',
         head: {
             title: 'Your Local Hub',

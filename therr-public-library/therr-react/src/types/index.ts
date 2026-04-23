@@ -45,6 +45,10 @@ import {
     IUserConnectionsState,
     UserConnectionActionTypes,
 
+    // Network
+    INetworkState,
+    NetworkActionTypes,
+
     // User Interface
     IUserInterfaceState,
     UserInterfaceActionTypes,
@@ -127,6 +131,10 @@ export {
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
+
+    // Network
+    INetworkState,
+    NetworkActionTypes,
 
     // User Interface
     IUserInterfaceState,

@@ -16,6 +16,8 @@ export const buildEventUrl = (locale: string, id: string) => buildShareUrl(local
 export const buildInviteUrl = (locale: string, userName: string) => buildShareUrl(locale, `/invite/${userName}`);
 export const buildUserUrl = (locale: string, id: string) => buildShareUrl(locale, `/users/${id}`);
 export const buildGroupUrl = (locale: string, id: string) => buildShareUrl(locale, `/groups/${id}`);
+export const buildPublicListUrl = (locale: string, ownerUserId: string, listSlug: string) =>
+    buildShareUrl(locale, `/lists/${ownerUserId}/${listSlug}`);
 
 export type ShareableEntityType = 'user' | 'space' | 'event' | 'group';
 

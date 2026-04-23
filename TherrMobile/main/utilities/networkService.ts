@@ -1,5 +1,5 @@
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
-import { NetworkActionTypes } from 'therr-react/types/redux/network';
+import { NetworkActionTypes } from 'therr-react/types';
 
 let unsubscribe: (() => void) | null = null;
 
