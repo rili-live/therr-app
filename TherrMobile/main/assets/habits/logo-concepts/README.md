@@ -16,23 +16,30 @@ Brand palette used (see `TherrMobile/main/styles/themes/*/colors.ts`):
 
 ## The concepts
 
-1. **`concept-1-pact-rings.svg` — "The Pact"**
+Preview PNGs live in [`previews/`](./previews) — 512×512 rasters generated
+from the SVGs via `cairosvg`. Regenerate them after edits with:
+
+```bash
+python3 -c "import cairosvg; [cairosvg.svg2png(url=f'{n}.svg', write_to=f'previews/{n}.png', output_width=512, output_height=512) for n in ['concept-1-pact-rings','concept-2-streak-flame','concept-3-h-bond','concept-4-daily-check-duo']]"
+```
+
+1. **`concept-1-pact-rings.svg` — "The Pact"** ([preview](./previews/concept-1-pact-rings.png))
    Two interlocked chain-link rings (white + orange) on the teal brand
    background. Most literal expression of the core mantra *"No pact without
    a partner."* Reads clearly at small sizes.
 
-2. **`concept-2-streak-flame.svg` — "Shared Streak"**
+2. **`concept-2-streak-flame.svg` — "Shared Streak"** ([preview](./previews/concept-2-streak-flame.png))
    A two-tone flame (teal + orange halves) with a white inner core. Speaks
    to the streak mechanic and the fact that the streak only stays lit
    because two people feed it. Darker background gives it strong visual
    contrast on a home screen.
 
-3. **`concept-3-h-bond.svg` — "H-Bond"**
+3. **`concept-3-h-bond.svg` — "H-Bond"** ([preview](./previews/concept-3-h-bond.png))
    Typographic — a stylised `H` whose crossbar is a chain-link. Doubles as
    the letter *H* for *Habits* and a *bond* between two strokes. Feels the
    most "product / brand mark" of the four.
 
-4. **`concept-4-daily-check-duo.svg` — "Daily Check Duo"**
+4. **`concept-4-daily-check-duo.svg` — "Daily Check Duo"** ([preview](./previews/concept-4-daily-check-duo.png))
    Progress ring + checkmark (today's habit done) with two partner dots
    linked at the base. Most literal / illustrative; very legible at tiny
    sizes but less distinctive as a mark.
