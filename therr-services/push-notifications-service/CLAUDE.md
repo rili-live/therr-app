@@ -1,5 +1,8 @@
 # Claude Code Instructions - Push Notifications Service
 
+> ⚠️ **Shared code — only edit from the `general` branch. Niche branches cannot deploy.**
+> Changes under `therr-services/` committed to a `niche/*` branch will never reach production. See root `CLAUDE.md` → "Deployment reality".
+
 ## Service Overview
 
 - **Port**: 7775

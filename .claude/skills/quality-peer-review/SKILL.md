@@ -67,7 +67,60 @@ Stop immediately. Do not proceed.
 git branch --show-current 2>&1
 ```
 
-If the current branch is not `general`, warn the user:
+#### 1a-i: Hard-fail if on a niche branch with backend/shared-library changes
+
+If the current branch matches `niche/*`, this review cannot proceed in its normal form. `niche/*` branches never deploy to production (no CI path to `main`), and the critical purpose of this review is validating deployable changes. Before failing, check whether the branch contains changes that **must** live on `general` to ever reach production.
+
+Inspect the diff paths vs `origin/general` (committed, staged, and unstaged):
+
+```bash
+git fetch origin general 2>&1
+git diff origin/general --name-only 2>&1
+git status --short 2>&1
+```
+
+Union the file lists. Consider the review **blocked** if any path matches any of:
+
+- `therr-services/**`
+- `therr-api-gateway/**`
+- `therr-public-library/**` (i.e. `therr-js-utilities`, `therr-react`, `therr-styles`)
+- `**/migrations/**`
+- `**/db/migrations/**`
+- `**/*.sql`
+- Root-level `package.json`, `package-lock.json`, `docker-compose*.yml`, `_bin/**`
+
+If **any** path matches, STOP with a hard failure. Do not continue to Step 1b or any later step:
+
+```
+⛔ Backend change on niche branch — will not deploy.
+
+   You are on '<branch>', which has no CI path to production.
+   The following files must live on 'general' (which flows general → stage → main)
+   to ever ship, but they are currently only on this niche branch:
+
+     <list of offending paths, one per line>
+
+   /quality-peer-review cannot proceed here. Use the split-commit workflow:
+
+     1. Switch to general:        git checkout general
+     2. Pull latest:              git pull origin general
+     3. Cherry-pick clean backend commits, OR apply backend changes as new commits on general.
+        (If the offending work is mixed with niche UI in the same commit, split it first —
+         see /quality-peer-review-niche, which detects and remediates this automatically.)
+     4. Commit backend work on general, then:
+          git checkout <niche-branch> && git merge general
+     5. Continue any niche-only (TherrMobile/**, therr-client-web/**, brand assets) work
+        as separate commits on the niche branch.
+
+   For a guided remediation, run /quality-peer-review-niche on this branch —
+   it will identify clean backend commits and cherry-pick them to general for you.
+```
+
+After printing the failure, exit the skill without running any tests, lint, or further diff analysis.
+
+#### 1a-ii: Warn if on any other non-general, non-niche branch
+
+If the current branch is neither `general` nor `niche/*` (e.g. a feature branch, `stage`, `main`), warn the user:
 ```
 ⚠ You are on '<branch>', not 'general'.
   /quality-peer-review is designed to run on the local general branch.

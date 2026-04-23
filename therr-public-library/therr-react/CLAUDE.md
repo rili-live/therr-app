@@ -1,5 +1,8 @@
 # Claude Code Instructions - therr-react
 
+> ⚠️ **Shared code — only edit from the `general` branch. Niche branches cannot deploy.**
+> Changes under `therr-public-library/` committed to a `niche/*` branch will never reach production. See root `CLAUDE.md` → "Deployment reality".
+
 ## Package Overview
 
 - **Type**: Shared React library

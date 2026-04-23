@@ -18,6 +18,46 @@ Before making code changes, check the current git branch name:
 
 This prevents accidentally putting shared code in niche-specific branches or vice versa.
 
+### Deployment reality (read this before editing)
+
+**`niche/*` branches NEVER deploy to production.** There is no CI path from a niche branch to `main`. Only the `general → stage → main` chain deploys. Any code committed only to `niche/*` is dead code — it will run locally, it will show in diffs, it will never run in production.
+
+Because of this, the following paths **MUST** land on `general` (not on any niche branch) to ever ship:
+
+- `therr-services/**` — all backend microservices
+- `therr-api-gateway/**` — public API entry point
+- `therr-public-library/**` — shared libraries (`therr-js-utilities`, `therr-react`, `therr-styles`)
+- `**/migrations/**` and `**/*.sql` — database schema changes
+- Root `package.json`, `package-lock.json`, `docker-compose*.yml`, `_bin/**` — shared infrastructure
+
+These paths belong on `niche/*` branches only when the change is genuinely variant-specific AND the variant has its own deploy pipeline (which today **does not exist** for any niche). In practice: treat the list above as "general-only" without exception.
+
+The following paths may stay on a `niche/*` branch:
+
+- `TherrMobile/**` — mobile UI, screens, navigation, brand-specific components
+- `therr-client-web/**` and `therr-client-web-dashboard/**` — web UI changes scoped to a single brand
+- Brand assets (icons, splash screens, marketing copy), `brandConfig.ts`, Firebase/Google Services files for the variant
+- Locale strings that only the niche app renders
+
+**When a task touches both**, split the work:
+1. Switch to `general`, make the shared/backend commit(s) there first.
+2. Merge `general` into the niche branch (`git checkout niche/<TAG>-general && git merge general`).
+3. On the niche branch, commit the niche-only piece as a separate commit.
+
+Never fix this after the fact with a cherry-pick from niche to general unless the niche commit is **purely** backend/shared — mixed commits cannot be split cleanly once pushed. Do it in the right order the first time.
+
+### Commit separation (non-negotiable)
+
+Each commit must be landable on a single branch. That means:
+
+- **Never mix backend and frontend in one commit.** A Redux action change + the service handler that feeds it are two commits, on two branches.
+- **Never mix shared-library and app-specific code in one commit.** A `therr-react` export + the `TherrMobile` screen that uses it are two commits, on two branches.
+- **Never mix code from two different niche variants in one commit.**
+
+Before staging, run `git diff --cached --name-only` and confirm every path in the staged set belongs on the branch you're about to commit to. If any path violates the "must-be-on-general" list above while on a niche branch, stop and restructure the commit.
+
+A pre-commit hook (`.husky/pre-commit`, wired via husky) enforces this at the commit boundary and will fail the commit on a `niche/*` branch if any staged file matches the must-be-on-general globs. It is installed automatically by `npm install` via the root `"prepare": "husky"` script. To bypass for a legitimate exception, use `git commit --no-verify` — and be sure the exception is genuinely legitimate.
+
 ### Project Brief Context (Required)
 
 Always associate the current context with the appropriate project brief based on the checked out branch:
