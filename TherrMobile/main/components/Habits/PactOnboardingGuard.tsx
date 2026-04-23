@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
 import { IUserState, IHabitsState } from 'therr-react/types';
-import { CURRENT_BRAND_VARIATION, getCurrentBrandFeatures } from '../../config/brandConfig';
-import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
+import { useFeatureFlags } from '../../context/FeatureFlagContext';
 import translator from '../../utilities/translator';
 import { Button } from '../BaseButton';
 import { buildStyles } from '../../styles';
@@ -34,14 +35,14 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     navigation,
     children,
 }) => {
-    const features = getCurrentBrandFeatures();
+    const { isEnabled } = useFeatureFlags();
     const translate = (key: string, params?: any) => translator('en-us', key, params);
     const theme = buildStyles(user.settings?.mobileThemeName);
     const themeButtons = buildButtonStyles(user.settings?.mobileThemeName);
     const themeHabits = buildHabitStyles(user.settings?.mobileThemeName);
 
-    // Only apply guard for HABITS brand with requirePactOnboarding enabled
-    if (CURRENT_BRAND_VARIATION !== BrandVariations.HABITS || !features.requirePactOnboarding) {
+    // Only apply guard for HABITS brand with REQUIRE_PACT_ONBOARDING flag enabled
+    if (CURRENT_BRAND_VARIATION !== BrandVariations.HABITS || !isEnabled(FeatureFlags.REQUIRE_PACT_ONBOARDING)) {
         return <>{children}</>;
     }
 

@@ -51,7 +51,7 @@ const toastStyles = StyleSheet.create({
         fontSize: 14,
         fontFamily: 'Lexend-Regular',
     },
-    infoBorder: { borderLeftColor: '#1C7F8A' },
+    infoBorder: { borderLeftColor: '#3B2A4E' },
     successBorder: { borderLeftColor: '#00A624' },
     warnBorder: { borderLeftColor: '#FDBD2E' },
     errorBorder: { borderLeftColor: '#D70000' },
