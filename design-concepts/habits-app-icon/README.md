@@ -27,16 +27,39 @@ Preview PNGs are 512×512 rasters in [`previews/`](./previews), generated
 from each SVG via `cairosvg`:
 
 ```bash
-python3 -c "import cairosvg; [cairosvg.svg2png(url=f'{n}.svg', write_to=f'previews/{n}.png', output_width=512, output_height=512) for n in ['concept-1-pact-rings','concept-2-streak-flame','concept-3-h-bond','concept-4-daily-check-duo','concept-5-chameleon']]"
+python3 -c "import cairosvg; [cairosvg.svg2png(url=f'{n}.svg', write_to=f'previews/{n}.png', output_width=512, output_height=512) for n in ['concept-1-pact-rings','concept-2-streak-flame','concept-3-h-bond','concept-4-daily-check-duo','concept-5-chameleon','concept-6-chameleon-pip','concept-7-chameleon-sage','concept-8-chameleon-echo']]"
 ```
 
-### Current direction
+### Icon design rules applied (v6–v8)
 
-5. **`concept-5-chameleon.svg` — "Chameleon Face"** ([preview](./previews/concept-5-chameleon.png))
-   Front-facing minimal chameleon head on deep faded purple. Two bulging
-   turret eyes and a soft casque peak make the species readable. Body fill
-   uses the color-shift gradient to reference the habits-and-change theme.
-   Current working direction — still rough, expect iteration.
+- 1024×1024 master canvas, deep faded purple `#2E2140` background
+- Main artwork contained within the inner 820px (iOS safe area, ~10% pad)
+- Critical features (eyes) inside the inner 676px (Android adaptive-icon
+  safe zone, ~66% of canvas)
+- Single focal point (the eyes), sized to stay legible at 29×29 (iOS
+  notification-slot minimum)
+- One accent color, subtle gradient on the body fill referencing the
+  habits-and-change theme
+
+### Current direction — friendly mascot variations
+
+6. **`concept-6-chameleon-pip.svg` — "Pip"** ([preview](./previews/concept-6-chameleon-pip.png))
+   Closest to the friendly-mascot reference. Rounded squircle head, large
+   round forward eyes with highlights, small rounded casque, subtle smile.
+
+7. **`concept-7-chameleon-sage.svg` — "Sage"** ([preview](./previews/concept-7-chameleon-sage.png))
+   Slightly more reptilian. Taller triangular casque, oval eyes with
+   pupils looking independently (chameleon trait), faint brow ridges.
+
+8. **`concept-8-chameleon-echo.svg` — "Echo"** ([preview](./previews/concept-8-chameleon-echo.png))
+   Most minimal. Casque integrated into the head silhouette as one flowing
+   shape, two eyes only, no mouth. Most mark-like of the three.
+
+### Earlier chameleon sketch
+
+5. **`concept-5-chameleon.svg` — "Chameleon Face (v1)"** ([preview](./previews/concept-5-chameleon.png))
+   First rough pass at the chameleon direction with side-turret eyes.
+   Kept as iteration history; superseded by v6–v8.
 
 ### Earlier explorations (teal-era, superseded)
 

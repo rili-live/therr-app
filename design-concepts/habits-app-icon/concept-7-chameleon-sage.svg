@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="sage-body" x1="180" y1="220" x2="844" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#5E4575"/>
+      <stop offset="50%"  stop-color="#6E6B82"/>
+      <stop offset="100%" stop-color="#7FA391"/>
+    </linearGradient>
+    <linearGradient id="sage-casque" x1="450" y1="150" x2="574" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"  stop-color="#D9B8EA"/>
+      <stop offset="100%" stop-color="#7A5B94"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="225" fill="#2E2140"/>
+
+  <!-- Taller, pointier casque — reads more clearly as chameleon -->
+  <path d="M 462 312
+           L 512 168
+           L 562 312
+           Q 538 324 512 324
+           Q 486 324 462 312 Z"
+        fill="url(#sage-casque)"/>
+
+  <!-- Head: slightly flatter top, wider lower jaw (more reptilian proportions) -->
+  <path d="M 512 300
+           C 700 300 806 398 812 540
+           C 818 700 688 822 512 822
+           C 336 822 206 700 212 540
+           C 218 398 324 300 512 300 Z"
+        fill="url(#sage-body)"/>
+
+  <!-- Brow accent above each eye (adds chameleon-like scale ridge) -->
+  <path d="M 298 418 Q 395 378 492 420" stroke="#5E4575" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.55"/>
+  <path d="M 532 420 Q 629 378 726 418" stroke="#5E4575" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Eyes: slightly oval (more reptilian) with pupils looking slightly outward, independent -->
+  <ellipse cx="395" cy="500" rx="100" ry="92" fill="#EBDDF2"/>
+  <circle cx="378" cy="506" r="38" fill="#2E2140"/>
+  <circle cx="388" cy="494" r="11" fill="#FFFFFF"/>
+
+  <ellipse cx="629" cy="500" rx="100" ry="92" fill="#EBDDF2"/>
+  <circle cx="648" cy="508" r="38" fill="#2E2140"/>
+  <circle cx="658" cy="496" r="11" fill="#FFFFFF"/>
+
+  <!-- Subtle mouth line -->
+  <path d="M 438 728 Q 512 760 586 728"
+        stroke="#2E2140" stroke-width="11" fill="none"
+        stroke-linecap="round"/>
+</svg>
