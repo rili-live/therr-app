@@ -8,8 +8,10 @@ import { RefreshControl } from 'react-native-gesture-handler';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { CheckinButton, HabitCalendar, StreakWidget } from '../../components/Habits';
+import { CheckinButton, CheckinProofSheet, HabitCalendar, StreakWidget } from '../../components/Habits';
 
 interface IHabitDetailDispatchProps {
     getCheckinsByRange: Function;
@@ -37,6 +39,7 @@ interface IHabitDetailState {
     calendarMonth: Date;
     checkins: IHabitCheckin[];
     streak: IStreak | null;
+    isProofSheetVisible: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -54,6 +57,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
     private themeHabits = buildHabitStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildButtonsStyles();
 
     constructor(props: IHabitDetailProps) {
         super(props);
@@ -65,9 +70,12 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             calendarMonth: new Date(today.getFullYear(), today.getMonth(), 1),
             checkins: [],
             streak: null,
+            isProofSheetVisible: false,
         };
 
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) =>
             translator('en-us', key, params);
     }
@@ -126,6 +134,14 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     };
 
     handleCheckin = () => {
+        this.setState({ isProofSheetVisible: true });
+    };
+
+    handleProofSheetCancel = () => {
+        this.setState({ isProofSheetVisible: false });
+    };
+
+    handleProofSheetConfirm = ({ notes }: { notes?: string }) => {
         const { createCheckin, route } = this.props;
         const { habitGoalId } = route.params;
 
@@ -136,8 +152,12 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             habitGoalId,
             scheduledDate: today,
             status: 'completed',
+            notes,
         }).finally(() => {
-            this.setState({ isCheckinLoading: false });
+            this.setState({
+                isCheckinLoading: false,
+                isProofSheetVisible: false,
+            });
             this.handleRefresh();
         });
     };
@@ -163,6 +183,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             calendarMonth,
             checkins,
             streak,
+            isProofSheetVisible,
         } = this.state;
 
         const habitGoal = this.getHabitGoal();
@@ -263,6 +284,16 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         )}
                     </ScrollView>
                 </SafeAreaView>
+                <CheckinProofSheet
+                    isVisible={isProofSheetVisible}
+                    isSubmitting={isCheckinLoading}
+                    habitName={habitGoal.name}
+                    onCancel={this.handleProofSheetCancel}
+                    onConfirm={this.handleProofSheetConfirm}
+                    translate={this.translate}
+                    themeConfirmModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
             </>
         );
     }

@@ -1699,7 +1699,14 @@
       "completed": "Completed!",
       "noHabitsTitle": "No habits yet",
       "noHabitsSubtitle": "Create a habit to start tracking your progress",
-      "habitNotFound": "Habit not found"
+      "habitNotFound": "Habit not found",
+      "checkinProof": {
+        "title": "Check In",
+        "notePrompt": "Add a quick note (optional)",
+        "notePlaceholder": "How did it go? Any wins to share with your partner?",
+        "cancel": "Cancel",
+        "confirm": "Check In"
+      }
     },
     "pacts": {
       "headerTitle": "My Pacts",

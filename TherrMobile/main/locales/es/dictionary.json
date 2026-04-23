@@ -1699,7 +1699,14 @@
       "completed": "¡Completado!",
       "noHabitsTitle": "Aún no hay hábitos",
       "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
-      "habitNotFound": "Hábito no encontrado"
+      "habitNotFound": "Hábito no encontrado",
+      "checkinProof": {
+        "title": "Registrar",
+        "notePrompt": "Añade una nota rápida (opcional)",
+        "notePlaceholder": "¿Cómo te fue? ¿Algún logro para compartir con tu compañero?",
+        "cancel": "Cancelar",
+        "confirm": "Registrar"
+      }
     },
     "pacts": {
       "headerTitle": "Mis pactos",

@@ -10,8 +10,10 @@ import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { HabitCard } from '../../components/Habits';
+import { HabitCard, CheckinProofSheet } from '../../components/Habits';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 
 interface IHabitsDashboardDispatchProps {
@@ -33,6 +35,8 @@ export interface IHabitsDashboardProps extends IStoreProps {
 interface IHabitsDashboardState {
     isRefreshing: boolean;
     checkinLoadingIds: Set<string>;
+    proofSheetHabit: IHabitGoal | null;
+    isSubmittingCheckin: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -52,6 +56,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     private theme = buildStyles();
     private themeMenu = buildMenuStyles();
     private themeHabits = buildHabitStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildButtonsStyles();
     private unsubscribeNavigationListener: any;
 
     constructor(props: IHabitsDashboardProps) {
@@ -60,10 +66,14 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         this.state = {
             isRefreshing: false,
             checkinLoadingIds: new Set(),
+            proofSheetHabit: null,
+            isSubmittingCheckin: false,
         };
 
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) =>
             translator('en-us', key, params);
     }
@@ -101,22 +111,43 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     handleCheckin = (habitGoal: IHabitGoal) => {
-        const { createCheckin } = this.props;
-        const { checkinLoadingIds } = this.state;
+        this.setState({ proofSheetHabit: habitGoal });
+    };
 
+    handleProofSheetCancel = () => {
+        this.setState({ proofSheetHabit: null });
+    };
+
+    handleProofSheetConfirm = ({ notes }: { notes?: string }) => {
+        const { createCheckin } = this.props;
+        const { proofSheetHabit, checkinLoadingIds } = this.state;
+
+        if (!proofSheetHabit) {
+            return;
+        }
+
+        const habitGoalId = proofSheetHabit.id;
         const newLoadingIds = new Set(checkinLoadingIds);
-        newLoadingIds.add(habitGoal.id);
-        this.setState({ checkinLoadingIds: newLoadingIds });
+        newLoadingIds.add(habitGoalId);
+        this.setState({
+            checkinLoadingIds: newLoadingIds,
+            isSubmittingCheckin: true,
+        });
 
         const today = new Date().toISOString().split('T')[0];
         createCheckin({
-            habitGoalId: habitGoal.id,
+            habitGoalId,
             scheduledDate: today,
             status: 'completed',
+            notes,
         }).finally(() => {
             const updatedLoadingIds = new Set(this.state.checkinLoadingIds);
-            updatedLoadingIds.delete(habitGoal.id);
-            this.setState({ checkinLoadingIds: updatedLoadingIds });
+            updatedLoadingIds.delete(habitGoalId);
+            this.setState({
+                checkinLoadingIds: updatedLoadingIds,
+                isSubmittingCheckin: false,
+                proofSheetHabit: null,
+            });
         });
     };
 
@@ -225,7 +256,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
     render() {
         const { navigation, user } = this.props;
-        const { isRefreshing } = this.state;
+        const { isRefreshing, proofSheetHabit, isSubmittingCheckin } = this.state;
 
         return (
             <PactOnboardingGuard navigation={navigation}>
@@ -264,6 +295,16 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
+                />
+                <CheckinProofSheet
+                    isVisible={!!proofSheetHabit}
+                    isSubmitting={isSubmittingCheckin}
+                    habitName={proofSheetHabit?.name}
+                    onCancel={this.handleProofSheetCancel}
+                    onConfirm={this.handleProofSheetConfirm}
+                    translate={this.translate}
+                    themeConfirmModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
                 />
             </PactOnboardingGuard>
         );

@@ -1699,7 +1699,14 @@
       "completed": "Complété!",
       "noHabitsTitle": "Aucune habitude pour le moment",
       "noHabitsSubtitle": "Créez une habitude pour commencer à suivre vos progrès",
-      "habitNotFound": "Habitude introuvable"
+      "habitNotFound": "Habitude introuvable",
+      "checkinProof": {
+        "title": "Enregistrer",
+        "notePrompt": "Ajouter une note rapide (optionnel)",
+        "notePlaceholder": "Comment ça s'est passé? Une réussite à partager avec ton partenaire?",
+        "cancel": "Annuler",
+        "confirm": "Enregistrer"
+      }
     },
     "pacts": {
       "headerTitle": "Mes pactes",
