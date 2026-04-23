@@ -495,10 +495,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'My Habits',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -507,10 +504,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Habit Details',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -519,10 +513,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'My Pacts',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
     {
@@ -531,10 +522,7 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Pact Details',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
 ];
