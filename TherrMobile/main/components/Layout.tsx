@@ -28,7 +28,7 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
@@ -316,6 +316,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             { name: 'Areas' },
                             { name: targetRouteView, params: targetRouteParams },
                         ],
+                    });
+                } else if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                    RootNavigation.reset({
+                        index: 0,
+                        routes: [{ name: 'HabitsDashboard' }],
                     });
                 }
 

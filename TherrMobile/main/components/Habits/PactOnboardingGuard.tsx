@@ -60,9 +60,10 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         return <>{children}</>;
     }
 
-    // Show onboarding screen for users without pacts
+    // Show onboarding screen for users without pacts.
+    // MVP: creating a pact requires first inviting a partner — route to Invite.
     const handleCreatePact = () => {
-        navigation.navigate('CreatePact');
+        navigation.navigate('Invite');
     };
 
     const handleViewInvites = () => {

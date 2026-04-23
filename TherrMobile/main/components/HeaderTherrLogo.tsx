@@ -1,8 +1,10 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import Svg, { Path, G } from 'react-native-svg';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { ITherrThemeColors } from '../styles/themes';
 
 export interface IHeaderTherrLogoProps {
@@ -16,9 +18,20 @@ export interface IHeaderTherrLogoProps {
 
 const mapStateToProps = (state: any) => ({ user: state.user });
 
-export const HeaderTherrLogo = ({ theme }: IHeaderTherrLogoProps) => (
-    <View style={theme.styles.headerTitleLogoText}>
-        <Svg width={75} height={25} x="0" y="0" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
+export const HeaderTherrLogo = ({ theme }: IHeaderTherrLogoProps) => {
+    if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+        return (
+            <View style={theme.styles.headerTitleLogoText}>
+                <Text style={{ color: theme.colors.accentLogo, fontSize: 18, fontWeight: '700', letterSpacing: 0.3 }}>
+                    Friends with Habits
+                </Text>
+            </View>
+        );
+    }
+
+    return (
+        <View style={theme.styles.headerTitleLogoText}>
+            <Svg width={75} height={25} x="0" y="0" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
             <G transform="translate(0,400) scale(0.1,-0.1)" fill={theme.colors.accentLogo} stroke="none">
                 <Path d="M2711 3588 c-50 -297 -432 -3071 -434 -3162 -2 -57 -1 -59 26 -67 15
                     -4 168 -9 340 -11 l311 -3 101 729 100 729 120 79 c368 241 572 312 704 243
@@ -57,7 +70,8 @@ export const HeaderTherrLogo = ({ theme }: IHeaderTherrLogoProps) => (
                     97 596 102 664 6 82 6 82 -18 81 -13 0 -188 -36 -389 -79z"/>
             </G>
         </Svg>
-    </View>
-);
+        </View>
+    );
+};
 
 export default connect(mapStateToProps, null)(HeaderTherrLogo);

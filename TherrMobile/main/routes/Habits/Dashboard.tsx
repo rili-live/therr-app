@@ -12,6 +12,7 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { HabitCard } from '../../components/Habits';
+import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 
 interface IHabitsDashboardDispatchProps {
     getUserGoals: Function;
@@ -227,7 +228,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         const { isRefreshing } = this.state;
 
         return (
-            <>
+            <PactOnboardingGuard navigation={navigation}>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
                 <SafeAreaView style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}>
                     <ScrollView
@@ -264,7 +265,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     user={user}
                     themeMenu={this.themeMenu}
                 />
-            </>
+            </PactOnboardingGuard>
         );
     }
 }
