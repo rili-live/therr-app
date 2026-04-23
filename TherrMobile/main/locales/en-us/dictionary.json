@@ -1728,15 +1728,15 @@
       "confirmDecline": "Are you sure you want to decline this pact invitation?",
       "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
       "onboarding": {
-        "title": "Find Your Accountability Partner",
-        "subtitle": "Habits stick better when you have someone to keep you accountable. Create or join a pact to get started.",
-        "createPact": "Create a Pact",
-        "viewInvites": "View {count} Pending Invite(s)",
-        "findPartner": "Find a Partner",
-        "whyPacts": "Why accountability partners work:",
-        "benefit1": "2x more likely to achieve your goals",
-        "benefit2": "Daily check-ins keep you motivated",
-        "benefit3": "Celebrate milestones together"
+        "title": "Start with a Partner",
+        "subtitle": "Friends with Habits is built for two. Invite a partner, form a pact, and build habits you'll hold each other to.",
+        "createPact": "Invite a Partner",
+        "viewInvites": "View {count} Pact Invite(s)",
+        "findPartner": "Browse People",
+        "whyPacts": "Why it works better together:",
+        "benefit1": "2x more likely to stick with your habits",
+        "benefit2": "Daily check-ins with someone who's counting on you",
+        "benefit3": "Streaks you build — and celebrate — together"
       }
     },
     "manageSpaces": {

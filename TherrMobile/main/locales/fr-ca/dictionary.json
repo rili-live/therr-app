@@ -1728,15 +1728,15 @@
       "confirmDecline": "Êtes-vous sûr de vouloir refuser cette invitation au pacte?",
       "confirmAbandon": "Êtes-vous sûr de vouloir abandonner ce pacte? Vos progrès seront perdus.",
       "onboarding": {
-        "title": "Trouvez votre partenaire de responsabilité",
-        "subtitle": "Les habitudes s'ancrent mieux lorsque quelqu'un vous tient responsable. Créez ou joignez-vous à un pacte pour commencer.",
-        "createPact": "Créer un pacte",
-        "viewInvites": "Voir {count} invitation(s) en attente",
-        "findPartner": "Trouver un partenaire",
-        "whyPacts": "Pourquoi les partenaires de responsabilité fonctionnent :",
-        "benefit1": "2 fois plus de chances d'atteindre vos objectifs",
-        "benefit2": "Les enregistrements quotidiens vous motivent",
-        "benefit3": "Célébrez les étapes ensemble"
+        "title": "Commence avec un partenaire",
+        "subtitle": "Friends with Habits est conçu pour deux. Invite un partenaire, formez un pacte et bâtissez ensemble des habitudes dont vous vous tiendrez mutuellement responsables.",
+        "createPact": "Inviter un partenaire",
+        "viewInvites": "Voir {count} invitation(s) de pacte",
+        "findPartner": "Parcourir les gens",
+        "whyPacts": "Pourquoi ça marche mieux à deux :",
+        "benefit1": "2 fois plus de chances de garder tes habitudes",
+        "benefit2": "Des check-ins quotidiens avec quelqu'un qui compte sur toi",
+        "benefit3": "Des séries que vous bâtissez — et célébrez — ensemble"
       }
     },
     "manageSpaces": {
