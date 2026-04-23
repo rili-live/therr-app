@@ -12,6 +12,13 @@ case "$branch" in
   *) exit 0 ;;
 esac
 
+# Merge commits legitimately carry backend/shared files from `general` onto the
+# niche branch — that's the documented split-commit workflow. Skip the guard.
+git_dir=$(git rev-parse --git-dir 2>/dev/null)
+if [ -n "$git_dir" ] && [ -f "$git_dir/MERGE_HEAD" ]; then
+  exit 0
+fi
+
 staged=$(git diff --cached --name-only --diff-filter=ACMR)
 [ -z "$staged" ] && exit 0
 
