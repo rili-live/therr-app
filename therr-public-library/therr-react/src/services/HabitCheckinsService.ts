@@ -1,6 +1,14 @@
 /* eslint-disable class-methods-use-this */
 import axios from 'axios';
 
+export interface ICheckinProofMedia {
+    path: string;
+    type?: 'image' | 'video';
+    thumbnailPath?: string;
+    fileSizeBytes?: number;
+    durationSeconds?: number;
+}
+
 export interface ICreateCheckinBody {
     pactId?: string;
     habitGoalId: string;
@@ -9,6 +17,7 @@ export interface ICreateCheckinBody {
     notes?: string;
     selfRating?: number;
     difficultyRating?: number;
+    proofMedias?: ICheckinProofMedia[];
 }
 
 export interface IUpdateCheckinBody {
