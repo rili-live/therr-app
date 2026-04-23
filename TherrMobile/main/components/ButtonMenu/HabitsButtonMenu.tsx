@@ -1,7 +1,8 @@
 import React from 'react';
 import { ActivityIndicator, Dimensions, View } from 'react-native';
 import { connect } from 'react-redux';
-import { Button, Image } from 'react-native-elements';
+import { Button } from '../BaseButton';
+import { Image } from '../BaseImage';
 import 'react-native-gesture-handler';
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';

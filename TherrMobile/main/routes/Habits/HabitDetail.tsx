@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -51,7 +51,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetailState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
     private themeHabits = buildHabitStyles();
 

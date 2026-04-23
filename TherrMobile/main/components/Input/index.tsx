@@ -87,7 +87,7 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
         // Transparent background preserves the pre-migration appearance
         // where inputs had no filled background.
         const underlineColor = underlineColorProp || themeForms.colors.textDarkGray || 'gray';
-        const activeColor = activeUnderlineColorProp || themeForms.colors.primary3 || '#1C7F8A';
+        const activeColor = activeUnderlineColorProp || themeForms.colors.primary3 || '#3B2A4E';
 
         // Paper's flat TextInput internally applies borderTopLeftRadius and
         // borderTopRightRadius from theme.roundness (default ~4). Without

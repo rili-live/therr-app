@@ -321,6 +321,14 @@
         "back": "Back"
       }
     },
+    "publicList": {
+      "loadingTitle": "Loading list...",
+      "itemCount": "{count} places",
+      "openInApp": "Open in app",
+      "emptyList": "This list has no places yet.",
+      "notFoundTitle": "List not available",
+      "notFoundBody": "This list is private or no longer exists."
+    },
     "discovered": {
       "pageTitle": "Discovered",
       "subtitle": "Recently shared moments and spaces from the community",

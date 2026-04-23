@@ -98,7 +98,7 @@ const HabitCalendar: React.FC<IHabitCalendarProps> = ({
     };
 
     const renderDays = () => {
-        const days = [];
+        const days: React.ReactElement[] = [];
 
         // Empty cells for days before the first of the month
         for (let i = 0; i < startDayOfWeek; i += 1) {

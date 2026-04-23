@@ -6,7 +6,7 @@ import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
@@ -47,7 +47,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHabitsDashboardState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
     private themeMenu = buildMenuStyles();
     private themeHabits = buildHabitStyles();

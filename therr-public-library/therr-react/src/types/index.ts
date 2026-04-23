@@ -17,6 +17,16 @@ import {
     IForumsState,
     ForumActionTypes,
 
+    // Habits
+    IHabitGoal,
+    IPact,
+    IPactMember,
+    IHabitCheckin,
+    IStreak,
+    IStreakHistory,
+    IHabitsState,
+    HabitsActionTypes,
+
     // Messages
     MessageActionTypes,
     IForumMsg,
@@ -44,6 +54,10 @@ import {
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
+
+    // Network
+    INetworkState,
+    NetworkActionTypes,
 
     // User Interface
     IUserInterfaceState,
@@ -96,6 +110,16 @@ export {
     IForumsState,
     ForumActionTypes,
 
+    // Habits
+    IHabitGoal,
+    IPact,
+    IPactMember,
+    IHabitCheckin,
+    IStreak,
+    IStreakHistory,
+    IHabitsState,
+    HabitsActionTypes,
+
     // Maps
     IMapState,
     MapActionTypes,
@@ -127,6 +151,10 @@ export {
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
+
+    // Network
+    INetworkState,
+    NetworkActionTypes,
 
     // User Interface
     IUserInterfaceState,

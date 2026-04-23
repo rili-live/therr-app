@@ -1,7 +1,7 @@
-# Friends With Habits - PROJECT BRIEF & DEVELOPMENT CONTEXT
+# Friends with Habits - PROJECT BRIEF & DEVELOPMENT CONTEXT
 
-**Last Updated:** April 2026  
-**Project Status:** Active Development — Primary Consumer Focus (Phase 1 Complete / Phase 2 In Progress)  
+**Last Updated:** 2026-04-22  
+**Project Status:** Active Development — Primary Consumer Focus (Phase 1 Complete / Phase 2 In Progress); Android MVP prep in flight on `niche/HABITS-general`  
 **Developer:** Solo founder with full-time job and family commitments
 
 ---
@@ -9,19 +9,19 @@
 ## EXECUTIVE SUMMARY
 
 **What We're Building:**  
-'Therr: Friends With Habits' is an accountability-based habit tracker where users MUST invite friends to create "pacts" together. The mandatory social mechanic creates viral growth without marketing spend.
+Friends with Habits is an accountability-based habit tracker where users MUST invite friends to create "pacts" together. The mandatory social mechanic creates viral growth without marketing spend.
 
 **Why This Project Exists:**  
-Friends With Habits is a niche variant of Therr App built on the same monorepo infrastructure. It repurposes 60% of the existing social infrastructure to enter a lower-competition market with built-in viral mechanics. Authorization uses the same API and database, allowing users to authenticate to either app interchangeably. 'Therr: Friends With Habits' is the primary consumer-facing app in the Therr, Inc. family.
+Friends with Habits is a niche variant of Therr App built on the same monorepo infrastructure. It repurposes 60% of the existing social infrastructure to enter a lower-competition market with built-in viral mechanics. Authorization uses the same API and database, allowing users to authenticate to either app interchangeably. Friends with Habits is the primary consumer-facing app in the Therr, Inc. family.
 
 **April 2026 Strategic Direction:**  
-Core Therr App is pursuing a B2B-first strategy (local business directory → email outreach → paid subscriptions). Friends With Habits is the primary consumer-focused niche app and will receive active development on the `niche/HABITS-general` branch. The niche branch is being rebased and development will accelerate.
+Core Therr App is pursuing a B2B-first strategy (local business directory → email outreach → paid subscriptions). Friends with Habits is the primary consumer-focused niche app and will receive active development on the `niche/HABITS-general` branch. The niche branch is being rebased and development will accelerate.
 
 **Therr Family of Apps:**
 These niche apps are a branch and/or child app of Therr App. The general idea is for a niche app to inherit the core foundations of Therr with unique, niche branding, content filtering specific to that branding, and some simple customizations that are controlled by feature flags.
 
 **Core Innovation:**  
-Unlike traditional habit trackers (solo experience), 'Therr: Friends With Habits' makes accountability partners mandatory. You literally cannot use the app without inviting at least one friend. This creates exponential organic growth.
+Unlike traditional habit trackers (solo experience), Friends with Habits makes accountability partners mandatory. You literally cannot use the app without inviting at least one friend. This creates exponential organic growth.
 
 ---
 
@@ -343,7 +343,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ## CRITICAL SUCCESS FACTORS
 
 ### What Makes This Different from Therr Social
-| Therr Social (Failed) | Friends With Habits (Will Succeed) |
+| Therr Social (Failed) | Friends with Habits (Will Succeed) |
 |---|---|
 | Need critical mass first | Works with 2 people |
 | Competes with Instagram/Facebook | No direct competitor |
@@ -417,7 +417,7 @@ When starting development work with Claude Code, reference this brief and:
 
 When working with Claude Code on this project, always start sessions by asking:
 
-- "Have you reviewed the 'Friends With Habits' project brief?"
+- "Have you reviewed the 'Friends with Habits' project brief?"
 - "What phase are we currently in?"
 - "What are the specific tasks for this phase?"
 - "How does this feature fit into the viral growth strategy?"

@@ -147,7 +147,7 @@ These flags control which features are enabled per brand variant. Set in `TherrM
 
 ## Niche App Extensions
 
-### Habits System (Friends With Habits — `BrandVariations.HABITS`)
+### Habits System (Friends with Habits — `BrandVariations.HABITS`)
 
 - **Habit goals** — create from templates or custom; frequency config (daily/weekly/custom), target days
 - **Pacts** — accountability partnerships; invite partners, set consequences (donation/dare/custom)
@@ -165,7 +165,7 @@ All variants share the same backend and auth system. Current variants defined in
 | Variant | Key | Description |
 |---------|-----|-------------|
 | Therr | `therr` | Core location-based social network |
-| Friends With Habits | `habits` | Accountability and habit tracking |
+| Friends with Habits | `habits` | Accountability and habit tracking |
 | Teem | `teem` | Community/team features |
 | Otaku | `otaku` | Niche interest communities |
 | Appy Social | `appy_social` | General social variant |

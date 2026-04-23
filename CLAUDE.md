@@ -18,6 +18,19 @@ Before making code changes, check the current git branch name:
 
 This prevents accidentally putting shared code in niche-specific branches or vice versa.
 
+### Switching niche apps locally
+
+To move between Therr, Friends with Habits, or Teem during development:
+
+```bash
+git checkout niche/HABITS-general         # or general, or niche/TEEM-general
+./_bin/switch-brand.sh habits              # habits | therr | teem
+cd TherrMobile && npm start                # terminal 1
+cd TherrMobile && npm run android:habits   # terminal 2 (matches brand arg above)
+```
+
+`switch-brand.sh` rewrites `TherrMobile/main/config/brandConfig.ts` if needed, kills any running Metro bundler, and clears Metro caches. The `android:<brand>` npm scripts are currently thin aliases for `android`; brand selection comes from `brandConfig.ts`.
+
 ### Project Brief Context (Required)
 
 Always associate the current context with the appropriate project brief based on the checked out branch:

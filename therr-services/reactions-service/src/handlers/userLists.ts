@@ -1,6 +1,7 @@
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { slugify } from 'therr-js-utilities/slugify';
 import handleHttpError from '../utilities/handleHttpError';
 // Handlers without custom error branching are wrapped at the router with
 // `asyncHandler` (see ../routes/userListsRouter.ts). Keeping try/catch here
@@ -10,6 +11,23 @@ import * as globalConfig from '../../../../global-config';
 
 const DEFAULT_LIST_NAME = 'Saved';
 const UNIQUE_VIOLATION = '23505';
+const SLUG_INDEX_NAME = 'idx_userlists_userid_slug_public';
+
+// Maps a PG 23505 into the right 409 message based on which unique index
+// tripped. The slug partial index fires when two would-be-public lists with
+// different names collapse to the same slugify(name) value (e.g. "Date Night"
+// and "Date-Night"). The name index fires when two lists collide on LOWER(name).
+const handleUserListUniqueViolation = (err: any, res: any) => {
+    const constraint = err?.constraint || '';
+    if (constraint === SLUG_INDEX_NAME || constraint.includes('slug')) {
+        return handleHttpError({
+            res,
+            message: 'Another public list of yours would share the same link. Rename one of them first.',
+            statusCode: 409,
+        });
+    }
+    return handleHttpError({ res, message: 'A list with that name already exists', statusCode: 409 });
+};
 
 // Race-safe: two concurrent first-bookmarks from the same user would each see no
 // default list and try to create one. One wins; the other hits the unique index
@@ -61,21 +79,25 @@ const createUserList = async (req, res) => {
             await Store.userLists.update({ userId }, { isDefault: false });
         }
 
+        const trimmedName = name.trim().slice(0, 120);
+
         const created = await Store.userLists.create({
             userId,
-            name: name.trim().slice(0, 120),
+            name: trimmedName,
             description,
             iconName,
             colorHex,
             isPublic,
             isDefault,
+            // Only compute a slug for public lists — private lists skip it so
+            // they don't compete on the partial unique index.
+            slug: isPublic ? slugify(trimmedName) : null,
         });
 
         return res.status(201).send(created);
     } catch (err: any) {
-        // Unique violation on (userId, LOWER(name)) returns 23505
-        if (err?.code === '23505') {
-            return handleHttpError({ res, message: 'A list with that name already exists', statusCode: 409 });
+        if (err?.code === UNIQUE_VIOLATION) {
+            return handleUserListUniqueViolation(err, res);
         }
         return handleHttpError({ err, res, message: 'SQL:USER_LISTS_ROUTES:CREATE_ERROR' });
     }
@@ -126,6 +148,61 @@ const getUserLists = async (req, res) => {
     return res.status(200).send({ lists: enriched });
 };
 
+// Hydrate list items into full space objects via maps-service. Returns spaces
+// plus any media payload. Failures are non-fatal — returns empty spaces so the
+// list still renders with placeholder rows.
+const hydrateListSpaces = async (items: any[], reqHeaders: any, listIdForLog: string) => {
+    const spaceIds = items
+        .filter((item) => item.contentType === 'space')
+        .map((item) => item.contentId);
+
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: [`hydrateListSpaces: items=${items.length} spaceIds=${spaceIds.length} contentTypes=${items.map((i: any) => i.contentType).join(',')}`],
+        traceArgs: { listId: listIdForLog },
+    });
+
+    if (!spaceIds.length) {
+        return { spaces: [], media: undefined, spaceIds };
+    }
+
+    try {
+        const response = await internalRestRequest({
+            headers: reqHeaders,
+        }, {
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/spaces/find`,
+            data: {
+                spaceIds,
+                limit: spaceIds.length,
+                withMedia: true,
+                withUser: true,
+                isDraft: false,
+            },
+        });
+        const spaces = response?.data?.spaces || [];
+        const media = response?.data?.media;
+        if (!spaces.length) {
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: ['hydrateListSpaces: maps-service returned 0 spaces for non-empty spaceIds'],
+                traceArgs: { listId: listIdForLog, spaceIdsCount: spaceIds.length },
+            });
+        }
+        return { spaces, media, spaceIds };
+    } catch (err: any) {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [`hydrateListSpaces: maps-service lookup failed: ${err?.message || err}`],
+            traceArgs: { listId: listIdForLog, spaceIdsCount: spaceIds.length },
+        });
+        return { spaces: [], media: undefined, spaceIds };
+    }
+};
+
 // Get a single list with its spaces
 const getUserListById = async (req, res) => {
     const { userId } = parseHeaders(req.headers);
@@ -146,55 +223,7 @@ const getUserListById = async (req, res) => {
         offset: parseInt(req.query.offset, 10) || 0,
     });
 
-    const spaceIds = items
-        .filter((item) => item.contentType === 'space')
-        .map((item) => item.contentId);
-
-    logSpan({
-        level: 'info',
-        messageOrigin: 'API_SERVER',
-        messages: [`getUserListById: items=${items.length} spaceIds=${spaceIds.length} contentTypes=${items.map((i: any) => i.contentType).join(',')}`],
-        traceArgs: { listId },
-    });
-
-    let spaces: any[] = [];
-    let media: any;
-
-    if (spaceIds.length) {
-        try {
-            const response = await internalRestRequest({
-                headers: req.headers,
-            }, {
-                method: 'post',
-                url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/spaces/find`,
-                data: {
-                    spaceIds,
-                    limit: spaceIds.length,
-                    withMedia: true,
-                    withUser: true,
-                    isDraft: false,
-                },
-            });
-            spaces = response?.data?.spaces || [];
-            media = response?.data?.media;
-            if (!spaces.length) {
-                logSpan({
-                    level: 'warn',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['getUserListById: maps-service returned 0 spaces for non-empty spaceIds'],
-                    traceArgs: { listId, spaceIdsCount: spaceIds.length },
-                });
-            }
-        } catch (err: any) {
-            logSpan({
-                level: 'error',
-                messageOrigin: 'API_SERVER',
-                messages: [`getUserListById: maps-service lookup failed: ${err?.message || err}`],
-                traceArgs: { listId, spaceIdsCount: spaceIds.length },
-            });
-            spaces = [];
-        }
-    }
+    const { spaces: hydratedSpaces, media, spaceIds } = await hydrateListSpaces(items, req.headers, listId);
 
     // Attach the reaction for each space (bookmark state, etc.)
     const reactions = spaceIds.length
@@ -204,7 +233,38 @@ const getUserListById = async (req, res) => {
         acc[cur.spaceId] = cur;
         return acc;
     }, {});
-    spaces = spaces.map((s) => ({ ...s, reaction: reactionBySpaceId[s.id] || {} }));
+    const spaces = hydratedSpaces.map((s) => ({ ...s, reaction: reactionBySpaceId[s.id] || {} }));
+
+    return res.status(200).send({
+        list: {
+            ...list,
+            items,
+            spaces,
+        },
+        media,
+    });
+};
+
+// Get a list by (ownerUserId, listSlug) for the public shareable URL.
+// Returns 404 unless the list is marked isPublic=true. Does not require
+// the viewer to be authenticated and does not attach viewer-specific
+// reactions — this response is SSR- and CDN-cache-friendly.
+const getPublicUserListBySlug = async (req, res) => {
+    const { ownerUserId, listSlug } = req.params;
+
+    // Indexed lookup on the partial unique index idx_userlists_userid_slug_public.
+    const list = await Store.userLists.findPublicByOwnerAndSlug(ownerUserId, listSlug);
+
+    if (!list) {
+        return handleHttpError({ res, message: 'List not found', statusCode: 404 });
+    }
+
+    const items = await Store.userListItems.getByList(list.id, {
+        limit: parseInt(req.query.limit, 10) || 100,
+        offset: parseInt(req.query.offset, 10) || 0,
+    });
+
+    const { spaces, media } = await hydrateListSpaces(items, req.headers, list.id);
 
     return res.status(200).send({
         list: {
@@ -248,6 +308,20 @@ const updateUserList = async (req, res) => {
         if (isPublic !== undefined) updates.isPublic = !!isPublic;
         if (isDefault !== undefined) updates.isDefault = !!isDefault;
 
+        // Slug lifecycle:
+        // - Toggle public ON: compute slug from the effective name so the list
+        //   is immediately reachable at /lists/:ownerUserId/:slug.
+        // - Toggle public OFF: null the slug so it doesn't compete on the
+        //   partial unique index and a future re-publish starts fresh.
+        // - Rename while public: recompute slug.
+        const willBePublic = updates.isPublic ?? existing.isPublic;
+        const effectiveName = updates.name ?? existing.name;
+        if (updates.isPublic === false) {
+            updates.slug = null;
+        } else if (willBePublic && (updates.isPublic === true || updates.name !== undefined)) {
+            updates.slug = slugify(effectiveName);
+        }
+
         const [updated] = await Store.userLists.update({ id: listId, userId }, updates);
 
         // If we renamed the list, keep userBookmarkCategory in sync on member reactions.
@@ -267,8 +341,8 @@ const updateUserList = async (req, res) => {
 
         return res.status(200).send(updated);
     } catch (err: any) {
-        if (err?.code === '23505') {
-            return handleHttpError({ res, message: 'A list with that name already exists', statusCode: 409 });
+        if (err?.code === UNIQUE_VIOLATION) {
+            return handleUserListUniqueViolation(err, res);
         }
         return handleHttpError({ err, res, message: 'SQL:USER_LISTS_ROUTES:UPDATE_ERROR' });
     }
@@ -436,6 +510,7 @@ export {
     createUserList,
     getUserLists,
     getUserListById,
+    getPublicUserListBySlug,
     updateUserList,
     deleteUserList,
     addSpaceToList,

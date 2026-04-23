@@ -340,7 +340,7 @@
         "achievements": "Achievements",
         "account": "Account Settings",
         "addConnection": "Add/Invite Connections",
-        "bookmarks": "Bookmarks",
+        "bookmarks": "Bookmarks/Lists",
         "chat": "Messages",
         "connections": "View Connections",
         "home": "Home",
@@ -1795,7 +1795,18 @@
         "spaceUnavailable": "Space unavailable",
         "createFailedTitle": "Couldn't create list",
         "createFailedBody": "Something went wrong. Check your connection and try again.",
-        "nameTakenBody": "A list with that name already exists."
+        "nameTakenBody": "A list with that name already exists.",
+        "makePublic": "Make public",
+        "publicHintOn": "Anyone with the link can view this list.",
+        "publicHintOff": "Only you can see this list.",
+        "publicBadge": "Public",
+        "shareList": "Share list",
+        "shareMessage": "Check out my list \"{listName}\" on Therr: {url}",
+        "publicToggleErrorTitle": "Couldn't update list",
+        "publicToggleErrorBody": "Something went wrong. Please try again.",
+        "privateConfirmTitle": "Make this list private?",
+        "privateConfirmBody": "The share link will stop working for anyone you've sent it to, and search engines may remove this page. You can make the list public again later.",
+        "privateConfirmAction": "Make private"
       }
     },
     "myQRCodes": {

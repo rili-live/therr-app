@@ -414,6 +414,13 @@ class ReactionsService {
         url: `/reactions-service/user-lists/${listId}?limit=${limit}&offset=${offset}`,
     });
 
+    // Public shareable list — auth-optional. `listSlug` is the lowercase
+    // hyphenated form of the list name (see therr-js-utilities/slugify).
+    fetchPublicUserList = (ownerUserId: string, listSlug: string, limit = 100, offset = 0) => axios({
+        method: 'get',
+        url: `/reactions-service/user-lists/public/${ownerUserId}/${listSlug}?limit=${limit}&offset=${offset}`,
+    });
+
     createUserList = (data: {
         name: string;
         description?: string;
