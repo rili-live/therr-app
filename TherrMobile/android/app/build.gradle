@@ -86,11 +86,11 @@ android {
     // }
 
     defaultConfig {
-        applicationId "app.therrmobile"
+        applicationId "com.therr.habits"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 418
-        versionName "3.6.5"
+        versionCode 1
+        versionName "0.1.0"
         manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}"]
         vectorDrawables.useSupportLibrary = true
     }

@@ -2,7 +2,7 @@
 
 ## Overview
 
-React Native 0.80.0 mobile app (iOS + Android) for the Therr social platform. React 19.1.0. Has its own `package.json` isolated from the monorepo root. Android package: `app.therrmobile`, native code in Kotlin.
+React Native 0.83.6 mobile app (iOS + Android) for the Therr social platform. React 19.2.0. Has its own `package.json` isolated from the monorepo root. Android namespace `app.therrmobile`; `applicationId` varies by niche (`app.therrmobile` on Therr, `com.therr.habits` on Friends with Habits). Native code in Kotlin. New Architecture (`newArchEnabled=true`) + Hermes.
 
 ## Directory Structure
 
@@ -99,9 +99,11 @@ The module resolution is complex due to the monorepo. Understanding this prevent
    - `shared/*` -> root `node_modules/*`
 
 4. **Patches** (`patches/`, applied via `postinstall`):
-   - `react-native+0.80.0.patch`
+   - `react-native+0.83.6.patch`
    - `@react-native-community+slider+5.1.2.patch`
    - `react-native-tab-view+3.5.2.patch`
+   - `react-native-screens+4.24.0.patch` (RTTI fix required for New Architecture)
+   - `react-native-worklets+0.8.1.patch` (prefab headers race fix for Reanimated 4)
 
 **When adding a new shared library dependency**: Add it to root `package.json`, then ensure Metro can find it via `extraNodeModules` or the Proxy fallback.
 

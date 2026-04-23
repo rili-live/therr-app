@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
-import { Button } from 'react-native-elements';
 import { IUserState, IHabitsState } from 'therr-react/types';
 import { CURRENT_BRAND_VARIATION, getCurrentBrandFeatures } from '../../config/brandConfig';
 import { BrandVariations } from 'therr-js-utilities/constants';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
+import { Button } from '../BaseButton';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';

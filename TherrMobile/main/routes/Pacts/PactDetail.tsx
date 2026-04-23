@@ -2,12 +2,12 @@ import React from 'react';
 import { SafeAreaView, View, Text, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
-import translator from '../../services/translator';
+import translator from '../../utilities/translator';
+import { Button } from '../../components/BaseButton';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class PactDetail extends React.Component<IPactDetailProps, IPactDetailState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
     private themeButtons = buildButtonStyles();
     private themeHabits = buildHabitStyles();
