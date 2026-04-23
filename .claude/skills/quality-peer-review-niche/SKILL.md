@@ -1,14 +1,14 @@
 ---
 name: quality-peer-review-niche
-description: Peer review the diff between the current niche/* branch and the general branch. Detects backend and shared-library changes that have leaked onto the niche branch (these would never reach production via the stage→main deploy pipeline) and remediates by cherry-picking clean backend-only commits to general. Implements low-risk improvements, fixes bugs, adds regression tests for bugfixes where valuable, and resolves quality issues. Requires local Docker Compose infrastructure to be running.
+description: Peer review the **new work** on the current niche/* branch (vs origin/<NICHE_BRANCH> on a -general branch, or vs origin/niche/<TAG>-general on a feature branch). Separately detects backend and shared-library leaks against origin/general (these would never reach production via stage→main) and cherry-picks clean backend-only commits introduced on this branch over to general. Implements low-risk improvements, fixes bugs, adds regression tests for bugfixes where valuable, and resolves quality issues. Requires local Docker Compose infrastructure to be running.
 user-invocable: true
 allowed-tools: Bash(docker*), Bash(git*), Bash(npx*), Bash(npm*), Bash(node*), Read, Glob, Grep, Edit, Write, Agent
 argument-hint: [--dry-run]
 ---
 
-# Peer Review: niche/* → general
+# Peer Review: niche/* new work
 
-Perform a structured peer review of the diff between the current `niche/*` branch and the `general` branch. This skill is intended to run **locally** with Docker Compose infrastructure active. It will not run automatically — you must invoke it explicitly.
+Perform a structured peer review of the **new work** on the current `niche/*` branch — scoped to unpushed commits + uncommitted changes when on `niche/<TAG>-general`, or to commits unique to the feature branch when on `niche/<TAG>-feature-*`. Separately detects and remediates backend / shared-library leaks introduced on this branch (compared to `origin/general`) by cherry-picking them over. This skill is intended to run **locally** with Docker Compose infrastructure active. It will not run automatically — you must invoke it explicitly.
 
 **`--dry-run`**: Analyze and report findings without making any code changes, commits, cherry-picks, or running tests.
 
@@ -121,45 +121,98 @@ If `general` doesn't exist on origin, report it and stop:
 ⛔ Cannot diff: branch 'general' not found on origin.
 ```
 
-### 1d: Build the diff scope
+### 1d: Establish two diff bases
 
-The review covers **all local changes** — committed and uncommitted — compared to `origin/general`. This includes everything that is unique to the niche branch.
+This skill uses **two separate diff bases** because leak detection and peer review answer different questions:
+
+- **`<REVIEW_BASE>`** — the peer-review base. Scopes Steps 3–7 to **only the new work on this branch**, not everything that's ever lived on the niche line.
+  - On a main niche branch (`niche/<TAG>-general`): `<REVIEW_BASE>` = `origin/<NICHE_BRANCH>`. Review covers unpushed commits + uncommitted changes.
+  - On a feature branch off a niche line (e.g. `niche/HABITS-feature-foo`): `<REVIEW_BASE>` = `origin/niche/<TAG>-general`. Review covers commits unique to the feature branch + uncommitted changes.
+
+- **`origin/general`** — the leak-detection base. Backend / shared-library leaks are dead code regardless of which niche sub-branch introduced them. Used in Step 2 only.
+
+#### Determine `<REVIEW_BASE>`
+
+Extract the niche tag from `<NICHE_BRANCH>`. The pattern is `niche/<TAG>-...` where `<TAG>` is uppercase letters (e.g. `HABITS`, `TEEM`):
+
+```bash
+NICHE_TAG=$(echo "<NICHE_BRANCH>" | sed -E 's|^niche/([A-Z]+)-.*$|\1|')
+```
+
+If extraction fails (output equals input or is empty), warn and stop:
+```
+⛔ Cannot parse niche tag from branch '<NICHE_BRANCH>'.
+   Expected pattern: niche/<TAG>-... (e.g. niche/HABITS-general, niche/TEEM-feature-foo).
+```
+
+Fetch the parent niche branch from origin so the comparison is fresh:
+```bash
+git fetch origin niche/${NICHE_TAG}-general 2>&1
+```
+
+If `niche/<TAG>-general` doesn't exist on origin, report and stop:
+```
+⛔ Cannot diff: branch 'niche/<TAG>-general' not found on origin.
+```
+
+Set the review base:
+- If `<NICHE_BRANCH>` == `niche/${NICHE_TAG}-general`: `<REVIEW_BASE>` = `origin/<NICHE_BRANCH>`
+- Otherwise (feature branch): `<REVIEW_BASE>` = `origin/niche/${NICHE_TAG}-general`
+
+#### Build the review diff (drives Steps 3–7)
 
 Get the committed log:
 ```bash
-git log --oneline origin/general..HEAD 2>&1
+git log --oneline <REVIEW_BASE>..HEAD 2>&1
 ```
 
 Get the full working-tree diff (committed + staged + unstaged tracked files):
 ```bash
-git diff origin/general --stat 2>&1
-git diff origin/general 2>&1
+git diff <REVIEW_BASE> --stat 2>&1
+git diff <REVIEW_BASE> 2>&1
 ```
 
-Also note any untracked files:
+Note any untracked files:
 ```bash
 git status --short 2>&1
 ```
 
-Check whether the niche branch is behind `general` (an unrelated but important hygiene signal):
+#### Hygiene checks
+
+Check whether the niche branch is behind `general`:
 ```bash
 git log --oneline HEAD..origin/general 2>&1
 ```
-If this is non-empty, note it for the final report — the user should consider merging `origin/general` into the niche branch after this review.
+If non-empty, note it for the final report — the user should consider merging `origin/general` into the niche branch.
 
-If there is no diff at all (working tree is identical to origin/general and no uncommitted changes):
+If on a feature branch (i.e. `<REVIEW_BASE>` is `origin/niche/<TAG>-general`), also check whether the feature branch is behind its parent:
+```bash
+git log --oneline HEAD..origin/niche/${NICHE_TAG}-general 2>&1
 ```
-ℹ No changes found between local <NICHE_BRANCH> and origin/general.
+If non-empty, note it — the feature branch should consider merging the parent niche branch in.
+
+#### No-op short-circuit
+
+If the review diff is empty AND no leaked files exist against `origin/general` (Step 2a will compute these — for the short-circuit, do a quick `git diff origin/general --name-only` and grep for must-be-on-general paths):
+```
+ℹ No new work in review scope and no backend / shared-library leaks against origin/general.
   Nothing to review.
 ```
 Stop.
 
-Summarize the diff scope:
-- Number of commits ahead of origin/general
-- Files changed, insertions, deletions (from `--stat`)
-- Whether there are unstaged or staged-but-uncommitted changes included
-- Which packages are affected (TherrMobile/*, therr-client-web/*, therr-services/*, etc.)
-- Whether the branch is behind origin/general
+If the review diff is empty but pre-existing leaks exist on the broader niche line, continue to Step 2 to surface them — Steps 3–7 will then no-op naturally.
+
+#### Summary
+
+Print:
+- Review base used: `<REVIEW_BASE>`
+- Leak base: `origin/general`
+- Number of commits ahead of `<REVIEW_BASE>` (review scope)
+- Number of commits ahead of `origin/general` (full niche divergence — informational)
+- Files changed in review scope (from `--stat`)
+- Whether unstaged/staged-but-uncommitted changes are included
+- Which packages the review touches (TherrMobile/*, therr-client-web/*, therr-services/*, etc.)
+- Whether the branch is behind `origin/general` and/or behind its parent niche branch
 
 ---
 
@@ -185,26 +238,45 @@ Any change to these paths on a niche branch is a **leak** and must be moved to `
 
 ### 2a: Enumerate leaked files
 
+Compute two leak sets:
+
 ```bash
+# Full picture: all leaked files vs origin/general (informational)
 git diff origin/general --name-only 2>&1
+
+# Actionable: leaks introduced in the review scope (these get cherry-picked)
+git diff <REVIEW_BASE> --name-only 2>&1
 ```
 
-Filter to only the must-be-on-general paths above. Also check `git status --short` for uncommitted changes that match.
+Filter both to only the must-be-on-general paths above. Also check `git status --short` for uncommitted changes that match — these belong to the actionable set.
 
-If no leaks found, print:
+Define:
+- **Actionable leaks** = files in the `<REVIEW_BASE>` diff matching must-be-on-general paths, plus uncommitted matches.
+- **Pre-existing leaks** = (full set) − (actionable set). Report only; do not auto-remediate (they were already on the parent niche branch).
+
+If both sets are empty, print:
 ```
 ✓ No backend / shared-library leaks detected.
 ```
 Skip to Step 3.
 
-### 2b: Categorize each leak
+If only pre-existing leaks exist (review scope is clean), print them as "see also" and skip the cherry-pick steps:
+```
+ℹ Pre-existing leaks on the niche line (not introduced by this branch):
+    <list>
+  These were already on the parent niche branch. To address them, switch
+  to niche/<TAG>-general and re-run /quality-peer-review-niche there.
+```
+Skip to Step 3.
 
-For each leaked file, determine which commit(s) introduced the change:
+### 2b: Categorize each actionable leak
+
+Operate on the **actionable** set only (leaks introduced in the review scope). For each actionable leaked file, determine which commit(s) on this branch introduced the change:
 ```bash
-git log origin/general..HEAD --oneline -- <file> 2>&1
+git log <REVIEW_BASE>..HEAD --oneline -- <file> 2>&1
 ```
 
-Then for each commit that touched any leaked file, classify it:
+Then for each commit that touched any actionable leaked file, classify it:
 
 ```bash
 git show --stat --name-only <sha> 2>&1
@@ -222,17 +294,23 @@ Before remediating, print a clear inventory so the user can interrupt if anythin
 ```
 🔎 Backend / shared-library leaks detected on <NICHE_BRANCH>:
 
-  Clean backend commits (will be cherry-picked to general):
-    <sha-short> "commit message"  — <N> files
-    ...
+  Actionable (introduced in review scope):
 
-  Mixed commits (cannot auto-remediate — manual split required):
-    <sha-short> "commit message"
-      Backend files: <list>
-      Niche files:   <list>
-    ...
+    Clean backend commits (will be cherry-picked to general):
+      <sha-short> "commit message"  — <N> files
+      ...
 
-  Uncommitted leaked files (will be moved to general working tree):
+    Mixed commits (cannot auto-remediate — manual split required):
+      <sha-short> "commit message"
+        Backend files: <list>
+        Niche files:   <list>
+      ...
+
+    Uncommitted leaked files (will be moved to general working tree):
+      <file>
+      ...
+
+  Pre-existing on parent niche line (informational — not auto-remediated):
     <file>
     ...
 ```
@@ -356,9 +434,9 @@ Flag any of the following as **breaking risk**:
 
 Use:
 ```bash
-git diff origin/general -- TherrMobile/ therr-client-web/ therr-client-web-dashboard/ 2>&1
+git diff <REVIEW_BASE> -- TherrMobile/ therr-client-web/ therr-client-web-dashboard/ 2>&1
 ```
-to focus the analysis on niche-side files.
+to focus the analysis on niche-side files **introduced by this branch**.
 
 For each risk found, report clearly:
 ```
@@ -374,7 +452,7 @@ If no breaking risks are found, note that explicitly.
 
 ## Step 4: Identify low-risk, high-reward improvements
 
-Review the **non-leak** portion of the diff (i.e., the niche-appropriate changes that remain) and classify findings into these categories. Only flag genuine issues — do not invent problems.
+Review the **non-leak** portion of the **review diff** (the changes between `<REVIEW_BASE>` and `HEAD`, excluding files already handled in Step 2). Classify findings into these categories. Only flag genuine issues — do not invent problems.
 
 ### Category A: Bugs
 - Logic errors, off-by-one issues, incorrect conditionals
@@ -449,7 +527,7 @@ After all edits and new/updated tests, commit the changes to the niche branch (t
 
 ```bash
 git add <file1> <file2> <test-file> ...
-git commit -m "peer-review: fix bugs, add regression tests, and apply low-risk improvements from <NICHE_BRANCH>→general diff"
+git commit -m "peer-review: fix bugs, add regression tests, and apply low-risk improvements from <NICHE_BRANCH> review"
 ```
 
 If no tests were added, drop "add regression tests" from the commit message. If there is nothing to implement (no bugs, no Category B items), skip this step.
@@ -533,19 +611,25 @@ Output a structured summary:
 ## Peer Review Summary: <NICHE_BRANCH> → general
 
 ### Diff Scope
-  Commits ahead of origin/general:  <N>
-  Behind origin/general by:         <N> commits  (consider merging general → niche)
-  Niche packages affected:          <list>
-  Unstaged/staged local changes:    <yes/no>
+  Review base:                       <REVIEW_BASE>
+  Commits ahead of <REVIEW_BASE>:    <N>  (review scope)
+  Commits ahead of origin/general:   <N>  (full niche divergence — informational)
+  Behind origin/general by:          <N> commits  (consider merging general → niche)
+  Behind parent niche by:            <N> commits  (consider merging parent → branch)  [feature branches only]
+  Niche packages affected:           <list>
+  Unstaged/staged local changes:     <yes/no>
 
 ### Backend / Shared-Library Leaks
-  Cherry-picked to general (clean commits):
-    - <sha> "msg" — <files>
-    - ...
-  Uncommitted leaks moved to general working tree (review and commit manually):
+  Actionable (introduced in review scope):
+    Cherry-picked to general (clean commits):
+      - <sha> "msg" — <files>
+      - ...
+    Uncommitted leaks moved to general working tree (review and commit manually):
+      - <files>
+    Mixed commits requiring manual split:
+      - <sha> "msg" — backend: <files>, niche: <files>
+  Pre-existing on parent niche line (informational):
     - <files>
-  Mixed commits requiring manual split:
-    - <sha> "msg" — backend: <files>, niche: <files>
   <Or: "✓ No backend / shared-library leaks detected.">
 
 ### Backwards Compatibility
