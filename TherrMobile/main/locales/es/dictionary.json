@@ -1027,6 +1027,14 @@
         "profile": "Perfil"
       }
     },
+    "habits": {
+      "buttons": {
+        "habits": "Hábitos",
+        "pacts": "Pactos",
+        "partners": "Compañeros",
+        "profile": "Perfil"
+      }
+    },
     "connections": {
       "buttons": {
         "add": "Invitar",
@@ -1672,6 +1680,64 @@
       "headerTitle": "Pensamientos",
       "reply": "Responder",
       "replies": "Respuestas"
+    },
+    "habits": {
+      "headerTitle": "Mis hábitos",
+      "detailTitle": "Detalles del hábito",
+      "greetingMorning": "¡Buenos días!",
+      "greetingAfternoon": "¡Buenas tardes!",
+      "greetingEvening": "¡Buenas noches!",
+      "dashboardSubtitle": "Sigue tus hábitos diarios",
+      "yourHabits": "Tus hábitos",
+      "todayProgress": "Hoy",
+      "bestStreak": "Mejor racha",
+      "currentStreak": "Racha actual",
+      "longestStreak": "Racha más larga",
+      "graceDays": "Días de gracia restantes",
+      "stats": "Estadísticas",
+      "checkin": "Registrar",
+      "completed": "¡Completado!",
+      "noHabitsTitle": "Aún no hay hábitos",
+      "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
+      "habitNotFound": "Hábito no encontrado"
+    },
+    "pacts": {
+      "headerTitle": "Mis pactos",
+      "detailTitle": "Detalles del pacto",
+      "title": "Pactos de responsabilidad",
+      "subtitle": "Mantente responsable con amigos",
+      "defaultTitle": "Pacto de hábito",
+      "you": "Tú",
+      "comparison": "Comparación de progreso",
+      "timeline": "Cronología",
+      "accept": "Aceptar pacto",
+      "decline": "Rechazar",
+      "abandon": "Abandonar pacto",
+      "noPactsTitle": "Aún no hay pactos",
+      "noPactsSubtitle": "Crea un pacto con un amigo para mantenerte responsable",
+      "pactNotFound": "Pacto no encontrado",
+      "acceptedTitle": "¡Pacto aceptado!",
+      "acceptedMessage": "Te has unido a este pacto de responsabilidad",
+      "successTitle": "Éxito",
+      "declinedMessage": "Has rechazado este pacto",
+      "abandonedMessage": "Has salido de este pacto",
+      "errorTitle": "Error",
+      "acceptError": "No se pudo aceptar el pacto. Inténtalo de nuevo.",
+      "declineError": "No se pudo rechazar el pacto. Inténtalo de nuevo.",
+      "abandonError": "No se pudo abandonar el pacto. Inténtalo de nuevo.",
+      "confirmDecline": "¿Estás seguro de que quieres rechazar esta invitación al pacto?",
+      "confirmAbandon": "¿Estás seguro de que quieres abandonar este pacto? Se perderá tu progreso.",
+      "onboarding": {
+        "title": "Encuentra a tu compañero de responsabilidad",
+        "subtitle": "Los hábitos se mantienen mejor cuando tienes a alguien que te haga responsable. Crea o únete a un pacto para empezar.",
+        "createPact": "Crear un pacto",
+        "viewInvites": "Ver {count} invitación(es) pendiente(s)",
+        "findPartner": "Buscar un compañero",
+        "whyPacts": "Por qué funcionan los compañeros de responsabilidad:",
+        "benefit1": "2 veces más probabilidades de lograr tus metas",
+        "benefit2": "Los registros diarios te mantienen motivado",
+        "benefit3": "Celebra los hitos juntos"
+      }
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",

@@ -1027,6 +1027,14 @@
         "profile": "Profil"
       }
     },
+    "habits": {
+      "buttons": {
+        "habits": "Habitudes",
+        "pacts": "Pactes",
+        "partners": "Partenaires",
+        "profile": "Profil"
+      }
+    },
     "connections": {
       "buttons": {
         "add": "Inviter",
@@ -1672,6 +1680,64 @@
       "headerTitle": "Pensées",
       "reply": "Répondre",
       "replies": "Réponses"
+    },
+    "habits": {
+      "headerTitle": "Mes habitudes",
+      "detailTitle": "Détails de l'habitude",
+      "greetingMorning": "Bon matin!",
+      "greetingAfternoon": "Bon après-midi!",
+      "greetingEvening": "Bonsoir!",
+      "dashboardSubtitle": "Suivez vos habitudes quotidiennes",
+      "yourHabits": "Vos habitudes",
+      "todayProgress": "Aujourd'hui",
+      "bestStreak": "Meilleure série",
+      "currentStreak": "Série actuelle",
+      "longestStreak": "Plus longue série",
+      "graceDays": "Jours de grâce restants",
+      "stats": "Statistiques",
+      "checkin": "Enregistrer",
+      "completed": "Complété!",
+      "noHabitsTitle": "Aucune habitude pour le moment",
+      "noHabitsSubtitle": "Créez une habitude pour commencer à suivre vos progrès",
+      "habitNotFound": "Habitude introuvable"
+    },
+    "pacts": {
+      "headerTitle": "Mes pactes",
+      "detailTitle": "Détails du pacte",
+      "title": "Pactes de responsabilité",
+      "subtitle": "Restez responsable avec des amis",
+      "defaultTitle": "Pacte d'habitude",
+      "you": "Vous",
+      "comparison": "Comparaison des progrès",
+      "timeline": "Chronologie",
+      "accept": "Accepter le pacte",
+      "decline": "Refuser",
+      "abandon": "Abandonner le pacte",
+      "noPactsTitle": "Aucun pacte pour le moment",
+      "noPactsSubtitle": "Créez un pacte avec un ami pour rester responsable",
+      "pactNotFound": "Pacte introuvable",
+      "acceptedTitle": "Pacte accepté!",
+      "acceptedMessage": "Vous avez rejoint ce pacte de responsabilité",
+      "successTitle": "Succès",
+      "declinedMessage": "Vous avez refusé ce pacte",
+      "abandonedMessage": "Vous avez quitté ce pacte",
+      "errorTitle": "Erreur",
+      "acceptError": "Impossible d'accepter le pacte. Veuillez réessayer.",
+      "declineError": "Impossible de refuser le pacte. Veuillez réessayer.",
+      "abandonError": "Impossible d'abandonner le pacte. Veuillez réessayer.",
+      "confirmDecline": "Êtes-vous sûr de vouloir refuser cette invitation au pacte?",
+      "confirmAbandon": "Êtes-vous sûr de vouloir abandonner ce pacte? Vos progrès seront perdus.",
+      "onboarding": {
+        "title": "Trouvez votre partenaire de responsabilité",
+        "subtitle": "Les habitudes s'ancrent mieux lorsque quelqu'un vous tient responsable. Créez ou joignez-vous à un pacte pour commencer.",
+        "createPact": "Créer un pacte",
+        "viewInvites": "Voir {count} invitation(s) en attente",
+        "findPartner": "Trouver un partenaire",
+        "whyPacts": "Pourquoi les partenaires de responsabilité fonctionnent :",
+        "benefit1": "2 fois plus de chances d'atteindre vos objectifs",
+        "benefit2": "Les enregistrements quotidiens vous motivent",
+        "benefit3": "Célébrez les étapes ensemble"
+      }
     },
     "manageSpaces": {
       "headerTitle": "Mes Commerces",
