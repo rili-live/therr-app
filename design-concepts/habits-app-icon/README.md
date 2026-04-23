@@ -27,8 +27,17 @@ Preview PNGs are 512×512 rasters in [`previews/`](./previews), generated
 from each SVG via `cairosvg`:
 
 ```bash
-python3 -c "import cairosvg; [cairosvg.svg2png(url=f'{n}.svg', write_to=f'previews/{n}.png', output_width=512, output_height=512) for n in ['concept-1-pact-rings','concept-2-streak-flame','concept-3-h-bond','concept-4-daily-check-duo','concept-5-chameleon','concept-6-chameleon-pip','concept-7-chameleon-sage','concept-8-chameleon-echo']]"
+python3 -c "import cairosvg; [cairosvg.svg2png(url=f'{n}.svg', write_to=f'previews/{n}.png', output_width=512, output_height=512) for n in ['concept-1-pact-rings','concept-2-streak-flame','concept-3-h-bond','concept-4-daily-check-duo','concept-5-chameleon','concept-6-chameleon-pip','concept-7-chameleon-sage','concept-8-chameleon-echo','concept-9-chameleon-sage-v2']]"
 ```
+
+### Current direction — Sage v2 ([preview](./previews/concept-9-chameleon-sage-v2.png))
+
+9. **`concept-9-chameleon-sage-v2.svg` — "Sage v2"**
+   Evolution of concept-7 with explicit chameleon anatomy:
+   rounded-equilateral-triangle head, large turret eyes bulging past the
+   triangle's slopes, yellow forehead stripe, two nostril dots, simple
+   bell-curve smile. White background (note: may need a dark alternate
+   for iOS home screens with light wallpaper).
 
 ### Icon design rules applied (v6–v8)
 
