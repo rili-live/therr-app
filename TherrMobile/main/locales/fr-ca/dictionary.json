@@ -1704,6 +1704,9 @@
         "title": "Enregistrer",
         "notePrompt": "Ajouter une note rapide (optionnel)",
         "notePlaceholder": "Comment ça s'est passé? Une réussite à partager avec ton partenaire?",
+        "takePhoto": "Prendre une photo",
+        "choosePhoto": "Choisir une photo",
+        "uploadFailed": "Impossible de téléverser votre photo. Réessayez.",
         "cancel": "Annuler",
         "confirm": "Enregistrer"
       }

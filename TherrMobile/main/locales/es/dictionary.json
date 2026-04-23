@@ -1704,6 +1704,9 @@
         "title": "Registrar",
         "notePrompt": "Añade una nota rápida (opcional)",
         "notePlaceholder": "¿Cómo te fue? ¿Algún logro para compartir con tu compañero?",
+        "takePhoto": "Tomar foto",
+        "choosePhoto": "Elegir foto",
+        "uploadFailed": "No pudimos subir tu foto. Inténtalo de nuevo.",
         "cancel": "Cancelar",
         "confirm": "Registrar"
       }

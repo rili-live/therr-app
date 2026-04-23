@@ -2,6 +2,8 @@ import React from 'react';
 import { SafeAreaView, View, Text, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import RNFB from 'react-native-blob-util';
+import { FilePaths } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
@@ -14,7 +16,10 @@ import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confi
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { HabitCard, CheckinProofSheet } from '../../components/Habits';
+import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
+import { signImageUrl } from '../../utilities/content';
+import { showToast } from '../../utilities/toasts';
 
 interface IHabitsDashboardDispatchProps {
     getUserGoals: Function;
@@ -118,7 +123,32 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         this.setState({ proofSheetHabit: null });
     };
 
-    handleProofSheetConfirm = ({ notes }: { notes?: string }) => {
+    uploadProofImage = (habitGoalId: string, image: ISelectedProofImage): Promise<{ path: string; type: 'image'; fileSizeBytes?: number }> => {
+        const extSplit = image.path?.split('.');
+        const fileExtension = extSplit && extSplit.length > 1 ? extSplit[extSplit.length - 1] : 'jpeg';
+        const filename = `${FilePaths.CONTENT}/habits_proof_${habitGoalId}_${Date.now()}.${fileExtension}`;
+
+        return signImageUrl(false, { action: 'write', filename }).then((response: any) => {
+            const signedUrl = response?.data?.url && response?.data?.url[0];
+            const storedPath = response?.data?.path;
+            return RNFB.fetch(
+                'PUT',
+                signedUrl,
+                {
+                    'Content-Type': image.mime,
+                    'Content-Length': image.size.toString(),
+                    'Content-Disposition': 'inline',
+                },
+                RNFB.wrap(image.path),
+            ).then(() => ({
+                path: storedPath,
+                type: 'image' as const,
+                fileSizeBytes: image.size,
+            }));
+        });
+    };
+
+    handleProofSheetConfirm = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
         const { createCheckin } = this.props;
         const { proofSheetHabit, checkinLoadingIds } = this.state;
 
@@ -135,20 +165,34 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         });
 
         const today = new Date().toISOString().split('T')[0];
-        createCheckin({
-            habitGoalId,
-            scheduledDate: today,
-            status: 'completed',
-            notes,
-        }).finally(() => {
-            const updatedLoadingIds = new Set(this.state.checkinLoadingIds);
-            updatedLoadingIds.delete(habitGoalId);
-            this.setState({
-                checkinLoadingIds: updatedLoadingIds,
-                isSubmittingCheckin: false,
-                proofSheetHabit: null,
+
+        const uploadPromise = image
+            ? this.uploadProofImage(habitGoalId, image).then((media) => [media])
+            : Promise.resolve(undefined);
+
+        uploadPromise
+            .then((proofMedias) => createCheckin({
+                habitGoalId,
+                scheduledDate: today,
+                status: 'completed',
+                notes,
+                proofMedias,
+            }))
+            .catch((err) => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: err?.message || this.translate('pages.habits.checkinProof.uploadFailed'),
+                });
+            })
+            .finally(() => {
+                const updatedLoadingIds = new Set(this.state.checkinLoadingIds);
+                updatedLoadingIds.delete(habitGoalId);
+                this.setState({
+                    checkinLoadingIds: updatedLoadingIds,
+                    isSubmittingCheckin: false,
+                    proofSheetHabit: null,
+                });
             });
-        });
     };
 
     handleHabitPress = (habitGoal: IHabitGoal) => {
@@ -300,6 +344,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     isVisible={!!proofSheetHabit}
                     isSubmitting={isSubmittingCheckin}
                     habitName={proofSheetHabit?.name}
+                    userId={user?.details?.id}
                     onCancel={this.handleProofSheetCancel}
                     onConfirm={this.handleProofSheetConfirm}
                     translate={this.translate}

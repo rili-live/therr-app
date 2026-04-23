@@ -1704,6 +1704,9 @@
         "title": "Check In",
         "notePrompt": "Add a quick note (optional)",
         "notePlaceholder": "How did it go? Any wins to share with your partner?",
+        "takePhoto": "Take Photo",
+        "choosePhoto": "Choose Photo",
+        "uploadFailed": "We couldn't upload your photo. Try again.",
         "cancel": "Cancel",
         "confirm": "Check In"
       }
