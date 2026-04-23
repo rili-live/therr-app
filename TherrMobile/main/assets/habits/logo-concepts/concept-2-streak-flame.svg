@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Friends With Habits — Shared Streak">
+  <title>Friends With Habits — Shared Streak</title>
+
+  <!-- Dark background to let the flame pop -->
+  <rect width="1024" height="1024" rx="224" ry="224" fill="#001226"/>
+
+  <!-- Soft teal glow behind the flame -->
+  <circle cx="512" cy="560" r="340" fill="#1C7F8A" opacity="0.35"/>
+
+  <!-- Partner A flame half (teal) — tilted slightly left -->
+  <path d="M 512 210
+           C 380 330, 300 470, 330 620
+           C 355 748, 460 810, 512 810
+           C 500 720, 470 650, 470 570
+           C 470 460, 510 360, 512 210 Z"
+        fill="#1C7F8A"/>
+
+  <!-- Partner B flame half (orange) — tilted slightly right, overlaps A -->
+  <path d="M 512 210
+           C 644 330, 724 470, 694 620
+           C 669 748, 564 810, 512 810
+           C 524 720, 554 650, 554 570
+           C 554 460, 514 360, 512 210 Z"
+        fill="#E37107"/>
+
+  <!-- Inner flame core — the shared streak -->
+  <path d="M 512 360
+           C 448 440, 420 530, 448 620
+           C 466 680, 488 720, 512 740
+           C 536 720, 558 680, 576 620
+           C 604 530, 576 440, 512 360 Z"
+        fill="#FCFEFF"/>
+
+  <!-- Small base ember -->
+  <ellipse cx="512" cy="820" rx="96" ry="14" fill="#FCFEFF" opacity="0.35"/>
+</svg>
