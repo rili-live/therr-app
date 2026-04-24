@@ -2,7 +2,7 @@
 
 ## Overview
 
-React Native 0.80.0 mobile app (iOS + Android) for the Therr social platform. React 19.1.0. Has its own `package.json` isolated from the monorepo root. Android package: `app.therrmobile`, native code in Kotlin.
+React Native 0.83.6 mobile app (iOS + Android) for the Therr social platform. React 19.2.0. Has its own `package.json` isolated from the monorepo root. Android package: `app.therrmobile`, native code in Kotlin.
 
 ## Directory Structure
 
