@@ -1,5 +1,8 @@
 # Claude Code Instructions - therr-react
 
+> ⚠️ **Shared code — only edit from the `general` branch. Niche branches cannot deploy.**
+> Changes under `therr-public-library/` committed to a `niche/*` branch will never reach production. See root `CLAUDE.md` → "Deployment reality".
+
 ## Package Overview
 
 - **Type**: Shared React library
@@ -251,6 +254,17 @@ export default new NewFeatureService();
 - **Immer**: Redux reducers use `immer` (curried `produce`) for immutable state updates
 - **Storage abstraction**: Supports localStorage (web) and AsyncStorage (mobile)
 - Changes require rebuilding consuming packages (web, dashboard, mobile)
+
+### Adding a new Redux types slice (barrel re-export rule)
+
+When you add a new state slice under `src/types/redux/<slice>.ts` (e.g. `network.ts`), you MUST re-export its public symbols from **both** barrels:
+
+1. `src/types/redux/index.ts` — the inner barrel (consumed as `therr-react/types/redux`)
+2. `src/types/index.ts` — the outer barrel (consumed as `therr-react/types`)
+
+Leaving the outer barrel out silently works in code that happens to import from the inner path, but breaks any consumer importing from `therr-react/types` — mobile `networkService.ts` hit exactly this when `NetworkActionTypes` was only in the inner barrel. The typecheck error is clear but only surfaces after a rebuild of the lib.
+
+Then rebuild so dependent packages (web, dashboard, mobile) pick up the updated `.d.ts`: `npm run pr:build:therr-react` from repo root.
 
 ## Code Quality
 

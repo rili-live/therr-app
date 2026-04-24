@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+# Guard: prevent backend / shared-library changes from being committed on niche/* branches.
+# See CLAUDE.md → "Deployment reality". Niche branches have no CI path to main, so any
+# change to the paths below is dead code unless it lands on `general` instead.
+#
+# To bypass for a legitimate exception: git commit --no-verify
+
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+case "$branch" in
+  niche/*) ;;
+  *) exit 0 ;;
+esac
+
+# Merge commits legitimately carry backend/shared files from `general` onto the
+# niche branch — that's the documented split-commit workflow. Skip the guard.
+git_dir=$(git rev-parse --git-dir 2>/dev/null)
+if [ -n "$git_dir" ] && [ -f "$git_dir/MERGE_HEAD" ]; then
+  exit 0
+fi
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+offenders=$(printf '%s\n' "$staged" | grep -E \
+  -e '^(therr-services|therr-api-gateway|therr-public-library|_bin)/' \
+  -e '^(package\.json|package-lock\.json|docker-compose[^/]*\.ya?ml)$' \
+  -e '(^|/)migrations/' \
+  -e '\.sql$' \
+  || true)
+
+if [ -n "$offenders" ]; then
+  printf '\n\033[31m⛔ Backend change on niche branch — will not deploy.\033[0m\n\n'
+  printf '   You are on "%s", which has no CI path to production.\n' "$branch"
+  printf '   These staged files must live on "general" to ever ship:\n\n'
+  printf '%s\n' "$offenders" | sed 's/^/     /'
+  printf '\n   Use the split-commit workflow (see CLAUDE.md → "Deployment reality"),\n'
+  printf '   or run /quality-peer-review-niche for guided remediation.\n\n'
+  printf '   To bypass for a legitimate exception:\n'
+  printf '     git commit --no-verify\n\n'
+  exit 1
+fi
+
+exit 0

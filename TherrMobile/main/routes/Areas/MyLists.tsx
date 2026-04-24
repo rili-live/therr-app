@@ -112,6 +112,7 @@ class MyLists extends React.Component<IMyListsProps, IMyListsState> {
                                     <Text style={styles.meta}>
                                         {this.translate('pages.bookmarks.lists.itemCount', { count: item.itemCount ?? 0 })}
                                         {item.isDefault ? ` · ${this.translate('pages.bookmarks.lists.default')}` : ''}
+                                        {item.isPublic ? ` · ${this.translate('pages.bookmarks.lists.publicBadge')}` : ''}
                                     </Text>
                                 </View>
                                 <MaterialIcon name="chevron-right" size={24} color="#aaa" />

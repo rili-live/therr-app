@@ -38,6 +38,7 @@ import TherrIcon from '../../components/TherrIcon';
 import ForumMessage from './ForumMessage';
 import ListEmpty from '../../components/ListEmpty';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
+import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import UserSearchItem from '../Connect/components/UserSearchItem';
 import UsersActions from '../../redux/actions/UsersActions';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
@@ -97,6 +98,7 @@ interface IViewGroupState {
     groupEvents: any[];
     groupMembers: any[];
     isSending: boolean;
+    isTabViewLaidOut: boolean;
     isWelcomeDialogVisible: boolean;
     msgInputVal: string;
     isLoading: boolean;
@@ -160,6 +162,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             groupMembers: [],
             groupEvents: [],
             isSending: false,
+            isTabViewLaidOut: false,
             isWelcomeDialogVisible: !!route.params?.isNewlyCreated,
             msgInputVal: '',
             isLoading: false,
@@ -480,6 +483,16 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         });
     };
 
+    handleTabContainerLayout = (e) => {
+        if (this.state.isTabViewLaidOut) {
+            return;
+        }
+        const { width, height } = e.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+            this.setState({ isTabViewLaidOut: true });
+        }
+    };
+
     handleWelcomeDialogDismiss = () => {
         this.setState({ isWelcomeDialogVisible: false });
     };
@@ -672,7 +685,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     };
 
     render() {
-        const { activeTabIndex, isSending, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
+        const { activeTabIndex, isSending, isTabViewLaidOut, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
         const { route, forums } = this.props;
         const { description, subtitle, id: forumId } = route.params;
         const group = forums?.searchResults?.find((g) => g.id === forumId)
@@ -734,7 +747,10 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 />
                             </View>
                         </View>
-                        <View style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}>
+                        <View
+                            style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}
+                            onLayout={this.handleTabContainerLayout}
+                        >
                             <TabView
                                 lazy
                                 lazyPreloadDistance={1}
@@ -760,6 +776,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 initialLayout={{ width: viewportWidth }}
                                 // style={styles.container}
                             />
+                            {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
                         </View>
                     </View>
                     <KeyboardAvoidingView

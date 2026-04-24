@@ -167,6 +167,55 @@ app.use((req, res, next) => {
     next();
 });
 
+// ── Friends with Habits subdomain (habits.therr.com) ──
+// Hostname-aware routing for the Habits brand's minimal landing site. Serves a
+// small, self-contained set of static-style pages (landing + privacy + terms)
+// without invoking React SSR. Required for Google Play submission, which needs
+// a publicly-reachable Habits-branded privacy URL.
+//
+// k8s ingress (k8s/prod/ingress-service.yaml) routes habits.therr.com and
+// www.habits.therr.com to client-cluster-ip-service:7070 — the same pod that
+// serves therr.com. This middleware short-circuits those requests before the
+// rest of the Therr SSR pipeline runs.
+const HABITS_HOSTS = new Set(['habits.therr.com', 'www.habits.therr.com']);
+const HABITS_ROUTE_RENDERERS: Record<string, { view: string; title: string; description: string }> = {
+    '/': {
+        view: 'habits/landing',
+        title: 'Friends with Habits — Habits that stick because your friend is in it',
+        description: 'Build habits that actually stick. Pact with a friend, check in daily, keep each other on streak.',
+    },
+    '/privacy-policy': {
+        view: 'habits/privacy-policy',
+        title: 'Privacy Policy — Friends with Habits',
+        description: 'Privacy policy for the Friends with Habits mobile app.',
+    },
+    '/terms-of-service': {
+        view: 'habits/terms-of-service',
+        title: 'Terms of Service — Friends with Habits',
+        description: 'Terms of service for the Friends with Habits mobile app.',
+    },
+};
+app.use((req, res, next) => {
+    if (!HABITS_HOSTS.has(req.hostname)) {
+        return next();
+    }
+    if (req.path === '/robots.txt') {
+        res.type('text/plain');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.send('User-agent: *\nAllow: /\n');
+    }
+    const renderer = HABITS_ROUTE_RENDERERS[req.path];
+    if (!renderer) {
+        return res.status(404).type('text/plain').send('Not found');
+    }
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400');
+    return res.render(renderer.view, {
+        title: renderer.title,
+        description: renderer.description,
+        canonicalUrl: `https://habits.therr.com${req.path === '/' ? '' : req.path}`,
+    });
+});
+
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
 app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
@@ -1902,6 +1951,96 @@ const renderGuideView = (req, res, config, { markup, state }, initialState, loca
     });
 };
 
+// Public shareable list page. Injects per-list title/description, OG tags,
+// and a schema.org ItemList. Emits <meta name="robots" content="noindex,follow">
+// for thin lists (fewer than 3 items OR no description) so Google doesn't
+// index low-quality UGC pages.
+const renderPublicListView = (req, res, config, { markup, state }, initialState, localeVars) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const fallbackTitle = config.head.title;
+    const fallbackDescription = config.head.description;
+
+    const list = initialState?.content?.activeUserList;
+    const ownerUserId = req.params?.ownerUserId;
+
+    if (!list || !list.isPublic || list.userId !== ownerUserId) {
+        res.status(404);
+        return res.render(routeView, {
+            title: fallbackTitle,
+            description: fallbackDescription,
+            listName: '',
+            robotsNoindex: true,
+            markup,
+            routePath,
+            state,
+            ...localeVars,
+        });
+    }
+
+    const spaces: any[] = list.spaces || [];
+    const itemCount = typeof list.itemCount === 'number' ? list.itemCount : spaces.length;
+
+    // Title: "<List name> — a Therr list of places"
+    const title = `${list.name} — a Therr list of places`;
+    // Description: prefer the owner's description; otherwise synthesize from
+    // the first few space names so the snippet is meaningful even for thin lists.
+    const truncate = (str: string, max: number) => (str.length > max ? `${str.slice(0, max - 1)}…` : str);
+    const listDescription = (list.description || '').toString().trim();
+    const fallbackFromSpaces = spaces.slice(0, 6).map((s: any) => s.notificationMsg).filter(Boolean).join(', ');
+    const description = truncate(listDescription || fallbackFromSpaces || fallbackDescription, 300);
+
+    // Thin-content gate. Keep these pages out of Google's index until they
+    // accumulate real content; `follow` still lets Google follow outbound links
+    // to the canonical space pages.
+    const robotsNoindex = itemCount < 3 || !listDescription;
+
+    const itemListSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: list.name,
+        numberOfItems: itemCount,
+        itemListElement: spaces.slice(0, 50).map((space: any, index: number) => {
+            const slug = buildSpaceSlug(space.notificationMsg, space.addressLocality, space.addressRegion);
+            return {
+                '@type': 'ListItem',
+                position: index + 1,
+                url: `https://www.therr.com${localeVars.localePrefix || ''}/spaces/${space.id}${slug ? `/${slug}` : ''}`,
+                name: space.notificationMsg || space.id,
+            };
+        }),
+    };
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            {
+                '@type': 'ListItem', position: 1, name: 'Therr', item: 'https://www.therr.com/',
+            },
+            {
+                '@type': 'ListItem',
+                position: 2,
+                name: list.name,
+                item: `https://www.therr.com${localeVars.canonicalPath}`,
+            },
+        ],
+    };
+
+    return res.render(routeView, {
+        title,
+        description,
+        listName: list.name,
+        robotsNoindex,
+        itemListSchema: JSON.stringify(itemListSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        markup,
+        routePath,
+        state,
+        ...localeVars,
+    });
+};
+
 const renderGroupView = (req, res, config, {
     markup,
     state,
@@ -2215,6 +2354,7 @@ const publicRoutePatterns = [
     /^\/thoughts\/[^/]+$/,
     /^\/users\/[^/]+$/,
     /^\/invite\/[^/]+$/,
+    /^\/lists\/[^/]+\/[a-z0-9-]+$/,
     /^\/child-safety$/,
     /^\/go-mobile$/,
     /^\/app-feedback$/,
@@ -2418,6 +2558,10 @@ routeConfig.forEach((config) => {
 
                 if (routeView === 'guides') {
                     return renderGuideView(req, res, config, { markup, state }, initialState, localeVars);
+                }
+
+                if (routeView === 'public-list') {
+                    return renderPublicListView(req, res, config, { markup, state }, initialState, localeVars);
                 }
 
                 return res.render(routeView, {

@@ -321,6 +321,14 @@
         "back": "Atrás"
       }
     },
+    "publicList": {
+      "loadingTitle": "Cargando lista...",
+      "itemCount": "{count} lugares",
+      "openInApp": "Abrir en la app",
+      "emptyList": "Esta lista aún no tiene lugares.",
+      "notFoundTitle": "Lista no disponible",
+      "notFoundBody": "Esta lista es privada o ya no existe."
+    },
     "discovered": {
       "pageTitle": "Descubierto",
       "subtitle": "Momentos y espacios compartidos recientemente por la comunidad",

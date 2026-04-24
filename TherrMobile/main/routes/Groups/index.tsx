@@ -22,6 +22,7 @@ import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
 import { RefreshControl } from 'react-native-gesture-handler';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
+import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -80,6 +81,7 @@ interface IGroupsState {
     isNameConfirmModalVisible: boolean;
     isRefreshing: boolean;
     isMyGroupsRefreshing: boolean;
+    isTabViewLaidOut: boolean;
     activeTabIndex: number;
     searchFilters: any;
     searchText: string;
@@ -147,6 +149,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
             isNameConfirmModalVisible: false,
             isRefreshing: false,
             isMyGroupsRefreshing: false,
+            isTabViewLaidOut: false,
             tabRoutes: [
                 { key: GROUPS_CAROUSEL_TABS.DISCOVER, title: this.translate('menus.headerTabs.groupsDiscover') },
                 { key: GROUPS_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groupsJoined') },
@@ -227,6 +230,16 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         navigation.setParams({
             activeTab: tabMap[index],
         });
+    };
+
+    handleTabContainerLayout = (e) => {
+        if (this.state.isTabViewLaidOut) {
+            return;
+        }
+        const { width, height } = e.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+            this.setState({ isTabViewLaidOut: true });
+        }
     };
 
     handleRefreshDiscoverSearch = () => {
@@ -612,13 +625,13 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     };
 
     render() {
-        const { activeTabIndex, isNameConfirmModalVisible, tabRoutes } = this.state;
+        const { activeTabIndex, isNameConfirmModalVisible, isTabViewLaidOut, tabRoutes } = this.state;
         const { navigation, user } = this.props;
 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView} onLayout={this.handleTabContainerLayout}>
                     <TabView
                         lazy
                         lazyPreloadDistance={1}
@@ -643,6 +656,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         onIndexChange={this.onTabSelect}
                         initialLayout={{ width: viewportWidth }}
                     />
+                    {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isNameConfirmModalVisible}

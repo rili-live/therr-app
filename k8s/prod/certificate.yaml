@@ -17,6 +17,8 @@ spec:
     - 'www.api.therr.com'
     - 'websocket-service.therr.com'
     - 'www.websocket-service.therr.com'
+    - 'habits.therr.com'
+    - 'www.habits.therr.com'
     # Whitelabel
     # - 'adsly.app'
     # - 'www.adsly.app'
