@@ -441,6 +441,6 @@ App Launch → redux-persist rehydrates cached state → UI renders cached data
 |---------|------|
 | Network Redux slice | `therr-react/src/redux/reducers/network.ts` |
 | Cache helpers | `therr-react/src/utilities/cacheHelpers.ts` |
-| Mobile network service | `TherrMobile/main/services/networkService.ts` |
+| Mobile network service | `TherrMobile/main/utilities/networkService.ts` |
 | Web network service | `therr-client-web/src/services/networkService.ts` |
 | Full roadmap | `docs/OFFLINE_FIRST_PLAN.md` |
