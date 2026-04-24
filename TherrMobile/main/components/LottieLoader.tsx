@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import claimASpace from '../assets/claim-a-space.json';
 import karaokeLoader from '../assets/karaoke.json';
 import happySwingLoader from '../assets/happy-swing.json';
@@ -11,6 +12,7 @@ import tacoLoader from '../assets/taco.json';
 import carLoader from '../assets/sports-car.json';
 import zeppelinLoader from '../assets/zeppelin.json';
 import therrBlackRolling from '../assets/therr-logo-black-rolling.json';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 
 export type ILottieId = 'claim-a-space'
     | 'donut'
@@ -37,7 +39,15 @@ export default ({
     let textStyles: any = {};
     let source: any = carLoader;
 
-    switch (id) {
+    // The therr-black-rolling loader is a Lottie animation of the Therr
+    // wordmark; on the Friends with Habits niche app we never want to
+    // show the Therr brand mark, so substitute a brand-neutral loader.
+    const resolvedId: ILottieId = (
+        CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+        && id === 'therr-black-rolling'
+    ) ? 'earth' : id;
+
+    switch (resolvedId) {
         case 'claim-a-space':
             containerStyles = theme.styles.claimASpace;
             textStyles = theme.styles.defaultText;
