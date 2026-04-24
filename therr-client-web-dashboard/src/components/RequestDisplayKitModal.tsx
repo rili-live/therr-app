@@ -64,7 +64,7 @@ const RequestDisplayKitModal: React.FC<IRequestDisplayKitModalProps> = ({ show, 
         }
     }, [show, space?.id]);
 
-    const onShippingChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const onShippingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.currentTarget;
         setShipping((prev) => ({ ...prev, [name]: value }));
     };
