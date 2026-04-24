@@ -36,7 +36,7 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     children,
 }) => {
     const { isEnabled } = useFeatureFlags();
-    const translate = (key: string, params?: any) => translator('en-us', key, params);
+    const translate = (key: string, params?: any) => translator(user.settings?.locale || 'en-us', key, params);
     const theme = buildStyles(user.settings?.mobileThemeName);
     const themeButtons = buildButtonStyles(user.settings?.mobileThemeName);
     const themeHabits = buildHabitStyles(user.settings?.mobileThemeName);

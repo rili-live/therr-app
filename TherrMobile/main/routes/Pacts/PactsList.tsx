@@ -62,7 +62,7 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
