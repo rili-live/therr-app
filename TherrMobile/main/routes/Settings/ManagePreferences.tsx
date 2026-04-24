@@ -157,8 +157,8 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
                 });
             }).catch(() => {
                 showToast.error({
-                    text1: this.translate('pages.manageNotifications.alertTitles.accountError'),
-                    text2: this.translate('pages.manageNotifications.alertMessages.preferenceSettingsUpdatedError'),
+                    text1: this.translate('pages.managePreferences.alertTitles.accountError'),
+                    text2: this.translate('pages.managePreferences.alertMessages.preferenceSettingsUpdatedError'),
                 });
             }).finally(() => {
                 this.setState({
