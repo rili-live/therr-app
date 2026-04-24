@@ -58,6 +58,19 @@ Before staging, run `git diff --cached --name-only` and confirm every path in th
 
 A pre-commit hook (`.husky/pre-commit`, wired via husky) enforces this at the commit boundary and will fail the commit on a `niche/*` branch if any staged file matches the must-be-on-general globs. It is installed automatically by `npm install` via the root `"prepare": "husky"` script. To bypass for a legitimate exception, use `git commit --no-verify` — and be sure the exception is genuinely legitimate.
 
+### Switching niche apps locally
+
+To move between Therr, Friends with Habits, or Teem during development:
+
+```bash
+git checkout niche/HABITS-general         # or general, or niche/TEEM-general
+./_bin/switch-brand.sh habits              # habits | therr | teem
+cd TherrMobile && npm start                # terminal 1
+cd TherrMobile && npm run android:habits   # terminal 2 (matches brand arg above)
+```
+
+`switch-brand.sh` rewrites `TherrMobile/main/config/brandConfig.ts` if needed, kills any running Metro bundler, and clears Metro caches. The `android:<brand>` npm scripts are currently thin aliases for `android`; brand selection comes from `brandConfig.ts`.
+
 ### Project Brief Context (Required)
 
 Always associate the current context with the appropriate project brief based on the checked out branch:

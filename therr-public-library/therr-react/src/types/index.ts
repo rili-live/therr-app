@@ -17,6 +17,16 @@ import {
     IForumsState,
     ForumActionTypes,
 
+    // Habits
+    IHabitGoal,
+    IPact,
+    IPactMember,
+    IHabitCheckin,
+    IStreak,
+    IStreakHistory,
+    IHabitsState,
+    HabitsActionTypes,
+
     // Messages
     MessageActionTypes,
     IForumMsg,
@@ -99,6 +109,16 @@ export {
     IForumsArray,
     IForumsState,
     ForumActionTypes,
+
+    // Habits
+    IHabitGoal,
+    IPact,
+    IPactMember,
+    IHabitCheckin,
+    IStreak,
+    IStreakHistory,
+    IHabitsState,
+    HabitsActionTypes,
 
     // Maps
     IMapState,
