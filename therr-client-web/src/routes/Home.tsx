@@ -99,32 +99,34 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
             .sort((a, b) => a.label.localeCompare(b.label));
 
         return (
-            <div id="page_home" className="flex-box space-evenly center row wrap-reverse">
-                <div className="login-container info-container">
-                    <div className="flex fill max-wide-40">
-                        <div className="flex-box fill">
-                            <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" width="400" height="300" />
-                        </div>
-                        <h1 className="text-title-medium no-bot-margin fill">
-                            {translate('pages.home.welcome')}
-                        </h1>
-                        <p className="info-text fill">{translate('pages.home.info')}</p>
-                        <p className="info-text fill margin-top-lg margin-bot-lg">{translate('pages.home.info2')}</p>
-                        <p className="info-text fill margin-top-lg margin-bot-lg">{translate('pages.home.info3')}</p>
-                        <div className="store-image-links margin-top-lg">
-                            <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                <img aria-label="apple store link" className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" width="150" height="50" loading="lazy" />
-                            </a>
-                            <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                <img aria-label="play store link" className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" width="150" height="50" loading="lazy" />
-                            </a>
-                        </div>
-                        <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
-                            <a href={`https://www.therr.app${localePath}/privacy-policy.html`} target="_blank" className="link-plain-white">{translate('components.loginForm.buttons.privacyPolicy')}</a> | <a href={`https://www.therr.app${localePath}/terms-and-conditions.html`} target="_blank" className="link-plain-white">{translate('components.loginForm.buttons.toc')}</a>
+            <div id="page_home">
+                <div className="flex-box space-evenly center row wrap-reverse">
+                    <div className="login-container info-container">
+                        <div className="flex fill max-wide-40">
+                            <div className="flex-box fill">
+                                <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" width="400" height="300" />
+                            </div>
+                            <h1 className="text-title-medium no-bot-margin fill">
+                                {translate('pages.home.welcome')}
+                            </h1>
+                            <p className="info-text fill">{translate('pages.home.info')}</p>
+                            <p className="info-text fill margin-top-lg margin-bot-lg">{translate('pages.home.info2')}</p>
+                            <p className="info-text fill margin-top-lg margin-bot-lg">{translate('pages.home.info3')}</p>
+                            <div className="store-image-links margin-top-lg">
+                                <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                                    <img aria-label="apple store link" className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" width="150" height="50" loading="lazy" />
+                                </a>
+                                <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                                    <img aria-label="play store link" className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" width="150" height="50" loading="lazy" />
+                                </a>
+                            </div>
+                            <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
+                                <a href={`https://www.therr.app${localePath}/privacy-policy.html`} target="_blank" className="link-plain-white">{translate('components.loginForm.buttons.privacyPolicy')}</a> | <a href={`https://www.therr.app${localePath}/terms-and-conditions.html`} target="_blank" className="link-plain-white">{translate('components.loginForm.buttons.toc')}</a>
+                            </div>
                         </div>
                     </div>
+                    <LoginForm login={this.login} onGoogleLogin={this.loginSSO} />
                 </div>
-                <LoginForm login={this.login} onGoogleLogin={this.loginSSO} />
                 <section className="home-seo-section" aria-labelledby="home-discover-heading" style={{ width: '100%', padding: '2rem 1rem' }}>
                     <div style={{ maxWidth: 960, margin: '0 auto' }}>
                         <h2 id="home-discover-heading" className="text-title-medium">
