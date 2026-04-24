@@ -30,6 +30,10 @@ export interface ISpace {
     isExclusiveToGroups: boolean;
     category: string;
     region: string;
+    addressStreetAddress?: string;
+    addressLocality?: string;
+    addressRegion?: string;
+    postalCode?: number;
     createdAt: string;
     updatedAt: string;
     geom: string;

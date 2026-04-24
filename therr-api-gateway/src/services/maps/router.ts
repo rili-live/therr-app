@@ -348,6 +348,23 @@ mapsServiceRouter.post('/spaces/request-approve/:spaceId', validate, authorize(
     method: 'post',
 }));
 
+// Space display requests (physical QR coasters, table tents, window clings for claimed businesses)
+mapsServiceRouter.post('/space-display-requests', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+mapsServiceRouter.get('/space-display-requests', validate, authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
+
 // City Pulse — editorial + Therr-data aggregate used by the /locations/city/:slug SSR page.
 // Public endpoint (no auth required); cached in Redis for 15 minutes per (slug, locale).
 //
