@@ -125,17 +125,6 @@ spec:
             port:
               number: 7070
         pathType: ImplementationSpecific
-  - host: www.websocket-service.therr.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: websocket-service-cluster-ip-service
-            port:
-              number: 7743
-        pathType: ImplementationSpecific
-        
   # Whitelabel
   # - host: adsly.app
   #   http:

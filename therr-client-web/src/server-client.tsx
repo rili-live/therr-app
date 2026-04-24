@@ -146,6 +146,11 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
     enableBrotli: true,
     orderPreference: ['br', 'gzip'],
+    // express-static-gzip reads `index` from the top-level options. Without this, it defaults
+    // to 'index.html' and rewrites any request ending in '/' (including habits.therr.com/)
+    // from '/' → '/index.html' before downstream middleware runs — which breaks exact path
+    // matching in the habits subdomain middleware below.
+    index: false,
     serveStatic: {
         index: false,
         setHeaders: (res, filePath) => {
