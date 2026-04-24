@@ -40,10 +40,10 @@ interface IShippingForm {
 
 const buildInitialShipping = (space: ISpace | null): IShippingForm => ({
     shippingName: '',
-    shippingAddress: space?.addressReadable || '',
-    shippingCity: '',
-    shippingRegion: space?.region || '',
-    shippingPostalCode: '',
+    shippingAddress: space?.addressStreetAddress || space?.addressReadable || '',
+    shippingCity: space?.addressLocality || '',
+    shippingRegion: space?.addressRegion || space?.region || '',
+    shippingPostalCode: space?.postalCode != null ? String(space.postalCode) : '',
     shippingCountry: 'US',
 });
 
