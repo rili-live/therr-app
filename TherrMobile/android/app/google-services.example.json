@@ -1,0 +1,62 @@
+{
+  "_comment_": "Sanitized template of the merged google-services.json used by the Android Gradle plugin. Real file lives at TherrMobile/android/app/google-services.json (gitignored). See docs/SECRETS_AND_LOCAL_BOOTSTRAP.md and docs/MULTI_BRAND_ARCHITECTURE.md.",
+  "_purpose_": "Use this file to verify your local google-services.json has client blocks for every active brand variant. If your real file is missing any package_name listed below, re-export from Firebase Console.",
+  "project_info": {
+    "project_number": "REPLACE_WITH_FIREBASE_PROJECT_NUMBER",
+    "project_id": "therr-app",
+    "storage_bucket": "therr-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "_comment_": "Therr — the default brand variant",
+      "client_info": {
+        "mobilesdk_app_id": "REPLACE_WITH_MOBILESDK_APP_ID",
+        "android_client_info": {
+          "package_name": "app.therrmobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "REPLACE_WITH_OAUTH_CLIENT_ID",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.therrmobile",
+            "certificate_hash": "REPLACE_WITH_SHA1_FINGERPRINT_LOWERCASE_NO_COLONS"
+          }
+        }
+      ],
+      "api_key": [
+        { "current_key": "REPLACE_WITH_FIREBASE_API_KEY" }
+      ],
+      "services": {
+        "appinvite_service": { "other_platform_oauth_client": [] }
+      }
+    },
+    {
+      "_comment_": "Friends with Habits — niche brand variant on niche/HABITS-general",
+      "client_info": {
+        "mobilesdk_app_id": "REPLACE_WITH_MOBILESDK_APP_ID",
+        "android_client_info": {
+          "package_name": "com.therr.habits"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "REPLACE_WITH_OAUTH_CLIENT_ID",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.therr.habits",
+            "certificate_hash": "REPLACE_WITH_SHA1_FINGERPRINT_LOWERCASE_NO_COLONS"
+          }
+        }
+      ],
+      "api_key": [
+        { "current_key": "REPLACE_WITH_FIREBASE_API_KEY" }
+      ],
+      "services": {
+        "appinvite_service": { "other_platform_oauth_client": [] }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
