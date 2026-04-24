@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
@@ -8,10 +8,13 @@ import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import { showToast } from '../../utilities/toasts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
+import { Button } from '../../components/BaseButton';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
+import { bypassInterestsRedirect } from '../../utilities/interestsRedirectGuard';
 import { buildStyles } from '../../styles';
+import { getTheme } from '../../styles/themes';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
@@ -42,6 +45,7 @@ interface IManagePreferencesState {
     interests: any;
     isLoading: boolean;
     isSubmitting: boolean;
+    hasLoadError: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -73,6 +77,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             interests: {},
             isLoading: true,
             isSubmitting: false,
+            hasLoadError: false,
         };
 
         this.reloadTheme();
@@ -85,8 +90,13 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             title: this.translate('pages.managePreferences.headerTitle'),
         });
 
+        this.loadInterests();
+    };
+
+    loadInterests = () => {
         this.setState({
             isLoading: true,
+            hasLoadError: false,
         });
 
         Promise.all([
@@ -108,14 +118,27 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             });
             this.setState({
                 interests: currentInterests,
+                hasLoadError: false,
             });
         }).catch((err) => {
             console.log(err);
+            this.setState({
+                hasLoadError: true,
+            });
         }).finally(() => {
             this.setState({
                 isLoading: false,
             });
         });
+    };
+
+    handleSkipForNow = () => {
+        bypassInterestsRedirect();
+        if (this.props.navigation.canGoBack()) {
+            this.props.navigation.goBack();
+        } else {
+            this.props.navigation.navigate('Settings');
+        }
     };
 
     isFormDisabled() {
@@ -173,9 +196,10 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
 
     render() {
         const { navigation, user } = this.props;
-        const  { interests, isLoading, isSubmitting } = this.state;
+        const  { interests, isLoading, isSubmitting, hasLoadError } = this.state;
         const pageHeaderAdvancedSettings = this.translate('pages.managePreferences.pageHeaderEmailSettings');
         const pageHeaderYourInterests = this.translate('pages.managePreferences.pageSubHeaderInterests');
+        const themeColors = getTheme(user.settings?.mobileThemeName).colors;
 
         return (
             <>
@@ -200,6 +224,30 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
                                     {pageHeaderYourInterests}
                                 </Text>
                             </View>
+                            {hasLoadError && (
+                                <View style={[
+                                    spacingStyles.marginHorizLg,
+                                    spacingStyles.marginTopLg,
+                                ]}>
+                                    <Text style={[
+                                        this.theme.styles.sectionDescriptionCentered,
+                                        { color: themeColors.alertError },
+                                    ]}>
+                                        {this.translate('pages.managePreferences.alertMessages.loadInterestsError')}
+                                    </Text>
+                                    <View style={spacingStyles.marginTopMd}>
+                                        <Button
+                                            buttonStyle={this.themeForms.styles.buttonPrimary}
+                                            disabledStyle={this.themeForms.styles.buttonDisabled}
+                                            titleStyle={this.themeForms.styles.buttonTitle}
+                                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                            title={this.translate('pages.managePreferences.buttons.retry')}
+                                            onPress={this.loadInterests}
+                                            disabled={isLoading}
+                                        />
+                                    </View>
+                                </View>
+                            )}
                             <CreateProfileInterests
                                 availableInterests={interests}
                                 isDisabled={isSubmitting}
@@ -214,6 +262,29 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
                                     'forms.settings.buttons.submit'
                                 )}
                             />
+                            <View style={[
+                                spacingStyles.marginHorizLg,
+                                spacingStyles.marginTopMd,
+                                spacingStyles.marginBotLg,
+                                { alignItems: 'center' },
+                            ]}>
+                                <TouchableOpacity
+                                    onPress={this.handleSkipForNow}
+                                    disabled={isSubmitting}
+                                    accessibilityRole="button"
+                                >
+                                    <Text style={[
+                                        this.theme.styles.sectionDescription,
+                                        {
+                                            color: themeColors.hyperlink,
+                                            textDecorationLine: 'underline',
+                                            textAlign: 'center',
+                                        },
+                                    ]}>
+                                        {this.translate('pages.managePreferences.buttons.skipForNow')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
