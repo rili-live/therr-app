@@ -4,6 +4,7 @@ import 'react-native-gesture-handler';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import TherrIcon from '../components/TherrIcon';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import getConfig from '../utilities/getConfig';
 
 const LOGO_GLYPH_NAME = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
     ? 'cami-glyph'
@@ -27,15 +28,16 @@ const HeaderMenuLeft = ({
     theme,
 }: IHeaderMenuLeftProps) => {
     const handlePress = () => {
-        if (isAuthenticated && isEmailVerifed) {
-            navigation.navigate('Map', {
-                shouldShowPreview: false,
-            });
-        } else if (isAuthenticated) {
+        const isMapEnabled = getConfig()?.featureFlags?.ENABLE_MAP === true;
+        if (isAuthenticated && !isEmailVerifed) {
             navigation.navigate('CreateProfile');
-        } else {
-            navigation.navigate('Map');
+            return;
         }
+        if (isMapEnabled) {
+            navigation.navigate('Map', isAuthenticated ? { shouldShowPreview: false } : undefined);
+            return;
+        }
+        navigation.navigate('Home');
     };
 
     let logoStyle = theme.styles.logoIcon;
