@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="robots" content="index,follow">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="icon" href="/assets/images/favicon.ico">
+    <style>
+        :root {
+            --habits-navy: #102a43;
+            --habits-coral-dark: #e0521e;
+            --habits-cream: #fff8f3;
+            --habits-text: #243b53;
+            --habits-text-muted: #627d98;
+            --habits-border: #d9e2ec;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.65;
+            color: var(--habits-text);
+            background: var(--habits-cream);
+            -webkit-font-smoothing: antialiased;
+        }
+        a { color: var(--habits-coral-dark); }
+        .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+        header.site-header {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--habits-border);
+            background: #fff;
+        }
+        header.site-header .brand {
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: var(--habits-navy);
+        }
+        header.site-header a { color: var(--habits-navy); text-decoration: none; }
+        main { padding: 2.5rem 0 4rem; }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--habits-navy); margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+        .updated { color: var(--habits-text-muted); font-size: 0.9375rem; margin: 0 0 2rem; }
+        h2 { font-size: 1.25rem; font-weight: 700; color: var(--habits-navy); margin: 2.5rem 0 0.75rem; }
+        h3 { font-size: 1rem; font-weight: 600; color: var(--habits-navy); margin: 1.5rem 0 0.5rem; }
+        p, li { font-size: 1rem; }
+        ul { padding-left: 1.25rem; }
+        ul li { margin-bottom: 0.4rem; }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--habits-border);
+            background: #fff;
+            text-align: center;
+            color: var(--habits-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer a { margin: 0 0.5rem; color: var(--habits-text-muted); }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container"><a href="/" class="brand">Friends with Habits</a></div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Privacy Policy</h1>
+            <p class="updated">Effective: 2026-04-23</p>
+
+            <p>Friends with Habits ("we", "us") is built and operated by Therr Inc. This privacy policy describes what data the Friends with Habits mobile app collects, how we use it, and the choices you have. We try to keep this short and concrete.</p>
+
+            <h2>What we collect</h2>
+
+            <h3>Information you give us when you create an account</h3>
+            <ul>
+                <li><strong>Email address</strong> — required, used for sign-in and important service communications.</li>
+                <li><strong>Name</strong> — required, displayed to your accountability partners.</li>
+                <li><strong>Profile photo</strong> — optional, displayed to your accountability partners.</li>
+                <li><strong>Phone number</strong> — optional, only collected if you enable SMS verification.</li>
+            </ul>
+
+            <h3>Information you create while using the app</h3>
+            <ul>
+                <li><strong>Pact and habit details</strong> — habit names, descriptions, schedules.</li>
+                <li><strong>Check-in notes</strong> — text you write when checking in.</li>
+                <li><strong>Check-in photos</strong> — optional proof images you attach to a check-in.</li>
+                <li><strong>Streak and progress data</strong> — derived from your check-ins.</li>
+            </ul>
+
+            <h3>Information collected automatically</h3>
+            <ul>
+                <li><strong>Push notification token</strong> (Firebase Cloud Messaging) — required to send you reminder and partner-activity notifications.</li>
+                <li><strong>Crash logs</strong> (Firebase Crashlytics) — required, used to diagnose app crashes.</li>
+                <li><strong>App interaction events</strong> (Firebase Analytics) — optional, you can disable this in the app's settings.</li>
+            </ul>
+
+            <h2>What we do NOT collect</h2>
+            <ul>
+                <li><strong>Location data</strong> — Friends with Habits does not request or collect your device location.</li>
+                <li><strong>Contacts</strong> — we do not access your phone's contact list.</li>
+                <li><strong>Microphone or camera</strong> — except when you explicitly attach a photo to a check-in (the camera/photo library access is initiated by you, per check-in).</li>
+                <li><strong>Health data</strong> — we do not integrate with Apple Health or Google Fit at this time.</li>
+                <li><strong>Browsing or web activity outside the app.</strong></li>
+            </ul>
+
+            <h2>How we use your data</h2>
+            <ul>
+                <li>To operate the app's core functionality (create pacts, invite partners, record check-ins, deliver notifications).</li>
+                <li>To diagnose crashes and improve reliability.</li>
+                <li>To understand how the app is used in aggregate, so we can improve it (Analytics — opt-out available).</li>
+            </ul>
+
+            <h2>Who we share your data with</h2>
+            <p>We do <strong>not</strong> sell your personal information. We share data only with the following service providers, strictly to operate the app:</p>
+            <ul>
+                <li><strong>Google Firebase</strong> — push notifications (FCM), crash reporting (Crashlytics), and optional analytics.</li>
+                <li><strong>AWS</strong> — secure hosting of your data (database and media storage).</li>
+                <li><strong>Twilio</strong> — only if you opt in to SMS verification, used to deliver the verification code.</li>
+                <li><strong>SendGrid</strong> — to deliver email notifications and account-related messages.</li>
+            </ul>
+
+            <p>Your accountability partners see the data you choose to share with them: your profile photo and name, your check-ins for any pact you share, and your streak status. They do not see check-ins from pacts they aren't part of.</p>
+
+            <h2>Data security</h2>
+            <ul>
+                <li>All network traffic between the app and our servers is encrypted in transit (HTTPS/WSS).</li>
+                <li>Passwords are hashed and never stored in plaintext.</li>
+                <li>Production databases are accessible only to authorized service accounts.</li>
+            </ul>
+
+            <h2>Your rights and choices</h2>
+            <ul>
+                <li><strong>Access and update</strong> your profile data anytime in the app's Settings.</li>
+                <li><strong>Disable analytics collection</strong> in the app's Settings (Crashlytics remains active for stability).</li>
+                <li><strong>Delete your account</strong> at any time from Settings → Manage Account → Delete Account. Deletion removes your profile, pacts you created, and your check-ins. Pacts shared with partners are anonymized but retained so the partner's history remains intact.</li>
+                <li><strong>Request a data export</strong> by emailing the address below.</li>
+            </ul>
+
+            <h2>Children</h2>
+            <p>Friends with Habits is not intended for children under 13. We do not knowingly collect data from children under 13. If you believe a child has provided us data, contact us and we will delete it.</p>
+
+            <h2>International users</h2>
+            <p>Our servers are operated in the United States. By using the app, you consent to your data being processed in the U.S.</p>
+
+            <h2>Changes to this policy</h2>
+            <p>We will post any changes to this page and update the "Effective" date at the top. Material changes will also be communicated in-app.</p>
+
+            <h2>Contact</h2>
+            <p>Questions or requests: <a href="mailto:privacy@therr.com">privacy@therr.com</a></p>
+
+            <p style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--habits-border); color: var(--habits-text-muted); font-size: 0.875rem;">
+                Friends with Habits is a product of Therr Inc. Your account works across the Therr family of apps; data collected by other Therr-family apps is governed by their respective privacy policies, available at <a href="https://www.therr.com">www.therr.com</a>.
+            </p>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div>
+                <a href="/">Home</a>
+                <a href="/terms-of-service">Terms of Service</a>
+            </div>
+            <div style="margin-top: 0.75rem;">&copy; Therr Inc.</div>
+        </div>
+    </footer>
+</body>
+</html>
