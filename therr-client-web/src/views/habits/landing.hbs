@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="author" content="Therr Inc.">
+    <meta property="og:site_name" content="Friends with Habits">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{canonicalUrl}}">
+    <meta property="og:title" content="{{title}}">
+    <meta property="og:description" content="{{description}}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{title}}">
+    <meta name="twitter:description" content="{{description}}">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="icon" href="/assets/images/favicon.ico">
+    <style>
+        :root {
+            --habits-navy: #102a43;
+            --habits-coral: #ff6b35;
+            --habits-coral-dark: #e0521e;
+            --habits-cream: #fff8f3;
+            --habits-text: #243b53;
+            --habits-text-muted: #627d98;
+            --habits-border: #d9e2ec;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--habits-text);
+            background: var(--habits-cream);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        a { color: var(--habits-coral-dark); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        header.site-header {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--habits-border);
+            background: #fff;
+        }
+        header.site-header .brand {
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: var(--habits-navy);
+            letter-spacing: -0.01em;
+        }
+        .hero {
+            padding: 4rem 0 3rem;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--habits-navy);
+            margin: 0 0 1rem;
+            letter-spacing: -0.02em;
+        }
+        .hero p.lede {
+            font-size: 1.125rem;
+            color: var(--habits-text-muted);
+            margin: 0 0 2rem;
+            max-width: 540px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cta {
+            display: inline-block;
+            padding: 0.875rem 1.75rem;
+            background: var(--habits-coral);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 999px;
+            transition: background 0.15s ease;
+        }
+        .cta:hover {
+            background: var(--habits-coral-dark);
+            text-decoration: none;
+            color: #fff;
+        }
+        .cta--placeholder {
+            background: var(--habits-text-muted);
+            cursor: not-allowed;
+        }
+        .cta--placeholder:hover { background: var(--habits-text-muted); }
+        .cta-note {
+            font-size: 0.875rem;
+            color: var(--habits-text-muted);
+            margin-top: 0.75rem;
+        }
+        section.steps {
+            padding: 3rem 0;
+            border-top: 1px solid var(--habits-border);
+        }
+        section.steps h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--habits-navy);
+            margin: 0 0 2rem;
+            text-align: center;
+        }
+        .step-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 1.5rem;
+        }
+        .step-list li {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .step-num {
+            flex: 0 0 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            background: var(--habits-coral);
+            color: #fff;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .step-body h3 {
+            margin: 0.25rem 0 0.25rem;
+            font-size: 1.0625rem;
+            font-weight: 700;
+            color: var(--habits-navy);
+        }
+        .step-body p {
+            margin: 0;
+            color: var(--habits-text-muted);
+            font-size: 0.9375rem;
+        }
+        section.why {
+            padding: 3rem 0;
+            border-top: 1px solid var(--habits-border);
+            text-align: center;
+        }
+        section.why h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--habits-navy);
+            margin: 0 0 1rem;
+        }
+        section.why p {
+            color: var(--habits-text-muted);
+            max-width: 520px;
+            margin: 0 auto 1rem;
+        }
+        section.why .stat {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--habits-coral);
+            line-height: 1;
+            margin: 0.5rem 0;
+        }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--habits-border);
+            background: #fff;
+            text-align: center;
+            color: var(--habits-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer .footer-links {
+            margin-bottom: 0.75rem;
+        }
+        footer.site-footer .footer-links a {
+            margin: 0 0.5rem;
+            color: var(--habits-text-muted);
+        }
+        @media (min-width: 640px) {
+            .hero { padding: 6rem 0 4rem; }
+            .hero h1 { font-size: 3rem; }
+            .hero p.lede { font-size: 1.25rem; }
+            .step-list { grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+            .step-list li { flex-direction: column; text-align: center; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <span class="brand">Friends with Habits</span>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Habits that stick because your friend is in it.</h1>
+                <p class="lede">Most habit apps let you give up in private. Friends with Habits doesn't. Pact with a friend, check in daily, and keep each other on streak.</p>
+                <a class="cta cta--placeholder" href="#" aria-disabled="true">Coming soon to Google Play</a>
+                <div class="cta-note">Internal testing in progress. iOS coming next.</div>
+            </div>
+        </section>
+
+        <section class="steps">
+            <div class="container">
+                <h2>How it works</h2>
+                <ol class="step-list">
+                    <li>
+                        <span class="step-num">1</span>
+                        <div class="step-body">
+                            <h3>Create a pact</h3>
+                            <p>Pick a habit — workout, reading, meditation, anything daily.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-num">2</span>
+                        <div class="step-body">
+                            <h3>Invite a friend</h3>
+                            <p>You can't do this alone. Your friend joins and becomes your accountability partner.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-num">3</span>
+                        <div class="step-body">
+                            <h3>Check in daily</h3>
+                            <p>Add a photo or quick note as proof. Watch the streak grow together.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="why">
+            <div class="container">
+                <h2>Why accountability changes everything</h2>
+                <div class="stat">95%</div>
+                <p>People who track habits with a partner stick with them.</p>
+                <div class="stat" style="color: var(--habits-text-muted); font-size: 2rem;">10%</div>
+                <p>Without a partner, only one in ten do. Solo apps can't bridge that gap. We make accountability the default.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms-of-service">Terms of Service</a>
+            </div>
+            <div>&copy; Therr Inc. &middot; Part of the Therr family of apps</div>
+        </div>
+    </footer>
+</body>
+</html>

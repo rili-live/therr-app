@@ -28,6 +28,7 @@ import PactsStore from './PactsStore';
 import PactMembersStore from './PactMembersStore';
 import HabitCheckinsStore from './HabitCheckinsStore';
 import StreaksStore from './StreaksStore';
+import ProofsStore from './ProofsStore';
 
 class Store {
     db: IConnection;
@@ -89,6 +90,8 @@ class Store {
 
     streaks: StreaksStore;
 
+    proofs: ProofsStore;
+
     constructor(dbConnection) {
         this.db = dbConnection;
 
@@ -122,6 +125,7 @@ class Store {
         this.pactMembers = new PactMembersStore(this.db);
         this.habitCheckins = new HabitCheckinsStore(this.db);
         this.streaks = new StreaksStore(this.db);
+        this.proofs = new ProofsStore(this.db);
     }
 }
 

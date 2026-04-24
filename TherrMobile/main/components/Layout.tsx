@@ -1223,6 +1223,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewUserFromDesktopRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewEventRegex = RegExp('events/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewGroupRegex = RegExp('groups/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
+        const viewPublicListRegex = RegExp('lists/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/([a-z0-9-]+)', 'i');
         const isUserLoggedIn = isUserAuthenticated(user);
         const isUserMissingProps = UsersService.isAuthorized(
             {
@@ -1379,6 +1380,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     targetRouteView: 'ViewGroup',
                     targetRouteParams,
                 });
+            }
+        } else if (url?.match(viewPublicListRegex)) {
+            // Public shareable list. For the owner, open MyLists so they can
+            // navigate into their own editable list. For other viewers the
+            // web page at this URL is the read-only experience; we don't yet
+            // render other users' lists inside the app, so fall back to
+            // opening MyLists for authed users / the Home route otherwise.
+            // A dedicated in-app viewer is intentionally deferred to Phase 2.
+            if (isUserLoggedIn && !isUserMissingProps) {
+                RootNavigation.navigate('MyLists');
+            } else {
+                this.setState({ targetRouteView: 'MyLists' });
             }
         } else if (Platform.OS !== 'ios') {
             // IOS will use the notifee foreground listener instead

@@ -340,7 +340,7 @@
         "achievements": "Logros",
         "account": "Configuración de cuenta",
         "addConnection": "Agregar/Invitar conexiones",
-        "bookmarks": "Marcadores",
+        "bookmarks": "Marcadores/Listas",
         "chat": "Mensajes",
         "connections": "Ver conexiones",
         "home": "Inicio",
@@ -1729,7 +1729,18 @@
         "spaceUnavailable": "Espacio no disponible",
         "createFailedTitle": "No se pudo crear la lista",
         "createFailedBody": "Algo salió mal. Revisa tu conexión e inténtalo de nuevo.",
-        "nameTakenBody": "Ya existe una lista con ese nombre."
+        "nameTakenBody": "Ya existe una lista con ese nombre.",
+        "makePublic": "Hacer pública",
+        "publicHintOn": "Cualquiera con el enlace puede ver esta lista.",
+        "publicHintOff": "Solo tú puedes ver esta lista.",
+        "publicBadge": "Pública",
+        "shareList": "Compartir lista",
+        "shareMessage": "Mira mi lista \"{listName}\" en Therr: {url}",
+        "publicToggleErrorTitle": "No se pudo actualizar la lista",
+        "publicToggleErrorBody": "Algo salió mal. Inténtalo de nuevo.",
+        "privateConfirmTitle": "¿Hacer esta lista privada?",
+        "privateConfirmBody": "El enlace para compartir dejará de funcionar para quienes se lo enviaste y los motores de búsqueda pueden eliminar esta página. Puedes volver a hacerla pública más tarde.",
+        "privateConfirmAction": "Hacer privada"
       }
     },
     "myQRCodes": {

@@ -31,7 +31,10 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         notes,
         selfRating,
         difficultyRating,
+        proofMedias,
     } = req.body;
+
+    const hasProof = Array.isArray(proofMedias) && proofMedias.length > 0;
 
     if (!habitGoalId) {
         return handleHttpError({
@@ -85,8 +88,29 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         notes,
         selfRating,
         difficultyRating,
+        hasProof,
     })
         .then(async (checkin) => {
+            // Persist any attached proofs
+            if (hasProof) {
+                await Store.proofs.deleteByCheckinId(checkin.id);
+                await Store.proofs.createMany(
+                    proofMedias
+                        .filter((m: any) => m && m.path)
+                        .map((m: any) => ({
+                            userId,
+                            checkinId: checkin.id,
+                            habitGoalId,
+                            pactId,
+                            mediaType: m.type === 'video' ? 'video' : 'image',
+                            mediaPath: m.path,
+                            thumbnailPath: m.thumbnailPath,
+                            fileSizeBytes: m.fileSizeBytes,
+                            durationSeconds: m.durationSeconds,
+                        })),
+                );
+            }
+
             // If completed, update streak
             if (checkin.status === 'completed') {
                 const streak = await Store.streaks.getOrCreate(userId, habitGoalId, pactId);
