@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from './BaseButton';
 import 'react-native-gesture-handler';
 import TherrIcon from '../components/TherrIcon';
+import getConfig from '../utilities/getConfig';
 
 export interface IHeaderMenuLeftProps {
     isAuthenticated: boolean;
@@ -21,15 +22,16 @@ const HeaderMenuLeft = ({
     theme,
 }: IHeaderMenuLeftProps) => {
     const handlePress = () => {
-        if (isAuthenticated && isEmailVerifed) {
-            navigation.navigate('Map', {
-                shouldShowPreview: false,
-            });
-        } else if (isAuthenticated) {
+        const isMapEnabled = getConfig()?.featureFlags?.ENABLE_MAP === true;
+        if (isAuthenticated && !isEmailVerifed) {
             navigation.navigate('CreateProfile');
-        } else {
-            navigation.navigate('Map');
+            return;
         }
+        if (isMapEnabled) {
+            navigation.navigate('Map', isAuthenticated ? { shouldShowPreview: false } : undefined);
+            return;
+        }
+        navigation.navigate('Home');
     };
 
     let logoStyle = theme.styles.logoIcon;

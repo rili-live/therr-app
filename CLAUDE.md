@@ -88,9 +88,9 @@ When working on a branch, read the associated project brief early in the convers
 
 ## Key Dependencies
 
-- **React**: 18.x.x (web clients) - Use hooks, functional components
-- **React Native**: 0.74.3 (TherrMobile) - Has its own package.json with isolated deps
-- **TypeScript**: 4.8.x
+- **React**: 18.2.x (web clients) / 19.2.x (TherrMobile) - Use hooks, functional components
+- **React Native**: 0.83.6 (TherrMobile) - Has its own package.json with isolated deps
+- **TypeScript**: 5.9.x
 - **Node.js**: 24.12.0 required (see `.nvmrc`)
 - **npm**: 11+ required (enforced by `_bin/prep.sh`)
 
@@ -103,7 +103,7 @@ When working on a branch, read the associated project brief early in the convers
 
 ### React
 - Functional components with hooks (no class components)
-- Redux for state management (`@reduxjs/toolkit` 1.9)
+- Redux for state management (`@reduxjs/toolkit` 2.5)
 - React Router 6 for web routing
 
 ### Backend
@@ -155,7 +155,6 @@ Read these files when relevant to the task:
 - `docs/NICHE_APP_DATABASE_GUIDELINES.md` - Schema isolation, migration patterns for niche features
 - `docs/niche-sub-apps/PROJECT_BRIEF.md` - Core Therr App product vision and roadmap
 - `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` - Niche app variant context (see "Project Brief Context" above)
-- `docs/LOCALE_URL_ROUTING.md` - Locale-prefixed URL routing, i18n architecture, SEO strategy
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
 - `docs/TARGET_MARKETS.md` - Consumer and business target market definitions (core Therr App)
 - `docs/FEATURES.md` - **High-level feature list for mobile & web clients. Update this file when adding or removing features.**
@@ -368,7 +367,7 @@ The app implements an offline-first strategy so users see cached content during 
 Key files:
 - `therr-react/src/redux/reducers/network.ts` — Network state slice
 - `therr-react/src/utilities/cacheHelpers.ts` — `isOfflineError()` and `isCacheStale()` helpers
-- `TherrMobile/main/services/networkService.ts` — Mobile NetInfo listener
+- `TherrMobile/main/utilities/networkService.ts` — Mobile NetInfo listener
 - `therr-client-web/src/services/networkService.ts` — Web connectivity listener
 
 See `docs/OFFLINE_FIRST_PLAN.md` for the full phased roadmap (Phases 2-5 cover write queue, service worker, image caching, and local DB).

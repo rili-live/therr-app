@@ -17,6 +17,7 @@ import {
 import translator from '../utilities/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
+import { resetInterestsRedirectBypass } from '../utilities/interestsRedirectGuard';
 import { ITherrThemeColors } from '../styles/themes';
 import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
@@ -316,6 +317,8 @@ class HeaderMenuRight extends React.PureComponent<
         if (hideModal) {
             hideModal();
         }
+
+        resetInterestsRedirectBypass();
 
         this.timeoutId = setTimeout(() => { // Wait for overlay animation
             logout(user.details)
