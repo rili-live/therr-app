@@ -290,6 +290,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 streak={streak}
                                 title={this.translate('pages.habits.currentStreak')}
                                 themeHabits={this.themeHabits}
+                                translate={this.translate}
                             />
                         )}
 
@@ -299,6 +300,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                             onMonthChange={this.handleMonthChange}
                             onDayPress={this.handleDayPress}
                             themeHabits={this.themeHabits}
+                            translate={this.translate}
                         />
 
                         {streak && (

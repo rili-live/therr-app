@@ -1709,6 +1709,27 @@
         "uploadFailed": "No pudimos subir tu foto. Inténtalo de nuevo.",
         "cancel": "Cancelar",
         "confirm": "Registrar"
+      },
+      "frequency": {
+        "daily": "Cada día",
+        "weekly": "{count} veces por semana",
+        "monthly": "{count} veces al mes",
+        "perPeriod": "{count} veces por {period}"
+      },
+      "daysOfWeekShort": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb"
+      },
+      "streak": {
+        "day": "día",
+        "days": "días",
+        "nextMilestone": "Próximo hito: {days} días",
+        "graceDaysRemaining": "Días de gracia restantes: {count}"
       }
     },
     "pacts": {
@@ -1747,7 +1768,24 @@
         "benefit1": "2 veces más probabilidades de mantener tus hábitos",
         "benefit2": "Check-ins diarios con alguien que cuenta contigo",
         "benefit3": "Rachas que construyen — y celebran — juntos"
-      }
+      },
+      "status": {
+        "pending": "Pendiente",
+        "active": "Activo",
+        "completed": "Completado",
+        "abandoned": "Abandonado",
+        "expired": "Expirado"
+      },
+      "pactType": {
+        "accountability": "Responsabilidad",
+        "challenge": "Desafío",
+        "support": "Apoyo"
+      },
+      "durationLabel": "{type} de {days} días",
+      "checkinsLabel": "{completed}/{total} registros",
+      "completionLabel": "{pct}% completado",
+      "vs": "vs",
+      "partnerFallback": "Compañero"
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",

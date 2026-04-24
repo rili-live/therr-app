@@ -1709,6 +1709,27 @@
         "uploadFailed": "We couldn't upload your photo. Try again.",
         "cancel": "Cancel",
         "confirm": "Check In"
+      },
+      "frequency": {
+        "daily": "Every day",
+        "weekly": "{count}x per week",
+        "monthly": "{count}x per month",
+        "perPeriod": "{count}x per {period}"
+      },
+      "daysOfWeekShort": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "streak": {
+        "day": "day",
+        "days": "days",
+        "nextMilestone": "Next milestone: {days} days",
+        "graceDaysRemaining": "Grace days remaining: {count}"
       }
     },
     "pacts": {
@@ -1747,7 +1768,24 @@
         "benefit1": "2x more likely to stick with your habits",
         "benefit2": "Daily check-ins with someone who's counting on you",
         "benefit3": "Streaks you build — and celebrate — together"
-      }
+      },
+      "status": {
+        "pending": "Pending",
+        "active": "Active",
+        "completed": "Completed",
+        "abandoned": "Abandoned",
+        "expired": "Expired"
+      },
+      "pactType": {
+        "accountability": "Accountability",
+        "challenge": "Challenge",
+        "support": "Support"
+      },
+      "durationLabel": "{days} day {type}",
+      "checkinsLabel": "{completed}/{total} checkins",
+      "completionLabel": "{pct}% completion",
+      "vs": "vs",
+      "partnerFallback": "Partner"
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",

@@ -188,11 +188,16 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                 {label}
             </Text>
             <Text style={this.themeHabits.styles.streakMilestoneText}>
-                {member.completedCheckins}/{member.totalCheckins} checkins
+                {this.translate('pages.pacts.checkinsLabel', {
+                    completed: member.completedCheckins,
+                    total: member.totalCheckins,
+                })}
             </Text>
             {member.completionRate !== undefined && (
                 <Text style={this.themeHabits.styles.streakMilestoneText}>
-                    {Math.round(member.completionRate)}% completion
+                    {this.translate('pages.pacts.completionLabel', {
+                        pct: Math.round(member.completionRate),
+                    })}
                 </Text>
             )}
         </View>
@@ -244,7 +249,10 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                         {pact.habitGoalName || this.translate('pages.pacts.defaultTitle')}
                                     </Text>
                                     <Text style={this.themeHabits.styles.habitCardSubtitle}>
-                                        {pact.durationDays} day {pact.pactType}
+                                        {this.translate('pages.pacts.durationLabel', {
+                                            days: pact.durationDays,
+                                            type: this.translate(`pages.pacts.pactType.${pact.pactType}`),
+                                        })}
                                     </Text>
                                 </View>
                             </View>
@@ -256,7 +264,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                     : this.themeHabits.styles.pactCardStatusPending,
                             ]}>
                                 <Text style={this.themeHabits.styles.pactCardStatusText}>
-                                    {pact.status.toUpperCase()}
+                                    {this.translate(`pages.pacts.status.${pact.status}`).toUpperCase()}
                                 </Text>
                             </View>
                         </View>
@@ -271,10 +279,13 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                         currentUserMember,
                                         this.translate('pages.pacts.you'),
                                     )}
-                                    <Text style={this.themeHabits.styles.habitCardSubtitle}>vs</Text>
+                                    <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                                        {this.translate('pages.pacts.vs')}
+                                    </Text>
                                     {partnerMember && this.renderMemberStats(
                                         partnerMember,
-                                        partnerMember.firstName || 'Partner',
+                                        partnerMember.firstName
+                                            || this.translate('pages.pacts.partnerFallback'),
                                     )}
                                 </View>
                             </View>

@@ -13,9 +13,10 @@ interface IHabitCalendarProps {
         colors: ITherrThemeColors;
         styles: any;
     };
+    translate: (key: string, params?: any) => string;
 }
 
-const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS_OF_WEEK_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 const formatDateKey = (date: Date): string => date.toISOString().split('T')[0];
 
@@ -25,6 +26,7 @@ const HabitCalendar: React.FC<IHabitCalendarProps> = ({
     onMonthChange,
     onDayPress,
     themeHabits,
+    translate,
 }) => {
     const checkinMap = useMemo(() => {
         const map: Record<string, IHabitCheckin> = {};
@@ -154,9 +156,11 @@ const HabitCalendar: React.FC<IHabitCalendarProps> = ({
             </View>
 
             <View style={themeHabits.styles.calendarGrid}>
-                {DAYS_OF_WEEK.map((day) => (
-                    <View key={day} style={themeHabits.styles.calendarDayHeader}>
-                        <Text style={themeHabits.styles.calendarDayHeaderText}>{day}</Text>
+                {DAYS_OF_WEEK_KEYS.map((dayKey) => (
+                    <View key={dayKey} style={themeHabits.styles.calendarDayHeader}>
+                        <Text style={themeHabits.styles.calendarDayHeaderText}>
+                            {translate(`pages.habits.daysOfWeekShort.${dayKey}`)}
+                        </Text>
                     </View>
                 ))}
                 {renderDays()}

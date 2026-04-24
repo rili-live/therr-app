@@ -14,21 +14,15 @@ interface IPactCardProps {
     translate: (key: string, params?: any) => string;
 }
 
-const getStatusText = (status: string): string => {
-    switch (status) {
-        case 'pending':
-            return 'Pending';
-        case 'active':
-            return 'Active';
-        case 'completed':
-            return 'Completed';
-        case 'abandoned':
-            return 'Abandoned';
-        case 'expired':
-            return 'Expired';
-        default:
-            return status;
+const getStatusText = (
+    status: string,
+    translate: (key: string, params?: any) => string,
+): string => {
+    const known = ['pending', 'active', 'completed', 'abandoned', 'expired'];
+    if (known.includes(status)) {
+        return translate(`pages.pacts.status.${status}`);
     }
+    return status;
 };
 
 const PactCard: React.FC<IPactCardProps> = ({
@@ -74,7 +68,7 @@ const PactCard: React.FC<IPactCardProps> = ({
         >
             <View style={[themeHabits.styles.pactCardStatusBadge, getStatusBadgeStyle()]}>
                 <Text style={themeHabits.styles.pactCardStatusText}>
-                    {getStatusText(pact.status)}
+                    {getStatusText(pact.status, translate)}
                 </Text>
             </View>
 
@@ -87,7 +81,10 @@ const PactCard: React.FC<IPactCardProps> = ({
                         {pact.habitGoalName || translate('pages.pacts.defaultTitle')}
                     </Text>
                     <Text style={themeHabits.styles.habitCardSubtitle}>
-                        {pact.durationDays} day {pact.pactType}
+                        {translate('pages.pacts.durationLabel', {
+                            days: pact.durationDays,
+                            type: translate(`pages.pacts.pactType.${pact.pactType}`),
+                        })}
                     </Text>
                 </View>
             </View>
@@ -98,7 +95,9 @@ const PactCard: React.FC<IPactCardProps> = ({
                         <Text>{(partnerMember.firstName?.[0] || 'P').toUpperCase()}</Text>
                     </View>
                     <Text style={themeHabits.styles.pactPartnerName}>
-                        {partnerMember.firstName || partnerMember.userName || 'Partner'}
+                        {partnerMember.firstName
+                            || partnerMember.userName
+                            || translate('pages.pacts.partnerFallback')}
                     </Text>
                 </View>
             )}
@@ -106,8 +105,13 @@ const PactCard: React.FC<IPactCardProps> = ({
             {pact.status === 'active' && pact.members && pact.members.length > 1 && (
                 <View style={themeHabits.styles.pactComparisonContainer}>
                     {renderMemberComparison(currentUserMember, translate('pages.pacts.you'))}
-                    <Text style={themeHabits.styles.habitCardSubtitle}>vs</Text>
-                    {renderMemberComparison(partnerMember, partnerMember?.firstName || 'Partner')}
+                    <Text style={themeHabits.styles.habitCardSubtitle}>
+                        {translate('pages.pacts.vs')}
+                    </Text>
+                    {renderMemberComparison(
+                        partnerMember,
+                        partnerMember?.firstName || translate('pages.pacts.partnerFallback'),
+                    )}
                 </View>
             )}
         </Pressable>

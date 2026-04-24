@@ -10,6 +10,7 @@ interface IStreakWidgetProps {
         colors: ITherrThemeColors;
         styles: any;
     };
+    translate: (key: string, params?: any) => string;
 }
 
 const MILESTONES = [3, 7, 14, 30, 60, 90, 180, 365];
@@ -33,9 +34,11 @@ const getStreakEmoji = (currentStreak: number): string => {
 
 const StreakWidget: React.FC<IStreakWidgetProps> = ({
     streak,
-    title = 'Current Streak',
+    title,
     themeHabits,
+    translate,
 }) => {
+    const resolvedTitle = title ?? translate('pages.habits.currentStreak');
     const nextMilestone = getNextMilestone(streak.currentStreak);
     const progress = nextMilestone
         ? (streak.currentStreak / nextMilestone) * 100
@@ -58,11 +61,16 @@ const StreakWidget: React.FC<IStreakWidgetProps> = ({
     return (
         <View style={themeHabits.styles.streakWidgetContainer}>
             <View style={themeHabits.styles.streakWidgetHeader}>
-                <Text style={themeHabits.styles.streakWidgetTitle}>{title}</Text>
+                <Text style={themeHabits.styles.streakWidgetTitle}>{resolvedTitle}</Text>
                 <View style={[themeHabits.styles.streakBadge, getRiskBadgeStyle()]}>
                     <Text style={themeHabits.styles.streakBadgeEmoji}>{emoji}</Text>
                     <Text style={themeHabits.styles.streakBadgeText}>
-                        {streak.currentStreak} {streak.currentStreak === 1 ? 'day' : 'days'}
+                        {streak.currentStreak}{' '}
+                        {translate(
+                            streak.currentStreak === 1
+                                ? 'pages.habits.streak.day'
+                                : 'pages.habits.streak.days',
+                        )}
                     </Text>
                 </View>
             </View>
@@ -79,7 +87,7 @@ const StreakWidget: React.FC<IStreakWidgetProps> = ({
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={themeHabits.styles.streakMilestoneText}>
-                            Next milestone: {nextMilestone} days
+                            {translate('pages.habits.streak.nextMilestone', { days: nextMilestone })}
                         </Text>
                         <Text style={themeHabits.styles.streakProgressText}>
                             {streak.currentStreak}/{nextMilestone}
@@ -90,7 +98,9 @@ const StreakWidget: React.FC<IStreakWidgetProps> = ({
 
             {streak.gracePeriodDays > 0 && streak.graceDaysUsed < streak.gracePeriodDays && (
                 <Text style={[themeHabits.styles.streakMilestoneText, { marginTop: 8 }]}>
-                    Grace days remaining: {streak.gracePeriodDays - streak.graceDaysUsed}
+                    {translate('pages.habits.streak.graceDaysRemaining', {
+                        count: streak.gracePeriodDays - streak.graceDaysUsed,
+                    })}
                 </Text>
             )}
         </View>

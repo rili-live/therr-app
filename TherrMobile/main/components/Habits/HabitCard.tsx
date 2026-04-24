@@ -20,24 +20,36 @@ interface IHabitCardProps {
     translate: (key: string, params?: any) => string;
 }
 
-const getFrequencyText = (habitGoal: IHabitGoal): string => {
+const DAY_SHORT_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+const getFrequencyText = (
+    habitGoal: IHabitGoal,
+    translate: (key: string, params?: any) => string,
+): string => {
     const { frequencyType, frequencyCount, targetDaysOfWeek } = habitGoal;
 
     if (frequencyType === 'daily') {
-        return 'Every day';
+        return translate('pages.habits.frequency.daily');
     }
 
     if (frequencyType === 'weekly' && targetDaysOfWeek && targetDaysOfWeek.length > 0) {
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const days = targetDaysOfWeek.map((d) => dayNames[d]).join(', ');
-        return `${days}`;
+        return targetDaysOfWeek
+            .map((d) => translate(`pages.habits.daysOfWeekShort.${DAY_SHORT_KEYS[d]}`))
+            .join(', ');
     }
 
     if (frequencyType === 'weekly') {
-        return `${frequencyCount}x per week`;
+        return translate('pages.habits.frequency.weekly', { count: frequencyCount });
     }
 
-    return `${frequencyCount}x per ${frequencyType}`;
+    if (frequencyType === 'monthly') {
+        return translate('pages.habits.frequency.monthly', { count: frequencyCount });
+    }
+
+    return translate('pages.habits.frequency.perPeriod', {
+        count: frequencyCount,
+        period: frequencyType,
+    });
 };
 
 const HabitCard: React.FC<IHabitCardProps> = ({
@@ -67,7 +79,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                         {habitGoal.name}
                     </Text>
                     <Text style={themeHabits.styles.habitCardSubtitle}>
-                        {getFrequencyText(habitGoal)}
+                        {getFrequencyText(habitGoal, translate)}
                     </Text>
                 </View>
             </View>
@@ -84,6 +96,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                 <StreakWidget
                     streak={streak}
                     themeHabits={themeHabits}
+                    translate={translate}
                 />
             )}
 

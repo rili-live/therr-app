@@ -1709,6 +1709,27 @@
         "uploadFailed": "Impossible de téléverser votre photo. Réessayez.",
         "cancel": "Annuler",
         "confirm": "Enregistrer"
+      },
+      "frequency": {
+        "daily": "Chaque jour",
+        "weekly": "{count}x par semaine",
+        "monthly": "{count}x par mois",
+        "perPeriod": "{count}x par {period}"
+      },
+      "daysOfWeekShort": {
+        "sun": "Dim",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam"
+      },
+      "streak": {
+        "day": "jour",
+        "days": "jours",
+        "nextMilestone": "Prochain jalon : {days} jours",
+        "graceDaysRemaining": "Jours de grâce restants : {count}"
       }
     },
     "pacts": {
@@ -1747,7 +1768,24 @@
         "benefit1": "2 fois plus de chances de garder tes habitudes",
         "benefit2": "Des check-ins quotidiens avec quelqu'un qui compte sur toi",
         "benefit3": "Des séries que vous bâtissez — et célébrez — ensemble"
-      }
+      },
+      "status": {
+        "pending": "En attente",
+        "active": "Actif",
+        "completed": "Terminé",
+        "abandoned": "Abandonné",
+        "expired": "Expiré"
+      },
+      "pactType": {
+        "accountability": "Responsabilité",
+        "challenge": "Défi",
+        "support": "Soutien"
+      },
+      "durationLabel": "{type} de {days} jours",
+      "checkinsLabel": "{completed}/{total} pointages",
+      "completionLabel": "{pct}% terminé",
+      "vs": "vs",
+      "partnerFallback": "Partenaire"
     },
     "manageSpaces": {
       "headerTitle": "Mes Commerces",
