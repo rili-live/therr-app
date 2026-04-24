@@ -11,7 +11,5 @@ spec:
   dnsNames:
     - 'go.therr.com'
     - 'link.therr.com'
-    - 'www.go.therr.com'
-    - 'www.link.therr.com'
   duration: 4320h # 180d
   renewBefore: 720h # 30d
