@@ -1294,7 +1294,12 @@
       },
       "alertMessages": {
         "preferenceSettingsUpdated": "Votre compte et vos préférences de contenu ont été mis à jour.",
-        "preferenceSettingsUpdatedError": "Oups! Une erreur est survenue."
+        "preferenceSettingsUpdatedError": "Oups! Une erreur est survenue.",
+        "loadInterestsError": "Impossible de charger vos intérêts pour le moment. Vous pouvez réessayer ou passer pour l'instant."
+      },
+      "buttons": {
+        "retry": "Réessayer",
+        "skipForNow": "Passer pour l'instant"
       }
     },
     "requestSpace": {
