@@ -167,6 +167,55 @@ app.use((req, res, next) => {
     next();
 });
 
+// ── Friends with Habits subdomain (habits.therr.com) ──
+// Hostname-aware routing for the Habits brand's minimal landing site. Serves a
+// small, self-contained set of static-style pages (landing + privacy + terms)
+// without invoking React SSR. Required for Google Play submission, which needs
+// a publicly-reachable Habits-branded privacy URL.
+//
+// k8s ingress (k8s/prod/ingress-service.yaml) routes habits.therr.com and
+// www.habits.therr.com to client-cluster-ip-service:7070 — the same pod that
+// serves therr.com. This middleware short-circuits those requests before the
+// rest of the Therr SSR pipeline runs.
+const HABITS_HOSTS = new Set(['habits.therr.com', 'www.habits.therr.com']);
+const HABITS_ROUTE_RENDERERS: Record<string, { view: string; title: string; description: string }> = {
+    '/': {
+        view: 'habits/landing',
+        title: 'Friends with Habits — Habits that stick because your friend is in it',
+        description: 'Build habits that actually stick. Pact with a friend, check in daily, keep each other on streak.',
+    },
+    '/privacy-policy': {
+        view: 'habits/privacy-policy',
+        title: 'Privacy Policy — Friends with Habits',
+        description: 'Privacy policy for the Friends with Habits mobile app.',
+    },
+    '/terms-of-service': {
+        view: 'habits/terms-of-service',
+        title: 'Terms of Service — Friends with Habits',
+        description: 'Terms of service for the Friends with Habits mobile app.',
+    },
+};
+app.use((req, res, next) => {
+    if (!HABITS_HOSTS.has(req.hostname)) {
+        return next();
+    }
+    if (req.path === '/robots.txt') {
+        res.type('text/plain');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.send('User-agent: *\nAllow: /\n');
+    }
+    const renderer = HABITS_ROUTE_RENDERERS[req.path];
+    if (!renderer) {
+        return res.status(404).type('text/plain').send('Not found');
+    }
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400');
+    return res.render(renderer.view, {
+        title: renderer.title,
+        description: renderer.description,
+        canonicalUrl: `https://habits.therr.com${req.path === '/' ? '' : req.path}`,
+    });
+});
+
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
 app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
