@@ -186,7 +186,7 @@ const HABITS_HOSTS = new Set(['habits.therr.com', 'www.habits.therr.com']);
 const HABITS_ROUTE_RENDERERS: Record<string, { view: string; title: string; description: string }> = {
     '/': {
         view: 'habits/landing',
-        title: 'Friends with Habits — Habits that stick because your friend is in it',
+        title: 'Friends with Habits — Habits that stick when a friend\'s on the hook too',
         description: 'Build habits that actually stick. Pact with a friend, check in daily, keep each other on streak.',
     },
     '/privacy-policy': {
