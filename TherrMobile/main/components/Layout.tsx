@@ -28,7 +28,7 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
@@ -831,23 +831,68 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         let targetRouteView = '';
         let targetRouteParams: any = {};
         if (data && !Array.isArray(data) && typeof (data) === 'object') {
-            if (data.action === PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED
-                || data.action === PushNotifications.AndroidIntentActions.Therr.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
+            // Each native build only declares its own brand's intent filters,
+            // so the action string we receive will already be brand-scoped.
+            // Pick the matching enum so Teem/Habits taps route correctly when
+            // running on those brand binaries.
+            const brandIntents = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+                ? PushNotifications.AndroidIntentActions.Habits
+                : CURRENT_BRAND_VARIATION === BrandVariations.TEEM
+                    ? PushNotifications.AndroidIntentActions.Teem
+                    : PushNotifications.AndroidIntentActions.Therr;
+
+            if (data.action === brandIntents.ACHIEVEMENT_COMPLETED
+                || data.action === brandIntents.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.CREATE_A_MOMENT_REMINDER) {
+            } else if (data.action === brandIntents.CREATE_A_MOMENT_REMINDER) {
                 targetRouteView = 'Map';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS) {
+            } else if (data.action === brandIntents.CREATE_YOUR_PROFILE_REMINDER) {
+                targetRouteView = 'ManageAccount';
+            } else if (data.action === brandIntents.COMPLETE_DRAFT_REMINDER) {
+                targetRouteView = 'MyDrafts';
+            } else if (data.action === brandIntents.LATEST_POST_LIKES_STATS
+                || data.action === brandIntents.LATEST_POST_VIEWCOUNT_STATS) {
+                // Author's own post stats — open their profile so they can
+                // see the affected post in the user's content carousel.
                 targetRouteView = 'ViewUser';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER) {
+                if (user?.details?.id) {
+                    targetRouteParams = { userInView: { id: user.details.id } };
+                }
+            } else if (data.action === brandIntents.UNREAD_NOTIFICATIONS_REMINDER) {
                 targetRouteView = 'Notifications';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.INVITE_FRIENDS_REMINDER) {
+            } else if (data.action === brandIntents.INVITE_FRIENDS_REMINDER) {
                 targetRouteView = 'Invite';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE
-                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MEMBERS) {
+            } else if (data.action === brandIntents.NEW_AREAS_ACTIVATED) {
+                targetRouteView = 'Areas';
+            } else if (data.action === brandIntents.NEW_GROUP_INVITE
+                || data.action === brandIntents.NEW_GROUP_MEMBERS) {
                 targetRouteView = 'Groups';
                 targetRouteParams = {
                     activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                 };
+            } else if (data.action === brandIntents.NEW_GROUP_MESSAGE) {
+                targetRouteView = 'Groups';
+                targetRouteParams = {
+                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                };
+            } else if (data.action === brandIntents.NEW_DIRECT_MESSAGE) {
+                // Without the conversation's other-user-id we can only land
+                // on the messaging hub; the per-thread navigation happens via
+                // the data-only path on Notifee/handleRemoteMessageTap.
+                targetRouteView = 'Notifications';
+            } else if (data.action === brandIntents.NEW_CONNECTION
+                || data.action === brandIntents.NEW_CONNECTION_REQUEST) {
+                targetRouteView = 'Connect';
+            } else if (data.action === brandIntents.NEW_LIKE_RECEIVED
+                || data.action === brandIntents.NEW_SUPER_LIKE_RECEIVED
+                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED) {
+                targetRouteView = 'Notifications';
+            } else if (data.action === brandIntents.NUDGE_SPACE_ENGAGEMENT) {
+                targetRouteView = 'Areas';
+            } else if (data.action === brandIntents.POST_VISIT_REVIEW_REMINDER) {
+                targetRouteView = 'BookMarked';
+            } else if (data.action === brandIntents.REPORT_CONFIRMED) {
+                targetRouteView = 'Notifications';
             }
         }
 
@@ -859,6 +904,202 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             RootNavigation.navigate('Login');
         } else if (targetRouteView) {
             RootNavigation.navigate(targetRouteView, targetRouteParams);
+        }
+    };
+
+    /**
+     * Maps a PushNotifications.Types value (carried in `data.type` on every
+     * FCM payload — see push-notifications-service createMessage) to a route.
+     *
+     * Used as the universal fallback in handleNotifeeNotificationEvent so
+     * notifications that lack a notificationPressActionId still land on a
+     * sensible screen instead of dropping the user on the launch view. This
+     * matters most for:
+     *  - iOS APNs alert taps (createNotificationMessage payloads have no
+     *    notificationPressActionId, so handleRemoteMessageTap synthesizes
+     *    `default` and falls through every press-action branch).
+     *  - Android FCM-rendered notifications with no clickAction / unmatched
+     *    intent action.
+     *  - Brand variants whose intent strings don't match the legacy
+     *    handleFirebasePushNotificationEvent checks.
+     */
+    getRouteFromNotificationType = (
+        notificationType: string | undefined,
+        data: { [key: string]: any } | undefined,
+    ): { targetRouteView: string; targetRouteParams: any } | null => {
+        if (!notificationType) {
+            return null;
+        }
+
+        const { user } = this.props;
+        const currentUserId = user?.details?.id;
+
+        // Object payloads are JSON-stringified by the backend
+        // (push-notifications-service firebaseAdmin.ts createMessage), so
+        // parse here defensively rather than assuming a type.
+        const parseObject = (key: string): any => {
+            const value = data?.[key];
+            if (typeof value === 'string') {
+                try {
+                    return JSON.parse(value);
+                } catch (e) {
+                    return null;
+                }
+            }
+            if (typeof value === 'object' && value !== null) {
+                return value;
+            }
+            return null;
+        };
+
+        const area = parseObject('area');
+        const fromUser = parseObject('fromUser');
+        const thought = parseObject('thought');
+        const groupId = typeof data?.groupId === 'string' ? data.groupId : undefined;
+        const postType = typeof data?.postType === 'string' ? data.postType : undefined;
+
+        const buildMomentRoute = (m: any) => ({
+            targetRouteView: 'ViewMoment',
+            targetRouteParams: {
+                isMyContent: m?.fromUserId === currentUserId,
+                previousView: 'Map',
+                moment: { id: m.id },
+                momentDetails: m,
+            },
+        });
+        const buildSpaceRoute = (s: any) => ({
+            targetRouteView: 'ViewSpace',
+            targetRouteParams: {
+                isMyContent: s?.fromUserId === currentUserId,
+                previousView: 'Map',
+                space: { id: s.id },
+                spaceDetails: s,
+            },
+        });
+        const buildThoughtRoute = (t: any) => ({
+            targetRouteView: 'ViewThought',
+            targetRouteParams: {
+                isMyContent: t?.fromUserId === currentUserId,
+                previousView: 'Map',
+                thought: { id: t.id },
+                thoughtDetails: t,
+            },
+        });
+
+        switch (notificationType) {
+            // Automation reminders
+            case PushNotifications.Types.createYourProfileReminder:
+                return { targetRouteView: 'ManageAccount', targetRouteParams: {} };
+            case PushNotifications.Types.createAMomentReminder:
+                return { targetRouteView: 'Map', targetRouteParams: {} };
+            case PushNotifications.Types.completeDraftReminder:
+                return { targetRouteView: 'MyDrafts', targetRouteParams: {} };
+            case PushNotifications.Types.latestPostLikesStats:
+                if (currentUserId) {
+                    return { targetRouteView: 'ViewUser', targetRouteParams: { userInView: { id: currentUserId } } };
+                }
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.latestPostViewcountStats:
+                if (area?.id) return buildMomentRoute(area);
+                if (currentUserId) {
+                    return { targetRouteView: 'ViewUser', targetRouteParams: { userInView: { id: currentUserId } } };
+                }
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.unreadNotificationsReminder:
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.unclaimedAchievementsReminder:
+                return { targetRouteView: 'Achievements', targetRouteParams: {} };
+            case PushNotifications.Types.inviteFriendsReminder:
+                return { targetRouteView: 'Invite', targetRouteParams: {} };
+
+            // Event-driven
+            case PushNotifications.Types.achievementCompleted:
+                return { targetRouteView: 'Achievements', targetRouteParams: {} };
+            case PushNotifications.Types.connectionRequestAccepted:
+            case PushNotifications.Types.newConnectionRequest:
+                if (fromUser?.id) {
+                    return { targetRouteView: 'ViewUser', targetRouteParams: { userInView: { id: fromUser.id } } };
+                }
+                return { targetRouteView: 'Connect', targetRouteParams: {} };
+            case PushNotifications.Types.newDirectMessage:
+                if (fromUser?.id) {
+                    return {
+                        targetRouteView: 'DirectMessage',
+                        targetRouteParams: {
+                            connectionDetails: { id: fromUser.id, userName: fromUser.userName },
+                        },
+                    };
+                }
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.newGroupInvite:
+            case PushNotifications.Types.newGroupMembers:
+                return {
+                    targetRouteView: 'Groups',
+                    targetRouteParams: { activeTab: GROUPS_CAROUSEL_TABS.GROUPS },
+                };
+            case PushNotifications.Types.newGroupMessage:
+                if (groupId) {
+                    return {
+                        targetRouteView: 'ViewGroup',
+                        targetRouteParams: { activeTab: GROUP_CAROUSEL_TABS.CHAT, id: groupId },
+                    };
+                }
+                return {
+                    targetRouteView: 'Groups',
+                    targetRouteParams: { activeTab: GROUPS_CAROUSEL_TABS.GROUPS },
+                };
+            case PushNotifications.Types.newLikeReceived:
+            case PushNotifications.Types.newSuperLikeReceived:
+                if (postType === 'thoughts' && thought?.id) return buildThoughtRoute(thought);
+                if (area?.id) {
+                    if (postType === 'moments') return buildMomentRoute(area);
+                    return buildSpaceRoute(area);
+                }
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.newAreasActivated:
+                return { targetRouteView: 'Areas', targetRouteParams: {} };
+            case PushNotifications.Types.nudgeSpaceEngagement:
+                if (area?.id) return buildSpaceRoute(area);
+                return { targetRouteView: 'Areas', targetRouteParams: {} };
+            case PushNotifications.Types.proximityRequiredMoment:
+                if (area?.id) return buildMomentRoute(area);
+                return { targetRouteView: 'Map', targetRouteParams: {} };
+            case PushNotifications.Types.proximityRequiredSpace:
+                if (area?.id) return buildSpaceRoute(area);
+                return { targetRouteView: 'Map', targetRouteParams: {} };
+            case PushNotifications.Types.newThoughtReplyReceived:
+                if (thought?.id) return buildThoughtRoute(thought);
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.postVisitReviewReminder:
+                if (area?.id) return buildSpaceRoute(area);
+                return { targetRouteView: 'BookMarked', targetRouteParams: {} };
+            case PushNotifications.Types.reportConfirmed:
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+
+            // HABITS pact / streak / partner / habit-reminder notifications.
+            // The matching screens (Pact view, Streak view, etc.) don't yet
+            // exist in TherrMobile; route to the in-app notifications list as
+            // a sensible default until those routes ship. Once the screens
+            // land, swap these branches for direct deep links.
+            case PushNotifications.Types.pactInvitation:
+            case PushNotifications.Types.pactAccepted:
+            case PushNotifications.Types.pactDeclined:
+            case PushNotifications.Types.pactCompleted:
+            case PushNotifications.Types.pactExpiring:
+            case PushNotifications.Types.partnerCheckedIn:
+            case PushNotifications.Types.partnerMissedDay:
+            case PushNotifications.Types.partnerCelebrated:
+            case PushNotifications.Types.streakMilestone:
+            case PushNotifications.Types.streakAtRisk:
+            case PushNotifications.Types.streakBroken:
+            case PushNotifications.Types.newPersonalRecord:
+            case PushNotifications.Types.dailyHabitReminder:
+            case PushNotifications.Types.morningMotivation:
+            case PushNotifications.Types.eveningCheckIn:
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+
+            default:
+                return null;
         }
     };
 
@@ -1134,6 +1375,34 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
 
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.discovered) {
+                return Promise.resolve();
+            }
+
+            // Fallback: route by notification type when no specific press
+            // action matched. This catches:
+            //  - iOS APNs alert taps for createNotificationMessage payloads
+            //    (no notificationPressActionId is set on the data, so
+            //    handleRemoteMessageTap synthesizes a `default` press action).
+            //  - Android FCM notification-payload taps with no clickAction
+            //    or whose intent action wasn't matched in
+            //    handleFirebasePushNotificationEvent.
+            //  - HABITS / future notification types whose press-action ids
+            //    aren't yet wired up above.
+            // Without this, taps in those scenarios silently leave the user
+            // on the launch screen with no navigation.
+            const notificationType = typeof notification?.data?.type === 'string'
+                ? notification.data.type
+                : undefined;
+            const fallbackRoute = this.getRouteFromNotificationType(notificationType, notification?.data);
+            if (fallbackRoute) {
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: fallbackRoute.targetRouteView,
+                        targetRouteParams: fallbackRoute.targetRouteParams,
+                    });
+                    return Promise.resolve();
+                }
+                RootNavigation.navigate(fallbackRoute.targetRouteView, fallbackRoute.targetRouteParams);
                 return Promise.resolve();
             }
         }
