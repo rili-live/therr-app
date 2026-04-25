@@ -3,8 +3,14 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 // background-geolocation
-def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
-apply from: "${background_geolocation_path}/app.gradle"
+// Gate the explicit apply with a gradle property so niche variants that opt
+// out (e.g. HABITS, see android/gradle.properties) skip the transistorsoft
+// dependency entirely. Defaults to enabled when the property is absent.
+def bgGeolocationEnabled = !project.hasProperty('THERR_BG_GEOLOCATION_ENABLED') || project.property('THERR_BG_GEOLOCATION_ENABLED').toBoolean()
+if (bgGeolocationEnabled) {
+    def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
+    apply from: "${background_geolocation_path}/app.gradle"
+}
 
 /**
  * This is the configuration block to customize your React Native Android app.

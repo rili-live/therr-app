@@ -8,6 +8,17 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
  */
 const path = require('path');
 
+// HABITS does not ship the background-geolocation native module (see
+// android/gradle.properties THERR_BG_GEOLOCATION_ENABLED + react-native.config.js).
+// Alias the JS import to a no-op stub so Layout.tsx stays byte-identical to general.
+// Hardcoded on this niche branch — Metro/Node config files cannot resolve the
+// CURRENT_BRAND_VARIATION TS import at config-load time without ts-node.
+const isBackgroundGeolocationDisabled = true;
+const backgroundGeolocationStubPath = path.resolve(
+    __dirname,
+    'main/utilities/backgroundGeolocationStub.ts',
+);
+
 // Block React packages from root node_modules to prevent version conflicts
 const rootNodeModules = path.join(__dirname, '/../node_modules');
 // Escape special regex characters in path
@@ -84,6 +95,12 @@ const config = {
                 return {
                     type: 'sourceFile',
                     filePath: useLatestCallbackPath,
+                };
+            }
+            if (isBackgroundGeolocationDisabled && moduleName === 'react-native-background-geolocation') {
+                return {
+                    type: 'sourceFile',
+                    filePath: backgroundGeolocationStubPath,
                 };
             }
             return context.resolveRequest(context, moduleName, platform);
