@@ -66,9 +66,17 @@ const addMargins = (marginStyles) => {
 };
 
 // Eager top inset used by the custom header. Under edge-to-edge, system bars
-// are always transparent, and `initialWindowMetrics` is provided synchronously
-// to SafeAreaProvider so this value is available on first render.
-export const getHeaderTopInset = () => initialWindowMetrics?.insets?.top ?? 0;
+// are always transparent and `initialWindowMetrics` is provided synchronously
+// to SafeAreaProvider, so the inset is available on first render. The fallback
+// only fires in Jest (where the native module is shimmed) or other degenerate
+// boots where metrics are null.
+export const getHeaderTopInset = () => {
+    const safeAreaTop = initialWindowMetrics?.insets?.top;
+    if (safeAreaTop != null) {
+        return safeAreaTop;
+    }
+    return Platform.OS === 'ios' ? IOS_STATUS_HEIGHT + IOS_TOP_GAP : 24;
+};
 
 const getHeaderHeight = () => {
     if (Platform.OS === 'ios') {
