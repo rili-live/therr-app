@@ -58,6 +58,16 @@
         "login": "Se connecter"
       }
     },
+    "offlineIndicator": {
+      "badgeAria": "Hors ligne. Connexion perdue.",
+      "logoAriaOffline": "Logo Therr. Hors ligne — appuyez pour voir l'état de la connexion.",
+      "modal": {
+        "title": "Vous êtes hors ligne",
+        "body": "Therr ne peut pas accéder à Internet pour le moment. Vous pouvez continuer à consulter le contenu en cache ou actualiser la page une fois la connexion rétablie.",
+        "refresh": "Actualiser",
+        "dismiss": "Fermer"
+      }
+    },
     "footer": {
       "buttons": {
         "locations": "Emplacements"
