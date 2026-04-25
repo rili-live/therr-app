@@ -1,4 +1,4 @@
-import { Platform, StatusBar, StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { DefaultTheme, Theme } from '@react-navigation/native';
 import { initialWindowMetrics } from 'react-native-safe-area-context';
@@ -10,7 +10,6 @@ import { therrFontFamily } from './font';
 export const HEADER_HEIGHT_MARGIN = 80;
 const IOS_STATUS_HEIGHT = 20;
 const IOS_TOP_GAP = 28;
-const ANDROID_TOP_GAP = 25;
 const HEADER_EXTRA_HEIGHT = 4;
 const HEADER_HEIGHT = 48 + HEADER_EXTRA_HEIGHT;
 const HEADER_PADDING_BOTTOM = 20;
@@ -66,19 +65,10 @@ const addMargins = (marginStyles) => {
     return marginStyles;
 };
 
-// Eager top inset used by the custom header. Replaces SafeAreaView, which
-// measures insets asynchronously under Fabric and causes a one-frame jump
-// where the header sits under the translucent Android status bar on mount.
-export const getHeaderTopInset = () => {
-    const safeAreaTop = initialWindowMetrics?.insets?.top;
-    if (safeAreaTop != null) {
-        return safeAreaTop;
-    }
-    if (Platform.OS === 'ios') {
-        return IOS_STATUS_HEIGHT + IOS_TOP_GAP;
-    }
-    return StatusBar.currentHeight || ANDROID_TOP_GAP;
-};
+// Eager top inset used by the custom header. Under edge-to-edge, system bars
+// are always transparent, and `initialWindowMetrics` is provided synchronously
+// to SafeAreaProvider so this value is available on first render.
+export const getHeaderTopInset = () => initialWindowMetrics?.insets?.top ?? 0;
 
 const getHeaderHeight = () => {
     if (Platform.OS === 'ios') {
@@ -456,8 +446,6 @@ export {
 
     loaderStyles,
 
-    IOS_STATUS_HEIGHT,
-    IOS_TOP_GAP,
     HEADER_EXTRA_HEIGHT,
     HEADER_HEIGHT,
     HEADER_PADDING_BOTTOM,

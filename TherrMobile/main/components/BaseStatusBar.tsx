@@ -1,15 +1,19 @@
 import React from 'react';
-import { StatusBar } from 'react-native';
+import { SystemBars } from 'react-native-edge-to-edge';
 
-export default (props) => {
-    let barStyle = 'light-content';
-    let backgroundColor = '#1E8A96';
-    if (props.therrThemeName === 'light') {
-        barStyle = 'dark-content';
-        backgroundColor = '#ffffff';
-    } else if (props.therrThemeName === 'dark') {
-        barStyle = 'light-content';
-        backgroundColor = '#121212';
-    }
-    return <StatusBar backgroundColor={backgroundColor} barStyle={barStyle} animated={true} translucent={true} {...props} />;
+type Props = {
+    therrThemeName?: 'light' | 'dark' | 'retro' | string;
 };
+
+// Maps the in-app theme name to the system-bar icon style.
+// 'light' theme renders a light header → dark icons
+// 'dark' theme renders a dark header → light icons
+// 'retro' (and any unknown) preserves prior behavior: light icons
+const resolveStyle = (themeName?: string): 'light' | 'dark' => {
+    if (themeName === 'light') return 'dark';
+    return 'light';
+};
+
+export default ({ therrThemeName }: Props) => (
+    <SystemBars style={resolveStyle(therrThemeName)} />
+);
