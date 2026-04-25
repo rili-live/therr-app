@@ -43,12 +43,15 @@ const authenticate = async (req, res, next) => {
             }
 
             // Multi-app brand binding. New JWTs carry a `brand` claim; reject requests where the
-            // client's x-brand-variation header doesn't match. Legacy tokens (no claim) are exempt
-            // so existing sessions keep working until they refresh into branded tokens.
-            // Logout is allowed regardless so users in a confused state can always sign out.
+            // client's x-brand-variation header doesn't match (or is absent — legitimate niche
+            // clients always set it via their axios interceptor). Without the missing-header
+            // case, an attacker could simply strip x-brand-variation to bypass enforcement.
+            // Legacy tokens (no claim) stay exempt so existing sessions keep working until they
+            // refresh into branded tokens. Logout is exempt so users in a confused state can
+            // always sign out.
             if (decoded?.brand && !req.path.includes('users-service/auth/logout')) {
                 const requestBrand = req.headers['x-brand-variation'];
-                if (requestBrand && requestBrand !== decoded.brand) {
+                if (!requestBrand || requestBrand !== decoded.brand) {
                     return handleHttpError({
                         res,
                         message: "Invalid 'authorization.' Token brand does not match request brand.",

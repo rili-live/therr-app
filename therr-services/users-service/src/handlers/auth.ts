@@ -22,6 +22,12 @@ import {
     cancelHandoffCode,
 } from '../store/redisClient';
 
+// Multi-app brand check. Used to gate writes to user.brandVariations on login (so a malicious
+// x-brand-variation header can't pollute the JSONB array) and to validate handoff endpoints'
+// targetBrand / requestedBrand inputs.
+const isKnownBrand = (brand: any): boolean => typeof brand === 'string'
+    && (Object.values(BrandVariations) as string[]).includes(brand);
+
 // calling normalizeEmail on a userName will have no change
 const userNameOrEmailOrPhone = (user) => normalizeEmail(user.userName?.trim() || user.userEmail?.trim() || user.email?.trim()?.replace(/\s/g, '') || '')
     || normalizePhoneNumber(
@@ -286,7 +292,12 @@ const login: RequestHandler = (req: any, res: any) => {
                         // must not block the login response, but we want to log it for observability.
                         // Skip DASHBOARD_THERR for non-business accounts so dashboard sign-ins don't
                         // pollute consumer brand membership records.
-                        const shouldTrackBrand = brandVariation
+                        // Only track brands we recognize. Without this guard a malicious client could
+                        // submit `x-brand-variation: <anything>` to pollute the user's brandVariations
+                        // array (no SQL injection — it's parameterized — but it would let an attacker
+                        // grow the JSONB array unboundedly via repeated logins under different bogus
+                        // values, an integrity / DoS angle).
+                        const shouldTrackBrand = isKnownBrand(brandVariation)
                             && !(brandVariation === BrandVariations.DASHBOARD_THERR && !finalUser?.isBusinessAccount);
                         if (shouldTrackBrand) {
                             Store.users.upsertBrandVariation(user.id, brandVariation).catch((err) => {
@@ -471,29 +482,15 @@ const verifyToken: RequestHandler = (req: any, res: any) => {
 // (precomputed once at module load) so we don't pay a fresh hash cost on every cold start.
 const PRECHECK_DUMMY_HASH = bcrypt.hashSync('precheck-timing-equalizer', 12);
 
-const PRECHECK_HINTS = {
-    enterPassword: 'enter_password',
-    trySSO: 'try_sso',
-    magicLink: 'magic_link',
-    signUp: 'sign_up',
-} as const;
-
-type PrecheckHint = typeof PRECHECK_HINTS[keyof typeof PRECHECK_HINTS];
-
-const pickRandomUnknownHint = (): PrecheckHint => (
-    randomBytes(1)[0] < 180 ? PRECHECK_HINTS.signUp : PRECHECK_HINTS.magicLink
-);
-
-// Email pre-check: tells the client what to render next (password field, SSO button, magic link, or
-// signup) without leaking whether the email exists. All branches return 200 with the same response
-// shape and run a bcrypt comparison so timing is uniform. The hint is what the client renders; the
-// actual side-effect (sending a magic-link email) happens elsewhere and is gated on real existence.
+// Email pre-check: tells the client to render the universal "continue" UI (password field +
+// SSO buttons + magic-link option, all visible). Deliberately returns a single neutral hint
+// regardless of account state so the response cannot be used to enumerate registered emails.
+// We still do the DB lookup and a bcrypt compare to keep timing constant with future variants
+// that might attach state to the result.
 const emailPrecheck: RequestHandler = async (req: any, res: any) => {
     const { locale } = parseHeaders(req.headers);
     const rawEmail = (req.body?.email || '').toString();
     const email = normalizeEmail(rawEmail.trim());
-
-    let hint: PrecheckHint;
 
     try {
         const userResults = email
@@ -501,33 +498,26 @@ const emailPrecheck: RequestHandler = async (req: any, res: any) => {
             : [];
         const user = userResults?.[0];
 
-        // Always run bcrypt to equalize timing across the existence boundary.
+        // Always run bcrypt against the user hash if present, otherwise the dummy hash. Equalizes
+        // wall-clock time so an attacker cannot infer existence from the response latency.
         await bcrypt.compare('precheck-timing-equalizer', user?.password || PRECHECK_DUMMY_HASH);
-
-        if (!user) {
-            hint = pickRandomUnknownHint();
-        } else if (user.password) {
-            hint = PRECHECK_HINTS.enterPassword;
-        } else if (user.integrationsAccess) {
-            hint = PRECHECK_HINTS.trySSO;
-        } else {
-            hint = PRECHECK_HINTS.magicLink;
-        }
     } catch (err: any) {
-        // Fail open with the most common path so we never block the signup funnel on Redis/DB hiccups.
-        // Log so we can spot a regression without exposing the failure mode to the client.
+        // Lookup or bcrypt failure must NOT alter the response — falling through gives the same
+        // shape an attacker would see for any input. Log so we can spot a regression internally.
         logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
-            messages: [err?.message, 'email-precheck failed; returning sign_up'],
+            messages: [err?.message, 'email-precheck DB/bcrypt failure (response unchanged)'],
             traceArgs: {},
         });
-        hint = PRECHECK_HINTS.signUp;
     }
 
+    // Single neutral hint for everyone. The client renders the full continuation UI and lets the
+    // user pick how to proceed; the actual /auth call decides what works. This is the only
+    // enumeration-resistant shape — any per-account branching here leaks existence.
     return res.status(200).send({
         status: 'continue',
-        hint,
+        hint: 'continue',
         message: translate(locale, 'authMessages.emailPrecheckGeneric'),
     });
 };
@@ -538,12 +528,9 @@ const emailPrecheck: RequestHandler = async (req: any, res: any) => {
 // code flow — but without the consent screen ceremony, since both apps are owned by us and the
 // user has already authenticated to the source app.
 
-const isKnownBrand = (brand: any): boolean => typeof brand === 'string'
-    && (Object.values(BrandVariations) as string[]).includes(brand);
-
 const mintHandoff: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
-    const sourceBrand = (req.headers['x-brand-variation'] as string) || '';
+    const rawSourceBrand = (req.headers['x-brand-variation'] as string) || '';
     const targetBrand = (req.body?.targetBrand || '').toString();
     const deviceFingerprint = req.body?.deviceFingerprint
         ? String(req.body.deviceFingerprint).slice(0, 256)
@@ -555,6 +542,10 @@ const mintHandoff: RequestHandler = async (req: any, res: any) => {
     if (!isKnownBrand(targetBrand)) {
         return handleHttpError({ res, message: 'Invalid targetBrand', statusCode: 400 });
     }
+    // Source brand is informational (it's stored on the Redis entry; redemption only enforces
+    // targetBrand), but accepting arbitrary strings would let a caller embed garbage into the
+    // record — we'd surface that on logs and analytics. Drop unknown values.
+    const sourceBrand = isKnownBrand(rawSourceBrand) ? rawSourceBrand : '';
     if (sourceBrand && sourceBrand === targetBrand) {
         return handleHttpError({ res, message: 'Source and target brand cannot match', statusCode: 400 });
     }
@@ -589,9 +580,16 @@ const redeemHandoff: RequestHandler = async (req: any, res: any) => {
     if (!code || !requestedBrand) {
         return handleHttpError({ res, message: 'code and brand are required', statusCode: 400 });
     }
-    // The header brand must match the requested brand. The redeeming app is supposed to set its
-    // own brand header consistently — a mismatch suggests a malicious or misconfigured caller.
-    if (headerBrand && headerBrand !== requestedBrand) {
+    // Reject when the request brand isn't a recognized variant. Without this guard, the body
+    // alone could carry an arbitrary string into downstream code paths.
+    if (!isKnownBrand(requestedBrand)) {
+        return handleHttpError({ res, message: 'Invalid brand', statusCode: 400 });
+    }
+    // Require the x-brand-variation header AND require it to match the body. Legitimate niche
+    // apps always set the header via their axios interceptor — its absence indicates a forged
+    // or misconfigured caller. Without this check, an attacker stripping the header could pass
+    // a body-only `brand` value the redeeming environment doesn't actually represent.
+    if (!headerBrand || headerBrand !== requestedBrand) {
         return handleHttpError({ res, message: 'Brand mismatch', statusCode: 403 });
     }
 
