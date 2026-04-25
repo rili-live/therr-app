@@ -15,6 +15,7 @@ import { buildStyles as buildFormStyles } from '../styles/forms';
 import spacingStyles from '../styles/layouts/spacing';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../utilities/translator';
+import { enableEdgeToEdge, disableEdgeToEdge } from '../utilities/edgeToEdge';
 import BaseStatusBar from '../components/BaseStatusBar';
 import ftuiClaim from '../assets/ftui-claim.json';
 import ftuiDiscover from '../assets/ftui-discover.json';
@@ -239,6 +240,12 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                 title: this.translate('pages.landing.headerTitle'),
             });
         }
+
+        enableEdgeToEdge();
+    }
+
+    componentWillUnmount() {
+        disableEdgeToEdge();
     }
 
     navTo = (routeName) => {
