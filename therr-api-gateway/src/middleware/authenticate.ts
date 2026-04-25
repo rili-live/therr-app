@@ -42,6 +42,21 @@ const authenticate = async (req, res, next) => {
                 });
             }
 
+            // Multi-app brand binding. New JWTs carry a `brand` claim; reject requests where the
+            // client's x-brand-variation header doesn't match. Legacy tokens (no claim) are exempt
+            // so existing sessions keep working until they refresh into branded tokens.
+            // Logout is allowed regardless so users in a confused state can always sign out.
+            if (decoded?.brand && !req.path.includes('users-service/auth/logout')) {
+                const requestBrand = req.headers['x-brand-variation'];
+                if (requestBrand && requestBrand !== decoded.brand) {
+                    return handleHttpError({
+                        res,
+                        message: "Invalid 'authorization.' Token brand does not match request brand.",
+                        statusCode: 401,
+                    });
+                }
+            }
+
             req['x-userid'] = decoded.id;
             req['x-username'] = decoded.userName;
             req['x-user-access-levels'] = decoded.accessLevels ? JSON.stringify(decoded.accessLevels) : '[]';

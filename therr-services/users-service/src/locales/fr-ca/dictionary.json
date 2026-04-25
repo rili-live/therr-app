@@ -1,4 +1,7 @@
 {
+    "authMessages": {
+        "emailPrecheckGeneric": "Si ce courriel est inscrit, nous vous guiderons pour vous connecter."
+    },
     "errorMessages": {
         "auth": {
             "accountNotVerified": "Compte non vérifié. Vérifie ton courriel pour la vérification ou rends-toi à /verify-account pour renvoyer le lien",

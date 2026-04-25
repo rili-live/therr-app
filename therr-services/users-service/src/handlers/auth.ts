@@ -1,6 +1,10 @@
+import { randomBytes } from 'crypto';
 import { RequestHandler } from 'express';
+import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { AccessLevels, CurrentSocialValuations, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
+import {
+    AccessLevels, BrandVariations, CurrentSocialValuations, OAuthIntegrationProviders,
+} from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import { parseHeaders } from 'therr-js-utilities/http';
@@ -12,6 +16,11 @@ import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
+import {
+    mintHandoffCode,
+    redeemHandoffCode,
+    cancelHandoffCode,
+} from '../store/redisClient';
 
 // calling normalizeEmail on a userName will have no change
 const userNameOrEmailOrPhone = (user) => normalizeEmail(user.userName?.trim() || user.userEmail?.trim() || user.email?.trim()?.replace(/\s/g, '') || '')
@@ -191,8 +200,8 @@ const login: RequestHandler = (req: any, res: any) => {
                         return [];
                     });
 
-                    const idToken = createUserToken(user, userOrgs, req.body.rememberMe);
-                    const refreshTokenData = createRefreshToken(user.id, req.body.rememberMe);
+                    const idToken = createUserToken(user, userOrgs, req.body.rememberMe, brandVariation);
+                    const refreshTokenData = createRefreshToken(user.id, req.body.rememberMe, brandVariation);
                     userHash = basicHash(userNameEmailPhone);
 
                     logSpan({
@@ -273,6 +282,25 @@ const login: RequestHandler = (req: any, res: any) => {
                         const finalUser = userResponse[0];
                         // Remove credentials from object
                         redactUserCreds(finalUser);
+                        // Track which apps a user actually uses. Fire-and-forget: a failure here
+                        // must not block the login response, but we want to log it for observability.
+                        // Skip DASHBOARD_THERR for non-business accounts so dashboard sign-ins don't
+                        // pollute consumer brand membership records.
+                        const shouldTrackBrand = brandVariation
+                            && !(brandVariation === BrandVariations.DASHBOARD_THERR && !finalUser?.isBusinessAccount);
+                        if (shouldTrackBrand) {
+                            Store.users.upsertBrandVariation(user.id, brandVariation).catch((err) => {
+                                logSpan({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: [err?.message, 'Failed to upsert brandVariations on login'],
+                                    traceArgs: {
+                                        'user.id': user.id,
+                                        'brand.variation': brandVariation,
+                                    },
+                                });
+                            });
+                        }
                         // TODO: Save, Encrypt, and return stored user integrations
                         // const storedIntegrations = encryptIntegrationsAccess(access);
                         return res.status(201).send({
@@ -383,8 +411,15 @@ const refreshToken: RequestHandler = async (req: any, res: any) => {
             },
         };
 
-        const newIdToken = createUserToken(userWithIntegrations, userOrgs, rememberMe);
-        const newRefreshTokenData = createRefreshToken(user.id, rememberMe);
+        // Brand stickiness on refresh: the refresh token represents a session for the brand it
+        // was originally issued under. We re-stamp the new id+refresh tokens with that same brand.
+        // For pre-multi-app refresh tokens that have no `brand` claim, opportunistically upgrade
+        // using the current request's brand-variation header.
+        const { brandVariation: refreshHeaderBrand } = parseHeaders(req.headers);
+        const stickyBrand = decoded.brand || refreshHeaderBrand;
+
+        const newIdToken = createUserToken(userWithIntegrations, userOrgs, rememberMe, stickyBrand);
+        const newRefreshTokenData = createRefreshToken(user.id, rememberMe, stickyBrand);
 
         redactUserCreds(userWithIntegrations);
 
@@ -431,9 +466,231 @@ const verifyToken: RequestHandler = (req: any, res: any) => {
     }
 };
 
+// Pre-computed dummy bcrypt hash. Used to keep precheck timing constant when no user exists,
+// so the response time itself doesn't reveal whether the email is registered. The salt is fixed
+// (precomputed once at module load) so we don't pay a fresh hash cost on every cold start.
+const PRECHECK_DUMMY_HASH = bcrypt.hashSync('precheck-timing-equalizer', 12);
+
+const PRECHECK_HINTS = {
+    enterPassword: 'enter_password',
+    trySSO: 'try_sso',
+    magicLink: 'magic_link',
+    signUp: 'sign_up',
+} as const;
+
+type PrecheckHint = typeof PRECHECK_HINTS[keyof typeof PRECHECK_HINTS];
+
+const pickRandomUnknownHint = (): PrecheckHint => (
+    randomBytes(1)[0] < 180 ? PRECHECK_HINTS.signUp : PRECHECK_HINTS.magicLink
+);
+
+// Email pre-check: tells the client what to render next (password field, SSO button, magic link, or
+// signup) without leaking whether the email exists. All branches return 200 with the same response
+// shape and run a bcrypt comparison so timing is uniform. The hint is what the client renders; the
+// actual side-effect (sending a magic-link email) happens elsewhere and is gated on real existence.
+const emailPrecheck: RequestHandler = async (req: any, res: any) => {
+    const { locale } = parseHeaders(req.headers);
+    const rawEmail = (req.body?.email || '').toString();
+    const email = normalizeEmail(rawEmail.trim());
+
+    let hint: PrecheckHint;
+
+    try {
+        const userResults = email
+            ? await Store.users.getUserByConditions({ email })
+            : [];
+        const user = userResults?.[0];
+
+        // Always run bcrypt to equalize timing across the existence boundary.
+        await bcrypt.compare('precheck-timing-equalizer', user?.password || PRECHECK_DUMMY_HASH);
+
+        if (!user) {
+            hint = pickRandomUnknownHint();
+        } else if (user.password) {
+            hint = PRECHECK_HINTS.enterPassword;
+        } else if (user.integrationsAccess) {
+            hint = PRECHECK_HINTS.trySSO;
+        } else {
+            hint = PRECHECK_HINTS.magicLink;
+        }
+    } catch (err: any) {
+        // Fail open with the most common path so we never block the signup funnel on Redis/DB hiccups.
+        // Log so we can spot a regression without exposing the failure mode to the client.
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [err?.message, 'email-precheck failed; returning sign_up'],
+            traceArgs: {},
+        });
+        hint = PRECHECK_HINTS.signUp;
+    }
+
+    return res.status(200).send({
+        status: 'continue',
+        hint,
+        message: translate(locale, 'authMessages.emailPrecheckGeneric'),
+    });
+};
+
+// Cross-app handoff. The source app (where the user is signed in) mints a single-use code bound
+// to a target brand. The target app, opened via universal link, redeems that code for fresh
+// tokens stamped with the target brand. This is the first-party analog of OAuth's authorization
+// code flow — but without the consent screen ceremony, since both apps are owned by us and the
+// user has already authenticated to the source app.
+
+const isKnownBrand = (brand: any): boolean => typeof brand === 'string'
+    && (Object.values(BrandVariations) as string[]).includes(brand);
+
+const mintHandoff: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const sourceBrand = (req.headers['x-brand-variation'] as string) || '';
+    const targetBrand = (req.body?.targetBrand || '').toString();
+    const deviceFingerprint = req.body?.deviceFingerprint
+        ? String(req.body.deviceFingerprint).slice(0, 256)
+        : undefined;
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+    if (!isKnownBrand(targetBrand)) {
+        return handleHttpError({ res, message: 'Invalid targetBrand', statusCode: 400 });
+    }
+    if (sourceBrand && sourceBrand === targetBrand) {
+        return handleHttpError({ res, message: 'Source and target brand cannot match', statusCode: 400 });
+    }
+
+    // 128 bits of entropy → 22 url-safe chars. Big enough that brute-force is hopeless within the
+    // 60s TTL even at the per-IP rate limit. Never log the code itself.
+    const code = randomBytes(16).toString('base64url');
+
+    try {
+        await mintHandoffCode(code, {
+            userId,
+            sourceBrand,
+            targetBrand,
+            deviceFingerprint,
+            issuedAt: Date.now(),
+        });
+    } catch (err: any) {
+        return handleHttpError({
+            res, err, message: 'Failed to mint handoff code', statusCode: 500,
+        });
+    }
+
+    return res.status(200).send({ code, expiresInSeconds: 60, targetBrand });
+};
+
+const redeemHandoff: RequestHandler = async (req: any, res: any) => {
+    const { locale } = parseHeaders(req.headers);
+    const code = (req.body?.code || '').toString();
+    const requestedBrand = (req.body?.brand || '').toString();
+    const headerBrand = (req.headers['x-brand-variation'] as string) || '';
+
+    if (!code || !requestedBrand) {
+        return handleHttpError({ res, message: 'code and brand are required', statusCode: 400 });
+    }
+    // The header brand must match the requested brand. The redeeming app is supposed to set its
+    // own brand header consistently — a mismatch suggests a malicious or misconfigured caller.
+    if (headerBrand && headerBrand !== requestedBrand) {
+        return handleHttpError({ res, message: 'Brand mismatch', statusCode: 403 });
+    }
+
+    let entry;
+    try {
+        entry = await redeemHandoffCode(code);
+    } catch (err: any) {
+        return handleHttpError({
+            res, err, message: 'Failed to redeem handoff code', statusCode: 500,
+        });
+    }
+
+    if (!entry) {
+        // Either expired, never issued, or already redeemed. Same response either way to avoid
+        // leaking which case it is.
+        return handleHttpError({ res, message: 'Invalid or expired code', statusCode: 410 });
+    }
+
+    if (entry.targetBrand !== requestedBrand) {
+        return handleHttpError({ res, message: 'Code is not valid for this brand', statusCode: 403 });
+    }
+
+    try {
+        const userResults = await Store.users.getUserByConditions({ id: entry.userId });
+        if (!userResults?.length) {
+            return handleHttpError({ res, message: 'User not found', statusCode: 404 });
+        }
+        const dbUser = userResults[0];
+        if (dbUser.isBlocked) {
+            return handleHttpError({ res, message: 'User is blocked', statusCode: 403 });
+        }
+
+        const userOrgs = await Store.userOrganizations.get({ userId: dbUser.id }).catch(() => []);
+
+        const userWithIntegrations = {
+            ...dbUser,
+            isSSO: false,
+            integrations: {
+                ...decryptIntegrationsAccess(dbUser?.integrationsAccess),
+            },
+        };
+
+        const idToken = createUserToken(userWithIntegrations, userOrgs, false, requestedBrand);
+        const refreshTokenData = createRefreshToken(dbUser.id, false, requestedBrand);
+
+        // Track that this user is now active in the target brand. Fire-and-forget.
+        Store.users.upsertBrandVariation(dbUser.id, requestedBrand).catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message, 'Failed to upsert brandVariations on handoff redeem'],
+                traceArgs: { 'user.id': dbUser.id, 'brand.variation': requestedBrand },
+            });
+        });
+
+        redactUserCreds(userWithIntegrations);
+
+        return res.status(200).send({
+            ...userWithIntegrations,
+            idToken,
+            refreshToken: refreshTokenData.token,
+            integrations: userWithIntegrations.integrations || {},
+            userOrganizations: userOrgs,
+        });
+    } catch (err: any) {
+        return handleHttpError({
+            res, err, message: translate(locale, 'errorMessages.auth.incorrectUserPass'), statusCode: 500,
+        });
+    }
+};
+
+const cancelHandoff: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const code = (req.body?.code || '').toString();
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+    if (!code) {
+        return handleHttpError({ res, message: 'code is required', statusCode: 400 });
+    }
+
+    try {
+        await cancelHandoffCode(code);
+        return res.status(200).send({ status: 'cancelled' });
+    } catch (err: any) {
+        return handleHttpError({
+            res, err, message: 'Failed to cancel handoff code', statusCode: 500,
+        });
+    }
+};
+
 export {
     login,
     logout,
     refreshToken,
     verifyToken,
+    emailPrecheck,
+    mintHandoff,
+    redeemHandoff,
+    cancelHandoff,
 };

@@ -277,13 +277,16 @@ const createUserHelper = (
                     userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
                 }
             }
+            const nowIso = new Date().toISOString();
             return Store.users.createUser({
                 accessLevels: JSON.stringify([...userAccessLevels]),
                 brandVariations: (headers['x-brand-variation'] && isBrandValid(headers['x-brand-variation']))
-                    ? JSON.stringify({
+                    ? JSON.stringify([{
                         brand: headers['x-brand-variation'],
-                        details: {},
-                    })
+                        firstSeenAt: nowIso,
+                        lastSeenAt: nowIso,
+                        isActive: true,
+                    }])
                     : undefined,
                 email: userDetails.email,
                 firstName: userDetails.firstName || undefined,
