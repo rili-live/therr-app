@@ -1,5 +1,6 @@
 import React from 'react';
-import { Platform, Share, View, KeyboardAvoidingView, Text } from 'react-native';
+import { Platform, Share, View, Text } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Button } from '../../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';

@@ -7,6 +7,8 @@ import MapsService,
     IPlaceDetailsArgs,
     IGetSpaceEngagementArgs,
     IGetSpaceMetricsArgs,
+    IRequestSpaceDisplayKitArgs,
+    SpaceDisplayKitType,
 } from './MapsService';
 import MessagesService from './MessagesService';
 import NotificationsService from './NotificationsService';
@@ -29,6 +31,8 @@ export {
     IGetSpaceMetricsArgs,
     IPlacesAutoCompleteArgs,
     IPlaceDetailsArgs,
+    IRequestSpaceDisplayKitArgs,
+    SpaceDisplayKitType,
     MessagesService,
     NotificationsService,
     PushNotificationsService,

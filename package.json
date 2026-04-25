@@ -72,6 +72,8 @@
     "pr:test:unit:reactions": "npm --prefix therr-services/reactions-service run test:unit",
     "pr:test:unit:push": "npm --prefix therr-services/push-notifications-service run test:unit",
     "pr:test:unit:websocket": "npm --prefix therr-services/websocket-service run test:unit",
+    "pr:test:unit:js-utils": "npm --prefix therr-public-library/therr-js-utilities run test",
+    "pr:test:unit:therr-react": "npm --prefix therr-public-library/therr-react run test",
     "pr:test:integration:gateway": "npm --prefix therr-api-gateway run test:integration",
     "pr:test:integration:users": "npm --prefix therr-services/users-service run test:integration",
     "pr:test:integration:maps": "npm --prefix therr-services/maps-service run test:integration",

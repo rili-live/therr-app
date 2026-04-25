@@ -1,6 +1,7 @@
 package app.therrmobile
 
 import android.app.Application
+import app.therrmobile.modules.EdgeToEdgePackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -14,7 +15,7 @@ class MainApplication : Application(), ReactApplication {
   override val reactHost: ReactHost
     get() = getDefaultReactHost(
         context = applicationContext,
-        packageList = PackageList(this).packages,
+        packageList = PackageList(this).packages + listOf(EdgeToEdgePackage()),
         jsMainModulePath = "index",
         useDevSupport = BuildConfig.DEBUG,
     )

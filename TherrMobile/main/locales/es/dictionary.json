@@ -1302,7 +1302,12 @@
       },
       "alertMessages": {
         "preferenceSettingsUpdated": "Tus preferencias de cuenta y contenido han sido actualizadas.",
-        "preferenceSettingsUpdatedError": "¡Ups! Algo salió mal."
+        "preferenceSettingsUpdatedError": "¡Ups! Algo salió mal.",
+        "loadInterestsError": "No pudimos cargar tus intereses ahora. Puedes reintentar u omitir por ahora."
+      },
+      "buttons": {
+        "retry": "Reintentar",
+        "skipForNow": "Omitir por ahora"
       }
     },
     "requestSpace": {

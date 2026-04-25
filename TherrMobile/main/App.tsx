@@ -8,6 +8,7 @@ import { getAnalytics, setAnalyticsCollectionEnabled } from '@react-native-fireb
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
 import { SheetProvider } from 'react-native-actions-sheet';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+import { SystemBars } from 'react-native-edge-to-edge';
 import {
     SpotlightTourProvider,
 } from 'react-native-spotlight-tour';
@@ -204,6 +205,7 @@ class App extends React.Component<any, any> {
 
         return (
             <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+                <SystemBars style="auto" />
                 <Provider store={this.store}>
                     <PersistGate loading={null} persistor={this.persistor}>
                         <OfflineBanner />

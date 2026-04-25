@@ -10,7 +10,7 @@ Publish Spanish and Quebec-French variants of editorial guides for **cities wher
 
 ## Why this is defensible
 
-- Locale-prefixed URL routing (`/es/guides/<slug>`, `/fr-ca/guides/<slug>`) is already shipped — see `docs/LOCALE_URL_ROUTING.md`.
+- Locale-prefixed URL routing (`/es/guides/<slug>`, `/fr-ca/guides/<slug>`) is already shipped — see `therr-client-web/src/server-client.tsx` and `therr-client-web/src/utilities/guideContent.ts`.
 - The `locales` block already exists in `IPost` (`scripts/generate-content/utils/contentSchema.ts`).
 - `resolveGuideForLocale()` already swaps in the localized content at SSR time (`therr-client-web/src/utilities/guideContent.ts`).
 - The 3 supported locales (`en-us`, `es`, `fr-ca`) cover ~600M speakers, but most US directories' Spanish/French content is machine-translated boilerplate or absent.
@@ -87,4 +87,3 @@ After publishing, GSC should be checked weekly for impressions on the localized 
 - `scripts/generate-content/save-post.ts` (`--require-locales` flag, per-locale length checks)
 - `scripts/generate-content/translate-post.ts` (new)
 - `.claude/skills/generate-content/SKILL.md` (locale workflow section)
-- `docs/LOCALE_URL_ROUTING.md` (cross-reference if any patterns documented there change)

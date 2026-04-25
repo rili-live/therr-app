@@ -86,6 +86,7 @@
     "react-native-date-picker": "^5.0.13",
     "react-native-device-info": "^10.14.0",
     "react-native-dotenv": "^3.4.11",
+    "react-native-edge-to-edge": "^1.8.1",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "^2.30.0",
     "react-native-haptic-feedback": "^2.2.0",

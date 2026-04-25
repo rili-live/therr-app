@@ -1302,7 +1302,12 @@
       },
       "alertMessages": {
         "preferenceSettingsUpdated": "Your account & content preferences have been updated.",
-        "preferenceSettingsUpdatedError": "Oops! Something went wrong."
+        "preferenceSettingsUpdatedError": "Oops! Something went wrong.",
+        "loadInterestsError": "We couldn't load your interests right now. You can retry or skip for now."
+      },
+      "buttons": {
+        "retry": "Retry",
+        "skipForNow": "Skip for now"
       }
     },
     "requestSpace": {

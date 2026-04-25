@@ -42,6 +42,19 @@ export interface IGetSpaceMetricsArgs {
     endDate: string;
 }
 
+export type SpaceDisplayKitType = 'coaster' | 'table_tent' | 'window_cling';
+
+export interface IRequestSpaceDisplayKitArgs {
+    spaceId: string;
+    displayType: SpaceDisplayKitType;
+    shippingName?: string;
+    shippingAddress?: string;
+    shippingCity?: string;
+    shippingRegion?: string;
+    shippingPostalCode?: string;
+    shippingCountry?: string;
+}
+
 interface ICreateAreaBody {
     category?: string;
     expiresAt?: any;
@@ -328,6 +341,18 @@ class MapsService {
             data: {},
         });
     };
+
+    requestSpaceDisplayKit = (args: IRequestSpaceDisplayKitArgs) => axios({
+        method: 'post',
+        url: '/maps-service/space-display-requests',
+        data: args,
+    });
+
+    listSpaceDisplayRequests = (params: { status?: string; spaceId?: string; limit?: number; offset?: number } = {}) => axios({
+        method: 'get',
+        url: '/maps-service/space-display-requests',
+        params,
+    });
 
     // Space Pairings
     getSpacePairings = (spaceId: string) => axios({

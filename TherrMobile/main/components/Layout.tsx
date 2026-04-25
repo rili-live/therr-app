@@ -390,6 +390,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         android: {
                                             pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
                                         },
+                                        data: {
+                                            activatedMomentIds: JSON.stringify(momentsData.map((moment) => moment.momentId)),
+                                            activatedSpaceIds: JSON.stringify(spacesData.map((space) => space.spaceId)),
+                                        },
                                     }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
                                     if (momentsData.length) {
                                         searchActiveMomentsByIds({
@@ -921,7 +925,30 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.discovered) {
                 if (isUserAuthorized) {
-                    RootNavigation.navigate('Areas');
+                    const parseIds = (raw: unknown): string[] => {
+                        if (Array.isArray(raw)) {
+                            return raw as string[];
+                        }
+                        if (typeof raw === 'string' && raw.length) {
+                            try {
+                                const parsed = JSON.parse(raw);
+                                return Array.isArray(parsed) ? parsed : [];
+                            } catch {
+                                return [];
+                            }
+                        }
+                        return [];
+                    };
+                    const activatedMomentIds = parseIds(notification?.data?.activatedMomentIds);
+                    const activatedSpaceIds = parseIds(notification?.data?.activatedSpaceIds);
+                    if (activatedMomentIds.length || activatedSpaceIds.length) {
+                        RootNavigation.navigate('ActivatedAreas', {
+                            activatedMomentIds,
+                            activatedSpaceIds,
+                        });
+                    } else {
+                        RootNavigation.navigate('Nearby');
+                    }
                 }
                 return Promise.resolve();
             }

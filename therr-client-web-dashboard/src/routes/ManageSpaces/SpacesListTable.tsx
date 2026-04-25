@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-    faAngleDown, faAngleUp, faEdit, faEllipsisH, faEye, faTrashAlt,
+    faAngleDown, faAngleUp, faEdit, faEllipsisH, faEye, faQrcode, faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     Button, ButtonGroup, Card, Dropdown, Image, Table,
 } from 'react-bootstrap';
+import RequestDisplayKitModal from '../../components/RequestDisplayKitModal';
 import { ISpace } from '../../types';
 import * as globalConfig from '../../../../global-config';
 
@@ -61,6 +62,8 @@ const SpacesListTable = ({
     previousQueryStringParams,
     translate,
 }: ISpacesListTableProps) => {
+    const [displayKitSpace, setDisplayKitSpace] = useState<ISpace | null>(null);
+
     if (isLoading) {
         return (
             <p className="text-center mt-1">Loading...</p>
@@ -69,9 +72,11 @@ const SpacesListTable = ({
 
     const TableRow = (props: {
         space: ISpace;
+        onRequestDisplayKit: (space: ISpace) => void;
     }) => {
         const {
             space,
+            onRequestDisplayKit,
         } = props;
         const {
             id,
@@ -112,6 +117,9 @@ const SpacesListTable = ({
                             </Dropdown.Item> */}
                             <Dropdown.Item as={Link} to={editSpacePath} state={{ space }}>
                                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Edit
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={() => onRequestDisplayKit(space)}>
+                                <FontAwesomeIcon icon={faQrcode} className="me-2" /> Request Display Kit
                             </Dropdown.Item>
                             {/* <Dropdown.Item className="text-danger">
                                 <FontAwesomeIcon icon={faTrashAlt} className="me-2" /> Delete?
@@ -165,10 +173,21 @@ const SpacesListTable = ({
                         </tr>
                     </thead>
                     <tbody>
-                        {spacesInView.map((space) => <TableRow key={`space-${space.id}`} space={space} />)}
+                        {spacesInView.map((space) => (
+                            <TableRow
+                                key={`space-${space.id}`}
+                                space={space}
+                                onRequestDisplayKit={setDisplayKitSpace}
+                            />
+                        ))}
                     </tbody>
                 </Table>
             </Card.Body>
+            <RequestDisplayKitModal
+                show={!!displayKitSpace}
+                space={displayKitSpace}
+                onHide={() => setDisplayKitSpace(null)}
+            />
         </Card>
     );
 };

@@ -24,6 +24,7 @@ import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locatio
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import translator from '../../utilities/translator';
+import { hasBypassedInterestsRedirect } from '../../utilities/interestsRedirectGuard';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -232,9 +233,9 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             title: this.translate('pages.myDrafts.headerTitle'),
         });
 
-        if (isUserAuthenticated(user)) {
+        if (isUserAuthenticated(user) && !hasBypassedInterestsRedirect()) {
             UsersService.getUserInterests().then((response) => {
-                if (!response?.data?.length) {
+                if (!response?.data?.length && !hasBypassedInterestsRedirect()) {
                     updateTour({
                         isTouring: false,
                         isNavigationTouring: false,
