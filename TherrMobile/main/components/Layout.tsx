@@ -69,9 +69,9 @@ import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroi
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
-import background1 from '../assets/dinner-burgers.webp';
-import background2 from '../assets/dinner-overhead.webp';
-import background3 from '../assets/dinner-overhead-2.webp';
+import background1 from '../assets/landing-jungle.webp';
+import background2 from '../assets/landing-tree.webp';
+import background3 from '../assets/landing-chameleon.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';

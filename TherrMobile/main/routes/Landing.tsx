@@ -22,9 +22,9 @@ import ftuiMoment from '../assets/ftui-moment.json';
 import ftuiClaimLight from '../assets/ftui-claim-light.json';
 import ftuiDiscoverLight from '../assets/ftui-discover-light.json';
 import ftuiMomentLight from '../assets/ftui-moment-light.json';
-import background1 from '../assets/dinner-burgers.webp';
-import background2 from '../assets/dinner-overhead.webp';
-import background3 from '../assets/dinner-overhead-2.webp';
+import background1 from '../assets/landing-jungle.webp';
+import background2 from '../assets/landing-tree.webp';
+import background3 from '../assets/landing-chameleon.webp';
 import { useSwipe } from '../hooks/useSwipe';
 
 // const { width: viewportWidth } = Dimensions.get('window');
