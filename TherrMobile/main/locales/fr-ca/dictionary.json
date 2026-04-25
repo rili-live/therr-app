@@ -1447,9 +1447,9 @@
     },
     "landing": {
       "background": {
-        "shareYourInterests": "Partagez vos intérêts",
-        "inviteFriends": "Invitez vos amis",
-        "getMatched": "Trouvez des personnes et des endroits pour votre prochaine sortie"
+        "shareYourInterests": "Bâtissez des habitudes qui durent",
+        "inviteFriends": "Invitez vos amis pour vous tenir responsables",
+        "getMatched": "Faites des pactes avec vos amis et atteignez vos objectifs ensemble"
       },
       "headerTitle": "Bienvenue",
       "buttons": {
