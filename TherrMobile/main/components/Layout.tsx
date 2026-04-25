@@ -270,6 +270,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.readyAndStartBackgroundGeolocation();
         this.prefetchContent();
+
+        // Persisted-session launch: componentDidUpdate's auth-transition gate
+        // doesn't fire when the user is already authenticated at mount, so
+        // reset to the brand-appropriate landing screen here.
+        if (this.props.user?.isAuthenticated && CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+            RootNavigation.reset({
+                index: 0,
+                routes: [{ name: 'HabitsDashboard' }],
+            });
+        }
     }
 
     componentDidUpdate(prevProps: ILayoutProps) {
@@ -309,7 +319,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     }
                 }
 
-                if (targetRouteView) {
+                if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                    // HABITS has its own dashboard; the targetRouteView path
+                    // below routes through Areas, which is feature-flagged off
+                    // for HABITS and would otherwise leave the user on a
+                    // fallback screen (e.g., Home) after login.
+                    RootNavigation.reset({
+                        index: 0,
+                        routes: [{ name: 'HabitsDashboard' }],
+                    });
+                } else if (targetRouteView) {
                     RootNavigation.reset({
                         index: 0,
                         routes: [
@@ -317,16 +336,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             { name: targetRouteView, params: targetRouteParams },
                         ],
                     });
-                } else if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
-                    RootNavigation.reset({
-                        index: 0,
-                        routes: [{ name: 'HabitsDashboard' }],
-                    });
                 }
 
                 this.prefetchContent();
 
-                if (!forums?.forumCategories || !forums.forumCategories.length) {
+                const featureFlags = getConfig().featureFlags || {};
+                if (featureFlags.ENABLE_FORUMS && (!forums?.forumCategories || !forums.forumCategories.length)) {
                     searchCategories({
                         itemsPerPage: 100,
                         pageNumber: 1,
@@ -565,8 +580,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             completePrefetchRequest,
         } = this.props;
         if (user.isAuthenticated) {
+            // Skip data fetches for features the current brand has disabled.
+            // Otherwise we hit endpoints (e.g., /reactions-service/moments/active/search)
+            // for content the brand never displays, generating 401/404 noise and
+            // — worst case — auth-recovery cascades on a still-valid session.
+            const featureFlags = getConfig().featureFlags || {};
+
             // Pre-load activated content
-            if (!content?.content?.activeMoments?.length) {
+            if (featureFlags.ENABLE_MOMENTS && !content?.content?.activeMoments?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveMoments: true,
                 });
@@ -585,7 +606,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeThoughts?.length) {
+            if (featureFlags.ENABLE_THOUGHTS && !content?.content?.activeThoughts?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveThoughts: true,
                 });
@@ -604,7 +625,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeEvents?.length) {
+            if (featureFlags.ENABLE_EVENTS && !content?.content?.activeEvents?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveEvents: true,
                 });
@@ -624,58 +645,70 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
 
-            // Pre-load notifications
-            beginPrefetchRequest({
-                isLoadingAchievements: true,
-                isLoadingUsers: true,
-                isLoadingGroups: true,
-                isLoadingNotifications: true,
-            });
-            searchNotifications({
-                filterBy: 'userId',
-                query: user.details.id,
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-            }).catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingNotifications: false,
+            if (featureFlags.ENABLE_NOTIFICATIONS) {
+                beginPrefetchRequest({
+                    isLoadingNotifications: true,
                 });
-            });
+                searchNotifications({
+                    filterBy: 'userId',
+                    query: user.details.id,
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                }).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingNotifications: false,
+                    });
+                });
+            }
 
-            // Pre-load achievements
-            getMyAchievements().catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingAchievements: false,
+            if (featureFlags.ENABLE_ACHIEVEMENTS) {
+                beginPrefetchRequest({
+                    isLoadingAchievements: true,
                 });
-            });
+                getMyAchievements().catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingAchievements: false,
+                    });
+                });
+            }
 
-            searchUsers(
-                {
-                    query: '',
-                    limit: DEFAULT_PAGE_SIZE,
-                    offset: 0,
-                    withMedia: true,
-                },
-            ).catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingUsers: false,
+            if (featureFlags.ENABLE_CONNECT) {
+                beginPrefetchRequest({
+                    isLoadingUsers: true,
                 });
-            });
+                searchUsers(
+                    {
+                        query: '',
+                        limit: DEFAULT_PAGE_SIZE,
+                        offset: 0,
+                        withMedia: true,
+                    },
+                ).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingUsers: false,
+                    });
+                });
+            }
 
-            getUserGroups().catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingGroups: false,
+            if (featureFlags.ENABLE_GROUPS) {
+                beginPrefetchRequest({
+                    isLoadingGroups: true,
                 });
-            });
+                getUserGroups().catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingGroups: false,
+                    });
+                });
+            }
         }
     };
 
