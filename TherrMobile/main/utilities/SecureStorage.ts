@@ -63,7 +63,7 @@ const SecureStorage = {
     removeItem: async (key: string): Promise<void> => {
         if (Keychain && SECURE_KEYS.includes(key)) {
             try {
-                await Keychain.resetInternetCredentials(key);
+                await Keychain.resetInternetCredentials({ server: key });
             } catch (e) {
                 // Continue to also clean MMKV / AsyncStorage
             }
@@ -78,7 +78,7 @@ const SecureStorage = {
 
         if (Keychain && secureKeys.length > 0) {
             await Promise.all(
-                secureKeys.map((key) => Keychain.resetInternetCredentials(key).catch(() => {})),
+                secureKeys.map((key) => Keychain.resetInternetCredentials({ server: key }).catch(() => {})),
             );
         }
 
