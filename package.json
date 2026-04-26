@@ -80,7 +80,15 @@
     "pr:test:integration:messages": "npm --prefix therr-services/messages-service run test:integration",
     "pr:test:integration:reactions": "npm --prefix therr-services/reactions-service run test:integration",
     "pr:test:integration:push": "npm --prefix therr-services/push-notifications-service run test:integration",
-    "pr:test:integration:websocket": "npm --prefix therr-services/websocket-service run test:integration"
+    "pr:test:integration:websocket": "npm --prefix therr-services/websocket-service run test:integration",
+    "pr:migrate:users": "npm --prefix therr-services/users-service run migrations:run",
+    "pr:migrate:maps": "npm --prefix therr-services/maps-service run migrations:run",
+    "pr:migrate:messages": "npm --prefix therr-services/messages-service run migrations:run",
+    "pr:migrate:reactions": "npm --prefix therr-services/reactions-service run migrations:run",
+    "pr:migrate:push": "npm --prefix therr-services/push-notifications-service run migrations:run",
+    "pr:migrate:all": "npm run pr:migrate:users && npm run pr:migrate:maps && npm run pr:migrate:messages && npm run pr:migrate:reactions && npm run pr:migrate:push",
+    "pr:test:integration:all": "npm run pr:migrate:all && npm run pr:test:integration:gateway && npm run pr:test:integration:users && npm run pr:test:integration:maps && npm run pr:test:integration:messages && npm run pr:test:integration:reactions && npm run pr:test:integration:push && npm run pr:test:integration:websocket",
+    "pr:tsc-baseline:mobile": "./_bin/check-mobile-tsc-baseline.sh"
   },
   "repository": {
     "type": "git",
