@@ -87,6 +87,7 @@ ELK dashboard before scheduling the migration.
 
 **Status**: Open
 **Origin**: Phases 2/3/5 multi-app data isolation rollout
+**Verifies**: Phase 6 scenario 8 of `.claude/plans/i-ve-started-more-development-binary-ocean.md`
 
 Every brand-scoped store currently constructs with `mode: 'shadow'`:
 
@@ -101,11 +102,31 @@ Shadow mode logs a warning when a missing/unknown brand reaches the store; enfor
 throws `MissingBrandContextError`. The intent is one release cycle in shadow to surface any
 caller paths that don't pass a brand, then flip to enforce.
 
-**Trigger**: After one full release cycle AND zero `[brand-scope:shadow]` warnings in logs
-for the affected store.
+**Why this verification cannot be a unit test**: the shadow-mode log scrubbing is a
+production-only signal. A clean staging build proves nothing — the leak we're guarding
+against is "a real production caller path that nobody remembered when the store was
+refactored." Only real traffic over a release cycle exercises that surface.
 
-**Steps**: Change the constructor `super(...)` call from `'shadow'` to `'enforce'` in each
-store. No migration needed.
+**Observation criteria** (to satisfy Phase 6 scenario 8):
+
+1. **Filter**: ELK / log aggregator query `message:"[brand-scope:shadow]"` filtered to
+   `kubernetes.namespace:"production"`. Group by `tableName` so each of the six stores is
+   tracked separately.
+2. **Window**: 7 consecutive days of zero hits in production for a given store. Anything
+   shorter risks missing weekly cron paths (cleanup jobs, batch enrichers) that don't fire
+   daily.
+3. **Cadence**: check at the start of each weekly release window. Each store can be flipped
+   independently — a noisy `NotificationsStore` does not block flipping `ForumsStore`.
+4. **If non-zero**: capture the first 10 entries (userId, route, stack trace) and trace
+   each call site. Either fix the caller to thread brand through, or — if the call site is
+   genuinely brand-agnostic infra (e.g. an admin script) — pass `BrandVariations.THERR`
+   explicitly with a code comment justifying it. Re-arm the 7-day window after the fix.
+
+**Recording the verification**: log the per-store flip in this file's Done section with
+the SHA, the date the 7-day window closed, and the dashboard screenshot URL.
+
+**Steps to flip**: Change the constructor `super(...)` call from `'shadow'` to `'enforce'`
+in each store. No migration needed. Do one store per release; never bundle multiple flips.
 
 ---
 

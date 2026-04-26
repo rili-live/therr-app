@@ -14,7 +14,10 @@ import translate from './translator';
 // whose device hasn't re-registered against the new endpoint). After mobile clients have
 // re-registered (typically on next app open) and shadow logs are clean for one release cycle,
 // the fallback can be deleted.
-const resolveDeviceTokenForBrand = async (
+//
+// Exported for unit testing — this is the function that prevents a Habits notification from
+// being routed via a Therr-registered device token (and therefore via the Therr Firebase project).
+export const resolveDeviceTokenForBrand = async (
     brand: string,
     toUserId: string,
     legacyToken: string | null | undefined,
@@ -22,6 +25,29 @@ const resolveDeviceTokenForBrand = async (
     if (!brand || !toUserId) return legacyToken;
     const rows = await Store.userDeviceTokens.getTokensForUser(brand, toUserId).catch(() => [] as { token: string }[]);
     return rows[0]?.token || legacyToken;
+};
+
+// Batch variant of resolveDeviceTokenForBrand for fan-out endpoints (group-message notify, etc.).
+// Returns a new array with deviceMobileFirebaseToken replaced by the brand-scoped token where one
+// exists. Falls back to the legacy column for users who haven't re-registered yet — mirrors the
+// single-user resolver so behavior is identical regardless of which path delivers the push.
+export const resolveDeviceTokensForBrand = async <U extends { id: string; deviceMobileFirebaseToken?: string | null }>(
+    brand: string,
+    users: U[],
+): Promise<U[]> => {
+    if (!brand || users.length === 0) return users;
+    const ids = users.map((u) => u.id).filter(Boolean);
+    if (!ids.length) return users;
+    const rows = await Store.userDeviceTokens.getTokensForUsers(brand, ids)
+        .catch(() => [] as { userId: string; token: string }[]);
+    const tokenByUserId = new Map<string, string>();
+    rows.forEach((row) => {
+        if (!tokenByUserId.has(row.userId)) tokenByUserId.set(row.userId, row.token);
+    });
+    return users.map((u) => ({
+        ...u,
+        deviceMobileFirebaseToken: tokenByUserId.get(u.id) || u.deviceMobileFirebaseToken,
+    }));
 };
 
 export interface ISendPushNotification extends PushNotifications.INotificationData {
