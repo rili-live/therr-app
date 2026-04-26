@@ -17,7 +17,6 @@ import { UsersService } from 'therr-react/services';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import Header from './Header';
-import OfflineBanner from './OfflineBanner';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';
 import { INavMenuContext } from '../types';
@@ -399,7 +398,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         if (this.state.clientHasLoaded) {
             return (
                 <>
-                    <OfflineBanner />
                     {this.renderHeader(isLandingStylePage)}
                     <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
                         <div id="nav_menu" className={navMenuClassNames}>

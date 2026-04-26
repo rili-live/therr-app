@@ -58,6 +58,16 @@
         "login": "Iniciar sesión"
       }
     },
+    "offlineIndicator": {
+      "badgeAria": "Sin conexión. Conexión perdida.",
+      "logoAriaOffline": "Logotipo de Therr. Sin conexión: pulsa para ver el estado de la conexión.",
+      "modal": {
+        "title": "Estás sin conexión",
+        "body": "Therr no puede acceder a internet ahora mismo. Puedes seguir navegando por el contenido en caché o actualizar la página cuando vuelvas a tener conexión.",
+        "refresh": "Actualizar",
+        "dismiss": "Cerrar"
+      }
+    },
     "footer": {
       "buttons": {
         "locations": "Ubicaciones"
