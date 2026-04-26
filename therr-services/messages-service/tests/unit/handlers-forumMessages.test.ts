@@ -106,7 +106,7 @@ describe('Forum Messages Handler', () => {
             );
 
             expect(searchStub.calledOnce).to.be.eq(true);
-            expect(searchStub.args[0][0]).to.equal(123);
+            expect(searchStub.args[0][1]).to.equal(123);
             expect(result).to.be.an('array');
             expect(result.length).to.equal(2);
         });
@@ -125,8 +125,8 @@ describe('Forum Messages Handler', () => {
                 [],
             );
 
-            expect(searchStub.args[0][1].filterBy).to.equal('fromUserId');
-            expect(searchStub.args[0][1].query).to.equal('user-1');
+            expect(searchStub.args[0][2].filterBy).to.equal('fromUserId');
+            expect(searchStub.args[0][2].query).to.equal('user-1');
         });
 
         it('should support text search with ilike', async () => {
@@ -143,7 +143,7 @@ describe('Forum Messages Handler', () => {
                 [],
             );
 
-            expect(searchStub.args[0][1].filterOperator).to.equal('ilike');
+            expect(searchStub.args[0][2].filterOperator).to.equal('ilike');
         });
 
         it('should handle page 2 correctly', async () => {
@@ -157,8 +157,8 @@ describe('Forum Messages Handler', () => {
                 [],
             );
 
-            expect(searchStub.args[0][1].pagination.pageNumber).to.equal(2);
-            expect(searchStub.args[0][1].pagination.itemsPerPage).to.equal(20);
+            expect(searchStub.args[0][2].pagination.pageNumber).to.equal(2);
+            expect(searchStub.args[0][2].pagination.itemsPerPage).to.equal(20);
         });
     });
 

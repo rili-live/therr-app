@@ -108,7 +108,7 @@ describe('Direct Messages Handler', () => {
             );
 
             expect(searchStub.calledOnce).to.be.eq(true);
-            expect(searchStub.args[0][3]).to.equal('true');
+            expect(searchStub.args[0][4]).to.equal('true');
         });
     });
 

@@ -10,7 +10,7 @@ describe('DirectMessagesStore', () => {
 
     describe('countRecords', () => {
         it('queries for total records with filter', () => {
-            const expected = `select count(*) from "main"."directMessages" where "main.directMessages.brandVariation" = 'therr' and "isUnread" = false`;
+            const expected = `select count(*) from "main"."directMessages" where "main"."directMessages"."brandVariation" = 'therr' and "isUnread" = false`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ count: '5' }] })),
