@@ -82,7 +82,7 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
                     <Text style={[themeHabits.styles.emptyStateEmoji, { fontSize: 64 }]}>
                         {'\uD83E\uDD1D'}
                     </Text>
-                    <Text style={[themeHabits.styles.dashboardGreeting, { textAlign: 'center', marginTop: 24 }]}>
+                    <Text style={[themeHabits.styles.dashboardGreeting, { textAlign: 'center', marginTop: 24, color: theme.colors.accentTextBlack }]}>
                         {translate('pages.pacts.onboarding.title')}
                     </Text>
                     <Text style={[themeHabits.styles.dashboardSubtitle, { textAlign: 'center', marginTop: 8, paddingHorizontal: 32 }]}>

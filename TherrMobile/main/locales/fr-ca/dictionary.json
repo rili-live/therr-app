@@ -1774,8 +1774,8 @@
       "confirmDecline": "Êtes-vous sûr de vouloir refuser cette invitation au pacte?",
       "confirmAbandon": "Êtes-vous sûr de vouloir abandonner ce pacte? Vos progrès seront perdus.",
       "onboarding": {
-        "title": "Commence avec un partenaire",
-        "subtitle": "Friends with Habits est conçu pour deux. Invite un partenaire, formez un pacte et bâtissez ensemble des habitudes dont vous vous tiendrez mutuellement responsables.",
+        "title": "Commence avec un ami",
+        "subtitle": "Friends with Habits est conçu pour deux — ou plus. Invite un ami ou forme un groupe autour d'un objectif commun (comme épargner pour des vacances) et bâtissez ensemble des habitudes dont vous vous tiendrez responsables.",
         "createPact": "Inviter un partenaire",
         "viewInvites": "Voir {count} invitation(s) de pacte",
         "findPartner": "Parcourir les gens",

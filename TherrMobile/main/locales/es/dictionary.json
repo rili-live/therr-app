@@ -1774,8 +1774,8 @@
       "confirmDecline": "¿Estás seguro de que quieres rechazar esta invitación al pacto?",
       "confirmAbandon": "¿Estás seguro de que quieres abandonar este pacto? Se perderá tu progreso.",
       "onboarding": {
-        "title": "Empieza con un compañero",
-        "subtitle": "Friends with Habits está hecho para dos. Invita a un compañero, formen un pacto y construyan hábitos a los que se comprometan juntos.",
+        "title": "Empieza con un amigo",
+        "subtitle": "Friends with Habits está hecho para dos — o más. Invita a un amigo o forma un grupo en torno a una meta compartida (como ahorrar para unas vacaciones) y construyan hábitos a los que se comprometan juntos.",
         "createPact": "Invitar a un compañero",
         "viewInvites": "Ver {count} invitación(es) de pacto",
         "findPartner": "Explorar personas",
