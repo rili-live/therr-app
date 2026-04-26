@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { therrFontFamily } from '../font';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
+import { shadowMd, shadowSm } from '../elevation';
 import { getTheme, ITherrTheme } from '../themes';
 
 const collapseOffset = 20;
@@ -43,14 +44,9 @@ const getBtnGroupBtnStyles = (theme: ITherrTheme): any => ({
     justifyContent: 'center',
 });
 
-const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
+const getFloatingBtnContainer = (_theme: ITherrTheme): any => ({
     position: 'absolute',
-    shadowColor: theme.colors.brandingBlack,
-    shadowOffset: {
-        height: 1,
-        width: 1,
-    },
-    shadowRadius: 4,
+    ...shadowSm,
     borderRadius: 100,
     padding: 0,
     alignItems: 'center',
@@ -158,15 +154,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
-            elevation: 2,
+            ...shadowMd,
             borderRadius: 50,
-            shadowOpacity: 0.5,
         },
         buttonFloatBottomRightContainer: {
             position: 'absolute',
@@ -358,12 +347,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             position: 'absolute',
             right: 84,
             bottom: 60 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
+            ...shadowSm,
             borderRadius: 100,
             padding: 0,
         },
@@ -401,12 +385,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             position: 'absolute',
             right: 18,
             bottom: 126 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
+            ...shadowSm,
             borderRadius: 100,
             padding: 0,
         },
@@ -414,12 +393,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             position: 'absolute',
             left: 90,
             bottom: 60 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
+            ...shadowSm,
             borderRadius: 100,
             padding: 0,
         },
@@ -427,12 +401,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             position: 'absolute',
             left: 96,
             bottom: 100 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
+            ...shadowSm,
             borderRadius: 100,
             padding: 0,
             height: 32,
@@ -442,24 +411,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             position: 'absolute',
             left: 96,
             bottom: 160 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
+            ...shadowSm,
             borderRadius: 100,
             padding: 0,
             height: 32,
             width: 32,
         },
         momentLayerOption3: {
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
+            ...shadowSm,
             borderRadius: 100,
             padding: 0,
             height: 34,
@@ -469,12 +428,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             display: 'flex',
         },
         momentLayerOption4: {
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
+            ...shadowSm,
             borderRadius: 100,
             padding: 0,
             height: 34,
