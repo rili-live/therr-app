@@ -20,9 +20,13 @@ All brand variants share the same PostgreSQL database infrastructure and **singl
 
 | Archetype | Examples |
 |-----------|----------|
-| Identity-shared | `main.users`, OAuth links, email/SMS verification, password resets, base profile, `main.userConnections` (a friendship is person-to-person, not app-to-app) |
-| Brand-scoped | `main.notifications`, `main.directMessages`, `main.userAchievements`, `main.moments`, `main.spaces`, `main.events`, `main.momentReactions`, `main.spaceReactions`, `main.eventReactions`, `main.forums`, `main.forumMessages`, `main.userDeviceTokens` |
+| Identity-shared | `main.users`, OAuth links, email/SMS verification, password resets, base profile, `main.userConnections` (a friendship is person-to-person, not app-to-app), `main.moments`, `main.spaces`, `main.events`, `main.momentReactions`, `main.spaceReactions`, `main.eventReactions` (Therr-only by data flow today — see note below) |
+| Brand-scoped | `main.notifications`, `main.directMessages`, `main.userAchievements`, `main.forums`, `main.forumMessages`, `main.userDeviceTokens` |
 | Brand-only / niche | All `habits.*` tables (pacts, streaks, checkins, proofs), any future `teem.*`, etc. |
+
+> **Note on the content tables (moments / spaces / events / *Reactions):** These were originally classified Brand-scoped in the Phase 4 plan. In April 2026 we audited the niche apps and confirmed neither Habits nor Teem reads or writes these tables — Habits builds its check-in / pact / streak data in `habits.*` and only references `maps-service/src/handlers/moments.ts` as a *design pattern*. Adding `brandVariation` to these tables would have been a useless column on the largest tables in the system (every row stamped `'therr'` forever, every read filtered against a single-value column).
+>
+> If a future niche app launches a moments-style location feed (or a Teem-flavored "spaces" concept), revisit this classification: add the column, backfill `'therr'`, and bring the relevant `*Store` under `BrandScopedStore` at that time. Until then they stay Identity-shared and the cost of the brand column is deferred.
 
 ### When to use schema isolation (Brand-only archetype)
 

@@ -115,7 +115,7 @@ describe('handlers/helpers/user', () => {
             const usersStoreStub = sinon.stub(Store, 'users')
                 .value(new UsersStore(mockUserStoreConnection));
             const userAchievementsStub = sinon.stub(Store, 'userAchievements')
-                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
+                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection as any));
             const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
             createUserHelper(mockHeaders, mockUserDetails, false, undefined, true).then((result) => {
@@ -185,7 +185,7 @@ describe('handlers/helpers/user', () => {
             const usersStoreStub = sinon.stub(Store, 'users')
                 .value(new UsersStore(mockUserStoreConnection));
             const userAchievementsStub = sinon.stub(Store, 'userAchievements')
-                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
+                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection as any));
             const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
             createUserHelper(mockHeaders, mockUserDetails, true).then((result) => {
@@ -268,7 +268,7 @@ describe('handlers/helpers/user', () => {
             const usersStoreStub = sinon.stub(Store, 'users')
                 .value(new UsersStore(mockUserStoreConnection));
             const userAchievementsStub = sinon.stub(Store, 'userAchievements')
-                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
+                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection as any));
             const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
             createUserHelper(mockHeaders, mockUserDetails, false, mockUserByInviteDetails).then((result) => {
