@@ -1207,7 +1207,8 @@
       "labels": {
         "allUsers": "All Users",
         "peopleYouMightKnow": "People You Might Know",
-        "noContactsFound": "No users found."
+        "noContactsFound": "No users found.",
+        "crossBrandFriendsHint": "Your friends list spans every Therr app you use."
       }
     },
     "createForum": {

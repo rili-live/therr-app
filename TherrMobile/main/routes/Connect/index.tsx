@@ -605,6 +605,20 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 translate={this.translate}
                             />
                         )}
+                        // Friendships are person-to-person, not app-to-app — Habits users routinely
+                        // see Therr-acquired connections here and vice versa. The hint sets that
+                        // expectation up-front rather than letting users assume the list is broken.
+                        ListHeaderComponent={
+                            <View style={[spacingStyles.marginHorizLg, spacingStyles.marginVertSm]}>
+                                <Text style={{
+                                    color: this.theme.colors.textGray,
+                                    fontSize: 13,
+                                    textAlign: 'center',
+                                }}>
+                                    {this.translate('pages.contacts.labels.crossBrandFriendsHint')}
+                                </Text>
+                            </View>
+                        }
                         ListEmptyComponent={
                             <View style={spacingStyles.marginHorizLg}>
                                 <ListEmpty iconName="key-user" theme={this.theme} text={this.translate(
