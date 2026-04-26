@@ -468,3 +468,213 @@ English-formatted timestamps.
 - `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:617` —
   Make data-only message and test
 
+---
+
+## Tier 5 — Refactoring & Developer Experience
+
+Pure code-quality work. None of these change user-visible behavior. Pick
+these up only when in the area for another reason — do not schedule them.
+
+### 5.1 Redux state consolidation (dashboard)
+
+The dashboard repeatedly threads `spacesInView` / `campaignsInView` through
+component trees. Hoist to Redux for a single source of truth.
+
+- `therr-client-web-dashboard/src/routes/Campaigns/BaseCampaignsOverview.tsx:47`
+- `therr-client-web-dashboard/src/routes/InfluencerPairings/index.tsx:106`
+- `therr-client-web-dashboard/src/routes/Dashboards/BaseDashboard.tsx:99`
+- `therr-client-web-dashboard/src/routes/Dashboards/OverviewModules/OverviewOfSpaceMetrics.tsx:34`
+- `therr-client-web-dashboard/src/routes/Dashboards/OverviewModules/OverviewOfCampaignMetrics.tsx:20`
+- `therr-client-web-dashboard/src/routes/ManageSpaces/index.tsx:84`
+- `therr-client-web-dashboard/src/routes/Dashboards/BaseDashboard.tsx:207` —
+  Get current user spaces and organization spaces from backend (not frontend)
+
+### 5.2 Redux duplication (mobile)
+
+- `TherrMobile/main/routes/ViewUser/index.tsx:330, 355` — "Ugly code for
+  reactions" — refactor to consolidated reaction-state pattern
+- `TherrMobile/main/routes/ViewUser/index.tsx:409, 422, 433, 446` — Move
+  reaction calls from Redux actions to direct service requests where the
+  side-effect is unwanted
+- `TherrMobile/main/routes/Connect/index.tsx:180, 185` — Connect Redux UI
+  prefetch (currently dead state)
+- `TherrMobile/main/routes/Notifications/index.tsx:258` — Same prefetch
+  pattern
+- `TherrMobile/main/components/Input/HeaderSearchUsersInput.tsx:76` — Move
+  search state to Redux to share with Contacts page
+
+### 5.3 SQL / store-layer cleanups
+
+- `therr-services/reactions-service/src/handlers/momentReactions.ts:18, 96` —
+  Use `INSERT … ON CONFLICT … MERGE` for upserts (also at
+  `thoughtReactions.ts:23, 81`, `spaceReactions.ts:65, 172`,
+  `eventReactions.ts:18, 72`)
+- `therr-services/users-service/src/store/UserConnectionsStore.ts:161` —
+  RSERV-25: Make this dynamic to accept multiple queries
+- `therr-services/messages-service/src/store/CategoriesStore.ts:22` — Match
+  `searchCategories` for infinite scroll
+- `therr-services/messages-service/src/store/ForumsStore.ts:87` — Same for
+  `searchForums`
+- `therr-services/messages-service/src/store/ForumsStore.ts:262, 284` —
+  Wrap update in transaction
+- `therr-services/messages-service/src/store/ForumCategoriesStore.ts:22` —
+  Match `searchForumCategories`
+- `therr-services/maps-service/src/store/SpacesStore.ts:673` — Implement use
+  of `Categories.ts`
+- `therr-public-library/therr-react/src/redux/reducers/content.ts:59` —
+  Replace `Set` dedup with `Map` keyed on area ID
+
+### 5.4 Magic strings / constants
+
+- `therr-services/websocket-service/src/index.ts:265` — Use constants for
+  disconnect reasons instead of magic strings
+- `therr-services/maps-service/src/handlers/spaces.ts:985`,
+  `events.ts:1074`, `moments.ts:1267` — Use env variables
+- `therr-services/websocket-service/src/store/redisSessions.ts:24, 25, 37, 38`
+  — RSERV-4: Namespace by app+ip; create token to send back to frontend
+- `therr-services/websocket-service/src/store/redisSessions.ts:5, 11` —
+  Strategy for grouping users in rooms; reuse connections
+- `therr-api-gateway/src/services/maps/validation/areas.ts:21, 28, 70` —
+  Add granularity to media validation
+- `therr-api-gateway/src/services/phone/router.ts:91, 134` — Use Redis
+  pipeline
+- `therr-api-gateway/src/services/maps/limitation/map.ts:36` — Reduce or
+  limit to admin users
+- `therr-api-gateway/src/store/MapsService.ts:90`,
+  `UsersService.ts:19, 27` — Centralize cache invalidation in a base class
+- `therr-api-gateway/src/store/index.ts:7` — Move shared store code to
+  `therr-public-library`
+
+### 5.5 Mobile UX polish
+
+These small toasts/dialogs each individually look minor but the
+post-onboarding feel is the sum of them.
+
+- `TherrMobile/main/components/0_First_Time_UI/onboarding-stages/CreateProfilePhoneVerify.tsx:178`
+  — Replace alert dialog with toast
+- `TherrMobile/main/routes/Login/LoginForm.tsx:133`,
+  `routes/Register/RegisterForm.tsx:294` — RMOBILE-26: UI alert for
+  registration failures
+- `TherrMobile/main/routes/ViewUser/index.tsx:552, 555, 583` — Success
+  toast on follow / unfollow / block
+- `TherrMobile/main/routes/Settings/index.tsx:142` — Message when password
+  fields don't match
+- `TherrMobile/main/routes/Settings/ManageAccount.tsx:111`,
+  `Settings/ManageNotifications.tsx:156` — Confirmation modal on destructive
+  action
+- `TherrMobile/main/routes/Areas/Nearby/NearbyWrapper.tsx:505, 532, 571`,
+  `routes/Map/index.tsx:1087, 1172` — Display modal/instructions for
+  enabling location after `never_ask_again`
+- `TherrMobile/main/components/Input/HeaderSearchInput.tsx:131`,
+  `HeaderSearchUsersInput.tsx:95` — Red dot to show filters enabled
+- `TherrMobile/main/components/BottomSheet/MapBottomSheetContent.tsx:56` —
+  Add last element to prevent final-item cutoff
+- `TherrMobile/main/components/UserContent/UserImage.tsx:33` — Image
+  cropping fails with some datatypes; upgrade or disable crop initially
+
+### 5.6 Backwards-compat sweeps to drop after rollout
+
+These exist purely as transitional shims. Each carries a "delete after X"
+note that should be honored on a calendar reminder.
+
+- `therr-services/maps-service/src/handlers/createMediaUrls.ts:17` —
+  "Provides temporary backwards compatibility" — verify if still needed
+- `TherrMobile/main/routes/Map/index.tsx:672`,
+  `utilities/getActiveCarouselData.ts:129` — Remove `translate()` after
+  backwards-compatibility rollout
+- `TherrMobile/main/routes/EditMoment/index.tsx:253`,
+  `routes/EditSpace/index.tsx:360`,
+  `routes/Events/EditEvent.tsx:321`,
+  `routes/Groups/EditGroup.tsx:391`,
+  `routes/ViewMoment/index.tsx:379`,
+  `therr-client-web-dashboard/src/utilities/media.ts:55` — Replace `media`
+  field with `medias` after backend migration
+- `therr-services/maps-service/src/handlers/moments.ts:653` — Endpoint
+  marked for deletion after it has served its purpose (verify zero callers
+  before removing)
+- `react-native.config.js:10` — LogRocket workaround on Android; re-test
+  after a future RN/LogRocket upgrade
+
+### 5.7 Build / config tidy-ups
+
+- `therr-client-web/webpack.app.config.js:121`,
+  `therr-client-web-dashboard/webpack.app.config.js:105` — Only load the
+  current theme's CSS instead of all themes
+- `therr-client-web/src/index.tsx:21`,
+  `therr-client-web-dashboard/src/index.tsx:15` — RSERV-8: Use themes
+  endpoint to dynamically load theme styles
+- `therr-client-web/src/server-client.tsx:38`,
+  `therr-client-web-dashboard/src/server-client.tsx:28` — RFRONT-9: Replace
+  the `window is undefined` SSR hack
+- `therr-client-web-dashboard/src/server-client.tsx:124` — Define all
+  favicon variations (sizes, platforms)
+- `therr-client-web-dashboard/src/components/Layout.tsx:172` — Persist
+  integrations to localStorage with TTL
+- `therr-client-web-dashboard/src/api/login.ts:11` — Use scopes needed for
+  meta ads / campaigns
+- `_bin/pre-commit.sh:16` — Use `CHANGEME.json` to verify dev changes and
+  rebuild affected pages
+- `_bin/pre-push.sh:16` — Add conditions to prevent bad commits
+- `_bin/cicd/publish.sh:104` — Output a list of all services that should be
+  deployed for the given commit
+- `TherrMobile/env-config.js:43` — Import config from a shared location
+  instead of duplicating
+- `scripts/generate-content/utils/contentSchema.ts:143` — Implement planned
+  new content section types per `docs/CONTENT_GUIDES_ROADMAP.md`
+
+---
+
+# How to maintain this document
+
+## When closing a TODO in code
+
+1. Remove (or update) the source TODO comment as part of the same commit.
+2. Delete the corresponding bullet in `WORK_IN_PROGRESS.md` (do **not** strike
+   through; the file is not a journal).
+3. If the TODO referenced a ticket prefix (`RSERV-`, `RFRONT-`, `RMOBILE-`,
+   `RDATA-`), search the file for siblings — these are usually clusters that
+   were intended to be closed together.
+
+## When discovering a new TODO
+
+Add it to the appropriate tier. If you can't decide between two tiers, place
+it lower (the cost of under-prioritizing is a delay; the cost of over-
+prioritizing is wasted top-of-list attention).
+
+Use the same one-line format as existing entries: `path:line — short verb-
+phrase description`. Keep it terse — this file is read by humans and agents
+many times more often than it's written.
+
+## When adding a Manual Operational Follow-up
+
+Append to **§ Manual Operational Follow-ups** with a checkbox. If the item
+was generated by a skill run, place it under "Skill-generated items" between
+the `<!-- skill-followups:start -->` and `<!-- skill-followups:end -->`
+markers, prefixed with the date and originating skill:
+
+```
+- [ ] (2026-04-26, /quality-peer-review) Run main.userDeviceTokens migration on
+  users-service after deploy — required by Phase 5 brand-isolation work.
+```
+
+When a follow-up is completed, **delete** the line. Do not move it to a Done
+section — this list is meant to be short.
+
+## When two trackers seem to overlap
+
+`WORK_IN_PROGRESS.md` (this file) is for long-standing code TODOs and
+post-deploy operational steps. `PEER_REVIEW_FOLLOWUP.md` is for residue
+deferred during a specific peer review. If a peer-review item is
+broadly applicable beyond that single review, link it from here too. Don't
+duplicate the body — a one-line cross-reference is enough.
+
+## Audit cadence
+
+A full re-audit (`grep -rn "TODO\|FIXME\|HACK\|XXX"` across the monorepo
+followed by tier reassignment) is cheap and worth running:
+
+- After any major feature ships (scan for resolved TODOs to delete)
+- Before each quarterly planning cycle (re-tier; demote stale items to
+  Tier 5 or remove)
+- Whenever the file grows past ~600 lines (signals stale entries
+  accumulating)
