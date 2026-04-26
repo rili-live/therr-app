@@ -58,6 +58,16 @@
         "login": "Sign In"
       }
     },
+    "offlineIndicator": {
+      "badgeAria": "Offline. Connection lost.",
+      "logoAriaOffline": "Therr logo. Offline — tap to view connection status.",
+      "modal": {
+        "title": "You're offline",
+        "body": "Therr can't reach the internet right now. You can keep browsing cached content, or refresh the page once your connection is back.",
+        "refresh": "Refresh",
+        "dismiss": "Dismiss"
+      }
+    },
     "footer": {
       "buttons": {
         "locations": "Locations"

@@ -386,7 +386,7 @@ The app implements an offline-first strategy so users see cached content during 
 2. **State persistence** — `redux-persist` caches key Redux slices (`user`, `content`, `notifications`, `userConnections`) to AsyncStorage (mobile) or localStorage (web). On app launch, persisted state is rehydrated before rendering.
 3. **Stale-while-revalidate** — Read actions return cached Redux state immediately, then fetch fresh data in the background. If the fetch fails (offline), cached data stays visible with no error shown.
 4. **Graceful axios failure** — The shared axios interceptor catches network errors on GET requests and resolves with empty data instead of throwing, preventing blank screens.
-5. **OfflineBanner** — A dismissable UI banner appears on both platforms when the network is down.
+5. **Offline indicator** — When offline, a yellow `!` badge is rendered in the top-right corner of the header logo on both platforms. Tapping the logo opens a modal explaining the disconnection with a refresh action. Implemented inline in `Header.tsx` (web) and `HeaderMenuLeft.tsx` (mobile).
 
 Key files:
 - `therr-react/src/redux/reducers/network.ts` — Network state slice
