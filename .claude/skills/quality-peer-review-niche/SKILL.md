@@ -603,7 +603,58 @@ Do not consider the review complete until both ESLint and tsc pass with zero err
 
 ---
 
-## Step 8: Final report
+## Step 8: Persist manual post-deploy steps to the WIP tracker
+
+Before printing the final report, identify any **manual steps the user must
+take after this review** — items code alone cannot complete.
+
+Examples specific to niche peer reviews:
+
+- Pushing `general` (after reviewing cherry-picked backend commits)
+- Committing uncommitted backend changes left in `general`'s working tree
+- Manually splitting mixed commits identified in Step 2
+- Running migrations introduced by cherry-picked commits on `general` →
+  `stage` → `main` after each merge step
+- Verifying that brand-isolation flips (shadow → enforce) have a clean
+  7-day production window before they ride the next deploy
+- Re-submitting sitemap to Google Search Console if SSR routes changed
+- Re-warming AWS SES sender reputation if outreach copy changed
+
+For each item, append a checkbox line to `docs/WORK_IN_PROGRESS.md` inside
+the marked region:
+
+```
+<!-- skill-followups:start -->
+- [ ] (YYYY-MM-DD, /quality-peer-review-niche) <action> — <why>
+<!-- skill-followups:end -->
+```
+
+Implementation: read the file on the `general` worktree (the file lives
+there, not on the niche branch — niche branches don't deploy). Locate the
+`<!-- skill-followups:start -->` marker and insert new lines immediately
+before `<!-- skill-followups:end -->`. Do **not** duplicate items already
+present (match on the action text). If no manual steps are required, skip
+this step entirely.
+
+Because this skill operates across two branches (niche + general), append
+to the WIP file on **whichever branch you're committing to next**:
+
+- If new cherry-picked commits exist on `general`, append to
+  `docs/WORK_IN_PROGRESS.md` on `general` and amend the most recent
+  cherry-pick (or create a separate "follow-ups" commit on general).
+- If only niche-side changes were made, do **not** edit
+  `docs/WORK_IN_PROGRESS.md` from the niche branch — the file is owned by
+  general and a niche-side edit would be dead code per the deployment
+  rules. Instead, append the lines to a small temporary file
+  (`/tmp/wip-followups.md`) and surface the items in the final report so
+  the user can land them on `general` themselves. Mention this clearly.
+
+If `docs/WORK_IN_PROGRESS.md` does not exist on `general`, skip silently
+and surface the items only in the final report.
+
+---
+
+## Step 9: Final report
 
 Output a structured summary:
 
@@ -659,6 +710,12 @@ Output a structured summary:
   - Database migrations (run on general / stage / main as appropriate)
   - <other steps>
   <Or: "None identified.">
+
+  Note: items in this section have also been appended to
+  `docs/WORK_IN_PROGRESS.md` on `general` under "Skill-generated items"
+  (between the `<!-- skill-followups:start -->` markers) so they survive
+  across sessions and are visible to coding agents at session start.
+  See Step 8 for the cross-branch behavior.
 
 ### Suggestions (Not Implemented)
   <Category C items — including any "this looks shared, should it be on general?" candidates>
