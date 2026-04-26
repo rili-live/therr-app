@@ -1,5 +1,11 @@
 import Redis from 'ioredis';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import logSpan from 'therr-js-utilities/log-or-update-span';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { IHandoffEntry } from 'therr-js-utilities/types';
+
+// Re-exported so existing callers (handlers/auth.ts) keep their import surface unchanged.
+export type { IHandoffEntry };
 
 // Ephemeral Redis client for short-lived auth artifacts:
 //  - cross-app handoff codes (60s TTL)
@@ -39,14 +45,6 @@ redisEphemeralClient.connect().catch(() => {
 
 const HANDOFF_PREFIX = 'handoff:';
 const HANDOFF_TTL_SECONDS = 60;
-
-export interface IHandoffEntry {
-    userId: string;
-    sourceBrand: string;
-    targetBrand: string;
-    deviceFingerprint?: string;
-    issuedAt: number;
-}
 
 export const mintHandoffCode = async (code: string, entry: IHandoffEntry): Promise<void> => {
     if (!code || !entry?.userId || !entry?.targetBrand) {

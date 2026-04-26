@@ -157,6 +157,8 @@ describe('DirectMessagesStore', () => {
     });
 
     describe('searchLatestDMs', () => {
+        // Parameterized: brand + userId pass through pg bindings, not string interpolation.
+        // Tests verify the SQL shape (fixed clauses + bind placeholders) and the bindings array.
         it('queries for unique conversation threads', () => {
             const mockStore = {
                 read: {
@@ -168,11 +170,12 @@ describe('DirectMessagesStore', () => {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             });
 
-            const queryString = mockStore.read.query.args[0][0];
-            expect(queryString).to.include('user-123');
+            const [queryString, bindings] = mockStore.read.query.args[0];
             expect(queryString).to.include('least("fromUserId", "toUserId")');
             expect(queryString).to.include('greatest("fromUserId", "toUserId")');
             expect(queryString).to.include('max("updatedAt")');
+            expect(queryString).to.not.include("'user-123'"); // No literal interpolation.
+            expect(bindings).to.deep.equal(['therr', 'therr', 'user-123', 'user-123']);
         });
 
         it('applies pagination correctly', () => {
@@ -205,6 +208,32 @@ describe('DirectMessagesStore', () => {
             const queryString = mockStore.read.query.args[0][0];
             expect(queryString).to.include('ORDER BY');
             expect(queryString).to.include('"updatedAt" DESC');
+        });
+
+        // Regression test for the parameterization fix: prior to this commit, brand/userId were
+        // string-interpolated into raw SQL. These bindings were validated upstream (assertBrand;
+        // gateway-set x-userid header) so the prior code wasn't injection-prone in practice, but
+        // bypassing parameter binding is the wrong default for a raw block. Verify literally.
+        it('passes brand and userId via parameter bindings, not string interpolation', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchLatestDMs('habits', 'user-abc', {
+                pagination: { itemsPerPage: 10, pageNumber: 1 },
+            });
+
+            const [queryString, bindings] = mockStore.read.query.args[0];
+            expect(queryString).to.not.include("'habits'");
+            expect(queryString).to.not.include("'user-abc'");
+            // Native pg placeholders, four total: brand x2, userId x2.
+            expect(queryString).to.include('$1');
+            expect(queryString).to.include('$2');
+            expect(queryString).to.include('$3');
+            expect(queryString).to.include('$4');
+            expect(bindings).to.deep.equal(['habits', 'habits', 'user-abc', 'user-abc']);
         });
 
         it('returns latest message per conversation', async () => {
