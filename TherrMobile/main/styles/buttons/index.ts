@@ -111,6 +111,14 @@ const quickFiltersButtonTitleBase: any = {
     fontSize: 14,
 };
 
+/**
+ * @deprecated Prefer the variant-driven API on `BaseButton`
+ *   (`<Button variant="primary" size="lg" shape="rounded" />`) for all new
+ *   CTAs. The styles returned by this builder remain functional and are still
+ *   used by ~10+ floating action buttons, button groups, and pill controls
+ *   that haven't been migrated yet — replace incrementally, never in a
+ *   single sweep.
+ */
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
     // Use a brighter badge background in dark mode for better contrast

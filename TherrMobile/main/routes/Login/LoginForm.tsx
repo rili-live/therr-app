@@ -289,8 +289,9 @@ export class LoginFormComponent extends React.Component<
                 />
                 <View style={themeAuthForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={[themeForms.styles.buttonPrimary, { paddingHorizontal: 20 }]}
-                        titleStyle={themeForms.styles.buttonTitle}
+                        variant="primary"
+                        size="lg"
+                        shape="rounded"
                         disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         disabledStyle={themeForms.styles.buttonDisabled}
                         title={this.translate(
