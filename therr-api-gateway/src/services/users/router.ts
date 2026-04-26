@@ -10,6 +10,7 @@ import {
     invalidateApiKeyCache,
     revokeAllUserRefreshTokens,
     revokeRefreshToken,
+    revokeUserBrandRefreshTokens,
     storeRefreshToken,
 } from '../../store/redisClient';
 import { validate } from '../../validation';
@@ -52,6 +53,8 @@ import {
     multiInviteLimiter,
     subscribeAttemptLimiter,
     unsubscribeAttemptLimiter,
+    emailPrecheckLimiter,
+    handoffMintLimiter,
 } from './limitation/auth';
 import { createApiKeyValidation, revokeApiKeyValidation } from './validation/apiKeys';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
@@ -120,11 +123,11 @@ usersServiceRouter.post('/auth', authenticateOptional, loginAttemptLimiter, auth
     // Store refresh token JTI on login for rotation tracking (fail-open)
     try {
         if (responseData?.refreshToken) {
-            const decoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number } | null;
+            const decoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number; brand?: string } | null;
             if (decoded?.jti && decoded?.id && decoded?.exp) {
                 const ttl = decoded.exp - Math.floor(Date.now() / 1000);
                 if (ttl > 0) {
-                    storeRefreshToken(decoded.id, decoded.jti, ttl);
+                    storeRefreshToken(decoded.id, decoded.jti, ttl, decoded.brand);
                 }
             }
         }
@@ -138,15 +141,23 @@ usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, async (r
     try {
         const token = req.headers.authorization?.split(' ')[1];
         if (token) {
-            const decoded = jwt.decode(token) as { jti?: string; exp?: number; id?: string } | null;
+            const decoded = jwt.decode(token) as { jti?: string; exp?: number; id?: string; brand?: string } | null;
             if (decoded?.jti && decoded?.exp) {
                 const remainingTtl = decoded.exp - Math.floor(Date.now() / 1000);
                 if (remainingTtl > 0) {
                     await blacklistToken(decoded.jti, remainingTtl);
                 }
-                // Also revoke all refresh tokens for this user
+                // Refresh-token revocation scope:
+                //  - default: per-brand. Logging out of one app does NOT log a user out of sister apps.
+                //  - opt-in `scope=all`: revoke every refresh token for this user across all brands.
+                //  - legacy tokens (no `brand` claim): fall back to the legacy "all" behavior so existing
+                //    sessions continue to receive the safer cascade until they refresh into branded tokens.
                 if (decoded.id) {
-                    await revokeAllUserRefreshTokens(decoded.id);
+                    if (req.body?.scope === 'all' || !decoded.brand) {
+                        await revokeAllUserRefreshTokens(decoded.id);
+                    } else {
+                        await revokeUserBrandRefreshTokens(decoded.id, decoded.brand);
+                    }
                 }
             }
         }
@@ -176,20 +187,21 @@ usersServiceRouter.post('/auth/token/refresh', refreshTokenLimiter, handleServic
 }, (responseData, reqBody) => {
     // Server-side refresh token rotation tracking (fail-open)
     try {
-        // Revoke the old refresh token
+        // Revoke the old refresh token. If it has a brand+id (new shape), target the new key
+        // directly; otherwise fall back to the legacy `refresh-token:<jti>` key.
         if (reqBody?.refreshToken) {
-            const oldDecoded = jwt.decode(reqBody.refreshToken) as { jti?: string } | null;
+            const oldDecoded = jwt.decode(reqBody.refreshToken) as { jti?: string; id?: string; brand?: string } | null;
             if (oldDecoded?.jti) {
-                revokeRefreshToken(oldDecoded.jti);
+                revokeRefreshToken(oldDecoded.jti, { brand: oldDecoded.brand, userId: oldDecoded.id });
             }
         }
         // Store the new refresh token for reuse detection
         if (responseData?.refreshToken) {
-            const newDecoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number } | null;
+            const newDecoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number; brand?: string } | null;
             if (newDecoded?.jti && newDecoded?.id && newDecoded?.exp) {
                 const ttl = newDecoded.exp - Math.floor(Date.now() / 1000);
                 if (ttl > 0) {
-                    storeRefreshToken(newDecoded.id, newDecoded.jti, ttl);
+                    storeRefreshToken(newDecoded.id, newDecoded.jti, ttl, newDecoded.brand);
                 }
             }
         }
@@ -202,6 +214,46 @@ usersServiceRouter.post('/auth/token/refresh', refreshTokenLimiter, handleServic
             traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
         });
     }
+}));
+
+// Email pre-check for multi-app login UX. Always returns 200 with a generic shape to avoid
+// account enumeration. Rate-limited per IP.
+usersServiceRouter.post('/auth/email-precheck', emailPrecheckLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// Cross-app handoff. Mint and cancel require an authenticated session (the user is signed in to
+// the source app). Redeem is unauthed because the short-lived single-use code IS the credential;
+// it is exchanged for a fresh idToken+refreshToken stamped with the target brand.
+usersServiceRouter.post('/auth/handoff/mint', handoffMintLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.post('/auth/handoff/redeem', loginAttemptLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}, (responseData) => {
+    // Successful handoff = a fresh login. Track the new refresh token the same way /auth does.
+    try {
+        if (responseData?.refreshToken) {
+            const decoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number; brand?: string } | null;
+            if (decoded?.jti && decoded?.id && decoded?.exp) {
+                const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+                if (ttl > 0) {
+                    storeRefreshToken(decoded.id, decoded.jti, ttl, decoded.brand);
+                }
+            }
+        }
+    } catch (err) {
+        // Non-critical
+    }
+}));
+
+usersServiceRouter.post('/auth/handoff/cancel', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 // Rewards
