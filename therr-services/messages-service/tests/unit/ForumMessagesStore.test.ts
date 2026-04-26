@@ -10,7 +10,7 @@ describe('ForumMessagesStore', () => {
 
     describe('countRecords', () => {
         it('queries for total records with filter', () => {
-            const expected = `select count(*) from "main"."forumMessages" where "main.forumMessages.brandVariation" = 'therr' and "isAnnouncement" = false`;
+            const expected = `select count(*) from "main"."forumMessages" where "main"."forumMessages"."brandVariation" = 'therr' and "isAnnouncement" = false`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ count: '10' }] })),

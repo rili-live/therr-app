@@ -84,23 +84,27 @@ export default class DirectMessagesStore extends BrandScopedStore {
 
     searchLatestDMs(brand: BrandValue, userId: string, conditions: any = {}) {
         this.assertBrand(brand);
-        const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
-        const limit = conditions.pagination.itemsPerPage;
+        const offset = Number(conditions.pagination.itemsPerPage) * (Number(conditions.pagination.pageNumber) - 1);
+        const limit = Number(conditions.pagination.itemsPerPage);
         // Brand filter is applied to BOTH the outer SELECT and the inner aggregate so a per-brand
         // thread is treated as distinct from the cross-brand thread between the same user pair.
-        const queryString = knexBuilder.raw(`
+        // Brand and userId are parameter-bound (not interpolated) to keep the no-string-concat
+        // discipline consistent with the rest of the store, even though both values flow from
+        // assertBrand-validated input and the gateway-set x-userid header. limit/offset are
+        // coerced to Number so they're safe to embed numerically.
+        const sql = `
         SELECT
             *
         FROM
             "main"."directMessages"
-        WHERE "brandVariation" = '${brand}'
+        WHERE "brandVariation" = ?
             AND ((least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")), "updatedAt")
         in(
             SELECT
                 (least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")) AS users, max("updatedAt") AS "maxUpdated" FROM "main"."directMessages"
-            WHERE "brandVariation" = '${brand}'
-                AND ("fromUserId" = '${userId}'
-                OR "toUserId" = '${userId}')
+            WHERE "brandVariation" = ?
+                AND ("fromUserId" = ?
+                OR "toUserId" = ?)
         GROUP BY
             users
         ORDER BY
@@ -109,9 +113,10 @@ export default class DirectMessagesStore extends BrandScopedStore {
         OFFSET ${offset})
         ORDER BY
             "updatedAt" DESC;
-        `).toString();
+        `;
+        const native = knexBuilder.raw(sql, [brand, brand, userId, userId]).toSQL().toNative();
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        return this.db.read.query(native.sql, native.bindings as any[]).then((response) => response.rows);
     }
 
     createDirectMessage(brand: BrandValue, params: ICreateDirectMessageParams) {

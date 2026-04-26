@@ -53,6 +53,17 @@ export default class UserDeviceTokensStore extends BrandScopedStore {
         return this.db.read.query(queryString).then((response) => response.rows as IUserDeviceTokenRow[]);
     }
 
+    // Batch variant for fan-out push (e.g. group-message notify). Single round-trip avoids the
+    // N+1 we'd get from calling getTokensForUser per recipient.
+    getTokensForUsers(brand: BrandValue, userIds: string[]) {
+        if (!userIds.length) return Promise.resolve([] as IUserDeviceTokenRow[]);
+        const queryString = this.scopedQuery(brand)
+            .select('*')
+            .whereIn('userId', userIds)
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows as IUserDeviceTokenRow[]);
+    }
+
     // Removes any (any-brand) token row matching this exact token string. Used during invalid-token
     // cleanup when FCM tells us a token has been invalidated. The token value is globally unique to
     // a device install regardless of brand, so we wipe all matching rows defensively. Brand is not

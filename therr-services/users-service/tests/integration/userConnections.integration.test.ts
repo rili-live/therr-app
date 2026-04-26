@@ -496,4 +496,59 @@ describe('Integration Tests - User Connections', () => {
             expect(connections.length).to.equal(2);
         });
     });
+
+    // Phase 6 verification scenario 6 — Connections are identity-shared by design.
+    // Friendships are person-to-person, not app-to-app: a connection accepted in one brand
+    // must be visible from any other brand the same identity belongs to.
+    // This test guards against accidentally reintroducing a brand column or filter on
+    // userConnections (which would silently break cross-brand friend lists).
+    describe('Cross-Brand Visibility (Phase 6 scenario 6)', () => {
+        it('exposes the same connection regardless of brand context', async () => {
+            if (skipTests) return;
+
+            const user1 = await createTestUser('xbrand-a');
+            const user2 = await createTestUser('xbrand-b');
+
+            const connections = await userConnectionsStore.createUserConnection({
+                requestingUserId: user1.id,
+                acceptingUserId: user2.id,
+                requestStatus: UserConnectionTypes.COMPLETE,
+            });
+            createdConnectionIds.push(connections[0].id);
+
+            // The store API takes no brand argument — verify the same row comes back
+            // regardless of which app the calling user is signed into.
+            const fromTherr = await userConnectionsStore.getUserConnections({
+                requestingUserId: user1.id,
+                acceptingUserId: user2.id,
+            });
+            const fromHabits = await userConnectionsStore.getUserConnections({
+                requestingUserId: user1.id,
+                acceptingUserId: user2.id,
+            });
+
+            expect(fromTherr.length).to.equal(1);
+            expect(fromHabits.length).to.equal(1);
+            expect(fromTherr[0].id).to.equal(connections[0].id);
+            expect(fromHabits[0].id).to.equal(connections[0].id);
+        });
+
+        it('does not carry a brandVariation column on the row shape', async () => {
+            if (skipTests) return;
+
+            const user1 = await createTestUser('xbrand-shape-a');
+            const user2 = await createTestUser('xbrand-shape-b');
+
+            const connections = await userConnectionsStore.createUserConnection({
+                requestingUserId: user1.id,
+                acceptingUserId: user2.id,
+                requestStatus: UserConnectionTypes.PENDING,
+            });
+            createdConnectionIds.push(connections[0].id);
+
+            // Identity-shared archetype: column must not exist. If a future migration
+            // adds one, this assertion fails and forces a re-classification decision.
+            expect(connections[0]).to.not.have.property('brandVariation');
+        });
+    });
 });

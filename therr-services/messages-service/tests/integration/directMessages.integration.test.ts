@@ -140,7 +140,8 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Search for messages
-            const foundMessages = await directMessagesStore.searchDirectMessages('therr', 
+            const foundMessages = await directMessagesStore.searchDirectMessages(
+                'therr',
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -169,7 +170,8 @@ describe('Integration Tests - Direct Messages', () => {
             })));
 
             // Get first page
-            const page1 = await directMessagesStore.searchDirectMessages('therr', 
+            const page1 = await directMessagesStore.searchDirectMessages(
+                'therr',
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 1 },
@@ -181,7 +183,8 @@ describe('Integration Tests - Direct Messages', () => {
             );
 
             // Get second page
-            const page2 = await directMessagesStore.searchDirectMessages('therr', 
+            const page2 = await directMessagesStore.searchDirectMessages(
+                'therr',
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 2 },
@@ -217,7 +220,8 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Search with reverse check
-            const foundMessages = await directMessagesStore.searchDirectMessages('therr', 
+            const foundMessages = await directMessagesStore.searchDirectMessages(
+                'therr',
                 TEST_USER_1,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -359,6 +363,136 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             expect(Number(unreadCount[0].count)).to.be.greaterThanOrEqual(1);
+        });
+    });
+
+    // Phase 6 verification scenario 2 — Cross-brand DMs.
+    //
+    // The architecture splits the auto-enroll flow across two services:
+    //   - messages-service stamps every DM with the sender's brandVariation at insert
+    //     time and filters reads to the requester's current brand. (covered here)
+    //   - users-service's login path (UsersStore.upsertBrandVariation) adds the new brand
+    //     to the recipient's brandVariations array on first sign-in to that app. The DM
+    //     itself is never copied or duplicated — recipient just starts seeing it once
+    //     they're signed into the matching brand context.
+    //
+    // These tests cover the data-layer half: brand stamping, isolation under reads, and
+    // separation of cross-brand threads between the same user pair.
+    describe('Cross-Brand Isolation (Phase 6 scenario 2)', () => {
+        beforeEach(async () => {
+            if (skipTests) return;
+            try {
+                await cleanupTestData('directMessages', { fromUserId: TEST_USER_1 });
+                await cleanupTestData('directMessages', { fromUserId: TEST_USER_2 });
+                await cleanupTestData('directMessages', { toUserId: TEST_USER_1 });
+                await cleanupTestData('directMessages', { toUserId: TEST_USER_2 });
+            } catch {
+                // Ignore cleanup errors
+            }
+        });
+
+        it('stamps brandVariation on insert and hides the row from a different brand context', async () => {
+            if (skipTests) return;
+
+            const created = await directMessagesStore.createDirectMessage('therr', {
+                message: 'Sent from Therr',
+                toUserId: TEST_USER_2,
+                fromUserId: TEST_USER_1,
+                isUnread: true,
+                locale: 'en-us',
+            });
+
+            const therrThread = await directMessagesStore.searchLatestDMs('therr', TEST_USER_2, {
+                pagination: { itemsPerPage: 50, pageNumber: 1 },
+            });
+            const habitsThread = await directMessagesStore.searchLatestDMs('habits', TEST_USER_2, {
+                pagination: { itemsPerPage: 50, pageNumber: 1 },
+            });
+
+            const therrIds = therrThread.map((m) => m.id);
+            const habitsIds = habitsThread.map((m) => m.id);
+
+            expect(therrIds).to.include(created[0].id);
+            expect(habitsIds).to.not.include(created[0].id);
+        });
+
+        it('treats DMs between the same user pair under different brands as separate threads', async () => {
+            if (skipTests) return;
+
+            const therrDm = await directMessagesStore.createDirectMessage('therr', {
+                message: 'Therr thread',
+                toUserId: TEST_USER_2,
+                fromUserId: TEST_USER_1,
+                isUnread: true,
+                locale: 'en-us',
+            });
+
+            const habitsDm = await directMessagesStore.createDirectMessage('habits', {
+                message: 'Habits thread',
+                toUserId: TEST_USER_2,
+                fromUserId: TEST_USER_1,
+                isUnread: true,
+                locale: 'en-us',
+            });
+
+            const therrThread = await directMessagesStore.searchLatestDMs('therr', TEST_USER_1, {
+                pagination: { itemsPerPage: 50, pageNumber: 1 },
+            });
+            const habitsThread = await directMessagesStore.searchLatestDMs('habits', TEST_USER_1, {
+                pagination: { itemsPerPage: 50, pageNumber: 1 },
+            });
+
+            expect(therrThread.map((m) => m.id)).to.include(therrDm[0].id);
+            expect(therrThread.map((m) => m.id)).to.not.include(habitsDm[0].id);
+            expect(habitsThread.map((m) => m.id)).to.include(habitsDm[0].id);
+            expect(habitsThread.map((m) => m.id)).to.not.include(therrDm[0].id);
+        });
+
+        it('re-applies brand isolation in the searchDirectMessages reverse-search OR branch', async () => {
+            if (skipTests) return;
+
+            // The orWhere() in searchDirectMessages resets the WHERE chain — Phase 3 added
+            // an explicit andWhere(brandVariation) inside the OR branch to plug that hole.
+            // This test guards against a future refactor accidentally dropping it.
+            const therrDm = await directMessagesStore.createDirectMessage('therr', {
+                message: 'Therr-stamped reverse-search target',
+                toUserId: TEST_USER_2,
+                fromUserId: TEST_USER_1,
+                isUnread: true,
+                locale: 'en-us',
+            });
+
+            // Reverse-search query under the Habits brand should NOT surface the row.
+            const habitsResults = await directMessagesStore.searchDirectMessages(
+                'habits',
+                TEST_USER_1,
+                {
+                    pagination: { itemsPerPage: 50, pageNumber: 1 },
+                    filterBy: 'fromUserId',
+                    filterOperator: '=',
+                    query: TEST_USER_1,
+                },
+                undefined,
+                'true',
+            );
+
+            expect(habitsResults.map((m: any) => m.id)).to.not.include(therrDm[0].id);
+
+            // Sanity: same query under the matching brand DOES return it.
+            const therrResults = await directMessagesStore.searchDirectMessages(
+                'therr',
+                TEST_USER_1,
+                {
+                    pagination: { itemsPerPage: 50, pageNumber: 1 },
+                    filterBy: 'fromUserId',
+                    filterOperator: '=',
+                    query: TEST_USER_1,
+                },
+                undefined,
+                'true',
+            );
+
+            expect(therrResults.map((m: any) => m.id)).to.include(therrDm[0].id);
         });
     });
 });
