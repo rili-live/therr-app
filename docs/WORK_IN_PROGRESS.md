@@ -10,6 +10,14 @@
 > per-niche project briefs for product direction. The backlog below is sorted
 > by **business value** (Tier 1 = revenue-blocking; Tier 5 = nice-to-have),
 > and items within each tier are roughly ranked by **impact × effort**.
+>
+> **Related trackers:**
+>
+> - `docs/PEER_REVIEW_FOLLOWUP.md` — narrower scope: items deferred during
+>   `general → stage` peer reviews (e.g., shared-store unification, shadow→
+>   enforce flips, mobile tsc baseline payoff). Use that file when the work
+>   originated from a specific review's residue; use this file for
+>   long-standing code TODOs and for post-deploy manual steps.
 
 ---
 
@@ -134,15 +142,15 @@ The user-deletion path drops the row in users-service but leaves orphans in
 notifications, messages, forums, websocket sessions, and cloud media. This
 is a privacy-policy violation and an Apple/Google review risk.
 
-- `therr-services/users-service/src/handlers/users.ts:1042` — Delete
+- `therr-services/users-service/src/handlers/users.ts:1041` — Delete
   notifications in users service
-- `therr-services/users-service/src/handlers/users.ts:1043` — Delete messages
+- `therr-services/users-service/src/handlers/users.ts:1042` — Delete messages
   in messages service
-- `therr-services/users-service/src/handlers/users.ts:1044` — Delete forums
+- `therr-services/users-service/src/handlers/users.ts:1043` — Delete forums
   / forumMessages
-- `therr-services/users-service/src/handlers/users.ts:1047` — Delete user
+- `therr-services/users-service/src/handlers/users.ts:1046` — Delete user
   session from websocket-service redis
-- `therr-services/users-service/src/handlers/users.ts:1048` — Delete user
+- `therr-services/users-service/src/handlers/users.ts:1047` — Delete user
   media from cloud storage
 
 ### 1.4 Auth / billing-email integrity

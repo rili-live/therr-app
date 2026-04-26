@@ -8,6 +8,11 @@ original PR's scope.
 When you pick something up, change its **Status** to `In progress (<your-name>, <date>)`,
 land the change, and either delete the entry or move it under "Done" with the commit SHA.
 
+**Related**: `docs/WORK_IN_PROGRESS.md` — broader prioritized backlog covering all
+TODO/FIXME/HACK comments across the monorepo plus a checkbox-tracked list of post-deploy
+manual steps. Use this file for peer-review residue; use that one for long-standing code
+TODOs and operational follow-ups.
+
 ---
 
 ## Open
