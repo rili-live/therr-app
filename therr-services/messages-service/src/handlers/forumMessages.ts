@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import moment from 'moment';
-import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { getBrandContext, getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import * as globalConfig from '../../../../global-config';
@@ -9,8 +10,9 @@ import { findUsers } from '../api/usersService';
 // CREATE
 const createForumMessage = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
+    const { brandVariation } = getBrandContext(req.headers);
 
-    return Store.forumMessages.createForumMessage({
+    return Store.forumMessages.createForumMessage(brandVariation, {
         forumId: req.body.forumId,
         message: req.body.message,
         fromUserId: req.body.fromUserId,
@@ -28,6 +30,7 @@ const searchForumMessages: RequestHandler = (req: any, res: any) => {
         locale,
         userId,
     } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
     const {
         filterBy,
         query,
@@ -37,8 +40,8 @@ const searchForumMessages: RequestHandler = (req: any, res: any) => {
     const { forumId } = req.params;
     const integerColumns = [];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = Store.forumMessages.searchForumMessages(forumId, searchArgs[0], searchArgs[1]);
-    const countPromise = Store.forumMessages.countRecords({
+    const searchPromise = Store.forumMessages.searchForumMessages(brandVariation, forumId, searchArgs[0], searchArgs[1]);
+    const countPromise = Store.forumMessages.countRecords(brandVariation, {
         filterBy,
         query,
     });

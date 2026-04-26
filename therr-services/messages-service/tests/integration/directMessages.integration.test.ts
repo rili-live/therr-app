@@ -76,7 +76,7 @@ describe('Integration Tests - Direct Messages', () => {
                 locale: 'en-us',
             };
 
-            const createdMessages = await directMessagesStore.createDirectMessage(testMessage);
+            const createdMessages = await directMessagesStore.createDirectMessage('therr', testMessage);
 
             expect(createdMessages).to.be.an('array');
             expect(createdMessages.length).to.equal(1);
@@ -95,7 +95,7 @@ describe('Integration Tests - Direct Messages', () => {
                 locale: 'en-us',
             };
 
-            const createdMessages = await directMessagesStore.createDirectMessage(testMessage);
+            const createdMessages = await directMessagesStore.createDirectMessage('therr', testMessage);
 
             expect(createdMessages).to.be.an('array');
             expect(createdMessages[0].id).to.be.a('string');
@@ -112,7 +112,7 @@ describe('Integration Tests - Direct Messages', () => {
                 locale: 'fr-fr',
             };
 
-            const createdMessages = await directMessagesStore.createDirectMessage(testMessage);
+            const createdMessages = await directMessagesStore.createDirectMessage('therr', testMessage);
 
             expect(createdMessages).to.be.an('array');
             expect(createdMessages[0].id).to.be.a('string');
@@ -124,14 +124,14 @@ describe('Integration Tests - Direct Messages', () => {
             if (skipTests) return;
 
             // Create test messages
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Search test message 1',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
                 isUnread: true,
                 locale: 'en-us',
             });
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Search test message 2',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
@@ -140,7 +140,7 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Search for messages
-            const foundMessages = await directMessagesStore.searchDirectMessages(
+            const foundMessages = await directMessagesStore.searchDirectMessages('therr', 
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -160,7 +160,7 @@ describe('Integration Tests - Direct Messages', () => {
             if (skipTests) return;
 
             // Create 5 test messages
-            await Promise.all([0, 1, 2, 3, 4].map((i) => directMessagesStore.createDirectMessage({
+            await Promise.all([0, 1, 2, 3, 4].map((i) => directMessagesStore.createDirectMessage('therr', {
                 message: `Pagination test message ${i}`,
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
@@ -169,7 +169,7 @@ describe('Integration Tests - Direct Messages', () => {
             })));
 
             // Get first page
-            const page1 = await directMessagesStore.searchDirectMessages(
+            const page1 = await directMessagesStore.searchDirectMessages('therr', 
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 1 },
@@ -181,7 +181,7 @@ describe('Integration Tests - Direct Messages', () => {
             );
 
             // Get second page
-            const page2 = await directMessagesStore.searchDirectMessages(
+            const page2 = await directMessagesStore.searchDirectMessages('therr', 
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 2 },
@@ -201,14 +201,14 @@ describe('Integration Tests - Direct Messages', () => {
             if (skipTests) return;
 
             // Create messages in both directions
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'From user 1 to user 2',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
                 isUnread: true,
                 locale: 'en-us',
             });
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'From user 2 to user 1',
                 toUserId: TEST_USER_1,
                 fromUserId: TEST_USER_2,
@@ -217,7 +217,7 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Search with reverse check
-            const foundMessages = await directMessagesStore.searchDirectMessages(
+            const foundMessages = await directMessagesStore.searchDirectMessages('therr', 
                 TEST_USER_1,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -239,14 +239,14 @@ describe('Integration Tests - Direct Messages', () => {
             if (skipTests) return;
 
             // Create conversation with user 2
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'First message to user 2',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
                 isUnread: true,
                 locale: 'en-us',
             });
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Second message to user 2',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
@@ -255,7 +255,7 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Create conversation with user 3
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Message to user 3',
                 toUserId: TEST_USER_3,
                 fromUserId: TEST_USER_1,
@@ -264,7 +264,7 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Search latest DMs - should group by conversation
-            const latestDMs = await directMessagesStore.searchLatestDMs(TEST_USER_1, {
+            const latestDMs = await directMessagesStore.searchLatestDMs('therr', TEST_USER_1, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             });
 
@@ -277,7 +277,7 @@ describe('Integration Tests - Direct Messages', () => {
             if (skipTests) return;
 
             // Create multiple messages in same conversation
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Older message',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
@@ -288,7 +288,7 @@ describe('Integration Tests - Direct Messages', () => {
             // Small delay to ensure different timestamps
             await new Promise((resolve) => { setTimeout(resolve, 100); });
 
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Newest message',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
@@ -296,7 +296,7 @@ describe('Integration Tests - Direct Messages', () => {
                 locale: 'en-us',
             });
 
-            const latestDMs = await directMessagesStore.searchLatestDMs(TEST_USER_1, {
+            const latestDMs = await directMessagesStore.searchLatestDMs('therr', TEST_USER_1, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             });
 
@@ -314,7 +314,7 @@ describe('Integration Tests - Direct Messages', () => {
             if (skipTests) return;
 
             // Create test messages
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Count test message',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
@@ -322,7 +322,7 @@ describe('Integration Tests - Direct Messages', () => {
                 locale: 'en-us',
             });
 
-            const countResult = await directMessagesStore.countRecords({
+            const countResult = await directMessagesStore.countRecords('therr', {
                 filterBy: 'fromUserId',
                 query: TEST_USER_1,
             });
@@ -336,7 +336,7 @@ describe('Integration Tests - Direct Messages', () => {
             if (skipTests) return;
 
             // Create unread message
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Unread message',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
@@ -345,7 +345,7 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Create read message
-            await directMessagesStore.createDirectMessage({
+            await directMessagesStore.createDirectMessage('therr', {
                 message: 'Read message',
                 toUserId: TEST_USER_2,
                 fromUserId: TEST_USER_1,
@@ -353,7 +353,7 @@ describe('Integration Tests - Direct Messages', () => {
                 locale: 'en-us',
             });
 
-            const unreadCount = await directMessagesStore.countRecords({
+            const unreadCount = await directMessagesStore.countRecords('therr', {
                 filterBy: 'isUnread',
                 query: true,
             });

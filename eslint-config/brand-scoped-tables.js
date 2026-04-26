@@ -13,6 +13,9 @@
 // files listed in eslint-config/service.js overrides.
 const BRAND_SCOPED_TABLES = [
     'main.notifications',
+    'main.directMessages',
+    'main.forums',
+    'main.forumMessages',
 ];
 
 module.exports = {
