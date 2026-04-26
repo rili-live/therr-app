@@ -150,7 +150,8 @@ describe('ForumsStore', () => {
                 },
             };
             const store = new ForumsStore(mockStore as any);
-            await store.searchForums('therr',
+            await store.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 2 },
                     order: 'desc',
@@ -171,7 +172,8 @@ describe('ForumsStore', () => {
                 },
             };
             const store = new ForumsStore(mockStore as any);
-            await store.searchForums('therr',
+            await store.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -192,7 +194,8 @@ describe('ForumsStore', () => {
                 },
             };
             const store = new ForumsStore(mockStore as any);
-            await store.searchForums('therr',
+            await store.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -212,7 +215,8 @@ describe('ForumsStore', () => {
                 },
             };
             const store = new ForumsStore(mockStore as any);
-            await store.searchForums('therr',
+            await store.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -285,7 +289,8 @@ describe('ForumsStore', () => {
             };
             const store = new ForumsStore(mockStore as any);
 
-            await store.updateForum('therr',
+            await store.updateForum(
+                'therr',
                 { id: 'forum-123', authorId: 'user-1' },
                 { title: ['Updated Title'] },
             );
@@ -305,7 +310,8 @@ describe('ForumsStore', () => {
             };
             const store = new ForumsStore(mockStore as any);
 
-            const result = await store.updateForum('therr',
+            const result = await store.updateForum(
+                'therr',
                 { id: 'forum-123' },
                 { description: 'New description' },
             );

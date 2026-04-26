@@ -97,7 +97,8 @@ describe('Forum Messages Handler', () => {
 
             const searchStub = sinon.stub(Store.forumMessages, 'searchForumMessages').resolves(mockMessages);
 
-            const result = await Store.forumMessages.searchForumMessages('therr',
+            const result = await Store.forumMessages.searchForumMessages(
+                'therr',
                 123,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -114,7 +115,8 @@ describe('Forum Messages Handler', () => {
         it('should filter messages by fromUserId', async () => {
             const searchStub = sinon.stub(Store.forumMessages, 'searchForumMessages').resolves([]);
 
-            await Store.forumMessages.searchForumMessages('therr',
+            await Store.forumMessages.searchForumMessages(
+                'therr',
                 123,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -132,7 +134,8 @@ describe('Forum Messages Handler', () => {
         it('should support text search with ilike', async () => {
             const searchStub = sinon.stub(Store.forumMessages, 'searchForumMessages').resolves([]);
 
-            await Store.forumMessages.searchForumMessages('therr',
+            await Store.forumMessages.searchForumMessages(
+                'therr',
                 123,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -149,7 +152,8 @@ describe('Forum Messages Handler', () => {
         it('should handle page 2 correctly', async () => {
             const searchStub = sinon.stub(Store.forumMessages, 'searchForumMessages').resolves([]);
 
-            await Store.forumMessages.searchForumMessages('therr',
+            await Store.forumMessages.searchForumMessages(
+                'therr',
                 123,
                 {
                     pagination: { itemsPerPage: 20, pageNumber: 2 },

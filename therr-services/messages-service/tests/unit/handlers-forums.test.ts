@@ -133,7 +133,8 @@ describe('Forums Handler', () => {
         it('should apply OR conditions', async () => {
             const getForumsStub = sinon.stub(Store.forums, 'getForums').resolves([]);
 
-            await Store.forums.getForums('therr',
+            await Store.forums.getForums(
+                'therr',
                 { authorId: 'user-1', title: 'Title1' },
                 { authorId: 'user-1', subtitle: 'Sub1' },
             );
@@ -175,7 +176,8 @@ describe('Forums Handler', () => {
         it('should search public forums with pagination', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums('therr',
+            await Store.forums.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -190,7 +192,8 @@ describe('Forums Handler', () => {
         it('should filter by invited forum IDs for private forums', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums('therr',
+            await Store.forums.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -205,7 +208,8 @@ describe('Forums Handler', () => {
         it('should filter by category tags', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums('therr',
+            await Store.forums.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -220,7 +224,8 @@ describe('Forums Handler', () => {
         it('should apply text filter with ilike', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums('therr',
+            await Store.forums.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -241,7 +246,8 @@ describe('Forums Handler', () => {
         it('should update forum with author authorization', async () => {
             const updateForumStub = sinon.stub(Store.forums, 'updateForum').resolves([{ id: 'forum-123' }]);
 
-            await Store.forums.updateForum('therr',
+            await Store.forums.updateForum(
+                'therr',
                 { id: 'forum-123', authorId: 'user-1' },
                 { title: ['Updated Title'] },
             );
@@ -253,7 +259,8 @@ describe('Forums Handler', () => {
         it('should update multiple fields', async () => {
             const updateForumStub = sinon.stub(Store.forums, 'updateForum').resolves([{ id: 'forum-123' }]);
 
-            await Store.forums.updateForum('therr',
+            await Store.forums.updateForum(
+                'therr',
                 { id: 'forum-123' },
                 {
                     title: ['New Title'],
