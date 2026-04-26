@@ -284,64 +284,6 @@ export const revokeUserBrandRefreshTokens = async (userId: string, brand: string
     }
 };
 
-// Cross-app handoff: short-lived single-use code → user/brand binding.
-// Stored on the ephemeral Redis (separate from rate-limit traffic). Use GETDEL on redeem so two
-// concurrent redemptions race-free; the loser sees null.
-const HANDOFF_PREFIX = 'handoff:';
-const HANDOFF_TTL_SECONDS = 60;
-
-export interface IHandoffEntry {
-    userId: string;
-    sourceBrand: string;
-    targetBrand: string;
-    deviceFingerprint?: string;
-}
-
-export const mintHandoffCode = async (code: string, entry: IHandoffEntry): Promise<void> => {
-    if (!code || !entry?.userId || !entry?.targetBrand) return;
-    try {
-        await redisEphemeralClient.set(
-            `${HANDOFF_PREFIX}${code}`,
-            JSON.stringify(entry),
-            'EX',
-            HANDOFF_TTL_SECONDS,
-        );
-    } catch (err) {
-        console.error('Failed to mint handoff code:', err);
-        throw err;
-    }
-};
-
-export const redeemHandoffCode = async (code: string): Promise<IHandoffEntry | null> => {
-    if (!code) return null;
-    try {
-        // GETDEL is atomic in Redis 6.2+; falls back to a MULTI pipeline on older servers.
-        const raw = typeof (redisEphemeralClient as any).getdel === 'function'
-            ? await (redisEphemeralClient as any).getdel(`${HANDOFF_PREFIX}${code}`)
-            : await (async () => {
-                const pipeline = redisEphemeralClient.multi();
-                pipeline.get(`${HANDOFF_PREFIX}${code}`);
-                pipeline.del(`${HANDOFF_PREFIX}${code}`);
-                const results = await pipeline.exec();
-                return results?.[0]?.[1] as string | null;
-            })();
-        if (!raw) return null;
-        return JSON.parse(raw as string) as IHandoffEntry;
-    } catch (err) {
-        console.error('Failed to redeem handoff code:', err);
-        return null;
-    }
-};
-
-export const cancelHandoffCode = async (code: string): Promise<void> => {
-    if (!code) return;
-    try {
-        await redisEphemeralClient.del(`${HANDOFF_PREFIX}${code}`);
-    } catch (err) {
-        console.error('Failed to cancel handoff code:', err);
-    }
-};
-
 // API key cache helpers (short TTL for fast auth without DB hit on every request)
 const API_KEY_CACHE_PREFIX = 'api-key-cache:';
 const API_KEY_CACHE_TTL = 300; // 5 minutes

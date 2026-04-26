@@ -201,7 +201,8 @@ describe('Integration Tests - Forum Messages', () => {
             });
 
             // Search messages
-            const foundMessages = await forumMessagesStore.searchForumMessages('therr', 
+            const foundMessages = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -235,7 +236,8 @@ describe('Integration Tests - Forum Messages', () => {
             });
 
             // Search messages (should exclude announcements)
-            const foundMessages = await forumMessagesStore.searchForumMessages('therr', 
+            const foundMessages = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -262,7 +264,8 @@ describe('Integration Tests - Forum Messages', () => {
             }));
 
             // Get first page
-            const page1 = await forumMessagesStore.searchForumMessages('therr', 
+            const page1 = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 1 },
@@ -271,7 +274,8 @@ describe('Integration Tests - Forum Messages', () => {
             );
 
             // Get second page
-            const page2 = await forumMessagesStore.searchForumMessages('therr', 
+            const page2 = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 2 },
@@ -307,7 +311,8 @@ describe('Integration Tests - Forum Messages', () => {
             });
 
             // Search messages
-            const foundMessages = await forumMessagesStore.searchForumMessages('therr', 
+            const foundMessages = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -339,7 +344,8 @@ describe('Integration Tests - Forum Messages', () => {
             });
 
             // Filter by user 1
-            const foundMessages = await forumMessagesStore.searchForumMessages('therr', 
+            const foundMessages = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -464,7 +470,8 @@ describe('Integration Tests - Forum Messages', () => {
                 });
 
                 // Search first forum
-                const firstForumMessages = await forumMessagesStore.searchForumMessages('therr', 
+                const firstForumMessages = await forumMessagesStore.searchForumMessages(
+                    'therr',
                     testForumId,
                     {
                         pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -473,7 +480,8 @@ describe('Integration Tests - Forum Messages', () => {
                 );
 
                 // Search second forum
-                const secondForumMessages = await forumMessagesStore.searchForumMessages('therr', 
+                const secondForumMessages = await forumMessagesStore.searchForumMessages(
+                    'therr',
                     secondForumId,
                     {
                         pagination: { itemsPerPage: 10, pageNumber: 1 },

@@ -21,7 +21,7 @@ describe('NotificationsStore', () => {
         it('queries for total records scoped by brand', () => {
             // BrandScopedStore injects brandVariation into defaultConditions, so the count query
             // sees both the user-supplied filter (isUnread = true) AND the brand filter.
-            const expected = `select count(*) from "main"."notifications" where "main.notifications.brandVariation" = 'therr' and "isUnread" = true`;
+            const expected = `select count(*) from "main"."notifications" where "main"."notifications"."brandVariation" = 'therr' and "isUnread" = true`;
             const { connection, readStub } = buildMockConnection();
             const store = new NotificationsStore(connection);
             store.countRecords('therr', {
@@ -36,7 +36,7 @@ describe('NotificationsStore', () => {
     describe('searchNotifications', () => {
         it('joins on userConnections and applies brand filter', () => {
             // Brand filter is appended via withBrand → andWhere, so it lands after the userId clause.
-            const expected = `select "main"."notifications"."id", "main"."notifications"."userId", "main"."notifications"."type", "main"."notifications"."associationId", "main"."notifications"."isUnread", "main"."notifications"."messageLocaleKey", "main"."notifications"."messageParams", "main"."notifications"."createdAt", "main"."notifications"."updatedAt", "main"."userConnections"."requestingUserId" as "userConnection.requestingUserId", "main"."userConnections"."acceptingUserId" as "userConnection.acceptingUserId", "main"."userConnections"."requestStatus" as "userConnection.requestStatus", "main"."userConnections"."updatedAt" as "userConnection.updatedAt" from "main"."notifications" left join "main"."userConnections" on "main"."notifications"."associationId" = "main"."userConnections".id AND (main.notifications.type = 'CONNECTION_REQUEST_ACCEPTED' OR main.notifications.type = 'CONNECTION_REQUEST_RECEIVED') where "main"."notifications"."userId" = 5 and "main.notifications.brandVariation" = 'therr' order by "main"."notifications"."updatedAt" desc limit 100 offset 100`;
+            const expected = `select "main"."notifications"."id", "main"."notifications"."userId", "main"."notifications"."type", "main"."notifications"."associationId", "main"."notifications"."isUnread", "main"."notifications"."messageLocaleKey", "main"."notifications"."messageParams", "main"."notifications"."createdAt", "main"."notifications"."updatedAt", "main"."userConnections"."requestingUserId" as "userConnection.requestingUserId", "main"."userConnections"."acceptingUserId" as "userConnection.acceptingUserId", "main"."userConnections"."requestStatus" as "userConnection.requestStatus", "main"."userConnections"."updatedAt" as "userConnection.updatedAt" from "main"."notifications" left join "main"."userConnections" on "main"."notifications"."associationId" = "main"."userConnections".id AND (main.notifications.type = 'CONNECTION_REQUEST_ACCEPTED' OR main.notifications.type = 'CONNECTION_REQUEST_RECEIVED') where "main"."notifications"."userId" = 5 and "main"."notifications"."brandVariation" = 'therr' order by "main"."notifications"."updatedAt" desc limit 100 offset 100`;
             const { connection, readStub } = buildMockConnection();
             const store = new NotificationsStore(connection);
             store.searchNotifications('therr', 5, {

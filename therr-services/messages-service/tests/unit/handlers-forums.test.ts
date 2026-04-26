@@ -98,7 +98,7 @@ describe('Forums Handler', () => {
             const result = await Store.forums.getForum('therr', 'forum-123');
 
             expect(getForumStub.calledOnce).to.be.eq(true);
-            expect(getForumStub.calledWith('forum-123')).to.be.eq(true);
+            expect(getForumStub.calledWith('therr', 'forum-123')).to.be.eq(true);
             expect(result[0].id).to.equal('forum-123');
         });
 
@@ -119,7 +119,7 @@ describe('Forums Handler', () => {
             await Store.forums.getForums('therr', { authorId: 'user-1' }, null, true);
 
             expect(getForumsStub.calledOnce).to.be.eq(true);
-            expect(getForumsStub.args[0][2]).to.be.eq(true);
+            expect(getForumsStub.args[0][3]).to.be.eq(true);
         });
 
         it('should include archived forums when flag is false', async () => {
@@ -127,18 +127,19 @@ describe('Forums Handler', () => {
 
             await Store.forums.getForums('therr', { authorId: 'user-1' }, null, false);
 
-            expect(getForumsStub.args[0][2]).to.be.eq(false);
+            expect(getForumsStub.args[0][3]).to.be.eq(false);
         });
 
         it('should apply OR conditions', async () => {
             const getForumsStub = sinon.stub(Store.forums, 'getForums').resolves([]);
 
-            await Store.forums.getForums('therr', 
+            await Store.forums.getForums(
+                'therr',
                 { authorId: 'user-1', title: 'Title1' },
                 { authorId: 'user-1', subtitle: 'Sub1' },
             );
 
-            expect(getForumsStub.args[0][1]).to.deep.equal({ authorId: 'user-1', subtitle: 'Sub1' });
+            expect(getForumsStub.args[0][2]).to.deep.equal({ authorId: 'user-1', subtitle: 'Sub1' });
         });
     });
 
@@ -175,7 +176,8 @@ describe('Forums Handler', () => {
         it('should search public forums with pagination', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums('therr', 
+            await Store.forums.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -190,7 +192,8 @@ describe('Forums Handler', () => {
         it('should filter by invited forum IDs for private forums', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums('therr', 
+            await Store.forums.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -199,13 +202,14 @@ describe('Forums Handler', () => {
                 { usersInvitedForumIds: ['1', '2', '3'] },
             );
 
-            expect(searchForumsStub.args[0][2].usersInvitedForumIds).to.deep.equal(['1', '2', '3']);
+            expect(searchForumsStub.args[0][3].usersInvitedForumIds).to.deep.equal(['1', '2', '3']);
         });
 
         it('should filter by category tags', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums('therr', 
+            await Store.forums.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -214,13 +218,14 @@ describe('Forums Handler', () => {
                 { categoryTags: ['tech', 'programming'] },
             );
 
-            expect(searchForumsStub.args[0][2].categoryTags).to.deep.equal(['tech', 'programming']);
+            expect(searchForumsStub.args[0][3].categoryTags).to.deep.equal(['tech', 'programming']);
         });
 
         it('should apply text filter with ilike', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums('therr', 
+            await Store.forums.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -241,7 +246,8 @@ describe('Forums Handler', () => {
         it('should update forum with author authorization', async () => {
             const updateForumStub = sinon.stub(Store.forums, 'updateForum').resolves([{ id: 'forum-123' }]);
 
-            await Store.forums.updateForum('therr', 
+            await Store.forums.updateForum(
+                'therr',
                 { id: 'forum-123', authorId: 'user-1' },
                 { title: ['Updated Title'] },
             );
@@ -253,7 +259,8 @@ describe('Forums Handler', () => {
         it('should update multiple fields', async () => {
             const updateForumStub = sinon.stub(Store.forums, 'updateForum').resolves([{ id: 'forum-123' }]);
 
-            await Store.forums.updateForum('therr', 
+            await Store.forums.updateForum(
+                'therr',
                 { id: 'forum-123' },
                 {
                     title: ['New Title'],
@@ -303,7 +310,7 @@ describe('Forums Handler', () => {
             await Store.forums.deleteForum('therr', 'forum-123');
 
             expect(deleteForumStub.calledOnce).to.be.eq(true);
-            expect(deleteForumStub.calledWith('forum-123')).to.be.eq(true);
+            expect(deleteForumStub.calledWith('therr', 'forum-123')).to.be.eq(true);
         });
     });
 });

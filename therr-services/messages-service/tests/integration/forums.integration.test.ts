@@ -326,7 +326,8 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum[0].id);
 
             // Search public forums
-            const searchResults = await forumsStore.searchForums('therr', 
+            const searchResults = await forumsStore.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -357,7 +358,8 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum[0].id);
 
             // Search by specific forum ID
-            const searchResults = await forumsStore.searchForums('therr', 
+            const searchResults = await forumsStore.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -390,7 +392,8 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum[0].id);
 
             // Update forum
-            const updateResult = await forumsStore.updateForum('therr', 
+            const updateResult = await forumsStore.updateForum(
+                'therr',
                 { id: forum[0].id, authorId: TEST_AUTHOR_ID },
                 {
                     title: ['Updated Title'],
@@ -427,7 +430,8 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum[0].id);
 
             // Update to private
-            await forumsStore.updateForum('therr', 
+            await forumsStore.updateForum(
+                'therr',
                 { id: forum[0].id, authorId: TEST_AUTHOR_ID },
                 { isPublic: false },
             );
@@ -456,7 +460,8 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum[0].id);
 
             // Try to update with wrong author
-            const updateResult = await forumsStore.updateForum('therr', 
+            const updateResult = await forumsStore.updateForum(
+                'therr',
                 { id: forum[0].id, authorId: '00000000-0000-0000-0000-000000000001' },
                 { title: ['Unauthorized Update'] },
             );

@@ -76,7 +76,8 @@ describe('Direct Messages Handler', () => {
 
             const searchStub = sinon.stub(Store.directMessages, 'searchDirectMessages').resolves(mockMessages);
 
-            const result = await Store.directMessages.searchDirectMessages('therr', 
+            const result = await Store.directMessages.searchDirectMessages(
+                'therr',
                 'user-1',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -95,7 +96,8 @@ describe('Direct Messages Handler', () => {
         it('should support reverse direction check', async () => {
             const searchStub = sinon.stub(Store.directMessages, 'searchDirectMessages').resolves([]);
 
-            await Store.directMessages.searchDirectMessages('therr', 
+            await Store.directMessages.searchDirectMessages(
+                'therr',
                 'user-1',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -108,7 +110,7 @@ describe('Direct Messages Handler', () => {
             );
 
             expect(searchStub.calledOnce).to.be.eq(true);
-            expect(searchStub.args[0][3]).to.equal('true');
+            expect(searchStub.args[0][4]).to.equal('true');
         });
     });
 

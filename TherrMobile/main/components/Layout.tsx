@@ -984,7 +984,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (typeof value === 'string') {
                 try {
                     return JSON.parse(value);
-                } catch (e) {
+                } catch {
                     return null;
                 }
             }
