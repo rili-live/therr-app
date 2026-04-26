@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import 'react-native-gesture-handler';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
@@ -179,8 +180,8 @@ class HabitsButtonMenu extends ButtonMenu {
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
-                        <TherrIcon
-                            name="check-mark"
+                        <MaterialIcon
+                            name="check-circle"
                             size={24}
                             style={
                                 isHabitsActive
