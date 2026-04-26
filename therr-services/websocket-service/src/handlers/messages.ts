@@ -26,7 +26,7 @@ const sendDirectMessage = (internalConfig: IInternalConfig, socket: socketio.Soc
         },
     }, socket, decodedAuthenticationToken).then(({ data: message }) => {
         // TODO: RFRONT-25 - localize dates
-        const timeFormatted = moment(message.createdAt || Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
+        const timeFormatted = moment(message.createdAt || Date.now()).format(COMMON_DATE_FORMAT);
         socket.emit('action', {
             type: SocketServerActionTypes.SEND_DIRECT_MESSAGE,
             data: {

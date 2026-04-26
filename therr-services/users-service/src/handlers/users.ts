@@ -146,7 +146,6 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 });
             } else if (paymentSessionId) {
                 // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
-                console.log('TODO...');
             }
 
             if (inviteCode) {
