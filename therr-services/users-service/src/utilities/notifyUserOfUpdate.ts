@@ -1,4 +1,5 @@
 import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
+import { getBrandContext } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { ICreateNotificationParams } from '../store/NotificationsStore';
 import Store from '../store';
@@ -61,8 +62,9 @@ export default (
     messageLocaleKey: string;
     messageParams?: any;
 }|undefined> => {
+    const { brandVariation } = getBrandContext(headers);
     const dbNotificationPromise = config.shouldCreateDBNotification
-        ? Store.notifications.createNotification({
+        ? Store.notifications.createNotification(brandVariation, {
             userId: dbNotification.userId,
             type: dbNotification.type, // DB Notification type
             associationId: dbNotification.associationId, // userConnections.id, forum.id, etc.

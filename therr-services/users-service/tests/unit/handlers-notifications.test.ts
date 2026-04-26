@@ -22,7 +22,7 @@ describe('Notifications Handler', () => {
             };
             const createStub = sinon.stub(Store.notifications, 'createNotification').resolves([mockNotification]);
 
-            const result = await Store.notifications.createNotification({
+            const result = await Store.notifications.createNotification('therr', {
                 userId: 'user-1',
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: 'conn-123',
@@ -48,7 +48,7 @@ describe('Notifications Handler', () => {
             };
             const createStub = sinon.stub(Store.notifications, 'createNotification').resolves([mockNotification]);
 
-            const result = await Store.notifications.createNotification({
+            const result = await Store.notifications.createNotification('therr', {
                 userId: 'user-1',
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: 'conn-123',
@@ -76,7 +76,7 @@ describe('Notifications Handler', () => {
             };
             const getStub = sinon.stub(Store.notifications, 'getNotifications').resolves([mockNotification]);
 
-            const result = await Store.notifications.getNotifications({
+            const result = await Store.notifications.getNotifications('therr', {
                 id: 'notif-123',
             });
 
@@ -87,7 +87,7 @@ describe('Notifications Handler', () => {
         it('should return empty array when notification not found', async () => {
             const getStub = sinon.stub(Store.notifications, 'getNotifications').resolves([]);
 
-            const result = await Store.notifications.getNotifications({
+            const result = await Store.notifications.getNotifications('therr', {
                 id: 'nonexistent',
             });
 
@@ -104,7 +104,7 @@ describe('Notifications Handler', () => {
             ];
             const searchStub = sinon.stub(Store.notifications, 'searchNotifications').resolves(mockNotifications);
 
-            const result = await Store.notifications.searchNotifications('user-1', {
+            const result = await Store.notifications.searchNotifications('therr', 'user-1', {
                 pagination: { itemsPerPage: 20, pageNumber: 1 },
                 order: 'desc',
             });
@@ -121,7 +121,7 @@ describe('Notifications Handler', () => {
 
             // User ID should come from header, not query params (security)
             const userId = 'user-1';
-            const result = await Store.notifications.searchNotifications(userId, {
+            const result = await Store.notifications.searchNotifications('therr', userId, {
                 pagination: { itemsPerPage: 20, pageNumber: 1 },
             });
 
@@ -139,6 +139,7 @@ describe('Notifications Handler', () => {
             const updateStub = sinon.stub(Store.notifications, 'updateNotification').resolves([mockNotification]);
 
             const result = await Store.notifications.updateNotification(
+                'therr',
                 { id: 'notif-123' },
                 { isUnread: false },
             );
@@ -155,6 +156,7 @@ describe('Notifications Handler', () => {
             const updateStub = sinon.stub(Store.notifications, 'updateNotification').resolves([mockNotification]);
 
             const result = await Store.notifications.updateNotification(
+                'therr',
                 { id: 'notif-123' },
                 { isUnread: true },
             );
@@ -322,7 +324,7 @@ describe('Notifications Handler', () => {
         it('should count notifications by filter', async () => {
             const countStub = sinon.stub(Store.notifications, 'countRecords').resolves([{ count: '15' }]);
 
-            const result = await Store.notifications.countRecords({
+            const result = await Store.notifications.countRecords('therr', {
                 filterBy: 'isUnread',
                 query: true,
             });
@@ -346,7 +348,7 @@ describe('Notifications Handler', () => {
             ];
             const searchStub = sinon.stub(Store.notifications, 'searchNotifications').resolves(mockNotifications);
 
-            const result = await Store.notifications.searchNotifications('user-1', {
+            const result = await Store.notifications.searchNotifications('therr', 'user-1', {
                 pagination: { itemsPerPage: 20, pageNumber: 1 },
             });
 

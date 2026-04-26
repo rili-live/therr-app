@@ -11,7 +11,9 @@
 // Adding a table here causes any string-literal reference to it (e.g. `.from('main.notifications')`,
 // raw SQL `FROM main.notifications`) to be flagged by ESLint everywhere except the sanctioned store
 // files listed in eslint-config/service.js overrides.
-const BRAND_SCOPED_TABLES = [];
+const BRAND_SCOPED_TABLES = [
+    'main.notifications',
+];
 
 module.exports = {
     BRAND_SCOPED_TABLES,
