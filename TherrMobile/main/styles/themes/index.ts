@@ -70,6 +70,9 @@ export interface ITherrThemeColors {
 
     // Alerts
     alertError: string,
+    alertSuccess: string,
+    alertWarning: string,
+    alertInfo: string,
 
     // Accents - Alternate color scheme to add variety and reduce blandless
     accent1: string;

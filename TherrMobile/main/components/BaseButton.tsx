@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, GestureResponderEvent, StyleProp, StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
+import { BRAND_BLACK, BRAND_WHITE } from '../styles/themes/brandConstants';
 
 // TouchableRipple is the outermost element so the entire visual button area
 // (including padding) is the press target.
@@ -30,7 +31,7 @@ interface IButtonProps {
 const styles = StyleSheet.create({
     elevated: {
         elevation: 4,
-        shadowColor: '#000',
+        shadowColor: BRAND_BLACK,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 0,
     },
     titleSolid: {
-        color: '#fff',
+        color: BRAND_WHITE,
     },
 });
 

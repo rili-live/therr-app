@@ -4,6 +4,14 @@ import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import translator from '../utilities/translator';
+import { therrFontFamily } from '../styles/font';
+import {
+    ALERT_ERROR,
+    BRAND_BLACK,
+    BRAND_WHITE,
+    OVERLAY_DARK,
+    OVERLAY_PANEL_LIGHT,
+} from '../styles/themes/brandConstants';
 
 const TOOLTIP_AUTO_DISMISS_MS = 3000;
 
@@ -23,8 +31,8 @@ const styles = StyleSheet.create({
         width: 28,
         height: 28,
         borderRadius: 14,
-        backgroundColor: 'rgba(255, 255, 255, 0.92)',
-        shadowColor: '#000',
+        backgroundColor: OVERLAY_PANEL_LIGHT,
+        shadowColor: BRAND_BLACK,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.25,
         shadowRadius: 2,
@@ -35,16 +43,16 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         borderRadius: 6,
-        backgroundColor: 'rgba(26, 26, 26, 0.92)',
-        shadowColor: '#000',
+        backgroundColor: OVERLAY_DARK,
+        shadowColor: BRAND_BLACK,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.3,
         shadowRadius: 3,
     },
     tooltipText: {
-        color: '#FFFFFF',
+        color: BRAND_WHITE,
         fontSize: 12,
-        fontFamily: 'Lexend-Regular',
+        fontFamily: therrFontFamily,
     },
     a11yHidden: {
         position: 'absolute',
@@ -115,7 +123,7 @@ const OfflineBanner = () => {
                 hitSlop={6}
                 onPress={toggleTooltip}
             >
-                <Icon name="warning" size={18} color="#D70000" />
+                <Icon name="warning" size={18} color={ALERT_ERROR} />
             </Pressable>
             {tooltipVisible && (
                 <Pressable style={styles.tooltip} onPress={() => setTooltipVisible(false)}>
