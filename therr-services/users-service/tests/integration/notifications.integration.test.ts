@@ -428,4 +428,71 @@ describe('Integration Tests - Notifications', () => {
             expect(requesterAcceptNotif?.isUnread).to.equal(true);
         });
     });
+
+    // Phase 6 verification scenario 1 — Two-app, one user.
+    // The same user signed into Therr and Habits must see only their own brand's notifications.
+    describe('Brand Isolation (Phase 6 scenario 1)', () => {
+        it('returns only same-brand notifications when the user is enrolled in two brands', async () => {
+            if (skipTests) return;
+
+            const user = await createTestUser('brand-iso-1');
+
+            const therrNotif = await notificationsStore.createNotification('therr', {
+                userId: user.id,
+                type: Notifications.Types.NEW_LIKE_RECEIVED,
+                isUnread: true,
+                messageLocaleKey: Notifications.MessageKeys.NEW_LIKE_RECEIVED,
+            });
+            createdNotificationIds.push(therrNotif[0].id);
+
+            const habitsNotif = await notificationsStore.createNotification('habits', {
+                userId: user.id,
+                type: Notifications.Types.ACHIEVEMENT_COMPLETED,
+                isUnread: true,
+                messageLocaleKey: Notifications.MessageKeys.ACHIEVEMENT_COMPLETED,
+            });
+            createdNotificationIds.push(habitsNotif[0].id);
+
+            const therrList = await notificationsStore.searchNotifications('therr', user.id, {
+                pagination: { itemsPerPage: 50, pageNumber: 1 },
+                order: 'desc',
+            });
+            const habitsList = await notificationsStore.searchNotifications('habits', user.id, {
+                pagination: { itemsPerPage: 50, pageNumber: 1 },
+                order: 'desc',
+            });
+
+            const therrIds = therrList.map((n) => n.id);
+            const habitsIds = habitsList.map((n) => n.id);
+
+            expect(therrIds).to.include(therrNotif[0].id);
+            expect(therrIds).to.not.include(habitsNotif[0].id);
+            expect(habitsIds).to.include(habitsNotif[0].id);
+            expect(habitsIds).to.not.include(therrNotif[0].id);
+        });
+
+        it('stamps brandVariation on insert and persists it on the row', async () => {
+            if (skipTests) return;
+
+            const user = await createTestUser('brand-iso-2');
+
+            const created = await notificationsStore.createNotification('habits', {
+                userId: user.id,
+                type: Notifications.Types.ACHIEVEMENT_COMPLETED,
+                isUnread: true,
+                messageLocaleKey: Notifications.MessageKeys.ACHIEVEMENT_COMPLETED,
+            });
+            createdNotificationIds.push(created[0].id);
+
+            expect(created[0].brandVariation).to.equal('habits');
+
+            const reread = await notificationsStore.getNotifications('habits', { id: created[0].id });
+            expect(reread.length).to.equal(1);
+            expect(reread[0].brandVariation).to.equal('habits');
+
+            // Reading under a different brand must not return the row.
+            const wrongBrand = await notificationsStore.getNotifications('therr', { id: created[0].id });
+            expect(wrongBrand.length).to.equal(0);
+        });
+    });
 });

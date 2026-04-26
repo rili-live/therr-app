@@ -14,7 +14,10 @@ import translate from './translator';
 // whose device hasn't re-registered against the new endpoint). After mobile clients have
 // re-registered (typically on next app open) and shadow logs are clean for one release cycle,
 // the fallback can be deleted.
-const resolveDeviceTokenForBrand = async (
+//
+// Exported for unit testing — this is the function that prevents a Habits notification from
+// being routed via a Therr-registered device token (and therefore via the Therr Firebase project).
+export const resolveDeviceTokenForBrand = async (
     brand: string,
     toUserId: string,
     legacyToken: string | null | undefined,
