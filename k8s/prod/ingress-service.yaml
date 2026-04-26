@@ -24,13 +24,10 @@ spec:
       - therr.com
       - www.therr.com
       - dashboard.therr.com
-      - www.dashboard.therr.com
       - api.therr.com
-      - www.api.therr.com
       - websocket-service.therr.com
       - habits.therr.com
       - www.habits.therr.com
-      # - www.websocket-service.therr.com
       # - adsly.app
       # - www.adsly.app
     secretName: therr-network-secret
@@ -65,27 +62,7 @@ spec:
             port:
               number: 7071
         pathType: ImplementationSpecific
-  - host: www.dashboard.therr.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7071
-        pathType: ImplementationSpecific
   - host: api.therr.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: api-gateway-service-loadbalancer-service
-            port:
-              number: 7770
-        pathType: ImplementationSpecific
-  - host: www.api.therr.com
     http:
       paths:
       - path: /?(.*)

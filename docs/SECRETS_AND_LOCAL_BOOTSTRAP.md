@@ -283,13 +283,40 @@ script (e.g., for setting up new subdomains like `habits.therr.com`).
 **Scope:** Should be a token (not the global API key) restricted to specific
 zones (`therr.com`, `therr.app`) and specific permissions (DNS:Edit).
 
-**Where it lives:** Developer's password manager. CI / k8s do not currently
-need this token because cert-manager handles TLS via DNS-01 or HTTP-01
-challenges automatically once the host is added to ingress + DNS records
-exist.
+**Where it lives:** Developer's password manager.
 
 **Regenerate:** Cloudflare dashboard → My Profile → API Tokens → Create
 Token → use the "Edit zone DNS" template restricted to the relevant zones.
+
+### Cloudflare API token (for cert-manager DNS-01)
+
+**What it is:** A separate Cloudflare API token used by cert-manager in-cluster to solve Let's Encrypt DNS-01 challenges. This is what keeps `api.therr.com`, `dashboard.therr.com`, `therr.com`, `habits.therr.com`, `websocket-service.therr.com`, `go.therr.com`, and `link.therr.com` on a valid TLS cert.
+
+**Scope:** API token (not the global key) with:
+- `Zone:Zone:Read` — All zones
+- `Zone:DNS:Edit` — Include: specific zone → `therr.com`
+
+**Where it lives:** Two places that must agree:
+1. **In-cluster:** `Secret cloudflare-api-token-secret` in the `cert-manager` namespace, key `api-token`. Referenced by `k8s/prod/issuer.yaml` (`ClusterIssuer letsencrypt-prod`). The Secret name and key are hardcoded — do not change without updating the issuer.
+2. **Out-of-cluster backup:** Team password manager. The cluster Secret is the runtime source of truth, but losing it without a backup means re-creating the token from Cloudflare and rotating in-cluster — which is fine, but adds friction during incident response.
+
+**Bootstrap (first-time install):**
+```bash
+kubectl create secret generic cloudflare-api-token-secret \
+  -n cert-manager \
+  --from-literal=api-token=<TOKEN>
+```
+
+**Rotate every 90 days.** See `k8s/README.md` → "Cloudflare API token bootstrap" for the in-place rotation procedure (`kubectl create secret ... --dry-run=client -o yaml | kubectl apply -f -`, then force a renewal to confirm). After confirming the new token works, revoke the old one in Cloudflare.
+
+**If this token is missing, expired, or under-scoped:** `ClusterIssuer letsencrypt-prod` is `Ready: False`, no certs renew, and once the active cert hits `notAfter` every public hostname goes dark. There is no automated fallback — TLS silently breaks and mobile login (along with everything else) fails with no error code that the mobile UI can surface to users. Treat the token as production-critical.
+
+**Regenerate:** Cloudflare dashboard → Profile → API Tokens → Create Token → Custom token with the scopes above. Verify with:
+```bash
+curl -H "Authorization: Bearer <TOKEN>" \
+  https://api.cloudflare.com/client/v4/user/tokens/verify
+```
+should return `status: active`.
 
 ---
 
@@ -327,6 +354,8 @@ Run this checklist quarterly:
 - [ ] All keystore passwords are in the canonical secret store, separately from the keystores
 - [ ] All Firebase service-account credentials in the password manager match the active values in the Kubernetes Secrets
 - [ ] All AWS IAM keys in use have been rotated within the last 90 days
+- [ ] The Cloudflare API token used by cert-manager (`Secret cloudflare-api-token-secret` in the `cert-manager` namespace) has been rotated within the last 90 days. Verify with `curl -H "Authorization: Bearer <TOKEN>" https://api.cloudflare.com/client/v4/user/tokens/verify`, then force a renewal (`kubectl cert-manager renew therr-network-tls therr-network-rewrites-tls -n default`) and confirm both certs reach `Ready: True`.
+- [ ] `ClusterIssuer letsencrypt-prod` reports `Ready: True` and there are no `Challenge` or `CertificateRequest` objects older than ~10 minutes (`kubectl get challenges -A`, `kubectl get certificaterequest -A`).
 - [ ] All OAuth client secrets in use are still listed as authorized in the upstream provider
 - [ ] The `google-services.json` in the repo has client blocks for every active brand variant
 - [ ] No secrets have been accidentally committed to the repo (`git log --all -p | grep -iE 'BEGIN PRIVATE KEY|aws_secret|password='` returns no surprises)

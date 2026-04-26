@@ -33,9 +33,7 @@ spec:
   tls:
   - hosts:
       - go.therr.com
-      - www.go.therr.com
       - link.therr.com
-      - www.link.therr.com
     secretName: therr-network-rewrites-secret
   rules:
   - host: go.therr.com
@@ -48,27 +46,7 @@ spec:
             port:
               number: 7070
         pathType: ImplementationSpecific
-  - host: www.go.therr.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7070
-        pathType: ImplementationSpecific
   - host: link.therr.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7070
-        pathType: ImplementationSpecific
-  - host: www.link.therr.com
     http:
       paths:
       - path: /?(.*)
