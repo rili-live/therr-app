@@ -140,7 +140,7 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Search for messages
-            const foundMessages = await directMessagesStore.searchDirectMessages('therr', 
+            const foundMessages = await directMessagesStore.searchDirectMessages('therr',
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -169,7 +169,7 @@ describe('Integration Tests - Direct Messages', () => {
             })));
 
             // Get first page
-            const page1 = await directMessagesStore.searchDirectMessages('therr', 
+            const page1 = await directMessagesStore.searchDirectMessages('therr',
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 1 },
@@ -181,7 +181,7 @@ describe('Integration Tests - Direct Messages', () => {
             );
 
             // Get second page
-            const page2 = await directMessagesStore.searchDirectMessages('therr', 
+            const page2 = await directMessagesStore.searchDirectMessages('therr',
                 TEST_USER_2,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 2 },
@@ -217,7 +217,7 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Search with reverse check
-            const foundMessages = await directMessagesStore.searchDirectMessages('therr', 
+            const foundMessages = await directMessagesStore.searchDirectMessages('therr',
                 TEST_USER_1,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
