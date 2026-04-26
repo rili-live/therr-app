@@ -5,8 +5,24 @@ import sendPendingInviteEmail from '../api/email/for-social/retention/sendPendin
 import sendNewGroupMembersEmail from '../api/email/for-social/sendNewGroupMembersEmail';
 import sendNewGroupInviteEmail from '../api/email/for-social/sendNewGroupInviteEmail';
 import * as globalConfig from '../../../../global-config';
+import Store from '../store';
 import { IFindUserArgs } from '../store/UsersStore';
 import translate from './translator';
+
+// Phase 2 of the multi-app data isolation rollout. Look up the brand-scoped device token first,
+// fall back to the legacy users.deviceMobileFirebaseToken column when no row exists yet (users
+// whose device hasn't re-registered against the new endpoint). After mobile clients have
+// re-registered (typically on next app open) and shadow logs are clean for one release cycle,
+// the fallback can be deleted.
+const resolveDeviceTokenForBrand = async (
+    brand: string,
+    toUserId: string,
+    legacyToken: string | null | undefined,
+): Promise<string | null | undefined> => {
+    if (!brand || !toUserId) return legacyToken;
+    const rows = await Store.userDeviceTokens.getTokensForUser(brand, toUserId).catch(() => [] as { token: string }[]);
+    return rows[0]?.token || legacyToken;
+};
 
 export interface ISendPushNotification extends PushNotifications.INotificationData {
     authorization: any;
@@ -53,12 +69,17 @@ export default (
         shouldSendEmail: true,
     },
 ): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email', 'isUnclaimed', 'settingsEmailInvites', 'settingsLocale'])
-    .then((userResults) => {
+    .then(async (userResults) => {
         const destinationUser = userResults?.[0];
         if (!destinationUser || destinationUser.isUnclaimed) {
             // Don't send notification/email
             return Promise.resolve({});
         }
+        const resolvedDeviceToken = await resolveDeviceTokenForBrand(
+            brandVariation,
+            toUserId,
+            destinationUser.deviceMobileFirebaseToken,
+        );
 
         const emailLocale = (destinationUser as any).settingsLocale || locale || 'en-us';
         let sendEmail: () => Promise<any> = () => Promise.resolve();
@@ -161,7 +182,7 @@ export default (
                     groupName,
                     groupMembersList: fromUserNames,
                     postType,
-                    toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
+                    toUserDeviceToken: resolvedDeviceToken,
                     type,
                     thought,
                     // achievementsCount,

@@ -6,6 +6,7 @@ import {
 } from 'therr-js-utilities/constants';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import normalizeEmail from 'normalize-email';
+import { getBrandContext } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
 import { hashPassword } from '../../utilities/userHelpers';
@@ -394,8 +395,10 @@ const createUserHelper = (
                 });
             }
 
-            // Fire and forget: Create initial achievement so user is aware of invite rewards
-            Store.userAchievements.create([
+            // Fire and forget: Create initial achievement so user is aware of invite rewards.
+            // Use the registering brand so a Habits signup doesn't pre-seed Therr achievements.
+            const { brandVariation: registrationBrand } = getBrandContext(headers as Record<string, any>);
+            Store.userAchievements.create(registrationBrand, [
                 {
                     achievementId: 'socialite_1_1',
                     userId: user.id,

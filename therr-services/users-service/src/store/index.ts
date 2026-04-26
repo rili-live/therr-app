@@ -15,6 +15,7 @@ import SubscribersStore from './SubscribersStore';
 import ThoughtsStore from './ThoughtsStore';
 import UserAchievementsStore from './UserAchievementsStore';
 import UserConnectionsStore from './UserConnectionsStore';
+import UserDeviceTokensStore from './UserDeviceTokensStore';
 import UserInterestsStore from './UserInterestsStore';
 import UserMetricsStore from './UserMetricsStore';
 import UserLocationsStore from './UserLocationsStore';
@@ -56,6 +57,8 @@ class Store {
     userAchievements: UserAchievementsStore;
 
     userConnections: UserConnectionsStore;
+
+    userDeviceTokens: UserDeviceTokensStore;
 
     userInterests: UserInterestsStore;
 
@@ -104,6 +107,7 @@ class Store {
         this.users = new UsersStore(this.db);
         this.userAchievements = new UserAchievementsStore(this.db);
         this.userConnections = new UserConnectionsStore(this.db);
+        this.userDeviceTokens = new UserDeviceTokensStore(this.db);
         this.userInterests = new UserInterestsStore(this.db);
         this.userMetrics = new UserMetricsStore(this.db);
         this.userLocations = new UserLocationsStore(this.db);

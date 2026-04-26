@@ -1,5 +1,6 @@
 import { achievementsByClass } from 'therr-js-utilities/config';
 import { Notifications } from 'therr-js-utilities/constants';
+import { getBrandContext } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
@@ -24,7 +25,9 @@ const createOrUpdateAchievement: (
         return Promise.reject(Error('invalid-achievement-class'));
     }
 
-    return Store.userAchievements.get({
+    const { brandVariation } = getBrandContext(headers as Record<string, any>);
+
+    return Store.userAchievements.get(brandVariation, {
         userId: headers['x-userid'] || '',
         achievementTier,
         achievementClass,
@@ -36,7 +39,7 @@ const createOrUpdateAchievement: (
             .filter((key:string) => achievementsInClass[key].tier === achievementTier);
         const tierAchievementsArr = tierAchievementKeys.map((key) => ({ ...achievementsInClass[key], id: key }));
 
-        return Store.userAchievements.updateAndCreateConsecutive({
+        return Store.userAchievements.updateAndCreateConsecutive(brandVariation, {
             userId: headers['x-userid'] || '',
             achievementClass,
             achievementTier,

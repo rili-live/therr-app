@@ -10,14 +10,14 @@ describe('ForumMessagesStore', () => {
 
     describe('countRecords', () => {
         it('queries for total records with filter', () => {
-            const expected = `select count(*) from "main"."forumMessages" where "isAnnouncement" = false`;
+            const expected = `select count(*) from "main"."forumMessages" where "main.forumMessages.brandVariation" = 'therr' and "isAnnouncement" = false`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ count: '10' }] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            store.countRecords({
+            const store = new ForumMessagesStore(mockStore as any);
+            store.countRecords('therr', {
                 filterBy: 'isAnnouncement',
                 query: false,
             });
@@ -31,8 +31,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ count: '25' }] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            const result = await store.countRecords({});
+            const store = new ForumMessagesStore(mockStore as any);
+            const result = await store.countRecords('therr', {});
 
             expect(result).to.be.an('array');
             expect(result[0].count).to.equal('25');
@@ -47,8 +47,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            store.searchForumMessages(forumId, {
+            const store = new ForumMessagesStore(mockStore as any);
+            store.searchForumMessages('therr', forumId, {
                 pagination: {
                     itemsPerPage: 20,
                     pageNumber: 1,
@@ -68,8 +68,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            store.searchForumMessages(1, {
+            const store = new ForumMessagesStore(mockStore as any);
+            store.searchForumMessages('therr', 1, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             }, []);
 
@@ -83,8 +83,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            store.searchForumMessages(1, {
+            const store = new ForumMessagesStore(mockStore as any);
+            store.searchForumMessages('therr', 1, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             }, []);
 
@@ -98,8 +98,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            store.searchForumMessages(1, {
+            const store = new ForumMessagesStore(mockStore as any);
+            store.searchForumMessages('therr', 1, {
                 pagination: { itemsPerPage: 15, pageNumber: 3 },
             }, []);
 
@@ -114,8 +114,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            store.searchForumMessages(1, {
+            const store = new ForumMessagesStore(mockStore as any);
+            store.searchForumMessages('therr', 1, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
                 filterBy: 'fromUserId',
                 filterOperator: '=',
@@ -132,8 +132,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            store.searchForumMessages(1, {
+            const store = new ForumMessagesStore(mockStore as any);
+            store.searchForumMessages('therr', 1, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
                 filterBy: 'message',
                 filterOperator: 'ilike',
@@ -158,8 +158,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: mockMessages })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            const result = await store.searchForumMessages(1, {
+            const store = new ForumMessagesStore(mockStore as any);
+            const result = await store.searchForumMessages('therr', 1, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             }, []);
 
@@ -174,8 +174,8 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
-            store.searchForumMessages(1, {
+            const store = new ForumMessagesStore(mockStore as any);
+            store.searchForumMessages('therr', 1, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             }, ['id', 'message', 'createdAt']);
 
@@ -191,7 +191,7 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: 1, updatedAt: new Date() }] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
+            const store = new ForumMessagesStore(mockStore as any);
 
             const params: ICreateForumMessageParams = {
                 forumId: 1,
@@ -201,7 +201,7 @@ describe('ForumMessagesStore', () => {
                 isAnnouncement: false,
             };
 
-            store.createForumMessage(params);
+            store.createForumMessage('therr', params);
 
             const queryString = mockStore.write.query.args[0][0];
             expect(queryString).to.include('insert into "main"."forumMessages"');
@@ -219,9 +219,9 @@ describe('ForumMessagesStore', () => {
                     })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
+            const store = new ForumMessagesStore(mockStore as any);
 
-            const result = await store.createForumMessage({
+            const result = await store.createForumMessage('therr', {
                 forumId: 1,
                 message: 'Test',
                 fromUserId: 'user-1',
@@ -240,9 +240,9 @@ describe('ForumMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: 1, updatedAt: new Date() }] })),
                 },
             };
-            const store = new ForumMessagesStore(mockStore);
+            const store = new ForumMessagesStore(mockStore as any);
 
-            store.createForumMessage({
+            store.createForumMessage('therr', {
                 forumId: 1,
                 message: 'Important announcement',
                 fromUserId: 'admin-user',

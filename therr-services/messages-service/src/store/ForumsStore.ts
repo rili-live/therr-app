@@ -1,12 +1,16 @@
 import KnexBuilder, { Knex } from 'knex';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import { getDbCountQueryString } from 'therr-js-utilities/db';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { CATEGORIES_TABLE_NAME } from './CategoriesStore';
 import { IConnection } from './connection';
 import { FORUM_CATEGORIES_TABLE_NAME } from './ForumCategoriesStore';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
 export const FORUMS_TABLE_NAME = 'main.forums';
 
 export interface ICreateForumParams {
@@ -74,39 +78,43 @@ export interface ISearchForumOptions {
     nearbyMaxDistanceKm?: number;
 }
 
-export default class ForumsStore {
-    db: IConnection;
-
-    constructor(dbConnection) {
-        this.db = dbConnection;
+export default class ForumsStore extends BrandScopedStore {
+    constructor(dbConnection: IConnection) {
+        // Brand-scoped per docs/NICHE_APP_DATABASE_GUIDELINES.md.
+        super(dbConnection, FORUMS_TABLE_NAME, 'shadow');
     }
 
     // TODO: Update to actually match searchForums (infinite scroll)
-    countRecords(params) {
+    countRecords(brand: BrandValue, params) {
+        this.assertBrand(brand);
         const queryString = getDbCountQueryString({
             queryBuilder: knexBuilder,
             tableName: FORUMS_TABLE_NAME,
             params,
-            defaultConditions: {},
+            defaultConditions: { [`${FORUMS_TABLE_NAME}.brandVariation`]: brand },
         });
 
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    getForum(id: string) {
+    getForum(brand: BrandValue, id: string) {
+        this.assertBrand(brand);
         const forumQueryString = knexBuilder.select('*')
             .from(FORUMS_TABLE_NAME)
             .where({
                 id,
+                brandVariation: brand,
             })
             .toString();
 
         return this.db.write.query(forumQueryString).then((response) => response.rows);
     }
 
-    getForums(conditions: any, orConditions: any, isNotArchived = true) {
+    getForums(brand: BrandValue, conditions: any, orConditions: any, isNotArchived = true) {
+        this.assertBrand(brand);
         let forumQueryString = knexBuilder.select('*')
-            .from(FORUMS_TABLE_NAME);
+            .from(FORUMS_TABLE_NAME)
+            .where(`${FORUMS_TABLE_NAME}.brandVariation`, '=', brand);
 
         if (isNotArchived) {
             forumQueryString = forumQueryString.whereNull('archivedAt');
@@ -115,22 +123,29 @@ export default class ForumsStore {
         forumQueryString = forumQueryString.where(conditions);
 
         if (orConditions) {
-            forumQueryString = forumQueryString.orWhere(orConditions);
+            // Ensure the OR branch retains the brand filter so a Habits query can't surface a
+            // Therr-stamped forum via the orWhere clause.
+            forumQueryString = forumQueryString.orWhere((qb) => {
+                qb.where(`${FORUMS_TABLE_NAME}.brandVariation`, '=', brand).where(orConditions);
+            });
         }
 
         return this.db.write.query(forumQueryString.toString()).then((response) => response.rows);
     }
 
-    findForums(ids: string[]) {
+    findForums(brand: BrandValue, ids: string[]) {
+        this.assertBrand(brand);
         const queryString = knexBuilder.select(['id', 'title'])
             .from(FORUMS_TABLE_NAME)
             .whereIn('id', ids)
+            .andWhere(`${FORUMS_TABLE_NAME}.brandVariation`, '=', brand)
             .toString();
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     // eslint-disable-next-line default-param-last
-    async searchForums(conditions: any = {}, returning, options: ISearchForumOptions) {
+    async searchForums(brand: BrandValue, conditions: any = {}, returning, options: ISearchForumOptions) {
+        this.assertBrand(brand);
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knexBuilder
@@ -172,7 +187,8 @@ export default class ForumsStore {
             ])
             .orderBy(`${FORUMS_TABLE_NAME}.updatedAt`, conditions.order)
             .whereNull('archivedAt')
-            .where('isPublic', !options.usersInvitedForumIds);
+            .where('isPublic', !options.usersInvitedForumIds)
+            .andWhere(`${FORUMS_TABLE_NAME}.brandVariation`, '=', brand);
 
         if (options.usersInvitedForumIds) {
             queryString = queryString.whereIn('id', options.usersInvitedForumIds);
@@ -228,7 +244,7 @@ export default class ForumsStore {
         });
     }
 
-    createForum(params: ICreateForumParams) {
+    createForum(brand: BrandValue, params: ICreateForumParams) {
         const forumParams: IUpdateForumParams = {
             ...params,
             administratorIds: params.administratorIds,
@@ -239,8 +255,7 @@ export default class ForumsStore {
 
         delete forumParams.categoryTags;
 
-        const queryString = knexBuilder.insert(forumParams)
-            .into(FORUMS_TABLE_NAME)
+        const queryString = this.scopedInsert(brand, forumParams as Record<string, unknown>)
             .returning('*')
             .toString();
 
@@ -259,7 +274,7 @@ export default class ForumsStore {
         });
     }
 
-    updateForum(conditions: IUpdateForumConditions, params: IUpdateForumParams) {
+    updateForum(brand: BrandValue, conditions: IUpdateForumConditions, params: IUpdateForumParams) {
         const forumParams = {
             ...params,
         };
@@ -267,43 +282,38 @@ export default class ForumsStore {
         delete forumParams.categoryTags;
 
         // TODO: Updated categories (sql transaction)
-        // params.categoryTags.forEach((tag) => [
 
-        // ]);
-
-        const forumQueryString = knexBuilder.update({
-            ...forumParams,
-            updatedAt: new Date(),
-        })
-            .into(FORUMS_TABLE_NAME)
-            .where(conditions)
+        const forumQueryString = this.scopedUpdate(brand, conditions as unknown as Record<string, unknown>)
+            .update({
+                ...forumParams,
+                updatedAt: new Date(),
+            })
             .returning(['id'])
             .toString();
 
         return this.db.write.query(forumQueryString).then((response) => response.rows);
     }
 
-    archiveForum(conditions: {
+    archiveForum(brand: BrandValue, conditions: {
         id: string,
         authorId: string; // to prevent non-owner from archiving
     }) {
-        const forumQueryString = knexBuilder.update({
-            archivedAt: new Date(),
-        })
-            .into(FORUMS_TABLE_NAME)
-            .where(conditions)
+        const forumQueryString = this.scopedUpdate(brand, conditions as unknown as Record<string, unknown>)
+            .update({
+                archivedAt: new Date(),
+            })
             .returning(['id'])
             .toString();
 
         return this.db.write.query(forumQueryString).then((response) => response.rows);
     }
 
-    deleteForum(id: string) {
-        const forumQueryString = knexBuilder.delete()
-            .into(FORUMS_TABLE_NAME)
-            .where({
-                id,
-            })
+    deleteForum(brand: BrandValue, id: string) {
+        this.assertBrand(brand);
+        const forumQueryString = knexBuilder
+            .from(FORUMS_TABLE_NAME)
+            .where({ id, brandVariation: brand })
+            .delete()
             .returning(['id'])
             .toString();
 

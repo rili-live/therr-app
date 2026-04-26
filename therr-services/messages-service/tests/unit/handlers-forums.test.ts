@@ -21,7 +21,7 @@ describe('Forums Handler', () => {
 
             const createForumStub = sinon.stub(Store.forums, 'createForum').resolves([mockForum]);
 
-            const result = await Store.forums.createForum({
+            const result = await Store.forums.createForum('therr', {
                 authorId: 'user-1',
                 authorLocale: 'en-us',
                 administratorIds: 'user-1',
@@ -43,7 +43,7 @@ describe('Forums Handler', () => {
         it('should create forum with category associations', async () => {
             const createForumStub = sinon.stub(Store.forums, 'createForum').resolves([{ id: 'forum-1' }]);
 
-            await Store.forums.createForum({
+            await Store.forums.createForum('therr', {
                 authorId: 'user-1',
                 authorLocale: 'en-us',
                 administratorIds: 'user-1',
@@ -57,14 +57,14 @@ describe('Forums Handler', () => {
             });
 
             expect(createForumStub.calledOnce).to.be.eq(true);
-            const callArgs = createForumStub.args[0][0];
+            const callArgs = createForumStub.args[0][1];
             expect(callArgs.categoryTags).to.deep.equal(['tech', 'programming', 'javascript']);
         });
 
         it('should set default values for optional fields', async () => {
             const createForumStub = sinon.stub(Store.forums, 'createForum').resolves([{ id: 'forum-1' }]);
 
-            await Store.forums.createForum({
+            await Store.forums.createForum('therr', {
                 authorId: 'user-1',
                 authorLocale: 'en-us',
                 administratorIds: 'user-1',
@@ -79,7 +79,7 @@ describe('Forums Handler', () => {
                 doesExpire: true,
             });
 
-            const callArgs = createForumStub.args[0][0];
+            const callArgs = createForumStub.args[0][1];
             expect(callArgs.maxCommentsPerMin).to.equal(50);
             expect(callArgs.doesExpire).to.be.eq(true);
         });
@@ -95,7 +95,7 @@ describe('Forums Handler', () => {
 
             const getForumStub = sinon.stub(Store.forums, 'getForum').resolves([mockForum]);
 
-            const result = await Store.forums.getForum('forum-123');
+            const result = await Store.forums.getForum('therr', 'forum-123');
 
             expect(getForumStub.calledOnce).to.be.eq(true);
             expect(getForumStub.calledWith('forum-123')).to.be.eq(true);
@@ -105,7 +105,7 @@ describe('Forums Handler', () => {
         it('should return empty array when forum not found', async () => {
             const getForumStub = sinon.stub(Store.forums, 'getForum').resolves([]);
 
-            const result = await Store.forums.getForum('nonexistent-id');
+            const result = await Store.forums.getForum('therr', 'nonexistent-id');
 
             expect(result).to.be.an('array');
             expect(result.length).to.equal(0);
@@ -116,7 +116,7 @@ describe('Forums Handler', () => {
         it('should filter out archived forums by default', async () => {
             const getForumsStub = sinon.stub(Store.forums, 'getForums').resolves([]);
 
-            await Store.forums.getForums({ authorId: 'user-1' }, null, true);
+            await Store.forums.getForums('therr', { authorId: 'user-1' }, null, true);
 
             expect(getForumsStub.calledOnce).to.be.eq(true);
             expect(getForumsStub.args[0][2]).to.be.eq(true);
@@ -125,7 +125,7 @@ describe('Forums Handler', () => {
         it('should include archived forums when flag is false', async () => {
             const getForumsStub = sinon.stub(Store.forums, 'getForums').resolves([]);
 
-            await Store.forums.getForums({ authorId: 'user-1' }, null, false);
+            await Store.forums.getForums('therr', { authorId: 'user-1' }, null, false);
 
             expect(getForumsStub.args[0][2]).to.be.eq(false);
         });
@@ -133,7 +133,7 @@ describe('Forums Handler', () => {
         it('should apply OR conditions', async () => {
             const getForumsStub = sinon.stub(Store.forums, 'getForums').resolves([]);
 
-            await Store.forums.getForums(
+            await Store.forums.getForums('therr', 
                 { authorId: 'user-1', title: 'Title1' },
                 { authorId: 'user-1', subtitle: 'Sub1' },
             );
@@ -151,7 +151,7 @@ describe('Forums Handler', () => {
 
             const findForumsStub = sinon.stub(Store.forums, 'findForums').resolves(mockForums);
 
-            const result = await Store.forums.findForums(['forum-1', 'forum-2']);
+            const result = await Store.forums.findForums('therr', ['forum-1', 'forum-2']);
 
             expect(findForumsStub.calledOnce).to.be.eq(true);
             expect(result.length).to.equal(2);
@@ -164,7 +164,7 @@ describe('Forums Handler', () => {
 
             const findForumsStub = sinon.stub(Store.forums, 'findForums').resolves(mockForums);
 
-            const result = await Store.forums.findForums(['forum-1']);
+            const result = await Store.forums.findForums('therr', ['forum-1']);
 
             expect(result[0]).to.have.property('id');
             expect(result[0]).to.have.property('title');
@@ -175,7 +175,7 @@ describe('Forums Handler', () => {
         it('should search public forums with pagination', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums(
+            await Store.forums.searchForums('therr', 
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -190,7 +190,7 @@ describe('Forums Handler', () => {
         it('should filter by invited forum IDs for private forums', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums(
+            await Store.forums.searchForums('therr', 
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -205,7 +205,7 @@ describe('Forums Handler', () => {
         it('should filter by category tags', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums(
+            await Store.forums.searchForums('therr', 
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -220,7 +220,7 @@ describe('Forums Handler', () => {
         it('should apply text filter with ilike', async () => {
             const searchForumsStub = sinon.stub(Store.forums, 'searchForums').resolves([]);
 
-            await Store.forums.searchForums(
+            await Store.forums.searchForums('therr', 
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -232,8 +232,8 @@ describe('Forums Handler', () => {
                 {},
             );
 
-            expect(searchForumsStub.args[0][0].filterBy).to.equal('title');
-            expect(searchForumsStub.args[0][0].filterOperator).to.equal('ilike');
+            expect(searchForumsStub.args[0][1].filterBy).to.equal('title');
+            expect(searchForumsStub.args[0][1].filterOperator).to.equal('ilike');
         });
     });
 
@@ -241,19 +241,19 @@ describe('Forums Handler', () => {
         it('should update forum with author authorization', async () => {
             const updateForumStub = sinon.stub(Store.forums, 'updateForum').resolves([{ id: 'forum-123' }]);
 
-            await Store.forums.updateForum(
+            await Store.forums.updateForum('therr', 
                 { id: 'forum-123', authorId: 'user-1' },
                 { title: ['Updated Title'] },
             );
 
             expect(updateForumStub.calledOnce).to.be.eq(true);
-            expect(updateForumStub.args[0][0].authorId).to.equal('user-1');
+            expect(updateForumStub.args[0][1].authorId).to.equal('user-1');
         });
 
         it('should update multiple fields', async () => {
             const updateForumStub = sinon.stub(Store.forums, 'updateForum').resolves([{ id: 'forum-123' }]);
 
-            await Store.forums.updateForum(
+            await Store.forums.updateForum('therr', 
                 { id: 'forum-123' },
                 {
                     title: ['New Title'],
@@ -263,7 +263,7 @@ describe('Forums Handler', () => {
                 },
             );
 
-            const updateParams = updateForumStub.args[0][1];
+            const updateParams = updateForumStub.args[0][2];
             expect(updateParams.title).to.deep.equal(['New Title']);
             expect(updateParams.subtitle).to.deep.equal(['New Subtitle']);
             expect(updateParams.isPublic).to.be.eq(false);
@@ -274,20 +274,20 @@ describe('Forums Handler', () => {
         it('should archive forum with author authorization', async () => {
             const archiveForumStub = sinon.stub(Store.forums, 'archiveForum').resolves([{ id: 'forum-123' }]);
 
-            await Store.forums.archiveForum({
+            await Store.forums.archiveForum('therr', {
                 id: 'forum-123',
                 authorId: 'user-1',
             });
 
             expect(archiveForumStub.calledOnce).to.be.eq(true);
-            expect(archiveForumStub.args[0][0].id).to.equal('forum-123');
-            expect(archiveForumStub.args[0][0].authorId).to.equal('user-1');
+            expect(archiveForumStub.args[0][1].id).to.equal('forum-123');
+            expect(archiveForumStub.args[0][1].authorId).to.equal('user-1');
         });
 
         it('should return archived forum id', async () => {
             const archiveForumStub = sinon.stub(Store.forums, 'archiveForum').resolves([{ id: 'forum-123' }]);
 
-            const result = await Store.forums.archiveForum({
+            const result = await Store.forums.archiveForum('therr', {
                 id: 'forum-123',
                 authorId: 'user-1',
             });
@@ -300,7 +300,7 @@ describe('Forums Handler', () => {
         it('should hard delete forum by id', async () => {
             const deleteForumStub = sinon.stub(Store.forums, 'deleteForum').resolves([{ id: 'forum-123' }]);
 
-            await Store.forums.deleteForum('forum-123');
+            await Store.forums.deleteForum('therr', 'forum-123');
 
             expect(deleteForumStub.calledOnce).to.be.eq(true);
             expect(deleteForumStub.calledWith('forum-123')).to.be.eq(true);

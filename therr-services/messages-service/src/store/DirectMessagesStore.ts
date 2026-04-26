@@ -1,10 +1,14 @@
 import KnexBuilder, { Knex } from 'knex';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import { getDbCountQueryString } from 'therr-js-utilities/db';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
 export const DIRECT_MESSAGES_TABLE_NAME = 'main.directMessages';
 
 export interface ICreateDirectMessageParams {
@@ -24,31 +28,34 @@ export interface IUpdateDirectMessageParams {
     isUnread?: boolean;
 }
 
-export default class DirectMessagesStore {
-    db: IConnection;
-
-    constructor(dbConnection) {
-        this.db = dbConnection;
+export default class DirectMessagesStore extends BrandScopedStore {
+    constructor(dbConnection: IConnection) {
+        // Brand-scoped per docs/NICHE_APP_DATABASE_GUIDELINES.md.
+        // Stays in 'shadow' for one release cycle alongside the other Phase 3 stores.
+        super(dbConnection, DIRECT_MESSAGES_TABLE_NAME, 'shadow');
     }
 
-    countRecords(params) {
+    countRecords(brand: BrandValue, params) {
+        this.assertBrand(brand);
         const queryString = getDbCountQueryString({
             queryBuilder: knexBuilder,
             tableName: DIRECT_MESSAGES_TABLE_NAME,
             params,
-            defaultConditions: {},
+            defaultConditions: { [`${DIRECT_MESSAGES_TABLE_NAME}.brandVariation`]: brand },
         });
 
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     // eslint-disable-next-line default-param-last
-    searchDirectMessages(userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
+    searchDirectMessages(brand: BrandValue, userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
+        this.assertBrand(brand);
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(DIRECT_MESSAGES_TABLE_NAME)
+            .where(`${DIRECT_MESSAGES_TABLE_NAME}.brandVariation`, '=', brand)
             .orderBy(`${DIRECT_MESSAGES_TABLE_NAME}.updatedAt`, 'desc');
 
         if (conditions.filterBy && conditions.query) {
@@ -57,7 +64,10 @@ export default class DirectMessagesStore {
             queryString = queryString.where('toUserId', userId).andWhere(conditions.filterBy, operator, query);
             if (shouldCheckReverse === 'true' && conditions.filterBy === 'fromUserId') {
                 queryString = queryString.orWhere('fromUserId', userId)
-                    .andWhere('toUserId', operator, query);
+                    .andWhere('toUserId', operator, query)
+                    // The orWhere() above resets brand isolation in the OR branch — re-apply it
+                    // so a Habits client's reverse search can't surface a Therr-stamped DM.
+                    .andWhere(`${DIRECT_MESSAGES_TABLE_NAME}.brandVariation`, '=', brand);
             }
         }
 
@@ -72,19 +82,24 @@ export default class DirectMessagesStore {
         });
     }
 
-    searchLatestDMs(userId: string, conditions: any = {}) {
+    searchLatestDMs(brand: BrandValue, userId: string, conditions: any = {}) {
+        this.assertBrand(brand);
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
+        // Brand filter is applied to BOTH the outer SELECT and the inner aggregate so a per-brand
+        // thread is treated as distinct from the cross-brand thread between the same user pair.
         const queryString = knexBuilder.raw(`
         SELECT
             *
         FROM
             "main"."directMessages"
-        WHERE ((least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")), "updatedAt")
+        WHERE "brandVariation" = '${brand}'
+            AND ((least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")), "updatedAt")
         in(
             SELECT
                 (least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")) AS users, max("updatedAt") AS "maxUpdated" FROM "main"."directMessages"
-            WHERE ("fromUserId" = '${userId}'
+            WHERE "brandVariation" = '${brand}'
+                AND ("fromUserId" = '${userId}'
                 OR "toUserId" = '${userId}')
         GROUP BY
             users
@@ -99,9 +114,8 @@ export default class DirectMessagesStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    createDirectMessage(params: ICreateDirectMessageParams) {
-        const queryString = knexBuilder.insert(params)
-            .into(DIRECT_MESSAGES_TABLE_NAME)
+    createDirectMessage(brand: BrandValue, params: ICreateDirectMessageParams) {
+        const queryString = this.scopedInsert(brand, { ...params })
             .returning(['id', 'updatedAt'])
             .toString();
 

@@ -21,7 +21,7 @@ describe('Forum Messages Handler', () => {
 
             const createMessageStub = sinon.stub(Store.forumMessages, 'createForumMessage').resolves([mockMessage]);
 
-            const result = await Store.forumMessages.createForumMessage({
+            const result = await Store.forumMessages.createForumMessage('therr', {
                 forumId: 123,
                 message: 'Hello forum!',
                 fromUserId: 'user-1',
@@ -38,7 +38,7 @@ describe('Forum Messages Handler', () => {
         it('should create an announcement message', async () => {
             const createMessageStub = sinon.stub(Store.forumMessages, 'createForumMessage').resolves([{ id: 1 }]);
 
-            await Store.forumMessages.createForumMessage({
+            await Store.forumMessages.createForumMessage('therr', {
                 forumId: 123,
                 message: 'Important announcement!',
                 fromUserId: 'admin-user',
@@ -47,21 +47,21 @@ describe('Forum Messages Handler', () => {
             });
 
             expect(createMessageStub.calledOnce).to.be.eq(true);
-            const callArgs = createMessageStub.args[0][0];
+            const callArgs = createMessageStub.args[0][1];
             expect(callArgs.isAnnouncement).to.be.eq(true);
         });
 
         it('should include fromUserLocale', async () => {
             const createMessageStub = sinon.stub(Store.forumMessages, 'createForumMessage').resolves([{ id: 1 }]);
 
-            await Store.forumMessages.createForumMessage({
+            await Store.forumMessages.createForumMessage('therr', {
                 forumId: 123,
                 message: 'Message',
                 fromUserId: 'user-1',
                 fromUserLocale: 2, // Different locale
             });
 
-            const callArgs = createMessageStub.args[0][0];
+            const callArgs = createMessageStub.args[0][1];
             expect(callArgs.fromUserLocale).to.equal(2);
         });
 
@@ -72,7 +72,7 @@ describe('Forum Messages Handler', () => {
                 updatedAt,
             }]);
 
-            const result = await Store.forumMessages.createForumMessage({
+            const result = await Store.forumMessages.createForumMessage('therr', {
                 forumId: 1,
                 message: 'Test',
                 fromUserId: 'user-1',
@@ -97,7 +97,7 @@ describe('Forum Messages Handler', () => {
 
             const searchStub = sinon.stub(Store.forumMessages, 'searchForumMessages').resolves(mockMessages);
 
-            const result = await Store.forumMessages.searchForumMessages(
+            const result = await Store.forumMessages.searchForumMessages('therr', 
                 123,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -114,7 +114,7 @@ describe('Forum Messages Handler', () => {
         it('should filter messages by fromUserId', async () => {
             const searchStub = sinon.stub(Store.forumMessages, 'searchForumMessages').resolves([]);
 
-            await Store.forumMessages.searchForumMessages(
+            await Store.forumMessages.searchForumMessages('therr', 
                 123,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -132,7 +132,7 @@ describe('Forum Messages Handler', () => {
         it('should support text search with ilike', async () => {
             const searchStub = sinon.stub(Store.forumMessages, 'searchForumMessages').resolves([]);
 
-            await Store.forumMessages.searchForumMessages(
+            await Store.forumMessages.searchForumMessages('therr', 
                 123,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -149,7 +149,7 @@ describe('Forum Messages Handler', () => {
         it('should handle page 2 correctly', async () => {
             const searchStub = sinon.stub(Store.forumMessages, 'searchForumMessages').resolves([]);
 
-            await Store.forumMessages.searchForumMessages(
+            await Store.forumMessages.searchForumMessages('therr', 
                 123,
                 {
                     pagination: { itemsPerPage: 20, pageNumber: 2 },
@@ -166,7 +166,7 @@ describe('Forum Messages Handler', () => {
         it('should count messages with filter', async () => {
             const countStub = sinon.stub(Store.forumMessages, 'countRecords').resolves([{ count: '50' }]);
 
-            const result = await Store.forumMessages.countRecords({
+            const result = await Store.forumMessages.countRecords('therr', {
                 filterBy: 'forumId',
                 query: 123,
             });
@@ -178,7 +178,7 @@ describe('Forum Messages Handler', () => {
         it('should count all messages without filter', async () => {
             const countStub = sinon.stub(Store.forumMessages, 'countRecords').resolves([{ count: '1000' }]);
 
-            const result = await Store.forumMessages.countRecords({});
+            const result = await Store.forumMessages.countRecords('therr', {});
 
             expect(result[0].count).to.equal('1000');
         });
@@ -186,13 +186,13 @@ describe('Forum Messages Handler', () => {
         it('should filter by announcement status', async () => {
             const countStub = sinon.stub(Store.forumMessages, 'countRecords').resolves([{ count: '5' }]);
 
-            await Store.forumMessages.countRecords({
+            await Store.forumMessages.countRecords('therr', {
                 filterBy: 'isAnnouncement',
                 query: true,
             });
 
-            expect(countStub.args[0][0].filterBy).to.equal('isAnnouncement');
-            expect(countStub.args[0][0].query).to.be.eq(true);
+            expect(countStub.args[0][1].filterBy).to.equal('isAnnouncement');
+            expect(countStub.args[0][1].query).to.be.eq(true);
         });
     });
 });

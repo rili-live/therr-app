@@ -10,14 +10,14 @@ describe('DirectMessagesStore', () => {
 
     describe('countRecords', () => {
         it('queries for total records with filter', () => {
-            const expected = `select count(*) from "main"."directMessages" where "isUnread" = false`;
+            const expected = `select count(*) from "main"."directMessages" where "main.directMessages.brandVariation" = 'therr' and "isUnread" = false`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ count: '5' }] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.countRecords({
+            const store = new DirectMessagesStore(mockStore as any);
+            store.countRecords('therr', {
                 filterBy: 'isUnread',
                 query: false,
             });
@@ -31,8 +31,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ count: '15' }] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            const result = await store.countRecords({});
+            const store = new DirectMessagesStore(mockStore as any);
+            const result = await store.countRecords('therr', {});
 
             expect(result).to.be.an('array');
             expect(result[0].count).to.equal('15');
@@ -41,14 +41,14 @@ describe('DirectMessagesStore', () => {
 
     describe('searchDirectMessages', () => {
         it('queries and paginates response', () => {
-            const expected = `select * from "main"."directMessages" where "toUserId" = 10 and "main"."directMessages"."toUserId" > 7 order by "main"."directMessages"."updatedAt" desc limit 100 offset 100`;
+            const expected = `select * from "main"."directMessages" where "main"."directMessages"."brandVariation" = 'therr' and "toUserId" = 10 and "main"."directMessages"."toUserId" > 7 order by "main"."directMessages"."updatedAt" desc limit 100 offset 100`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.searchDirectMessages(10, {
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchDirectMessages('therr', 10, {
                 pagination: {
                     itemsPerPage: 100,
                     pageNumber: 2,
@@ -67,8 +67,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.searchDirectMessages('user-1', {
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchDirectMessages('therr', 'user-1', {
                 pagination: { itemsPerPage: 20, pageNumber: 1 },
             }, []);
 
@@ -84,8 +84,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.searchDirectMessages('user-1', {
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchDirectMessages('therr', 'user-1', {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             }, []);
 
@@ -99,8 +99,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.searchDirectMessages('user-1', {
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchDirectMessages('therr', 'user-1', {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
                 filterBy: 'message',
                 filterOperator: 'ilike',
@@ -117,8 +117,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.searchDirectMessages('user-1', {
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchDirectMessages('therr', 'user-1', {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
                 filterBy: 'fromUserId',
                 filterOperator: '=',
@@ -146,8 +146,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: mockMessages })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            const result = await store.searchDirectMessages('user-1', {
+            const store = new DirectMessagesStore(mockStore as any);
+            const result = await store.searchDirectMessages('therr', 'user-1', {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             }, []);
 
@@ -163,8 +163,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.searchLatestDMs('user-123', {
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchLatestDMs('therr', 'user-123', {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             });
 
@@ -181,8 +181,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.searchLatestDMs('user-123', {
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchLatestDMs('therr', 'user-123', {
                 pagination: { itemsPerPage: 15, pageNumber: 3 },
             });
 
@@ -197,8 +197,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            store.searchLatestDMs('user-123', {
+            const store = new DirectMessagesStore(mockStore as any);
+            store.searchLatestDMs('therr', 'user-123', {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             });
 
@@ -221,8 +221,8 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: mockConversations })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
-            const result = await store.searchLatestDMs('user-123', {
+            const store = new DirectMessagesStore(mockStore as any);
+            const result = await store.searchLatestDMs('therr', 'user-123', {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             });
 
@@ -238,7 +238,7 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: '1', updatedAt: new Date() }] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
+            const store = new DirectMessagesStore(mockStore as any);
 
             const params: ICreateDirectMessageParams = {
                 message: 'Hello there!',
@@ -248,7 +248,7 @@ describe('DirectMessagesStore', () => {
                 locale: 'en-us',
             };
 
-            store.createDirectMessage(params);
+            store.createDirectMessage('therr', params);
 
             const queryString = mockStore.write.query.args[0][0];
             expect(queryString).to.include('insert into "main"."directMessages"');
@@ -268,9 +268,9 @@ describe('DirectMessagesStore', () => {
                     })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
+            const store = new DirectMessagesStore(mockStore as any);
 
-            const result = await store.createDirectMessage({
+            const result = await store.createDirectMessage('therr', {
                 message: 'Test',
                 toUserId: 'user-2',
                 fromUserId: 'user-1',
@@ -290,9 +290,9 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: '1', updatedAt: new Date() }] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
+            const store = new DirectMessagesStore(mockStore as any);
 
-            store.createDirectMessage({
+            store.createDirectMessage('therr', {
                 message: 'Test',
                 toUserId: 'user-2',
                 fromUserId: 'user-1',
@@ -310,9 +310,9 @@ describe('DirectMessagesStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: '1', updatedAt: new Date() }] })),
                 },
             };
-            const store = new DirectMessagesStore(mockStore);
+            const store = new DirectMessagesStore(mockStore as any);
 
-            store.createDirectMessage({
+            store.createDirectMessage('therr', {
                 message: 'Bonjour',
                 toUserId: 'user-2',
                 fromUserId: 'user-1',
