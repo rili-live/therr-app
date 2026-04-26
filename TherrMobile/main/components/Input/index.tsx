@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, TextInputProps } from 'react-native';
+import { Platform, StyleSheet, View, TextInputProps } from 'react-native';
 import { TextInput as PaperTextInput, HelperText } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../styles/themes';
@@ -8,7 +8,12 @@ const inputStyles = StyleSheet.create({
     transparentBg: {
         backgroundColor: 'transparent',
     },
+    hidden: {
+        display: 'none',
+    },
 });
+
+export type InputVariant = 'round' | 'square' | 'accent';
 
 // Props interface for the BaseInput component.
 export interface IBaseInputProps extends TextInputProps {
@@ -16,6 +21,15 @@ export interface IBaseInputProps extends TextInputProps {
         colors: ITherrThemeColors;
         styles: any;
     };
+    /**
+     * Visual treatment. When set, BaseInput pulls the appropriate overrides
+     * from `themeForms.styles` so callers don't have to thread containerStyle/
+     * inputContainerStyle/inputStyle by hand. When omitted, legacy callers
+     * (which pass those style props explicitly) keep working unchanged.
+     *
+     * Replaces the standalone Round/Square/Accent wrapper components.
+     */
+    variant?: InputVariant;
     containerStyle?: any;
     inputContainerStyle?: any;
     inputStyle?: any;
@@ -53,6 +67,7 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const {
             themeForms,
+            variant,
             containerStyle,
             inputContainerStyle,
             inputStyle,
@@ -69,13 +84,46 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
             paperMode,
             underlineColor: underlineColorProp,
             activeUnderlineColor: activeUnderlineColorProp,
-            underlineStyle,
-            roundness,
+            underlineStyle: underlineStyleProp,
+            roundness: roundnessProp,
             style,
+            value,
+            placeholderTextColor: placeholderTextColorProp,
+            selectionColor: selectionColorProp,
             // Separate TextInput-native props
             ...textInputProps
         } = this.props;
         /* eslint-enable @typescript-eslint/no-unused-vars */
+
+        // Variant-driven style overrides. Each variant matches the existing
+        // Round/Square/Accent wrappers exactly so call sites can swap from
+        // <RoundInput /> to <BaseInput variant="round" /> without visual drift.
+        const variantContainerStyle = variant === 'round'
+            ? themeForms.styles.containerRound
+            : undefined;
+        const variantInputContainerStyle = (() => {
+            if (variant === 'round') return themeForms.styles.inputContainerRound;
+            if (variant === 'square') return themeForms.styles.inputContainerSquare;
+            return undefined;
+        })();
+        const variantInputStyle = (() => {
+            if (variant === 'round') {
+                return Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt;
+            }
+            if (variant === 'accent') return themeForms.styles.inputAccent;
+            return undefined;
+        })();
+        const variantStyle = variant === 'round'
+            ? (!value?.length ? themeForms.styles.placeholderText : themeForms.styles.inputText)
+            : undefined;
+        const variantUnderlineStyle = variant === 'round' ? inputStyles.hidden : undefined;
+        const variantRoundness = variant === 'round' ? 15 : undefined;
+        const variantPlaceholderColor = variant === 'round'
+            ? themeForms.styles.placeholderText.color
+            : undefined;
+        const variantSelectionColor = variant === 'accent'
+            ? themeForms.colors.accentYellow
+            : undefined;
 
         const mode = paperMode || 'flat';
 
@@ -93,30 +141,40 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
         // borderTopRightRadius from theme.roundness (default ~4). Without
         // overriding this, the top corners appear less curved than the bottom
         // corners when a custom borderRadius (e.g. 15) is set in inputContainerStyle.
+        const roundness = roundnessProp ?? variantRoundness;
         const paperTheme = roundness != null ? { roundness } : undefined;
 
+        // Compose the final inputStyle: variant default first, caller override
+        // last. Matches the precedence Round/Square/Accent used to apply.
+        const composedInputStyle = inputStyle != null
+            ? (variantInputStyle != null ? [variantInputStyle, inputStyle] : inputStyle)
+            : variantInputStyle;
+
         return (
-            <View style={containerStyle}>
+            <View style={containerStyle ?? variantContainerStyle}>
                 <PaperTextInput
                     mode={mode}
                     label={label}
                     cursorColor={themeForms.colors.selectionColor as unknown as string}
-                    selectionColor={themeForms.colors.selectionColor as unknown as string}
+                    selectionColor={(selectionColorProp ?? variantSelectionColor ?? themeForms.colors.selectionColor) as unknown as string}
                     underlineColor={underlineColor as string}
                     activeUnderlineColor={activeColor as string}
-                    underlineStyle={underlineStyle}
+                    underlineStyle={underlineStyleProp ?? variantUnderlineStyle}
                     disabled={disabled}
                     error={!!errorMessage}
                     right={right}
                     left={left}
                     theme={paperTheme}
+                    placeholderTextColor={placeholderTextColorProp ?? variantPlaceholderColor}
+                    value={value}
                     style={[
                         inputStyles.transparentBg,
-                        inputContainerStyle,
-                        inputStyle || themeForms.styles.input,
+                        inputContainerStyle ?? variantInputContainerStyle,
+                        composedInputStyle ?? themeForms.styles.input,
+                        variantStyle,
                         style,
                     ]}
-                    contentStyle={inputStyle}
+                    contentStyle={composedInputStyle}
                     {...textInputProps}
                 />
                 {(errorMessage || renderErrorMessage !== false) && errorMessage ? (
