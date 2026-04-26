@@ -17,7 +17,6 @@ import getStore from './getStore';
 import initInterceptors from './interceptors';
 import { FeatureFlagProvider } from './context/FeatureFlagContext';
 import Layout from './components/Layout';
-import OfflineBanner from './components/OfflineBanner';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -206,7 +205,6 @@ class App extends React.Component<any, any> {
             <SafeAreaProvider initialMetrics={initialWindowMetrics}>
                 <Provider store={this.store}>
                     <PersistGate loading={null} persistor={this.persistor}>
-                        <OfflineBanner />
                         <FeatureFlagProvider>
                             <GestureHandlerRootView style={spacingStyles.flexOne}>
                                 <KeyboardProvider>
