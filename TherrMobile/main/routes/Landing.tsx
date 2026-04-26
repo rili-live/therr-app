@@ -15,6 +15,7 @@ import { buildStyles as buildFormStyles } from '../styles/forms';
 import spacingStyles from '../styles/layouts/spacing';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../utilities/translator';
+import { enableEdgeToEdge, disableEdgeToEdge } from '../utilities/edgeToEdge';
 import BaseStatusBar from '../components/BaseStatusBar';
 import ftuiClaim from '../assets/ftui-claim.json';
 import ftuiDiscover from '../assets/ftui-discover.json';
@@ -22,9 +23,9 @@ import ftuiMoment from '../assets/ftui-moment.json';
 import ftuiClaimLight from '../assets/ftui-claim-light.json';
 import ftuiDiscoverLight from '../assets/ftui-discover-light.json';
 import ftuiMomentLight from '../assets/ftui-moment-light.json';
-import background1 from '../assets/dinner-burgers.webp';
-import background2 from '../assets/dinner-overhead.webp';
-import background3 from '../assets/dinner-overhead-2.webp';
+import background1 from '../assets/landing-jungle.webp';
+import background2 from '../assets/landing-tree.webp';
+import background3 from '../assets/landing-chameleon.webp';
 import { useSwipe } from '../hooks/useSwipe';
 
 // const { width: viewportWidth } = Dimensions.get('window');
@@ -239,6 +240,12 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                 title: this.translate('pages.landing.headerTitle'),
             });
         }
+
+        enableEdgeToEdge();
+    }
+
+    componentWillUnmount() {
+        disableEdgeToEdge();
     }
 
     navTo = (routeName) => {

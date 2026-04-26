@@ -418,8 +418,8 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 {shareUrl}",
-        "title": "Therr App | Local Community & Rewards App"
+        "message": "Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
+        "title": "Friends with Habits | Accountability Partner App"
       }
     },
     "createProfile": {
@@ -1027,6 +1027,14 @@
         "profile": "Profile"
       }
     },
+    "habits": {
+      "buttons": {
+        "habits": "Habits",
+        "pacts": "Pacts",
+        "partners": "Partners",
+        "profile": "Profile"
+      }
+    },
     "connections": {
       "buttons": {
         "add": "Invite",
@@ -1211,7 +1219,7 @@
       "pageTitle": "Forums"
     },
     "createProfile": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageHeaderDetails": "Create your profile",
       "pageSubHeaderDetails": "You can change your username at any time",
       "pageHeaderPhone": "Keep it secure",
@@ -1460,9 +1468,9 @@
       }
     },
     "login": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageTitle": "Welcome",
-      "pageSubtitle": "Sign in to Therr to see what you missed",
+      "pageSubtitle": "Sign in to check in with your partner",
       "userAlerts": {
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }
@@ -1542,8 +1550,8 @@
       "headerTitle": "Phone Contacts",
       "pageTitle": "Phone Contacts",
       "sections": {
-        "onApp": "Friends Already on Therr",
-        "notOnApp": "Invite to Therr"
+        "onApp": "Friends Already on Friends with Habits",
+        "notOnApp": "Invite to Friends with Habits"
       },
       "buttons": {
         "connect": "Connect",
@@ -1551,11 +1559,11 @@
         "inviteSelected": "Invite Selected"
       },
       "empty": {
-        "onApp": "None of your contacts are on Therr yet",
-        "notOnApp": "All your contacts are already on Therr!"
+        "onApp": "None of your contacts are on Friends with Habits yet",
+        "notOnApp": "All your contacts are already on Friends with Habits!"
       },
-      "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: {shareUrl}",
-      "inviteSubject": "Join me on Therr!",
+      "inviteMessage": "Hey! Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
+      "inviteSubject": "Join me on Friends with Habits!",
       "alertTitles": {
         "contactInvitesSent": "Invite Success",
         "connectRequestSent": "Connect Request Sent",
@@ -1568,7 +1576,7 @@
       }
     },
     "register": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageTitle": "Sign Up",
       "pageSubtitle": "Create a profile and see what you are missing or view the",
       "pageSubtitleMapPreviewLink": "public map",
@@ -1643,7 +1651,7 @@
         "shareFeedback": "Share Feedback"
       },
       "subtitles": {
-        "createConnection": "Send a connection request or invite someone to join Therr!",
+        "createConnection": "Send a connection request or invite a partner to join Friends with Habits!",
         "whoInviteDisclaimer": "Choose who and how you would like to invite."
       },
       "labels": {
@@ -1656,10 +1664,10 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
+      "siteDescription1": "Welcome to Friends with Habits. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
-      "siteDescription3": "Content on the map is proximity activated. Share a moment with your connections on the map. Discover spaces nearby, and claim TherrCoins for actions (posting, reviewing, visiting, etc).",
-      "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby. Just tap anywhere on the map to start exploring.",
+      "siteDescription3": "Invite a partner to form a pact, then build habits you'll hold each other to. Check in daily, share proof, and watch your streak grow.",
+      "siteDescription4": "Keep the streak alive together. If one of you slips, the other is there to keep things on track — accountability is the whole point.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {
@@ -1677,6 +1685,112 @@
       "headerTitle": "Thoughts",
       "reply": "Reply",
       "replies": "Replies"
+    },
+    "habits": {
+      "headerTitle": "My Habits",
+      "detailTitle": "Habit Details",
+      "greetingMorning": "Good morning!",
+      "greetingAfternoon": "Good afternoon!",
+      "greetingEvening": "Good evening!",
+      "dashboardSubtitle": "Track your daily habits",
+      "yourHabits": "Your Habits",
+      "todayProgress": "Today",
+      "bestStreak": "Best Streak",
+      "currentStreak": "Current Streak",
+      "longestStreak": "Longest Streak",
+      "graceDays": "Grace Days Left",
+      "stats": "Statistics",
+      "checkin": "Check In",
+      "completed": "Completed!",
+      "noHabitsTitle": "No habits yet",
+      "noHabitsSubtitle": "Create a habit to start tracking your progress",
+      "habitNotFound": "Habit not found",
+      "checkinProof": {
+        "title": "Check In",
+        "notePrompt": "Add a quick note (optional)",
+        "notePlaceholder": "How did it go? Any wins to share with your partner?",
+        "takePhoto": "Take Photo",
+        "choosePhoto": "Choose Photo",
+        "uploadFailed": "We couldn't upload your photo. Try again.",
+        "cancel": "Cancel",
+        "confirm": "Check In"
+      },
+      "frequency": {
+        "daily": "Every day",
+        "weekly": "{count}x per week",
+        "monthly": "{count}x per month",
+        "perPeriod": "{count}x per {period}"
+      },
+      "daysOfWeekShort": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "streak": {
+        "day": "day",
+        "days": "days",
+        "nextMilestone": "Next milestone: {days} days",
+        "graceDaysRemaining": "Grace days remaining: {count}"
+      }
+    },
+    "pacts": {
+      "headerTitle": "My Pacts",
+      "detailTitle": "Pact Details",
+      "title": "Accountability Pacts",
+      "subtitle": "Stay accountable with friends",
+      "defaultTitle": "Habit Pact",
+      "you": "You",
+      "comparison": "Progress Comparison",
+      "timeline": "Timeline",
+      "accept": "Accept Pact",
+      "decline": "Decline",
+      "abandon": "Abandon Pact",
+      "noPactsTitle": "No pacts yet",
+      "noPactsSubtitle": "Create a pact with a friend to stay accountable",
+      "pactNotFound": "Pact not found",
+      "acceptedTitle": "Pact Accepted!",
+      "acceptedMessage": "You have joined this accountability pact",
+      "successTitle": "Success",
+      "declinedMessage": "You have declined this pact",
+      "abandonedMessage": "You have left this pact",
+      "errorTitle": "Error",
+      "acceptError": "Failed to accept pact. Please try again.",
+      "declineError": "Failed to decline pact. Please try again.",
+      "abandonError": "Failed to abandon pact. Please try again.",
+      "confirmDecline": "Are you sure you want to decline this pact invitation?",
+      "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
+      "onboarding": {
+        "title": "Start with a Partner",
+        "subtitle": "Friends with Habits is built for two. Invite a partner, form a pact, and build habits you'll hold each other to.",
+        "createPact": "Invite a Partner",
+        "viewInvites": "View {count} Pact Invite(s)",
+        "findPartner": "Browse People",
+        "whyPacts": "Why it works better together:",
+        "benefit1": "2x more likely to stick with your habits",
+        "benefit2": "Daily check-ins with someone who's counting on you",
+        "benefit3": "Streaks you build — and celebrate — together"
+      },
+      "status": {
+        "pending": "Pending",
+        "active": "Active",
+        "completed": "Completed",
+        "abandoned": "Abandoned",
+        "expired": "Expired"
+      },
+      "pactType": {
+        "accountability": "Accountability",
+        "challenge": "Challenge",
+        "support": "Support"
+      },
+      "durationLabel": "{days} day {type}",
+      "checkinsLabel": "{completed}/{total} checkins",
+      "completionLabel": "{pct}% completion",
+      "vs": "vs",
+      "partnerFallback": "Partner"
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",
@@ -1750,7 +1864,7 @@
     },
     "myQRCodes": {
       "headerTitle": "My QR Codes",
-      "subtitle": "Share any of your Therr content with a scan.",
+      "subtitle": "Share any of your Friends with Habits content with a scan.",
       "profileCardHint": "Tap to view the full QR for your profile.",
       "profileAccessibilityLabel": "View full QR code for your profile",
       "profileFallbackName": "My Profile",
@@ -1767,7 +1881,7 @@
     },
     "myQRCodeDetail": {
       "headerTitle": "QR Code",
-      "helperText": "Have anyone scan this with their camera to open it in Therr.",
+      "helperText": "Have anyone scan this with their camera to open it in Friends with Habits.",
       "accessibility": "QR code linking to {{title}}",
       "copied": "Link Copied",
       "privateNote": "Your profile is private — scanners will see a limited view until you connect.",

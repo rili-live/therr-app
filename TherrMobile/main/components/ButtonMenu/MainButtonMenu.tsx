@@ -7,10 +7,12 @@ import 'react-native-gesture-handler';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
-import { FeatureFlags } from 'therr-js-utilities/constants';
+import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import TherrIcon from '../../components/TherrIcon';
 import FeatureGate from '../FeatureGate';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
+import HabitsButtonMenu from './HabitsButtonMenu';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { getUserImageUri } from '../../utilities/content';
 import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
@@ -454,4 +456,13 @@ const localStyles = StyleSheet.create({
     },
 });
 
-export default (connect(mapStateToProps, mapDispatchToProps)(React.memo(MainButtonMenuAlt)));
+const ConnectedMainButtonMenu = connect(mapStateToProps, mapDispatchToProps)(React.memo(MainButtonMenuAlt));
+
+const BrandAwareButtonMenu = (props: any) => {
+    if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+        return <HabitsButtonMenu {...props} />;
+    }
+    return <ConnectedMainButtonMenu {...props} />;
+};
+
+export default BrandAwareButtonMenu;

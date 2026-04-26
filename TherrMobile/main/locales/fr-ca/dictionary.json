@@ -418,8 +418,8 @@
         "email": "Courriel de l'invité"
       },
       "shareLink": {
-        "message": "Rejoins l'application Therr avec mon lien et nous gagnerons tous les deux des points échangeables contre une carte-cadeau 🤝 🎁 {shareUrl}",
-        "title": "Therr App | Application de communauté locale et de récompenses"
+        "message": "Rejoins-moi sur Friends with Habits — on bâtit nos séries ensemble et on se tient mutuellement responsables. Inscris-toi avec mon lien : {shareUrl}",
+        "title": "Friends with Habits | App de partenaires de responsabilité"
       }
     },
     "createProfile": {
@@ -1027,6 +1027,14 @@
         "profile": "Profil"
       }
     },
+    "habits": {
+      "buttons": {
+        "habits": "Habitudes",
+        "pacts": "Pactes",
+        "partners": "Partenaires",
+        "profile": "Profil"
+      }
+    },
     "connections": {
       "buttons": {
         "add": "Inviter",
@@ -1211,7 +1219,7 @@
       "pageTitle": "Forums"
     },
     "createProfile": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageHeaderDetails": "Créez votre profil",
       "pageSubHeaderDetails": "Vous pouvez changer votre nom d'utilisateur à tout moment",
       "pageHeaderPhone": "Sécurisez votre compte",
@@ -1460,9 +1468,9 @@
       }
     },
     "login": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageTitle": "Bienvenue",
-      "pageSubtitle": "Connectez-vous à Therr pour voir ce que vous avez manqué",
+      "pageSubtitle": "Connectez-vous pour faire votre check-in avec votre partenaire",
       "userAlerts": {
         "registerSuccess": "Inscription réussie! Vérifiez votre courriel pour la confirmation."
       }
@@ -1542,8 +1550,8 @@
       "headerTitle": "Contacts du téléphone",
       "pageTitle": "Contacts du téléphone",
       "sections": {
-        "onApp": "Amis déjà sur Therr",
-        "notOnApp": "Inviter sur Therr"
+        "onApp": "Amis déjà sur Friends with Habits",
+        "notOnApp": "Inviter sur Friends with Habits"
       },
       "buttons": {
         "connect": "Connecter",
@@ -1551,11 +1559,11 @@
         "inviteSelected": "Inviter la sélection"
       },
       "empty": {
-        "onApp": "Aucun de vos contacts n'est encore sur Therr",
-        "notOnApp": "Tous vos contacts sont déjà sur Therr!"
+        "onApp": "Aucun de vos contacts n'est encore sur Friends with Habits",
+        "notOnApp": "Tous vos contacts sont déjà sur Friends with Habits!"
       },
-      "inviteMessage": "Hé! Rejoins-moi sur Therr, un réseau social local pour découvrir ce qui t'entoure. Inscris-toi avec mon lien d'invitation : {shareUrl}",
-      "inviteSubject": "Rejoins-moi sur Therr!",
+      "inviteMessage": "Hé! Rejoins-moi sur Friends with Habits — on bâtit nos séries ensemble et on se tient mutuellement responsables. Inscris-toi avec mon lien : {shareUrl}",
+      "inviteSubject": "Rejoins-moi sur Friends with Habits!",
       "alertTitles": {
         "contactInvitesSent": "Invitations envoyées",
         "connectRequestSent": "Demande de connexion envoyée",
@@ -1568,7 +1576,7 @@
       }
     },
     "register": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageTitle": "Inscription",
       "pageSubtitle": "Créez un profil et voyez ce que vous manquez ou consultez la",
       "pageSubtitleMapPreviewLink": "carte publique",
@@ -1643,7 +1651,7 @@
         "shareFeedback": "Partager vos commentaires"
       },
       "subtitles": {
-        "createConnection": "Envoyez une demande de connexion ou invitez quelqu'un à rejoindre Therr!",
+        "createConnection": "Envoyez une demande de connexion ou invitez un partenaire à rejoindre Friends with Habits!",
         "whoInviteDisclaimer": "Choisissez qui et comment vous souhaitez inviter."
       },
       "labels": {
@@ -1656,9 +1664,9 @@
         "userName": "Nom d'utilisateur"
       },
       "pageTitle": "Profil utilisateur",
-      "siteDescription1": "Bienvenue sur l'application Therr. Pendant que nous recueillons des commentaires et développons de nouvelles fonctionnalités, dites-nous comment nous pouvons améliorer l'expérience.",
+      "siteDescription1": "Bienvenue sur Friends with Habits. Pendant que nous recueillons des commentaires et développons de nouvelles fonctionnalités, dites-nous comment nous pouvons améliorer l'expérience.",
       "siteDescription2": "Alors, comment ça fonctionne?",
-      "siteDescription3": "Le contenu sur la carte est activé par la proximité. Partagez un moment avec vos connexions sur la carte. Découvrez des espaces à proximité et réclamez des TherrCoins pour vos actions (publication, avis, visite, etc.).",
+      "siteDescription3": "Invitez un partenaire pour former un pacte, puis bâtissez ensemble des habitudes dont vous vous tiendrez mutuellement responsables. Faites votre check-in quotidien, partagez une preuve et regardez votre série grandir.",
       "siteDescription4": "Ensuite, consultez votre fil pour les moments publiés par d'autres dans les endroits que vous fréquentez le plus souvent. Découvrez la culture locale en recherchant le contenu partagé à proximité. Appuyez n'importe où sur la carte pour commencer à explorer.",
       "noActiveConnections": "Il n'y a actuellement aucune connexion active dans votre réseau",
       "requestRecommendation": "Envoyez une demande pour créer des connexions et bâtir un réseau",
@@ -1677,6 +1685,112 @@
       "headerTitle": "Pensées",
       "reply": "Répondre",
       "replies": "Réponses"
+    },
+    "habits": {
+      "headerTitle": "Mes habitudes",
+      "detailTitle": "Détails de l'habitude",
+      "greetingMorning": "Bon matin!",
+      "greetingAfternoon": "Bon après-midi!",
+      "greetingEvening": "Bonsoir!",
+      "dashboardSubtitle": "Suivez vos habitudes quotidiennes",
+      "yourHabits": "Vos habitudes",
+      "todayProgress": "Aujourd'hui",
+      "bestStreak": "Meilleure série",
+      "currentStreak": "Série actuelle",
+      "longestStreak": "Plus longue série",
+      "graceDays": "Jours de grâce restants",
+      "stats": "Statistiques",
+      "checkin": "Enregistrer",
+      "completed": "Complété!",
+      "noHabitsTitle": "Aucune habitude pour le moment",
+      "noHabitsSubtitle": "Créez une habitude pour commencer à suivre vos progrès",
+      "habitNotFound": "Habitude introuvable",
+      "checkinProof": {
+        "title": "Enregistrer",
+        "notePrompt": "Ajouter une note rapide (optionnel)",
+        "notePlaceholder": "Comment ça s'est passé? Une réussite à partager avec ton partenaire?",
+        "takePhoto": "Prendre une photo",
+        "choosePhoto": "Choisir une photo",
+        "uploadFailed": "Impossible de téléverser votre photo. Réessayez.",
+        "cancel": "Annuler",
+        "confirm": "Enregistrer"
+      },
+      "frequency": {
+        "daily": "Chaque jour",
+        "weekly": "{count}x par semaine",
+        "monthly": "{count}x par mois",
+        "perPeriod": "{count}x par {period}"
+      },
+      "daysOfWeekShort": {
+        "sun": "Dim",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam"
+      },
+      "streak": {
+        "day": "jour",
+        "days": "jours",
+        "nextMilestone": "Prochain jalon : {days} jours",
+        "graceDaysRemaining": "Jours de grâce restants : {count}"
+      }
+    },
+    "pacts": {
+      "headerTitle": "Mes pactes",
+      "detailTitle": "Détails du pacte",
+      "title": "Pactes de responsabilité",
+      "subtitle": "Restez responsable avec des amis",
+      "defaultTitle": "Pacte d'habitude",
+      "you": "Vous",
+      "comparison": "Comparaison des progrès",
+      "timeline": "Chronologie",
+      "accept": "Accepter le pacte",
+      "decline": "Refuser",
+      "abandon": "Abandonner le pacte",
+      "noPactsTitle": "Aucun pacte pour le moment",
+      "noPactsSubtitle": "Créez un pacte avec un ami pour rester responsable",
+      "pactNotFound": "Pacte introuvable",
+      "acceptedTitle": "Pacte accepté!",
+      "acceptedMessage": "Vous avez rejoint ce pacte de responsabilité",
+      "successTitle": "Succès",
+      "declinedMessage": "Vous avez refusé ce pacte",
+      "abandonedMessage": "Vous avez quitté ce pacte",
+      "errorTitle": "Erreur",
+      "acceptError": "Impossible d'accepter le pacte. Veuillez réessayer.",
+      "declineError": "Impossible de refuser le pacte. Veuillez réessayer.",
+      "abandonError": "Impossible d'abandonner le pacte. Veuillez réessayer.",
+      "confirmDecline": "Êtes-vous sûr de vouloir refuser cette invitation au pacte?",
+      "confirmAbandon": "Êtes-vous sûr de vouloir abandonner ce pacte? Vos progrès seront perdus.",
+      "onboarding": {
+        "title": "Commence avec un partenaire",
+        "subtitle": "Friends with Habits est conçu pour deux. Invite un partenaire, formez un pacte et bâtissez ensemble des habitudes dont vous vous tiendrez mutuellement responsables.",
+        "createPact": "Inviter un partenaire",
+        "viewInvites": "Voir {count} invitation(s) de pacte",
+        "findPartner": "Parcourir les gens",
+        "whyPacts": "Pourquoi ça marche mieux à deux :",
+        "benefit1": "2 fois plus de chances de garder tes habitudes",
+        "benefit2": "Des check-ins quotidiens avec quelqu'un qui compte sur toi",
+        "benefit3": "Des séries que vous bâtissez — et célébrez — ensemble"
+      },
+      "status": {
+        "pending": "En attente",
+        "active": "Actif",
+        "completed": "Terminé",
+        "abandoned": "Abandonné",
+        "expired": "Expiré"
+      },
+      "pactType": {
+        "accountability": "Responsabilité",
+        "challenge": "Défi",
+        "support": "Soutien"
+      },
+      "durationLabel": "{type} de {days} jours",
+      "checkinsLabel": "{completed}/{total} pointages",
+      "completionLabel": "{pct}% terminé",
+      "vs": "vs",
+      "partnerFallback": "Partenaire"
     },
     "manageSpaces": {
       "headerTitle": "Mes Commerces",
@@ -1750,7 +1864,7 @@
     },
     "myQRCodes": {
       "headerTitle": "Mes codes QR",
-      "subtitle": "Partagez n’importe quel contenu Therr d’un simple scan.",
+      "subtitle": "Partagez n’importe quel contenu Friends with Habits d’un simple scan.",
       "profileCardHint": "Touchez pour afficher le code QR complet de votre profil.",
       "profileAccessibilityLabel": "Afficher le code QR complet de votre profil",
       "profileFallbackName": "Mon profil",
@@ -1767,7 +1881,7 @@
     },
     "myQRCodeDetail": {
       "headerTitle": "Code QR",
-      "helperText": "Faites scanner ce code avec un appareil photo pour l’ouvrir dans Therr.",
+      "helperText": "Faites scanner ce code avec un appareil photo pour l’ouvrir dans Friends with Habits.",
       "accessibility": "Code QR menant à {{title}}",
       "copied": "Lien copié",
       "privateNote": "Votre profil est privé — les personnes qui scannent verront une vue limitée jusqu’à ce qu’elles se connectent.",

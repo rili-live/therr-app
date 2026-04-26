@@ -7,11 +7,13 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
 import SocialIconLink from './SocialIconLink';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import spacingStyles from '../../styles/layouts/spacing';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import TherrIcon from '../../components/TherrIcon';
 import SuperUserStatusIcon from '../../components/SuperUserStatusIcon';
 import { IUserProfileAction } from '../../components/ActionSheet/UserProfileSheet';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { buildUserUrl } from '../../utilities/shareUrls';
 
 const LogoIcon = createIconSetFromIcoMoon(
@@ -19,6 +21,10 @@ const LogoIcon = createIconSetFromIcoMoon(
     'TherrFont',
     'TherrFont.ttf'
 );
+
+const LOGO_GLYPH_NAME = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+    ? 'cami-glyph'
+    : 'therr-logo';
 
 interface IActionItem {
     id: string;
@@ -291,7 +297,7 @@ const UserDisplayHeader = ({
                         !!userInView?.connectionCount &&
                         <Pressable style={themeUser.styles.connectionCountContainer} onPress={goToConnections}>
                             <LogoIcon
-                                name="therr-logo"
+                                name={LOGO_GLYPH_NAME}
                                 size={20}
                                 style={themeUser.styles.connectionCountIcon}
                             />

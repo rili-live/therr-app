@@ -8,6 +8,7 @@ import { getAnalytics, setAnalyticsCollectionEnabled } from '@react-native-fireb
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
 import { SheetProvider } from 'react-native-actions-sheet';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+import { SystemBars } from 'react-native-edge-to-edge';
 import {
     SpotlightTourProvider,
 } from 'react-native-spotlight-tour';
@@ -51,7 +52,7 @@ const toastStyles = StyleSheet.create({
         fontSize: 14,
         fontFamily: 'Lexend-Regular',
     },
-    infoBorder: { borderLeftColor: '#1C7F8A' },
+    infoBorder: { borderLeftColor: '#3B2A4E' },
     successBorder: { borderLeftColor: '#00A624' },
     warnBorder: { borderLeftColor: '#FDBD2E' },
     errorBorder: { borderLeftColor: '#D70000' },
@@ -204,6 +205,7 @@ class App extends React.Component<any, any> {
 
         return (
             <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+                <SystemBars style="auto" />
                 <Provider store={this.store}>
                     <PersistGate loading={null} persistor={this.persistor}>
                         <OfflineBanner />

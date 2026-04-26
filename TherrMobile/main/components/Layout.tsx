@@ -28,7 +28,7 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
@@ -69,9 +69,9 @@ import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroi
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
-import background1 from '../assets/dinner-burgers.webp';
-import background2 from '../assets/dinner-overhead.webp';
-import background3 from '../assets/dinner-overhead-2.webp';
+import background1 from '../assets/landing-jungle.webp';
+import background2 from '../assets/landing-tree.webp';
+import background3 from '../assets/landing-chameleon.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
@@ -317,6 +317,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             { name: targetRouteView, params: targetRouteParams },
                         ],
                     });
+                } else if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                    RootNavigation.reset({
+                        index: 0,
+                        routes: [{ name: 'HabitsDashboard' }],
+                    });
                 }
 
                 this.prefetchContent();
@@ -384,6 +389,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         }),
                                         android: {
                                             pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
+                                        },
+                                        data: {
+                                            activatedMomentIds: JSON.stringify(momentsData.map((moment) => moment.momentId)),
+                                            activatedSpaceIds: JSON.stringify(spacesData.map((space) => space.spaceId)),
                                         },
                                     }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
                                     if (momentsData.length) {
@@ -916,7 +925,30 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.discovered) {
                 if (isUserAuthorized) {
-                    RootNavigation.navigate('Areas');
+                    const parseIds = (raw: unknown): string[] => {
+                        if (Array.isArray(raw)) {
+                            return raw as string[];
+                        }
+                        if (typeof raw === 'string' && raw.length) {
+                            try {
+                                const parsed = JSON.parse(raw);
+                                return Array.isArray(parsed) ? parsed : [];
+                            } catch {
+                                return [];
+                            }
+                        }
+                        return [];
+                    };
+                    const activatedMomentIds = parseIds(notification?.data?.activatedMomentIds);
+                    const activatedSpaceIds = parseIds(notification?.data?.activatedSpaceIds);
+                    if (activatedMomentIds.length || activatedSpaceIds.length) {
+                        RootNavigation.navigate('ActivatedAreas', {
+                            activatedMomentIds,
+                            activatedSpaceIds,
+                        });
+                    } else {
+                        RootNavigation.navigate('Nearby');
+                    }
                 }
                 return Promise.resolve();
             }

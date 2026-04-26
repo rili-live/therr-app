@@ -1,8 +1,14 @@
 import React from 'react';
 import { Button } from './BaseButton';
 import 'react-native-gesture-handler';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import TherrIcon from '../components/TherrIcon';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import getConfig from '../utilities/getConfig';
+
+const LOGO_GLYPH_NAME = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+    ? 'cami-glyph'
+    : 'therr-logo';
 
 export interface IHeaderMenuLeftProps {
     isAuthenticated: boolean;
@@ -46,7 +52,7 @@ const HeaderMenuLeft = ({
             type="clear"
             icon={
                 <TherrIcon
-                    name="therr-logo"
+                    name={LOGO_GLYPH_NAME}
                     size={26}
                     style={[logoStyle]}
                     onPress={handlePress}

@@ -2,7 +2,7 @@
 
 ## Overview
 
-React Native 0.83.6 mobile app (iOS + Android) for the Therr social platform. React 19.2.0. Has its own `package.json` isolated from the monorepo root. Android package: `app.therrmobile`, native code in Kotlin.
+React Native 0.83.6 mobile app (iOS + Android) for the Therr social platform. React 19.2.0. Has its own `package.json` isolated from the monorepo root. Android namespace `app.therrmobile`; `applicationId` varies by niche (`app.therrmobile` on Therr, `com.therr.habits` on Friends with Habits). Native code in Kotlin. New Architecture (`newArchEnabled=true`) + Hermes.
 
 ## Directory Structure
 
@@ -99,9 +99,11 @@ The module resolution is complex due to the monorepo. Understanding this prevent
    - `shared/*` -> root `node_modules/*`
 
 4. **Patches** (`patches/`, applied via `postinstall`):
-   - `react-native+0.80.0.patch`
+   - `react-native+0.83.6.patch`
    - `@react-native-community+slider+5.1.2.patch`
    - `react-native-tab-view+3.5.2.patch`
+   - `react-native-screens+4.24.0.patch` (RTTI fix required for New Architecture)
+   - `react-native-worklets+0.8.1.patch` (prefab headers race fix for Reanimated 4)
 
 **When adding a new shared library dependency**: Add it to root `package.json`, then ensure Metro can find it via `extraNodeModules` or the Proxy fallback.
 
@@ -147,6 +149,18 @@ if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
 **`general` branch** (shared by all apps): Components, shared screens, Redux, API services, conditional rendering.
 
 **`niche/<TAG>-general` branch** (app-specific): `brandConfig.ts`, app icons/splash, nav guards, feature toggles, store metadata.
+
+### Edge-to-Edge System Bars
+
+Android targets API 36, which enforces edge-to-edge — system bars are always transparent and content draws behind them. Cross-platform behavior is unified via `react-native-edge-to-edge`:
+
+- The Android theme `AppTheme` inherits from `Theme.EdgeToEdge` (see `android/app/src/main/res/values/styles.xml`), which applies `WindowCompat.setDecorFitsSystemWindows(false)` and backports the same behavior to older Android versions.
+- The default system-bar style is set once at the app root via `<SystemBars style="auto" />` in `App.tsx`. Per-screen overrides go through `BaseStatusBar` (`main/components/BaseStatusBar.tsx`), which is a thin wrapper around `<SystemBars>` keyed off the active mobile theme.
+- Do **not** import `StatusBar` from `react-native` to set bar styling. Use `<SystemBars>` from `react-native-edge-to-edge` (or `BaseStatusBar`) instead.
+- Top inset for the custom header comes from `getHeaderTopInset()` in `main/styles/index.ts`, which reads `initialWindowMetrics?.insets?.top` synchronously.
+- Bottom inset for the button menu comes from `bottomSafeAreaInset` in `main/styles/navigation/buttonMenu.ts`. Reuse it on any bottom-anchored surface (action sheets, footers).
+- For `<SafeAreaView>` from `react-native-safe-area-context`: most authenticated screens use `edges={[]}` because the parent `Layout` already pads the header (top) and the global `ButtonMenu` pads the bottom. Only set explicit `edges` when a screen renders without that scaffolding (e.g., full-bleed pre-auth screens) or extends to the bottom edge with no `ButtonMenu`.
+- Forms that need the keyboard to push content up should use `KeyboardAvoidingView` from `react-native-keyboard-controller` (not the built-in one from `react-native`). `KeyboardProvider` is mounted in `App.tsx`, and `android:windowSoftInputMode="adjustResize"` in `AndroidManifest.xml` is the correct mode under edge-to-edge.
 
 ## Common Debugging
 

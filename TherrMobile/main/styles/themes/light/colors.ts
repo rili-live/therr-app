@@ -5,13 +5,13 @@ const colors: ITherrThemeColors = {
     // Main
     primary: '#ffffff',
     primary2: '#fcfeff',
-    primary3: '#1C7F8A',
-    primary4: '#104B52',
-    primary5: '#17657D',
+    primary3: '#3B2A4E',
+    primary4: '#241832',
+    primary5: '#52406D',
     secondary: '#E37107',
     ternary: '#ffffff',
     ternary2: '#ffc269',
-    tertiary: '#104B52',
+    tertiary: '#241832',
 
     // Text
     textBlack: '#fcfeff',
@@ -23,12 +23,12 @@ const colors: ITherrThemeColors = {
 
     // Branding - These colors should remain unchanged regardless of theme
     brandingWhite: '#fcfeff',
-    brandingBlack: '#001226',
-    brandingBlueGreen: '#1C7F8A',
+    brandingBlack: '#1A0E26',
+    brandingBlueGreen: '#3B2A4E',
     brandingMapYellow: '#ebc300',
     brandingOrange: '#DE6E07',
     brandingRed: '#FF3041',
-    brandingLightBlue: '#d8f0f2',
+    brandingLightBlue: '#E8DEF2',
 
     // Background
     backgroundCream: '#575d5d',
@@ -43,28 +43,28 @@ const colors: ITherrThemeColors = {
     placeholderTextColor: '#78909b',
     placeholderTextColorAlt: 'rgba(0,0,0,.58)',
 
-    hyperlink: '#0e01b3',
-    controlButtons: '#1C7F8A',
+    hyperlink: '#52406D',
+    controlButtons: '#3B2A4E',
 
     // Alerts
     alertError: '#AC3E59',
 
     // Accents - Alternate color scheme to add variety and reduce blandless
     accent1: '#ffffff',
-    accent1Fade: '#97c5bb',
-    accent2: '#104B52',
+    accent1Fade: '#B9A8CC',
+    accent2: '#241832',
     accent3: '#218a35',
-    accentAlt: '#449885',
-    accentTextBlack: '#1C7F8A',
-    accentTextWhite: '#001226',
+    accentAlt: '#6B4F8A',
+    accentTextBlack: '#3B2A4E',
+    accentTextWhite: '#1A0E26',
     accentRed: '#fe0156',
     accentYellow: '#fed61e',
-    accentBlue: '#17657D',
-    accentPurple: '#0e01b3',
+    accentBlue: '#52406D',
+    accentPurple: '#6B4F8A',
     accentTeal: '#2BC5D6',
     accentLime: '#26B379',
     accentDivider: '#4950571c',
-    accentLogo: '#1E8A96',
+    accentLogo: '#7A5C9F',
 
     // Socials
     facebook: '#4167b2',

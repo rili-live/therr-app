@@ -81,7 +81,7 @@ const customTokens: ITherrPaperCustom = {
 // ---------------------------------------------------------------------------
 // Light Theme
 // ---------------------------------------------------------------------------
-// Primary teal (#1C7F8A) on white background, orange secondary accent.
+// HABITS: deep faded purple primary on white background, orange secondary accent.
 // Maps from the existing light/colors.ts values.
 export const paperLightTheme: ITherrPaperTheme = {
     ...MD3LightTheme,
@@ -150,7 +150,7 @@ export const paperLightTheme: ITherrPaperTheme = {
 // ---------------------------------------------------------------------------
 // Dark Theme
 // ---------------------------------------------------------------------------
-// Standard dark mode: dark grey backgrounds (#121212) with teal primary.
+// HABITS: dark grey backgrounds (#121212) with brightened purple primary.
 // Maps from the new dark/colors.ts values.
 export const paperDarkTheme: ITherrPaperTheme = {
     ...MD3DarkTheme,
@@ -219,7 +219,7 @@ export const paperDarkTheme: ITherrPaperTheme = {
 // ---------------------------------------------------------------------------
 // Retro Theme (alternative dark)
 // ---------------------------------------------------------------------------
-// Teal-heavy palette with warm golden accents. Existing "retro" identity
+// HABITS: purple-heavy palette with warm golden accents. Existing "retro" identity
 // preserved, mapped to Paper's dark theme structure.
 export const paperRetroTheme: ITherrPaperTheme = {
     ...MD3DarkTheme,

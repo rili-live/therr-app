@@ -3,11 +3,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Dimensions,
     FlatList,
-    KeyboardAvoidingView,
     Platform,
     Pressable,
     Text,
     View} from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Avatar } from '../../components/BaseAvatar';
 import { Button } from '../../components/BaseButton';
 import { TabBar, TabView } from 'react-native-tab-view';

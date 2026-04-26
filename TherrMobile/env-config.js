@@ -1,16 +1,17 @@
 const { Platform } = require('react-native');
+const { CURRENT_BRAND_VARIATION } = require('./main/config/brandConfig');
+const { BrandVariations } = require('therr-js-utilities/constants');
 
 const apiGatewayPort = 7770;
 const websocketPort = 7743;
-// const hostDev = '192.168.1.91'; // Must use computer's ip address for dev to connect socket.io
+// const hostDev = '192.168.1.148'; // Must use computer's ip address for dev (physical device) to connect socket.io
 // 10.0.2.2 is Android emulator alias for host localhost; iOS simulator uses localhost directly
 const hostDev = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 const hostProd = 'therr.com';
 const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 
-// Feature flags for enabling/disabling app features
-// NICHE: Update these values for each niche app variant
-const featureFlags = {
+// Base feature flag defaults (Therr / core app behavior)
+const baseFeatureFlags = {
     // Navigation Tabs
     ENABLE_AREAS: true,
     ENABLE_GROUPS: true,
@@ -33,11 +34,47 @@ const featureFlags = {
     ENABLE_FORUMS: true,
     ENABLE_ACTIVITY_SCHEDULER: true,
 
+    // HABITS App Features
+    ENABLE_HABITS: false,
+    ENABLE_PACTS: false,
+    REQUIRE_PACT_ONBOARDING: false,
+
     // Search Providers
     ENABLE_MAPBOX_SEARCH: false,
 
     // Monetization
     ENABLE_COIN_RECHARGE: false,
+};
+
+// Per-brand overrides applied on top of baseFeatureFlags
+const brandFeatureFlagOverrides = {
+    [BrandVariations.THERR]: {},
+    [BrandVariations.TEEM]: {},
+    [BrandVariations.HABITS]: {
+        // Disable Therr-centric nav + content
+        ENABLE_AREAS: false,
+        ENABLE_GROUPS: false,
+        ENABLE_MAP: false,
+        ENABLE_MOMENTS: false,
+        ENABLE_SPACES: false,
+        ENABLE_EVENTS: false,
+        ENABLE_THOUGHTS: false,
+        ENABLE_ACTIVITIES: false,
+        ENABLE_ACTIVITY_SCHEDULER: false,
+        ENABLE_FORUMS: false,
+        ENABLE_COIN_RECHARGE: false,
+        ENABLE_MAPBOX_SEARCH: false,
+
+        // Enable HABITS-specific flow
+        ENABLE_HABITS: true,
+        ENABLE_PACTS: true,
+        REQUIRE_PACT_ONBOARDING: true,
+    },
+};
+
+const featureFlags = {
+    ...baseFeatureFlags,
+    ...(brandFeatureFlagOverrides[CURRENT_BRAND_VARIATION] || {}),
 };
 
 // TODO: Find a way to import this from global config
