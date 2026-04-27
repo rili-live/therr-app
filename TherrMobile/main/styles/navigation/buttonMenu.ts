@@ -44,13 +44,15 @@ const getButtonsTitleStyle = (theme: ITherrTheme) => ({
     ...getIconStyle(theme),
 });
 
+// Solid 8px dot with no inner content; width/height/borderRadius form a true
+// circle (previously width:4 + borderWidth:4 + borderRadius:20 produced an
+// accidental ring whose math didn't match its intent).
 const getNotificationCircleStyles = (theme: ITherrTheme): any => ({
     position: 'absolute',
-    borderWidth: 4,
-    borderRadius: 20,
-    width: 4,
-    height: 4,
-    borderColor: theme.colors.brandingRed,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.brandingRed,
     top: 12,
 });
 
@@ -157,12 +159,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...getNotificationCircleStyles(therrTheme),
             top: 9,
             right: 15,
-            width: 4,
-            height: 4,
-            position: 'absolute',
-            borderWidth: 4,
-            borderRadius: 3,
-            borderColor: therrTheme.colors.brandingOrange,
+            backgroundColor: therrTheme.colors.brandingOrange,
         },
         tab: {
             ...tabStyles,

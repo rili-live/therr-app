@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../../themes';
+import { therrFontFamily } from '../../font';
 
 const thoughtUserAvatarImgPadding = 4;
 const thoughtUserAvatarImgWidth = 52 - (2 * thoughtUserAvatarImgPadding);
@@ -152,7 +153,7 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
             width: '100%',
             paddingHorizontal: 10,
-            fontFamily: 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             textAlign: 'left',
         },
         footer: {
