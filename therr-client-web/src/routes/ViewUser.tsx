@@ -6,10 +6,11 @@ import { NavigateFunction } from 'react-router-dom';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService, UsersService } from 'therr-react/services';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import {
     Container, Stack, Group, Title, Text, Anchor,
     Divider, Avatar, Skeleton, Breadcrumbs, Button,
-    SimpleGrid,
+    SimpleGrid, Box,
 } from '@mantine/core';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
@@ -24,12 +25,14 @@ interface IViewUserRouterProps {
         navigate: NavigateFunction;
     };
     routeParams: {
-        userId: string;
+        userId?: string;
+        userName?: string;
     }
 }
 
 interface IViewUserDispatchProps {
     getUser: Function;
+    getUserByUserName: Function;
     searchUserConnections: Function;
 }
 
@@ -60,15 +63,22 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getUser: UsersActions.get,
+    getUserByUserName: UsersActions.getByUserName,
     searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
 /**
  * ViewUser
+ *
+ * Mounted on both `/users/:userId` and `/u/:userName`. The `:userName` form
+ * is the canonical QR-code-friendly URL; the `:userId` form is what older
+ * in-app links use. Either route param is accepted; the shared backend
+ * helper returns the same dynamically-public-or-private response shape.
  */
 export class ViewUserComponent extends React.Component<IViewUserProps, IViewUserState> {
     static getDerivedStateFromProps(nextProps: IViewUserProps) {
-        if (!nextProps.routeParams.userId) {
+        const { userId, userName } = nextProps.routeParams;
+        if (!userId && !userName) {
             setTimeout(() => nextProps.navigation.navigate('/'));
             return null;
         }
@@ -79,7 +89,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         super(props);
 
         this.state = {
-            userId: props.routeParams.userId,
+            userId: props.routeParams.userId || '',
             userSpaces: [],
             userEvents: [],
             userThoughts: [],
@@ -93,8 +103,10 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
     componentDidUpdate(prevProps: IViewUserProps) {
         const { routeParams } = this.props;
-        if (prevProps.routeParams.userId !== routeParams.userId) {
-            this.setState({ userId: routeParams.userId }, () => {
+        const prevKey = prevProps.routeParams.userId || prevProps.routeParams.userName;
+        const nextKey = routeParams.userId || routeParams.userName;
+        if (prevKey !== nextKey) {
+            this.setState({ userId: routeParams.userId || '' }, () => {
                 this.fetchUserData();
             });
         }
@@ -102,19 +114,36 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
     fetchUserData = () => {
         const {
-            getUser, searchUserConnections, user, userConnections,
+            getUser, getUserByUserName, searchUserConnections, routeParams, user, userConnections,
         } = this.props;
 
-        getUser(this.state.userId).then((fetchedUser: any) => {
+        const lookup = routeParams.userId
+            ? getUser(routeParams.userId)
+            : getUserByUserName(routeParams.userName);
+
+        lookup.then((fetchedUser: any) => {
             const displayName = fetchedUser?.isBusinessAccount
                 ? fetchedUser.firstName
                 : `${fetchedUser?.firstName} ${fetchedUser?.lastName}`;
             document.title = `${displayName} | Therr App`;
 
-            if (fetchedUser?.isBusinessAccount) {
-                this.fetchBusinessData();
+            // When the route used :userName we don't have an id yet — populate it
+            // from the response so secondary same-user fetches (spaces, thoughts)
+            // can keep using id-keyed APIs. setState is async, so kick the
+            // dependent fetches in the callback.
+            const needsIdResolve = !this.state.userId && !!fetchedUser?.id;
+            const runDependentFetches = () => {
+                if (fetchedUser?.isBusinessAccount) {
+                    this.fetchBusinessData();
+                } else {
+                    this.fetchUserThoughts();
+                }
+            };
+
+            if (needsIdResolve) {
+                this.setState({ userId: fetchedUser.id }, runDependentFetches);
             } else {
-                this.fetchUserThoughts();
+                runDependentFetches();
             }
         }).catch(() => {
             this.props.navigation.navigate('/');
@@ -297,6 +326,60 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         );
     }
 
+    renderCrossAppPromo(userInView: any): JSX.Element | null {
+        const appBrands: string[] = Array.isArray(userInView?.appBrands) ? userInView.appBrands : [];
+        if (!appBrands.includes(BrandVariations.HABITS)) return null;
+        if (!userInView?.userName) return null;
+
+        const habitsProfileUrl = `https://habits.therr.com/u/${encodeURIComponent(userInView.userName)}`;
+        return (
+            <>
+                <Divider />
+                <Box ta="center" py="md">
+                    <Text size="xs" tt="uppercase" c="dimmed" mb="xs" style={{ letterSpacing: '0.08em' }}>
+                        {this.props.translate('pages.viewUser.crossPromo.label')}
+                    </Text>
+                    <Anchor
+                        href={habitsProfileUrl}
+                        rel="noopener"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '12px 22px',
+                            background: '#fff8f3',
+                            color: '#102a43',
+                            fontWeight: 600,
+                            borderRadius: 999,
+                            border: '1px solid #d9e2ec',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        <span
+                            aria-hidden="true"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                background: '#ff6b35',
+                                color: '#fff',
+                                fontWeight: 800,
+                                fontSize: 14,
+                                lineHeight: 1,
+                            }}
+                        >
+                            H
+                        </span>
+                        <span>{this.props.translate('pages.viewUser.crossPromo.habitsCta')}</span>
+                    </Anchor>
+                </Box>
+            </>
+        );
+    }
+
     renderBusinessProfile(userInView: any): JSX.Element {
         const { user } = this.props;
         const {
@@ -439,6 +522,8 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                             </div>
                         </>
                     )}
+
+                    {this.renderCrossAppPromo(userInView)}
                 </Stack>
             </Container>
         );
@@ -519,6 +604,8 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                             </div>
                         </>
                     )}
+
+                    {this.renderCrossAppPromo(userInView)}
                 </Stack>
             </Container>
         );

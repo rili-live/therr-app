@@ -1008,6 +1008,10 @@
         "noLocations": "Aucun emplacement répertorié",
         "noEvents": "Aucun événement à venir",
         "noUpdates": "Aucune mise à jour récente"
+      },
+      "crossPromo": {
+        "label": "Même personne, plus d'endroits",
+        "habitsCta": "Retrouvez-moi sur Friends with Habits"
       }
     },
     "listGroups": {
@@ -1034,17 +1038,6 @@
     "userLocations": {
       "pageTitle": "Emplacements",
       "headingWithName": "Emplacements de {name}"
-    },
-    "publicProfile": {
-      "crossPromo": {
-        "label": "Même personne, plus d'endroits",
-        "habitsCta": "Retrouvez-moi sur Friends with Habits"
-      },
-      "notFound": {
-        "title": "Profil introuvable",
-        "message": "Nous n'avons pas trouvé de profil pour @{userName}.",
-        "backHome": "Retour à l'accueil"
-      }
     }
   }
 }

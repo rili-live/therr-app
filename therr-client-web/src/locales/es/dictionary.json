@@ -1008,6 +1008,10 @@
         "noLocations": "Aún no hay ubicaciones listadas",
         "noEvents": "No hay próximos eventos",
         "noUpdates": "No hay actualizaciones recientes"
+      },
+      "crossPromo": {
+        "label": "La misma persona, más lugares",
+        "habitsCta": "Encuéntrame en Friends with Habits"
       }
     },
     "userLocations": {
@@ -1034,17 +1038,6 @@
       },
       "noResultsFound": "No se encontraron grupos. Intenta ajustar tu búsqueda o filtros.",
       "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre grupos y únete para verlos aquí."
-    },
-    "publicProfile": {
-      "crossPromo": {
-        "label": "La misma persona, más lugares",
-        "habitsCta": "Encuéntrame en Friends with Habits"
-      },
-      "notFound": {
-        "title": "Perfil no encontrado",
-        "message": "No pudimos encontrar un perfil para @{userName}.",
-        "backHome": "Volver al inicio"
-      }
     }
   }
 }

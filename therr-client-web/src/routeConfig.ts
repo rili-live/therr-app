@@ -241,12 +241,14 @@ export default [
         view: 'users',
     },
     {
+        // Username-based public profile, used by user-profile QR codes.
+        // Renders the same ViewUser component as /users/:userId.
         route: '/u/:userName',
         head: {
-            title: 'Profile',
-            description: 'View this Therr user profile.',
+            title: 'User not Found',
+            description: 'No user was found for the given name.',
         },
-        view: 'index',
+        view: 'users',
     },
     {
         route: '/reset-password',

@@ -24,7 +24,6 @@ import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
-import PublicProfile from './PublicProfile';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
 import DeleteAccount from './DeleteAccount';
@@ -557,7 +556,8 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         // Public profile by username — used by user-profile QR codes.
         path: '/u/:userName',
-        element: <PublicProfile />,
+        element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
+        fetchData: (dispatch: any, params: any) => UsersActions.getByUserName(params.userName)(dispatch),
     },
 
     {

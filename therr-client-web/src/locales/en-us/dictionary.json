@@ -1008,6 +1008,10 @@
         "noLocations": "No locations listed yet",
         "noEvents": "No upcoming events",
         "noUpdates": "No recent updates"
+      },
+      "crossPromo": {
+        "label": "Same person, more places",
+        "habitsCta": "Find me on Friends with Habits"
       }
     },
     "listGroups": {
@@ -1034,17 +1038,6 @@
     "userLocations": {
       "pageTitle": "Locations",
       "headingWithName": "{name}'s Locations"
-    },
-    "publicProfile": {
-      "crossPromo": {
-        "label": "Same person, more places",
-        "habitsCta": "Find me on Friends with Habits"
-      },
-      "notFound": {
-        "title": "Profile not found",
-        "message": "We couldn't find a profile for @{userName}.",
-        "backHome": "Back to home"
-      }
     }
   }
 }
