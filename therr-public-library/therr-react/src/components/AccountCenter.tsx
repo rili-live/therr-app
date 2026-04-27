@@ -1,6 +1,7 @@
 import * as React from 'react';
 import UsersService from '../services/UsersService';
 import { IBrandMembership } from '../types/redux/user';
+import { buildHandoffUrl } from '../utilities/handoffClient';
 
 export interface IAccountCenterRenderArgs {
     brandVariations: IBrandMembership[];
@@ -59,6 +60,16 @@ const AccountCenter: React.FunctionComponent<IAccountCenterProps> = ({
     const [isHandingOff, setIsHandingOff] = React.useState(false);
     const [handoffError, setHandoffError] = React.useState<string | null>(null);
 
+    // Suppress state updates after unmount. The mint→openUrl round trip can outlive the
+    // component when the consumer navigates away mid-handoff (mobile in particular: tapping
+    // a brand in the Account Center and then backgrounding the app while the request is
+    // in flight). React 18 silently discards the stray setState, but guarding here keeps
+    // the component honest and behaves identically under React 17.
+    const isMountedRef = React.useRef(true);
+    React.useEffect(() => () => {
+        isMountedRef.current = false;
+    }, []);
+
     const openInApp = React.useCallback(async (targetBrand: string): Promise<string | null> => {
         if (!targetBrand || targetBrand === currentBrand) return null;
         setIsHandingOff(true);
@@ -67,20 +78,17 @@ const AccountCenter: React.FunctionComponent<IAccountCenterProps> = ({
             const response = await UsersService.mintHandoff(targetBrand);
             const code = response?.data?.code;
             if (!code) {
-                setHandoffError('handoff_no_code');
+                if (isMountedRef.current) setHandoffError('handoff_no_code');
                 return null;
             }
-            // Inline-imported to avoid creating a cycle at module load when consumers tree-shake.
-            // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-            const { buildHandoffUrl } = require('../utilities/handoffClient');
             const url: string = buildHandoffUrl(code, targetBrand, handoffHost);
             await Promise.resolve(openUrl(url));
             return url;
         } catch (err: any) {
-            setHandoffError(err?.message || 'handoff_failed');
+            if (isMountedRef.current) setHandoffError(err?.message || 'handoff_failed');
             return null;
         } finally {
-            setIsHandingOff(false);
+            if (isMountedRef.current) setIsHandingOff(false);
         }
     }, [currentBrand, handoffHost, openUrl]);
 

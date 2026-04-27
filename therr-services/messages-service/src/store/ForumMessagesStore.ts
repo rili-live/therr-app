@@ -1,10 +1,14 @@
 import KnexBuilder, { Knex } from 'knex';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import { getDbCountQueryString } from 'therr-js-utilities/db';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
 export const FORUM_MESSAGES_TABLE_NAME = 'main.forumMessages';
 
 export interface ICreateForumMessageParams {
@@ -23,27 +27,27 @@ export interface IUpdateForumMessageParams {
     message: string;
 }
 
-export default class ForumMessagesStore {
-    db: IConnection;
-
-    constructor(dbConnection) {
-        this.db = dbConnection;
+export default class ForumMessagesStore extends BrandScopedStore {
+    constructor(dbConnection: IConnection) {
+        // Brand-scoped per docs/NICHE_APP_DATABASE_GUIDELINES.md.
+        super(dbConnection, FORUM_MESSAGES_TABLE_NAME, 'shadow');
     }
 
-    // TODO: Update to actually match searchForumMessages (infinite scroll)
-    countRecords(params) {
+    countRecords(brand: BrandValue, params) {
+        this.assertBrand(brand);
         const queryString = getDbCountQueryString({
             queryBuilder: knexBuilder,
             tableName: FORUM_MESSAGES_TABLE_NAME,
             params,
-            defaultConditions: {},
+            defaultConditions: { [`${FORUM_MESSAGES_TABLE_NAME}.brandVariation`]: brand },
         });
 
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     // eslint-disable-next-line default-param-last
-    searchForumMessages(forumId, conditions: any = {}, returning) {
+    searchForumMessages(brand: BrandValue, forumId, conditions: any = {}, returning) {
+        this.assertBrand(brand);
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knexBuilder
@@ -53,6 +57,7 @@ export default class ForumMessagesStore {
                 forumId,
                 isAnnouncement: false,
             })
+            .andWhere(`${FORUM_MESSAGES_TABLE_NAME}.brandVariation`, '=', brand)
             .orderBy(`${FORUM_MESSAGES_TABLE_NAME}.createdAt`, 'desc');
 
         if (conditions.filterBy && conditions.query) {
@@ -72,9 +77,8 @@ export default class ForumMessagesStore {
         });
     }
 
-    createForumMessage(params: ICreateForumMessageParams) {
-        const queryString = knexBuilder.insert(params)
-            .into(FORUM_MESSAGES_TABLE_NAME)
+    createForumMessage(brand: BrandValue, params: ICreateForumMessageParams) {
+        const queryString = this.scopedInsert(brand, { ...params })
             .returning(['id', 'updatedAt'])
             .toString();
 

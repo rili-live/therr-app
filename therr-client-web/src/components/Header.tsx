@@ -2,7 +2,9 @@ import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { ActionIcon, Menu } from '@mantine/core';
+import {
+    ActionIcon, Button, Group, Menu, Modal, Text,
+} from '@mantine/core';
 import {
     AccessControl,
     SvgButton,
@@ -48,6 +50,7 @@ interface IHeaderDispatchProps {
 interface IStoreProps extends IHeaderDispatchProps {
     notifications: INotificationsState;
     user: IUserState;
+    isOnline: boolean;
 }
 
 // Regular component props
@@ -63,11 +66,15 @@ interface IHeaderProps extends IStoreProps {
 
 interface IHeaderState {
     hasUnreadNotifications: boolean;
+    isOfflineModalOpen: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
     notifications: state.notifications,
     user: state.user,
+    // network.isConnected may be undefined on first paint; treat anything not
+    // explicitly false as online so we don't flash the offline UI on load.
+    isOnline: state.network?.isConnected !== false,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
@@ -88,8 +95,33 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
 
         this.state = {
             hasUnreadNotifications: false,
+            isOfflineModalOpen: false,
         };
     }
+
+    componentDidUpdate(prevProps: IHeaderProps) {
+        if (prevProps.isOnline === false && this.props.isOnline) {
+            this.setState({ isOfflineModalOpen: false });
+        }
+    }
+
+    handleLogoClick = () => {
+        if (!this.props.isOnline) {
+            this.setState({ isOfflineModalOpen: true });
+            return;
+        }
+        this.props.goHome();
+    };
+
+    handleRefreshConnection = () => {
+        if (typeof window !== 'undefined') {
+            window.location.reload();
+        }
+    };
+
+    closeOfflineModal = () => {
+        this.setState({ isOfflineModalOpen: false });
+    };
 
     handleLocaleChange = (newLocale: string) => {
         const {
@@ -144,17 +176,21 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
     };
 
     render() {
-        const { hasUnreadNotifications } = this.state;
+        const { hasUnreadNotifications, isOfflineModalOpen } = this.state;
         const {
-            goHome,
             goTo,
             isAuthorized,
             toggleNavMenu,
             isLandingStylePage,
+            isOnline,
+            translate,
         } = this.props;
         const headerClassNames = classnames({
             'no-shadow': isLandingStylePage,
         });
+        const logoAriaLabel = isOnline
+            ? 'Therr logo home link'
+            : translate('components.offlineIndicator.logoAriaOffline');
 
         return (
             <header className={headerClassNames}>
@@ -163,17 +199,27 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         id="therr_svg_button"
                         iconClassName="therr-icon"
                         name="therr"
-                        onClick={() => goHome()}
+                        onClick={this.handleLogoClick}
                         buttonType="primary"
-                        aria-label="Therr logo home link"
+                        aria-label={logoAriaLabel}
                     />
+                    {!isOnline && (
+                        <span
+                            className="offline-badge"
+                            role="img"
+                            aria-label={translate('components.offlineIndicator.badgeAria')}
+                            title={translate('components.offlineIndicator.badgeAria')}
+                        >
+                            !
+                        </span>
+                    )}
                     <SvgButton
                         id="therr_text_svg_button"
                         iconClassName="therr-logo-text"
                         name="therr-text"
-                        onClick={() => goHome()}
+                        onClick={this.handleLogoClick}
                         buttonType="primary"
-                        aria-label="Therr logo text home link"
+                        aria-label={logoAriaLabel}
                     />
                 </div>
                 <div className="header-right">
@@ -227,6 +273,24 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         />
                     </AccessControl>
                 </div>
+                <Modal
+                    opened={isOfflineModalOpen}
+                    onClose={this.closeOfflineModal}
+                    title={translate('components.offlineIndicator.modal.title')}
+                    centered
+                >
+                    <Text size="sm" mb="lg">
+                        {translate('components.offlineIndicator.modal.body')}
+                    </Text>
+                    <Group justify="flex-end" gap="sm">
+                        <Button variant="subtle" onClick={this.closeOfflineModal}>
+                            {translate('components.offlineIndicator.modal.dismiss')}
+                        </Button>
+                        <Button color="teal" onClick={this.handleRefreshConnection}>
+                            {translate('components.offlineIndicator.modal.refresh')}
+                        </Button>
+                    </Group>
+                </Modal>
             </header>
         );
     }

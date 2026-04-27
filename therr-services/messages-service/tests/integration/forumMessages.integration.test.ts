@@ -74,7 +74,7 @@ describe('Integration Tests - Forum Messages', () => {
                 isPublic: true,
             };
 
-            const createdForums = await forumsStore.createForum(testForum);
+            const createdForums = await forumsStore.createForum('therr', testForum);
             testForumId = Number(createdForums[0].id);
         } catch (err) {
             console.log('\n⚠️  Error creating test forum. Skipping forum messages integration tests.');
@@ -118,7 +118,7 @@ describe('Integration Tests - Forum Messages', () => {
                 isAnnouncement: false,
             };
 
-            const createdMessages = await forumMessagesStore.createForumMessage(testMessage);
+            const createdMessages = await forumMessagesStore.createForumMessage('therr', testMessage);
 
             expect(createdMessages).to.be.an('array');
             expect(createdMessages.length).to.equal(1);
@@ -137,7 +137,7 @@ describe('Integration Tests - Forum Messages', () => {
                 isAnnouncement: true,
             };
 
-            const createdMessages = await forumMessagesStore.createForumMessage(testMessage);
+            const createdMessages = await forumMessagesStore.createForumMessage('therr', testMessage);
 
             expect(createdMessages).to.be.an('array');
             expect(createdMessages[0].id).to.be.a('number');
@@ -153,7 +153,7 @@ describe('Integration Tests - Forum Messages', () => {
                 fromUserLocale: 2, // Different locale code
             };
 
-            const createdMessages = await forumMessagesStore.createForumMessage(testMessage);
+            const createdMessages = await forumMessagesStore.createForumMessage('therr', testMessage);
 
             expect(createdMessages).to.be.an('array');
             expect(createdMessages[0].id).to.be.a('number');
@@ -162,14 +162,14 @@ describe('Integration Tests - Forum Messages', () => {
         it('should create messages from multiple users', async () => {
             if (skipTests || !testForumId) return;
 
-            const message1 = await forumMessagesStore.createForumMessage({
+            const message1 = await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Message from user 1',
                 fromUserId: TEST_USER_1,
                 fromUserLocale: 1,
             });
 
-            const message2 = await forumMessagesStore.createForumMessage({
+            const message2 = await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Message from user 2',
                 fromUserId: TEST_USER_2,
@@ -185,14 +185,14 @@ describe('Integration Tests - Forum Messages', () => {
             if (skipTests || !testForumId) return;
 
             // Create test messages
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Search test message 1',
                 fromUserId: TEST_USER_1,
                 fromUserLocale: 1,
                 isAnnouncement: false,
             });
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Search test message 2',
                 fromUserId: TEST_USER_2,
@@ -202,6 +202,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             // Search messages
             const foundMessages = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -217,7 +218,7 @@ describe('Integration Tests - Forum Messages', () => {
             if (skipTests || !testForumId) return;
 
             // Create regular message
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Regular message',
                 fromUserId: TEST_USER_1,
@@ -226,7 +227,7 @@ describe('Integration Tests - Forum Messages', () => {
             });
 
             // Create announcement
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Announcement message',
                 fromUserId: TEST_USER_1,
@@ -236,6 +237,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             // Search messages (should exclude announcements)
             const foundMessages = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -252,7 +254,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             // Create 5 test messages
             await Promise.all([0, 1, 2, 3, 4].map(async (i) => {
-                await forumMessagesStore.createForumMessage({
+                await forumMessagesStore.createForumMessage('therr', {
                     forumId: testForumId as number,
                     message: `Pagination test message ${i}`,
                     fromUserId: TEST_USER_1,
@@ -263,6 +265,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             // Get first page
             const page1 = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 1 },
@@ -272,6 +275,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             // Get second page
             const page2 = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 2, pageNumber: 2 },
@@ -288,7 +292,7 @@ describe('Integration Tests - Forum Messages', () => {
             if (skipTests || !testForumId) return;
 
             // Create messages with small delays
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'First message',
                 fromUserId: TEST_USER_1,
@@ -298,7 +302,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             await new Promise((resolve) => { setTimeout(resolve, 100); });
 
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Second message',
                 fromUserId: TEST_USER_1,
@@ -308,6 +312,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             // Search messages
             const foundMessages = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -323,14 +328,14 @@ describe('Integration Tests - Forum Messages', () => {
             if (skipTests || !testForumId) return;
 
             // Create messages from different users
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Message from user 1',
                 fromUserId: TEST_USER_1,
                 fromUserLocale: 1,
                 isAnnouncement: false,
             });
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Message from user 2',
                 fromUserId: TEST_USER_2,
@@ -340,6 +345,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             // Filter by user 1
             const foundMessages = await forumMessagesStore.searchForumMessages(
+                'therr',
                 testForumId,
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -359,14 +365,14 @@ describe('Integration Tests - Forum Messages', () => {
             if (skipTests || !testForumId) return;
 
             // Create test messages
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Count test message 1',
                 fromUserId: TEST_USER_1,
                 fromUserLocale: 1,
                 isAnnouncement: false,
             });
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Count test message 2',
                 fromUserId: TEST_USER_1,
@@ -374,7 +380,7 @@ describe('Integration Tests - Forum Messages', () => {
                 isAnnouncement: false,
             });
 
-            const countResult = await forumMessagesStore.countRecords({
+            const countResult = await forumMessagesStore.countRecords('therr', {
                 filterBy: 'forumId',
                 query: testForumId,
             });
@@ -388,21 +394,21 @@ describe('Integration Tests - Forum Messages', () => {
             if (skipTests || !testForumId) return;
 
             // Create regular and announcement messages
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Regular message',
                 fromUserId: TEST_USER_1,
                 fromUserLocale: 1,
                 isAnnouncement: false,
             });
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Announcement 1',
                 fromUserId: TEST_USER_1,
                 fromUserLocale: 1,
                 isAnnouncement: true,
             });
-            await forumMessagesStore.createForumMessage({
+            await forumMessagesStore.createForumMessage('therr', {
                 forumId: testForumId,
                 message: 'Announcement 2',
                 fromUserId: TEST_USER_1,
@@ -410,7 +416,7 @@ describe('Integration Tests - Forum Messages', () => {
                 isAnnouncement: true,
             });
 
-            const announcementCount = await forumMessagesStore.countRecords({
+            const announcementCount = await forumMessagesStore.countRecords('therr', {
                 filterBy: 'isAnnouncement',
                 query: true,
             });
@@ -429,7 +435,7 @@ describe('Integration Tests - Forum Messages', () => {
             const validCategoryTag = categoryResult.rows[0]?.tag || 'general';
 
             // Create a second forum
-            const secondForum = await forumsStore.createForum({
+            const secondForum = await forumsStore.createForum('therr', {
                 authorId: TEST_USER_1,
                 authorLocale: 'en-us',
                 administratorIds: TEST_USER_1,
@@ -446,7 +452,7 @@ describe('Integration Tests - Forum Messages', () => {
 
             try {
                 // Create message in first forum
-                await forumMessagesStore.createForumMessage({
+                await forumMessagesStore.createForumMessage('therr', {
                     forumId: testForumId,
                     message: 'Message in first forum',
                     fromUserId: TEST_USER_1,
@@ -455,7 +461,7 @@ describe('Integration Tests - Forum Messages', () => {
                 });
 
                 // Create message in second forum
-                await forumMessagesStore.createForumMessage({
+                await forumMessagesStore.createForumMessage('therr', {
                     forumId: secondForumId,
                     message: 'Message in second forum',
                     fromUserId: TEST_USER_1,
@@ -465,6 +471,7 @@ describe('Integration Tests - Forum Messages', () => {
 
                 // Search first forum
                 const firstForumMessages = await forumMessagesStore.searchForumMessages(
+                    'therr',
                     testForumId,
                     {
                         pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -474,6 +481,7 @@ describe('Integration Tests - Forum Messages', () => {
 
                 // Search second forum
                 const secondForumMessages = await forumMessagesStore.searchForumMessages(
+                    'therr',
                     secondForumId,
                     {
                         pagination: { itemsPerPage: 10, pageNumber: 1 },

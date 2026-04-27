@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
@@ -69,26 +69,30 @@ const createNotification = (req, res) => {
 };
 
 // READ
-const getNotification = (req, res) => Store.notifications.getNotifications({
-    requestingUserId: req.params.notificationId,
-})
-    .then((results) => {
-        const locale = req.headers['x-localecode'] || 'en-us';
-
-        if (!results.length) {
-            return handleHttpError({
-                res,
-                message: `No notification found with id, ${req.params.notificationId}.`,
-                statusCode: 404,
-            });
-        }
-        return res.status(200).send(translateNotification(results[0], locale));
+const getNotification = (req, res) => {
+    const { brandVariation } = getBrandContext(req.headers);
+    return Store.notifications.getNotifications(brandVariation, {
+        requestingUserId: req.params.notificationId,
     })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+        .then((results) => {
+            const locale = req.headers['x-localecode'] || 'en-us';
+
+            if (!results.length) {
+                return handleHttpError({
+                    res,
+                    message: `No notification found with id, ${req.params.notificationId}.`,
+                    statusCode: 404,
+                });
+            }
+            return res.status(200).send(translateNotification(results[0], locale));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+};
 
 const searchNotifications: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const { brandVariation } = getBrandContext(req.headers);
     const {
         filterBy,
         query,
@@ -97,7 +101,7 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
     } = req.query;
     const integerColumns = ['id'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = Store.notifications.searchNotifications(userId, searchArgs[0]);
+    const searchPromise = Store.notifications.searchNotifications(brandVariation, userId, searchArgs[0]);
 
     /**
      * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
@@ -131,32 +135,35 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
 };
 
 // UPDATE
-const updateNotification = (req, res) => Store.notifications.getNotifications({
-    id: req.params.notificationId,
-})
-    .then((getResults) => {
-        const locale = req.headers['x-localecode'] || 'en-us';
-        const {
-            isUnread,
-        } = req.body;
-
-        if (!getResults.length) {
-            return handleHttpError({
-                res,
-                message: `No notification found with id, ${req.params.notificationId}.`,
-                statusCode: 404,
-            });
-        }
-
-        return Store.notifications
-            .updateNotification({
-                id: req.params.notificationId,
-            }, {
-                isUnread,
-            })
-            .then((results) => res.status(202).send(translateNotification(results[0], locale)));
+const updateNotification = (req, res) => {
+    const { brandVariation } = getBrandContext(req.headers);
+    return Store.notifications.getNotifications(brandVariation, {
+        id: req.params.notificationId,
     })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+        .then((getResults) => {
+            const locale = req.headers['x-localecode'] || 'en-us';
+            const {
+                isUnread,
+            } = req.body;
+
+            if (!getResults.length) {
+                return handleHttpError({
+                    res,
+                    message: `No notification found with id, ${req.params.notificationId}.`,
+                    statusCode: 404,
+                });
+            }
+
+            return Store.notifications
+                .updateNotification(brandVariation, {
+                    id: req.params.notificationId,
+                }, {
+                    isUnread,
+                })
+                .then((results) => res.status(202).send(translateNotification(results[0], locale)));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+};
 
 export {
     createNotification,

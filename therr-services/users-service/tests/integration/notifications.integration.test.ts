@@ -113,7 +113,7 @@ describe('Integration Tests - Notifications', () => {
 
             const user = await createTestUser('notif1');
 
-            const notifications = await notificationsStore.createNotification({
+            const notifications = await notificationsStore.createNotification('therr', {
                 userId: user.id,
                 type: Notifications.Types.ACHIEVEMENT_COMPLETED,
                 isUnread: true,
@@ -145,7 +145,7 @@ describe('Integration Tests - Notifications', () => {
             createdConnectionIds.push(connections[0].id);
 
             // Create notification for user2 about the request
-            const notifications = await notificationsStore.createNotification({
+            const notifications = await notificationsStore.createNotification('therr', {
                 userId: user2.id,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: connections[0].id,
@@ -170,7 +170,7 @@ describe('Integration Tests - Notifications', () => {
 
             const user = await createTestUser('notif3');
 
-            const created = await notificationsStore.createNotification({
+            const created = await notificationsStore.createNotification('therr', {
                 userId: user.id,
                 type: Notifications.Types.NEW_LIKE_RECEIVED,
                 isUnread: true,
@@ -178,7 +178,7 @@ describe('Integration Tests - Notifications', () => {
             });
             createdNotificationIds.push(created[0].id);
 
-            const found = await notificationsStore.getNotifications({ id: created[0].id });
+            const found = await notificationsStore.getNotifications('therr', { id: created[0].id });
 
             expect(found.length).to.equal(1);
             expect(found[0].id).to.equal(created[0].id);
@@ -190,7 +190,7 @@ describe('Integration Tests - Notifications', () => {
             const user = await createTestUser('notif4');
 
             // Create multiple notifications
-            const notifPromises = Array.from({ length: 5 }, (_, i) => notificationsStore.createNotification({
+            const notifPromises = Array.from({ length: 5 }, (_, i) => notificationsStore.createNotification('therr', {
                 userId: user.id,
                 type: Notifications.Types.ACHIEVEMENT_COMPLETED,
                 isUnread: true,
@@ -201,7 +201,7 @@ describe('Integration Tests - Notifications', () => {
             notifResults.forEach((notif) => createdNotificationIds.push(notif[0].id));
 
             // Search with pagination
-            const results = await notificationsStore.searchNotifications(user.id, {
+            const results = await notificationsStore.searchNotifications('therr', user.id, {
                 pagination: { itemsPerPage: 3, pageNumber: 1 },
                 order: 'desc',
             });
@@ -224,7 +224,7 @@ describe('Integration Tests - Notifications', () => {
             createdConnectionIds.push(connections[0].id);
 
             // Create notification with connection associationId
-            const notifications = await notificationsStore.createNotification({
+            const notifications = await notificationsStore.createNotification('therr', {
                 userId: user2.id,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: connections[0].id,
@@ -234,7 +234,7 @@ describe('Integration Tests - Notifications', () => {
             createdNotificationIds.push(notifications[0].id);
 
             // Search should include userConnection data via join
-            const results = await notificationsStore.searchNotifications(user2.id, {
+            const results = await notificationsStore.searchNotifications('therr', user2.id, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
                 order: 'desc',
             });
@@ -261,7 +261,7 @@ describe('Integration Tests - Notifications', () => {
 
             const user = await createTestUser('notif6');
 
-            const created = await notificationsStore.createNotification({
+            const created = await notificationsStore.createNotification('therr', {
                 userId: user.id,
                 type: Notifications.Types.NEW_SUPER_LIKE_RECEIVED,
                 isUnread: true,
@@ -273,6 +273,7 @@ describe('Integration Tests - Notifications', () => {
 
             // Mark as read
             const updated = await notificationsStore.updateNotification(
+                'therr',
                 { id: created[0].id },
                 { isUnread: false },
             );
@@ -285,7 +286,7 @@ describe('Integration Tests - Notifications', () => {
 
             const user = await createTestUser('notif7');
 
-            const created = await notificationsStore.createNotification({
+            const created = await notificationsStore.createNotification('therr', {
                 userId: user.id,
                 type: Notifications.Types.NEW_DM_RECEIVED,
                 isUnread: true,
@@ -298,6 +299,7 @@ describe('Integration Tests - Notifications', () => {
 
             // Update notification
             const updated = await notificationsStore.updateNotification(
+                'therr',
                 { id: created[0].id },
                 { isUnread: false },
             );
@@ -318,7 +320,7 @@ describe('Integration Tests - Notifications', () => {
             const user = await createTestUser('notif8');
 
             // Create multiple notifications (some read, some unread)
-            const notifPromises = Array.from({ length: 3 }, () => notificationsStore.createNotification({
+            const notifPromises = Array.from({ length: 3 }, () => notificationsStore.createNotification('therr', {
                 userId: user.id,
                 type: Notifications.Types.ACHIEVEMENT_COMPLETED,
                 isUnread: true,
@@ -329,12 +331,13 @@ describe('Integration Tests - Notifications', () => {
 
             // Mark one as read
             await notificationsStore.updateNotification(
+                'therr',
                 { id: createdNotificationIds[0] },
                 { isUnread: false },
             );
 
             // Count unread
-            const countResult = await notificationsStore.countRecords({
+            const countResult = await notificationsStore.countRecords('therr', {
                 filterBy: 'isUnread',
                 query: true,
             });
@@ -360,7 +363,7 @@ describe('Integration Tests - Notifications', () => {
             createdConnectionIds.push(connections[0].id);
 
             // Step 2: Create notification for accepter about the request
-            const requestNotif = await notificationsStore.createNotification({
+            const requestNotif = await notificationsStore.createNotification('therr', {
                 userId: accepter.id,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: connections[0].id,
@@ -380,7 +383,7 @@ describe('Integration Tests - Notifications', () => {
             );
 
             // Step 4: Create notification for requester about acceptance
-            const acceptNotif = await notificationsStore.createNotification({
+            const acceptNotif = await notificationsStore.createNotification('therr', {
                 userId: requester.id,
                 type: Notifications.Types.CONNECTION_REQUEST_ACCEPTED,
                 associationId: connections[0].id,
@@ -395,16 +398,17 @@ describe('Integration Tests - Notifications', () => {
 
             // Step 5: Mark the original request notification as read
             await notificationsStore.updateNotification(
+                'therr',
                 { id: requestNotif[0].id },
                 { isUnread: false },
             );
 
             // Verify the flow
-            const accepterNotifs = await notificationsStore.searchNotifications(accepter.id, {
+            const accepterNotifs = await notificationsStore.searchNotifications('therr', accepter.id, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
                 order: 'desc',
             });
-            const requesterNotifs = await notificationsStore.searchNotifications(requester.id, {
+            const requesterNotifs = await notificationsStore.searchNotifications('therr', requester.id, {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
                 order: 'desc',
             });
@@ -422,6 +426,73 @@ describe('Integration Tests - Notifications', () => {
             );
             expect(requesterAcceptNotif).to.not.equal(undefined);
             expect(requesterAcceptNotif?.isUnread).to.equal(true);
+        });
+    });
+
+    // Phase 6 verification scenario 1 — Two-app, one user.
+    // The same user signed into Therr and Habits must see only their own brand's notifications.
+    describe('Brand Isolation (Phase 6 scenario 1)', () => {
+        it('returns only same-brand notifications when the user is enrolled in two brands', async () => {
+            if (skipTests) return;
+
+            const user = await createTestUser('brand-iso-1');
+
+            const therrNotif = await notificationsStore.createNotification('therr', {
+                userId: user.id,
+                type: Notifications.Types.NEW_LIKE_RECEIVED,
+                isUnread: true,
+                messageLocaleKey: Notifications.MessageKeys.NEW_LIKE_RECEIVED,
+            });
+            createdNotificationIds.push(therrNotif[0].id);
+
+            const habitsNotif = await notificationsStore.createNotification('habits', {
+                userId: user.id,
+                type: Notifications.Types.ACHIEVEMENT_COMPLETED,
+                isUnread: true,
+                messageLocaleKey: Notifications.MessageKeys.ACHIEVEMENT_COMPLETED,
+            });
+            createdNotificationIds.push(habitsNotif[0].id);
+
+            const therrList = await notificationsStore.searchNotifications('therr', user.id, {
+                pagination: { itemsPerPage: 50, pageNumber: 1 },
+                order: 'desc',
+            });
+            const habitsList = await notificationsStore.searchNotifications('habits', user.id, {
+                pagination: { itemsPerPage: 50, pageNumber: 1 },
+                order: 'desc',
+            });
+
+            const therrIds = therrList.map((n) => n.id);
+            const habitsIds = habitsList.map((n) => n.id);
+
+            expect(therrIds).to.include(therrNotif[0].id);
+            expect(therrIds).to.not.include(habitsNotif[0].id);
+            expect(habitsIds).to.include(habitsNotif[0].id);
+            expect(habitsIds).to.not.include(therrNotif[0].id);
+        });
+
+        it('stamps brandVariation on insert and persists it on the row', async () => {
+            if (skipTests) return;
+
+            const user = await createTestUser('brand-iso-2');
+
+            const created = await notificationsStore.createNotification('habits', {
+                userId: user.id,
+                type: Notifications.Types.ACHIEVEMENT_COMPLETED,
+                isUnread: true,
+                messageLocaleKey: Notifications.MessageKeys.ACHIEVEMENT_COMPLETED,
+            });
+            createdNotificationIds.push(created[0].id);
+
+            expect(created[0].brandVariation).to.equal('habits');
+
+            const reread = await notificationsStore.getNotifications('habits', { id: created[0].id });
+            expect(reread.length).to.equal(1);
+            expect(reread[0].brandVariation).to.equal('habits');
+
+            // Reading under a different brand must not return the row.
+            const wrongBrand = await notificationsStore.getNotifications('therr', { id: created[0].id });
+            expect(wrongBrand.length).to.equal(0);
         });
     });
 });

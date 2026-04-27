@@ -11,6 +11,7 @@ import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { INotificationsState } from 'therr-react/types';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
@@ -23,6 +24,7 @@ import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
 import InfoModal from './Modals/InfoModal';
 import TherrIcon from './TherrIcon';
+import FeatureGate from './FeatureGate';
 import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../constants';
 import { Sheets } from 'react-native-actions-sheet';
 
@@ -559,9 +561,13 @@ class HeaderMenuRight extends React.PureComponent<
                             />
                         </AttachStep>
                         {
-                            hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
-                                <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
-                            </Pressable>
+                            hasNotifications && (
+                                <FeatureGate feature={FeatureFlags.ENABLE_NOTIFICATIONS}>
+                                    <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
+                                        <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
+                                    </Pressable>
+                                </FeatureGate>
+                            )
                         }
                     </View>
                     <DrawerOverlay
@@ -585,7 +591,11 @@ class HeaderMenuRight extends React.PureComponent<
                                         transition={false}
                                     />
                                     {
-                                        hasNotifications && <View style={themeMenu.styles.notificationCircle3} />
+                                        hasNotifications && (
+                                            <FeatureGate feature={FeatureFlags.ENABLE_NOTIFICATIONS}>
+                                                <View style={themeMenu.styles.notificationCircle3} />
+                                            </FeatureGate>
+                                        )
                                     }
                                 </Pressable>
                                 <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
@@ -605,123 +615,133 @@ class HeaderMenuRight extends React.PureComponent<
                                 type="clear"
                             />
                         </View>
-                        <View style={themeMenu.styles.subheader}>
-                            <View style={themeMenu.styles.subheaderTitle}>
+                        <FeatureGate feature={FeatureFlags.ENABLE_COIN_RECHARGE}>
+                            <View style={themeMenu.styles.subheader}>
+                                <View style={themeMenu.styles.subheaderTitle}>
+                                    <Button
+                                        type="clear"
+                                        icon={
+                                            <TherrIcon
+                                                name="therr-logo"
+                                                size={24}
+                                                style={themeMenu.styles.subheaderTitleIcon}
+                                            />
+                                        }
+                                    />
+                                    <Text numberOfLines={1} style={themeMenu.styles.subheaderTitleText}>
+                                        {`${this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal)} coins`}
+                                    </Text>
+                                </View>
+                                <Pressable onPress={() => this.navTo('ExchangePointsDisclaimer')}>
+                                    <Text style={themeMenu.styles.subheaderLinkText}>
+                                        {this.translate('components.headerMenuRight.buttons.exchange')}
+                                    </Text>
+                                </Pressable>
                                 <Button
-                                    type="clear"
                                     icon={
                                         <TherrIcon
-                                            name="therr-logo"
+                                            name="info"
                                             size={24}
-                                            style={themeMenu.styles.subheaderTitleIcon}
+                                            color={theme.colors.brandingWhite}
                                         />
                                     }
+                                    iconRight
+                                    onPress={this.togglePointsInfoModal}
+                                    type="clear"
                                 />
-                                <Text numberOfLines={1} style={themeMenu.styles.subheaderTitleText}>
-                                    {`${this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal)} coins`}
-                                </Text>
                             </View>
-                            <Pressable onPress={() => this.navTo('ExchangePointsDisclaimer')}>
-                                <Text style={themeMenu.styles.subheaderLinkText}>
-                                    {this.translate('components.headerMenuRight.buttons.exchange')}
-                                </Text>
-                            </Pressable>
-                            <Button
-                                icon={
-                                    <TherrIcon
-                                        name="info"
-                                        size={24}
-                                        color={theme.colors.brandingWhite}
-                                    />
-                                }
-                                iconRight
-                                onPress={this.togglePointsInfoModal}
-                                type="clear"
-                            />
-                        </View>
+                        </FeatureGate>
                         <ScrollView
                             showsVerticalScrollIndicator
                             persistentScrollbar
                             style={themeMenu.styles.body}
                         >
                             <Drawer.Section>
-                                <View style={themeMenu.styles.notificationsItemContainer}>
+                                <FeatureGate feature={FeatureFlags.ENABLE_NOTIFICATIONS}>
+                                    <View style={themeMenu.styles.notificationsItemContainer}>
+                                        <Drawer.Item
+                                            label={this.translate('components.headerMenuRight.menuItems.notifications')}
+                                            icon={() => (
+                                                <TherrIcon
+                                                    style={
+                                                        currentScreen === 'Notifications'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name="bell"
+                                                    size={24}
+                                                />
+                                            )}
+                                            active={currentScreen === 'Notifications'}
+                                            onPress={() => this.navTo('Notifications')}
+                                        />
+                                        {
+                                            hasNotifications && (
+                                                <Badge style={themeMenu.styles.notificationBadge} size={20}>
+                                                    {unreadCount}
+                                                </Badge>
+                                            )
+                                        }
+                                    </View>
+                                </FeatureGate>
+                                <FeatureGate feature={FeatureFlags.ENABLE_ACHIEVEMENTS}>
                                     <Drawer.Item
-                                        label={this.translate('components.headerMenuRight.menuItems.notifications')}
+                                        label={this.translate('components.headerMenuRight.menuItems.achievements')}
                                         icon={() => (
                                             <TherrIcon
                                                 style={
-                                                    currentScreen === 'Notifications'
+                                                    currentScreen === 'Achievements'
                                                         ? themeMenu.styles.iconStyleActive
                                                         : themeMenu.styles.iconStyle
                                                 }
-                                                name="bell"
+                                                name="achievement"
                                                 size={24}
                                             />
                                         )}
-                                        active={currentScreen === 'Notifications'}
-                                        onPress={() => this.navTo('Notifications')}
+                                        active={currentScreen === 'Achievements'}
+                                        onPress={() => this.navTo('Achievements')}
                                     />
-                                    {
-                                        hasNotifications && (
-                                            <Badge style={themeMenu.styles.notificationBadge} size={20}>
-                                                {unreadCount}
-                                            </Badge>
-                                        )
-                                    }
-                                </View>
-                                <Drawer.Item
-                                    label={this.translate('components.headerMenuRight.menuItems.achievements')}
-                                    icon={() => (
-                                        <TherrIcon
-                                            style={
-                                                currentScreen === 'Achievements'
-                                                    ? themeMenu.styles.iconStyleActive
-                                                    : themeMenu.styles.iconStyle
-                                            }
-                                            name="achievement"
-                                            size={24}
-                                        />
-                                    )}
-                                    active={currentScreen === 'Achievements'}
-                                    onPress={() => this.navTo('Achievements')}
-                                />
-                                <Drawer.Item
-                                    label={this.translate('components.headerMenuRight.menuItems.chat')}
-                                    icon={() => (
-                                        <TherrIcon
-                                            style={
-                                                currentScreen === `Connect`
-                                                    ? themeMenu.styles.iconStyleActive
-                                                    : themeMenu.styles.iconStyle
-                                            }
-                                            name="chat-smile"
-                                            size={24}
-                                        />
-                                    )}
-                                    active={currentScreen === `Connect`}
-                                    onPress={() => this.navTo('Connect', {
-                                        activeTab: PEOPLE_CAROUSEL_TABS.MESSAGES,
-                                    })}
-                                />
-                                <Drawer.Item
-                                    label={this.translate('components.headerMenuRight.menuItems.groups')}
-                                    icon={() => (
-                                        <TherrIcon
-                                            style={
-                                                currentScreen === 'Groups'
-                                                    ? themeMenu.styles.iconStyleActive
-                                                    : themeMenu.styles.iconStyle
-                                            }
-                                            name="group"
-                                            size={24}
-                                        />
-                                    )}
-                                    active={currentScreen === `Groups`}
-                                    onPress={() => this.navTo('Groups', {
-                                        activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                                    })}
-                                />
+                                </FeatureGate>
+                                <FeatureGate feature={FeatureFlags.ENABLE_CONNECT}>
+                                    <Drawer.Item
+                                        label={this.translate('components.headerMenuRight.menuItems.chat')}
+                                        icon={() => (
+                                            <TherrIcon
+                                                style={
+                                                    currentScreen === `Connect`
+                                                        ? themeMenu.styles.iconStyleActive
+                                                        : themeMenu.styles.iconStyle
+                                                }
+                                                name="chat-smile"
+                                                size={24}
+                                            />
+                                        )}
+                                        active={currentScreen === `Connect`}
+                                        onPress={() => this.navTo('Connect', {
+                                            activeTab: PEOPLE_CAROUSEL_TABS.MESSAGES,
+                                        })}
+                                    />
+                                </FeatureGate>
+                                <FeatureGate feature={FeatureFlags.ENABLE_GROUPS}>
+                                    <Drawer.Item
+                                        label={this.translate('components.headerMenuRight.menuItems.groups')}
+                                        icon={() => (
+                                            <TherrIcon
+                                                style={
+                                                    currentScreen === 'Groups'
+                                                        ? themeMenu.styles.iconStyleActive
+                                                        : themeMenu.styles.iconStyle
+                                                }
+                                                name="group"
+                                                size={24}
+                                            />
+                                        )}
+                                        active={currentScreen === `Groups`}
+                                        onPress={() => this.navTo('Groups', {
+                                            activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                                        })}
+                                    />
+                                </FeatureGate>
                                 <Drawer.Item
                                     label={this.translate('components.headerMenuRight.menuItems.addConnection')}
                                     icon={() => (
@@ -738,22 +758,24 @@ class HeaderMenuRight extends React.PureComponent<
                                     active={currentScreen === 'Invite'}
                                     onPress={() => this.navTo('Invite')}
                                 />
-                                <Drawer.Item
-                                    label={this.translate('components.headerMenuRight.menuItems.myDrafts')}
-                                    icon={() => (
-                                        <TherrIcon
-                                            style={
-                                                currentScreen === 'MyDrafts'
-                                                    ? themeMenu.styles.iconStyleActive
-                                                    : themeMenu.styles.iconStyle
-                                            }
-                                            name="edit"
-                                            size={24}
-                                        />
-                                    )}
-                                    active={currentScreen === 'MyDrafts'}
-                                    onPress={() => this.navTo('MyDrafts')}
-                                />
+                                <FeatureGate feature={FeatureFlags.ENABLE_AREAS}>
+                                    <Drawer.Item
+                                        label={this.translate('components.headerMenuRight.menuItems.myDrafts')}
+                                        icon={() => (
+                                            <TherrIcon
+                                                style={
+                                                    currentScreen === 'MyDrafts'
+                                                        ? themeMenu.styles.iconStyleActive
+                                                        : themeMenu.styles.iconStyle
+                                                }
+                                                name="edit"
+                                                size={24}
+                                            />
+                                        )}
+                                        active={currentScreen === 'MyDrafts'}
+                                        onPress={() => this.navTo('MyDrafts')}
+                                    />
+                                </FeatureGate>
                             </Drawer.Section>
                             <Drawer.Section>
                                 <Drawer.Item
@@ -773,56 +795,62 @@ class HeaderMenuRight extends React.PureComponent<
                                     onPress={() => this.navTo('Settings')}
                                 />
                                 {user.details?.isBusinessAccount ? (
-                                    <Drawer.Item
-                                        label={this.translate('components.headerMenuRight.menuItems.manageSpaces')}
-                                        icon={() => (
-                                            <TherrIcon
-                                                style={
-                                                    currentScreen === 'ManageSpaces'
-                                                        ? themeMenu.styles.iconStyleActive
-                                                        : themeMenu.styles.iconStyle
-                                                }
-                                                name="storefront"
-                                                size={24}
-                                            />
-                                        )}
-                                        active={currentScreen === 'ManageSpaces'}
-                                        onPress={() => this.navTo('ManageSpaces')}
-                                    />
-                                ) : (
-                                    <Drawer.Item
-                                        label={this.translate('components.headerMenuRight.menuItems.wallet')}
-                                        icon={() => (
-                                            <TherrIcon
-                                                style={
-                                                    currentScreen === 'ExchangePointsDisclaimer'
-                                                        ? themeMenu.styles.iconStyleActive
-                                                        : themeMenu.styles.iconStyle
-                                                }
-                                                name="wallet"
-                                                size={24}
-                                            />
-                                        )}
-                                        active={currentScreen === 'ExchangePointsDisclaimer'}
-                                        onPress={() => this.navTo('ExchangePointsDisclaimer')}
-                                    />
-                                )}
-                                <Drawer.Item
-                                    label={this.translate('components.headerMenuRight.menuItems.bookmarks')}
-                                    icon={() => (
-                                        <TherrIcon
-                                            style={
-                                                currentScreen === 'BookMarked'
-                                                    ? themeMenu.styles.iconStyleActive
-                                                    : themeMenu.styles.iconStyle
-                                            }
-                                            name="bookmark"
-                                            size={24}
+                                    <FeatureGate feature={FeatureFlags.ENABLE_SPACES}>
+                                        <Drawer.Item
+                                            label={this.translate('components.headerMenuRight.menuItems.manageSpaces')}
+                                            icon={() => (
+                                                <TherrIcon
+                                                    style={
+                                                        currentScreen === 'ManageSpaces'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name="storefront"
+                                                    size={24}
+                                                />
+                                            )}
+                                            active={currentScreen === 'ManageSpaces'}
+                                            onPress={() => this.navTo('ManageSpaces')}
                                         />
-                                    )}
-                                    active={currentScreen === 'BookMarked'}
-                                    onPress={() => this.navTo('BookMarked')}
-                                />
+                                    </FeatureGate>
+                                ) : (
+                                    <FeatureGate feature={FeatureFlags.ENABLE_COIN_RECHARGE}>
+                                        <Drawer.Item
+                                            label={this.translate('components.headerMenuRight.menuItems.wallet')}
+                                            icon={() => (
+                                                <TherrIcon
+                                                    style={
+                                                        currentScreen === 'ExchangePointsDisclaimer'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name="wallet"
+                                                    size={24}
+                                                />
+                                            )}
+                                            active={currentScreen === 'ExchangePointsDisclaimer'}
+                                            onPress={() => this.navTo('ExchangePointsDisclaimer')}
+                                        />
+                                    </FeatureGate>
+                                )}
+                                <FeatureGate feature={FeatureFlags.ENABLE_AREAS}>
+                                    <Drawer.Item
+                                        label={this.translate('components.headerMenuRight.menuItems.bookmarks')}
+                                        icon={() => (
+                                            <TherrIcon
+                                                style={
+                                                    currentScreen === 'BookMarked'
+                                                        ? themeMenu.styles.iconStyleActive
+                                                        : themeMenu.styles.iconStyle
+                                                }
+                                                name="bookmark"
+                                                size={24}
+                                            />
+                                        )}
+                                        active={currentScreen === 'BookMarked'}
+                                        onPress={() => this.navTo('BookMarked')}
+                                    />
+                                </FeatureGate>
                                 <Drawer.Item
                                     label={this.translate('components.headerMenuRight.menuItems.feedback')}
                                     icon={() => (
@@ -842,23 +870,25 @@ class HeaderMenuRight extends React.PureComponent<
                             </Drawer.Section>
                         </ScrollView>
                         <View style={themeMenu.styles.footer}>
-                            <Button
-                                titleStyle={themeMenu.styles.buttonsTitle}
-                                buttonStyle={[
-                                    themeMenu.styles.buttons,
-                                    themeMenu.styles.footerButtonCenter,
-                                    themeMenu.styles.footerButtonMargin,
-                                ]}
-                                title={this.translate('components.headerMenuRight.menuItems.tour')}
-                                icon={
-                                    <FontAwesomeIcon
-                                        style={themeMenu.styles.iconStyle}
-                                        name="info"
-                                        size={18}
-                                    />
-                                }
-                                onPress={this.startNavigationTour}
-                            />
+                            <FeatureGate feature={FeatureFlags.ENABLE_MAP}>
+                                <Button
+                                    titleStyle={themeMenu.styles.buttonsTitle}
+                                    buttonStyle={[
+                                        themeMenu.styles.buttons,
+                                        themeMenu.styles.footerButtonCenter,
+                                        themeMenu.styles.footerButtonMargin,
+                                    ]}
+                                    title={this.translate('components.headerMenuRight.menuItems.tour')}
+                                    icon={
+                                        <FontAwesomeIcon
+                                            style={themeMenu.styles.iconStyle}
+                                            name="info"
+                                            size={18}
+                                        />
+                                    }
+                                    onPress={this.startNavigationTour}
+                                />
+                            </FeatureGate>
                             <Button
                                 titleStyle={themeMenu.styles.buttonsTitle}
                                 buttonStyle={[themeMenu.styles.buttons, themeMenu.styles.footerButtonCenter]}

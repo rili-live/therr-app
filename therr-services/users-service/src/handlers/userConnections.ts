@@ -252,7 +252,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 brandVariation,
             });
 
-            return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({
+            return connectionPromise.then(([userConnection]) => Store.notifications.createNotification(brandVariation, {
                 userId: acceptingUser.id as string,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: userConnection.id,

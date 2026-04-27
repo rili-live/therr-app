@@ -1,6 +1,6 @@
 // Theme-agnostic brand colors. Identical across all themes.
 // Use these in module-level StyleSheets or in components that render outside
-// the theme tree (toasts, OfflineBanner, BaseButton's solid title color).
+// the theme tree (toasts, BaseButton's solid title color).
 // Components inside the theme tree should prefer `theme.colors.branding*`.
 
 export const BRAND_WHITE = '#fcfeff';
@@ -12,7 +12,7 @@ export const BRAND_RED = '#FF3041';
 export const BRAND_LIGHT_BLUE = '#d8f0f2';
 
 // Theme-agnostic alert colors used by surfaces that render outside the theme
-// tree (e.g. toast borders, OfflineBanner). Per-theme alert colors live on
+// tree (e.g. toast borders). Per-theme alert colors live on
 // `theme.colors.alert*` for surfaces that DO have theme access.
 export const ALERT_INFO = '#1C7F8A';
 export const ALERT_SUCCESS = '#00A624';

@@ -155,6 +155,22 @@ Next steps:
   4. Verify the down migration is symmetric (drops what up creates)
 ```
 
+After printing the report, append a post-deploy follow-up to
+`docs/WORK_IN_PROGRESS.md` so the migration is not forgotten on the
+production cutover. Locate the marked region and insert before the end
+marker:
+
+```
+<!-- skill-followups:start -->
+- [ ] (YYYY-MM-DD, /db-migration-scaffold) Run migration
+  `<timestamp>_<schema>.<table>_<change>` on production after stage→main
+  merge: `npm run migrations:run --prefix therr-services/<svc>`.
+<!-- skill-followups:end -->
+```
+
+Skip if an identical line is already present (match on the migration
+filename). Skip silently if `docs/WORK_IN_PROGRESS.md` does not exist.
+
 ---
 
 ## Mode 2: Lint

@@ -158,6 +158,30 @@ Read these files when relevant to the task:
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
 - `docs/TARGET_MARKETS.md` - Consumer and business target market definitions (core Therr App)
 - `docs/FEATURES.md` - **High-level feature list for mobile & web clients. Update this file when adding or removing features.**
+- `docs/WORK_IN_PROGRESS.md` - **Prioritized backlog of code TODOs (Tiers 1–5) plus the canonical list of post-deploy manual steps**
+- `docs/PEER_REVIEW_FOLLOWUP.md` - Deferred items surfaced during peer reviews
+
+## Backlog & Operational Follow-ups
+
+`docs/WORK_IN_PROGRESS.md` is the canonical, prioritized backlog of all
+code TODOs across the monorepo plus the **§ Manual Operational Follow-ups**
+checklist of post-deploy steps that humans (not code) must complete.
+
+**Coding agents:** at the start of any non-trivial session, scan **§ Manual
+Operational Follow-ups** for unchecked items (`- [ ]`). If any are open and
+plausibly related to recent work, surface them to the user with a short
+prompt — for example:
+
+> "Two unchecked operational follow-ups from past deploys: (1) re-submit
+>  sitemap to Search Console, (2) run `2026-04-22_main.userDeviceTokens`
+>  migration on production. Want to handle either now?"
+
+Don't lecture or repeat the full list — pick the 1–3 most relevant items.
+When you fix a TODO during a session, **delete** the corresponding bullet
+from `docs/WORK_IN_PROGRESS.md` in the same commit. When a skill output
+generates a new post-deploy step, append it inside the
+`<!-- skill-followups:start --> ... <!-- skill-followups:end -->` markers.
+The full maintenance protocol is in `docs/WORK_IN_PROGRESS.md` itself.
 
 ## Monorepo Structure
 
@@ -362,7 +386,7 @@ The app implements an offline-first strategy so users see cached content during 
 2. **State persistence** — `redux-persist` caches key Redux slices (`user`, `content`, `notifications`, `userConnections`) to AsyncStorage (mobile) or localStorage (web). On app launch, persisted state is rehydrated before rendering.
 3. **Stale-while-revalidate** — Read actions return cached Redux state immediately, then fetch fresh data in the background. If the fetch fails (offline), cached data stays visible with no error shown.
 4. **Graceful axios failure** — The shared axios interceptor catches network errors on GET requests and resolves with empty data instead of throwing, preventing blank screens.
-5. **OfflineBanner** — A dismissable UI banner appears on both platforms when the network is down.
+5. **Offline indicator** — When offline, a yellow `!` badge is rendered in the top-right corner of the header logo on both platforms. Tapping the logo opens a modal explaining the disconnection with a refresh action. Implemented inline in `Header.tsx` (web) and `HeaderMenuLeft.tsx` (mobile).
 
 Key files:
 - `therr-react/src/redux/reducers/network.ts` — Network state slice
