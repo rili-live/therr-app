@@ -1,16 +1,11 @@
-import React from 'react';
-import { View, Text, SafeAreaView } from 'react-native';
+import React, { useEffect, useRef } from 'react';
 import { connect } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IUserState, IHabitsState } from 'therr-react/types';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { useFeatureFlags } from '../../context/FeatureFlagContext';
-import translator from '../../utilities/translator';
-import { Button } from '../BaseButton';
-import { buildStyles } from '../../styles';
-import { buildStyles as buildButtonStyles } from '../../styles/buttons';
-import { buildStyles as buildHabitStyles } from '../../styles/habits';
-import BaseStatusBar from '../BaseStatusBar';
+import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
 
 interface IPactOnboardingGuardProps {
     user: IUserState;
@@ -25,9 +20,11 @@ const mapStateToProps = (state: any) => ({
 });
 
 /**
- * Navigation guard that ensures HABITS users have at least one active pact
- * before accessing the main app. This enforces the accountability partnership
- * model that is core to the HABITS app experience.
+ * Soft-gates the Habits dashboard for HABITS users without an active pact.
+ * Renders <PactPreviewOverlay/> in place of children to show what's behind the
+ * gate (sample habit + partner row + benefits) and route the user into the
+ * pact-invite wizard. Once activePacts becomes non-empty, the gate releases
+ * and any client-side pre-staged template marker is cleared.
  */
 const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     user,
@@ -36,103 +33,34 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     children,
 }) => {
     const { isEnabled } = useFeatureFlags();
-    const translate = (key: string, params?: any) => translator(user.settings?.locale || 'en-us', key, params);
-    const theme = buildStyles(user.settings?.mobileThemeName);
-    const themeButtons = buildButtonStyles(user.settings?.mobileThemeName);
-    const themeHabits = buildHabitStyles(user.settings?.mobileThemeName);
+    const activePactCount = habits.activePacts?.length || 0;
+    const previousActivePactCount = useRef<number>(activePactCount);
 
-    // Only apply guard for HABITS brand with REQUIRE_PACT_ONBOARDING flag enabled
-    if (CURRENT_BRAND_VARIATION !== BrandVariations.HABITS || !isEnabled(FeatureFlags.REQUIRE_PACT_ONBOARDING)) {
+    const guardActive = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+        && isEnabled(FeatureFlags.REQUIRE_PACT_ONBOARDING)
+        && user.isAuthenticated;
+    const hasActivePact = activePactCount > 0;
+
+    // Depend on the length, not the array reference, so unrelated Redux
+    // dispatches that recreate `activePacts` don't re-run this effect.
+    useEffect(() => {
+        const previous = previousActivePactCount.current;
+        if (previous === 0 && activePactCount > 0) {
+            AsyncStorage.removeItem(HABITS_PRESTAGED_TEMPLATE_ID).catch(() => {});
+        }
+        previousActivePactCount.current = activePactCount;
+    }, [activePactCount]);
+
+    if (!guardActive || hasActivePact) {
         return <>{children}</>;
     }
-
-    // Check if user is authenticated
-    if (!user.isAuthenticated) {
-        return <>{children}</>;
-    }
-
-    // Check if user has any active pacts or pending invites they can accept
-    const hasActivePact = habits.activePacts && habits.activePacts.length > 0;
-    const hasPendingInvite = habits.pendingInvites && habits.pendingInvites.length > 0;
-
-    // If user has an active pact, let them through
-    if (hasActivePact) {
-        return <>{children}</>;
-    }
-
-    // Show onboarding screen for users without pacts.
-    // MVP: creating a pact requires first inviting a partner — route to Invite.
-    const handleCreatePact = () => {
-        navigation.navigate('Invite');
-    };
-
-    const handleViewInvites = () => {
-        navigation.navigate('PactsList');
-    };
-
-    const handleFindPartner = () => {
-        navigation.navigate('Connect');
-    };
 
     return (
-        <>
-            <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-            <SafeAreaView style={[theme.styles.safeAreaView, themeHabits.styles.dashboardContainer]}>
-                <View style={themeHabits.styles.emptyStateContainer}>
-                    <Text style={[themeHabits.styles.emptyStateEmoji, { fontSize: 64 }]}>
-                        {'\uD83E\uDD1D'}
-                    </Text>
-                    <Text style={[themeHabits.styles.dashboardGreeting, { textAlign: 'center', marginTop: 24, color: theme.colors.accentTextBlack }]}>
-                        {translate('pages.pacts.onboarding.title')}
-                    </Text>
-                    <Text style={[themeHabits.styles.dashboardSubtitle, { textAlign: 'center', marginTop: 8, paddingHorizontal: 32 }]}>
-                        {translate('pages.pacts.onboarding.subtitle')}
-                    </Text>
-
-                    <View style={{ marginTop: 32, width: '100%', paddingHorizontal: 24 }}>
-                        <Button
-                            buttonStyle={[themeButtons.styles.btnLargeWithText, { width: '100%', marginBottom: 16 }]}
-                            titleStyle={themeButtons.styles.btnLargeTitle}
-                            title={translate('pages.pacts.onboarding.createPact')}
-                            onPress={handleCreatePact}
-                        />
-
-                        {hasPendingInvite && (
-                            <Button
-                                buttonStyle={[themeButtons.styles.btnMediumWithText, { width: '100%', marginBottom: 16 }]}
-                                titleStyle={themeButtons.styles.btnMediumTitle}
-                                title={translate('pages.pacts.onboarding.viewInvites', { count: habits.pendingInvites.length })}
-                                onPress={handleViewInvites}
-                            />
-                        )}
-
-                        <Button
-                            buttonStyle={[themeButtons.styles.btnClear, { width: '100%' }]}
-                            titleStyle={themeButtons.styles.btnTitleBlack}
-                            title={translate('pages.pacts.onboarding.findPartner')}
-                            onPress={handleFindPartner}
-                        />
-                    </View>
-
-                    <View style={{ marginTop: 48, paddingHorizontal: 32 }}>
-                        <Text style={[themeHabits.styles.habitCardSubtitle, { textAlign: 'center' }]}>
-                            {translate('pages.pacts.onboarding.whyPacts')}
-                        </Text>
-                        <View style={{ marginTop: 16 }}>
-                            <Text style={[themeHabits.styles.streakMilestoneText, { marginBottom: 8 }]}>
-                                {'\u2705'} {translate('pages.pacts.onboarding.benefit1')}
-                            </Text>
-                            <Text style={[themeHabits.styles.streakMilestoneText, { marginBottom: 8 }]}>
-                                {'\u2705'} {translate('pages.pacts.onboarding.benefit2')}
-                            </Text>
-                            <Text style={[themeHabits.styles.streakMilestoneText, { marginBottom: 8 }]}>
-                                {'\u2705'} {translate('pages.pacts.onboarding.benefit3')}
-                            </Text>
-                        </View>
-                    </View>
-                </View>
-            </SafeAreaView>
-        </>
+        <PactPreviewOverlay
+            user={user}
+            habits={habits}
+            navigation={navigation}
+        />
     );
 };
 

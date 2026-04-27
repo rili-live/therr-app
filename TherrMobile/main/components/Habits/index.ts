@@ -4,6 +4,8 @@ import HabitCalendar from './HabitCalendar';
 import HabitCard from './HabitCard';
 import PactCard from './PactCard';
 import PactOnboardingGuard from './PactOnboardingGuard';
+import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
+import SentInviteCard from './SentInviteCard';
 import StreakWidget from './StreakWidget';
 
 export {
@@ -13,5 +15,8 @@ export {
     HabitCard,
     PactCard,
     PactOnboardingGuard,
+    PactPreviewOverlay,
+    SentInviteCard,
     StreakWidget,
+    HABITS_PRESTAGED_TEMPLATE_ID,
 };
