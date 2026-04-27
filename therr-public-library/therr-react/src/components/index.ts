@@ -1,5 +1,6 @@
 // Miscellaneous
 import AccessControl from './AccessControl';
+import AccountCenter from './AccountCenter';
 import InlineSvg from './InlineSvg';
 import PaginationControls from './PaginationControls';
 
@@ -26,6 +27,7 @@ import {
 
 export {
     AccessControl,
+    AccountCenter,
     InlineSvg,
     PaginationControls,
     ButtonPrimary,

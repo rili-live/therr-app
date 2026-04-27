@@ -2,6 +2,16 @@ type IAccessLevel = Array<string>;
 
 export type IMobileThemeName = 'light' | 'dark' | 'retro';
 
+// Multi-app auth: which Therr-family apps a given user is active in. The backend appends to this
+// array on every successful login under a given x-brand-variation. Used by the AccountCenter to
+// render "Apps in your Therr account" and to gate cross-app handoff offers.
+export interface IBrandMembership {
+  brand: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  isActive: boolean;
+}
+
 export interface IUser {
   accessLevels: IAccessLevel;
   id: string;
@@ -13,6 +23,7 @@ export interface IUser {
   userName: string;
   media?: any;
   settingsTherrCoinTotal?: any;
+  brandVariations?: IBrandMembership[];
   [key: string]: any;
 }
 

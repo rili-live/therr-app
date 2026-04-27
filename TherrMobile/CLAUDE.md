@@ -148,6 +148,18 @@ if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
 
 **`niche/<TAG>-general` branch** (app-specific): `brandConfig.ts`, app icons/splash, nav guards, feature toggles, store metadata.
 
+### Edge-to-Edge System Bars
+
+Android targets API 36, which enforces edge-to-edge — system bars are always transparent and content draws behind them. Cross-platform behavior is unified via `react-native-edge-to-edge`:
+
+- The Android theme `AppTheme` inherits from `Theme.EdgeToEdge` (see `android/app/src/main/res/values/styles.xml`), which applies `WindowCompat.setDecorFitsSystemWindows(false)` and backports the same behavior to older Android versions.
+- The default system-bar style is set once at the app root via `<SystemBars style="auto" />` in `App.tsx`. Per-screen overrides go through `BaseStatusBar` (`main/components/BaseStatusBar.tsx`), which is a thin wrapper around `<SystemBars>` keyed off the active mobile theme.
+- Do **not** import `StatusBar` from `react-native` to set bar styling. Use `<SystemBars>` from `react-native-edge-to-edge` (or `BaseStatusBar`) instead.
+- Top inset for the custom header comes from `getHeaderTopInset()` in `main/styles/index.ts`, which reads `initialWindowMetrics?.insets?.top` synchronously.
+- Bottom inset for the button menu comes from `bottomSafeAreaInset` in `main/styles/navigation/buttonMenu.ts`. Reuse it on any bottom-anchored surface (action sheets, footers).
+- For `<SafeAreaView>` from `react-native-safe-area-context`: most authenticated screens use `edges={[]}` because the parent `Layout` already pads the header (top) and the global `ButtonMenu` pads the bottom. Only set explicit `edges` when a screen renders without that scaffolding (e.g., full-bleed pre-auth screens) or extends to the bottom edge with no `ButtonMenu`.
+- Forms that need the keyboard to push content up should use `KeyboardAvoidingView` from `react-native-keyboard-controller` (not the built-in one from `react-native`). `KeyboardProvider` is mounted in `App.tsx`, and `android:windowSoftInputMode="adjustResize"` in `AndroidManifest.xml` is the correct mode under edge-to-edge.
+
 ## Common Debugging
 
 - **"Cannot read property X of undefined" at startup**: Usually a module resolution issue. Check metro.config.js blocklist and extraNodeModules.
