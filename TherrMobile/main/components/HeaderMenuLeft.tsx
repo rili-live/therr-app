@@ -90,71 +90,75 @@ const HeaderMenuLeft = ({
     const dismissLabel = translator(locale, 'components.offlineIndicator.modal.dismiss');
 
     return (
-        <View style={styles.wrapper}>
-            <Button
-                type="clear"
-                icon={
-                    <TherrIcon
-                        name="therr-logo"
-                        size={26}
-                        style={[logoStyle]}
-                        onPress={handlePress}
-                    />
-                }
-            />
-            {isOffline && (
-                <View
-                    pointerEvents="none"
-                    style={styles.badge}
-                    accessible
-                    accessibilityLabel={badgeAria}
+        <>
+            <View style={styles.wrapper}>
+                <Button
+                    type="clear"
+                    icon={
+                        <TherrIcon
+                            name="therr-logo"
+                            size={26}
+                            style={[logoStyle]}
+                            onPress={handlePress}
+                        />
+                    }
+                />
+                {isOffline && (
+                    <View
+                        pointerEvents="none"
+                        style={styles.badge}
+                        accessible
+                        accessibilityLabel={badgeAria}
+                    >
+                        <Text style={styles.badgeText}>!</Text>
+                    </View>
+                )}
+            </View>
+            {isOfflineModalOpen && (
+                <Modal
+                    animationType="fade"
+                    transparent
+                    visible
+                    onRequestClose={() => setOfflineModalOpen(false)}
                 >
-                    <Text style={styles.badgeText}>!</Text>
-                </View>
-            )}
-            <Modal
-                animationType="fade"
-                transparent
-                visible={isOfflineModalOpen}
-                onRequestClose={() => setOfflineModalOpen(false)}
-            >
-                <Pressable
-                    style={styles.modalOverlay}
-                    onPress={() => setOfflineModalOpen(false)}
-                >
-                    <Pressable style={styles.modalCard} onPress={() => undefined}>
-                        <View style={styles.modalHeaderRow}>
-                            <Icon name="warning" size={22} color="#F59E0B" />
-                            <Text style={styles.modalTitle}>{modalTitle}</Text>
-                        </View>
-                        <Text style={styles.modalBody}>{modalBody}</Text>
-                        <View style={styles.modalActions}>
-                            <Pressable
-                                style={[styles.modalButton, styles.modalButtonSecondary]}
-                                onPress={() => setOfflineModalOpen(false)}
-                                accessibilityRole="button"
-                                accessibilityLabel={dismissLabel}
-                            >
-                                <Text style={styles.modalButtonSecondaryText}>{dismissLabel}</Text>
-                            </Pressable>
-                            <Pressable
-                                style={[
-                                    styles.modalButton,
-                                    styles.modalButtonPrimary,
-                                    isRefreshing && styles.modalButtonDisabled,
-                                ]}
-                                onPress={handleRefresh}
-                                disabled={isRefreshing}
-                                accessibilityRole="button"
-                                accessibilityLabel={refreshLabel}
-                            >
-                                <Text style={styles.modalButtonPrimaryText}>{refreshLabel}</Text>
-                            </Pressable>
-                        </View>
+                    <Pressable
+                        style={styles.modalOverlay}
+                        onPress={() => setOfflineModalOpen(false)}
+                    >
+                        <Pressable style={styles.modalCard} onPress={() => undefined}>
+                            <View style={styles.modalHeaderRow}>
+                                <Icon name="warning" size={22} color="#F59E0B" />
+                                <Text style={styles.modalTitle}>{modalTitle}</Text>
+                            </View>
+                            <Text style={styles.modalBody}>{modalBody}</Text>
+                            <View style={styles.modalActions}>
+                                <Pressable
+                                    style={[styles.modalButton, styles.modalButtonSecondary]}
+                                    onPress={() => setOfflineModalOpen(false)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={dismissLabel}
+                                >
+                                    <Text style={styles.modalButtonSecondaryText}>{dismissLabel}</Text>
+                                </Pressable>
+                                <Pressable
+                                    style={[
+                                        styles.modalButton,
+                                        styles.modalButtonPrimary,
+                                        isRefreshing && styles.modalButtonDisabled,
+                                    ]}
+                                    onPress={handleRefresh}
+                                    disabled={isRefreshing}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={refreshLabel}
+                                >
+                                    <Text style={styles.modalButtonPrimaryText}>{refreshLabel}</Text>
+                                </Pressable>
+                            </View>
+                        </Pressable>
                     </Pressable>
-                </Pressable>
-            </Modal>
-        </View>
+                </Modal>
+            )}
+        </>
     );
 };
 
