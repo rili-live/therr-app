@@ -391,6 +391,134 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             textAlign: 'center',
             marginTop: 8,
         },
+
+        // Pact onboarding stepper
+        stepperContainer: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            paddingHorizontal: 24,
+            paddingVertical: 20,
+            backgroundColor: therrTheme.colors.brandingWhite,
+        },
+        stepperItem: {
+            alignItems: 'center',
+            flex: 1,
+        },
+        stepperConnector: {
+            position: 'absolute',
+            top: 18,
+            left: '50%',
+            right: '-50%',
+            height: 2,
+            backgroundColor: therrTheme.colors.primary4,
+            zIndex: -1,
+        },
+        stepperConnectorActive: {
+            backgroundColor: therrTheme.colors.primary3,
+        },
+        stepperCircle: {
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: therrTheme.colors.primary4,
+            marginBottom: 8,
+        },
+        stepperCircleActive: {
+            backgroundColor: therrTheme.colors.primary3,
+        },
+        stepperCircleNumber: {
+            fontFamily: therrFontFamily,
+            fontSize: 16,
+            fontWeight: '700',
+            color: therrTheme.colors.brandingBlack,
+        },
+        stepperCircleNumberActive: {
+            color: therrTheme.colors.brandingWhite,
+        },
+        stepperLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: 14,
+            fontWeight: '600',
+            color: therrTheme.colors.brandingBlack,
+            textAlign: 'center',
+        },
+        stepperLabelActive: {
+            color: therrTheme.colors.primary3,
+        },
+        stepperSublabel: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            color: therrTheme.colors.textGray,
+            textAlign: 'center',
+            marginTop: 2,
+        },
+
+        // Onboarding step badge (above each card)
+        stepBadge: {
+            alignSelf: 'flex-start',
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            borderRadius: 12,
+            backgroundColor: therrTheme.colors.primary3,
+            marginHorizontal: 16,
+            marginTop: 16,
+            marginBottom: 4,
+        },
+        stepBadgeText: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            fontWeight: '700',
+            color: therrTheme.colors.brandingWhite,
+            letterSpacing: 0.5,
+        },
+
+        // Onboarding card overrides — explicit headers + larger body text
+        onboardingCardHeader: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            fontWeight: '700',
+            color: therrTheme.colors.primary3,
+            textTransform: 'uppercase',
+            letterSpacing: 0.6,
+            marginBottom: 4,
+        },
+        onboardingCardTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: 19,
+            fontWeight: '700',
+            color: therrTheme.colors.brandingBlack,
+            marginBottom: 6,
+        },
+        onboardingCardBody: {
+            fontFamily: therrFontFamily,
+            fontSize: 15,
+            lineHeight: 21,
+            color: therrTheme.colors.brandingBlack,
+        },
+        onboardingCardFooter: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            color: therrTheme.colors.textGray,
+            marginTop: 10,
+        },
+        onboardingBenefit: {
+            fontFamily: therrFontFamily,
+            fontSize: 15,
+            lineHeight: 22,
+            color: therrTheme.colors.textWhite,
+            marginTop: 6,
+        },
+        onboardingWhyTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: 16,
+            fontWeight: '700',
+            color: therrTheme.colors.textWhite,
+            textAlign: 'center',
+            marginBottom: 6,
+        },
     });
 
     return ({
