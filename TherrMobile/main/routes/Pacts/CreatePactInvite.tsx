@@ -221,16 +221,11 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         this.setState({ isSending: true });
 
         try {
-            let habitGoalId = selectedTemplateId;
+            let habitGoalId: string | null = null;
 
-            if (!habitGoalId && customHabitName.trim()) {
-                const newGoal = await createGoal({
-                    name: customHabitName.trim(),
-                    frequencyType: 'daily',
-                    frequencyCount: 1,
-                });
-                habitGoalId = newGoal?.id;
-            } else if (selectedTemplateId) {
+            if (selectedTemplateId) {
+                // Clone the template into a user-owned goal so per-user stats
+                // (streaks, completion rate) don't share rows across users.
                 const template = habits.templates?.find((t) => t.id === selectedTemplateId);
                 if (template) {
                     const userGoal = await createGoal({
@@ -243,7 +238,16 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         targetDaysOfWeek: template.targetDaysOfWeek,
                     });
                     habitGoalId = userGoal?.id || selectedTemplateId;
+                } else {
+                    habitGoalId = selectedTemplateId;
                 }
+            } else if (customHabitName.trim()) {
+                const newGoal = await createGoal({
+                    name: customHabitName.trim(),
+                    frequencyType: 'daily',
+                    frequencyCount: 1,
+                });
+                habitGoalId = newGoal?.id;
             }
 
             if (!habitGoalId) throw new Error('missing habitGoalId');
