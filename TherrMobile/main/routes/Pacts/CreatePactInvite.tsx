@@ -268,7 +268,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             });
 
             navigation.navigate('HabitsDashboard');
-        } catch (err) {
+        } catch {
             Toast.show({
                 type: 'error',
                 text1: this.translate('pages.pacts.wizard.sendingError'),
@@ -338,7 +338,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         placeholder={this.translate('pages.pacts.wizard.customHabitNamePlaceholder')}
                         style={{
                             borderWidth: 1,
-                            borderColor: this.theme.colors.textGrayFade || '#ccc',
+                            borderColor: this.theme.colorVariations.textGrayFade || '#ccc',
                             borderRadius: 8,
                             padding: 12,
                             marginTop: 8,
