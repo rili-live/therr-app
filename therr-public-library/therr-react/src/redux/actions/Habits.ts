@@ -1,6 +1,6 @@
 import { HabitsActionTypes } from '../../types/redux/habits';
 import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '../../services/HabitGoalsService';
-import PactsService, { ICreatePactBody } from '../../services/PactsService';
+import PactsService, { ICreatePactBody, IBulkInvitePactBody } from '../../services/PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from '../../services/HabitCheckinsService';
 import StreaksService from '../../services/StreaksService';
 
@@ -98,6 +98,14 @@ const Habits = {
     }),
 
     createPact: (data: ICreatePactBody) => (dispatch: any) => PactsService.create(data).then((response) => {
+        dispatch({
+            type: HabitsActionTypes.CREATE_PACT,
+            data: response.data,
+        });
+        return response.data;
+    }),
+
+    bulkInvitePact: (data: IBulkInvitePactBody) => (dispatch: any) => PactsService.bulkInvite(data).then((response) => {
         dispatch({
             type: HabitsActionTypes.CREATE_PACT,
             data: response.data,
