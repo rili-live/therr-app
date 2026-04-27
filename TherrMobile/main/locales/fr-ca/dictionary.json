@@ -1807,8 +1807,8 @@
       "wizard": {
         "step1Title": "Choisis une habitude",
         "step1Subtitle": "Choisis ce que tu aimerais bâtir avec ton partenaire",
-        "step2Title": "Choisis ton partenaire",
-        "step2Subtitle": "Invite jusqu'à 5 personnes — le premier qui accepte devient ton partenaire",
+        "step2Title": "Choisis tes partenaires",
+        "step2Subtitle": "Invite jusqu'à 5 personnes — quiconque accepte rejoint ton pacte",
         "step3Title": "Envoie ton invitation de pacte",
         "step3Subtitle": "Vérifie et envoie",
         "multiSelectCounter": "{count} sur 5 sélectionnés",

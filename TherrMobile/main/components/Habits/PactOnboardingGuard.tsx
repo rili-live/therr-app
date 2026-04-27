@@ -33,21 +33,23 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     children,
 }) => {
     const { isEnabled } = useFeatureFlags();
-    const previousActivePactCount = useRef<number>(habits.activePacts?.length || 0);
+    const activePactCount = habits.activePacts?.length || 0;
+    const previousActivePactCount = useRef<number>(activePactCount);
 
     const guardActive = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
         && isEnabled(FeatureFlags.REQUIRE_PACT_ONBOARDING)
         && user.isAuthenticated;
-    const hasActivePact = (habits.activePacts?.length || 0) > 0;
+    const hasActivePact = activePactCount > 0;
 
+    // Depend on the length, not the array reference, so unrelated Redux
+    // dispatches that recreate `activePacts` don't re-run this effect.
     useEffect(() => {
         const previous = previousActivePactCount.current;
-        const current = habits.activePacts?.length || 0;
-        if (previous === 0 && current > 0) {
+        if (previous === 0 && activePactCount > 0) {
             AsyncStorage.removeItem(HABITS_PRESTAGED_TEMPLATE_ID).catch(() => {});
         }
-        previousActivePactCount.current = current;
-    }, [habits.activePacts]);
+        previousActivePactCount.current = activePactCount;
+    }, [activePactCount]);
 
     if (!guardActive || hasActivePact) {
         return <>{children}</>;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, SafeAreaView, ScrollView, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -51,10 +51,8 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
         }
     };
 
-    useEffect(() => {
-        loadPrestaged();
-    }, []);
-
+    // useFocusEffect fires on initial focus AND on every re-focus, which
+    // covers the mount case the prior useEffect was redundantly handling.
     useFocusEffect(
         React.useCallback(() => {
             loadPrestaged();

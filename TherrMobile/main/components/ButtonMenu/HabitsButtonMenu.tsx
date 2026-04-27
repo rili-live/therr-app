@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
 import { connect } from 'react-redux';
+import { IHabitsState } from 'therr-react/types';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import 'react-native-gesture-handler';
@@ -11,6 +12,11 @@ import { getUserImageUri } from '../../utilities/content';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 import Toast from 'react-native-toast-message';
+
+interface IHabitsButtonMenuProps {
+    habits: IHabitsState;
+    [key: string]: any;
+}
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -145,16 +151,22 @@ class HabitsButtonMenu extends ButtonMenu {
     };
 
     render() {
-        const { isCompact, translate, themeMenu, user } = this.props;
-        const habits = (this.props as any).habits || {};
+        const {
+            isCompact, translate, themeMenu, user, habits,
+        } = (this.props as unknown as IHabitsButtonMenuProps);
         const activeRoute = this.getActiveRoute();
         const isHabitsActive = ['HabitsDashboard', 'HabitDetail'].includes(activeRoute);
         const isPactsActive = ['PactsList', 'PactDetail', 'CreatePact', 'CreatePactInvite'].includes(activeRoute);
         const isConnectActive = activeRoute === 'Connect';
         const currentUserId = user?.details?.id;
-        const outgoingCount = (habits.pacts || []).filter(
-            (p: any) => p.status === 'pending' && p.creatorUserId === currentUserId,
+        const outgoingCount = (habits?.pacts || []).filter(
+            (p) => p.status === 'pending' && p.creatorUserId === currentUserId,
         ).length;
+        const hasActivePacts = (habits?.activePacts?.length || 0) > 0;
+        // Only nudge into the Sent tab when the user has nothing active to
+        // act on. With active pacts, default to the Active tab so daily
+        // check-ins remain one tap away.
+        const initialPactsTab = !hasActivePacts && outgoingCount > 0 ? 'outgoing' : 'active';
         const imageStyle = {
             height: 26,
             width: 26,
@@ -231,7 +243,7 @@ class HabitsButtonMenu extends ButtonMenu {
                                 }
                             />
                         }
-                        onPress={() => this.onNavPressDynamic('PactsList', { initialTab: outgoingCount > 0 ? 'outgoing' : 'active' })}
+                        onPress={() => this.onNavPressDynamic('PactsList', { initialTab: initialPactsTab })}
                     />
                     {outgoingCount > 0 && (
                         <View

@@ -39,7 +39,7 @@ interface IConnectionDetails {
 interface IDispatchProps {
     getTemplates: Function;
     createGoal: Function;
-    createPact: Function;
+    bulkInvitePact: Function;
 }
 
 interface IStoreProps extends IDispatchProps {
@@ -70,7 +70,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getTemplates: HabitActions.getTemplates,
     createGoal: HabitActions.createGoal,
-    createPact: HabitActions.createPact,
+    bulkInvitePact: HabitActions.bulkInvitePact,
 }, dispatch);
 
 const resolvePartnerDetails = (
@@ -215,7 +215,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     };
 
     handleSend = async () => {
-        const { habits, createGoal, createPact, navigation } = this.props;
+        const { habits, createGoal, bulkInvitePact, navigation } = this.props;
         const { selectedTemplateId, customHabitName, selectedPartnerIds } = this.state;
 
         this.setState({ isSending: true });
@@ -252,12 +252,15 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
 
             if (!habitGoalId) throw new Error('missing habitGoalId');
 
-            await Promise.all(selectedPartnerIds.map((partnerUserId) => createPact({
-                partnerUserId,
+            // Single bulk-invite request: one pact + N pending member invites.
+            // Replaces the prior Promise.all loop over createPact, which had
+            // partial-failure exposure (some pacts created, others not).
+            await bulkInvitePact({
                 habitGoalId,
+                partnerUserIds: selectedPartnerIds,
                 pactType: 'accountability',
                 durationDays: DEFAULT_PACT_DURATION_DAYS,
-            })));
+            });
 
             const successKey = selectedPartnerIds.length > 1
                 ? 'pages.pacts.wizard.sendMultipleSuccess'
