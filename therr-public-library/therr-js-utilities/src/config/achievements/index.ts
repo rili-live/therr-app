@@ -1,3 +1,4 @@
+import { BrandVariations } from '../../constants/enums/Branding';
 import activist from './activist';
 import communityLeader from './communityLeader';
 import critic from './critic';
@@ -58,6 +59,28 @@ export const achievementsByClass: { [key: string]: { [key: string]: IAchievement
     socialite,
     thinker,
     tourGuide,
+};
+
+// Maps an achievement class to the brands that may earn it. Every existing class
+// is Therr-themed (location/social/content), so non-Therr brands are excluded
+// until they ship their own classes (e.g., streak-based for HABITS — see
+// docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md). Without this gate, registration
+// seeds and connection/thought activity would create Therr achievements stamped
+// with the niche brand, which then surface in the niche app's achievements list
+// even though brand-scoped SQL filters are working as intended.
+const ALL_THERR_CLASSES = Object.keys(achievementsByClass);
+export const achievementClassesByBrand: { [brand: string]: ReadonlySet<string> } = {
+    [BrandVariations.THERR]: new Set(ALL_THERR_CLASSES),
+    [BrandVariations.DASHBOARD_THERR]: new Set(ALL_THERR_CLASSES),
+};
+
+export const isAchievementClassEnabledForBrand = (
+    achievementClass: string,
+    brand: BrandVariations | string | undefined | null,
+): boolean => {
+    if (!brand) return false;
+    const allowed = achievementClassesByBrand[brand];
+    return !!allowed && allowed.has(achievementClass);
 };
 
 export default achievements;
