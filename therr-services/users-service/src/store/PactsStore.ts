@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
-import { PACTS_TABLE_NAME, HABIT_GOALS_TABLE_NAME } from './tableNames';
+import { PACTS_TABLE_NAME, HABIT_GOALS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -80,8 +80,11 @@ export default class PactsStore {
     }
 
     getByUserId(userId: string, status?: string, limit?: number, offset?: number) {
+        // Membership is the source of truth: a user "is in" a pact if they
+        // appear in pact_members. Falls back to creator/partnerUserId on
+        // pacts for any historical pact whose member rows are missing.
         let queryString = knexBuilder
-            .select([
+            .distinct([
                 `${PACTS_TABLE_NAME}.*`,
                 `${HABIT_GOALS_TABLE_NAME}.name as habitGoalName`,
                 `${HABIT_GOALS_TABLE_NAME}.emoji as habitGoalEmoji`,
@@ -89,9 +92,14 @@ export default class PactsStore {
             ])
             .from(PACTS_TABLE_NAME)
             .leftJoin(HABIT_GOALS_TABLE_NAME, `${PACTS_TABLE_NAME}.habitGoalId`, `${HABIT_GOALS_TABLE_NAME}.id`)
+            .leftJoin(PACT_MEMBERS_TABLE_NAME, function joinMembers() {
+                this.on(`${PACT_MEMBERS_TABLE_NAME}.pactId`, '=', `${PACTS_TABLE_NAME}.id`)
+                    .andOn(`${PACT_MEMBERS_TABLE_NAME}.userId`, '=', knexBuilder.raw('?', [userId]));
+            })
             .where((builder) => {
                 builder.where(`${PACTS_TABLE_NAME}.creatorUserId`, userId)
-                    .orWhere(`${PACTS_TABLE_NAME}.partnerUserId`, userId);
+                    .orWhere(`${PACTS_TABLE_NAME}.partnerUserId`, userId)
+                    .orWhereNotNull(`${PACT_MEMBERS_TABLE_NAME}.id`);
             })
             .orderBy(`${PACTS_TABLE_NAME}.createdAt`, 'desc');
 
@@ -116,16 +124,32 @@ export default class PactsStore {
     }
 
     getPendingInvitesForUser(userId: string) {
+        // 1:1 invites match on pacts.partnerUserId; group invites match on a
+        // pact_members row with role=partner, status=pending. The pact
+        // itself may already be 'active' if another invitee accepted first.
         const queryString = knexBuilder
-            .select([
+            .distinct([
                 `${PACTS_TABLE_NAME}.*`,
                 `${HABIT_GOALS_TABLE_NAME}.name as habitGoalName`,
                 `${HABIT_GOALS_TABLE_NAME}.emoji as habitGoalEmoji`,
             ])
             .from(PACTS_TABLE_NAME)
             .leftJoin(HABIT_GOALS_TABLE_NAME, `${PACTS_TABLE_NAME}.habitGoalId`, `${HABIT_GOALS_TABLE_NAME}.id`)
-            .where(`${PACTS_TABLE_NAME}.partnerUserId`, userId)
-            .andWhere(`${PACTS_TABLE_NAME}.status`, 'pending')
+            .leftJoin(PACT_MEMBERS_TABLE_NAME, function joinMembers() {
+                this.on(`${PACT_MEMBERS_TABLE_NAME}.pactId`, '=', `${PACTS_TABLE_NAME}.id`)
+                    .andOn(`${PACT_MEMBERS_TABLE_NAME}.userId`, '=', knexBuilder.raw('?', [userId]));
+            })
+            .where((builder) => {
+                builder.where((b1) => {
+                    b1.where(`${PACTS_TABLE_NAME}.partnerUserId`, userId)
+                        .andWhere(`${PACTS_TABLE_NAME}.status`, 'pending');
+                }).orWhere((b2) => {
+                    b2.where(`${PACT_MEMBERS_TABLE_NAME}.userId`, userId)
+                        .andWhere(`${PACT_MEMBERS_TABLE_NAME}.role`, 'partner')
+                        .andWhere(`${PACT_MEMBERS_TABLE_NAME}.status`, 'pending')
+                        .whereIn(`${PACTS_TABLE_NAME}.status`, ['pending', 'active']);
+                });
+            })
             .orderBy(`${PACTS_TABLE_NAME}.createdAt`, 'desc');
 
         return this.db.read.query(queryString.toString())

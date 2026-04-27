@@ -12,6 +12,10 @@ import {
     isCreator,
 } from '../utilities/pactHelpers';
 
+const MAX_BULK_INVITEES = 5;
+
+const dedupeUserIds = (ids: string[]): string[] => Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0)));
+
 // CREATE
 const createPact: RequestHandler = async (req: any, res: any) => {
     const {
@@ -115,6 +119,128 @@ const createPact: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
 
+// CREATE (bulk) — one pact, N pending member invites. For group pacts, the
+// pact's `partnerUserId` is left null; membership is tracked entirely via
+// pact_members. Any invitee who accepts joins as an active member.
+const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
+    const {
+        locale,
+        userId,
+        userName,
+        authorization,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
+
+    const {
+        habitGoalId,
+        partnerUserIds,
+        pactType,
+        durationDays,
+        consequenceType,
+        consequenceDetails,
+    } = req.body;
+
+    if (!habitGoalId) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.habitGoalRequired'),
+            statusCode: 400,
+        });
+    }
+
+    if (!Array.isArray(partnerUserIds) || partnerUserIds.length === 0) {
+        return handleHttpError({
+            res,
+            message: 'partnerUserIds must be a non-empty array',
+            statusCode: 400,
+        });
+    }
+
+    const invitees = dedupeUserIds(partnerUserIds).filter((id) => id !== userId);
+    if (invitees.length === 0) {
+        return handleHttpError({
+            res,
+            message: 'At least one valid invitee is required',
+            statusCode: 400,
+        });
+    }
+    if (invitees.length > MAX_BULK_INVITEES) {
+        return handleHttpError({
+            res,
+            message: `Cannot invite more than ${MAX_BULK_INVITEES} partners at once`,
+            statusCode: 400,
+        });
+    }
+
+    const validation = validatePactParams({ durationDays, consequenceType, consequenceDetails });
+    if (!validation.valid) {
+        return handleHttpError({
+            res,
+            message: validation.error || 'Invalid pact parameters',
+            statusCode: 400,
+        });
+    }
+
+    const habitGoal = await Store.habitGoals.getById(habitGoalId);
+    if (!habitGoal) {
+        return handleHttpError({
+            res,
+            message: 'Habit goal not found',
+            statusCode: 404,
+        });
+    }
+
+    return Store.pacts.create({
+        creatorUserId: userId,
+        habitGoalId,
+        pactType,
+        durationDays,
+        consequenceType,
+        consequenceDetails,
+    })
+        .then(async (pact) => {
+            await Store.pactMembers.create({
+                pactId: pact.id,
+                userId,
+                role: 'creator',
+                status: 'active',
+            });
+
+            await Store.pactMembers.createBulk(invitees.map((partnerId) => ({
+                pactId: pact.id,
+                userId: partnerId,
+                role: 'partner' as const,
+                status: 'pending',
+            })));
+
+            invitees.forEach((toUserId) => {
+                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                    authorization,
+                    fromUser: { id: userId, userName },
+                    locale,
+                    toUserId,
+                    type: PushNotifications.Types.pactInvitation,
+                    whiteLabelOrigin,
+                    brandVariation,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error sending pact invitation notification'],
+                        traceArgs: { 'error.message': err?.message, toUserId },
+                    });
+                });
+            });
+
+            Store.habitGoals.incrementUsageCount(habitGoalId).catch((e) => e);
+
+            const members = await Store.pactMembers.getByPactId(pact.id);
+            return res.status(201).send({ ...pact, members });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
+};
+
 // READ
 const getPact: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
@@ -130,17 +256,21 @@ const getPact: RequestHandler = async (req: any, res: any) => {
                 });
             }
 
-            // Verify user is participant
-            if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)) {
+            // Get members
+            const members = await Store.pactMembers.getByPactId(id);
+
+            // Verify user is a participant — for 1:1 pacts the partnerUserId
+            // column is authoritative; for group pacts membership is tracked
+            // entirely via pact_members.
+            const isParticipant = isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)
+                || members.some((m: any) => m.userId === userId);
+            if (!isParticipant) {
                 return handleHttpError({
                     res,
                     message: 'You are not a participant in this pact',
                     statusCode: 403,
                 });
             }
-
-            // Get members
-            const members = await Store.pactMembers.getByPactId(id);
 
             return res.status(200).send({ ...pact, members });
         })
@@ -198,7 +328,13 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    if (pact.partnerUserId !== userId) {
+    // Authorize via pact_members so group invitees (where partnerUserId is
+    // null) can accept too. Falls back to the partnerUserId field for
+    // 1:1 pacts that pre-date pact_members.
+    const member = await Store.pactMembers.getByPactAndUser(id, userId);
+    const isInvitedPartner = pact.partnerUserId === userId
+        || (member && member.role === 'partner' && member.status === 'pending');
+    if (!isInvitedPartner) {
         return handleHttpError({
             res,
             message: 'You are not the invited partner for this pact',
@@ -206,36 +342,53 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    if (pact.status !== 'pending') {
+    // For 1:1 pacts the pact itself must be pending; for group pacts a
+    // prior acceptance may have already activated the pact, but this
+    // member's invite must still be pending.
+    const memberInvitePending = !member || member.status === 'pending';
+    if (pact.status !== 'pending' && !memberInvitePending) {
         return handleHttpError({
             res,
             message: 'Pact is not pending',
             statusCode: 400,
         });
     }
+    if (pact.status === 'completed' || pact.status === 'abandoned' || pact.status === 'expired') {
+        return handleHttpError({
+            res,
+            message: 'Pact is no longer accepting members',
+            statusCode: 400,
+        });
+    }
 
-    // Activate the pact
-    return Store.pacts.activate(id)
+    // Activate the pact only on the first acceptance (status=pending);
+    // subsequent group acceptances just join an already-active pact.
+    const activationPromise = pact.status === 'pending'
+        ? Store.pacts.activate(id)
+        : Promise.resolve(pact);
+
+    return activationPromise
         .then(async (updatedPact) => {
-            // Activate both members
-            await Promise.all([
-                Store.pactMembers.activate(id, pact.creatorUserId),
-                Store.pactMembers.activate(id, userId),
-            ]);
+            // Activate creator member only on first acceptance — getOrCreate
+            // semantics aren't available here, but activate() is a no-op
+            // idempotent UPDATE so calling it on an already-active member is
+            // safe and cheap.
+            const memberActivations: Promise<any>[] = [Store.pactMembers.activate(id, userId)];
+            if (pact.status === 'pending') {
+                memberActivations.push(Store.pactMembers.activate(id, pact.creatorUserId));
+            }
+            await Promise.all(memberActivations);
 
-            // Create streaks for both users
-            await Promise.all([
-                Store.streaks.create({
-                    userId: pact.creatorUserId,
-                    habitGoalId: pact.habitGoalId,
-                    pactId: id,
-                }),
-                Store.streaks.create({
-                    userId,
-                    habitGoalId: pact.habitGoalId,
-                    pactId: id,
-                }),
-            ]);
+            // Streaks: always create for the accepting user; for the creator
+            // create only on first acceptance (when transitioning the pact
+            // from pending → active). getOrCreate makes this idempotent.
+            const streakPromises: Promise<any>[] = [
+                Store.streaks.getOrCreate(userId, pact.habitGoalId, id),
+            ];
+            if (pact.status === 'pending') {
+                streakPromises.push(Store.streaks.getOrCreate(pact.creatorUserId, pact.habitGoalId, id));
+            }
+            await Promise.all(streakPromises);
 
             // Notify creator
             sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
@@ -280,7 +433,13 @@ const declinePact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    if (pact.partnerUserId !== userId) {
+    // For group pacts, decline marks just this member as 'left' without
+    // ending the pact for everyone else. For 1:1 pacts, the pact itself
+    // is abandoned (existing behavior).
+    const member = await Store.pactMembers.getByPactAndUser(id, userId);
+    const isInvitedPartner = pact.partnerUserId === userId
+        || (member && member.role === 'partner' && member.status === 'pending');
+    if (!isInvitedPartner) {
         return handleHttpError({
             res,
             message: 'You are not the invited partner for this pact',
@@ -288,12 +447,36 @@ const declinePact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    if (pact.status !== 'pending') {
+    const memberInvitePending = !member || member.status === 'pending';
+    if (pact.status !== 'pending' && !memberInvitePending) {
         return handleHttpError({
             res,
             message: 'Pact is not pending',
             statusCode: 400,
         });
+    }
+
+    // Group pact decline (pact already active because someone else
+    // accepted): only mark this member as left, leave the pact running.
+    if (pact.status !== 'pending' && member) {
+        await Store.pactMembers.leave(id, userId);
+        sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+            authorization,
+            fromUser: { id: userId, userName },
+            locale,
+            toUserId: pact.creatorUserId,
+            type: PushNotifications.Types.pactDeclined,
+            whiteLabelOrigin,
+            brandVariation,
+        }).catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Error sending pact declined notification'],
+                traceArgs: { 'error.message': err?.message },
+            });
+        });
+        return res.status(200).send(pact);
     }
 
     return Store.pacts.update(id, { status: 'abandoned', endReason: 'abandoned_partner' })
@@ -415,6 +598,7 @@ const deletePact: RequestHandler = async (req: any, res: any) => {
 
 export {
     createPact,
+    bulkInvitePact,
     getPact,
     getUserPacts,
     getActivePacts,
