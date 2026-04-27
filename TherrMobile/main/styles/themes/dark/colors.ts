@@ -1,8 +1,25 @@
 import Color from 'color';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../';
 
+const _brandFaded = new Color('#1C7F8A').fade(0.25).toString();
+
 const colors: ITherrThemeColors = {
-    // Main
+    // Semantic aliases — note `surface` is a dark gray here (dark mode), and
+    // `brandDark` is BRIGHTER than `brand` because brighter teal reads as
+    // stronger emphasis on a dark surface.
+    brand: '#1C7F8A',
+    brandDark: '#22A5B4',
+    brandFaded: _brandFaded,
+    surface: '#1E1E1E',
+    surfaceAlt: '#2A2A2A',
+    onSurface: '#F5F5F5',
+    onSurfaceMuted: 'rgba(255,255,255,.70)',
+    onBrand: '#fcfeff',
+    border: '#404040',
+    accent: '#E37107',
+    onAccent: '#fcfeff',
+
+    // Legacy
     primary: '#121212',
     primary2: '#1E1E1E',
     primary3: '#1C7F8A',

@@ -103,10 +103,66 @@ export const getTheme = (
 export { getPaperTheme };
 
 export interface ITherrThemeColors {
-    // Main
+    // -----------------------------------------------------------------------
+    // Semantic aliases (preferred for new code)
+    // -----------------------------------------------------------------------
+    // MD3-aligned naming layered on top of the legacy `primary*` / `accent*` /
+    // `background*` palette. Reach for these in new code instead of guessing
+    // between `primary` (which means "background" in light/dark themes but
+    // "brand teal" in retro!) and `primary3` (which is the actual brand teal
+    // in light/dark but a complementary dark-blue in retro).
+    //
+    // Mapping table:
+    //   brand           → light/dark `primary3`,    retro `primary`     (always #1C7F8A)
+    //   brandDark       → light `primary4` (dark teal),
+    //                     dark `primary4` (bright teal — stronger on dark bg),
+    //                     retro `primary3` (dark blue — complementary)
+    //   brandFaded      → `colorVariations.primary3Fade`
+    //   surface         → `backgroundWhite` (the dominant content surface)
+    //   surfaceAlt      → `backgroundGray`  (inset / sub-surface tint)
+    //   onSurface       → `textDark` (light) / `textWhite` (dark/retro)
+    //   onSurfaceMuted  → `textGray`
+    //   onBrand         → `brandingWhite` — text on brand-colored fills
+    //   border          → `borderLight`
+    //   accent          → `secondary` (orange in light/dark, teal in retro)
+    //   onAccent        → `brandingWhite`
+
+    /** Brand teal — the canonical primary brand color across all themes. */
+    brand: string;
+    /**
+     * Stronger / more saturated brand variant for emphasis. In dark themes
+     * this is brighter (better contrast on dark bg); in light themes it's
+     * darker. The name is "brand at its most prominent for this theme".
+     */
+    brandDark: string;
+    /** Faded brand teal for hover/disabled states and decorative tints. */
+    brandFaded: string;
+    /** Primary content surface (screen background, card surface). */
+    surface: string;
+    /** Secondary surface used for inset/grouped content. */
+    surfaceAlt: string;
+    /** Default text color rendered on `surface`. */
+    onSurface: string;
+    /** Muted/secondary text color on `surface`. */
+    onSurfaceMuted: string;
+    /** Foreground color used on top of `brand`-colored fills. */
+    onBrand: string;
+    /** Default divider / hairline border color. */
+    border: string;
+    /** Secondary accent for non-brand emphasis (orange in light/dark). */
+    accent: string;
+    /** Foreground color used on top of `accent`-colored fills. */
+    onAccent: string;
+
+    // -----------------------------------------------------------------------
+    // Legacy palette (retained for ~53 style files; new code: prefer aliases)
+    // -----------------------------------------------------------------------
+    /** @deprecated Means BACKGROUND in light/dark, brand teal in retro. Use `surface` (background) or `brand` (teal) instead. */
     primary: string;
     primary2: string;
+    /** @deprecated The actual brand teal in light/dark, dark-blue in retro. Use `brand` instead for cross-theme consistency. */
     primary3: string;
+    /** @deprecated Use `brandDark` (semantic alias mapping to today's primary4 per theme). */
     primary4: string;
     primary5: string;
     secondary: string;

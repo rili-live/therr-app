@@ -60,10 +60,10 @@ export default ({
                 loop
                 style={localStyles.graphic}
             />
-            <Text style={[localStyles.header, { color: therrTheme.colors.textWhite }]}>
+            <Text style={[localStyles.header, { color: therrTheme.colors.onSurface }]}>
                 {translate('modals.infoModalPoints.header')}
             </Text>
-            <Text style={[localStyles.text, { color: therrTheme.colors.textWhite }]}>
+            <Text style={[localStyles.text, { color: therrTheme.colors.onSurface }]}>
                 {translate('modals.infoModalPoints.description')}
             </Text>
         </BaseModal>
