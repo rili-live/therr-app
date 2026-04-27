@@ -1018,6 +1018,10 @@
         "noLocations": "Aún no hay ubicaciones listadas",
         "noEvents": "No hay próximos eventos",
         "noUpdates": "No hay actualizaciones recientes"
+      },
+      "crossPromo": {
+        "label": "La misma persona, más lugares",
+        "habitsCta": "Encuéntrame en Friends with Habits"
       }
     },
     "userLocations": {

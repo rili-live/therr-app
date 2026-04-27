@@ -1018,6 +1018,10 @@
         "noLocations": "No locations listed yet",
         "noEvents": "No upcoming events",
         "noUpdates": "No recent updates"
+      },
+      "crossPromo": {
+        "label": "Same person, more places",
+        "habitsCta": "Find me on Friends with Habits"
       }
     },
     "listGroups": {

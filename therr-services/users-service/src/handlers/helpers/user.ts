@@ -65,6 +65,21 @@ interface IGetUserHelperArgs {
 
 const isBrandValid = (brand: string) => Object.values(BrandVariations).includes(brand as BrandVariations);
 
+// Pull the list of brand names this user has actively logged into from the brandVariations
+// JSONB array. Used by public profile pages to gate cross-app discovery CTAs.
+// Excludes inactive memberships and any value not in the BrandVariations enum.
+const deriveAppBrands = (brandVariations: any): string[] => {
+    if (!Array.isArray(brandVariations)) return [];
+    const seen = new Set<string>();
+    brandVariations.forEach((entry: any) => {
+        if (!entry || typeof entry.brand !== 'string') return;
+        if (entry.isActive === false) return;
+        if (!isBrandValid(entry.brand)) return;
+        seen.add(entry.brand);
+    });
+    return Array.from(seen);
+};
+
 /**
  * Removed sensitive information from user response so we don't return it in REST responses
  */
@@ -121,6 +136,7 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
                 : false,
             connectionCount,
             socialSyncs,
+            appBrands: deriveAppBrands(userResult.brandVariations),
         };
     }
 
