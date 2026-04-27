@@ -1761,6 +1761,7 @@
       "abandon": "Abandonner le pacte",
       "noPactsTitle": "Aucun pacte pour le moment",
       "noPactsSubtitle": "Créez un pacte avec un ami pour rester responsable",
+      "allTabLabel": "Tous",
       "pactNotFound": "Pacte introuvable",
       "acceptedTitle": "Pacte accepté!",
       "acceptedMessage": "Vous avez rejoint ce pacte de responsabilité",

@@ -1761,6 +1761,7 @@
       "abandon": "Abandon Pact",
       "noPactsTitle": "No pacts yet",
       "noPactsSubtitle": "Create a pact with a friend to stay accountable",
+      "allTabLabel": "All",
       "pactNotFound": "Pact not found",
       "acceptedTitle": "Pact Accepted!",
       "acceptedMessage": "You have joined this accountability pact",
