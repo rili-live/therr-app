@@ -1786,15 +1786,25 @@
         "benefit3": "Rachas que construyen — y celebran — juntos"
       },
       "preview": {
-        "bannerTitle": "Tus hábitos se desbloquean cuando un amigo se une",
-        "bannerSubtitle": "Envía una invitación de pacto para empezar",
+        "bannerTitle": "Empieza tu primer pacto",
+        "bannerSubtitle": "Los pactos requieren al menos a otra persona — así es como los hábitos se mantienen.",
+        "bannerHelper": "Toca abajo para enviar tu primera invitación",
         "bannerCTA": "Invitar a un amigo",
         "bannerSecondaryCTA": "Ver invitaciones enviadas",
         "sampleHabitTitle": "Tu hábito aparecerá aquí",
-        "sampleHabitSubtitle": "Elige un hábito y lo activaremos cuando tu amigo se una",
+        "sampleHabitSubtitle": "Construye un hábito saludable, rompe uno malo, o ahorra hacia una meta compartida — lo activaremos cuando tu amigo se una.",
         "samplePartnerName": "Tu futuro compañero",
         "sampleStreakLabel": "Día 1 — se activa cuando tu compañero se una",
-        "prestagedSuffix": "listo cuando tu compañero se una"
+        "prestagedSuffix": "Listo cuando tu compañero se una",
+        "stepBadge": "Paso {current} de {total}",
+        "step1Label": "Elige",
+        "step1Sublabel": "tu meta",
+        "step2Label": "Invita",
+        "step2Sublabel": "a un amigo",
+        "step3Label": "Activa",
+        "step3Sublabel": "tu pacto",
+        "habitCardHeader": "Tu hábito o meta de ahorro",
+        "partnerCardHeader": "Tu compañero de responsabilidad"
       },
       "outgoing": {
         "tabLabel": "Enviadas",

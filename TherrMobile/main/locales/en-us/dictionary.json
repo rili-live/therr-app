@@ -1786,15 +1786,25 @@
         "benefit3": "Streaks you build — and celebrate — together"
       },
       "preview": {
-        "bannerTitle": "Your Habits unlock when a friend joins",
-        "bannerSubtitle": "Send a pact invite to get started",
+        "bannerTitle": "Start your first pact",
+        "bannerSubtitle": "Pacts require at least one other person — that's how habits stick.",
+        "bannerHelper": "Tap below to send your first invite",
         "bannerCTA": "Invite a friend",
         "bannerSecondaryCTA": "View sent invites",
         "sampleHabitTitle": "Your habit appears here",
-        "sampleHabitSubtitle": "Pick a habit and we'll lock it in once your friend joins",
+        "sampleHabitSubtitle": "Build a healthy habit, break a bad one, or save toward a shared goal — we'll lock it in once your friend joins.",
         "samplePartnerName": "Your future partner",
         "sampleStreakLabel": "Day 1 — locks in when your partner joins",
-        "prestagedSuffix": "ready when your partner joins"
+        "prestagedSuffix": "Ready when your partner joins",
+        "stepBadge": "Step {current} of {total}",
+        "step1Label": "Pick",
+        "step1Sublabel": "your goal",
+        "step2Label": "Invite",
+        "step2Sublabel": "a friend",
+        "step3Label": "Lock in",
+        "step3Sublabel": "your pact",
+        "habitCardHeader": "Your habit or savings goal",
+        "partnerCardHeader": "Your accountability partner"
       },
       "outgoing": {
         "tabLabel": "Sent",

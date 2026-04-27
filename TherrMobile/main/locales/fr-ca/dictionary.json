@@ -1786,15 +1786,25 @@
         "benefit3": "Des séries que vous bâtissez — et célébrez — ensemble"
       },
       "preview": {
-        "bannerTitle": "Tes Habitudes se débloquent quand un ami se joint",
-        "bannerSubtitle": "Envoie une invitation de pacte pour commencer",
+        "bannerTitle": "Lance ton premier pacte",
+        "bannerSubtitle": "Les pactes nécessitent au moins une autre personne — c'est comme ça que les habitudes durent.",
+        "bannerHelper": "Touche ci-dessous pour envoyer ta première invitation",
         "bannerCTA": "Inviter un ami",
         "bannerSecondaryCTA": "Voir les invitations envoyées",
         "sampleHabitTitle": "Ton habitude s'affichera ici",
-        "sampleHabitSubtitle": "Choisis une habitude et on l'activera dès que ton ami se joint",
+        "sampleHabitSubtitle": "Bâtis une bonne habitude, brise-en une mauvaise ou épargne vers un objectif commun — on l'activera dès que ton ami se joint.",
         "samplePartnerName": "Ton futur partenaire",
         "sampleStreakLabel": "Jour 1 — s'active quand ton partenaire se joint",
-        "prestagedSuffix": "prête quand ton partenaire se joint"
+        "prestagedSuffix": "Prête quand ton partenaire se joint",
+        "stepBadge": "Étape {current} sur {total}",
+        "step1Label": "Choisis",
+        "step1Sublabel": "ton objectif",
+        "step2Label": "Invite",
+        "step2Sublabel": "un ami",
+        "step3Label": "Active",
+        "step3Sublabel": "ton pacte",
+        "habitCardHeader": "Ton habitude ou objectif d'épargne",
+        "partnerCardHeader": "Ton partenaire de responsabilité"
       },
       "outgoing": {
         "tabLabel": "Envoyées",
