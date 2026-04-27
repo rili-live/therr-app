@@ -5,6 +5,7 @@ import {
     Container, Stack, Title, Text, Avatar, Skeleton, Anchor, Divider, Box,
 } from '@mantine/core';
 import { UsersService } from 'therr-react/services';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserImageUri from '../utilities/getUserImageUri';
@@ -115,6 +116,8 @@ export class PublicProfileComponent extends React.Component<IPublicProfileProps,
         const fallbackName = displayName || userInView.userName;
         const avatarUri = getUserImageUri({ details: userInView }, 480);
         const habitsProfileUrl = `${HABITS_PROFILE_BASE_URL}/${encodeURIComponent(userInView.userName)}`;
+        const appBrands: string[] = Array.isArray(userInView.appBrands) ? userInView.appBrands : [];
+        const hasHabitsAccount = appBrands.includes(BrandVariations.HABITS);
 
         return (
             <Container id="page_public_profile" size="sm" py="xl">
@@ -137,49 +140,53 @@ export class PublicProfileComponent extends React.Component<IPublicProfileProps,
                         </Text>
                     )}
 
-                    <Divider w="100%" my="md" />
+                    {hasHabitsAccount && (
+                        <>
+                            <Divider w="100%" my="md" />
 
-                    <Box ta="center">
-                        <Text size="xs" tt="uppercase" c="dimmed" mb="xs" style={{ letterSpacing: '0.08em' }}>
-                            {translate('pages.publicProfile.crossPromo.label')}
-                        </Text>
-                        <Anchor
-                            href={habitsProfileUrl}
-                            rel="noopener"
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 10,
-                                padding: '12px 22px',
-                                background: '#fff8f3',
-                                color: '#102a43',
-                                fontWeight: 600,
-                                borderRadius: 999,
-                                border: '1px solid #d9e2ec',
-                                textDecoration: 'none',
-                            }}
-                        >
-                            <span
-                                aria-hidden="true"
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: 24,
-                                    height: 24,
-                                    borderRadius: '50%',
-                                    background: '#ff6b35',
-                                    color: '#fff',
-                                    fontWeight: 800,
-                                    fontSize: 14,
-                                    lineHeight: 1,
-                                }}
-                            >
-                                H
-                            </span>
-                            <span>{translate('pages.publicProfile.crossPromo.habitsCta')}</span>
-                        </Anchor>
-                    </Box>
+                            <Box ta="center">
+                                <Text size="xs" tt="uppercase" c="dimmed" mb="xs" style={{ letterSpacing: '0.08em' }}>
+                                    {translate('pages.publicProfile.crossPromo.label')}
+                                </Text>
+                                <Anchor
+                                    href={habitsProfileUrl}
+                                    rel="noopener"
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 10,
+                                        padding: '12px 22px',
+                                        background: '#fff8f3',
+                                        color: '#102a43',
+                                        fontWeight: 600,
+                                        borderRadius: 999,
+                                        border: '1px solid #d9e2ec',
+                                        textDecoration: 'none',
+                                    }}
+                                >
+                                    <span
+                                        aria-hidden="true"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            width: 24,
+                                            height: 24,
+                                            borderRadius: '50%',
+                                            background: '#ff6b35',
+                                            color: '#fff',
+                                            fontWeight: 800,
+                                            fontSize: 14,
+                                            lineHeight: 1,
+                                        }}
+                                    >
+                                        H
+                                    </span>
+                                    <span>{translate('pages.publicProfile.crossPromo.habitsCta')}</span>
+                                </Anchor>
+                            </Box>
+                        </>
+                    )}
                 </Stack>
             </Container>
         );

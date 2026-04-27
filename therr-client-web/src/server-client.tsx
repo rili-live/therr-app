@@ -246,6 +246,8 @@ app.use(async (req, res, next) => {
             const safeBio = escapeHtml(userInView.settingsBio || '');
             const avatarUri = getUserImageUri({ details: userInView }, 480) || '';
             const firstInitial = (resolvedDisplayName || '?').trim().charAt(0).toUpperCase() || '?';
+            const appBrands: string[] = Array.isArray(userInView.appBrands) ? userInView.appBrands : [];
+            const hasTherrAccount = appBrands.includes(BrandVariations.THERR);
             res.setHeader('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=3600');
             return res.render('habits/profile', {
                 title: `${safeDisplayName} on Friends with Habits`,
@@ -258,6 +260,7 @@ app.use(async (req, res, next) => {
                 hasAvatar: !!avatarUri,
                 hasBio: !!safeBio,
                 firstInitial: escapeHtml(firstInitial),
+                hasTherrAccount,
                 therrProfileUrl: `https://www.therr.com/u/${safeUserName}`,
             });
         } catch (err) {
