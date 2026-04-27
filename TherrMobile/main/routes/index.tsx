@@ -56,7 +56,7 @@ import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 // HABITS routes
 import { HabitsDashboard, HabitDetail } from './Habits';
-import { PactsList, PactDetail, CreatePactInvite } from './Pacts';
+import { PactsList, PactDetail, CreatePactInvite, HabitsPushOptIn } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
 
@@ -530,6 +530,15 @@ const routes: RouteConfig<
         component: CreatePactInvite,
         options: () => ({
             title: 'Invite a Partner',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'HabitsPushOptIn',
+        component: HabitsPushOptIn,
+        options: () => ({
+            title: 'Notifications',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
