@@ -89,10 +89,29 @@ const logoSource = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
 
 ### Bootsplash
 
-Update `TherrMobile/assets/manifest.json` so the bootsplash background
-is white (`#FFFFFF`) to match the icon, and regenerate the bootsplash
-PNG set from `../habits-logo.svg` via the `react-native-bootsplash`
-generator or the existing `bootsplash/` tooling.
+The HABITS bootsplash uses a white background with the chameleon
+centered above the purple "Friends with Habits" wordmark. The active
+config lives in:
+
+- `TherrMobile/assets/bootsplash/manifest.json` — `background: "#FFFFFF"`
+- `TherrMobile/android/app/src/main/res/values/colors.xml` —
+  `bootsplash_background = #FFFFFF`
+- `TherrMobile/ios/Therr/Colors.xcassets/BootSplashBackground-043b60.colorset/`
+  — sRGB white
+- `TherrMobile/ios/Therr/BootSplash.storyboard` — namedColor fallback white
+
+Logo PNGs (chameleon + wordmark, transparent background) are written to:
+
+- `TherrMobile/assets/bootsplash/logo*.png` (source set, 100/150/200/300/400)
+- `TherrMobile/main/assets/bootsplash_logo*.png`
+- `TherrMobile/android/app/src/main/res/drawable-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/bootsplash_logo.png`
+- `TherrMobile/ios/Therr/Images.xcassets/BootSplashLogo-043b60.imageset/logo-043b60{,@2x,@3x}.png`
+
+To regenerate after a logo edit, render `../habits-logo.svg` (with the
+white rounded-square `<rect>` stripped so the bootsplash background
+shows through) and composite the wordmark in `#3B2A4E` below it, then
+write to all paths above. The `react-native-bootsplash` CLI does not
+embed text, so the wordmark must be baked into the PNG.
 
 ## Design rationale
 

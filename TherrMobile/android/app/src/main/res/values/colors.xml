@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="therr_blue">#3B2A4E</color>
-    <color name="bootsplash_background">#3B2A4E</color>
+    <color name="bootsplash_background">#FFFFFF</color>
 </resources>
