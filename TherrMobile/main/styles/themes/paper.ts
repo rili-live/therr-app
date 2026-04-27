@@ -2,6 +2,8 @@ import Color from 'color';
 import { MD3LightTheme, MD3DarkTheme, configureFonts } from 'react-native-paper';
 import type { MD3Theme } from 'react-native-paper';
 import { IMobileThemeName } from 'therr-react/types';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { colors as lightColors } from './light/colors';
 import { colors as darkColors } from './dark/colors';
 import { colors as retroColors } from './retro/colors';
@@ -286,9 +288,28 @@ export const paperRetroTheme: ITherrPaperTheme = {
 };
 
 // ---------------------------------------------------------------------------
-// Theme Accessor
+// Per-brand Paper-color overrides
 // ---------------------------------------------------------------------------
-export const getPaperTheme = (name?: IMobileThemeName): ITherrPaperTheme => {
+// Mirror of `brandColorOverrides` in `./index.ts`, but keyed by Paper's MD3
+// color tokens (primary, onPrimary, surface, etc.) instead of the custom
+// `ITherrThemeColors` shape. Keep the two in sync when overriding from a
+// niche branch — Paper-driven components (FAB, TextInput, Card, Snackbar,
+// etc.) read from this map; everything else reads from `getTheme()`.
+//
+// Empty on `general`. See `./index.ts` for the override workflow.
+type PaperColorPatch = Partial<MD3Theme['colors']>;
+
+const brandPaperColorOverrides: Partial<Record<BrandVariations, PaperColorPatch>> = {
+    [BrandVariations.THERR]: {},
+    [BrandVariations.TEEM]: {},
+    [BrandVariations.HABITS]: {},
+    [BrandVariations.OTAKU]: {},
+    [BrandVariations.PARALLELS]: {},
+    [BrandVariations.APPY_SOCIAL]: {},
+    [BrandVariations.DASHBOARD_THERR]: {},
+};
+
+const basePaperThemeFor = (name?: IMobileThemeName): ITherrPaperTheme => {
     switch (name) {
         case 'light':
             return paperLightTheme;
@@ -299,4 +320,28 @@ export const getPaperTheme = (name?: IMobileThemeName): ITherrPaperTheme => {
         default:
             return paperLightTheme;
     }
+};
+
+// ---------------------------------------------------------------------------
+// Theme Accessor
+// ---------------------------------------------------------------------------
+export const getPaperTheme = (
+    name?: IMobileThemeName,
+    brand?: BrandVariations,
+): ITherrPaperTheme => {
+    const baseTheme = basePaperThemeFor(name);
+    const resolvedBrand = brand ?? CURRENT_BRAND_VARIATION;
+    const override = brandPaperColorOverrides[resolvedBrand];
+
+    // Fast path — no override for this brand → return cached theme by
+    // reference, preserving referential equality for the memoized
+    // PaperProvider in App.tsx.
+    if (!override || Object.keys(override).length === 0) {
+        return baseTheme;
+    }
+
+    return {
+        ...baseTheme,
+        colors: { ...baseTheme.colors, ...override },
+    };
 };
