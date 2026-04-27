@@ -1034,6 +1034,17 @@
     "userLocations": {
       "pageTitle": "Emplacements",
       "headingWithName": "Emplacements de {name}"
+    },
+    "publicProfile": {
+      "crossPromo": {
+        "label": "Même personne, plus d'endroits",
+        "habitsCta": "Retrouvez-moi sur Friends with Habits"
+      },
+      "notFound": {
+        "title": "Profil introuvable",
+        "message": "Nous n'avons pas trouvé de profil pour @{userName}.",
+        "backHome": "Retour à l'accueil"
+      }
     }
   }
 }

@@ -241,6 +241,14 @@ export default [
         view: 'users',
     },
     {
+        route: '/u/:userName',
+        head: {
+            title: 'Profile',
+            description: 'View this Therr user profile.',
+        },
+        view: 'index',
+    },
+    {
         route: '/reset-password',
         head: {
             title: 'Reset Password',
