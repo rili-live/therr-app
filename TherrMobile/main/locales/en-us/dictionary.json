@@ -1784,6 +1784,51 @@
         "benefit2": "Daily check-ins with someone who's counting on you",
         "benefit3": "Streaks you build — and celebrate — together"
       },
+      "preview": {
+        "bannerTitle": "Your Habits unlock when a friend joins",
+        "bannerSubtitle": "Send a pact invite to get started",
+        "bannerCTA": "Invite a friend",
+        "bannerSecondaryCTA": "View sent invites",
+        "sampleHabitTitle": "Your habit appears here",
+        "sampleHabitSubtitle": "Pick a habit and we'll lock it in once your friend joins",
+        "samplePartnerName": "Your future partner",
+        "sampleStreakLabel": "Day 1 — locks in when your partner joins",
+        "prestagedSuffix": "ready when your partner joins"
+      },
+      "outgoing": {
+        "tabLabel": "Sent",
+        "emptyTitle": "No invites sent yet",
+        "emptySubtitle": "Send a pact invite to get started",
+        "cardSubtitle": "Awaiting acceptance",
+        "nudgeButton": "Nudge",
+        "nudgeShareTitle": "Friendly reminder"
+      },
+      "wizard": {
+        "step1Title": "Pick a habit",
+        "step1Subtitle": "Choose what you'd like to build with your partner",
+        "step2Title": "Choose your partner",
+        "step2Subtitle": "Invite up to 5 people — first to accept becomes your partner",
+        "step3Title": "Send your pact invite",
+        "step3Subtitle": "Review and send",
+        "multiSelectCounter": "{count} of 5 selected",
+        "customHabitLabel": "Or create your own",
+        "customHabitNamePlaceholder": "Habit name (e.g., Run 3x/week)",
+        "send": "Send invite",
+        "sendMultiple": "Send {count} invites",
+        "sendingError": "Couldn't send your pact invite. Please try again.",
+        "sendSuccess": "Pact invite sent!",
+        "sendMultipleSuccess": "{count} pact invites sent!",
+        "next": "Next",
+        "back": "Back",
+        "cancel": "Cancel",
+        "pickTemplateFirst": "Pick a habit to continue",
+        "pickPartnerFirst": "Choose at least one partner",
+        "templatesEmpty": "No templates available — create your own habit",
+        "addPartnerByEmail": "Invite by email",
+        "addPartnerEmailPlaceholder": "friend@example.com",
+        "maxPartnersReached": "You can invite up to 5 partners at once",
+        "habitDefaultEmoji": "🎯"
+      },
       "status": {
         "pending": "Pending",
         "active": "Active",
@@ -1801,6 +1846,15 @@
       "completionLabel": "{pct}% completion",
       "vs": "vs",
       "partnerFallback": "Partner"
+    },
+    "pushOptIn": {
+      "title": "Get notified when your friend joins",
+      "subtitle": "We'll only ping you for pact activity — no spam, ever.",
+      "enableButton": "Turn on notifications",
+      "skipButton": "Maybe later",
+      "benefit1": "Know the moment your partner accepts your invite",
+      "benefit2": "Daily check-in reminders so you never break a streak",
+      "benefit3": "Cheers from your partner when they finish a check-in"
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",

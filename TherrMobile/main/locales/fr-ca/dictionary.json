@@ -1784,6 +1784,51 @@
         "benefit2": "Des check-ins quotidiens avec quelqu'un qui compte sur toi",
         "benefit3": "Des séries que vous bâtissez — et célébrez — ensemble"
       },
+      "preview": {
+        "bannerTitle": "Tes Habitudes se débloquent quand un ami se joint",
+        "bannerSubtitle": "Envoie une invitation de pacte pour commencer",
+        "bannerCTA": "Inviter un ami",
+        "bannerSecondaryCTA": "Voir les invitations envoyées",
+        "sampleHabitTitle": "Ton habitude s'affichera ici",
+        "sampleHabitSubtitle": "Choisis une habitude et on l'activera dès que ton ami se joint",
+        "samplePartnerName": "Ton futur partenaire",
+        "sampleStreakLabel": "Jour 1 — s'active quand ton partenaire se joint",
+        "prestagedSuffix": "prête quand ton partenaire se joint"
+      },
+      "outgoing": {
+        "tabLabel": "Envoyées",
+        "emptyTitle": "Aucune invitation envoyée pour l'instant",
+        "emptySubtitle": "Envoie une invitation de pacte pour commencer",
+        "cardSubtitle": "En attente d'acceptation",
+        "nudgeButton": "Rappel",
+        "nudgeShareTitle": "Petit rappel amical"
+      },
+      "wizard": {
+        "step1Title": "Choisis une habitude",
+        "step1Subtitle": "Choisis ce que tu aimerais bâtir avec ton partenaire",
+        "step2Title": "Choisis ton partenaire",
+        "step2Subtitle": "Invite jusqu'à 5 personnes — le premier qui accepte devient ton partenaire",
+        "step3Title": "Envoie ton invitation de pacte",
+        "step3Subtitle": "Vérifie et envoie",
+        "multiSelectCounter": "{count} sur 5 sélectionnés",
+        "customHabitLabel": "Ou crée la tienne",
+        "customHabitNamePlaceholder": "Nom de l'habitude (ex. : Courir 3x/semaine)",
+        "send": "Envoyer l'invitation",
+        "sendMultiple": "Envoyer {count} invitations",
+        "sendingError": "Impossible d'envoyer ton invitation de pacte. Réessaie.",
+        "sendSuccess": "Invitation de pacte envoyée!",
+        "sendMultipleSuccess": "{count} invitations de pacte envoyées!",
+        "next": "Suivant",
+        "back": "Retour",
+        "cancel": "Annuler",
+        "pickTemplateFirst": "Choisis une habitude pour continuer",
+        "pickPartnerFirst": "Choisis au moins un partenaire",
+        "templatesEmpty": "Aucun modèle disponible — crée ta propre habitude",
+        "addPartnerByEmail": "Inviter par courriel",
+        "addPartnerEmailPlaceholder": "ami@exemple.com",
+        "maxPartnersReached": "Tu peux inviter jusqu'à 5 partenaires à la fois",
+        "habitDefaultEmoji": "🎯"
+      },
       "status": {
         "pending": "En attente",
         "active": "Actif",
@@ -1801,6 +1846,15 @@
       "completionLabel": "{pct}% terminé",
       "vs": "vs",
       "partnerFallback": "Partenaire"
+    },
+    "pushOptIn": {
+      "title": "Reçois une notification quand ton ami se joint",
+      "subtitle": "On te ping seulement pour l'activité du pacte — jamais de spam.",
+      "enableButton": "Activer les notifications",
+      "skipButton": "Plus tard",
+      "benefit1": "Sache à l'instant où ton partenaire accepte ton invitation",
+      "benefit2": "Rappels quotidiens pour ne jamais briser une série",
+      "benefit3": "Bravos de ton partenaire quand il termine un check-in"
     },
     "manageSpaces": {
       "headerTitle": "Mes Commerces",

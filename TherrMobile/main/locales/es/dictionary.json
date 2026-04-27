@@ -1784,6 +1784,51 @@
         "benefit2": "Check-ins diarios con alguien que cuenta contigo",
         "benefit3": "Rachas que construyen — y celebran — juntos"
       },
+      "preview": {
+        "bannerTitle": "Tus hábitos se desbloquean cuando un amigo se une",
+        "bannerSubtitle": "Envía una invitación de pacto para empezar",
+        "bannerCTA": "Invitar a un amigo",
+        "bannerSecondaryCTA": "Ver invitaciones enviadas",
+        "sampleHabitTitle": "Tu hábito aparecerá aquí",
+        "sampleHabitSubtitle": "Elige un hábito y lo activaremos cuando tu amigo se una",
+        "samplePartnerName": "Tu futuro compañero",
+        "sampleStreakLabel": "Día 1 — se activa cuando tu compañero se una",
+        "prestagedSuffix": "listo cuando tu compañero se una"
+      },
+      "outgoing": {
+        "tabLabel": "Enviadas",
+        "emptyTitle": "Aún no has enviado invitaciones",
+        "emptySubtitle": "Envía una invitación de pacto para empezar",
+        "cardSubtitle": "Esperando aceptación",
+        "nudgeButton": "Recordar",
+        "nudgeShareTitle": "Recordatorio amistoso"
+      },
+      "wizard": {
+        "step1Title": "Elige un hábito",
+        "step1Subtitle": "Elige lo que te gustaría construir con tu compañero",
+        "step2Title": "Elige a tu compañero",
+        "step2Subtitle": "Invita hasta 5 personas — el primero que acepte se convierte en tu compañero",
+        "step3Title": "Envía tu invitación de pacto",
+        "step3Subtitle": "Revisa y envía",
+        "multiSelectCounter": "{count} de 5 seleccionados",
+        "customHabitLabel": "O crea el tuyo propio",
+        "customHabitNamePlaceholder": "Nombre del hábito (ej., Correr 3x/semana)",
+        "send": "Enviar invitación",
+        "sendMultiple": "Enviar {count} invitaciones",
+        "sendingError": "No se pudo enviar tu invitación de pacto. Inténtalo de nuevo.",
+        "sendSuccess": "¡Invitación de pacto enviada!",
+        "sendMultipleSuccess": "¡{count} invitaciones de pacto enviadas!",
+        "next": "Siguiente",
+        "back": "Atrás",
+        "cancel": "Cancelar",
+        "pickTemplateFirst": "Elige un hábito para continuar",
+        "pickPartnerFirst": "Elige al menos un compañero",
+        "templatesEmpty": "No hay plantillas disponibles — crea tu propio hábito",
+        "addPartnerByEmail": "Invitar por correo",
+        "addPartnerEmailPlaceholder": "amigo@ejemplo.com",
+        "maxPartnersReached": "Puedes invitar hasta 5 compañeros a la vez",
+        "habitDefaultEmoji": "🎯"
+      },
       "status": {
         "pending": "Pendiente",
         "active": "Activo",
@@ -1801,6 +1846,15 @@
       "completionLabel": "{pct}% completado",
       "vs": "vs",
       "partnerFallback": "Compañero"
+    },
+    "pushOptIn": {
+      "title": "Recibe una notificación cuando tu amigo se una",
+      "subtitle": "Solo te enviaremos avisos sobre la actividad del pacto — sin spam, nunca.",
+      "enableButton": "Activar notificaciones",
+      "skipButton": "Quizás más tarde",
+      "benefit1": "Entérate al instante cuando tu compañero acepte tu invitación",
+      "benefit2": "Recordatorios diarios para que nunca rompas una racha",
+      "benefit3": "Aplausos de tu compañero cuando termine un check-in"
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
