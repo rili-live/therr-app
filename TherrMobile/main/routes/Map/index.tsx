@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Dimensions, Modal, PermissionsAndroid, Keyboard, Platform, Pressable, View } from 'react-native';
+import { Dimensions, PermissionsAndroid, Keyboard, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-maps';
@@ -20,7 +20,6 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import MapActionButtons, { ICreateAction as ICreateMomentAction } from './MapActionButtons';
-import Alert from '../../components/Alert';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import { ILocationState } from '../../types/redux/location';
 import LocationActions from '../../redux/actions/LocationActions';
@@ -44,7 +43,6 @@ import {
     HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
@@ -54,7 +52,6 @@ import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locatio
 import { buildStyles as buildTourStyles } from '../../styles/modal/tourModal';
 import { buildStyles as buildViewAreaStyles } from '../../styles/user-content/areas/viewing';
 import { buildStyles as buildSearchStyles } from '../../styles/modal/typeAhead';
-import mapStyles from '../../styles/map';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import {
     requestOSMapPermissions,
@@ -161,7 +158,6 @@ export interface IMapProps extends IStoreProps {
 
 interface IMapState {
     activeQuickFilterId: string;
-    alertMessage: string;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
     bottomSheetContentType: IMapSheetContentTypes;
@@ -176,7 +172,6 @@ interface IMapState {
     };
     shouldFollowUserLocation: boolean;
     isConfirmEULAModalVisible: boolean;
-    isAreaAlertVisible: boolean;
     isScrollEnabled: boolean;
     isLocationReady: boolean;
     isSearchLoading: boolean;
@@ -259,7 +254,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private searchInFlight?: Promise<any>;
     private searchAbortController?: AbortController;
     private theme = buildStyles();
-    private themeAlerts = buildAlertStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeBottomSheet = buildBottomSheetStyles();
     private themeViewArea = buildViewAreaStyles();
@@ -273,7 +267,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private timeoutIdPreviewRegion;
     private timeoutIdLocationReady;
     private timeoutIdRefreshMoments;
-    private timeoutIdShowMomentAlert;
     private timeoutIdSearchButton;
     private timeoutIdWaitForSearchSelect;
     private translate: Function;
@@ -307,7 +300,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         this.state = {
             activeQuickFilterId: '0',
-            alertMessage: 'Error',
             areButtonsVisible: true,
             areLayersVisible: false,
             bottomSheetContentType: 'nearby',
@@ -318,7 +310,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldFollowUserLocation: false,
             isConfirmEULAModalVisible: false,
             isScrollEnabled: true,
-            isAreaAlertVisible: false,
             isLocationUseDisclosureModalVisible: false,
             isLocationReady: false,
             isSearchLoading: false,
@@ -522,14 +513,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         clearTimeout(this.timeoutIdLocationReady);
         clearTimeout(this.timeoutIdSearchButton);
         clearTimeout(this.timeoutIdRefreshMoments);
-        clearTimeout(this.timeoutIdShowMomentAlert);
         clearTimeout(this.timeoutIdWaitForSearchSelect);
     };
 
     reloadTheme = (shouldForceUpdate: boolean = false) => {
         const themeName = this.props.user.settings?.mobileThemeName;
         this.theme = buildStyles(themeName);
-        this.themeAlerts = buildAlertStyles(themeName);
         this.themeConfirmModal = buildConfirmModalStyles(themeName);
         this.themeBottomSheet = buildBottomSheetStyles(themeName);
         this.themeViewArea = buildViewAreaStyles(themeName);
@@ -714,13 +703,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
 
         navigation.navigate('Notifications');
-    };
-
-    cancelAreaAlert = () => {
-        clearTimeout(this.timeoutIdShowMomentAlert);
-        this.setState({
-            isAreaAlertVisible: false,
-        });
     };
 
     expandBottomSheet = (index = 1, shouldToggle = false, content: IMapSheetContentTypes = 'nearby') => {
@@ -964,7 +946,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             });
 
         } else {
-            // TODO: Alert that GPS is required to create a moment
             let alertMsg = this.translate('pages.map.areaAlerts.enableMomentLocation');
             if (action === 'claim') {
                 alertMsg = isBusinessAccount
@@ -1686,16 +1667,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     showAreaAlert = (message?: string, timeout = 2000) => {
         const alertMsg = message || this.translate('pages.map.areaAlerts.walkCloser');
-        this.setState({
-            alertMessage: alertMsg,
-            isAreaAlertVisible: true,
+        showToast.warn({
+            text1: alertMsg,
+            duration: timeout,
         });
-
-        this.timeoutIdShowMomentAlert = setTimeout(() => {
-            this.setState({
-                isAreaAlertVisible: false,
-            });
-        }, timeout);
     };
 
     showPublicUserToast = ({
@@ -1966,7 +1941,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     render() {
         const {
             activeQuickFilterId,
-            alertMessage,
             areButtonsVisible,
             areLayersVisible,
             bottomSheetContentType,
@@ -1981,7 +1955,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isMapReady,
             isMinLoadTimeComplete,
             isUserNewish,
-            isAreaAlertVisible,
             isSearchThisLocationBtnVisible,
             isSearchLoading,
             isScrollEnabled,
@@ -2058,27 +2031,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 // onClusterPress={this.onClusterPress}
                                 updateCircleCenter={this.updateCircleCenter}
                             />
-                            <Modal
-                                animationType="fade"
-                                transparent
-                                visible={isAreaAlertVisible}
-                                onRequestClose={this.cancelAreaAlert}
-                            >
-                                <Pressable
-                                    style={this.theme.styles.overlay}
-                                    onPress={this.cancelAreaAlert}
-                                >
-                                    <View style={mapStyles.momentAlertOverlayContainer}>
-                                        <Alert
-                                            containerStyles={{}}
-                                            isVisible={isAreaAlertVisible}
-                                            message={alertMessage}
-                                            type="error"
-                                            themeAlerts={this.themeAlerts}
-                                        />
-                                    </View>
-                                </Pressable>
-                            </Modal>
                         </>
                     )}
                     <QuickFiltersList
