@@ -139,7 +139,7 @@ const HabitCalendar: React.FC<IHabitCalendarProps> = ({
                     <MaterialIcon
                         name="chevron-left"
                         size={24}
-                        color={themeHabits.colors.textBlack}
+                        color={themeHabits.colors.brandingBlack}
                     />
                 </Pressable>
                 <Text style={themeHabits.styles.calendarTitle}>{monthName}</Text>
@@ -150,7 +150,7 @@ const HabitCalendar: React.FC<IHabitCalendarProps> = ({
                     <MaterialIcon
                         name="chevron-right"
                         size={24}
-                        color={themeHabits.colors.textBlack}
+                        color={themeHabits.colors.brandingBlack}
                     />
                 </Pressable>
             </View>

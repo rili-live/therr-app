@@ -77,7 +77,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 16,
             fontWeight: '600',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlack,
         },
         streakBadge: {
             ...getStreakBadgeStyles(therrTheme),
@@ -161,7 +161,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 18,
             fontWeight: '600',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlack,
         },
         habitCardSubtitle: {
             fontFamily: therrFontFamily,
@@ -200,7 +200,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 18,
             fontWeight: '600',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlack,
         },
         calendarNavButton: {
             padding: 8,
@@ -252,7 +252,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         calendarDayText: {
             fontFamily: therrFontFamily,
             fontSize: 14,
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlack,
         },
         calendarDayTextCompleted: {
             color: therrTheme.colors.brandingWhite,
@@ -308,7 +308,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 14,
             fontWeight: '500',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlack,
         },
         pactComparisonContainer: {
             flexDirection: 'row',
@@ -326,7 +326,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 24,
             fontWeight: '700',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlack,
         },
         pactComparisonLabel: {
             fontFamily: therrFontFamily,
@@ -348,7 +348,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 24,
             fontWeight: '700',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlack,
         },
         dashboardSubtitle: {
             fontFamily: therrFontFamily,
@@ -363,7 +363,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 18,
             fontWeight: '600',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.textWhite,
             marginHorizontal: 16,
             marginBottom: 8,
         },
@@ -381,7 +381,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 18,
             fontWeight: '600',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.textWhite,
             textAlign: 'center',
         },
         emptyStateSubtitle: {
