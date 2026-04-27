@@ -1,6 +1,7 @@
 import * as express from 'express';
 import {
     createPact,
+    bulkInvitePact,
     getPact,
     getUserPacts,
     getActivePacts,
@@ -21,6 +22,7 @@ router.get('/', getUserPacts);
 
 // CREATE
 router.post('/', createPact);
+router.post('/bulk-invite', bulkInvitePact);
 
 // UPDATE
 router.put('/:id/accept', acceptPact);

@@ -627,7 +627,7 @@ class HeaderMenuRight extends React.PureComponent<
                                         type="clear"
                                         icon={
                                             <TherrIcon
-                                                name="therr-logo"
+                                                name={LOGO_GLYPH_NAME}
                                                 size={24}
                                                 style={themeMenu.styles.subheaderTitleIcon}
                                             />
@@ -645,7 +645,7 @@ class HeaderMenuRight extends React.PureComponent<
                                 <Button
                                     icon={
                                         <TherrIcon
-                                            name={LOGO_GLYPH_NAME}
+                                            name="info"
                                             size={24}
                                             color={theme.colors.brandingWhite}
                                         />

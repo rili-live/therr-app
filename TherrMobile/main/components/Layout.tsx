@@ -24,6 +24,7 @@ import {
 import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
@@ -275,12 +276,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // doesn't fire when the user is already authenticated at mount, so
         // reset to the brand-appropriate landing screen here.
         if (this.props.user?.isAuthenticated && CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
-            RootNavigation.reset({
-                index: 0,
-                routes: [{ name: 'HabitsDashboard' }],
-            });
+            this.resetToHabitsLanding();
         }
     }
+
+    // For HABITS, the first authenticated reset goes to a one-time push opt-in
+    // screen (the highest-leverage retention lever — the user needs to know
+    // when their pact invite is accepted). Subsequent launches skip straight
+    // to HabitsDashboard.
+    resetToHabitsLanding = async () => {
+        let optInShown = 'true';
+        try {
+            optInShown = (await AsyncStorage.getItem('HABITS_PUSH_OPTIN_SHOWN')) || '';
+        } catch {
+            // best-effort — fall through to dashboard if AsyncStorage is broken
+            optInShown = 'true';
+        }
+        const target = optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
+        RootNavigation.reset({
+            index: 0,
+            routes: [{ name: target }],
+        });
+    };
 
     componentDidUpdate(prevProps: ILayoutProps) {
         const { targetRouteView, targetRouteParams } = this.state;
@@ -324,10 +341,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     // below routes through Areas, which is feature-flagged off
                     // for HABITS and would otherwise leave the user on a
                     // fallback screen (e.g., Home) after login.
-                    RootNavigation.reset({
-                        index: 0,
-                        routes: [{ name: 'HabitsDashboard' }],
-                    });
+                    this.resetToHabitsLanding();
                 } else if (targetRouteView) {
                     RootNavigation.reset({
                         index: 0,

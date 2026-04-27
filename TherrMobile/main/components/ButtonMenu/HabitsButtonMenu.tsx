@@ -1,16 +1,22 @@
 import React from 'react';
-import { ActivityIndicator, Dimensions, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
 import { connect } from 'react-redux';
+import { IHabitsState } from 'therr-react/types';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import TherrIcon from '../../components/TherrIcon';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
+import { ButtonMenu, mapStateToProps as baseMapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 import Toast from 'react-native-toast-message';
+
+interface IHabitsButtonMenuProps {
+    habits: IHabitsState;
+    [key: string]: any;
+}
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -145,11 +151,22 @@ class HabitsButtonMenu extends ButtonMenu {
     };
 
     render() {
-        const { isCompact, translate, themeMenu, user } = this.props;
+        const {
+            isCompact, translate, themeMenu, user, habits,
+        } = (this.props as unknown as IHabitsButtonMenuProps);
         const activeRoute = this.getActiveRoute();
         const isHabitsActive = ['HabitsDashboard', 'HabitDetail'].includes(activeRoute);
-        const isPactsActive = ['PactsList', 'PactDetail', 'CreatePact'].includes(activeRoute);
+        const isPactsActive = ['PactsList', 'PactDetail', 'CreatePact', 'CreatePactInvite'].includes(activeRoute);
         const isConnectActive = activeRoute === 'Connect';
+        const currentUserId = user?.details?.id;
+        const outgoingCount = (habits?.pacts || []).filter(
+            (p) => p.status === 'pending' && p.creatorUserId === currentUserId,
+        ).length;
+        const hasActivePacts = (habits?.activePacts?.length || 0) > 0;
+        // Only nudge into the Sent tab when the user has nothing active to
+        // act on. With active pacts, default to the Active tab so daily
+        // check-ins remain one tap away.
+        const initialPactsTab = !hasActivePacts && outgoingCount > 0 ? 'outgoing' : 'active';
         const imageStyle = {
             height: 26,
             width: 26,
@@ -194,39 +211,62 @@ class HabitsButtonMenu extends ButtonMenu {
                 />
 
                 {/* Pacts Tab */}
-                <Button
-                    title={!isCompact ? translate('menus.habits.buttons.pacts') : null}
-                    buttonStyle={
-                        isPactsActive
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={[
-                        (isPactsActive
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer),
-                        {
-                            width: buttonWidth,
-                        },
-                    ]}
-                    titleStyle={
-                        isPactsActive
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <TherrIcon
-                            name="group"
-                            size={24}
-                            style={
-                                isPactsActive
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.onNavPressDynamic('PactsList')}
-                />
+                <View style={{ width: buttonWidth }}>
+                    <Button
+                        title={!isCompact ? translate('menus.habits.buttons.pacts') : null}
+                        buttonStyle={
+                            isPactsActive
+                                ? themeMenu.styles.buttonsActive
+                                : themeMenu.styles.buttons
+                        }
+                        containerStyle={[
+                            (isPactsActive
+                                ? themeMenu.styles.buttonContainerActive
+                                : themeMenu.styles.buttonContainer),
+                            {
+                                width: buttonWidth,
+                            },
+                        ]}
+                        titleStyle={
+                            isPactsActive
+                                ? themeMenu.styles.buttonsTitleActive
+                                : themeMenu.styles.buttonsTitle
+                        }
+                        icon={
+                            <TherrIcon
+                                name="group"
+                                size={24}
+                                style={
+                                    isPactsActive
+                                        ? themeMenu.styles.buttonIconActive
+                                        : themeMenu.styles.buttonIcon
+                                }
+                            />
+                        }
+                        onPress={() => this.onNavPressDynamic('PactsList', { initialTab: initialPactsTab })}
+                    />
+                    {outgoingCount > 0 && (
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: 4,
+                                right: buttonWidth / 2 - 24,
+                                minWidth: 18,
+                                height: 18,
+                                borderRadius: 9,
+                                backgroundColor: '#E37107',
+                                paddingHorizontal: 5,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                            pointerEvents="none"
+                        >
+                            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
+                                {outgoingCount > 9 ? '9+' : String(outgoingCount)}
+                            </Text>
+                        </View>
+                    )}
+                </View>
 
                 {/* Connect Tab (for finding partners) */}
                 <Button
@@ -281,4 +321,9 @@ class HabitsButtonMenu extends ButtonMenu {
     }
 }
 
-export default (connect(mapStateToProps, mapDispatchToProps)(React.memo(HabitsButtonMenu)));
+const mapStateToPropsHabits = (state: any) => ({
+    ...baseMapStateToProps(state),
+    habits: state.habits,
+});
+
+export default (connect(mapStateToPropsHabits, mapDispatchToProps)(React.memo(HabitsButtonMenu)));
