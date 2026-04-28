@@ -96,13 +96,13 @@ export default ({
             {renderImage ? renderImage() : null}
             <Text style={[
                 localStyles.bodyText,
-                { color: therrTheme.colors.textWhite },
+                { color: therrTheme.colors.onSurface },
                 showEmphasis && localStyles.bodyTextEmphasized,
             ]}>
                 {text}
             </Text>
             {text2 ? (
-                <Text style={[localStyles.bodyText, { color: therrTheme.colors.textWhite }]}>
+                <Text style={[localStyles.bodyText, { color: therrTheme.colors.onSurface }]}>
                     {text2}
                 </Text>
             ) : null}

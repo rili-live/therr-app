@@ -52,7 +52,9 @@ const BaseModal = ({
     const therrTheme = getTheme(themeName);
 
     const containerStyle: ViewStyle = {
-        backgroundColor: therrTheme.colors.backgroundGray,
+        // Phase 2 semantic aliases — `surfaceAlt` reads as a soft inset surface,
+        // `onSurface` is the matching text color for both light and dark.
+        backgroundColor: therrTheme.colors.surfaceAlt,
         borderRadius: radius.lg,
         ...shadowLg,
         ...(width != null ? { width: typeof width === 'number' ? width : (width as any) } : {}),
@@ -68,7 +70,7 @@ const BaseModal = ({
             >
                 {headerText ? (
                     <>
-                        <Dialog.Title style={[localStyles.headerText, { color: therrTheme.colors.textWhite }]}>
+                        <Dialog.Title style={[localStyles.headerText, { color: therrTheme.colors.onSurface }]}>
                             {headerText}
                         </Dialog.Title>
                         <Divider />
