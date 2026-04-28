@@ -2307,7 +2307,8 @@
         "noMeGoals": "Aucun objectif pour le moment. Appuyez sur le bouton + pour enregistrer votre premier objectif.",
         "noGoals": "Cet utilisateur n'a encore partagé aucun objectif.",
         "noMePacts": "Aucun pacte pour le moment. Invitez un ami à créer votre premier pacte.",
-        "noMeAchievements": "Aucune réalisation pour le moment. Continuez à bâtir vos habitudes pour débloquer des récompenses."
+        "noMeAchievements": "Aucune réalisation pour le moment. Continuez à bâtir vos habitudes pour débloquer des récompenses.",
+        "noAchievements": "Cet utilisateur n'a encore obtenu aucune réalisation."
       }
     }
   }
