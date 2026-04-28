@@ -27,6 +27,10 @@ const PROFILE_CAROUSEL_TABS = {
     THOUGHTS: 'people',
     MEDIA: 'groups',
     MOMENTS: 'moments',
+    // HABITS profile tabs (Friends with Habits niche app)
+    GOALS: 'goals',
+    PACTS: 'pacts',
+    ACHIEVEMENTS: 'achievements',
 };
 
 const HAPTIC_FEEDBACK_TYPE = 'soft';

@@ -1000,6 +1000,9 @@
       "media": "Media",
       "news": "News",
       "thoughts": "Thoughts",
+      "goals": "Goals",
+      "pacts": "Pacts",
+      "achievements": "Achievements",
       "groupsDiscover": "Discover"
     },
     "mapActions": {
@@ -2295,7 +2298,11 @@
         "noMeMoments": "No moments to display. You can create moments from the map.",
         "noMoments": "No moments to display. Travel where they travel to activate nearby moments.",
         "noMeThoughts": "No thoughts to display. You can create thoughts from the 'Discovered' page.",
-        "noThoughts": "This user has not shared any thoughts yet."
+        "noThoughts": "This user has not shared any thoughts yet.",
+        "noMeGoals": "No goals yet. Tap the + button to log your first goal.",
+        "noGoals": "This user has not shared any goals yet.",
+        "noMePacts": "No pacts yet. Invite a friend to create your first pact.",
+        "noMeAchievements": "No achievements yet. Keep building habits to unlock rewards."
       }
     }
   }

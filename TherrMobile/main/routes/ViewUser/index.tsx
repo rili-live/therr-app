@@ -6,9 +6,11 @@ import {
     View} from 'react-native';
 import { FAB } from 'react-native-paper';
 import 'react-native-gesture-handler';
+import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
+    HabitActions,
     MapActions,
     UserConnectionsActions,
 } from 'therr-react/redux/actions';
@@ -20,7 +22,10 @@ import {
     IContentState,
     IUserState,
     IUserConnectionsState,
+    IHabitsState,
+    IPact,
 } from 'therr-react/types';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { showToast } from '../../utilities/toasts';
 import { ContentActions } from 'therr-react/redux/actions';
@@ -34,6 +39,8 @@ import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
+import { buildStyles as buildHabitStyles } from '../../styles/habits';
+import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
 import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
@@ -42,6 +49,8 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import AreaCarousel from '../Areas/AreaCarousel';
+import { PactCard } from '../../components/Habits';
+import AchievementTile from '../Achievements/AchievementTile';
 import { isMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
 import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
@@ -49,8 +58,12 @@ import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../
 import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
 import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+
+const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 
 const { width: viewportWidth } = Dimensions.get('window');
+const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
 
 const renderIdeaIcon = (props: { size: number; color: string }) => (
     <TherrIcon name="idea" size={props.size} color={props.color} />
@@ -73,12 +86,17 @@ interface IViewUserDispatchProps {
     updateUserInView: Function;
     createUserConnection: Function;
     updateUserConnection: Function;
+    getMyAchievements: Function;
+    getActivePacts: Function;
+    getUserPacts: Function;
+    getActiveStreaks: Function;
 }
 
 interface IStoreProps extends IViewUserDispatchProps {
     content: IContentState;
     user: IUserState;
     userConnections: IUserConnectionsState;
+    habits: IHabitsState;
 }
 
 // Regular component props
@@ -96,6 +114,7 @@ interface IViewUserState {
     isRefreshingUserMedia: boolean;
     isRefreshingUserMoments: boolean;
     isRefreshingUserThoughts: boolean;
+    isRefreshingHabitsData: boolean;
     isTabViewLaidOut: boolean;
     tabRoutes: { key: string; title: string }[];
     userInViewsMoments: any[];
@@ -106,6 +125,7 @@ const mapStateToProps = (state) => ({
     content: state.content,
     notifications: state.notifications,
     user: state.user,
+    habits: state.habits,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
@@ -120,6 +140,10 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUserInView: UsersActions.updateUserInView,
     createUserConnection: UserConnectionsActions.create,
     updateUserConnection: UserConnectionsActions.update,
+    getMyAchievements: UsersActions.getMyAchievements,
+    getActivePacts: HabitActions.getActivePacts,
+    getUserPacts: HabitActions.getUserPacts,
+    getActiveStreaks: HabitActions.getActiveStreaks,
 }, dispatch);
 
 class ViewUser extends React.Component<
@@ -138,6 +162,8 @@ class ViewUser extends React.Component<
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeUser = buildUserStyles();
+    private themeHabits = buildHabitStyles();
+    private themeAchievements = buildAchievementStyles();
 
     constructor(props) {
         super(props);
@@ -149,12 +175,6 @@ class ViewUser extends React.Component<
         const { userInView } = route.params;
         const activeTabIndex = 0;
         const isMe = userInView?.id === props.user.details.id;
-        const tabRoutes = [
-            { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
-        ];
-        if (isMe) {
-            tabRoutes.unshift({ key: PROFILE_CAROUSEL_TABS.MOMENTS, title: this.translate('menus.headerTabs.moments') });
-        }
 
         this.state = {
             activeTabIndex,
@@ -165,8 +185,9 @@ class ViewUser extends React.Component<
             isRefreshingUserMedia: false,
             isRefreshingUserMoments: false,
             isRefreshingUserThoughts: false,
+            isRefreshingHabitsData: false,
             isTabViewLaidOut: false,
-            tabRoutes,
+            tabRoutes: this.buildTabRoutes(isMe),
             userInViewsMoments: [],
             userInViewsThoughts: [],
         };
@@ -179,6 +200,8 @@ class ViewUser extends React.Component<
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeUser = buildUserStyles(props.user.settings?.mobileThemeName);
+        this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
+        this.themeAchievements = buildAchievementStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator(props.user.settings?.locale || 'en-us', key, params);
     }
@@ -208,15 +231,9 @@ class ViewUser extends React.Component<
 
         if (routeParamChanged || reduxOutOfSync) {
             const isMe = currentRouteUserId === this.props.user.details.id;
-            const tabRoutes = [
-                { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
-            ];
-            if (isMe) {
-                tabRoutes.unshift({ key: PROFILE_CAROUSEL_TABS.MOMENTS, title: this.translate('menus.headerTabs.moments') });
-            }
             this.setState({
                 isLoading: true,
-                tabRoutes,
+                tabRoutes: this.buildTabRoutes(isMe),
                 userInViewsMoments: [],
                 userInViewsThoughts: [],
             });
@@ -224,8 +241,30 @@ class ViewUser extends React.Component<
         }
     }
 
+    buildTabRoutes = (isMe: boolean): { key: string; title: string }[] => {
+        if (IS_HABITS) {
+            const routes = [
+                { key: PROFILE_CAROUSEL_TABS.GOALS, title: this.translate('menus.headerTabs.goals') },
+            ];
+            if (isMe) {
+                routes.push(
+                    { key: PROFILE_CAROUSEL_TABS.PACTS, title: this.translate('menus.headerTabs.pacts') },
+                    { key: PROFILE_CAROUSEL_TABS.ACHIEVEMENTS, title: this.translate('menus.headerTabs.achievements') },
+                );
+            }
+            return routes;
+        }
+        const routes = [
+            { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
+        ];
+        if (isMe) {
+            routes.unshift({ key: PROFILE_CAROUSEL_TABS.MOMENTS, title: this.translate('menus.headerTabs.moments') });
+        }
+        return routes;
+    };
+
     fetchUser = () => {
-        const { getUser, getIntegratedMoments, navigation, route } = this.props;
+        const { getUser, getIntegratedMoments, navigation, route, user } = this.props;
         const { userInView } = route.params;
 
         getUser(userInView.id).then((response) => {
@@ -236,12 +275,16 @@ class ViewUser extends React.Component<
                 isLoading: false,
             });
             if (response?.id) {
+                const isMe = response.id === user.details.id;
                 // Media
                 // TODO: Maybe only load after clicking tab
                 Promise.resolve(getIntegratedMoments(response?.id))
                     .catch((err) => console.log('getIntegratedMoments failed:', err));
                 this.fetchMoments();
                 this.fetchThoughts();
+                if (IS_HABITS && isMe) {
+                    this.fetchHabitsProfileData();
+                }
             }
         }).catch((error) => {
             console.log(error);
@@ -450,6 +493,23 @@ class ViewUser extends React.Component<
         });
     };
 
+    fetchHabitsProfileData = () => {
+        const { getActivePacts, getUserPacts, getMyAchievements, getActiveStreaks } = this.props;
+        return Promise.all([
+            getActivePacts(),
+            getUserPacts(),
+            getMyAchievements(),
+            getActiveStreaks(),
+        ]).catch((err) => console.log('fetchHabitsProfileData failed:', err));
+    };
+
+    handleHabitsRefresh = () => {
+        this.setState({ isRefreshingHabitsData: true });
+        this.fetchHabitsProfileData().finally(() => {
+            this.setState({ isRefreshingHabitsData: false });
+        });
+    };
+
     handleEditThought = () => {
         const { navigation } = this.props;
 
@@ -596,9 +656,11 @@ class ViewUser extends React.Component<
     };
 
     onTabSelect = (index: number) => {
-        if (index === 0) {
+        const { tabRoutes } = this.state;
+        const key = tabRoutes[index]?.key;
+        if (key === PROFILE_CAROUSEL_TABS.MOMENTS) {
             this.carouselMomentsRef?.scrollToOffset({ animated: true, offset: 0 });
-        } else if (index === 1) {
+        } else if (key === PROFILE_CAROUSEL_TABS.THOUGHTS || key === PROFILE_CAROUSEL_TABS.GOALS) {
             this.carouselThoughtsRef?.scrollToOffset({ animated: true, offset: 0 });
         }
         this.setState({
@@ -635,8 +697,137 @@ class ViewUser extends React.Component<
         );
     };
 
+    renderThoughtsScene = (emptyMessageKey: string) => {
+        const { isRefreshingUserMedia, userInViewsThoughts } = this.state;
+        const { content, user } = this.props;
+        const fetchMedia = () => {};
+        const noop = () => {};
+        return (
+            <AreaCarousel
+                activeData={userInViewsThoughts}
+                content={content}
+                inspectContent={this.goToContent}
+                isLoading={isRefreshingUserMedia}
+                fetchMedia={fetchMedia}
+                goToViewMap={noop}
+                goToViewUser={this.goToViewUser}
+                toggleAreaOptions={noop}
+                toggleThoughtOptions={this.toggleThoughtOptions}
+                translate={this.translate}
+                containerRef={(component) => { this.carouselThoughtsRef = component; }}
+                handleRefresh={this.handleUserThoughtsRefresh}
+                onEndReached={noop} // TODO
+                updateEventReaction={noop}
+                updateMomentReaction={noop}
+                updateSpaceReaction={noop}
+                updateThoughtReaction={this.createUpdateThoughtReaction}
+                emptyListMessage={this.translate(emptyMessageKey)}
+                renderHeader={() => null}
+                renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                user={user}
+                rootStyles={this.theme.styles}
+            />
+        );
+    };
+
+    renderEmptyPacts = () => (
+        <View style={this.themeHabits.styles.emptyStateContainer}>
+            <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
+            <Text style={this.themeHabits.styles.emptyStateSubtitle}>
+                {this.translate('user.profile.text.noMePacts')}
+            </Text>
+        </View>
+    );
+
+    renderEmptyAchievements = () => (
+        <View style={this.themeHabits.styles.emptyStateContainer}>
+            <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🏆'}</Text>
+            <Text style={this.themeHabits.styles.emptyStateSubtitle}>
+                {this.translate('user.profile.text.noMeAchievements')}
+            </Text>
+        </View>
+    );
+
+    renderPactItem = ({ item }: { item: IPact }) => {
+        const { navigation, user } = this.props;
+        const currentUserId = user.details?.id || '';
+        return (
+            <PactCard
+                pact={item}
+                currentUserId={currentUserId}
+                onPress={() => navigation.navigate('PactDetail', { pactId: item.id })}
+                themeHabits={this.themeHabits}
+                translate={this.translate}
+            />
+        );
+    };
+
+    renderAchievementItem = ({ item }: { item: any }) => {
+        // Profile tab is a read-only summary — taps and claims both route to the dedicated
+        // Achievements screen, which owns the full claim flow.
+        const goToAchievements = () => this.props.navigation.navigate('Achievements');
+        return (
+            <AchievementTile
+                userAchievement={item}
+                claimText={this.translate('pages.achievements.info.claimRewards')}
+                completedText={this.translate('pages.achievements.info.completed')}
+                handleClaim={goToAchievements}
+                isClaiming={false}
+                onPressAchievement={goToAchievements}
+                themeAchievements={this.themeAchievements}
+            />
+        );
+    };
+
+    renderHabitsPactsScene = () => {
+        const { habits } = this.props;
+        const { isRefreshingHabitsData } = this.state;
+        // Show active pacts first, then completed pacts beneath. Filter out other lifecycle states
+        // (pending, abandoned, expired) — those belong on the dedicated PactsList screen.
+        const allPacts = habits.pacts || [];
+        const activePacts = allPacts.filter((p) => p.status === 'active');
+        const completedPacts = allPacts.filter((p) => p.status === 'completed');
+        const data: IPact[] = [...activePacts, ...completedPacts];
+        return (
+            <FlatList
+                data={data}
+                keyExtractor={(item) => item.id}
+                renderItem={this.renderPactItem}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshingHabitsData}
+                        onRefresh={this.handleHabitsRefresh}
+                    />
+                }
+                ListEmptyComponent={this.renderEmptyPacts}
+                contentContainerStyle={HABITS_TAB_LIST_CONTENT_STYLE}
+            />
+        );
+    };
+
+    renderHabitsAchievementsScene = () => {
+        const { user } = this.props;
+        const { isRefreshingHabitsData } = this.state;
+        const achievements = Object.values(user.achievements || {});
+        return (
+            <FlatList
+                data={achievements}
+                keyExtractor={(item: any) => item.id}
+                renderItem={this.renderAchievementItem}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshingHabitsData}
+                        onRefresh={this.handleHabitsRefresh}
+                    />
+                }
+                ListEmptyComponent={this.renderEmptyAchievements}
+                contentContainerStyle={HABITS_TAB_LIST_CONTENT_STYLE}
+            />
+        );
+    };
+
     renderSceneMap = ({ route }) => {
-        const { isRefreshingUserMedia, userInViewsThoughts, userInViewsMoments } = this.state;
+        const { isRefreshingUserMedia, userInViewsMoments } = this.state;
         const {
             content,
             user,
@@ -649,10 +840,9 @@ class ViewUser extends React.Component<
 
         switch (route.key) {
             case PROFILE_CAROUSEL_TABS.MOMENTS:
-                const momentsData = userInViewsMoments;
                 return (
                     <AreaCarousel
-                        activeData={momentsData}
+                        activeData={userInViewsMoments}
                         content={content}
                         inspectContent={this.goToContent}
                         isLoading={isRefreshingUserMedia}
@@ -674,47 +864,28 @@ class ViewUser extends React.Component<
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}
                         rootStyles={this.theme.styles}
-                        // viewportHeight={viewportHeight}
-                        // viewportWidth={viewportWidth}
                     />
                 );
             case PROFILE_CAROUSEL_TABS.THOUGHTS:
-                const thoughtsData = userInViewsThoughts;
-                return (
-                    <AreaCarousel
-                        activeData={thoughtsData}
-                        content={content}
-                        inspectContent={this.goToContent}
-                        isLoading={isRefreshingUserMedia}
-                        fetchMedia={fetchMedia}
-                        goToViewMap={noop}
-                        goToViewUser={this.goToViewUser}
-                        toggleAreaOptions={noop}
-                        toggleThoughtOptions={this.toggleThoughtOptions}
-                        translate={this.translate}
-                        containerRef={(component) => { this.carouselThoughtsRef = component; }}
-                        handleRefresh={this.handleUserThoughtsRefresh}
-                        onEndReached={noop} // TODO
-                        updateEventReaction={noop}
-                        updateMomentReaction={noop}
-                        updateSpaceReaction={noop}
-                        updateThoughtReaction={this.createUpdateThoughtReaction}
-                        emptyListMessage={this.translate(isMe ? 'user.profile.text.noMeThoughts' : 'user.profile.text.noThoughts')}
-                        renderHeader={() => null}
-                        renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
-                        user={user}
-                        rootStyles={this.theme.styles}
-                        // viewportHeight={viewportHeight}
-                        // viewportWidth={viewportWidth}
-                    />
+                return this.renderThoughtsScene(
+                    isMe ? 'user.profile.text.noMeThoughts' : 'user.profile.text.noThoughts',
                 );
+            case PROFILE_CAROUSEL_TABS.GOALS:
+                // HABITS reuses the thoughts data path; backend filters to habits-tagged thoughts.
+                return this.renderThoughtsScene(
+                    isMe ? 'user.profile.text.noMeGoals' : 'user.profile.text.noGoals',
+                );
+            case PROFILE_CAROUSEL_TABS.PACTS:
+                return this.renderHabitsPactsScene();
+            case PROFILE_CAROUSEL_TABS.ACHIEVEMENTS:
+                return this.renderHabitsAchievementsScene();
             default:
                 return null;
         }
     };
 
     render() {
-        const { navigation, user } = this.props;
+        const { habits, navigation, user } = this.props;
         const {
             activeTabIndex,
             activeConfirmModal,
@@ -744,9 +915,11 @@ class ViewUser extends React.Component<
                                     onReportUser={this.onReportUser}
                                     themeForms={this.themeForms}
                                     themeUser={this.themeUser}
+                                    themeHabits={this.themeHabits}
                                     translate={this.translate}
                                     user={user}
                                     userInView={user.userInView || {}}
+                                    activeStreaks={habits?.activeStreaks || []}
                                 />
                                 <View style={this.theme.styles.tabviewContainer} onLayout={this.handleTabContainerLayout}>
                                     <TabView

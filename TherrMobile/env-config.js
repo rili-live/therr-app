@@ -58,7 +58,9 @@ const brandFeatureFlagOverrides = {
         ENABLE_MOMENTS: false,
         ENABLE_SPACES: false,
         ENABLE_EVENTS: false,
-        ENABLE_THOUGHTS: false,
+        // Thoughts backend powers the HABITS "Goals" feed (brand-scoped server-side).
+        // Keep this enabled so EditThought / ViewThought routes are reachable.
+        ENABLE_THOUGHTS: true,
         ENABLE_ACTIVITIES: false,
         ENABLE_ACTIVITY_SCHEDULER: false,
         ENABLE_FORUMS: false,
