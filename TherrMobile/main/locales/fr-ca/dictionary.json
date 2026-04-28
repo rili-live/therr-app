@@ -1000,6 +1000,9 @@
       "media": "Médias",
       "news": "Nouvelles",
       "thoughts": "Pensées",
+      "goals": "Objectifs",
+      "pacts": "Pactes",
+      "achievements": "Réalisations",
       "groupsDiscover": "Découvrir"
     },
     "mapActions": {
@@ -2115,7 +2118,11 @@
         "noMeMoments": "Aucun moment à afficher. Vous pouvez créer des moments depuis la carte.",
         "noMoments": "Aucun moment à afficher. Voyagez là où ils voyagent pour activer les moments à proximité.",
         "noMeThoughts": "Aucune pensée à afficher. Vous pouvez créer des pensées depuis la page « Découvertes ».",
-        "noThoughts": "Cet utilisateur n'a pas encore partagé de pensées."
+        "noThoughts": "Cet utilisateur n'a pas encore partagé de pensées.",
+        "noMeGoals": "Aucun objectif pour le moment. Appuyez sur le bouton + pour enregistrer votre premier objectif.",
+        "noGoals": "Cet utilisateur n'a encore partagé aucun objectif.",
+        "noMePacts": "Aucun pacte pour le moment. Invitez un ami à créer votre premier pacte.",
+        "noMeAchievements": "Aucune réalisation pour le moment. Continuez à bâtir vos habitudes pour débloquer des récompenses."
       }
     }
   }

@@ -1000,6 +1000,9 @@
       "media": "Multimedia",
       "news": "Noticias",
       "thoughts": "Pensamientos",
+      "goals": "Metas",
+      "pacts": "Pactos",
+      "achievements": "Logros",
       "groupsDiscover": "Descubrir"
     },
     "mapActions": {
@@ -2115,7 +2118,11 @@
         "noMeMoments": "No hay momentos para mostrar. Puedes crear momentos desde el mapa.",
         "noMoments": "No hay momentos para mostrar. Viaja donde ellos viajan para activar momentos cercanos.",
         "noMeThoughts": "No hay pensamientos para mostrar. Puedes crear pensamientos desde la página de 'Descubiertos'.",
-        "noThoughts": "Este usuario aún no ha compartido ningún pensamiento."
+        "noThoughts": "Este usuario aún no ha compartido ningún pensamiento.",
+        "noMeGoals": "Aún no tienes metas. Toca el botón + para registrar tu primera meta.",
+        "noGoals": "Este usuario aún no ha compartido ninguna meta.",
+        "noMePacts": "Aún no tienes pactos. Invita a un amigo para crear tu primer pacto.",
+        "noMeAchievements": "Aún no tienes logros. Sigue construyendo hábitos para desbloquear recompensas."
       }
     }
   }

@@ -7,18 +7,31 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
 import SocialIconLink from './SocialIconLink';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { IStreak } from 'therr-react/types';
 import spacingStyles from '../../styles/layouts/spacing';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import TherrIcon from '../../components/TherrIcon';
 import SuperUserStatusIcon from '../../components/SuperUserStatusIcon';
 import { IUserProfileAction } from '../../components/ActionSheet/UserProfileSheet';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { buildUserUrl } from '../../utilities/shareUrls';
+import StreakWidget from '../../components/Habits/StreakWidget';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
     'TherrFont',
     'TherrFont.ttf'
 );
+
+const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+
+const pickTopStreak = (streaks: IStreak[] = []): IStreak | null => {
+    if (!streaks.length) {
+        return null;
+    }
+    return streaks.reduce((top, s) => (s.currentStreak > top.currentStreak ? s : top), streaks[0]);
+};
 
 interface IActionItem {
     id: string;
@@ -188,13 +201,16 @@ const UserDisplayHeader = ({
     onProfilePicturePress,
     themeForms,
     themeUser,
+    themeHabits,
     translate,
     user,
     userInView,
+    activeStreaks,
 }) => {
     // eslint-disable-next-line eqeqeq
     const isMe = user.details?.id == userInView.id;
     const actionsList = getActionableOptions(isMe, userInView);
+    const topStreak = IS_HABITS && isMe ? pickTopStreak(activeStreaks) : null;
 
     const handleAction = (action: IUserProfileAction) => {
         switch (action.name) {
@@ -393,6 +409,15 @@ const UserDisplayHeader = ({
                     }
                 />
             </View>
+            {topStreak && themeHabits && (
+                <View style={spacingStyles.marginHorizLg}>
+                    <StreakWidget
+                        streak={topStreak}
+                        themeHabits={themeHabits}
+                        translate={translate}
+                    />
+                </View>
+            )}
         </>
     );
 };
