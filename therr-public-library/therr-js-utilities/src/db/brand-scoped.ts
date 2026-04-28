@@ -21,10 +21,10 @@ interface AssertBrandOpts {
     mode?: BrandScopeMode;
 }
 
-export const assertBrand = (
+export function assertBrand(
     brand: BrandVariations | string | undefined | null,
     opts: AssertBrandOpts,
-): asserts brand is BrandVariations => {
+): asserts brand is BrandVariations {
     const mode = opts.mode || 'enforce';
     if (!brand || !isKnownBrand(brand)) {
         if (mode === 'shadow') {
@@ -37,7 +37,7 @@ export const assertBrand = (
         }
         throw new MissingBrandContextError(opts.tableName);
     }
-};
+}
 
 export const applyBrandFilter = <TBuilder extends { andWhere: (...args: any[]) => TBuilder }>(
     qb: TBuilder,
