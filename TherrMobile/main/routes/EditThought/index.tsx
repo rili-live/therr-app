@@ -8,7 +8,8 @@ import EditFormFooter from '../../components/EditFormFooter';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
 import { IUserState } from 'therr-react/types';
-import { Categories, Content, FilePaths } from 'therr-js-utilities/constants';
+import { BrandVariations, Categories, Content, FilePaths } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
@@ -39,6 +40,12 @@ import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions
 import { SheetManager } from 'react-native-actions-sheet';
 
 const { width: viewportWidth } = Dimensions.get('window');
+
+const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+// On HABITS the "thought" backend hosts the user's Goals feed; surface goal-specific copy.
+const HEADER_TITLE_KEY = IS_HABITS ? 'pages.editThought.headerTitleGoal' : 'pages.editThought.headerTitle';
+const MESSAGE_PLACEHOLDER_KEY = IS_HABITS ? 'forms.editThought.labels.messageGoal' : 'forms.editThought.labels.message';
+const SUCCESS_MESSAGE_KEY = IS_HABITS ? 'forms.editThought.backendSuccessMessageGoal' : 'forms.editThought.backendSuccessMessage';
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: false,
@@ -136,7 +143,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         const { navigation } = this.props;
 
         navigation.setOptions({
-            title: this.translate('pages.editThought.headerTitle'),
+            title: this.translate(HEADER_TITLE_KEY),
         });
 
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
@@ -241,7 +248,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
             createOrUpdatePromise
                 .then(() => {
                     this.setState({
-                        successMsg: this.translate('forms.editThought.backendSuccessMessage'),
+                        successMsg: this.translate(SUCCESS_MESSAGE_KEY),
                     });
 
                     logEvent(getAnalytics(),'thought_create', {
@@ -451,9 +458,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                         <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
                             <RoundTextInput
                                 autoFocus
-                                placeholder={this.translate(
-                                    'forms.editThought.labels.message'
-                                )}
+                                placeholder={this.translate(MESSAGE_PLACEHOLDER_KEY)}
                                 value={inputs.message}
                                 onChangeText={(text) =>
                                     this.onInputChange('message', text)

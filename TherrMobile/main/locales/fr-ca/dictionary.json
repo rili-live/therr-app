@@ -702,6 +702,7 @@
         "addImageNote": "Sélectionnez une image existante ou prenez-en une nouvelle pour représenter votre pensée.",
         "cost": "Coût : {pointCost} pièces",
         "message": "Avez-vous une idée...?",
+        "messageGoal": "Quel est votre objectif aujourd'hui?",
         "messageReply": "Partagez votre réponse",
         "notificationMsg": "Titre ou nom du lieu",
         "hashTags": "Mots-clics (ex. mon_tag, monTag)",
@@ -710,7 +711,9 @@
         "radius": "Rayon : {meters} mètres"
       },
       "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cette pensée?",
+      "deleteConfirmationGoal": "Êtes-vous sûr de vouloir supprimer cet objectif?",
       "backendSuccessMessage": "Vous avez partagé une pensée!",
+      "backendSuccessMessageGoal": "Vous avez partagé un objectif!",
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard."
     },
     "forgotPassword": {
@@ -1401,7 +1404,8 @@
       }
     },
     "editThought": {
-      "headerTitle": "Partager une pensée"
+      "headerTitle": "Partager une pensée",
+      "headerTitleGoal": "Partager un objectif"
     },
     "emailVerification": {
       "buttons": {
@@ -1696,6 +1700,7 @@
     },
     "viewThought": {
       "headerTitle": "Pensées",
+      "headerTitleGoal": "Objectif",
       "reply": "Répondre",
       "replies": "Réponses"
     },

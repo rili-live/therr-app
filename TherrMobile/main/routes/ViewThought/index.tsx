@@ -10,7 +10,9 @@ import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { IContentState, IUserState } from 'therr-react/types';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import { ContentActions } from 'therr-react/redux/actions';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import UsersActions from '../../redux/actions/UsersActions';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
@@ -32,6 +34,11 @@ import { getReactionUpdateArgs } from '../../utilities/reactions';
 import TherrIcon from '../../components/TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import { navToViewContent } from '../../utilities/postViewHelpers';
+
+const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+// On HABITS the "thought" backend hosts the user's Goals feed; surface goal-specific copy.
+const HEADER_TITLE_KEY = IS_HABITS ? 'pages.viewThought.headerTitleGoal' : 'pages.viewThought.headerTitle';
+const DELETE_CONFIRM_KEY = IS_HABITS ? 'forms.editThought.deleteConfirmationGoal' : 'forms.editThought.deleteConfirmation';
 
 const localStyles = StyleSheet.create({
     contentContainer: {
@@ -155,7 +162,7 @@ const ViewThought = ({
         });
 
         navigation.setOptions({
-            title: translate('pages.viewThought.headerTitle'),
+            title: translate(HEADER_TITLE_KEY),
         });
 
         const unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
@@ -453,7 +460,7 @@ const ViewThought = ({
                 isVisible={isDeleteDialogVisible}
                 onCancel={() => setIsDeleteDialogVisible(false)}
                 onConfirm={handleDeleteConfirm}
-                text={translate('forms.editThought.deleteConfirmation')}
+                text={translate(DELETE_CONFIRM_KEY)}
                 textConfirm={translate('forms.editThought.buttons.confirm')}
                 textCancel={translate('forms.editThought.buttons.cancel')}
                 translate={translate}
