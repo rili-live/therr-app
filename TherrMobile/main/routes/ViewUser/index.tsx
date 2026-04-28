@@ -119,6 +119,7 @@ interface IViewUserState {
     tabRoutes: { key: string; title: string }[];
     userInViewsMoments: any[];
     userInViewsThoughts: any[];
+    userInViewsAchievements: any[];
 }
 
 const mapStateToProps = (state) => ({
@@ -190,6 +191,7 @@ class ViewUser extends React.Component<
             tabRoutes: this.buildTabRoutes(isMe),
             userInViewsMoments: [],
             userInViewsThoughts: [],
+            userInViewsAchievements: [],
         };
 
         this.loaderId = getRandomLoaderId();
@@ -236,6 +238,7 @@ class ViewUser extends React.Component<
                 tabRoutes: this.buildTabRoutes(isMe),
                 userInViewsMoments: [],
                 userInViewsThoughts: [],
+                userInViewsAchievements: [],
             });
             this.fetchUser();
         }
@@ -249,9 +252,14 @@ class ViewUser extends React.Component<
             if (isMe) {
                 routes.push(
                     { key: PROFILE_CAROUSEL_TABS.PACTS, title: this.translate('menus.headerTabs.pacts') },
-                    { key: PROFILE_CAROUSEL_TABS.ACHIEVEMENTS, title: this.translate('menus.headerTabs.achievements') },
                 );
             }
+            // Achievements are visible on every HABITS profile. For self, the dedicated screen
+            // owns the claim flow; for other users, the public endpoint returns only completed
+            // achievements with private fields stripped.
+            routes.push(
+                { key: PROFILE_CAROUSEL_TABS.ACHIEVEMENTS, title: this.translate('menus.headerTabs.achievements') },
+            );
             return routes;
         }
         const routes = [
@@ -282,8 +290,12 @@ class ViewUser extends React.Component<
                     .catch((err) => console.log('getIntegratedMoments failed:', err));
                 this.fetchMoments();
                 this.fetchThoughts();
-                if (IS_HABITS && isMe) {
-                    this.fetchHabitsProfileData();
+                if (IS_HABITS) {
+                    if (isMe) {
+                        this.fetchHabitsProfileData();
+                    } else {
+                        this.fetchPublicAchievements(response.id);
+                    }
                 }
             }
         }).catch((error) => {
@@ -503,9 +515,27 @@ class ViewUser extends React.Component<
         ]).catch((err) => console.log('fetchHabitsProfileData failed:', err));
     };
 
+    // Public achievements are stored in local state rather than Redux because they belong to
+    // the viewed user, not the current user — putting them in the global user.achievements slice
+    // would clobber the viewer's own claim flow on the dedicated Achievements screen.
+    fetchPublicAchievements = (targetUserId: string) => UsersService
+        .getPublicUserAchievements(targetUserId)
+        .then(({ data }) => {
+            this.setState({
+                userInViewsAchievements: Array.isArray(data) ? data : [],
+            });
+        })
+        .catch((err) => console.log('fetchPublicAchievements failed:', err));
+
     handleHabitsRefresh = () => {
+        const { user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
+        const targetUserId = user.userInView?.id;
         this.setState({ isRefreshingHabitsData: true });
-        this.fetchHabitsProfileData().finally(() => {
+        const refresh = isMe
+            ? this.fetchHabitsProfileData()
+            : (targetUserId ? this.fetchPublicAchievements(targetUserId) : Promise.resolve());
+        refresh.finally(() => {
             this.setState({ isRefreshingHabitsData: false });
         });
     };
@@ -739,14 +769,19 @@ class ViewUser extends React.Component<
         </View>
     );
 
-    renderEmptyAchievements = () => (
-        <View style={this.themeHabits.styles.emptyStateContainer}>
-            <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🏆'}</Text>
-            <Text style={this.themeHabits.styles.emptyStateSubtitle}>
-                {this.translate('user.profile.text.noMeAchievements')}
-            </Text>
-        </View>
-    );
+    renderEmptyAchievements = () => {
+        const { user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
+        const messageKey = isMe ? 'user.profile.text.noMeAchievements' : 'user.profile.text.noAchievements';
+        return (
+            <View style={this.themeHabits.styles.emptyStateContainer}>
+                <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🏆'}</Text>
+                <Text style={this.themeHabits.styles.emptyStateSubtitle}>
+                    {this.translate(messageKey)}
+                </Text>
+            </View>
+        );
+    };
 
     renderPactItem = ({ item }: { item: IPact }) => {
         const { navigation, user } = this.props;
@@ -763,17 +798,21 @@ class ViewUser extends React.Component<
     };
 
     renderAchievementItem = ({ item }: { item: any }) => {
-        // Profile tab is a read-only summary — taps and claims both route to the dedicated
-        // Achievements screen, which owns the full claim flow.
-        const goToAchievements = () => this.props.navigation.navigate('Achievements');
+        const { navigation, user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
+        // For self: tile press routes to the dedicated Achievements screen which owns the full
+        // claim flow. For other users the public endpoint already strips unclaimedRewardPts so
+        // the claim button never renders, and tile press is a no-op (no public detail screen).
+        const noop = () => {};
+        const onPress = isMe ? () => navigation.navigate('Achievements') : noop;
         return (
             <AchievementTile
                 userAchievement={item}
                 claimText={this.translate('pages.achievements.info.claimRewards')}
                 completedText={this.translate('pages.achievements.info.completed')}
-                handleClaim={goToAchievements}
+                handleClaim={onPress}
                 isClaiming={false}
-                onPressAchievement={goToAchievements}
+                onPressAchievement={onPress}
                 themeAchievements={this.themeAchievements}
             />
         );
@@ -807,8 +846,14 @@ class ViewUser extends React.Component<
 
     renderHabitsAchievementsScene = () => {
         const { user } = this.props;
-        const { isRefreshingHabitsData } = this.state;
-        const achievements = Object.values(user.achievements || {});
+        const { isRefreshingHabitsData, userInViewsAchievements } = this.state;
+        const isMe = user.userInView?.id === user.details.id;
+        // Self uses the Redux user.achievements slice (already loaded by the dedicated Achievements
+        // screen and refreshed via fetchHabitsProfileData); other users use the public endpoint
+        // result kept in local state so the viewer's Redux slice stays clean for their claim flow.
+        const achievements = isMe
+            ? Object.values(user.achievements || {})
+            : userInViewsAchievements;
         return (
             <FlatList
                 data={achievements}

@@ -2127,7 +2127,8 @@
         "noMeGoals": "Aún no tienes metas. Toca el botón + para registrar tu primera meta.",
         "noGoals": "Este usuario aún no ha compartido ninguna meta.",
         "noMePacts": "Aún no tienes pactos. Invita a un amigo para crear tu primer pacto.",
-        "noMeAchievements": "Aún no tienes logros. Sigue construyendo hábitos para desbloquear recompensas."
+        "noMeAchievements": "Aún no tienes logros. Sigue construyendo hábitos para desbloquear recompensas.",
+        "noAchievements": "Este usuario aún no ha obtenido ningún logro."
       }
     }
   }

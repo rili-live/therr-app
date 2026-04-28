@@ -2127,7 +2127,8 @@
         "noMeGoals": "No goals yet. Tap the + button to log your first goal.",
         "noGoals": "This user has not shared any goals yet.",
         "noMePacts": "No pacts yet. Invite a friend to create your first pact.",
-        "noMeAchievements": "No achievements yet. Keep building habits to unlock rewards."
+        "noMeAchievements": "No achievements yet. Keep building habits to unlock rewards.",
+        "noAchievements": "This user hasn't earned any achievements yet."
       }
     }
   }
