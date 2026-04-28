@@ -21,15 +21,15 @@ const startNetworkListener = (dispatch: any) => {
         });
     };
 
+    // Intentionally not seeding from navigator.onLine: it has well-known
+    // false-negative cases (Linux without a configured NetworkManager,
+    // virtualized adapters, certain Chromium builds) that made the offline
+    // badge appear on a healthy connection. The reducer defaults to
+    // isConnected: true, and the online/offline events fire reliably on
+    // real transitions.
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     isListening = true;
-
-    // Set initial state
-    dispatch({
-        type: NetworkActionTypes.SET_NETWORK_STATUS,
-        data: { isConnected: navigator.onLine },
-    });
 };
 
 const stopNetworkListener = () => {
