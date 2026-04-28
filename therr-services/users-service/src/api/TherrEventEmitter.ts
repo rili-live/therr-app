@@ -1,5 +1,6 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
+import { getBrandContext } from 'therr-js-utilities/http';
 import Store from '../store';
 import { createReactions } from './reactions';
 
@@ -10,6 +11,7 @@ class TherrEventEmitter {
     // eslint-disable-next-line class-methods-use-this
     public runThoughtDistributorAlgorithm(headers: InternalConfigHeaders, contextUserIds?: string[], createdAtOrUpdatedAt = 'createdAt', recentUsersCount = 1) {
         const numThoughts = randomIntFromInterval(7, 20);
+        const { brandVariation: brand } = getBrandContext(headers as any);
         const getContextUsersPromise = contextUserIds?.length
             ? Store.users.findUsersWithInterests({
                 ids: contextUserIds,
@@ -25,9 +27,9 @@ class TherrEventEmitter {
             contextUsers,
             recentUsers,
         ]) => Promise.all([
-            Store.thoughts.getRecentThoughts(numThoughts, contextUsers
+            Store.thoughts.getRecentThoughts(brand, numThoughts, contextUsers
                 .reduce((acc, cur) => [...acc, ...(cur?.userInterests || []).map((i: any) => i.displayNameKey)], [])),
-            Store.thoughts.getRecentThoughts(numThoughts),
+            Store.thoughts.getRecentThoughts(brand, numThoughts),
         ]).then(([thoughtsForContext, thoughtsForRecent]) => {
             const promises: Promise<any>[] = [];
             // If no new thoughts match user interests, fallback to unfiltered thought

@@ -65,9 +65,16 @@ const AccountCenter: React.FunctionComponent<IAccountCenterProps> = ({
     // a brand in the Account Center and then backgrounding the app while the request is
     // in flight). React 18 silently discards the stray setState, but guarding here keeps
     // the component honest and behaves identically under React 17.
+    //
+    // Set to true at the start of every effect run so React 18 strict-mode dev double-invoke
+    // (mount → unmount → remount) doesn't leave the ref stuck at false after the strict
+    // unmount cycle, which would silently disable every subsequent setState guard.
     const isMountedRef = React.useRef(true);
-    React.useEffect(() => () => {
-        isMountedRef.current = false;
+    React.useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
     }, []);
 
     const openInApp = React.useCallback(async (targetBrand: string): Promise<string | null> => {
