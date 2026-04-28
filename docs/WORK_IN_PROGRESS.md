@@ -115,6 +115,12 @@ append new items here rather than only printing them once.
   (mobile clients have re-registered against `main.userDeviceTokens`), drop the
   legacy `users.deviceMobileFirebaseToken` column in a follow-up migration —
   documented in `20260425000003_main.userDeviceTokens` migration header.
+- [ ] (2026-04-28, /quality-peer-review) Run users-service migration
+  `20260427000001_main.thoughts.brandVariation` on production before deploying
+  this `general` merge. Adds `brandVariation` (NOT NULL DEFAULT 'therr') +
+  index `idx_thoughts_brand_variation` to `main.thoughts`. Therr-brand reads
+  preserve "see everything" via the `BRAND_THOUGHTS_VISIBILITY` allowlist, but
+  HABITS/TEEM reads will reference the column and 500 until the column exists.
 <!-- skill-followups:end -->
 
 ---

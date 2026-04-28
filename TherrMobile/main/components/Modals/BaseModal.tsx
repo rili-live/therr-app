@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { Dialog, Divider, Portal } from 'react-native-paper';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
