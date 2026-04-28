@@ -702,6 +702,7 @@
         "addImageNote": "Select an existing image or capture a new one to represent your thought.",
         "cost": "Cost: {pointCost} coins",
         "message": "Have an idea...?",
+        "messageGoal": "What's your goal today?",
         "messageReply": "Share your reply",
         "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
@@ -710,7 +711,9 @@
         "radius": "Radius: {meters} meters"
       },
       "deleteConfirmation": "Are you sure you want to delete this thought?",
+      "deleteConfirmationGoal": "Are you sure you want to delete this goal?",
       "backendSuccessMessage": "You have shared a thought!",
+      "backendSuccessMessageGoal": "You have shared a goal!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "forgotPassword": {
@@ -1000,6 +1003,9 @@
       "media": "Media",
       "news": "News",
       "thoughts": "Thoughts",
+      "goals": "Goals",
+      "pacts": "Pacts",
+      "achievements": "Achievements",
       "groupsDiscover": "Discover"
     },
     "mapActions": {
@@ -1398,7 +1404,8 @@
       }
     },
     "editThought": {
-      "headerTitle": "Share a Thought"
+      "headerTitle": "Share a Thought",
+      "headerTitleGoal": "Share a Goal"
     },
     "emailVerification": {
       "buttons": {
@@ -1693,6 +1700,7 @@
     },
     "viewThought": {
       "headerTitle": "Thoughts",
+      "headerTitleGoal": "Goal",
       "reply": "Reply",
       "replies": "Replies"
     },
@@ -2295,7 +2303,12 @@
         "noMeMoments": "No moments to display. You can create moments from the map.",
         "noMoments": "No moments to display. Travel where they travel to activate nearby moments.",
         "noMeThoughts": "No thoughts to display. You can create thoughts from the 'Discovered' page.",
-        "noThoughts": "This user has not shared any thoughts yet."
+        "noThoughts": "This user has not shared any thoughts yet.",
+        "noMeGoals": "No goals yet. Tap the + button to log your first goal.",
+        "noGoals": "This user has not shared any goals yet.",
+        "noMePacts": "No pacts yet. Invite a friend to create your first pact.",
+        "noMeAchievements": "No achievements yet. Keep building habits to unlock rewards.",
+        "noAchievements": "This user hasn't earned any achievements yet."
       }
     }
   }
