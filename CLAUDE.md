@@ -339,6 +339,40 @@ Brand-specific features should use isolated database schemas:
 
 See `docs/NICHE_APP_DATABASE_GUIDELINES.md` for migration patterns.
 
+### Adding a new brand-scoped table
+
+When a `main.*` (or other shared-schema) table needs per-brand isolation —
+i.e. rows belong to one brand and must never be read by another — three
+things have to land together. Missing any one of them creates a silent
+correctness gap, not a build error:
+
+1. **Append the fully-qualified table name to `eslint-config/brand-scoped-tables.js`**
+   (`BRAND_SCOPED_TABLES` array). This makes any new direct reference to the
+   table name (e.g. `.from('main.<table>')`, raw `FROM main.<table>`,
+   re-exporting it as a constant) a lint error across every service.
+
+2. **Create a `*Store.ts` that extends `BrandScopedStore`** (in the relevant
+   service's `src/store/`). Every read/write method must take a `brand`
+   argument and route through `scopedQuery` / `scopedInsert` / `scopedUpdate`
+   / `withBrand`. New stores start in `'shadow'` mode for one release cycle;
+   flip to `'enforce'` only after shadow logs are clean. Update every
+   handler caller to pass `brandVariation` from
+   `getBrandContext(req.headers)` — the brand context flow is documented in
+   `therr-public-library/therr-js-utilities/src/http/get-brand-context.ts`.
+
+3. **Add a per-store override in the service's `.eslintrc.js`** so the
+   sanctioned store file (and its tests) can legitimately reference the
+   table name without tripping the lint rule. Use the existing
+   `no-restricted-syntax: 'off'` overrides as a template — keep the override
+   as narrow as possible (one file, not a glob).
+
+The migration that adds the `brandVariation` column should default it to
+`'therr'` (NOT NULL) so legacy rows stay visible to Therr users, and add a
+composite index that leads with whichever column is most selective for that
+table's hot read path (typically `userId` or `forumId`, with
+`brandVariation` second). See `20260425000002_main.notifications.brandVariation.js`
+for the canonical pattern.
+
 ### Feature Flags (Future)
 
 Feature flags will be implemented via:

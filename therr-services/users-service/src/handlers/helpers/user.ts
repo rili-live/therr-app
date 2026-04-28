@@ -4,6 +4,7 @@ import appleSignin from 'apple-signin-auth';
 import {
     AccessLevels, BrandVariations, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
+import { isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import normalizeEmail from 'normalize-email';
 import { getBrandContext } from 'therr-js-utilities/http';
@@ -64,6 +65,21 @@ interface IGetUserHelperArgs {
 
 const isBrandValid = (brand: string) => Object.values(BrandVariations).includes(brand as BrandVariations);
 
+// Pull the list of brand names this user has actively logged into from the brandVariations
+// JSONB array. Used by public profile pages to gate cross-app discovery CTAs.
+// Excludes inactive memberships and any value not in the BrandVariations enum.
+const deriveAppBrands = (brandVariations: any): string[] => {
+    if (!Array.isArray(brandVariations)) return [];
+    const seen = new Set<string>();
+    brandVariations.forEach((entry: any) => {
+        if (!entry || typeof entry.brand !== 'string') return;
+        if (entry.isActive === false) return;
+        if (!isBrandValid(entry.brand)) return;
+        seen.add(entry.brand);
+    });
+    return Array.from(seen);
+};
+
 /**
  * Removed sensitive information from user response so we don't return it in REST responses
  */
@@ -120,6 +136,7 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
                 : false,
             connectionCount,
             socialSyncs,
+            appBrands: deriveAppBrands(userResult.brandVariations),
         };
     }
 
@@ -396,47 +413,30 @@ const createUserHelper = (
             }
 
             // Fire and forget: Create initial achievement so user is aware of invite rewards.
-            // Use the registering brand so a Habits signup doesn't pre-seed Therr achievements.
+            // Filter the seed list against the brand's enabled achievement classes — every
+            // current class is Therr-themed, so a Habits/Teem registration seeds nothing
+            // until those brands ship their own classes (see HABITS_PROJECT_BRIEF.md).
             const { brandVariation: registrationBrand } = getBrandContext(headers as Record<string, any>);
-            Store.userAchievements.create(registrationBrand, [
-                {
-                    achievementId: 'socialite_1_1',
-                    userId: user.id,
-                    achievementClass: 'socialite',
-                    achievementTier: '1_1',
-                    progressCount: 0,
-                },
-                {
-                    achievementId: 'explorer_1_1',
-                    userId: user.id,
-                    achievementClass: 'explorer',
-                    achievementTier: '1_1',
-                    progressCount: 0,
-                },
-                {
-                    achievementId: 'influencer_1_1',
-                    userId: user.id,
-                    achievementClass: 'influencer',
-                    achievementTier: '1_1',
-                    progressCount: 0,
-                },
-                {
-                    achievementId: 'thinker_1_1',
-                    userId: user.id,
-                    achievementClass: 'thinker',
-                    achievementTier: '1_1',
-                    progressCount: 0,
-                },
-            ]).catch((err) => {
-                logSpan({
-                    level: 'error',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['Error while creating socialite achievements during registration'],
-                    traceArgs: {
-                        'error.message': err?.message,
-                    },
+            const seedAchievements = [
+                { achievementId: 'socialite_1_1', achievementClass: 'socialite', achievementTier: '1_1' },
+                { achievementId: 'explorer_1_1', achievementClass: 'explorer', achievementTier: '1_1' },
+                { achievementId: 'influencer_1_1', achievementClass: 'influencer', achievementTier: '1_1' },
+                { achievementId: 'thinker_1_1', achievementClass: 'thinker', achievementTier: '1_1' },
+            ]
+                .filter((seed) => isAchievementClassEnabledForBrand(seed.achievementClass, registrationBrand))
+                .map((seed) => ({ ...seed, userId: user.id, progressCount: 0 }));
+            if (seedAchievements.length > 0) {
+                Store.userAchievements.create(registrationBrand, seedAchievements).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while creating socialite achievements during registration'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
                 });
-            });
+            }
 
             if (isSSO || !!userByInviteDetails) {
                 // TODO: RMOBILE-26: Centralize password requirements

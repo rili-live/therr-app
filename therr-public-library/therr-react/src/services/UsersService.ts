@@ -295,6 +295,11 @@ class UsersService {
         url: '/users-service/users/achievements',
     });
 
+    getPublicUserAchievements = (userId: string) => axios({
+        method: 'get',
+        url: `/users-service/users/achievements/${userId}/public`,
+    });
+
     requestRewardsExchange = (amount: number, provider: string) => axios({
         method: 'post',
         url: '/users-service/rewards',
