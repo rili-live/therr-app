@@ -1,15 +1,22 @@
 import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
-import { Categories, Content } from 'therr-js-utilities/constants';
+import {
+    BrandVariations,
+    Categories,
+    Content,
+    getReadableBrands,
+} from 'therr-js-utilities/constants';
+import { withBrandOnInsert } from 'therr-js-utilities/db';
 import { IConnection } from './connection';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import UsersStore from './UsersStore';
+
+type BrandValue = BrandVariations | string;
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const THOUGHTS_TABLE_NAME = 'main.thoughts';
 
-const maxMessageLength = 300;
 export interface ICreateThoughtParams {
     parentId?: string;
     areaType?: string;
@@ -46,10 +53,15 @@ export default class ThoughtsStore {
     }
 
     // Combine with search to avoid getting count out of sync
-    countRecords(params, fromUserIds) {
+    countRecords(brand: BrandValue, params, fromUserIds) {
         let queryString = knexBuilder
             .from(THOUGHTS_TABLE_NAME)
             .count('*');
+
+        const readable = getReadableBrands(brand);
+        if (readable !== 'all') {
+            queryString = queryString.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+        }
 
         if (params.filterBy === 'fromUserIds') {
             queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
@@ -64,7 +76,7 @@ export default class ThoughtsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    getRecentThoughts(limit = 1, relatedInterestsKeys: string[] = [], returning = ['id']) {
+    getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id']) {
         const interestsKeysStr = relatedInterestsKeys.map((key) => `'${key}'`).join(',');
 
         let query = knexBuilder.select(returning)
@@ -77,6 +89,11 @@ export default class ThoughtsStore {
             .limit(limit)
             .orderBy('createdAt', 'desc');
 
+        const readable = getReadableBrands(brand);
+        if (readable !== 'all') {
+            query = query.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+        }
+
         if (relatedInterestsKeys?.length) {
             // TODO: Test this with various interests lists
             query = query.whereRaw(`"interestsKeys" \\?| array[${interestsKeysStr}]`);
@@ -86,7 +103,7 @@ export default class ThoughtsStore {
     }
 
     // eslint-disable-next-line default-param-last
-    search(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
+    search(brand: BrandValue, conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knexBuilder
@@ -97,6 +114,11 @@ export default class ThoughtsStore {
             .where({
                 isMatureContent: false, // content that has been blocked
             });
+
+        const readable = getReadableBrands(brand);
+        if (readable !== 'all') {
+            queryString = queryString.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+        }
 
         if (conditions.filterBy && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
@@ -132,9 +154,11 @@ export default class ThoughtsStore {
     }
 
     /**
-     * This is used to check for duplicates before creating a new thought
+     * This is used to check for duplicates before creating a new thought.
+     * Scoped to the caller's readable brand set so a duplicate is only flagged
+     * against thoughts the caller can actually see.
      */
-    get(filters) {
+    get(brand: BrandValue, filters) {
         // hard limit to prevent overloading client
         let query = knexBuilder
             .from(THOUGHTS_TABLE_NAME)
@@ -142,6 +166,11 @@ export default class ThoughtsStore {
                 fromUserId: filters.fromUserId,
                 message: filters.message,
             });
+
+        const readable = getReadableBrands(brand);
+        if (readable !== 'all') {
+            query = query.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+        }
 
         if (!filters.parentId) {
             query = query.whereNull('parentId');
@@ -152,15 +181,30 @@ export default class ThoughtsStore {
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 
-    getById(thoughtId, filters, options: any = {}) {
+    getById(brand: BrandValue, thoughtId, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let query = knexBuilder
             .from(THOUGHTS_TABLE_NAME)
             .where(`${THOUGHTS_TABLE_NAME}.id`, thoughtId);
 
+        const readable = getReadableBrands(brand);
+        if (readable !== 'all') {
+            query = query.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+        }
+
         if (options.withReplies) {
+            // Restrict the self-join: a HABITS reader must not see therr-brand replies under
+            // a habits parent (and vice versa). 'all'-readers (Therr by default) see every reply.
+            const repliesJoinClause = readable === 'all'
+                ? undefined
+                : `replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
             query = query
-                .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, 'replies.parentId', `${THOUGHTS_TABLE_NAME}.id`)
+                .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, function joinReplies() {
+                    this.on('replies.parentId', '=', `${THOUGHTS_TABLE_NAME}.id`);
+                    if (repliesJoinClause) {
+                        this.andOn(knexBuilder.raw(repliesJoinClause));
+                    }
+                })
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
                     'replies.id as replies[].id',
@@ -265,7 +309,7 @@ export default class ThoughtsStore {
         });
     }
 
-    find(thoughtIds, filters, options: any = {}) {
+    find(brand: BrandValue, thoughtIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
         const orderBy = filters.orderBy || `${THOUGHTS_TABLE_NAME}.createdAt`;
@@ -278,6 +322,11 @@ export default class ThoughtsStore {
             .where(`${THOUGHTS_TABLE_NAME}.createdAt`, '<', filters.before || new Date(Date.now() + 24 * 60 * 60 * 1000))
             .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null)
             .limit(restrictedLimit);
+
+        const readable = getReadableBrands(brand);
+        if (readable !== 'all') {
+            query = query.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+        }
 
         if (filters.authorId) {
             query = query.andWhere((builder) => {
@@ -304,8 +353,18 @@ export default class ThoughtsStore {
         }
 
         if (options.withReplies) {
+            // Mirror the brand restriction onto the reply self-join so reply counts in list
+            // view never include cross-brand replies.
+            const repliesJoinClause = readable === 'all'
+                ? undefined
+                : `replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
             query = query
-                .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, 'replies.parentId', `${THOUGHTS_TABLE_NAME}.id`)
+                .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, function joinReplies() {
+                    this.on('replies.parentId', '=', `${THOUGHTS_TABLE_NAME}.id`);
+                    if (repliesJoinClause) {
+                        this.andOn(knexBuilder.raw(repliesJoinClause));
+                    }
+                })
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
                     'replies.id as replies[].id', // Just the id so we can count replies in list view
@@ -374,7 +433,7 @@ export default class ThoughtsStore {
         });
     }
 
-    create(params: ICreateThoughtParams) {
+    create(brand: BrandValue, params: ICreateThoughtParams) {
         // TODO: Support creating multiple
         const isTextMature = isTextUnsafe([params.message, params.hashTags || '']);
 
@@ -404,7 +463,7 @@ export default class ThoughtsStore {
             sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
         }
 
-        const queryString = knexBuilder.insert(sanitizedParams)
+        const queryString = knexBuilder.insert(withBrandOnInsert(sanitizedParams as Record<string, unknown>, brand))
             .into(THOUGHTS_TABLE_NAME)
             .returning('*')
             .toString();

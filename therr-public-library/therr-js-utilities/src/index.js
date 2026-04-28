@@ -11,6 +11,10 @@ const utilities = [
     // Database Helpers
     'db/index',
 
+    // Database Helpers — server only (knex + structural pg connection types)
+    // Excluded from frontend bundles by default; consumers must import 'therr-js-utilities/db-server'.
+    'db-server/index',
+
     // HTTP/REST Helpers
     'http/index',
 
