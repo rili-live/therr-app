@@ -702,6 +702,7 @@
         "addImageNote": "Sélectionnez une image existante ou prenez-en une nouvelle pour représenter votre pensée.",
         "cost": "Coût : {pointCost} pièces",
         "message": "Avez-vous une idée...?",
+        "messageGoal": "Quel est votre objectif aujourd'hui?",
         "messageReply": "Partagez votre réponse",
         "notificationMsg": "Titre ou nom du lieu",
         "hashTags": "Mots-clics (ex. mon_tag, monTag)",
@@ -710,7 +711,9 @@
         "radius": "Rayon : {meters} mètres"
       },
       "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cette pensée?",
+      "deleteConfirmationGoal": "Êtes-vous sûr de vouloir supprimer cet objectif?",
       "backendSuccessMessage": "Vous avez partagé une pensée!",
+      "backendSuccessMessageGoal": "Vous avez partagé un objectif!",
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard."
     },
     "forgotPassword": {
@@ -1000,6 +1003,9 @@
       "media": "Médias",
       "news": "Nouvelles",
       "thoughts": "Pensées",
+      "goals": "Objectifs",
+      "pacts": "Pactes",
+      "achievements": "Réalisations",
       "groupsDiscover": "Découvrir"
     },
     "mapActions": {
@@ -1389,7 +1395,8 @@
       }
     },
     "editThought": {
-      "headerTitle": "Partager une pensée"
+      "headerTitle": "Partager une pensée",
+      "headerTitleGoal": "Partager un objectif"
     },
     "emailVerification": {
       "buttons": {
@@ -1684,6 +1691,7 @@
     },
     "viewThought": {
       "headerTitle": "Pensées",
+      "headerTitleGoal": "Objectif",
       "reply": "Répondre",
       "replies": "Réponses"
     },
@@ -2115,7 +2123,12 @@
         "noMeMoments": "Aucun moment à afficher. Vous pouvez créer des moments depuis la carte.",
         "noMoments": "Aucun moment à afficher. Voyagez là où ils voyagent pour activer les moments à proximité.",
         "noMeThoughts": "Aucune pensée à afficher. Vous pouvez créer des pensées depuis la page « Découvertes ».",
-        "noThoughts": "Cet utilisateur n'a pas encore partagé de pensées."
+        "noThoughts": "Cet utilisateur n'a pas encore partagé de pensées.",
+        "noMeGoals": "Aucun objectif pour le moment. Appuyez sur le bouton + pour enregistrer votre premier objectif.",
+        "noGoals": "Cet utilisateur n'a encore partagé aucun objectif.",
+        "noMePacts": "Aucun pacte pour le moment. Invitez un ami à créer votre premier pacte.",
+        "noMeAchievements": "Aucune réalisation pour le moment. Continuez à bâtir vos habitudes pour débloquer des récompenses.",
+        "noAchievements": "Cet utilisateur n'a encore obtenu aucune réalisation."
       }
     }
   }
