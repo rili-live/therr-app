@@ -43,14 +43,22 @@ spec:
             cpu: "10m"
           limits:
             memory: "192Mi"
-            cpu: "100m"
+            cpu: "350m"
         ports:
         - containerPort: 7743
+        startupProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7743
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
         livenessProbe:
           httpGet:
             path: /healthcheck
             port: 7743
-          initialDelaySeconds: 60
+          initialDelaySeconds: 0
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
@@ -58,7 +66,7 @@ spec:
           httpGet:
             path: /healthcheck
             port: 7743
-          initialDelaySeconds: 20
+          initialDelaySeconds: 0
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
