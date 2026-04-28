@@ -166,10 +166,9 @@ const HeaderMenuLeft = ({
 const styles = StyleSheet.create({
     wrapper: {
         position: 'relative',
-        // alignSelf: flex-start lets the wrapper hug the icon's intrinsic
-        // size instead of stretching to fill the header slot — necessary
-        // for the badge's absolute positioning to land on the icon corner.
-        alignSelf: 'flex-start',
+        // Hug the icon's intrinsic size (so the badge's absolute corner lands
+        // on the icon, not the header slot edge) without overriding the
+        // parent header's vertical centering.
         flexDirection: 'row',
         alignItems: 'center',
     },
