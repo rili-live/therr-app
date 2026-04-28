@@ -17,53 +17,6 @@ TODOs and operational follow-ups.
 
 ## Open
 
-### 1. Unify `BrandScopedStore.ts` across services
-
-**Status**: Open
-**Origin**: peer review of Phases 2/3/5 multi-app data isolation (2026-04-26)
-
-Four services (`users`, `messages`, `maps`, `reactions`) each carry a byte-identical 58-line
-`src/store/BrandScopedStore.ts`. The helper functions it depends on (`assertBrand`,
-`applyBrandFilter`, `withBrandOnInsert`) already live in `therr-js-utilities/src/db/brand-scoped.ts`,
-but the abstract class itself was duplicated because:
-
-- It uses `KnexBuilder` at runtime — adding `knex` to `therr-js-utilities` would put a heavy
-  backend dep into a library that is also consumed by web/mobile bundles.
-- Each service's `IConnection` is defined locally and imports `pg.Pool`, so a shared base
-  needs a generic connection type or a minimal structural interface.
-
-**Recommended approach** (preserves frontend bundle health):
-
-1. Create `therr-public-library/therr-js-utilities/src/db-server/brand-scoped-store.ts` —
-   a separate subpath that consumers must opt into. Web bundles import from
-   `therr-js-utilities/db` (existing) and `therr-js-utilities/constants` (existing); they
-   would continue to work without pulling in the new file.
-2. Define a structural connection interface in that file so the class is generic over the
-   actual `IConnection`:
-   ```ts
-   export interface IBrandScopedConnection {
-       read: { query: (sql: string, values?: unknown[]) => Promise<{ rows: any[] }> };
-       write: { query: (sql: string, values?: unknown[]) => Promise<{ rows: any[] }> };
-   }
-   export default abstract class BrandScopedStore<TConn extends IBrandScopedConnection = IBrandScopedConnection> { ... }
-   ```
-3. In each service, replace `src/store/BrandScopedStore.ts` with a one-line re-export:
-   ```ts
-   export { default, BrandValue } from 'therr-js-utilities/db-server/brand-scoped-store';
-   ```
-4. Verify integration tests still pass — this exercise also catches any divergence between
-   the four copies that's not visible in `git diff`.
-
-**Risk**: Touches every brand-scoped store in 4 services. Mostly mechanical, but a regression
-here breaks every brand-scoped query path. Run the full integration test matrix
-(`npm run pr:test:integration:all`) before merging.
-
-**Why deferred**: The peer review that surfaced this had already corrected stale test
-expectations and removed dead code; layering an import-graph refactor on top would have
-expanded the diff well past the original review's scope.
-
----
-
 ### 2. Drop `users.deviceMobileFirebaseToken` legacy column
 
 **Status**: Open
@@ -159,3 +112,13 @@ The baseline must monotonically decrease — never raise it without explicit jus
 ## Done
 
 _Move entries here with the merge SHA when complete; trim periodically._
+
+### 1. Unify `BrandScopedStore.ts` across services (2026-04-28, on `general`)
+
+Class moved to `therr-public-library/therr-js-utilities/src/db-server/brand-scoped-store.ts`
+behind a new server-only subpath (`therr-js-utilities/db-server`). The four service copies
+in `users`, `messages`, `maps`, `reactions` are now 8-line re-export shims. Net −195 lines.
+`assertBrand` in `db/brand-scoped.ts` was converted from `export const` arrow to
+`export function` so its assertion signature narrows at non-trivial call sites (TS2775).
+Validated: lint clean, `tsc --noEmit` clean across all four services + js-utilities,
+585 unit tests + 133 integration tests passing.

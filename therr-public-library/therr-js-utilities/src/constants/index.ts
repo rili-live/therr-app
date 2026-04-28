@@ -30,6 +30,10 @@ import {
     BrandVariations,
 } from './enums/Branding';
 import {
+    BRAND_THOUGHTS_VISIBILITY,
+    getReadableBrands,
+} from './brandThoughtsVisibility';
+import {
     FeatureFlags,
 } from './enums/FeatureFlags';
 import CampaignTypes from './enums/CampaignTypes';
@@ -60,6 +64,8 @@ export const SOCKET_MIDDLEWARE_ACTION = 'action';
 export {
     AccessLevels,
     BrandVariations,
+    BRAND_THOUGHTS_VISIBILITY,
+    getReadableBrands,
     FeatureFlags,
     CampaignTypes,
     CampaignAdGoals,

@@ -44,6 +44,44 @@ const getUserAchievements = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
 };
 
+// READ — public variant for viewing another user's completed achievements (badges).
+// Anonymous-readable: only returns rows when the target user's profile is public
+// (`settingsIsProfilePublic = true` and the account is not soft-deleted). On a private
+// or missing user, responds 404 to avoid disclosing existence. Strips unclaimedRewardPts
+// and other private fields so a viewer never sees in-progress progress counts or pending
+// point balances on a non-self profile.
+const getPublicUserAchievements: RequestHandler = (req: any, res: any) => {
+    const { brandVariation } = getBrandContext(req.headers);
+    const targetUserId = req.params.userId;
+    if (!targetUserId) {
+        return handleHttpError({ res, message: 'NotFound', statusCode: 404 });
+    }
+    return Store.users.getUserById(
+        targetUserId,
+        ['id', 'settingsIsProfilePublic', 'settingsIsAccountSoftDeleted'],
+    )
+        .then((userRows) => {
+            const target = userRows?.[0];
+            if (!target || target.settingsIsAccountSoftDeleted || !target.settingsIsProfilePublic) {
+                return handleHttpError({ res, message: 'NotFound', statusCode: 404 });
+            }
+            return Store.userAchievements.getCompleted(brandVariation, { userId: targetUserId })
+                .then((results) => {
+                    const sanitized = (results || []).map((row: any) => ({
+                        id: row.id,
+                        userId: row.userId,
+                        achievementId: row.achievementId,
+                        achievementClass: row.achievementClass,
+                        achievementTier: row.achievementTier,
+                        progressCount: row.progressCount,
+                        completedAt: row.completedAt,
+                    }));
+                    return res.status(200).send(sanitized);
+                });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+};
+
 // READ
 const claimAchievement = (req, res) => {
     const userId = req.headers['x-userid'];
@@ -92,5 +130,6 @@ const claimAchievement = (req, res) => {
 export {
     updateAndCreateUserAchievements,
     getUserAchievements,
+    getPublicUserAchievements,
     claimAchievement,
 };
