@@ -95,7 +95,7 @@ describe('Integration Tests - Forums', () => {
                 isPublic: true,
             };
 
-            const createdForums = await forumsStore.createForum(testForum);
+            const createdForums = await forumsStore.createForum('therr', testForum);
             createdForumIds.push(createdForums[0].id);
 
             expect(createdForums).to.be.an('array');
@@ -122,7 +122,7 @@ describe('Integration Tests - Forums', () => {
                 iconColor: '#28a745',
             };
 
-            const createdForums = await forumsStore.createForum(testForum);
+            const createdForums = await forumsStore.createForum('therr', testForum);
             createdForumIds.push(createdForums[0].id);
 
             expect(createdForums[0].id).to.be.a('string');
@@ -145,7 +145,7 @@ describe('Integration Tests - Forums', () => {
                 isPublic: false,
             };
 
-            const createdForums = await forumsStore.createForum(testForum);
+            const createdForums = await forumsStore.createForum('therr', testForum);
             createdForumIds.push(createdForums[0].id);
 
             expect(createdForums[0].isPublic).to.be.eq(false);
@@ -157,7 +157,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create a forum first
-            const createdForums = await forumsStore.createForum({
+            const createdForums = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -173,7 +173,7 @@ describe('Integration Tests - Forums', () => {
             const forumId = createdForums[0].id;
 
             // Retrieve the forum
-            const retrievedForums = await forumsStore.getForum(forumId);
+            const retrievedForums = await forumsStore.getForum('therr', forumId);
 
             expect(retrievedForums).to.be.an('array');
             expect(retrievedForums.length).to.equal(1);
@@ -184,7 +184,7 @@ describe('Integration Tests - Forums', () => {
         it('should return empty array for non-existent forum', async () => {
             if (skipTests) return;
 
-            const retrievedForums = await forumsStore.getForum('00000000-0000-0000-0000-000000000000');
+            const retrievedForums = await forumsStore.getForum('therr', '00000000-0000-0000-0000-000000000000');
 
             expect(retrievedForums).to.be.an('array');
             expect(retrievedForums.length).to.equal(0);
@@ -196,7 +196,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create forums by different authors
-            const forum1 = await forumsStore.createForum({
+            const forum1 = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -210,7 +210,7 @@ describe('Integration Tests - Forums', () => {
             });
             createdForumIds.push(forum1[0].id);
 
-            const forum2 = await forumsStore.createForum({
+            const forum2 = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID_2,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID_2,
@@ -225,7 +225,7 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum2[0].id);
 
             // Get forums by author 1
-            const authorForums = await forumsStore.getForums({ authorId: TEST_AUTHOR_ID }, null);
+            const authorForums = await forumsStore.getForums('therr', { authorId: TEST_AUTHOR_ID }, null);
 
             const authorForumIds = authorForums.map((f) => f.id);
             expect(authorForumIds).to.include(forum1[0].id);
@@ -235,7 +235,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create and archive a forum
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -249,13 +249,13 @@ describe('Integration Tests - Forums', () => {
             });
             createdForumIds.push(forum[0].id);
 
-            await forumsStore.archiveForum({
+            await forumsStore.archiveForum('therr', {
                 id: forum[0].id,
                 authorId: TEST_AUTHOR_ID,
             });
 
             // Get forums - should not include archived
-            const activeForums = await forumsStore.getForums({ authorId: TEST_AUTHOR_ID }, null, true);
+            const activeForums = await forumsStore.getForums('therr', { authorId: TEST_AUTHOR_ID }, null, true);
 
             const activeForumIds = activeForums.map((f) => f.id);
             expect(activeForumIds).to.not.include(forum[0].id);
@@ -267,7 +267,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create multiple forums
-            const forum1 = await forumsStore.createForum({
+            const forum1 = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -281,7 +281,7 @@ describe('Integration Tests - Forums', () => {
             });
             createdForumIds.push(forum1[0].id);
 
-            const forum2 = await forumsStore.createForum({
+            const forum2 = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -296,7 +296,7 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum2[0].id);
 
             // Find both forums
-            const foundForums = await forumsStore.findForums([forum1[0].id, forum2[0].id]);
+            const foundForums = await forumsStore.findForums('therr', [forum1[0].id, forum2[0].id]);
 
             expect(foundForums).to.be.an('array');
             expect(foundForums.length).to.equal(2);
@@ -310,7 +310,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create public forum
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -327,6 +327,7 @@ describe('Integration Tests - Forums', () => {
 
             // Search public forums
             const searchResults = await forumsStore.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -341,7 +342,7 @@ describe('Integration Tests - Forums', () => {
         it('should search forums by specific IDs', async () => {
             if (skipTests) return;
 
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -358,6 +359,7 @@ describe('Integration Tests - Forums', () => {
 
             // Search by specific forum ID
             const searchResults = await forumsStore.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -375,7 +377,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create forum
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -391,6 +393,7 @@ describe('Integration Tests - Forums', () => {
 
             // Update forum
             const updateResult = await forumsStore.updateForum(
+                'therr',
                 { id: forum[0].id, authorId: TEST_AUTHOR_ID },
                 {
                     title: ['Updated Title'],
@@ -402,7 +405,7 @@ describe('Integration Tests - Forums', () => {
             expect(updateResult[0].id).to.equal(forum[0].id);
 
             // Verify update
-            const updatedForum = await forumsStore.getForum(forum[0].id);
+            const updatedForum = await forumsStore.getForum('therr', forum[0].id);
             expect(updatedForum[0].title).to.include('Updated Title');
             expect(updatedForum[0].description).to.equal('Updated description');
         });
@@ -411,7 +414,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create public forum
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -428,12 +431,13 @@ describe('Integration Tests - Forums', () => {
 
             // Update to private
             await forumsStore.updateForum(
+                'therr',
                 { id: forum[0].id, authorId: TEST_AUTHOR_ID },
                 { isPublic: false },
             );
 
             // Verify update
-            const updatedForum = await forumsStore.getForum(forum[0].id);
+            const updatedForum = await forumsStore.getForum('therr', forum[0].id);
             expect(updatedForum[0].isPublic).to.be.eq(false);
         });
 
@@ -441,7 +445,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create forum
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -457,6 +461,7 @@ describe('Integration Tests - Forums', () => {
 
             // Try to update with wrong author
             const updateResult = await forumsStore.updateForum(
+                'therr',
                 { id: forum[0].id, authorId: '00000000-0000-0000-0000-000000000001' },
                 { title: ['Unauthorized Update'] },
             );
@@ -472,7 +477,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create forum
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -487,7 +492,7 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum[0].id);
 
             // Archive forum
-            const archiveResult = await forumsStore.archiveForum({
+            const archiveResult = await forumsStore.archiveForum('therr', {
                 id: forum[0].id,
                 authorId: TEST_AUTHOR_ID,
             });
@@ -496,7 +501,7 @@ describe('Integration Tests - Forums', () => {
             expect(archiveResult[0].id).to.equal(forum[0].id);
 
             // Verify archived
-            const archivedForum = await forumsStore.getForum(forum[0].id);
+            const archivedForum = await forumsStore.getForum('therr', forum[0].id);
             expect(archivedForum[0].archivedAt).to.not.be.eq(null);
         });
 
@@ -504,7 +509,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create forum
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -519,7 +524,7 @@ describe('Integration Tests - Forums', () => {
             createdForumIds.push(forum[0].id);
 
             // Try to archive with wrong author
-            const archiveResult = await forumsStore.archiveForum({
+            const archiveResult = await forumsStore.archiveForum('therr', {
                 id: forum[0].id,
                 authorId: '00000000-0000-0000-0000-000000000001',
             });
@@ -535,7 +540,7 @@ describe('Integration Tests - Forums', () => {
             if (skipTests) return;
 
             // Create forum
-            const forum = await forumsStore.createForum({
+            const forum = await forumsStore.createForum('therr', {
                 authorId: TEST_AUTHOR_ID,
                 authorLocale: 'en-us',
                 administratorIds: TEST_AUTHOR_ID,
@@ -553,12 +558,12 @@ describe('Integration Tests - Forums', () => {
             await cleanupTestData('forumCategories', { forumId: forum[0].id });
 
             // Delete forum
-            const deleteResult = await forumsStore.deleteForum(forum[0].id);
+            const deleteResult = await forumsStore.deleteForum('therr', forum[0].id);
 
             expect(deleteResult).to.be.an('array');
 
             // Verify deleted
-            const deletedForum = await forumsStore.getForum(forum[0].id);
+            const deletedForum = await forumsStore.getForum('therr', forum[0].id);
             expect(deletedForum.length).to.equal(0);
         });
     });

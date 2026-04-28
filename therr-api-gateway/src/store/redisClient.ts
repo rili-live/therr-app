@@ -156,44 +156,87 @@ export const isTokenBlacklisted = async (jti: string): Promise<boolean> => {
 };
 
 // Refresh token store helpers
+//
+// Key shape evolution (multi-app auth):
+//   Legacy (pre-multi-app): refresh-token:<jti>           -> userId
+//   Current:                refresh-token:<brand>:<userId>:<jti> -> userId
+//
+// Both shapes coexist during the transition. Newly minted tokens always use the current shape.
+// `scanAndRevokeTokens` matches `refresh-token:*` so both shapes are handled by per-user revoke.
+// `revokeRefreshToken` accepts an options object so callers can target either shape directly when
+// they have full context.
 const REFRESH_TOKEN_PREFIX = 'refresh-token:';
+const LEGACY_BRAND_TAG = 'unknown';
 
-export const storeRefreshToken = async (userId: string, jti: string, expiresInSeconds: number): Promise<void> => {
+const refreshTokenKey = (brand: string | undefined, userId: string | undefined, jti: string) => (
+    brand && userId
+        ? `${REFRESH_TOKEN_PREFIX}${brand}:${userId}:${jti}`
+        : `${REFRESH_TOKEN_PREFIX}${jti}`
+);
+
+export const storeRefreshToken = async (
+    userId: string,
+    jti: string,
+    expiresInSeconds: number,
+    brand?: string,
+): Promise<void> => {
     if (!userId || !jti || expiresInSeconds <= 0) return;
 
     try {
-        await redisClient.set(`${REFRESH_TOKEN_PREFIX}${jti}`, userId, 'EX', expiresInSeconds);
+        await redisClient.set(
+            refreshTokenKey(brand || LEGACY_BRAND_TAG, userId, jti),
+            userId,
+            'EX',
+            expiresInSeconds,
+        );
     } catch (err) {
         console.error('Failed to store refresh token:', err);
     }
 };
 
-export const getRefreshTokenUserId = async (jti: string): Promise<string | null> => {
+export const getRefreshTokenUserId = async (
+    jti: string,
+    options?: { brand?: string; userId?: string },
+): Promise<string | null> => {
     if (!jti) return null;
 
     try {
-        return await redisClient.get(`${REFRESH_TOKEN_PREFIX}${jti}`);
+        if (options?.brand && options?.userId) {
+            return await redisClient.get(refreshTokenKey(options.brand, options.userId, jti));
+        }
+        return await redisClient.get(refreshTokenKey(undefined, undefined, jti));
     } catch (err) {
         console.error('Failed to get refresh token:', err);
         return null;
     }
 };
 
-export const revokeRefreshToken = async (jti: string): Promise<void> => {
+export const revokeRefreshToken = async (
+    jti: string,
+    options?: { brand?: string; userId?: string },
+): Promise<void> => {
     if (!jti) return;
 
     try {
-        await redisClient.del(`${REFRESH_TOKEN_PREFIX}${jti}`);
+        const targetKey = options?.brand && options?.userId
+            ? refreshTokenKey(options.brand, options.userId, jti)
+            : refreshTokenKey(undefined, undefined, jti);
+        await redisClient.del(targetKey);
     } catch (err) {
         console.error('Failed to revoke refresh token:', err);
     }
 };
 
-const scanAndRevokeTokens = (userId: string, keyPrefix: string, cursor: string): Promise<void> => redisClient
-    .scan(cursor, 'MATCH', `${keyPrefix}${REFRESH_TOKEN_PREFIX}*`, 'COUNT', '100')
+const scanAndRevokeTokens = (
+    userId: string,
+    keyPrefix: string,
+    cursor: string,
+    matchPattern: string,
+): Promise<void> => redisClient
+    .scan(cursor, 'MATCH', matchPattern, 'COUNT', '100')
     .then(([nextCursor, keys]) => {
         if (!keys.length) {
-            return nextCursor !== '0' ? scanAndRevokeTokens(userId, keyPrefix, nextCursor) : undefined;
+            return nextCursor !== '0' ? scanAndRevokeTokens(userId, keyPrefix, nextCursor, matchPattern) : undefined;
         }
 
         // Strip the ioredis keyPrefix so pipeline commands re-add it correctly
@@ -209,7 +252,7 @@ const scanAndRevokeTokens = (userId: string, keyPrefix: string, cursor: string):
                 }
             });
             return delPipeline.exec();
-        }).then(() => (nextCursor !== '0' ? scanAndRevokeTokens(userId, keyPrefix, nextCursor) : undefined));
+        }).then(() => (nextCursor !== '0' ? scanAndRevokeTokens(userId, keyPrefix, nextCursor, matchPattern) : undefined));
     });
 
 export const revokeAllUserRefreshTokens = async (userId: string): Promise<void> => {
@@ -218,9 +261,26 @@ export const revokeAllUserRefreshTokens = async (userId: string): Promise<void> 
     const KEY_PREFIX = 'api-gateway:';
 
     try {
-        await scanAndRevokeTokens(userId, KEY_PREFIX, '0');
+        // Match both shapes so legacy and current keys are revoked together.
+        await scanAndRevokeTokens(userId, KEY_PREFIX, '0', `${KEY_PREFIX}${REFRESH_TOKEN_PREFIX}*`);
     } catch (err) {
         console.error('Failed to revoke all user refresh tokens:', err);
+    }
+};
+
+// Per-brand refresh-token revocation. Used by the default logout path so that signing out of one
+// app (e.g. Habits) leaves sister-app sessions (e.g. Therr) untouched. Legacy refresh-token keys
+// (no brand in the key) are revoked when called with brand === LEGACY_BRAND_TAG.
+export const revokeUserBrandRefreshTokens = async (userId: string, brand: string): Promise<void> => {
+    if (!userId || !brand) return;
+
+    const KEY_PREFIX = 'api-gateway:';
+
+    try {
+        const matchPattern = `${KEY_PREFIX}${REFRESH_TOKEN_PREFIX}${brand}:${userId}:*`;
+        await scanAndRevokeTokens(userId, KEY_PREFIX, '0', matchPattern);
+    } catch (err) {
+        console.error('Failed to revoke user/brand refresh tokens:', err);
     }
 };
 

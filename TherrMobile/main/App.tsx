@@ -8,6 +8,7 @@ import { getAnalytics, setAnalyticsCollectionEnabled } from '@react-native-fireb
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
 import { SheetProvider } from 'react-native-actions-sheet';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+import { SystemBars } from 'react-native-edge-to-edge';
 import {
     SpotlightTourProvider,
 } from 'react-native-spotlight-tour';
@@ -17,7 +18,6 @@ import getStore from './getStore';
 import initInterceptors from './interceptors';
 import { FeatureFlagProvider } from './context/FeatureFlagContext';
 import Layout from './components/Layout';
-import OfflineBanner from './components/OfflineBanner';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -26,6 +26,13 @@ import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
 import { getPaperTheme } from './styles/themes';
+import {
+    ALERT_INFO,
+    ALERT_SUCCESS,
+    ALERT_WARNING,
+    ALERT_ERROR,
+} from './styles/themes/brandConstants';
+import { therrFontFamily } from './styles/font';
 import { startNetworkListener } from './utilities/networkService';
 import './components/ActionSheet';
 
@@ -45,16 +52,16 @@ const toastStyles = StyleSheet.create({
     text1: {
         fontSize: 17,
         fontWeight: '600',
-        fontFamily: 'Lexend-Regular',
+        fontFamily: therrFontFamily,
     },
     text2: {
         fontSize: 14,
-        fontFamily: 'Lexend-Regular',
+        fontFamily: therrFontFamily,
     },
-    infoBorder: { borderLeftColor: '#1C7F8A' },
-    successBorder: { borderLeftColor: '#00A624' },
-    warnBorder: { borderLeftColor: '#FDBD2E' },
-    errorBorder: { borderLeftColor: '#D70000' },
+    infoBorder: { borderLeftColor: ALERT_INFO },
+    successBorder: { borderLeftColor: ALERT_SUCCESS },
+    warnBorder: { borderLeftColor: ALERT_WARNING },
+    errorBorder: { borderLeftColor: ALERT_ERROR },
 });
 
 const toastConfig = {
@@ -204,9 +211,9 @@ class App extends React.Component<any, any> {
 
         return (
             <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+                <SystemBars style="auto" />
                 <Provider store={this.store}>
                     <PersistGate loading={null} persistor={this.persistor}>
-                        <OfflineBanner />
                         <FeatureFlagProvider>
                             <GestureHandlerRootView style={spacingStyles.flexOne}>
                                 <KeyboardProvider>

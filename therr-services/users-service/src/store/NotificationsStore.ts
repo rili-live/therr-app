@@ -1,12 +1,17 @@
 import KnexBuilder, { Knex } from 'knex';
-import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { Notifications } from 'therr-js-utilities/constants';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import { getDbCountQueryString } from 'therr-js-utilities/db';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
 import { USER_CONNECTIONS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
 export const NOTIFICATIONS_TABLE_NAME = 'main.notifications';
 
 export interface ICreateNotificationParams {
@@ -32,29 +37,30 @@ export interface IUpdateNotificationParams {
     messageParams?: any;
 }
 
-export default class NotificationsStore {
-    db: IConnection;
-
-    constructor(dbConnection) {
-        this.db = dbConnection;
+export default class NotificationsStore extends BrandScopedStore {
+    constructor(dbConnection: IConnection) {
+        // Brand-scoped table per docs/NICHE_APP_DATABASE_GUIDELINES.md.
+        // Stays in 'shadow' for one release cycle; flip to 'enforce' once shadow logs are clean.
+        super(dbConnection, NOTIFICATIONS_TABLE_NAME, 'shadow');
     }
 
     // TODO: This value is incorrect
     // Need to make the search query a transaction and include the count there
-    countRecords(params) {
+    countRecords(brand: BrandValue, params) {
+        this.assertBrand(brand);
         const queryString = getDbCountQueryString({
             queryBuilder: knexBuilder,
             tableName: NOTIFICATIONS_TABLE_NAME,
             params,
-            defaultConditions: {},
+            defaultConditions: { [`${NOTIFICATIONS_TABLE_NAME}.brandVariation`]: brand },
         });
 
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    getNotifications(conditions = {}) {
-        const queryString = knexBuilder.select('*')
-            .from(NOTIFICATIONS_TABLE_NAME)
+    getNotifications(brand: BrandValue, conditions: Record<string, unknown> = {}) {
+        const queryString = this.scopedQuery(brand)
+            .select('*')
             .where(conditions)
             .toString();
         return this.db.read.query(queryString).then((response) => response.rows);
@@ -62,7 +68,8 @@ export default class NotificationsStore {
 
     // TODO: RSERV:25 - Make this dynamic to support various associationIds
     // WARNING: This could become a potential bottleneck
-    searchNotifications(userId, conditions: any = {}) {
+    searchNotifications(brand: BrandValue, userId, conditions: any = {}) {
+        this.assertBrand(brand);
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knexBuilder
@@ -89,6 +96,8 @@ export default class NotificationsStore {
             ])
             .where(`${NOTIFICATIONS_TABLE_NAME}.userId`, '=', userId);
 
+        queryString = this.withBrand(queryString, brand);
+
         // if (conditions.filterBy && conditions.query) {
         //     const operator = conditions.filterOperator || '=';
         //     const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
@@ -111,26 +120,24 @@ export default class NotificationsStore {
         });
     }
 
-    createNotification(params: ICreateNotificationParams) {
+    createNotification(brand: BrandValue, params: ICreateNotificationParams) {
         const modifiedParams = {
             ...params,
             messageParams: JSON.stringify(params.messageParams),
         };
-        const queryString = knexBuilder.insert(modifiedParams)
-            .into(NOTIFICATIONS_TABLE_NAME)
+        const queryString = this.scopedInsert(brand, modifiedParams)
             .returning('*')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    updateNotification(conditions: IUpdateNotificationConditions, params: IUpdateNotificationParams) {
-        const queryString = knexBuilder.update({
-            ...params,
-            updatedAt: new Date(),
-        })
-            .into(NOTIFICATIONS_TABLE_NAME)
-            .where(conditions)
+    updateNotification(brand: BrandValue, conditions: IUpdateNotificationConditions, params: IUpdateNotificationParams) {
+        const queryString = this.scopedUpdate(brand, { ...conditions })
+            .update({
+                ...params,
+                updatedAt: new Date(),
+            })
             .returning('*')
             .toString();
 

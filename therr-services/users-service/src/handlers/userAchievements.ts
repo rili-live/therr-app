@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import { achievementsByClass } from 'therr-js-utilities/config';
-import { parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
@@ -8,13 +8,7 @@ import { createOrUpdateAchievement } from './helpers/achievements';
 
 // CREATE
 const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: any) => {
-    const {
-        authorization,
-        locale,
-        userId,
-        whiteLabelOrigin,
-        brandVariation,
-    } = parseHeaders(req.headers);
+    const { locale } = parseHeaders(req.headers);
     const {
         achievementClass,
         achievementTier,
@@ -41,17 +35,21 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
 };
 
 // READ
-const getUserAchievements = (req, res) => Store.userAchievements.get({
-    userId: req.headers['x-userid'],
-})
-    .then((results) => res.status(200).send(results))
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+const getUserAchievements = (req, res) => {
+    const { brandVariation } = getBrandContext(req.headers);
+    return Store.userAchievements.get(brandVariation, {
+        userId: req.headers['x-userid'],
+    })
+        .then((results) => res.status(200).send(results))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+};
 
 // READ
 const claimAchievement = (req, res) => {
     const userId = req.headers['x-userid'];
+    const { brandVariation } = getBrandContext(req.headers);
 
-    return Store.userAchievements.get({
+    return Store.userAchievements.get(brandVariation, {
         id: req.params.id,
         userId,
     })
@@ -84,7 +82,7 @@ const claimAchievement = (req, res) => {
                 settingsTherrCoinTotal: results[0].unclaimedRewardPts,
             }, {
                 id: userId,
-            }).then(() => Store.userAchievements.update(req.params.id, {
+            }).then(() => Store.userAchievements.update(brandVariation, req.params.id, {
                 unclaimedRewardPts: 0,
             }).then((updatedResults) => res.status(200).send(updatedResults[0])));
         })

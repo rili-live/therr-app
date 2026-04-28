@@ -1,10 +1,17 @@
-import { achievementsByClass } from 'therr-js-utilities/config';
+import { achievementsByClass, isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
 import { Notifications } from 'therr-js-utilities/constants';
+import { getBrandContext } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
 import { ICreateOrUpdateResponse, IDBAchievement } from '../../store/UserAchievementsStore';
 import notifyUserOfUpdate from '../../utilities/notifyUserOfUpdate';
+
+const NO_OP_RESPONSE: ICreateOrUpdateResponse = {
+    created: [],
+    updated: [],
+    action: 'incomplete',
+};
 
 const getAchIdNumber = (id: string) => {
     const arr = id.split('_');
@@ -24,7 +31,19 @@ const createOrUpdateAchievement: (
         return Promise.reject(Error('invalid-achievement-class'));
     }
 
-    return Store.userAchievements.get({
+    const { brandVariation } = getBrandContext(headers as Record<string, any>);
+
+    // Skip Therr-themed achievement creation/updates when the request is from a
+    // niche brand. Otherwise activity from a HABITS user (e.g., a connection
+    // request triggering 'socialite_1_1') would write a Therr-themed row stamped
+    // with brandVariation='habits' — passes the SQL brand filter, but surfaces a
+    // Therr-shaped achievement (and ACHIEVEMENT_COMPLETED notification) in the
+    // niche app. See therr-js-utilities/config/achievements for the brand map.
+    if (!isAchievementClassEnabledForBrand(achievementClass, brandVariation)) {
+        return Promise.resolve(NO_OP_RESPONSE);
+    }
+
+    return Store.userAchievements.get(brandVariation, {
         userId: headers['x-userid'] || '',
         achievementTier,
         achievementClass,
@@ -36,7 +55,7 @@ const createOrUpdateAchievement: (
             .filter((key:string) => achievementsInClass[key].tier === achievementTier);
         const tierAchievementsArr = tierAchievementKeys.map((key) => ({ ...achievementsInClass[key], id: key }));
 
-        return Store.userAchievements.updateAndCreateConsecutive({
+        return Store.userAchievements.updateAndCreateConsecutive(brandVariation, {
             userId: headers['x-userid'] || '',
             achievementClass,
             achievementTier,

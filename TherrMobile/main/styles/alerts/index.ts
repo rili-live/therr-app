@@ -1,3 +1,4 @@
+import Color from 'color';
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme, ITherrTheme } from '../themes';
@@ -23,34 +24,41 @@ const messageStyle: any = {
     fontSize: 16,
 };
 
+// Alert container backgrounds use a softened tint of the alert color so the
+// banner reads as a wash, not a saturated block. Dark themes get more opacity
+// so the tint is visible against a dark surface.
+const tint = (hex: string, opacity: number) => new Color(hex).alpha(opacity).toString();
+
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
     const isDark = themeName !== 'light';
+    const containerBgOpacity = isDark ? 0.2 : 0.12;
+
     const styles = StyleSheet.create({
         containerSuccess: {
             ...containerStyle,
-            backgroundColor: isDark ? 'rgba(0, 140, 61, .2)' : 'rgba(242, 251, 246, .75)',
+            backgroundColor: tint(therrTheme.colors.alertSuccess, containerBgOpacity),
         },
         containerError: {
             ...containerStyle,
-            backgroundColor: isDark ? 'rgba(170, 0, 66, .2)' : 'rgba(251, 243, 242, .75)',
+            backgroundColor: tint(therrTheme.colors.alertError, containerBgOpacity),
         },
         error: {
             ...messageStyle,
-            color: isDark ? '#ff6b6b' : '#780e0e',
+            color: therrTheme.colors.alertError,
         },
         success: {
             ...messageStyle,
-            color: isDark ? '#4cdf82' : '#008C3D',
+            color: therrTheme.colors.alertSuccess,
         },
         iconError: {
             ...getIconStyle(therrTheme),
-            color: isDark ? '#ff6b6b' : '#AA0042',
+            color: therrTheme.colors.alertError,
         },
         iconSuccess: {
             ...getIconStyle(therrTheme),
-            color: isDark ? '#4cdf82' : '#008C3D',
+            color: therrTheme.colors.alertSuccess,
         },
     });
 

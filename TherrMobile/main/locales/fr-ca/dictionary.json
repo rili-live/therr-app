@@ -314,6 +314,15 @@
     "offlineBanner": {
       "tooltip": "Vous êtes hors ligne. Affichage des données en cache."
     },
+    "offlineIndicator": {
+      "badgeAria": "Hors ligne. Connexion perdue.",
+      "modal": {
+        "title": "Vous êtes hors ligne",
+        "body": "Therr ne peut pas accéder à Internet pour le moment. Vous pouvez continuer à consulter le contenu en cache. Appuyez sur Actualiser pour vérifier à nouveau votre connexion.",
+        "refresh": "Actualiser",
+        "dismiss": "Fermer"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Connexion"

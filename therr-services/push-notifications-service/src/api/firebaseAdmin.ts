@@ -5,6 +5,7 @@ import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request'
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import translate from '../utilities/translator';
 import { clearInvalidDeviceToken } from '../handlers/helpers/user';
+import { getCredentialEnvKey } from './firebaseCredentialEnvKey';
 
 // FCM error codes for tokens that should be removed from the database.
 // See https://firebase.google.com/docs/cloud-messaging/send-message#admin
@@ -17,22 +18,8 @@ const INVALID_TOKEN_ERROR_CODES = new Set([
 const isInvalidTokenError = (error: any): boolean => INVALID_TOKEN_ERROR_CODES.has(error?.code)
     || INVALID_TOKEN_ERROR_CODES.has(error?.errorInfo?.code);
 
-// Each brand has its own Firebase project (separate FCM keys, APNS auth keys,
-// analytics). Credentials for each brand come from a base64-encoded service
-// account JSON in environment:
-//
-//   THERR   -> PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64        (required,
-//              historical default; also used as fallback for unconfigured
-//              brands so deployments without per-brand keys stay working)
-//   TEEM    -> PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_TEEM   (optional)
-//   HABITS  -> PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS (optional)
-//   <brand> -> PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_<UPPER>(optional)
-const getCredentialEnvKey = (brandVariation: BrandVariations): string => {
-    if (brandVariation === BrandVariations.THERR) {
-        return 'PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64';
-    }
-    return `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_${String(brandVariation).toUpperCase()}`;
-};
+// Brand → credential-env-key mapping lives in ./firebaseCredentialEnvKey so it can be
+// imported by unit tests without triggering this module's startup-time validation.
 
 const parseServiceAccount = (envKey: string, brandVariation: BrandVariations): admin.ServiceAccount | null => {
     const raw = process.env[envKey];
