@@ -145,7 +145,7 @@ describe('SecureStorage', () => {
         it('removes secure keys from Keychain, MMKV, and AsyncStorage', async () => {
             await SecureStorage.removeItem('therrRefreshToken');
 
-            expect(mockResetInternetCredentials).toHaveBeenCalledWith('therrRefreshToken');
+            expect(mockResetInternetCredentials).toHaveBeenCalledWith({ server: 'therrRefreshToken' });
             expect(mockMmkvDelete).toHaveBeenCalledWith('therrRefreshToken');
             expect(AsyncStorage.removeItem).toHaveBeenCalledWith('therrRefreshToken');
         });
@@ -163,8 +163,8 @@ describe('SecureStorage', () => {
         it('removes mixed secure and non-secure keys from all backing stores', async () => {
             await SecureStorage.multiRemove(['therrRefreshToken', 'therrSession']);
 
-            expect(mockResetInternetCredentials).toHaveBeenCalledWith('therrRefreshToken');
-            expect(mockResetInternetCredentials).not.toHaveBeenCalledWith('therrSession');
+            expect(mockResetInternetCredentials).toHaveBeenCalledWith({ server: 'therrRefreshToken' });
+            expect(mockResetInternetCredentials).not.toHaveBeenCalledWith({ server: 'therrSession' });
             expect(mockMmkvDelete).toHaveBeenCalledWith('therrRefreshToken');
             expect(mockMmkvDelete).toHaveBeenCalledWith('therrSession');
             expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(['therrRefreshToken', 'therrSession']);

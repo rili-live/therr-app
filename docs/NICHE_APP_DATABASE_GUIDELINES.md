@@ -2,37 +2,44 @@
 
 This document outlines database patterns and best practices for adding features to support niche app variants while maintaining compatibility with the core Therr application.
 
-## Core Principle: Shared Database, Isolated Features
+## Core Principle: Shared Database, Three Data Archetypes
 
-All brand variants share the same PostgreSQL database infrastructure. This enables:
-- Single user identity across all apps (same email/password)
-- Shared core data (users, connections, notifications)
-- Efficient infrastructure management
-- Cross-brand features when desired
+All brand variants share the same PostgreSQL database infrastructure and **single user identity** (one `main.users.id` per email regardless of which app the person signs into). To prevent cross-app data pollution, every shared data domain falls into exactly one of three archetypes. The archetype determines storage, enforcement, defaulting, and indexing — uniformly.
 
-However, brand-specific features should be **isolated** to prevent breaking existing functionality.
+> **Every new migration MUST declare its archetype in a header comment.** Reviewers reject PRs that omit it.
 
-## Schema Isolation Pattern
+### The three archetypes
 
-### Use Separate Schemas for Brand-Specific Features
+| Archetype | Definition | Storage | Enforcement | Default for existing rows |
+|-----------|------------|---------|-------------|---------------------------|
+| **Identity-shared** | One row per human regardless of brand. The data is about the person, not the app they used. | `main.*`, **no brand column** | None at row level. Brand only used when UX is conditional on enrollment (`brandVariations @> '["habits"]'`). | n/a — no schema change needed |
+| **Brand-scoped** | Same row shape, must be partitioned per brand so a user signed into multiple apps does not see leaked data. | `main.*` with `brandVariation TEXT NOT NULL DEFAULT 'therr'` column + composite index `(userId, brandVariation, ...)` | `BrandScopedStore` base class in each service's `src/store/` directory. Handlers cannot omit brand because the store method signatures require it. | Backfill `'therr'` in the same migration that adds the column (every row created before this work was created by the original Therr app) |
+| **Brand-only / niche** | Only exists for one brand. | Dedicated `<niche>.*` schema (e.g. `habits.*`), FK to `main.users(id)`. | Schema name is the boundary; no row-level filter needed. | n/a — only ever populated by the niche app |
 
-Instead of adding columns to existing `main.*` tables, create a new schema:
+### Archetype examples
 
-```sql
--- Good: Isolated schema
-CREATE SCHEMA IF NOT EXISTS habits;
+| Archetype | Examples |
+|-----------|----------|
+| Identity-shared | `main.users`, OAuth links, email/SMS verification, password resets, base profile, `main.userConnections` (a friendship is person-to-person, not app-to-app), `main.moments`, `main.spaces`, `main.events`, `main.momentReactions`, `main.spaceReactions`, `main.eventReactions` (Therr-only by data flow today — see note below) |
+| Brand-scoped | `main.notifications`, `main.directMessages`, `main.userAchievements`, `main.forums`, `main.forumMessages`, `main.userDeviceTokens` |
+| Brand-only / niche | All `habits.*` tables (pacts, streaks, checkins, proofs), any future `teem.*`, etc. |
 
-CREATE TABLE habits.pacts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    creatorUserId UUID NOT NULL REFERENCES main.users(id),
-    -- habit-specific columns
-);
+> **Note on the content tables (moments / spaces / events / *Reactions):** These were originally classified Brand-scoped in the Phase 4 plan. In April 2026 we audited the niche apps and confirmed neither Habits nor Teem reads or writes these tables — Habits builds its check-in / pact / streak data in `habits.*` and only references `maps-service/src/handlers/moments.ts` as a *design pattern*. Adding `brandVariation` to these tables would have been a useless column on the largest tables in the system (every row stamped `'therr'` forever, every read filtered against a single-value column).
+>
+> If a future niche app launches a moments-style location feed (or a Teem-flavored "spaces" concept), revisit this classification: add the column, backfill `'therr'`, and bring the relevant `*Store` under `BrandScopedStore` at that time. Until then they stay Identity-shared and the cost of the brand column is deferred.
 
--- Avoid: Polluting existing tables with brand-specific columns
--- ALTER TABLE main.userConnections ADD COLUMN pactType VARCHAR;  -- Don't do this
-```
+### When to use schema isolation (Brand-only archetype)
 
-### Benefits of Schema Isolation
+| Scenario | Recommendation |
+|----------|----------------|
+| New feature domain (habits, streaks, pacts) | Create new `<niche>.*` schema |
+| Adding 1-2 columns to `main.users` for a niche feature | Extend `main.users` (with defaults) |
+| Complex relationship tables for one brand only | Create in new schema |
+| Temporary/experimental features | Create in new schema |
+| Core functionality used by all brands | Add to `main.*` (identity-shared) |
+| Same-shape data that must partition per brand | Add to `main.*` with `brandVariation` column (brand-scoped — see below) |
+
+### Benefits of schema isolation (when it applies)
 
 | Benefit | Description |
 |---------|-------------|
@@ -41,16 +48,6 @@ CREATE TABLE habits.pacts (
 | Simpler migrations | Can develop/test independently |
 | Clean rollback | Drop entire schema if feature is removed |
 | Query performance | Indexes optimized for specific use cases |
-
-### When to Use Schema Isolation
-
-| Scenario | Recommendation |
-|----------|----------------|
-| New feature domain (habits, streaks, pacts) | Create new schema |
-| Adding 1-2 columns to users | Extend `main.users` (with defaults) |
-| Complex relationship tables | Create in new schema |
-| Temporary/experimental features | Create in new schema |
-| Core functionality used by all brands | Add to `main.*` tables |
 
 ## Migration Patterns
 
@@ -69,8 +66,12 @@ exports.down = function(knex) {
 
 ### Creating Tables in New Schema
 
+Every migration must declare its archetype in a header comment so reviewers can verify enforcement and indexing match the framework above.
+
 ```javascript
 // migrations/20250125000002_habits.habit_goals.js
+//
+// Archetype: Brand-only (habits schema)
 exports.up = function(knex) {
     return knex.schema.withSchema('habits').createTable('habit_goals', (table) => {
         table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
@@ -294,32 +295,98 @@ CREATE INDEX idx_goals_interests ON habits.habit_goals USING GIN(interestsKeys);
 SELECT * FROM habits.habit_goals WHERE interestsKeys @> '["fitness"]'
 ```
 
-## Brand-Conditional Queries
+## Brand-Scoped Tables and the BrandScopedStore Pattern
 
-### Do NOT Add brand_id Columns
+> **Earlier versions of this guide said "Do NOT add `brandVariation` columns to shared tables."**
+> That guidance was wrong for the **Brand-scoped** archetype and has been replaced. Identity-shared and brand-only archetypes still avoid the column — see the table at the top of this doc.
 
-Since all brands share the database, avoid adding `brandVariation` columns to tables. Instead:
+### Why brand-scoped tables exist
 
-1. **Use application-layer filtering** based on request headers
-2. **Use feature-specific tables** that only certain brands use
-3. **Use user preferences** to determine feature access
+A single user signed into multiple apps with the same identity must NOT see data from another app. Twelve+ shared tables in `main.*` carry per-app rows (notifications, DMs, content, achievements, reactions, push tokens, etc.). Without a brand discriminator, a query like `SELECT * FROM main.notifications WHERE userId = ?` returns Therr **and** Habits notifications together. Application-layer filtering alone is too easy to forget — the WIP auth branch (merged 2026-04-25) made identity context reliably available everywhere, so the data layer can now enforce isolation.
 
-### Example: Brand-Aware Query in Handler
+### Adding a brand column to a shared table
+
+```javascript
+// migrations/20260601000001_main.notifications.brandVariation.js
+//
+// Archetype: Brand-scoped
+// Adds brandVariation discriminator + composite index per
+// docs/NICHE_APP_DATABASE_GUIDELINES.md ("Brand-scoped" archetype).
+exports.up = async (knex) => {
+    await knex.schema.withSchema('main').alterTable('notifications', (table) => {
+        // NOT NULL with default — every existing row was created by the original Therr app.
+        table.string('brandVariation', 50).notNullable().defaultTo('therr');
+    });
+    await knex.raw(`
+        CREATE INDEX IF NOT EXISTS idx_notifications_user_brand_unread
+        ON main.notifications ("userId", "brandVariation", "isUnread")
+    `);
+};
+
+exports.down = async (knex) => {
+    await knex.raw('DROP INDEX IF EXISTS main.idx_notifications_user_brand_unread');
+    await knex.schema.withSchema('main').alterTable('notifications', (table) => {
+        table.dropColumn('brandVariation');
+    });
+};
+```
+
+Then add the table name to `eslint-config/brand-scoped-tables.js` (the ESLint rule auto-flags any direct string-literal reference outside the sanctioned store).
+
+### Routing queries through BrandScopedStore
+
+Every brand-scoped table has a corresponding `*Store.ts` that extends `BrandScopedStore` (a thin abstract base in each service's `src/store/` directory). Handlers pull `brandVariation` from `getBrandContext(req.headers)` (in `therr-js-utilities/http`) and pass it as the first argument to every store method:
 
 ```typescript
-const getAchievements = async (req, res) => {
-    const { brandVariation } = parseHeaders(req.headers);
+// handlers/notifications.ts
+import { getBrandContext } from 'therr-js-utilities/http';
 
-    // Get achievements for user
-    let achievements = await UserAchievementsStore.getByUserId(req.user.id);
+const searchNotifications = (req, res) => {
+    const { brandVariation } = getBrandContext(req.headers);
+    return Store.notifications.searchNotifications(brandVariation, req['x-userid'], req.query);
+};
 
-    // Filter based on brand
-    if (brandVariation !== BrandVariations.HABITS) {
-        // Exclude habit-specific achievements for non-HABITS brands
-        achievements = achievements.filter(a =>
-            !a.achievementClass.startsWith('habit')
-        );
+// store/NotificationsStore.ts
+import BrandScopedStore from './BrandScopedStore';
+import { NOTIFICATIONS_TABLE_NAME } from './tableNames';
+
+export default class NotificationsStore extends BrandScopedStore {
+    constructor(db) {
+        // 'enforce' once shadow mode reports zero misses for one full release cycle.
+        super(db, NOTIFICATIONS_TABLE_NAME, 'shadow');
     }
+
+    searchNotifications(brand, userId, conditions) {
+        const qb = this.scopedQuery(brand)
+            .select('*')
+            .where('userId', '=', userId);
+        return this.db.read.query(qb.toString()).then((r) => r.rows);
+    }
+}
+```
+
+Forgetting to pass `brand` is a TypeScript error. Forgetting to use the store at all (e.g. handwritten raw SQL referencing `'main.notifications'`) is an ESLint error.
+
+### Shadow vs enforce mode
+
+The base class accepts a third constructor argument: `'shadow'` (default) or `'enforce'`.
+
+- **`'shadow'`**: missing or unknown brand logs a warning but does not throw. Use during the rollout for one full release cycle so production logs surface any handler that forgot to pass brand.
+- **`'enforce'`**: missing or unknown brand throws `MissingBrandContextError`. Flip after shadow mode is clean.
+
+### When to use brand-conditional logic in a handler instead
+
+Some flows are genuinely brand-conditional even when the data is identity-shared (e.g. achievements list filtering). Continue to do that with `getBrandContext` at the handler level — the BrandScopedStore pattern is only required for tables in the **Brand-scoped** archetype.
+
+```typescript
+import { getBrandContext } from 'therr-js-utilities/http';
+import { BrandVariations } from 'therr-js-utilities/constants';
+
+const getAchievements = async (req, res) => {
+    const { brandVariation } = getBrandContext(req.headers);
+
+    // userAchievements is a brand-scoped table — store enforces the filter automatically.
+    const achievements = await Store.userAchievements.getByUserId(brandVariation, req['x-userid']);
 
     return res.json({ achievements });
 };

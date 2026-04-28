@@ -14,10 +14,29 @@ export interface ICreatePactBody {
     };
 }
 
+export interface IBulkInvitePactBody {
+    habitGoalId: string;
+    partnerUserIds: string[];
+    pactType?: 'accountability' | 'challenge' | 'support';
+    durationDays?: number;
+    consequenceType?: 'none' | 'donation' | 'dare' | 'custom';
+    consequenceDetails?: {
+        amount?: number;
+        charity?: string;
+        description?: string;
+    };
+}
+
 class PactsService {
     create = (data: ICreatePactBody) => axios({
         method: 'post',
         url: '/users-service/habits/pacts',
+        data,
+    });
+
+    bulkInvite = (data: IBulkInvitePactBody) => axios({
+        method: 'post',
+        url: '/users-service/habits/pacts/bulk-invite',
         data,
     });
 

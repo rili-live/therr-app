@@ -179,6 +179,16 @@ class UsersActions {
         return response?.data;
     });
 
+    getByUserName = (userName: string) => (dispatch: any) => UsersService.getByUserName(userName).then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
+        dispatch({
+            type: UserActionTypes.GET_USER,
+            data: response?.data,
+        });
+
+        return response?.data;
+    });
+
     search = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.search(args).then((response: any) => {
         if (response?.isOfflineFallback) return undefined;
         if (args.query) {

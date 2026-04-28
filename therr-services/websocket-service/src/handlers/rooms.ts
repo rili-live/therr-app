@@ -2,12 +2,26 @@ import moment from 'moment';
 import * as socketio from 'socket.io';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
-import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
+import { BrandVariations, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
 import { COMMON_DATE_FORMAT } from '../constants';
 import restRequest from '../utilities/restRequest';
 import globalConfig from '../../../../global-config';
 
 export const FORUM_PREFIX = 'FORUM:';
+
+// Phase 3 of the multi-app data isolation rollout. Socket rooms are runtime state, not DB, but
+// they need brand isolation too: a user signed into both Therr and Habits gets two sockets, two
+// sets of room memberships. Without a brand-scoped room key, joining a forum on Habits would
+// also surface in the Therr socket because both connections would land in the same `FORUM:<id>`
+// room, and broadcast.to() would fan out to both.
+//
+// The brand always comes from the AUTHENTICATED socket's handshake (set by the gateway / client
+// axios interceptor), never from client-supplied event payloads — that prevents a client from
+// joining another brand's room by spoofing the room key.
+export const getRoomKey = (brand: BrandVariations | string | undefined, roomId: string) => {
+    const safeBrand = brand || BrandVariations.THERR;
+    return `${safeBrand}:${FORUM_PREFIX}${roomId}`;
+};
 
 interface IRoomData {
     roomId: string;
@@ -19,13 +33,14 @@ interface IRoomData {
 
 const joinRoom = (internalConfig: IInternalConfig, socket: socketio.Socket, data: IRoomData, decodedAuthenticationToken: any) => {
     const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
-    const roomId = `${FORUM_PREFIX}${data.roomId}`;
+    const brandVariation = internalConfig.headers?.['x-brand-variation'] as string | undefined;
+    const roomKey = getRoomKey(brandVariation, data.roomId);
 
-    if (socket.rooms.has(roomId)) {
+    if (socket.rooms.has(roomKey)) {
         return;
     }
 
-    socket.join(roomId);
+    socket.join(roomKey);
 
     const socketMessage = `You joined the room, ${data.roomName}`;
     const dbMessage = `${data.userName} joined the room, ${data.roomName}`;
@@ -59,7 +74,7 @@ const joinRoom = (internalConfig: IInternalConfig, socket: socketio.Socket, data
         });
 
         // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-        socket.broadcast.to(`${FORUM_PREFIX}${data.roomId}`).emit(SOCKET_MIDDLEWARE_ACTION, {
+        socket.broadcast.to(roomKey).emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.OTHER_JOINED_ROOM,
             data: {
                 roomId: data.roomId,
@@ -89,8 +104,10 @@ const joinRoom = (internalConfig: IInternalConfig, socket: socketio.Socket, data
 
 const leaveRoom = (internalConfig: IInternalConfig, socket: socketio.Socket, data: IRoomData, decodedAuthenticationToken: any) => {
     const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
+    const brandVariation = internalConfig.headers?.['x-brand-variation'] as string | undefined;
+    const roomKey = getRoomKey(brandVariation, data.roomId);
 
-    socket.leave(`${FORUM_PREFIX}${data.roomId}`);
+    socket.leave(roomKey);
 
     // Emits an event back to the client who left
     socket.emit(SOCKET_MIDDLEWARE_ACTION, {
@@ -109,7 +126,7 @@ const leaveRoom = (internalConfig: IInternalConfig, socket: socketio.Socket, dat
     });
 
     // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-    socket.broadcast.to(`${FORUM_PREFIX}${data.roomId}`).emit(SOCKET_MIDDLEWARE_ACTION, {
+    socket.broadcast.to(roomKey).emit(SOCKET_MIDDLEWARE_ACTION, {
         type: SocketServerActionTypes.LEFT_ROOM,
         data: {
             roomId: data.roomId,

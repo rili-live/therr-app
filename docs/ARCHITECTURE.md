@@ -424,7 +424,7 @@ The client apps (mobile + web) implement an offline-first strategy to remain usa
 2. **State persistence** — `redux-persist` caches `user`, `content`, `notifications`, and `userConnections` slices to AsyncStorage (mobile) or localStorage (web). On app launch, persisted state is rehydrated before rendering.
 3. **Stale-while-revalidate** — Read actions return persisted Redux state immediately, then fetch fresh data in the background. Network failures are silently swallowed for reads.
 4. **Graceful failure** — Axios interceptors catch network errors on GET requests and resolve with empty data instead of throwing.
-5. **OfflineBanner** — A UI indicator appears on both platforms when the device is offline.
+5. **Offline indicator** — A yellow `!` badge appears on the header logo on both platforms when the device is offline; tapping the logo opens a connection-status modal with a refresh action.
 
 ### Data Flow (Read Path)
 

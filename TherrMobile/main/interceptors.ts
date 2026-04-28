@@ -15,6 +15,7 @@ let timer: any;
 let numLoadings = 0;
 let logoutAttemptCount = 0;
 let isRefreshing = false;
+let isLoggingOut = false;
 let refreshRetryCount = 0;
 let refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
 const _timeout = 350;
@@ -65,6 +66,10 @@ const onRefreshFailed = (err: any) => {
 
 const handleLogout = (store) => {
     if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+        // Suppress further refresh-and-retry on subsequent 401s so concurrent
+        // in-flight requests don't fan out into the rejection cascade we saw
+        // when /auth/logout itself returns 401 with an expired idToken.
+        isLoggingOut = true;
         const storedUser = store.getState().user;
         if (storedUser?.details?.id) {
             store.dispatch(UsersActions.updateTour({
@@ -145,6 +150,7 @@ const initInterceptors = (
 ) => {
     // Reset module-level state (safe for re-initialization)
     isRefreshing = false;
+    isLoggingOut = false;
     refreshRetryCount = 0;
     refreshSubscribers = [];
     logoutAttemptCount = 0;
@@ -188,6 +194,7 @@ const initInterceptors = (
     axios.interceptors.response.use(
         (response) => {
             logoutAttemptCount = 0;
+            isLoggingOut = false;
             if (numLoadings === 0) {
                 return response;
             }
@@ -223,9 +230,30 @@ const initInterceptors = (
             if (error.response) {
                 const is401 = Number(error.response.status) === 401 || Number(error.response.data?.statusCode) === 401;
                 const is403 = Number(error.response.status) === 403 || Number(error.response.data?.statusCode) === 403;
+                const url = originalRequest?.url || '';
+                // Skip refresh-and-retry on auth tear-down endpoints. /auth/logout
+                // 401s are expected when the idToken is expired (which is often
+                // why we're logging out in the first place) and queueing them
+                // onto the refresh subscriber list produces unhandled rejections
+                // when the refresh itself fails.
+                const isAuthTeardownUrl = url.includes('/auth/token/refresh') || url.includes('/auth/logout');
 
-                // Attempt token refresh on 401 (but not for refresh requests or 403s)
-                if (is401 && !originalRequest._isRetry && !originalRequest.url?.includes('/auth/token/refresh')) {
+                // Once a logout is in flight, stop running the auth-recovery
+                // path on every concurrent 401/403 — let those requests fail
+                // quietly so they don't fan out into more refresh attempts or
+                // duplicate logout dispatches.
+                if (isLoggingOut) {
+                    if (numLoadings < 2) {
+                        clearTimeout(timer);
+                    }
+                    numLoadings = Math.max(0, numLoadings - 1);
+                    return Promise.reject(
+                        (error && error.response && error.response.data) || error
+                    );
+                }
+
+                // Attempt token refresh on 401 (but not for refresh/logout requests or 403s)
+                if (is401 && !originalRequest._isRetry && !isAuthTeardownUrl) {
                     originalRequest._isRetry = true;
 
                     if (!isRefreshing) {
@@ -251,11 +279,11 @@ const initInterceptors = (
                 // or 403 on auth-specific endpoints (blocked user, invalid token type)
                 if (is401 && originalRequest._isRetry) {
                     handleLogout(store);
-                } else if (is403 && originalRequest.url?.includes('/auth')) {
+                } else if (is403 && url.includes('/auth')) {
                     handleLogout(store);
                 }
             } else if (error) {
-                if (isAuthFailure(error)) {
+                if (isAuthFailure(error) && !isLoggingOut) {
                     // Only logout for definitive auth failures without a response object
                     socketIO.disconnect();
                     handleLogout(store);

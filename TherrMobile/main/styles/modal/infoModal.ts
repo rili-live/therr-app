@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../themes';
+import { therrFontFamily } from '../font';
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
@@ -41,7 +42,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 20,
             fontWeight: '800',
             paddingBottom: 8,
-            fontFamily: 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             textAlign: 'center',
         },
         text: {

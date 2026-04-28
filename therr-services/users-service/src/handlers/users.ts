@@ -8,6 +8,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
+import syncDeviceTokenForBrand from '../utilities/syncDeviceTokenForBrand';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import {
@@ -145,7 +146,6 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 });
             } else if (paymentSessionId) {
                 // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
-                console.log('TODO...');
             }
 
             if (inviteCode) {
@@ -680,6 +680,9 @@ const updateUser = (req, res) => {
                             // Remove credentials from object
                             redactUserCreds(user);
 
+                            // Phase 2 dual-write to brand-scoped token table. Fire-and-forget; legacy column above stays authoritative until cutover.
+                            syncDeviceTokenForBrand(req.headers, user.id, req.body.deviceMobileFirebaseToken);
+
                             const userOrgs = await Store.userOrganizations.get({
                                 userId: user.id,
                             }).catch((err) => {
@@ -900,6 +903,9 @@ const updateUserCoins = (req, res) => {
                         const user = results[0];
                         // Remove credentials from object
                         redactUserCreds(user);
+
+                        // Phase 2 dual-write to brand-scoped token table.
+                        syncDeviceTokenForBrand(req.headers, user.id, req.body.deviceMobileFirebaseToken);
 
                         // TODO: Investigate security issue
                         // Lockdown updateUser
@@ -1206,6 +1212,10 @@ const clearUserDeviceToken: RequestHandler = (req, res) => {
     }
     return Store.users.clearDeviceToken(userId, deviceToken)
         .then((rows: any[]) => {
+            // Phase 2: also clean up the brand-scoped token table. Token strings are globally
+            // unique to a device install regardless of brand, so deletion by token alone is safe.
+            // Fire-and-forget — failure here must not break legacy cleanup.
+            Store.userDeviceTokens.deleteByToken(deviceToken).catch(() => undefined);
             logSpan({
                 level: 'info',
                 messageOrigin: 'API_SERVER',

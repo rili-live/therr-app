@@ -48,6 +48,9 @@ const colors: ITherrThemeColors = {
 
     // Alerts
     alertError: '#CF6679',
+    alertSuccess: '#4CDF82',
+    alertWarning: '#FDBD2E',
+    alertInfo: '#22A5B4',
 
     // Accents - Alternate color scheme to add variety and reduce blandness
     accent1: '#2A2A2A',
