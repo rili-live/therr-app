@@ -44,6 +44,31 @@ const getUserAchievements = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
 };
 
+// READ — public variant for viewing another user's completed achievements (badges).
+// Surfaces only completed rows; strips unclaimedRewardPts and other private fields so a viewer
+// never sees in-progress progress counts or pending point balances on a non-self profile.
+const getPublicUserAchievements: RequestHandler = (req: any, res: any) => {
+    const { brandVariation } = getBrandContext(req.headers);
+    const targetUserId = req.params.userId;
+    if (!targetUserId) {
+        return handleHttpError({ res, message: 'NotFound', statusCode: 404 });
+    }
+    return Store.userAchievements.getCompleted(brandVariation, { userId: targetUserId })
+        .then((results) => {
+            const sanitized = (results || []).map((row: any) => ({
+                id: row.id,
+                userId: row.userId,
+                achievementId: row.achievementId,
+                achievementClass: row.achievementClass,
+                achievementTier: row.achievementTier,
+                progressCount: row.progressCount,
+                completedAt: row.completedAt,
+            }));
+            return res.status(200).send(sanitized);
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+};
+
 // READ
 const claimAchievement = (req, res) => {
     const userId = req.headers['x-userid'];
@@ -92,5 +117,6 @@ const claimAchievement = (req, res) => {
 export {
     updateAndCreateUserAchievements,
     getUserAchievements,
+    getPublicUserAchievements,
     claimAchievement,
 };

@@ -56,6 +56,18 @@ export default class UserAchievementsStore extends BrandScopedStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    // Public-read variant for cross-user profile views: only completed achievements (badges).
+    // Privacy boundary — incomplete rows and unclaimed-point details must never reach a non-self viewer.
+    getCompleted(brand: BrandValue, conditions: { userId: string }) {
+        const queryString = this.scopedQuery(brand)
+            .select()
+            .where(conditions)
+            .whereNotNull('completedAt')
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     getById(brand: BrandValue, id: string) {
         const getAchievementQueryString = this.scopedQuery(brand)
             .select()

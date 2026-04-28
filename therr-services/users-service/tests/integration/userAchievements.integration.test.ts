@@ -153,4 +153,108 @@ describe('Integration Tests - User Achievements', () => {
             expect(wrongBrand).to.equal(undefined);
         });
     });
+
+    describe('getCompleted (public-read variant)', () => {
+        it('returns only rows where completedAt is non-null for the target user', async () => {
+            if (skipTests) return;
+
+            const user = await createTestUser('completed-1');
+
+            const inProgress = await userAchievementsStore.create('therr', [{
+                userId: user.id,
+                achievementId: 'explorer_1_1',
+                achievementClass: 'explorer',
+                achievementTier: '1_1',
+                progressCount: 1,
+            }]);
+            createdAchievementIds.push(inProgress[0].id);
+
+            const completed = await userAchievementsStore.create('therr', [{
+                userId: user.id,
+                achievementId: 'explorer_1_2',
+                achievementClass: 'explorer',
+                achievementTier: '1_2',
+                progressCount: 5,
+                completedAt: new Date(),
+                unclaimedRewardPts: 50,
+            }]);
+            createdAchievementIds.push(completed[0].id);
+
+            const results = await userAchievementsStore.getCompleted('therr', { userId: user.id });
+            const ids = results.map((r: any) => r.id);
+
+            expect(ids).to.include(completed[0].id);
+            expect(ids).to.not.include(inProgress[0].id);
+            results.forEach((row: any) => {
+                expect(row.completedAt).to.not.equal(null);
+            });
+        });
+
+        it('respects brand isolation: a habits-context read does not surface therr completed rows', async () => {
+            if (skipTests) return;
+
+            const user = await createTestUser('completed-iso');
+
+            const therrCompleted = await userAchievementsStore.create('therr', [{
+                userId: user.id,
+                achievementId: 'explorer_2_1',
+                achievementClass: 'explorer',
+                achievementTier: '2_1',
+                progressCount: 10,
+                completedAt: new Date(),
+                unclaimedRewardPts: 75,
+            }]);
+            createdAchievementIds.push(therrCompleted[0].id);
+
+            const habitsCompleted = await userAchievementsStore.create('habits', [{
+                userId: user.id,
+                achievementId: 'habitBuilder_2_1',
+                achievementClass: 'habitBuilder',
+                achievementTier: '2_1',
+                progressCount: 7,
+                completedAt: new Date(),
+                unclaimedRewardPts: 25,
+            }]);
+            createdAchievementIds.push(habitsCompleted[0].id);
+
+            const therrList = await userAchievementsStore.getCompleted('therr', { userId: user.id });
+            const habitsList = await userAchievementsStore.getCompleted('habits', { userId: user.id });
+
+            const therrIds = therrList.map((r: any) => r.id);
+            const habitsIds = habitsList.map((r: any) => r.id);
+
+            expect(therrIds).to.include(therrCompleted[0].id);
+            expect(therrIds).to.not.include(habitsCompleted[0].id);
+            expect(habitsIds).to.include(habitsCompleted[0].id);
+            expect(habitsIds).to.not.include(therrCompleted[0].id);
+        });
+
+        it('returns an empty array when the target user has no completed achievements', async () => {
+            if (skipTests) return;
+
+            const user = await createTestUser('completed-empty');
+
+            // Only an in-progress row.
+            const inProgress = await userAchievementsStore.create('therr', [{
+                userId: user.id,
+                achievementId: 'explorer_3_1',
+                achievementClass: 'explorer',
+                achievementTier: '3_1',
+                progressCount: 1,
+            }]);
+            createdAchievementIds.push(inProgress[0].id);
+
+            const results = await userAchievementsStore.getCompleted('therr', { userId: user.id });
+            expect(results).to.deep.equal([]);
+        });
+
+        it('returns an empty array when the target userId does not exist', async () => {
+            if (skipTests) return;
+
+            const results = await userAchievementsStore.getCompleted('therr', {
+                userId: '00000000-0000-0000-0000-000000000000',
+            });
+            expect(results).to.deep.equal([]);
+        });
+    });
 });
