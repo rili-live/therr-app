@@ -116,6 +116,11 @@ spec:
             secretKeyRef:
               name: push-notifications-google-app-credentials
               key: PUSH_NOTIFICATIONS_GOOGLE_APP_CREDENTIALS
+        - name: PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS
+          valueFrom:
+            secretKeyRef:
+              name: push-notifications-google-app-credentials-habit
+              key: PUSH_NOTIFICATIONS_GOOGLE_APP_CREDENTIALS_HABITS
         - name: MAPS_SERVICE_DATABASE
           value: "therr_maps_service_db"
         - name: JWT_SECRET
