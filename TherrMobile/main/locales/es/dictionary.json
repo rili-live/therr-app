@@ -702,6 +702,7 @@
         "addImageNote": "Selecciona una imagen existente o captura una nueva para representar tu pensamiento.",
         "cost": "Costo: {pointCost} monedas",
         "message": "¿Tienes una idea...?",
+        "messageGoal": "¿Cuál es tu meta hoy?",
         "messageReply": "Comparte tu respuesta",
         "notificationMsg": "Título o nombre del lugar",
         "hashTags": "Hashtags (ej. mi_etiqueta, miEtiqueta)",
@@ -710,7 +711,9 @@
         "radius": "Radio: {meters} metros"
       },
       "deleteConfirmation": "¿Estás seguro de que quieres eliminar este pensamiento?",
+      "deleteConfirmationGoal": "¿Estás seguro de que quieres eliminar esta meta?",
       "backendSuccessMessage": "¡Has compartido un pensamiento!",
+      "backendSuccessMessageGoal": "¡Has compartido una meta!",
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde."
     },
     "forgotPassword": {
@@ -1392,7 +1395,8 @@
       }
     },
     "editThought": {
-      "headerTitle": "Compartir un pensamiento"
+      "headerTitle": "Compartir un pensamiento",
+      "headerTitleGoal": "Comparte una meta"
     },
     "emailVerification": {
       "buttons": {
@@ -1687,6 +1691,7 @@
     },
     "viewThought": {
       "headerTitle": "Pensamientos",
+      "headerTitleGoal": "Meta",
       "reply": "Responder",
       "replies": "Respuestas"
     },
