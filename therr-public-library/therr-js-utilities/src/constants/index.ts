@@ -32,6 +32,9 @@ import {
 import {
     FeatureFlags,
 } from './enums/FeatureFlags';
+import {
+    HabitGoalTypes,
+} from './enums/HabitGoalTypes';
 import CampaignTypes from './enums/CampaignTypes';
 import CampaignAdGoals from './enums/CampaignAdGoals';
 import CampaignAssetTypes from './enums/CampaignAssetTypes';
@@ -61,6 +64,7 @@ export {
     AccessLevels,
     BrandVariations,
     FeatureFlags,
+    HabitGoalTypes,
     CampaignTypes,
     CampaignAdGoals,
     CampaignAssetTypes,

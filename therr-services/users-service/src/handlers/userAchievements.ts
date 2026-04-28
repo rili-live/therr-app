@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { achievementsByClass } from 'therr-js-utilities/config';
+import { achievementsByClass, getAchievementsForBrand } from 'therr-js-utilities/config';
 import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -29,6 +29,15 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
         });
     }
 
+    const allowedForBrand = getAchievementsForBrand(brandVariation);
+    if (!allowedForBrand[achievementClass]) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.userAchievements.invalidAchievementClass'),
+            statusCode: 400,
+        });
+    }
+
     return createOrUpdateAchievement(req.headers, {
         achievementClass,
         achievementTier,
@@ -41,11 +50,21 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
 };
 
 // READ
-const getUserAchievements = (req, res) => Store.userAchievements.get({
-    userId: req.headers['x-userid'],
-})
-    .then((results) => res.status(200).send(results))
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+const getUserAchievements = (req, res) => {
+    const { brandVariation } = parseHeaders(req.headers);
+    const allowedForBrand = getAchievementsForBrand(brandVariation);
+
+    return Store.userAchievements.get({
+        userId: req.headers['x-userid'],
+    })
+        .then((results) => {
+            const filtered = (results || []).filter(
+                (row: any) => !!allowedForBrand[row.achievementClass],
+            );
+            return res.status(200).send(filtered);
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+};
 
 // READ
 const claimAchievement = (req, res) => {

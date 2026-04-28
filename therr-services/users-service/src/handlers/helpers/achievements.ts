@@ -1,7 +1,8 @@
-import { achievementsByClass } from 'therr-js-utilities/config';
+import { achievementsByClass, getAchievementsForBrand } from 'therr-js-utilities/config';
 import { Notifications } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
+import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../../store';
 import { ICreateOrUpdateResponse, IDBAchievement } from '../../store/UserAchievementsStore';
 import notifyUserOfUpdate from '../../utilities/notifyUserOfUpdate';
@@ -22,6 +23,12 @@ const createOrUpdateAchievement: (
 }) => {
     if (!achievementsByClass[achievementClass]) {
         return Promise.reject(Error('invalid-achievement-class'));
+    }
+
+    const { brandVariation } = parseHeaders(headers as any);
+    const allowed = getAchievementsForBrand(brandVariation);
+    if (!allowed[achievementClass]) {
+        return Promise.reject(Error('achievement-class-not-allowed-for-brand'));
     }
 
     return Store.userAchievements.get({

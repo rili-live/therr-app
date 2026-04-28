@@ -4,11 +4,14 @@ import { HABIT_GOALS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+export type HabitGoalType = 'build_good' | 'break_bad' | 'savings_goal' | 'maintenance';
+
 export interface ICreateHabitGoalParams {
     name: string;
     description?: string;
     category?: string;
     emoji?: string;
+    goalType?: HabitGoalType;
     frequencyType?: string;
     frequencyCount?: number;
     targetDaysOfWeek?: number[];
@@ -22,6 +25,7 @@ export interface IUpdateHabitGoalParams {
     description?: string;
     category?: string;
     emoji?: string;
+    goalType?: HabitGoalType;
     frequencyType?: string;
     frequencyCount?: number;
     targetDaysOfWeek?: number[];
@@ -99,6 +103,7 @@ export default class HabitGoalsStore {
         const queryString = knexBuilder
             .insert({
                 ...params,
+                goalType: params.goalType || 'build_good',
                 frequencyType: params.frequencyType || 'daily',
                 frequencyCount: params.frequencyCount || 1,
             })
