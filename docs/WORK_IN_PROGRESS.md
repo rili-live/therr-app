@@ -87,6 +87,34 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-04-27, /quality-peer-review) Run users-service migrations on production
+  (`20260425000001_main.users.brandVariations_v2`,
+  `20260425000002_main.notifications.brandVariation`,
+  `20260425000003_main.userDeviceTokens`,
+  `20260426000001_main.userAchievements.brandVariation`) — Phase 2/5 multi-app
+  data isolation; brand-scoped reads will filter to zero rows until columns/tables
+  exist with the 'therr' default backfill.
+- [ ] (2026-04-27, /quality-peer-review) Run messages-service migrations on production
+  (`20260425000004_main.directMessages.brandVariation`,
+  `20260425000005_main.forums.brandVariation`,
+  `20260425000006_main.forumMessages.brandVariation`) — Phase 3 multi-app
+  isolation; same reasoning.
+- [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
+  account env vars on push-notifications-service production
+  (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
+  `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_TEEM`) — until set, HABITS/TEEM
+  pushes fall back to the THERR Firebase project, which is wrong for token
+  routing once niche apps go live.
+- [ ] (2026-04-27, /quality-peer-review) After one release cycle with clean
+  shadow logs, flip `BrandScopedStore` mode from `'shadow'` to `'enforce'` in
+  `NotificationsStore`, `UserAchievementsStore`, `UserDeviceTokensStore`,
+  `DirectMessagesStore`, `ForumsStore`, `ForumMessagesStore` — comments in each
+  store mark this. Same release should also delete the legacy fallback in
+  `resolveDeviceTokenForBrand` once `main.userDeviceTokens` is authoritative.
+- [ ] (2026-04-27, /quality-peer-review) After the dual-write window closes
+  (mobile clients have re-registered against `main.userDeviceTokens`), drop the
+  legacy `users.deviceMobileFirebaseToken` column in a follow-up migration —
+  documented in `20260425000003_main.userDeviceTokens` migration header.
 <!-- skill-followups:end -->
 
 ---

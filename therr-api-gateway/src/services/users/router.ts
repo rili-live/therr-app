@@ -109,6 +109,11 @@ usersServiceRouter.get('/users/achievements', handleServiceRequest({
     method: 'get',
 }));
 
+usersServiceRouter.get('/users/achievements/:userId/public', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 usersServiceRouter.post('/users/achievements/:id/claim', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',

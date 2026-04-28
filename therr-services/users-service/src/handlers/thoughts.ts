@@ -1,5 +1,10 @@
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
-import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
+import {
+    getBrandContext,
+    getSearchQueryArgs,
+    getSearchQueryString,
+    parseHeaders,
+} from 'therr-js-utilities/http';
 import {
     ErrorCodes, MetricNames, MetricValueTypes, Notifications,
     UserConnectionTypes,
@@ -32,8 +37,9 @@ const createThought = async (req, res) => {
         userDeviceToken,
         userName,
     } = parseHeaders(req.headers);
+    const { brandVariation: brand } = getBrandContext(req.headers);
 
-    const isDuplicate = await Store.thoughts.get({
+    const isDuplicate = await Store.thoughts.get(brand, {
         fromUserId: userId,
         message: req.body.message,
         parentId: req.body.parentId,
@@ -49,7 +55,7 @@ const createThought = async (req, res) => {
         });
     }
 
-    return Store.thoughts.create({
+    return Store.thoughts.create(brand, {
         ...req.body,
         locale,
         fromUserId: userId,
@@ -79,7 +85,7 @@ const createThought = async (req, res) => {
 
                 if (thought.parentId) {
                     // Reward users for replying to thoughts
-                    Store.thoughts.getById(thought.parentId, {}).then(({ thoughts }) => {
+                    Store.thoughts.getById(brand, thought.parentId, {}).then(({ thoughts }) => {
                         if (thoughts.length) {
                             const parentThought = thoughts[0];
                             if (parentThought.fromUserId !== userId) {
@@ -235,6 +241,7 @@ const getThoughtDetails = (req, res) => {
         userDeviceToken,
         userName,
     } = parseHeaders(req.headers);
+    const { brandVariation: brand } = getBrandContext(req.headers);
 
     const { thoughtId } = req.params;
 
@@ -247,7 +254,7 @@ const getThoughtDetails = (req, res) => {
     const shouldFetchReplies = !!withReplies;
 
     return Promise.all([
-        Store.thoughts.getById(thoughtId, {}, {
+        Store.thoughts.getById(brand, thoughtId, {}, {
             withUser: shouldFetchUser,
             withReplies: shouldFetchReplies,
             shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
@@ -358,6 +365,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
         whiteLabelOrigin,
         brandVariation,
     } = parseHeaders(req.headers);
+    const { brandVariation: brand } = getBrandContext(req.headers);
     const {
         // filterBy,
         query,
@@ -408,7 +416,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
             .filter((id) => !!id); // eslint-disable-line eqeqeq
         searchArgs[0].filterBy = 'fromUserIds';
     }
-    const searchPromise = Store.thoughts.search(searchArgs[0], searchArgs[1], fromUserIds, {}, query !== 'me');
+    const searchPromise = Store.thoughts.search(brand, searchArgs[0], searchArgs[1], fromUserIds, {}, query !== 'me');
     // const countPromise = Store.thoughts.countRecords({
     //     filterBy,
     //     query,
@@ -436,6 +444,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
 // It gets called by the reactions service when a thought is activated
 const findThoughts: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+    const { brandVariation: brand } = getBrandContext(req.headers);
 
     const {
         limit,
@@ -456,7 +465,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
             acceptingUserId: authorId,
         }, true);
 
-    return isFriendPromise.then((connections) => Store.thoughts.find(thoughtIds, {
+    return isFriendPromise.then((connections) => Store.thoughts.find(brand, thoughtIds, {
         authorId,
         limit: limit || 21,
         order,

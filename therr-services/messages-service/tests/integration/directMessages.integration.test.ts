@@ -463,6 +463,9 @@ describe('Integration Tests - Direct Messages', () => {
             });
 
             // Reverse-search query under the Habits brand should NOT surface the row.
+            // userId/query represent (requester, other-user). The DM is from u1 to u2; with
+            // shouldCheckReverse the OR branch becomes (fromUserId=requester AND toUserId=other),
+            // which matches our row only when brand also matches.
             const habitsResults = await directMessagesStore.searchDirectMessages(
                 'habits',
                 TEST_USER_1,
@@ -470,7 +473,7 @@ describe('Integration Tests - Direct Messages', () => {
                     pagination: { itemsPerPage: 50, pageNumber: 1 },
                     filterBy: 'fromUserId',
                     filterOperator: '=',
-                    query: TEST_USER_1,
+                    query: TEST_USER_2,
                 },
                 undefined,
                 'true',
@@ -486,7 +489,7 @@ describe('Integration Tests - Direct Messages', () => {
                     pagination: { itemsPerPage: 50, pageNumber: 1 },
                     filterBy: 'fromUserId',
                     filterOperator: '=',
-                    query: TEST_USER_1,
+                    query: TEST_USER_2,
                 },
                 undefined,
                 'true',
