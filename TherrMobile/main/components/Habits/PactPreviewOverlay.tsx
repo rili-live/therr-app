@@ -7,6 +7,7 @@ import { Button } from '../BaseButton';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
+import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import translator from '../../utilities/translator';
 import BaseStatusBar from '../BaseStatusBar';
 
@@ -156,7 +157,7 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
         <>
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
             <SafeAreaView style={[theme.styles.safeAreaView, themeHabits.styles.dashboardContainer]}>
-                <ScrollView contentContainerStyle={{ paddingBottom: 220 }}>
+                <ScrollView contentContainerStyle={{ paddingBottom: 240 + bottomSafeAreaInset }}>
                     <View style={themeHabits.styles.dashboardHeader}>
                         <Text style={themeHabits.styles.dashboardGreeting}>
                             {translate('pages.pacts.preview.bannerTitle')}
@@ -241,7 +242,9 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                         backgroundColor: theme.colors.brandingWhite,
                         borderTopLeftRadius: 16,
                         borderTopRightRadius: 16,
-                        padding: 20,
+                        paddingTop: 20,
+                        paddingHorizontal: 20,
+                        paddingBottom: 20 + bottomSafeAreaInset,
                         shadowColor: theme.colors.textBlack,
                         shadowOffset: { width: 0, height: -2 },
                         shadowOpacity: 0.12,
