@@ -21,6 +21,7 @@ utilities.forEach((utilityPath) => {
     if (utilityPath === 'constants/index'
         || utilityPath === 'config/index'
         || utilityPath === 'db/index'
+        || utilityPath === 'db-server/index'
         || utilityPath === 'http/index'
         || utilityPath === 'location/index'
         || utilityPath === 'metrics/index'

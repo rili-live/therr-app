@@ -5,7 +5,6 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { NetworkActionTypes } from 'therr-react/types';
-import { Button } from './BaseButton';
 import 'react-native-gesture-handler';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import TherrIcon from '../components/TherrIcon';
@@ -98,16 +97,18 @@ const HeaderMenuLeft = ({
     return (
         <>
             <View style={styles.wrapper}>
-                <Button
-                    type="clear"
-                    icon={
-                        <TherrIcon
-                            name={LOGO_GLYPH_NAME}
-                            size={26}
-                            style={[logoStyle]}
-                            onPress={handlePress}
-                        />
-                    }
+                {/*
+                  Render TherrIcon directly (not wrapped in BaseButton) — its
+                  built-in onPress handling already provides press feedback.
+                  The former BaseButton wrapper had `contentRow: flex:1`
+                  inside this `position:relative` View with no flex context,
+                  which collapsed the icon to 0×0 and made it invisible.
+                */}
+                <TherrIcon
+                    name={LOGO_GLYPH_NAME}
+                    size={26}
+                    style={[logoStyle]}
+                    onPress={handlePress}
                 />
                 {isOffline && (
                     <View
@@ -171,6 +172,11 @@ const HeaderMenuLeft = ({
 const styles = StyleSheet.create({
     wrapper: {
         position: 'relative',
+        // Hug the icon's intrinsic size (so the badge's absolute corner lands
+        // on the icon, not the header slot edge) without overriding the
+        // parent header's vertical centering.
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     badge: {
         position: 'absolute',

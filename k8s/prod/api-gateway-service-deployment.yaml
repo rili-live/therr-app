@@ -52,17 +52,33 @@ spec:
             cpu: "10m"
           limits:
             memory: "192Mi"
-            cpu: "100m"
+            cpu: "350m"
         ports:
         - containerPort: 7770
+        startupProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7770
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
         livenessProbe:
           httpGet:
             path: /healthcheck
             port: 7770
-          initialDelaySeconds: 60
+          initialDelaySeconds: 0
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7770
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
         env:
         - name: API_GATEWAY_PORT
           value: "7770"

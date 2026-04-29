@@ -17,7 +17,6 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const THOUGHTS_TABLE_NAME = 'main.thoughts';
 
-const maxMessageLength = 300;
 export interface ICreateThoughtParams {
     parentId?: string;
     areaType?: string;

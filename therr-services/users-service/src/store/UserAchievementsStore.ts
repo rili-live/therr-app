@@ -63,6 +63,7 @@ export default class UserAchievementsStore extends BrandScopedStore {
             .select()
             .where(conditions)
             .whereNotNull('completedAt')
+            .orderBy('completedAt', 'desc')
             .toString();
 
         return this.db.read.query(queryString).then((response) => response.rows);

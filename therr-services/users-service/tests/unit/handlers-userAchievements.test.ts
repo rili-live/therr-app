@@ -2,10 +2,14 @@
 /**
  * Regression tests for the public-read user achievements handler.
  *
- * Privacy contract: the public endpoint must surface ONLY completed achievements
- * for a target user, and must strip private fields (unclaimedRewardPts, brandVariation,
- * createdAt/updatedAt) that the self-only endpoint exposes. A non-self viewer must
- * never see in-progress badges or pending point balances.
+ * Privacy contract:
+ *   - The endpoint is anonymous-readable (no JWT required at the gateway).
+ *   - It must respect `settingsIsProfilePublic` on the target user; a private
+ *     or soft-deleted user yields 404 (no existence disclosure).
+ *   - It must surface ONLY completed rows.
+ *   - It must strip private fields (unclaimedRewardPts, brandVariation,
+ *     createdAt/updatedAt) so a non-self viewer never sees in-progress
+ *     progress counts or pending point balances.
  */
 import { expect } from 'chai';
 import sinon from 'sinon';
@@ -43,12 +47,19 @@ const buildRequest = (overrides: any = {}) => ({
     },
 });
 
+const stubPublicTargetUser = () => sinon.stub(Store.users, 'getUserById').resolves([{
+    id: 'target-user-id',
+    settingsIsProfilePublic: true,
+    settingsIsAccountSoftDeleted: false,
+}]);
+
 describe('getPublicUserAchievements handler', () => {
     afterEach(() => {
         sinon.restore();
     });
 
     it('calls Store.userAchievements.getCompleted with the target userId and the request brand', async () => {
+        stubPublicTargetUser();
         const getCompletedStub = sinon.stub(Store.userAchievements, 'getCompleted').resolves([]);
 
         const req = buildRequest();
@@ -63,6 +74,7 @@ describe('getPublicUserAchievements handler', () => {
     });
 
     it('uses the brand from x-brand-variation, not the viewer', async () => {
+        stubPublicTargetUser();
         const getCompletedStub = sinon.stub(Store.userAchievements, 'getCompleted').resolves([]);
 
         const req = buildRequest({ headers: { 'x-brand-variation': BrandVariations.THERR } });
@@ -74,6 +86,7 @@ describe('getPublicUserAchievements handler', () => {
     });
 
     it('strips private fields (unclaimedRewardPts, brandVariation, createdAt, updatedAt) from each row', async () => {
+        stubPublicTargetUser();
         const completedRow = {
             id: 'ach-1',
             userId: 'target-user-id',
@@ -115,6 +128,7 @@ describe('getPublicUserAchievements handler', () => {
     });
 
     it('returns an empty array when the target user has no completed achievements', async () => {
+        stubPublicTargetUser();
         sinon.stub(Store.userAchievements, 'getCompleted').resolves([]);
 
         const req = buildRequest();
@@ -127,6 +141,7 @@ describe('getPublicUserAchievements handler', () => {
     });
 
     it('returns 404 when :userId param is missing', async () => {
+        const getUserStub = sinon.stub(Store.users, 'getUserById');
         const getCompletedStub = sinon.stub(Store.userAchievements, 'getCompleted');
 
         const req = buildRequest({ params: { userId: undefined } });
@@ -134,7 +149,57 @@ describe('getPublicUserAchievements handler', () => {
 
         await getPublicUserAchievements(req as any, res as any, (() => undefined) as any);
 
+        expect(getUserStub.called).to.equal(false);
         expect(getCompletedStub.called).to.equal(false);
         expect(res.statusCode).to.equal(404);
+    });
+
+    it('returns 404 without leaking achievements when the target user has a private profile', async () => {
+        sinon.stub(Store.users, 'getUserById').resolves([{
+            id: 'target-user-id',
+            settingsIsProfilePublic: false,
+            settingsIsAccountSoftDeleted: false,
+        }]);
+        const getCompletedStub = sinon.stub(Store.userAchievements, 'getCompleted');
+
+        const req = buildRequest();
+        const res = buildResponse();
+
+        await getPublicUserAchievements(req as any, res as any, (() => undefined) as any);
+
+        expect(res.statusCode).to.equal(404);
+        // Critical: never query achievements when the profile is private — even
+        // an unused stubbed call here would represent a privacy regression.
+        expect(getCompletedStub.called).to.equal(false);
+    });
+
+    it('returns 404 when the target user is soft-deleted', async () => {
+        sinon.stub(Store.users, 'getUserById').resolves([{
+            id: 'target-user-id',
+            settingsIsProfilePublic: true,
+            settingsIsAccountSoftDeleted: true,
+        }]);
+        const getCompletedStub = sinon.stub(Store.userAchievements, 'getCompleted');
+
+        const req = buildRequest();
+        const res = buildResponse();
+
+        await getPublicUserAchievements(req as any, res as any, (() => undefined) as any);
+
+        expect(res.statusCode).to.equal(404);
+        expect(getCompletedStub.called).to.equal(false);
+    });
+
+    it('returns 404 when the target user does not exist', async () => {
+        sinon.stub(Store.users, 'getUserById').resolves([]);
+        const getCompletedStub = sinon.stub(Store.userAchievements, 'getCompleted');
+
+        const req = buildRequest();
+        const res = buildResponse();
+
+        await getPublicUserAchievements(req as any, res as any, (() => undefined) as any);
+
+        expect(res.statusCode).to.equal(404);
+        expect(getCompletedStub.called).to.equal(false);
     });
 });

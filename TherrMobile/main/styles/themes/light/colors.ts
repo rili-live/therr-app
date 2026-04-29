@@ -1,8 +1,25 @@
 import Color from 'color';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../';
 
+// Pre-computed brandFaded value (kept here so the same alias is referenced in
+// `colorVariations.primary3Fade` below — single source of truth).
+const _brandFaded = new Color('#1C7F8A').fade(0.25).toString();
+
 const colors: ITherrThemeColors = {
-    // Main
+    // Semantic aliases (preferred — see ITherrThemeColors for mapping table)
+    brand: '#1C7F8A',
+    brandDark: '#104B52',
+    brandFaded: _brandFaded,
+    surface: '#ffffff',
+    surfaceAlt: '#f3f4f6',
+    onSurface: '#363636',
+    onSurfaceMuted: 'rgba(0,0,0,.58)',
+    onBrand: '#fcfeff',
+    border: 'gray',
+    accent: '#E37107',
+    onAccent: '#fcfeff',
+
+    // Legacy
     primary: '#ffffff',
     primary2: '#fcfeff',
     primary3: '#3B2A4E',
