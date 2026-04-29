@@ -402,7 +402,52 @@ Do not consider the review complete until both ESLint and tsc pass with zero err
 
 ---
 
-## Step 7: Final report
+## Step 7: Persist manual post-deploy steps to the WIP tracker
+
+Before printing the final report, identify any **manual steps the user must
+take after deploying** these changes — items code alone cannot complete.
+Examples:
+
+- Database migrations to run on production (`npm run migrations:run`)
+- Cache invalidation (Cloudflare, CDN, redis flush)
+- Environment variable additions / rotations
+- Third-party config changes (Stripe webhook URL, FCM credentials, OAuth
+  callback URLs)
+- Sitemap / Search Console re-submission after SSR route changes
+- One-off backfill scripts that must run once after deploy
+
+For each item, append a checkbox line to `docs/WORK_IN_PROGRESS.md` inside
+the marked region:
+
+```
+<!-- skill-followups:start -->
+... existing entries ...
+- [ ] (YYYY-MM-DD, /quality-peer-review) <action> — <why / which commit
+  introduced the requirement>
+<!-- skill-followups:end -->
+```
+
+Implementation: read the file, locate the `<!-- skill-followups:start -->`
+marker, and insert new lines immediately before `<!-- skill-followups:end -->`.
+Do **not** duplicate items already present (match on the action text). If
+no manual steps are required, skip this step entirely — do not append a
+"None" line.
+
+Stage and commit the WIP file along with the implementation changes from
+Step 4:
+
+```bash
+git add docs/WORK_IN_PROGRESS.md
+git commit --amend --no-edit  # if Step 4 already committed
+# or include WIP in the same commit if you have not committed yet
+```
+
+If `docs/WORK_IN_PROGRESS.md` does not exist (older checkout), skip silently
+and surface the items only in the final report below.
+
+---
+
+## Step 8: Final report
 
 Output a structured summary:
 
@@ -440,6 +485,11 @@ Output a structured summary:
   - Environment variable changes needed
   - Third-party configuration updates
   <Or: "None identified.">
+
+  Note: items in this section have also been appended to
+  `docs/WORK_IN_PROGRESS.md` under "Skill-generated items" so the user
+  doesn't lose track between sessions. Reference the marked region
+  `<!-- skill-followups:start -->` … `<!-- skill-followups:end -->`.
 
 ### Suggestions (Not Implemented)
   <Category C items — optional improvements worth discussing:>

@@ -6,7 +6,7 @@ const saltRounds = 12;
 
 export const hashPassword = (password: string) => bcrypt.hash(password, saltRounds);
 
-export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean) => {
+export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean, brand?: string) => {
     const {
         id,
         userName,
@@ -25,20 +25,27 @@ export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean
         }, {});
     const jti = uuidv4();
 
-    // Sign the JWT
+    // brand is omitted when undefined so legacy callers and pre-multi-app tokens already
+    // in the wild keep their existing payload shape. Gateway treats a missing claim as
+    // legacy / cross-brand-allowed.
+    const payload: Record<string, any> = {
+        jti,
+        id,
+        userName,
+        email,
+        phoneNumber,
+        isBlocked,
+        integrations,
+        isSSO: isSSO || false,
+        accessLevels,
+        organizations: mappedUserOrgs,
+    };
+    if (brand) {
+        payload.brand = brand;
+    }
+
     return jwt.sign(
-        {
-            jti,
-            id,
-            userName,
-            email,
-            phoneNumber,
-            isBlocked,
-            integrations,
-            isSSO: isSSO || false,
-            accessLevels,
-            organizations: mappedUserOrgs,
-        },
+        payload,
         (process.env.JWT_SECRET || ''),
         {
             algorithm: 'HS256',
@@ -47,15 +54,20 @@ export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean
     );
 };
 
-export const createRefreshToken = (userId: string, rememberMe?: boolean) => {
+export const createRefreshToken = (userId: string, rememberMe?: boolean, brand?: string) => {
     const jti = uuidv4();
 
+    const payload: Record<string, any> = {
+        jti,
+        id: userId,
+        type: 'refresh',
+    };
+    if (brand) {
+        payload.brand = brand;
+    }
+
     const token = jwt.sign(
-        {
-            jti,
-            id: userId,
-            type: 'refresh',
-        },
+        payload,
         (process.env.JWT_SECRET || ''),
         {
             algorithm: 'HS256',
@@ -63,7 +75,9 @@ export const createRefreshToken = (userId: string, rememberMe?: boolean) => {
         },
     );
 
-    return { token, jti };
+    return {
+        token, jti, brand,
+    };
 };
 
 export const createUserEmailToken = (user: { id: string, email: string }) => {

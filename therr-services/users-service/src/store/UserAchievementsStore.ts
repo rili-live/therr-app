@@ -1,9 +1,14 @@
 import KnexBuilder, { Knex } from 'knex';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAchievement } from 'therr-js-utilities/config';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { withBrandOnInsert } from 'therr-js-utilities/db';
+import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
 export const USER_ACHIEVEMENTS_TABLE_NAME = 'main.userAchievements';
 
 export interface ICreateUserAchievementParams {
@@ -35,33 +40,51 @@ export interface ICreateOrUpdateResponse {
     action: IResultAction;
 }
 
-export default class UserAchievementsStore {
-    db: IConnection;
-
-    constructor(dbConnection) {
-        this.db = dbConnection;
+export default class UserAchievementsStore extends BrandScopedStore {
+    constructor(dbConnection: IConnection) {
+        // Brand-scoped per docs/NICHE_APP_DATABASE_GUIDELINES.md.
+        // Stays in 'shadow' for one release cycle; flip to 'enforce' once shadow logs are clean.
+        super(dbConnection, USER_ACHIEVEMENTS_TABLE_NAME, 'shadow');
     }
 
-    get(conditions: { id?: string, achievementId?: string, achievementClass?: string, achievementTier?: string, userId: string }) {
-        const queryString = knexBuilder.select()
-            .from(USER_ACHIEVEMENTS_TABLE_NAME)
+    get(brand: BrandValue, conditions: { id?: string, achievementId?: string, achievementClass?: string, achievementTier?: string, userId: string }) {
+        const queryString = this.scopedQuery(brand)
+            .select()
             .where(conditions)
             .toString();
 
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    getById(id: string) {
-        const getAchievementQueryString = knexBuilder.select()
-            .from(USER_ACHIEVEMENTS_TABLE_NAME)
+    // Public-read variant for cross-user profile views: only completed achievements (badges).
+    // Privacy boundary — incomplete rows and unclaimed-point details must never reach a non-self viewer.
+    getCompleted(brand: BrandValue, conditions: { userId: string }) {
+        const queryString = this.scopedQuery(brand)
+            .select()
+            .where(conditions)
+            .whereNotNull('completedAt')
+            .orderBy('completedAt', 'desc')
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    getById(brand: BrandValue, id: string) {
+        const getAchievementQueryString = this.scopedQuery(brand)
+            .select()
             .where({ id })
             .toString();
 
         return this.db.read.query(getAchievementQueryString).then((response) => response.rows[0]);
     }
 
-    create(paramsList: ICreateUserAchievementParams[]) {
-        const queryString = knexBuilder.insert(paramsList)
+    create(brand: BrandValue, paramsList: ICreateUserAchievementParams[]) {
+        this.assertBrand(brand);
+        if (!paramsList.length) {
+            return Promise.resolve([] as IDBAchievement[]);
+        }
+        const stamped = paramsList.map((row) => withBrandOnInsert(row as unknown as Record<string, unknown>, brand));
+        const queryString = knexBuilder.insert(stamped)
             .into(USER_ACHIEVEMENTS_TABLE_NAME)
             .returning('*')
             .toString();
@@ -70,6 +93,7 @@ export default class UserAchievementsStore {
     }
 
     updateAndCreateConsecutive(
+        brand: BrandValue,
         commonProps: {
             userId: string;
             achievementClass: string;
@@ -95,7 +119,7 @@ export default class UserAchievementsStore {
                 outcomeTag = 'updated-in-progress-tier';
                 const completedAt = (latestAch.progressCount + remainingCount) >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined;
                 const unclaimedRewardPts = completedAt ? tierAchievements[achievementsIndex].pointReward : 0;
-                updateAchievementPromise = this.update(latestAch.id, {
+                updateAchievementPromise = this.update(brand, latestAch.id, {
                     progressCount: Math.min(latestAch.progressCount + remainingCount, tierAchievements[achievementsIndex].countToComplete),
                     completedAt,
                     unclaimedRewardPts,
@@ -131,7 +155,7 @@ export default class UserAchievementsStore {
             achievementsIndex += 1;
         }
 
-        return Promise.all([this.create(achievementsToCreate), updateAchievementPromise]).then(([created, updated]) => {
+        return Promise.all([this.create(brand, achievementsToCreate), updateAchievementPromise]).then(([created, updated]) => {
             if (!created.length && !updated.length) {
                 outcomeTag = 'achievement-tier-already-complete';
             }
@@ -144,10 +168,9 @@ export default class UserAchievementsStore {
         });
     }
 
-    update(id: string, params: any) {
-        const queryString = knexBuilder.where({ id })
+    update(brand: BrandValue, id: string, params: any) {
+        const queryString = this.scopedUpdate(brand, { id })
             .update(params)
-            .into(USER_ACHIEVEMENTS_TABLE_NAME)
             .returning('*')
             .toString();
 

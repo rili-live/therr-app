@@ -563,6 +563,45 @@ export default class UsersStore {
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
     }
 
+    // Append or refresh a brand-variation membership entry on the user record.
+    // Uses a single JSONB statement so concurrent logins from different brands cannot lose entries.
+    // - If an entry for the brand exists, bump its lastSeenAt.
+    // - Otherwise append a new entry with firstSeenAt = lastSeenAt = now() and isActive = true.
+    upsertBrandVariation(userId: string, brand: string) {
+        if (!userId || !brand) return Promise.resolve();
+        const queryString = knexBuilder
+            .raw(
+                `UPDATE ?? SET "brandVariations" = (
+                    CASE WHEN EXISTS (
+                        SELECT 1 FROM jsonb_array_elements("brandVariations") AS elem
+                        WHERE elem->>'brand' = ?
+                    )
+                    THEN (
+                        SELECT jsonb_agg(
+                            CASE WHEN elem->>'brand' = ?
+                                THEN jsonb_set(elem, '{lastSeenAt}', to_jsonb(now()::text))
+                                ELSE elem
+                            END
+                        )
+                        FROM jsonb_array_elements("brandVariations") AS elem
+                    )
+                    ELSE "brandVariations" || jsonb_build_array(
+                        jsonb_build_object(
+                            'brand', ?::text,
+                            'firstSeenAt', now()::text,
+                            'lastSeenAt', now()::text,
+                            'isActive', true
+                        )
+                    )
+                    END
+                )
+                WHERE id = ?`,
+                [USERS_TABLE_NAME, brand, brand, brand, userId],
+            )
+            .toString();
+        return this.db.write.query(queryString);
+    }
+
     // Clears the stored FCM device token for a user, but only if the currently
     // stored token matches the one we know to be invalid. This avoids a race
     // where the mobile client has already rotated the token between the time a

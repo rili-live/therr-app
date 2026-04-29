@@ -2,7 +2,7 @@ const { Platform } = require('react-native');
 
 const apiGatewayPort = 7770;
 const websocketPort = 7743;
-// const hostDev = '192.168.1.91'; // Must use computer's ip address for dev to connect socket.io
+// const hostDev = '192.168.1.148'; // Must use computer's ip address for dev (physical device) to connect socket.io
 // 10.0.2.2 is Android emulator alias for host localhost; iOS simulator uses localhost directly
 const hostDev = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 const hostProd = 'therr.com';
@@ -37,7 +37,7 @@ const featureFlags = {
     ENABLE_MAPBOX_SEARCH: false,
 
     // Monetization
-    ENABLE_COIN_RECHARGE: false,
+    ENABLE_COIN_RECHARGE: true,
 };
 
 // TODO: Find a way to import this from global config

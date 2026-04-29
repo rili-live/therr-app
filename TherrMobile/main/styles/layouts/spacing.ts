@@ -1,10 +1,33 @@
 import { StyleSheet } from 'react-native';
 
+// Legacy spacing scale (irregular, kept because ~53 style files reference these
+// exports plus the helper utilities below). New code should prefer `space.*`
+// (defined just below) which is on a clean 4px base.
 export const tiny = 3;
 export const small = 6;
 export const medium = 10;
 export const large = 16;
 export const xlarge = 20;
+
+// Mobile-tuned spacing scale on a 4px base. Use in new code instead of
+// hardcoded paddings/margins. Conversion table from the legacy scale (these
+// don't map exactly — adopt `space.*` only when starting a new file or when
+// you are willing to absorb a small visual shift):
+//   tiny  (3) ≈ space.xs (4)
+//   small (6) ≈ space.sm (8)   — the 2px shift is the most common drift
+//   medium(10)≈ space.md (12)
+//   large (16)= space.lg (16)
+//   xlarge(20)≈ space.xl (24)
+export const space = {
+    none: 0,
+    xs: 4,
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 24,
+    xxl: 32,
+    xxxl: 48,
+} as const;
 
 const styles = StyleSheet.create({
     // FLEX

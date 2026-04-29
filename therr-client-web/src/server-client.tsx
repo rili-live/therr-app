@@ -200,7 +200,11 @@ const HABITS_ROUTE_RENDERERS: Record<string, { view: string; title: string; desc
         description: 'Terms of service for the Friends with Habits mobile app.',
     },
 };
-app.use((req, res, next) => {
+// Public profile path on the Habits subdomain — used by user-profile QR codes.
+// Format: /u/:userName  (alphanumeric, dot, dash, underscore — keep tight to avoid abuse)
+const HABITS_PROFILE_PATH_RE = /^\/u\/([A-Za-z0-9._-]{1,64})\/?$/;
+
+app.use(async (req, res, next) => {
     if (!HABITS_HOSTS.has(req.hostname)) {
         return next();
     }
@@ -208,6 +212,56 @@ app.use((req, res, next) => {
         res.type('text/plain');
         res.setHeader('Cache-Control', 'public, max-age=3600');
         return res.send('User-agent: *\nAllow: /\n');
+    }
+    const profileMatch = req.path.match(HABITS_PROFILE_PATH_RE);
+    if (profileMatch) {
+        const userName = profileMatch[1];
+        try {
+            const apiResponse = await axios.get(`/users-service/users/by-username/${encodeURIComponent(userName)}`);
+            const userInView = apiResponse?.data;
+            if (!userInView || !userInView.userName) {
+                return res.status(404).render('habits/profile-not-found', {
+                    title: 'User not found — Friends with Habits',
+                    description: 'This Friends with Habits profile could not be found.',
+                    canonicalUrl: `https://habits.therr.com/u/${userName}`,
+                    userName,
+                });
+            }
+            const displayName = userInView.isBusinessAccount
+                ? userInView.firstName
+                : [userInView.firstName, userInView.lastName].filter(Boolean).join(' ').trim();
+            const resolvedDisplayName = displayName || userInView.userName;
+            const avatarUri = getUserImageUri({ details: userInView }, 480) || '';
+            const firstInitial = (resolvedDisplayName || '?').trim().charAt(0).toUpperCase() || '?';
+            const appBrands: string[] = Array.isArray(userInView.appBrands) ? userInView.appBrands : [];
+            const hasTherrAccount = appBrands.includes(BrandVariations.THERR);
+            const bio = userInView.settingsBio || '';
+            res.setHeader('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=3600');
+            // Hand raw values to Handlebars; `{{value}}` HTML-escapes by default. Pre-escaping
+            // here would double-encode any `&`, `<`, `>`, `"`, or `'` in user-supplied first/last
+            // name or bio (e.g. `Jane & John` would render as `Jane &amp;amp; John`).
+            return res.render('habits/profile', {
+                title: `${resolvedDisplayName} on Friends with Habits`,
+                description: `${resolvedDisplayName}'s profile on Friends with Habits — pact up, check in, build streaks.`,
+                canonicalUrl: `https://habits.therr.com/u/${userInView.userName}`,
+                displayName: resolvedDisplayName,
+                userName: userInView.userName,
+                bio,
+                avatarUri,
+                hasAvatar: !!avatarUri,
+                hasBio: !!bio,
+                firstInitial,
+                hasTherrAccount,
+                therrProfileUrl: `https://www.therr.com/u/${userInView.userName}`,
+            });
+        } catch (err) {
+            return res.status(404).render('habits/profile-not-found', {
+                title: 'User not found — Friends with Habits',
+                description: 'This Friends with Habits profile could not be found.',
+                canonicalUrl: `https://habits.therr.com/u/${userName}`,
+                userName,
+            });
+        }
     }
     const renderer = HABITS_ROUTE_RENDERERS[req.path];
     if (!renderer) {

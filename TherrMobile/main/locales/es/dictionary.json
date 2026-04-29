@@ -314,6 +314,15 @@
     "offlineBanner": {
       "tooltip": "Estás sin conexión. Mostrando datos en caché."
     },
+    "offlineIndicator": {
+      "badgeAria": "Sin conexión. Conexión perdida.",
+      "modal": {
+        "title": "Estás sin conexión",
+        "body": "Therr no puede acceder a internet ahora mismo. Puedes seguir viendo el contenido en caché. Pulsa actualizar para volver a comprobar tu conexión.",
+        "refresh": "Actualizar",
+        "dismiss": "Cerrar"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Iniciar sesión"

@@ -5,8 +5,50 @@ import sendPendingInviteEmail from '../api/email/for-social/retention/sendPendin
 import sendNewGroupMembersEmail from '../api/email/for-social/sendNewGroupMembersEmail';
 import sendNewGroupInviteEmail from '../api/email/for-social/sendNewGroupInviteEmail';
 import * as globalConfig from '../../../../global-config';
+import Store from '../store';
 import { IFindUserArgs } from '../store/UsersStore';
 import translate from './translator';
+
+// Phase 2 of the multi-app data isolation rollout. Look up the brand-scoped device token first,
+// fall back to the legacy users.deviceMobileFirebaseToken column when no row exists yet (users
+// whose device hasn't re-registered against the new endpoint). After mobile clients have
+// re-registered (typically on next app open) and shadow logs are clean for one release cycle,
+// the fallback can be deleted.
+//
+// Exported for unit testing — this is the function that prevents a Habits notification from
+// being routed via a Therr-registered device token (and therefore via the Therr Firebase project).
+export const resolveDeviceTokenForBrand = async (
+    brand: string,
+    toUserId: string,
+    legacyToken: string | null | undefined,
+): Promise<string | null | undefined> => {
+    if (!brand || !toUserId) return legacyToken;
+    const rows = await Store.userDeviceTokens.getTokensForUser(brand, toUserId).catch(() => [] as { token: string }[]);
+    return rows[0]?.token || legacyToken;
+};
+
+// Batch variant of resolveDeviceTokenForBrand for fan-out endpoints (group-message notify, etc.).
+// Returns a new array with deviceMobileFirebaseToken replaced by the brand-scoped token where one
+// exists. Falls back to the legacy column for users who haven't re-registered yet — mirrors the
+// single-user resolver so behavior is identical regardless of which path delivers the push.
+export const resolveDeviceTokensForBrand = async <U extends { id: string; deviceMobileFirebaseToken?: string | null }>(
+    brand: string,
+    users: U[],
+): Promise<U[]> => {
+    if (!brand || users.length === 0) return users;
+    const ids = users.map((u) => u.id).filter(Boolean);
+    if (!ids.length) return users;
+    const rows = await Store.userDeviceTokens.getTokensForUsers(brand, ids)
+        .catch(() => [] as { userId: string; token: string }[]);
+    const tokenByUserId = new Map<string, string>();
+    rows.forEach((row) => {
+        if (!tokenByUserId.has(row.userId)) tokenByUserId.set(row.userId, row.token);
+    });
+    return users.map((u) => ({
+        ...u,
+        deviceMobileFirebaseToken: tokenByUserId.get(u.id) || u.deviceMobileFirebaseToken,
+    }));
+};
 
 export interface ISendPushNotification extends PushNotifications.INotificationData {
     authorization: any;
@@ -53,12 +95,17 @@ export default (
         shouldSendEmail: true,
     },
 ): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email', 'isUnclaimed', 'settingsEmailInvites', 'settingsLocale'])
-    .then((userResults) => {
+    .then(async (userResults) => {
         const destinationUser = userResults?.[0];
         if (!destinationUser || destinationUser.isUnclaimed) {
             // Don't send notification/email
             return Promise.resolve({});
         }
+        const resolvedDeviceToken = await resolveDeviceTokenForBrand(
+            brandVariation,
+            toUserId,
+            destinationUser.deviceMobileFirebaseToken,
+        );
 
         const emailLocale = (destinationUser as any).settingsLocale || locale || 'en-us';
         let sendEmail: () => Promise<any> = () => Promise.resolve();
@@ -161,7 +208,7 @@ export default (
                     groupName,
                     groupMembersList: fromUserNames,
                     postType,
-                    toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
+                    toUserDeviceToken: resolvedDeviceToken,
                     type,
                     thought,
                     // achievementsCount,

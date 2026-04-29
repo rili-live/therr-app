@@ -205,6 +205,38 @@ class UsersService {
         data: { refreshToken, rememberMe },
     });
 
+    // Multi-app auth: enumeration-safe email pre-check. Backend always 200s with a generic shape;
+    // the `hint` drives client UI (enter_password / try_sso / magic_link / sign_up) without
+    // confirming whether the email is registered.
+    emailPrecheck = (email: string) => axios({
+        method: 'post',
+        url: '/users-service/auth/email-precheck',
+        data: { email },
+    });
+
+    // Mint a single-use, brand-bound handoff code from the currently-signed-in app. The returned
+    // `code` is exchanged via `redeemHandoff` in the target app for a fresh login response stamped
+    // with the target brand. TTL 60s; never log the code itself.
+    mintHandoff = (targetBrand: string) => axios({
+        method: 'post',
+        url: '/users-service/auth/handoff/mint',
+        data: { targetBrand },
+    });
+
+    // Redeem a handoff code in the target app. The code IS the credential — no auth header required.
+    // The `brand` argument must match the current app's brand variation; the backend enforces this.
+    redeemHandoff = (code: string, brand: string) => axios({
+        method: 'post',
+        url: '/users-service/auth/handoff/redeem',
+        data: { code, brand },
+    });
+
+    cancelHandoff = (code: string) => axios({
+        method: 'post',
+        url: '/users-service/auth/handoff/cancel',
+        data: { code },
+    });
+
     // Subscribers
     getSubscriptionPreferences = (emailToken: string) => axios({
         method: 'get',
@@ -261,6 +293,11 @@ class UsersService {
     getMyAchievements = () => axios({
         method: 'get',
         url: '/users-service/users/achievements',
+    });
+
+    getPublicUserAchievements = (userId: string) => axios({
+        method: 'get',
+        url: `/users-service/users/achievements/${userId}/public`,
     });
 
     requestRewardsExchange = (amount: number, provider: string) => axios({

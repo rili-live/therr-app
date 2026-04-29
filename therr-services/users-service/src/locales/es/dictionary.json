@@ -1,4 +1,7 @@
 {
+    "authMessages": {
+        "emailPrecheckGeneric": "Si este correo está registrado, te guiaremos para iniciar sesión."
+    },
     "errorMessages": {
         "auth": {
             "accountNotVerified": "Cuenta no verificada. Revisa tu correo electrónico para la verificación o navega a /verify-account para reenviar",

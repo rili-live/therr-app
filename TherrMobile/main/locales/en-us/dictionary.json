@@ -314,6 +314,15 @@
     "offlineBanner": {
       "tooltip": "You are offline. Showing cached data."
     },
+    "offlineIndicator": {
+      "badgeAria": "Offline. Connection lost.",
+      "modal": {
+        "title": "You're offline",
+        "body": "Therr can't reach the internet right now. You can keep browsing cached content. Tap refresh to check your connection again.",
+        "refresh": "Refresh",
+        "dismiss": "Dismiss"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Login"

@@ -130,4 +130,25 @@ export const getAchievementsForBrand = (
     return pickClasses(therrClassNames);
 };
 
+// Maps an achievement class to the brands that may earn it. The Therr classes are
+// location/social/content-themed; HABITS has its own 8 streak/pact-themed classes plus
+// the reused `socialite` for invite virality. Without this gate, registration seeds and
+// connection/thought activity would create Therr achievements stamped with the niche
+// brand, which then surface in the niche app's achievements list even though brand-scoped
+// SQL filters are working as intended.
+export const achievementClassesByBrand: { [brand: string]: ReadonlySet<string> } = {
+    [BrandVariations.THERR]: new Set(therrClassNames),
+    [BrandVariations.DASHBOARD_THERR]: new Set(therrClassNames),
+    [BrandVariations.HABITS]: new Set(habitsClassNames),
+};
+
+export const isAchievementClassEnabledForBrand = (
+    achievementClass: string,
+    brand: BrandVariations | string | undefined | null,
+): boolean => {
+    if (!brand) return false;
+    const allowed = achievementClassesByBrand[brand];
+    return !!allowed && allowed.has(achievementClass);
+};
+
 export default achievements;

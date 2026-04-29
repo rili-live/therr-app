@@ -144,6 +144,33 @@ Audit just the one given route with the full Step 3–4 checks.
 
 ---
 
+## Step 6: Persist post-deploy follow-ups to the WIP tracker
+
+If the audit detected sitemap-membership changes, new routes, or missing
+hreflang/JSON-LD that were fixed in this run, the user typically also
+needs to **re-submit the sitemap to Google Search Console** after deploy
+(SEO indexing is the #1 priority in `docs/GROWTH_STRATEGY.md` and silent
+regressions there cost weeks of organic traffic).
+
+Append a checkbox line to `docs/WORK_IN_PROGRESS.md` inside the marked
+region:
+
+```
+<!-- skill-followups:start -->
+- [ ] (YYYY-MM-DD, /seo-audit) Re-submit sitemap to Google Search Console
+  after the next deploy — <route(s) added/changed>.
+<!-- skill-followups:end -->
+```
+
+Read the file, locate the start marker, and insert before the end marker.
+Skip if an identical line is already there. Skip the entire step if the
+audit passed with no route/sitemap changes.
+
+If `docs/WORK_IN_PROGRESS.md` does not exist, surface the item in the
+report and skip the file edit.
+
+---
+
 ## Rules
 
 - **Never edit `server-client.tsx` from this skill.** Use `--fix` to print the fix and let the developer apply it — SSR meta generation is dense and easy to regress.

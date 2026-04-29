@@ -553,6 +553,12 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
         fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
+    {
+        // Public profile by username — used by user-profile QR codes.
+        path: '/u/:userName',
+        element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
+        fetchData: (dispatch: any, params: any) => UsersActions.getByUserName(params.userName)(dispatch),
+    },
 
     {
         path: '/guides',

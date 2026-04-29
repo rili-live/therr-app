@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="robots" content="noindex">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <style>
+        :root {
+            --habits-navy: #102a43;
+            --habits-coral-dark: #e0521e;
+            --habits-cream: #fff8f3;
+            --habits-text: #243b53;
+            --habits-text-muted: #627d98;
+            --habits-border: #d9e2ec;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--habits-text);
+            background: var(--habits-cream);
+            min-height: 100vh;
+        }
+        a { color: var(--habits-coral-dark); }
+        .wrap {
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 6rem 1.5rem;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--habits-navy);
+            margin: 0 0 0.75rem;
+        }
+        p { color: var(--habits-text-muted); margin: 0 0 1.25rem; }
+        a.home {
+            display: inline-block;
+            margin-top: 0.5rem;
+            color: var(--habits-coral-dark);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Profile not found</h1>
+        <p>We couldn&rsquo;t find a Friends with Habits profile for &#64;{{userName}}.</p>
+        <a class="home" href="/">&larr; Back to Friends with Habits</a>
+    </div>
+</body>
+</html>

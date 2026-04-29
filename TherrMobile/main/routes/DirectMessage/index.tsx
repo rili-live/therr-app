@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { FlatList, View, Platform } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';

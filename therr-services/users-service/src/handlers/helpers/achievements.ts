@@ -1,11 +1,17 @@
-import { achievementsByClass, getAchievementsForBrand } from 'therr-js-utilities/config';
+import { achievementsByClass, isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
 import { Notifications } from 'therr-js-utilities/constants';
+import { getBrandContext } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
-import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../../store';
 import { ICreateOrUpdateResponse, IDBAchievement } from '../../store/UserAchievementsStore';
 import notifyUserOfUpdate from '../../utilities/notifyUserOfUpdate';
+
+const NO_OP_RESPONSE: ICreateOrUpdateResponse = {
+    created: [],
+    updated: [],
+    action: 'incomplete',
+};
 
 const getAchIdNumber = (id: string) => {
     const arr = id.split('_');
@@ -25,13 +31,19 @@ const createOrUpdateAchievement: (
         return Promise.reject(Error('invalid-achievement-class'));
     }
 
-    const { brandVariation } = parseHeaders(headers as any);
-    const allowed = getAchievementsForBrand(brandVariation);
-    if (!allowed[achievementClass]) {
-        return Promise.reject(Error('achievement-class-not-allowed-for-brand'));
+    const { brandVariation } = getBrandContext(headers as Record<string, any>);
+
+    // Skip when the achievement class isn't enabled for the request's brand. For example,
+    // a HABITS user creating a connection would otherwise trigger 'socialite_1_1' and write
+    // a Therr-themed row stamped with brandVariation='habits' — it passes the SQL brand
+    // filter but surfaces a Therr-shaped achievement (and ACHIEVEMENT_COMPLETED push) in
+    // the niche app. The HABITS class allow-list (see therr-js-utilities/config/achievements)
+    // now also includes the 8 streak/pact-themed classes plus reused `socialite` for invites.
+    if (!isAchievementClassEnabledForBrand(achievementClass, brandVariation)) {
+        return Promise.resolve(NO_OP_RESPONSE);
     }
 
-    return Store.userAchievements.get({
+    return Store.userAchievements.get(brandVariation, {
         userId: headers['x-userid'] || '',
         achievementTier,
         achievementClass,
@@ -43,7 +55,7 @@ const createOrUpdateAchievement: (
             .filter((key:string) => achievementsInClass[key].tier === achievementTier);
         const tierAchievementsArr = tierAchievementKeys.map((key) => ({ ...achievementsInClass[key], id: key }));
 
-        return Store.userAchievements.updateAndCreateConsecutive({
+        return Store.userAchievements.updateAndCreateConsecutive(brandVariation, {
             userId: headers['x-userid'] || '',
             achievementClass,
             achievementTier,

@@ -13,6 +13,7 @@ import handleHttpError from '../utilities/handleHttpError';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
 import notifyUserOfUpdate from '../utilities/notifyUserOfUpdate';
+import { resolveDeviceTokensForBrand } from '../utilities/sendEmailAndOrPushNotification';
 
 // READ
 const getUserGroups = (req, res) => Store.userGroups.get({
@@ -358,13 +359,20 @@ const notifyGroupMembers = (req, res) => {
                     ids: userIds,
                 },
                 ['id', 'email', 'deviceMobileFirebaseToken'],
-            ).then((users) => {
+            ).then(async (users) => {
                 const usersWithGroup = users.map((user) => ({
                     ...user,
                     role: userGroupsMap[user.id].role,
                     shouldMuteNotifs: userGroupsMap[user.id].shouldMuteNotifs,
                     shouldShareLocation: userGroupsMap[user.id].shouldShareLocation,
                 }));
+
+                // Phase 2 of multi-app data isolation: replace each member's legacy
+                // users.deviceMobileFirebaseToken with the brand-scoped token from
+                // main.userDeviceTokens before fan-out, so a Habits group push routes
+                // through Habits-registered tokens (and therefore the Habits Firebase
+                // project), not whatever the user happened to register with first.
+                const resolvedUsers = await resolveDeviceTokensForBrand(brandVariation, usersWithGroup);
 
                 // NOTE: This does NOT create app notifications (only push notifications)
                 return internalRestRequest({
@@ -378,7 +386,7 @@ const notifyGroupMembers = (req, res) => {
                         'x-therr-origin-host': whiteLabelOrigin,
                     },
                     data: {
-                        users: usersWithGroup,
+                        users: resolvedUsers,
                         type: PushNotifications.Types.newGroupMessage,
                         groupDetails: {
                             id: groupId,
