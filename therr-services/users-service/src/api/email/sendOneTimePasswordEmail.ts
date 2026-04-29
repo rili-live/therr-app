@@ -20,9 +20,15 @@ export interface ITemplateParams {
 export default (emailParams: ISendOneTimePasswordConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
-    const linkUrl = isDashboardRegistration
-        ? `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`
-        : `${globalConfig[process.env.NODE_ENV].hostFull}/login`;
+    const brandAppHostFull = contextConfig.emailTemplates.appHostFull;
+    let linkUrl: string;
+    if (isDashboardRegistration) {
+        linkUrl = `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`;
+    } else if (brandAppHostFull) {
+        linkUrl = `${brandAppHostFull}/login`;
+    } else {
+        linkUrl = `${globalConfig[process.env.NODE_ENV].hostFull}/login`;
+    }
     const htmlConfig = {
         header: translate(locale, 'emails.oneTimePassword.header', { brandName: contextConfig.brandName }),
         dearUser: translate(locale, 'emails.oneTimePassword.dearUser', { name: templateParams.name }),
