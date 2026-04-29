@@ -1,3 +1,5 @@
+export type HabitGoalType = 'build_good' | 'break_bad' | 'savings_goal' | 'maintenance';
+
 // Habit Goal Types
 export interface IHabitGoal {
     id: string;
@@ -5,6 +7,7 @@ export interface IHabitGoal {
     description?: string;
     category?: string;
     emoji?: string;
+    goalType: HabitGoalType;
     frequencyType: string;
     frequencyCount: number;
     targetDaysOfWeek?: number[];

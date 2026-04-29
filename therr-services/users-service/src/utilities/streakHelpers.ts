@@ -181,3 +181,23 @@ export const isToday = (dateString: string): boolean => dateString === getTodayD
  * Check if a date string is yesterday
  */
 export const isYesterday = (dateString: string): boolean => dateString === getYesterdayDateString();
+
+/**
+ * Whether a streak update represents a "comeback" — i.e. the user just restarted a streak
+ * after a previous one ended. previousLongestStreak must be > 0 so the very first streak
+ * does not trip a Bounce Back.
+ */
+export const isComebackStart = (
+    streakBefore: number,
+    streakAfter: number,
+    previousLongestStreak: number,
+): boolean => streakBefore === 0 && streakAfter === 1 && previousLongestStreak > 0;
+
+/**
+ * Whether the user just beat their previous longest streak (Phoenix moment).
+ * Guarded so the first ever streak does not count — previous record must have been at least 7.
+ */
+export const isPhoenixMoment = (
+    streakAfter: number,
+    previousLongestStreak: number,
+): boolean => streakAfter > previousLongestStreak && previousLongestStreak >= 7;

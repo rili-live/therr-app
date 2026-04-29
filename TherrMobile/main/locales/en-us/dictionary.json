@@ -2085,6 +2085,226 @@
       "influencer_1_3_7": {
         "title": "Unstoppable Creativity",
         "description": "Create 1,000 moments"
+      },
+      "habitBuilder_1_1": {
+        "title": "First Steps",
+        "description": "Reach a 3-day streak on a habit"
+      },
+      "habitBuilder_1_1_1": {
+        "title": "One Week Strong",
+        "description": "Reach a 7-day streak on a habit"
+      },
+      "habitBuilder_1_1_2": {
+        "title": "Two Week Wonder",
+        "description": "Reach a 14-day streak on a habit"
+      },
+      "habitBuilder_1_1_3": {
+        "title": "Habit Formed",
+        "description": "Reach a 30-day streak on a habit"
+      },
+      "habitBuilder_1_1_4": {
+        "title": "Two Months In",
+        "description": "Reach a 60-day streak on a habit"
+      },
+      "habitBuilder_1_1_5": {
+        "title": "Quarter Master",
+        "description": "Reach a 90-day streak on a habit"
+      },
+      "habitBuilder_1_1_6": {
+        "title": "Half Year Hero",
+        "description": "Reach a 180-day streak on a habit"
+      },
+      "habitBuilder_1_1_7": {
+        "title": "Habit Legend",
+        "description": "Reach a 365-day streak on a habit"
+      },
+      "cleanBreak_1_1": {
+        "title": "First Day Free",
+        "description": "Complete 1 day without breaking a habit"
+      },
+      "cleanBreak_1_1_1": {
+        "title": "Three Strong",
+        "description": "Reach a 3-day clean streak"
+      },
+      "cleanBreak_1_1_2": {
+        "title": "One Week Clean",
+        "description": "Reach a 7-day clean streak"
+      },
+      "cleanBreak_1_1_3": {
+        "title": "Two Weeks Clear",
+        "description": "Reach a 14-day clean streak"
+      },
+      "cleanBreak_1_1_4": {
+        "title": "Thirty Days Reborn",
+        "description": "Reach a 30-day clean streak"
+      },
+      "cleanBreak_1_1_5": {
+        "title": "Sixty Day Stride",
+        "description": "Reach a 60-day clean streak"
+      },
+      "cleanBreak_1_1_6": {
+        "title": "Ninety Day Reset",
+        "description": "Reach a 90-day clean streak"
+      },
+      "cleanBreak_1_1_7": {
+        "title": "Half Year Free",
+        "description": "Reach a 180-day clean streak"
+      },
+      "cleanBreak_1_1_8": {
+        "title": "A Year Reborn",
+        "description": "Reach a 365-day clean streak"
+      },
+      "treasureBuilder_1_1": {
+        "title": "Penny Saved",
+        "description": "Reach a 7-day no-spend streak"
+      },
+      "treasureBuilder_1_1_1": {
+        "title": "Frugal Fortnight",
+        "description": "Reach a 14-day no-spend streak"
+      },
+      "treasureBuilder_1_1_2": {
+        "title": "Coin Collector",
+        "description": "Reach a 30-day no-spend streak"
+      },
+      "treasureBuilder_1_1_3": {
+        "title": "Vault Keeper",
+        "description": "Reach a 60-day no-spend streak"
+      },
+      "treasureBuilder_1_1_4": {
+        "title": "Treasure Hunter",
+        "description": "Reach a 100-day no-spend streak"
+      },
+      "treasureBuilder_1_2": {
+        "title": "First Goal Reached",
+        "description": "Complete 1 savings pact"
+      },
+      "treasureBuilder_1_2_1": {
+        "title": "Goal Setter",
+        "description": "Complete 3 savings pacts"
+      },
+      "treasureBuilder_1_2_2": {
+        "title": "Wealth Builder",
+        "description": "Complete 10 savings pacts"
+      },
+      "consistency_1_1": {
+        "title": "Perfect Week",
+        "description": "Complete every scheduled check-in for 7 days on one habit"
+      },
+      "consistency_1_1_1": {
+        "title": "Flawless Fortnight",
+        "description": "Complete every scheduled check-in for 14 days on one habit"
+      },
+      "consistency_1_1_2": {
+        "title": "Spotless Month",
+        "description": "Complete every scheduled check-in for 30 days on one habit"
+      },
+      "consistency_1_1_3": {
+        "title": "Pristine Quarter",
+        "description": "Complete every scheduled check-in for 90 days on one habit"
+      },
+      "consistency_1_2": {
+        "title": "Two At Once",
+        "description": "Complete a perfect 7-day window on 2 habits simultaneously"
+      },
+      "consistency_1_2_1": {
+        "title": "Triple Threat",
+        "description": "Complete a perfect 7-day window on 3 habits simultaneously"
+      },
+      "consistency_1_2_2": {
+        "title": "All Things at Once",
+        "description": "Complete a perfect 7-day window on 5 habits simultaneously"
+      },
+      "accountability_1_1": {
+        "title": "First Pact",
+        "description": "Join your first pact"
+      },
+      "accountability_1_1_1": {
+        "title": "Loyal Partner",
+        "description": "Complete a pact at 80% or higher"
+      },
+      "accountability_1_1_2": {
+        "title": "Reliable Ally",
+        "description": "Complete 5 pacts at 80% or higher"
+      },
+      "accountability_1_1_3": {
+        "title": "Habit Champion",
+        "description": "Complete 25 pacts at 80% or higher"
+      },
+      "accountability_1_2": {
+        "title": "Wing Person",
+        "description": "Help a partner complete their pact at 80% or higher"
+      },
+      "accountability_1_2_1": {
+        "title": "Coach",
+        "description": "Help 5 partners complete their pacts at 80% or higher"
+      },
+      "accountability_1_2_2": {
+        "title": "Mentor",
+        "description": "Help 25 partners complete their pacts at 80% or higher"
+      },
+      "resilience_1_1": {
+        "title": "Bounce Back",
+        "description": "Restart a streak after a previous one ended"
+      },
+      "resilience_1_1_1": {
+        "title": "Phoenix",
+        "description": "Beat your previous longest streak after a reset"
+      },
+      "resilience_1_1_2": {
+        "title": "Unbreakable",
+        "description": "Beat your previous longest streak 5 times"
+      },
+      "resilience_1_2": {
+        "title": "Second Wind",
+        "description": "Finish a pact strong after losing your streak mid-pact"
+      },
+      "resilience_1_2_1": {
+        "title": "Comeback Kid",
+        "description": "Finish 5 pacts strong after losing your streak mid-pact"
+      },
+      "socialEnergizer_1_1": {
+        "title": "Cheerleader",
+        "description": "React to 10 partner check-ins"
+      },
+      "socialEnergizer_1_1_1": {
+        "title": "Hype Squad",
+        "description": "React to 50 partner check-ins"
+      },
+      "socialEnergizer_1_1_2": {
+        "title": "Crowd Pleaser",
+        "description": "React to 250 partner check-ins"
+      },
+      "socialEnergizer_1_2": {
+        "title": "Milestone Maker",
+        "description": "Celebrate a partner milestone"
+      },
+      "socialEnergizer_1_2_1": {
+        "title": "Confetti Cannon",
+        "description": "Celebrate 25 partner milestones"
+      },
+      "pactPioneer_1_1": {
+        "title": "Pact Starter",
+        "description": "Create your first pact"
+      },
+      "pactPioneer_1_1_1": {
+        "title": "Pact Maker",
+        "description": "Create 5 pacts"
+      },
+      "pactPioneer_1_1_2": {
+        "title": "Pact Architect",
+        "description": "Create 25 pacts"
+      },
+      "pactPioneer_1_1_3": {
+        "title": "Pact Visionary",
+        "description": "Create 100 pacts"
+      },
+      "pactPioneer_1_2": {
+        "title": "First Invite Sent",
+        "description": "Invite your first unique partner"
+      },
+      "pactPioneer_1_2_1": {
+        "title": "Network Effect",
+        "description": "Invite 10 unique partners across pacts"
       }
     },
     "profile": {

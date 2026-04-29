@@ -2085,6 +2085,226 @@
       "influencer_1_3_7": {
         "title": "Creatividad imparable",
         "description": "Crea 1,000 momentos"
+      },
+      "habitBuilder_1_1": {
+        "title": "Primeros pasos",
+        "description": "Alcanza una racha de 3 días en un hábito"
+      },
+      "habitBuilder_1_1_1": {
+        "title": "Una semana fuerte",
+        "description": "Alcanza una racha de 7 días en un hábito"
+      },
+      "habitBuilder_1_1_2": {
+        "title": "Maravilla de dos semanas",
+        "description": "Alcanza una racha de 14 días en un hábito"
+      },
+      "habitBuilder_1_1_3": {
+        "title": "Hábito formado",
+        "description": "Alcanza una racha de 30 días en un hábito"
+      },
+      "habitBuilder_1_1_4": {
+        "title": "Dos meses dentro",
+        "description": "Alcanza una racha de 60 días en un hábito"
+      },
+      "habitBuilder_1_1_5": {
+        "title": "Maestro del trimestre",
+        "description": "Alcanza una racha de 90 días en un hábito"
+      },
+      "habitBuilder_1_1_6": {
+        "title": "Héroe de medio año",
+        "description": "Alcanza una racha de 180 días en un hábito"
+      },
+      "habitBuilder_1_1_7": {
+        "title": "Leyenda del hábito",
+        "description": "Alcanza una racha de 365 días en un hábito"
+      },
+      "cleanBreak_1_1": {
+        "title": "Primer día libre",
+        "description": "Completa 1 día sin romper un hábito"
+      },
+      "cleanBreak_1_1_1": {
+        "title": "Tres firmes",
+        "description": "Alcanza una racha limpia de 3 días"
+      },
+      "cleanBreak_1_1_2": {
+        "title": "Una semana limpia",
+        "description": "Alcanza una racha limpia de 7 días"
+      },
+      "cleanBreak_1_1_3": {
+        "title": "Dos semanas claras",
+        "description": "Alcanza una racha limpia de 14 días"
+      },
+      "cleanBreak_1_1_4": {
+        "title": "Treinta días renacido",
+        "description": "Alcanza una racha limpia de 30 días"
+      },
+      "cleanBreak_1_1_5": {
+        "title": "Sesenta días firmes",
+        "description": "Alcanza una racha limpia de 60 días"
+      },
+      "cleanBreak_1_1_6": {
+        "title": "Noventa días reiniciados",
+        "description": "Alcanza una racha limpia de 90 días"
+      },
+      "cleanBreak_1_1_7": {
+        "title": "Medio año libre",
+        "description": "Alcanza una racha limpia de 180 días"
+      },
+      "cleanBreak_1_1_8": {
+        "title": "Un año renacido",
+        "description": "Alcanza una racha limpia de 365 días"
+      },
+      "treasureBuilder_1_1": {
+        "title": "Centavo ahorrado",
+        "description": "Alcanza una racha de 7 días sin gastar"
+      },
+      "treasureBuilder_1_1_1": {
+        "title": "Quincena frugal",
+        "description": "Alcanza una racha de 14 días sin gastar"
+      },
+      "treasureBuilder_1_1_2": {
+        "title": "Coleccionista de monedas",
+        "description": "Alcanza una racha de 30 días sin gastar"
+      },
+      "treasureBuilder_1_1_3": {
+        "title": "Guardián de la bóveda",
+        "description": "Alcanza una racha de 60 días sin gastar"
+      },
+      "treasureBuilder_1_1_4": {
+        "title": "Cazador de tesoros",
+        "description": "Alcanza una racha de 100 días sin gastar"
+      },
+      "treasureBuilder_1_2": {
+        "title": "Primera meta alcanzada",
+        "description": "Completa 1 pacto de ahorro"
+      },
+      "treasureBuilder_1_2_1": {
+        "title": "Fijador de metas",
+        "description": "Completa 3 pactos de ahorro"
+      },
+      "treasureBuilder_1_2_2": {
+        "title": "Constructor de riqueza",
+        "description": "Completa 10 pactos de ahorro"
+      },
+      "consistency_1_1": {
+        "title": "Semana perfecta",
+        "description": "Completa cada check-in programado durante 7 días en un hábito"
+      },
+      "consistency_1_1_1": {
+        "title": "Quincena impecable",
+        "description": "Completa cada check-in programado durante 14 días en un hábito"
+      },
+      "consistency_1_1_2": {
+        "title": "Mes inmaculado",
+        "description": "Completa cada check-in programado durante 30 días en un hábito"
+      },
+      "consistency_1_1_3": {
+        "title": "Trimestre intachable",
+        "description": "Completa cada check-in programado durante 90 días en un hábito"
+      },
+      "consistency_1_2": {
+        "title": "Dos a la vez",
+        "description": "Completa una ventana perfecta de 7 días en 2 hábitos simultáneamente"
+      },
+      "consistency_1_2_1": {
+        "title": "Triple amenaza",
+        "description": "Completa una ventana perfecta de 7 días en 3 hábitos simultáneamente"
+      },
+      "consistency_1_2_2": {
+        "title": "Todo a la vez",
+        "description": "Completa una ventana perfecta de 7 días en 5 hábitos simultáneamente"
+      },
+      "accountability_1_1": {
+        "title": "Primer pacto",
+        "description": "Únete a tu primer pacto"
+      },
+      "accountability_1_1_1": {
+        "title": "Compañero leal",
+        "description": "Completa un pacto al 80% o más"
+      },
+      "accountability_1_1_2": {
+        "title": "Aliado confiable",
+        "description": "Completa 5 pactos al 80% o más"
+      },
+      "accountability_1_1_3": {
+        "title": "Campeón de hábitos",
+        "description": "Completa 25 pactos al 80% o más"
+      },
+      "accountability_1_2": {
+        "title": "Buen acompañante",
+        "description": "Ayuda a un compañero a completar su pacto al 80% o más"
+      },
+      "accountability_1_2_1": {
+        "title": "Entrenador",
+        "description": "Ayuda a 5 compañeros a completar sus pactos al 80% o más"
+      },
+      "accountability_1_2_2": {
+        "title": "Mentor",
+        "description": "Ayuda a 25 compañeros a completar sus pactos al 80% o más"
+      },
+      "resilience_1_1": {
+        "title": "Volver con fuerza",
+        "description": "Reinicia una racha después de que terminó una anterior"
+      },
+      "resilience_1_1_1": {
+        "title": "Fénix",
+        "description": "Supera tu racha más larga después de un reinicio"
+      },
+      "resilience_1_1_2": {
+        "title": "Inquebrantable",
+        "description": "Supera tu racha más larga 5 veces"
+      },
+      "resilience_1_2": {
+        "title": "Segundo aire",
+        "description": "Termina un pacto fuerte después de perder tu racha a mitad de pacto"
+      },
+      "resilience_1_2_1": {
+        "title": "Niño del regreso",
+        "description": "Termina 5 pactos fuerte después de perder tu racha a mitad de pacto"
+      },
+      "socialEnergizer_1_1": {
+        "title": "Animador",
+        "description": "Reacciona a 10 check-ins de tu compañero"
+      },
+      "socialEnergizer_1_1_1": {
+        "title": "Equipo de ánimo",
+        "description": "Reacciona a 50 check-ins de tu compañero"
+      },
+      "socialEnergizer_1_1_2": {
+        "title": "Favorito de la multitud",
+        "description": "Reacciona a 250 check-ins de tu compañero"
+      },
+      "socialEnergizer_1_2": {
+        "title": "Hacedor de hitos",
+        "description": "Celebra un hito de un compañero"
+      },
+      "socialEnergizer_1_2_1": {
+        "title": "Cañón de confeti",
+        "description": "Celebra 25 hitos de compañeros"
+      },
+      "pactPioneer_1_1": {
+        "title": "Iniciador de pactos",
+        "description": "Crea tu primer pacto"
+      },
+      "pactPioneer_1_1_1": {
+        "title": "Hacedor de pactos",
+        "description": "Crea 5 pactos"
+      },
+      "pactPioneer_1_1_2": {
+        "title": "Arquitecto de pactos",
+        "description": "Crea 25 pactos"
+      },
+      "pactPioneer_1_1_3": {
+        "title": "Visionario de pactos",
+        "description": "Crea 100 pactos"
+      },
+      "pactPioneer_1_2": {
+        "title": "Primera invitación enviada",
+        "description": "Invita a tu primer compañero único"
+      },
+      "pactPioneer_1_2_1": {
+        "title": "Efecto de red",
+        "description": "Invita a 10 compañeros únicos en distintos pactos"
       }
     },
     "profile": {

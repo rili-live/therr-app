@@ -21,6 +21,7 @@ import userOrganizationsRouter from './userOrganizationsRouter';
 // HABITS routers
 import habitGoalsRouter from './habitGoalsRouter';
 import pactsRouter from './pactsRouter';
+import pactActivitiesRouter from './pactActivitiesRouter';
 import habitCheckinsRouter from './habitCheckinsRouter';
 import streaksRouter from './streaksRouter';
 
@@ -49,6 +50,7 @@ router.use('/users-groups', userGroupsRouter);
 // HABITS routes
 router.use('/habits/goals', habitGoalsRouter);
 router.use('/habits/pacts', pactsRouter);
+router.use('/habits/pacts', pactActivitiesRouter);
 router.use('/habits/checkins', habitCheckinsRouter);
 router.use('/habits/streaks', streaksRouter);
 

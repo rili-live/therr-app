@@ -9,8 +9,16 @@ import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotif
 import {
     getTodayDateString,
     checkMilestoneReached,
+    isComebackStart,
+    isPhoenixMoment,
 } from '../utilities/streakHelpers';
 import { getPartnerUserId } from '../utilities/pactHelpers';
+import {
+    awardStreakAchievement,
+    awardConsistencyAchievement,
+    awardResilienceComebackAchievement,
+    HabitGoalType,
+} from './helpers/awardHabitAchievements';
 
 // CREATE
 const createCheckin: RequestHandler = async (req: any, res: any) => {
@@ -115,6 +123,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
             if (checkin.status === 'completed') {
                 const streak = await Store.streaks.getOrCreate(userId, habitGoalId, pactId);
                 const streakBefore = streak.currentStreak;
+                const longestBefore = streak.longestStreak;
                 await Store.streaks.incrementStreak(streak.id, checkinDate);
                 const updatedStreak = await Store.streaks.getById(streak.id);
 
@@ -127,6 +136,20 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     streakBefore,
                     updatedStreak.currentStreak,
                 );
+
+                // Award achievements (HABITS only; brand allow-list filters non-HABITS calls)
+                const goalType: HabitGoalType = (habitGoal.goalType as HabitGoalType) || 'build_good';
+                awardStreakAchievement(req.headers, {
+                    goalType,
+                    currentStreak: updatedStreak.currentStreak,
+                });
+                awardConsistencyAchievement(req.headers, updatedStreak.currentStreak);
+                if (isComebackStart(streakBefore, updatedStreak.currentStreak, longestBefore)) {
+                    awardResilienceComebackAchievement(req.headers, 1);
+                }
+                if (isPhoenixMoment(updatedStreak.currentStreak, longestBefore)) {
+                    awardResilienceComebackAchievement(req.headers, 1);
+                }
 
                 const milestone = checkMilestoneReached(updatedStreak.currentStreak);
                 if (milestone) {
