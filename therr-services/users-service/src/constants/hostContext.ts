@@ -43,6 +43,10 @@ interface IBrandConfig {
         fromEmail: string;
         fromEmailTitle: string;
         homepageLinkUri: string;
+        // When set, brand-aware email links (verify, login, etc.) prefer this host
+        // over the global hostFull. Lets niche apps with their own subdomain serve
+        // onboarding pages without bouncing users to therr.com.
+        appHostFull?: string;
         logoRelativePath: string;
         logoAltText: string;
         headerImageRelativePath?: string; // 560 x 190
@@ -146,9 +150,10 @@ const hostContext: IBrandConfigs = {
             fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
             fromEmailTitle: 'Friends with Habits',
             homepageLinkUri: 'https://habits.therr.com',
+            appHostFull: 'https://habits.therr.com',
             logoRelativePath: 'assets/images/habits-splash-logo-200.png',
             logoAltText: 'Friends with Habits logo',
-            unsubscribeUrl: 'https://therr.com/emails/unsubscribe',
+            unsubscribeUrl: 'https://habits.therr.com/emails/unsubscribe',
             legalBusinessName: 'Therr Inc.',
             businessCopyrightYear: `${new Date().getFullYear()}`,
         },
