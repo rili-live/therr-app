@@ -216,19 +216,21 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                         </View>
                     </View>
 
-                    <View style={[themeHabits.styles.emptyStateContainer, { paddingTop: 24, paddingBottom: 16 }]}>
-                        <Text style={themeHabits.styles.onboardingWhyTitle}>
-                            {translate('pages.pacts.onboarding.whyPacts')}
+                    <View style={themeHabits.styles.stepBadge}>
+                        <Text style={themeHabits.styles.stepBadgeText}>
+                            {translate('pages.pacts.preview.stepBadge', { current: 3, total: 3 })}
                         </Text>
-                        <Text style={themeHabits.styles.onboardingBenefit}>
-                            {'✅'} {translate('pages.pacts.onboarding.benefit1')}
-                        </Text>
-                        <Text style={themeHabits.styles.onboardingBenefit}>
-                            {'✅'} {translate('pages.pacts.onboarding.benefit2')}
-                        </Text>
-                        <Text style={themeHabits.styles.onboardingBenefit}>
-                            {'✅'} {translate('pages.pacts.onboarding.benefit3')}
-                        </Text>
+                    </View>
+                    <View style={[themeHabits.styles.habitCardContainer, { flexDirection: 'row', alignItems: 'center' }]}>
+                        <Text style={{ fontSize: 22, marginRight: 12 }}>{'⏳'}</Text>
+                        <View style={{ flex: 1 }}>
+                            <Text style={themeHabits.styles.onboardingCardHeader}>
+                                {translate('pages.pacts.preview.pactCardHeader')}
+                            </Text>
+                            <Text style={themeHabits.styles.onboardingCardTitle}>
+                                {translate('pages.pacts.preview.samplePactStatus')}
+                            </Text>
+                        </View>
                     </View>
                 </ScrollView>
 

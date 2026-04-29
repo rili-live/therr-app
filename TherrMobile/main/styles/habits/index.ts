@@ -504,21 +504,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textGray,
             marginTop: 10,
         },
-        onboardingBenefit: {
-            fontFamily: therrFontFamily,
-            fontSize: 15,
-            lineHeight: 22,
-            color: therrTheme.colors.textWhite,
-            marginTop: 6,
-        },
-        onboardingWhyTitle: {
-            fontFamily: therrFontFamily,
-            fontSize: 16,
-            fontWeight: '700',
-            color: therrTheme.colors.textWhite,
-            textAlign: 'center',
-            marginBottom: 6,
-        },
     });
 
     return ({

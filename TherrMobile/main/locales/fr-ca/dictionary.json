@@ -1788,10 +1788,7 @@
         "createPact": "Inviter un partenaire",
         "viewInvites": "Voir {count} invitation(s) de pacte",
         "findPartner": "Parcourir les gens",
-        "whyPacts": "Pourquoi ça marche mieux à deux :",
-        "benefit1": "2 fois plus de chances de garder tes habitudes",
-        "benefit2": "Des check-ins quotidiens avec quelqu'un qui compte sur toi",
-        "benefit3": "Des séries que vous bâtissez — et célébrez — ensemble"
+        "benefit2": "Des check-ins quotidiens avec quelqu'un partageant des objectifs similaires"
       },
       "preview": {
         "bannerTitle": "Lance ton premier pacte",
@@ -1799,9 +1796,9 @@
         "bannerHelper": "Touche ci-dessous pour envoyer ta première invitation",
         "bannerCTA": "Inviter un ami",
         "bannerSecondaryCTA": "Voir les invitations envoyées",
-        "sampleHabitTitle": "Ton habitude s'affichera ici",
+        "sampleHabitTitle": "Commence avec une habitude/un objectif",
         "sampleHabitSubtitle": "Bâtis une bonne habitude, brise-en une mauvaise ou épargne vers un objectif commun — on l'activera dès que ton ami se joint.",
-        "samplePartnerName": "Ton futur partenaire",
+        "samplePartnerName": "Responsabilité amicale",
         "sampleStreakLabel": "Jour 1 — s'active quand ton partenaire se joint",
         "prestagedSuffix": "Prête quand ton partenaire se joint",
         "stepBadge": "Étape {current} sur {total}",
@@ -1812,7 +1809,9 @@
         "step3Label": "Active",
         "step3Sublabel": "ton pacte",
         "habitCardHeader": "Ton habitude ou objectif d'épargne",
-        "partnerCardHeader": "Ton partenaire de responsabilité"
+        "partnerCardHeader": "Ton équipe de responsabilité",
+        "pactCardHeader": "Ton pacte",
+        "samplePactStatus": "En attente d'acceptation de ton invitation"
       },
       "outgoing": {
         "tabLabel": "Envoyées",

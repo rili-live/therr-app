@@ -1788,10 +1788,7 @@
         "createPact": "Invitar a un compañero",
         "viewInvites": "Ver {count} invitación(es) de pacto",
         "findPartner": "Explorar personas",
-        "whyPacts": "Por qué funciona mejor en pareja:",
-        "benefit1": "2 veces más probabilidades de mantener tus hábitos",
-        "benefit2": "Check-ins diarios con alguien que cuenta contigo",
-        "benefit3": "Rachas que construyen — y celebran — juntos"
+        "benefit2": "Check-ins diarios con alguien que comparte metas similares"
       },
       "preview": {
         "bannerTitle": "Empieza tu primer pacto",
@@ -1799,9 +1796,9 @@
         "bannerHelper": "Toca abajo para enviar tu primera invitación",
         "bannerCTA": "Invitar a un amigo",
         "bannerSecondaryCTA": "Ver invitaciones enviadas",
-        "sampleHabitTitle": "Tu hábito aparecerá aquí",
+        "sampleHabitTitle": "Empieza con un hábito/meta",
         "sampleHabitSubtitle": "Construye un hábito saludable, rompe uno malo, o ahorra hacia una meta compartida — lo activaremos cuando tu amigo se una.",
-        "samplePartnerName": "Tu futuro compañero",
+        "samplePartnerName": "Responsabilidad amistosa",
         "sampleStreakLabel": "Día 1 — se activa cuando tu compañero se una",
         "prestagedSuffix": "Listo cuando tu compañero se una",
         "stepBadge": "Paso {current} de {total}",
@@ -1812,7 +1809,9 @@
         "step3Label": "Activa",
         "step3Sublabel": "tu pacto",
         "habitCardHeader": "Tu hábito o meta de ahorro",
-        "partnerCardHeader": "Tu compañero de responsabilidad"
+        "partnerCardHeader": "Tu equipo de responsabilidad",
+        "pactCardHeader": "Tu pacto",
+        "samplePactStatus": "Pendiente que acepten tu invitación"
       },
       "outgoing": {
         "tabLabel": "Enviadas",

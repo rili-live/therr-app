@@ -1788,10 +1788,7 @@
         "createPact": "Invite a Partner",
         "viewInvites": "View {count} Pact Invite(s)",
         "findPartner": "Browse People",
-        "whyPacts": "Why it works better together:",
-        "benefit1": "2x more likely to stick with your habits",
-        "benefit2": "Daily check-ins with someone who's counting on you",
-        "benefit3": "Streaks you build — and celebrate — together"
+        "benefit2": "Daily check-ins with someone sharing similar goals"
       },
       "preview": {
         "bannerTitle": "Start your first pact",
@@ -1799,9 +1796,9 @@
         "bannerHelper": "Tap below to send your first invite",
         "bannerCTA": "Invite a friend",
         "bannerSecondaryCTA": "View sent invites",
-        "sampleHabitTitle": "Your habit appears here",
+        "sampleHabitTitle": "Start with a habit/goal",
         "sampleHabitSubtitle": "Build a healthy habit, break a bad one, or save toward a shared goal — we'll lock it in once your friend joins.",
-        "samplePartnerName": "Your future partner",
+        "samplePartnerName": "Friendly accountability",
         "sampleStreakLabel": "Day 1 — locks in when your partner joins",
         "prestagedSuffix": "Ready when your partner joins",
         "stepBadge": "Step {current} of {total}",
@@ -1812,7 +1809,9 @@
         "step3Label": "Lock in",
         "step3Sublabel": "your pact",
         "habitCardHeader": "Your habit or savings goal",
-        "partnerCardHeader": "Your accountability partner"
+        "partnerCardHeader": "Your accountability team",
+        "pactCardHeader": "Your pact",
+        "samplePactStatus": "Pending your accepted invite"
       },
       "outgoing": {
         "tabLabel": "Sent",
