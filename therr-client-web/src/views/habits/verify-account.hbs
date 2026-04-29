@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="robots" content="noindex">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    <style>
+        :root {
+            --habits-navy: #102a43;
+            --habits-coral: #ff6b35;
+            --habits-coral-dark: #e0521e;
+            --habits-cream: #fff8f3;
+            --habits-text: #243b53;
+            --habits-text-muted: #627d98;
+            --habits-border: #d9e2ec;
+            --habits-success: #2f855a;
+            --habits-error: #c53030;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--habits-text);
+            background: var(--habits-cream);
+            min-height: 100vh;
+        }
+        a { color: var(--habits-coral-dark); }
+        header.site-header {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--habits-border);
+            background: #fff;
+        }
+        .container {
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        header.site-header .brand {
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: var(--habits-navy);
+            letter-spacing: -0.01em;
+        }
+        main.wrap {
+            padding: 4rem 0 3rem;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--habits-navy);
+            margin: 0 0 0.75rem;
+            letter-spacing: -0.02em;
+        }
+        p.lede { color: var(--habits-text-muted); margin: 0 0 1.5rem; }
+        .alert {
+            padding: 0.875rem 1rem;
+            border-radius: 0.5rem;
+            margin: 0 0 1.25rem;
+            text-align: left;
+            font-size: 0.9375rem;
+            border: 1px solid;
+        }
+        .alert--success { background: #f0fff4; color: var(--habits-success); border-color: #c6f6d5; }
+        .alert--info { background: #ebf8ff; color: #2b6cb0; border-color: #bee3f8; }
+        .alert--error { background: #fff5f5; color: var(--habits-error); border-color: #fed7d7; }
+        .cta {
+            display: inline-block;
+            padding: 0.875rem 1.75rem;
+            background: var(--habits-coral);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 999px;
+            border: 0;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            text-decoration: none;
+        }
+        .cta:hover { background: var(--habits-coral-dark); text-decoration: none; }
+        .cta:disabled { background: var(--habits-text-muted); cursor: not-allowed; }
+        form.resend {
+            margin-top: 1rem;
+            text-align: left;
+        }
+        form.resend label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0 0 0.375rem;
+            color: var(--habits-navy);
+        }
+        form.resend input[type="email"] {
+            width: 100%;
+            padding: 0.75rem 0.875rem;
+            border: 1px solid var(--habits-border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 0.875rem;
+            background: #fff;
+        }
+        form.resend input[type="email"]:focus {
+            outline: 2px solid var(--habits-coral);
+            outline-offset: 1px;
+        }
+        .stack { display: flex; flex-direction: column; gap: 0.75rem; align-items: stretch; }
+        .pending {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--habits-border);
+            border-top-color: var(--habits-coral);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--habits-border);
+            background: #fff;
+            text-align: center;
+            color: var(--habits-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer a {
+            margin: 0 0.5rem;
+            color: var(--habits-text-muted);
+        }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <span class="brand">Friends with Habits</span>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="container">
+            <div id="state-pending">
+                <h1>Verifying your email&hellip;</h1>
+                <p class="lede"><span class="pending" aria-hidden="true"></span>Hang tight while we confirm your account.</p>
+            </div>
+
+            <div id="state-success" hidden>
+                <h1>You&rsquo;re in.</h1>
+                <div class="alert alert--success">Email verified. Open the Friends with Habits app to start your first pact.</div>
+                <p class="lede">Already installed? Open the app and sign in &mdash; you&rsquo;re all set.</p>
+                <a class="cta" href="https://play.google.com/store/apps/details?id=app.therrmobile" rel="noopener">Get the app</a>
+            </div>
+
+            <div id="state-already-verified" hidden>
+                <h1>Already verified</h1>
+                <div class="alert alert--info">This account&rsquo;s email is already confirmed. Open the app and sign in.</div>
+                <a class="cta" href="https://play.google.com/store/apps/details?id=app.therrmobile" rel="noopener">Get the app</a>
+            </div>
+
+            <div id="state-failed" hidden>
+                <h1>That link didn&rsquo;t work</h1>
+                <div class="alert alert--error" id="error-message">The link is invalid or expired.</div>
+                <p class="lede">Enter your email and we&rsquo;ll send a fresh verification link.</p>
+                <form class="resend" id="resend-form" novalidate>
+                    <label for="resend-email">Email</label>
+                    <input id="resend-email" type="email" name="email" autocomplete="email" required>
+                    <div class="stack">
+                        <button class="cta" type="submit" id="resend-submit">Send a new link</button>
+                    </div>
+                </form>
+                <div class="alert alert--success" id="resend-success" hidden>Check your inbox &mdash; a new verification link is on the way.</div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <a href="/">Home</a>
+            <a href="/privacy-policy">Privacy</a>
+            <a href="/terms-of-service">Terms</a>
+            <div style="margin-top: 0.75rem;">&copy; Therr Inc. &middot; Friends with Habits</div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            var API_BASE = {{{apiBaseJson}}};
+            var qs = new URLSearchParams(window.location.search);
+            var token = qs.get('token');
+
+            function show(id) {
+                ['state-pending', 'state-success', 'state-already-verified', 'state-failed'].forEach(function (s) {
+                    var el = document.getElementById(s);
+                    if (el) el.hidden = (s !== id);
+                });
+            }
+
+            function parseError(res, body) {
+                if (body && typeof body.message === 'string') return body.message;
+                return 'Verification failed. Try again or request a new link.';
+            }
+
+            function verify() {
+                if (!token) {
+                    show('state-failed');
+                    document.getElementById('error-message').textContent = 'No verification token in the link.';
+                    return;
+                }
+                fetch(API_BASE + '/users-service/users/verify/' + encodeURIComponent(token), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-brand-variation': 'habits' },
+                    body: JSON.stringify({ type: 'email' }),
+                }).then(function (res) {
+                    return res.json().then(function (body) { return { res: res, body: body }; });
+                }).then(function (out) {
+                    if (out.res.ok) {
+                        show('state-success');
+                        return;
+                    }
+                    var msg = (out.body && out.body.message) || '';
+                    if (msg === 'Email already verified') {
+                        show('state-already-verified');
+                        return;
+                    }
+                    show('state-failed');
+                    document.getElementById('error-message').textContent = parseError(out.res, out.body);
+                }).catch(function () {
+                    show('state-failed');
+                    document.getElementById('error-message').textContent = 'Network error. Check your connection and try again.';
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                verify();
+                var form = document.getElementById('resend-form');
+                var success = document.getElementById('resend-success');
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var email = document.getElementById('resend-email').value.trim();
+                    if (!email) return;
+                    var btn = document.getElementById('resend-submit');
+                    btn.disabled = true;
+                    btn.textContent = 'Sending…';
+                    fetch(API_BASE + '/users-service/users/verify/resend', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-brand-variation': 'habits' },
+                        body: JSON.stringify({ email: email, type: 'email' }),
+                    }).then(function (res) {
+                        return res.json().then(function (body) { return { res: res, body: body }; }).catch(function () { return { res: res, body: {} }; });
+                    }).then(function (out) {
+                        if (out.res.ok) {
+                            form.hidden = true;
+                            success.hidden = false;
+                            return;
+                        }
+                        if (out.body && out.body.message === 'Email already verified') {
+                            show('state-already-verified');
+                            return;
+                        }
+                        document.getElementById('error-message').textContent = parseError(out.res, out.body);
+                    }).catch(function () {
+                        document.getElementById('error-message').textContent = 'Network error. Try again in a moment.';
+                    }).then(function () {
+                        btn.disabled = false;
+                        btn.textContent = 'Send a new link';
+                    });
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

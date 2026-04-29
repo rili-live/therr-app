@@ -23,6 +23,9 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
         });
     }
 
+    // Brand-allow-list enforcement is centralized in createOrUpdateAchievement via
+    // isAchievementClassEnabledForBrand. A non-allowed class becomes a NO_OP_RESPONSE
+    // (silent skip) rather than an HTTP error so side-effect callers don't fail.
     return createOrUpdateAchievement(req.headers, {
         achievementClass,
         achievementTier,

@@ -11,6 +11,15 @@ import {
     isUserInPact,
     isCreator,
 } from '../utilities/pactHelpers';
+import {
+    awardPactPioneerCreatedAchievement,
+    awardPactPioneerInvitesAchievement,
+    awardAccountabilitySelfAchievement,
+    awardAccountabilityWingAchievement,
+    awardSocialiteInviteAchievement,
+    awardTreasurePactCompletionAchievement,
+    awardResilienceWithinPactAchievement,
+} from './helpers/awardHabitAchievements';
 
 const MAX_BULK_INVITEES = 5;
 
@@ -83,6 +92,10 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                 status: 'active',
             });
 
+            // Award creator achievements for creating a pact (HABITS brand only — allow-list filters)
+            awardPactPioneerCreatedAchievement(req.headers, 1);
+            awardAccountabilitySelfAchievement(req.headers, 1);
+
             // If partner is specified, create their member entry and send notification
             if (partnerUserId) {
                 await Store.pactMembers.create({
@@ -109,6 +122,10 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                         traceArgs: { 'error.message': err?.message },
                     });
                 });
+
+                // Each invite to a (potentially new) partner counts as a unique invitation tier-2 hit and a socialite invite
+                awardPactPioneerInvitesAchievement(req.headers, 1);
+                awardSocialiteInviteAchievement(req.headers, 1);
 
                 // Increment habit goal usage count (fire and forget)
                 Store.habitGoals.incrementUsageCount(habitGoalId).catch((e) => e);
@@ -390,6 +407,9 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
             }
             await Promise.all(streakPromises);
 
+            // Award accepting partner for joining their first pact
+            awardAccountabilitySelfAchievement(req.headers, 1);
+
             // Notify creator
             sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                 authorization,
@@ -577,6 +597,100 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
 
+// COMPLETE — finalize an active pact, compute completion rates, award achievements
+const completePact: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    const pact = await Store.pacts.getById(id);
+    if (!pact) {
+        return handleHttpError({
+            res,
+            message: `Pact not found with id ${id}`,
+            statusCode: 404,
+        });
+    }
+
+    if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)) {
+        return handleHttpError({
+            res,
+            message: 'You are not a participant in this pact',
+            statusCode: 403,
+        });
+    }
+
+    if (pact.status !== 'active') {
+        return handleHttpError({
+            res,
+            message: 'Pact is not active',
+            statusCode: 400,
+        });
+    }
+
+    // Recompute completion rates for both members before persisting status=completed
+    const members = await Store.pactMembers.getByPactId(id);
+    await Promise.all(members.map((m: any) => Store.pactMembers.updateCompletionRate(m.id)));
+    const refreshedMembers = await Store.pactMembers.getByPactId(id);
+
+    const creatorMember = refreshedMembers.find((m: any) => m.role === 'creator');
+    const partnerMember = refreshedMembers.find((m: any) => m.role === 'partner');
+    const creatorCompletionRate = creatorMember ? Number(creatorMember.completionRate) || 0 : 0;
+    const partnerCompletionRate = partnerMember ? Number(partnerMember.completionRate) || 0 : 0;
+
+    let winnerId: string | undefined;
+    if (creatorCompletionRate > partnerCompletionRate) {
+        winnerId = pact.creatorUserId;
+    } else if (partnerCompletionRate > creatorCompletionRate) {
+        winnerId = pact.partnerUserId;
+    }
+
+    return Store.pacts.complete(id, winnerId, creatorCompletionRate, partnerCompletionRate)
+        .then(async (updatedPact) => {
+            // Inspect goalType to know whether to award treasureBuilder tier-2
+            const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
+            const goalType = habitGoal?.goalType || 'build_good';
+
+            const isCreatorRequester = pact.creatorUserId === userId;
+            const requesterCompletionRate = isCreatorRequester ? creatorCompletionRate : partnerCompletionRate;
+            const otherCompletionRate = isCreatorRequester ? partnerCompletionRate : creatorCompletionRate;
+
+            // Tier 1_1 — self pact completion at >=80%
+            if (requesterCompletionRate >= 80) {
+                awardAccountabilitySelfAchievement(req.headers, 1);
+            }
+            // Tier 1_2 — wing-person credit if the OTHER member completed at >=80%
+            if (otherCompletionRate >= 80) {
+                awardAccountabilityWingAchievement(req.headers, 1);
+            }
+            // Savings pact completion → treasureBuilder 1_2
+            if (goalType === 'savings_goal' && requesterCompletionRate >= 80) {
+                awardTreasurePactCompletionAchievement(req.headers, 1);
+            }
+            // Within-pact resilience: detect at least one streak reset event during the pact window
+            try {
+                const streaks = await Store.streaks.getByPactId(id);
+                const requesterStreak = streaks.find((s: any) => s.userId === userId);
+                if (requesterStreak && requesterCompletionRate >= 80) {
+                    const history = await Store.streaks.getHistoryByStreakId(requesterStreak.id);
+                    const hadReset = history.some((h: any) => h.eventType === 'missed' || (h.streakBefore > 0 && h.streakAfter === 0));
+                    if (hadReset) {
+                        awardResilienceWithinPactAchievement(req.headers, 1);
+                    }
+                }
+            } catch (err) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to evaluate within-pact resilience'],
+                    traceArgs: { 'error.message': (err as Error)?.message },
+                });
+            }
+
+            return res.status(200).send(updatedPact);
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
+};
+
 // DELETE
 const deletePact: RequestHandler = async (req: any, res: any) => {
     const { locale, userId } = parseHeaders(req.headers);
@@ -606,5 +720,6 @@ export {
     acceptPact,
     declinePact,
     abandonPact,
+    completePact,
     deletePact,
 };

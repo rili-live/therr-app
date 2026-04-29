@@ -2272,6 +2272,226 @@
       "influencer_1_3_7": {
         "title": "Créativité imparable",
         "description": "Créer 1 000 moments"
+      },
+      "habitBuilder_1_1": {
+        "title": "Premiers pas",
+        "description": "Atteignez une série de 3 jours sur une habitude"
+      },
+      "habitBuilder_1_1_1": {
+        "title": "Une semaine solide",
+        "description": "Atteignez une série de 7 jours sur une habitude"
+      },
+      "habitBuilder_1_1_2": {
+        "title": "Merveille de deux semaines",
+        "description": "Atteignez une série de 14 jours sur une habitude"
+      },
+      "habitBuilder_1_1_3": {
+        "title": "Habitude formée",
+        "description": "Atteignez une série de 30 jours sur une habitude"
+      },
+      "habitBuilder_1_1_4": {
+        "title": "Deux mois engagés",
+        "description": "Atteignez une série de 60 jours sur une habitude"
+      },
+      "habitBuilder_1_1_5": {
+        "title": "Maître du trimestre",
+        "description": "Atteignez une série de 90 jours sur une habitude"
+      },
+      "habitBuilder_1_1_6": {
+        "title": "Héros du semestre",
+        "description": "Atteignez une série de 180 jours sur une habitude"
+      },
+      "habitBuilder_1_1_7": {
+        "title": "Légende de l'habitude",
+        "description": "Atteignez une série de 365 jours sur une habitude"
+      },
+      "cleanBreak_1_1": {
+        "title": "Premier jour libre",
+        "description": "Complétez 1 jour sans rompre une habitude"
+      },
+      "cleanBreak_1_1_1": {
+        "title": "Trois solides",
+        "description": "Atteignez une série propre de 3 jours"
+      },
+      "cleanBreak_1_1_2": {
+        "title": "Une semaine propre",
+        "description": "Atteignez une série propre de 7 jours"
+      },
+      "cleanBreak_1_1_3": {
+        "title": "Deux semaines claires",
+        "description": "Atteignez une série propre de 14 jours"
+      },
+      "cleanBreak_1_1_4": {
+        "title": "Trente jours renés",
+        "description": "Atteignez une série propre de 30 jours"
+      },
+      "cleanBreak_1_1_5": {
+        "title": "Soixante jours forts",
+        "description": "Atteignez une série propre de 60 jours"
+      },
+      "cleanBreak_1_1_6": {
+        "title": "Quatre-vingt-dix jours réinitialisés",
+        "description": "Atteignez une série propre de 90 jours"
+      },
+      "cleanBreak_1_1_7": {
+        "title": "Demi-année libre",
+        "description": "Atteignez une série propre de 180 jours"
+      },
+      "cleanBreak_1_1_8": {
+        "title": "Une année renée",
+        "description": "Atteignez une série propre de 365 jours"
+      },
+      "treasureBuilder_1_1": {
+        "title": "Sou économisé",
+        "description": "Atteignez une série de 7 jours sans dépenser"
+      },
+      "treasureBuilder_1_1_1": {
+        "title": "Quinzaine frugale",
+        "description": "Atteignez une série de 14 jours sans dépenser"
+      },
+      "treasureBuilder_1_1_2": {
+        "title": "Collectionneur de pièces",
+        "description": "Atteignez une série de 30 jours sans dépenser"
+      },
+      "treasureBuilder_1_1_3": {
+        "title": "Gardien du coffre",
+        "description": "Atteignez une série de 60 jours sans dépenser"
+      },
+      "treasureBuilder_1_1_4": {
+        "title": "Chasseur de trésors",
+        "description": "Atteignez une série de 100 jours sans dépenser"
+      },
+      "treasureBuilder_1_2": {
+        "title": "Premier objectif atteint",
+        "description": "Complétez 1 pacte d'épargne"
+      },
+      "treasureBuilder_1_2_1": {
+        "title": "Fixeur d'objectifs",
+        "description": "Complétez 3 pactes d'épargne"
+      },
+      "treasureBuilder_1_2_2": {
+        "title": "Bâtisseur de richesse",
+        "description": "Complétez 10 pactes d'épargne"
+      },
+      "consistency_1_1": {
+        "title": "Semaine parfaite",
+        "description": "Complétez chaque check-in prévu pendant 7 jours sur une habitude"
+      },
+      "consistency_1_1_1": {
+        "title": "Quinzaine impeccable",
+        "description": "Complétez chaque check-in prévu pendant 14 jours sur une habitude"
+      },
+      "consistency_1_1_2": {
+        "title": "Mois immaculé",
+        "description": "Complétez chaque check-in prévu pendant 30 jours sur une habitude"
+      },
+      "consistency_1_1_3": {
+        "title": "Trimestre irréprochable",
+        "description": "Complétez chaque check-in prévu pendant 90 jours sur une habitude"
+      },
+      "consistency_1_2": {
+        "title": "Deux à la fois",
+        "description": "Complétez une fenêtre parfaite de 7 jours sur 2 habitudes simultanément"
+      },
+      "consistency_1_2_1": {
+        "title": "Triple menace",
+        "description": "Complétez une fenêtre parfaite de 7 jours sur 3 habitudes simultanément"
+      },
+      "consistency_1_2_2": {
+        "title": "Tout à la fois",
+        "description": "Complétez une fenêtre parfaite de 7 jours sur 5 habitudes simultanément"
+      },
+      "accountability_1_1": {
+        "title": "Premier pacte",
+        "description": "Rejoignez votre premier pacte"
+      },
+      "accountability_1_1_1": {
+        "title": "Partenaire loyal",
+        "description": "Complétez un pacte à 80 % ou plus"
+      },
+      "accountability_1_1_2": {
+        "title": "Allié fiable",
+        "description": "Complétez 5 pactes à 80 % ou plus"
+      },
+      "accountability_1_1_3": {
+        "title": "Champion de l'habitude",
+        "description": "Complétez 25 pactes à 80 % ou plus"
+      },
+      "accountability_1_2": {
+        "title": "Bon accompagnateur",
+        "description": "Aidez un partenaire à compléter son pacte à 80 % ou plus"
+      },
+      "accountability_1_2_1": {
+        "title": "Entraîneur",
+        "description": "Aidez 5 partenaires à compléter leurs pactes à 80 % ou plus"
+      },
+      "accountability_1_2_2": {
+        "title": "Mentor",
+        "description": "Aidez 25 partenaires à compléter leurs pactes à 80 % ou plus"
+      },
+      "resilience_1_1": {
+        "title": "Rebondir",
+        "description": "Reprenez une série après la fin d'une précédente"
+      },
+      "resilience_1_1_1": {
+        "title": "Phénix",
+        "description": "Battez votre plus longue série après une remise à zéro"
+      },
+      "resilience_1_1_2": {
+        "title": "Incassable",
+        "description": "Battez votre plus longue série 5 fois"
+      },
+      "resilience_1_2": {
+        "title": "Second souffle",
+        "description": "Terminez un pacte en force après avoir perdu votre série en cours de pacte"
+      },
+      "resilience_1_2_1": {
+        "title": "Champion du retour",
+        "description": "Terminez 5 pactes en force après avoir perdu votre série en cours de pacte"
+      },
+      "socialEnergizer_1_1": {
+        "title": "Pom-pom girl",
+        "description": "Réagissez à 10 check-ins de votre partenaire"
+      },
+      "socialEnergizer_1_1_1": {
+        "title": "Équipe de soutien",
+        "description": "Réagissez à 50 check-ins de votre partenaire"
+      },
+      "socialEnergizer_1_1_2": {
+        "title": "Favori du public",
+        "description": "Réagissez à 250 check-ins de votre partenaire"
+      },
+      "socialEnergizer_1_2": {
+        "title": "Faiseur d'étapes",
+        "description": "Célébrez une étape importante d'un partenaire"
+      },
+      "socialEnergizer_1_2_1": {
+        "title": "Canon à confettis",
+        "description": "Célébrez 25 étapes importantes de partenaires"
+      },
+      "pactPioneer_1_1": {
+        "title": "Initiateur de pacte",
+        "description": "Créez votre premier pacte"
+      },
+      "pactPioneer_1_1_1": {
+        "title": "Faiseur de pactes",
+        "description": "Créez 5 pactes"
+      },
+      "pactPioneer_1_1_2": {
+        "title": "Architecte de pactes",
+        "description": "Créez 25 pactes"
+      },
+      "pactPioneer_1_1_3": {
+        "title": "Visionnaire de pactes",
+        "description": "Créez 100 pactes"
+      },
+      "pactPioneer_1_2": {
+        "title": "Première invitation envoyée",
+        "description": "Invitez votre premier partenaire unique"
+      },
+      "pactPioneer_1_2_1": {
+        "title": "Effet de réseau",
+        "description": "Invitez 10 partenaires uniques dans différents pactes"
       }
     },
     "profile": {

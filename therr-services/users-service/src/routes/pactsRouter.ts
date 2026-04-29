@@ -9,6 +9,7 @@ import {
     acceptPact,
     declinePact,
     abandonPact,
+    completePact,
     deletePact,
 } from '../handlers/pacts';
 
@@ -28,6 +29,7 @@ router.post('/bulk-invite', bulkInvitePact);
 router.put('/:id/accept', acceptPact);
 router.put('/:id/decline', declinePact);
 router.put('/:id/abandon', abandonPact);
+router.put('/:id/complete', completePact);
 
 // DELETE
 router.delete('/:id', deletePact);

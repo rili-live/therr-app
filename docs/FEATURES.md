@@ -149,12 +149,13 @@ These flags control which features are enabled per brand variant. Set in `TherrM
 
 ### Habits System (Friends with Habits — `BrandVariations.HABITS`)
 
-- **Habit goals** — create from templates or custom; frequency config (daily/weekly/custom), target days
+- **Habit goals** — create from templates or custom; frequency config (daily/weekly/custom), target days; goal-orientation (`goalType`: build_good / break_bad / savings_goal / maintenance)
 - **Pacts** — accountability partnerships; invite partners, set consequences (donation/dare/custom)
 - **Habit check-ins** — daily completion tracking with photo/video/note proof
 - **Streaks & milestones** — streak counting, milestone events, celebration triggers
 - **Real-time pact updates** — WebSocket events for partner check-ins, celebrations, encouragement
-- **Pact status management** — pending, active, completed, abandoned lifecycle
+- **Pact status management** — pending, active, completed, abandoned, completed lifecycle
+- **HABITS achievements** — 8 brand-scoped achievement classes (habitBuilder, cleanBreak, treasureBuilder, consistency, accountability, resilience, socialEnergizer, pactPioneer) plus reused `socialite` for invite virality. Filtered per-brand via `getAchievementsForBrand()`. **Follow-up TODOs** (multi-habit consistency, partner-streak attribution, brand-header audit, lottie cards, etc.) — see `docs/niche-sub-apps/habits/HABITS_STREAKS_DESIGN.md` § "Follow-up TODOs"
 
 ---
 

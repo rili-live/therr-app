@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="robots" content="noindex">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    <style>
+        :root {
+            --habits-navy: #102a43;
+            --habits-coral: #ff6b35;
+            --habits-coral-dark: #e0521e;
+            --habits-cream: #fff8f3;
+            --habits-text: #243b53;
+            --habits-text-muted: #627d98;
+            --habits-border: #d9e2ec;
+            --habits-error: #c53030;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--habits-text);
+            background: var(--habits-cream);
+            min-height: 100vh;
+        }
+        a { color: var(--habits-coral-dark); }
+        header.site-header {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--habits-border);
+            background: #fff;
+        }
+        .container {
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        header.site-header .brand {
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: var(--habits-navy);
+            letter-spacing: -0.01em;
+        }
+        main.wrap {
+            padding: 3rem 0 3rem;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--habits-navy);
+            margin: 0 0 0.5rem;
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+        p.lede {
+            color: var(--habits-text-muted);
+            margin: 0 0 1.5rem;
+            text-align: center;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid var(--habits-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 2px rgba(16, 42, 67, 0.04);
+        }
+        .alert {
+            padding: 0.75rem 0.875rem;
+            border-radius: 0.5rem;
+            margin: 0 0 1rem;
+            font-size: 0.9375rem;
+            border: 1px solid;
+        }
+        .alert--success { background: #f0fff4; color: #2f855a; border-color: #c6f6d5; }
+        .alert--error { background: #fff5f5; color: var(--habits-error); border-color: #fed7d7; }
+        .alert--info { background: #ebf8ff; color: #2b6cb0; border-color: #bee3f8; }
+        h2.section {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--habits-navy);
+            margin: 1.25rem 0 0.625rem;
+        }
+        h2.section:first-of-type { margin-top: 0; }
+        label.pref {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.625rem;
+            padding: 0.5rem 0;
+            cursor: pointer;
+            font-size: 0.9375rem;
+            color: var(--habits-text);
+        }
+        label.pref input[type="checkbox"] {
+            flex: 0 0 auto;
+            width: 1.125rem;
+            height: 1.125rem;
+            margin-top: 0.25rem;
+            accent-color: var(--habits-coral);
+            cursor: pointer;
+        }
+        .cta {
+            display: inline-block;
+            width: 100%;
+            padding: 0.875rem 1.75rem;
+            background: var(--habits-coral);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 999px;
+            border: 0;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            text-decoration: none;
+            text-align: center;
+            margin-top: 1.25rem;
+        }
+        .cta:hover { background: var(--habits-coral-dark); }
+        .cta:disabled { background: var(--habits-text-muted); cursor: not-allowed; }
+        .pending {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--habits-border);
+            border-top-color: var(--habits-coral);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--habits-border);
+            background: #fff;
+            text-align: center;
+            color: var(--habits-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer a {
+            margin: 0 0.5rem;
+            color: var(--habits-text-muted);
+        }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <span class="brand">Friends with Habits</span>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="container">
+            <h1>Email preferences</h1>
+            <p class="lede">Pick which Friends with Habits emails you&rsquo;d like to keep getting.</p>
+
+            <div id="state-loading" class="card" style="text-align: center;">
+                <p><span class="pending" aria-hidden="true"></span>Loading your preferences&hellip;</p>
+            </div>
+
+            <div id="state-failed-load" class="card" hidden>
+                <div class="alert alert--error" id="load-error">We couldn&rsquo;t load your preferences. The link may be invalid or expired.</div>
+                <p class="lede" style="text-align: left; margin: 0;">Try the unsubscribe link in your most recent email, or contact <a href="mailto:info@therr.com">info@therr.com</a>.</p>
+            </div>
+
+            <form id="prefs-form" class="card" hidden novalidate>
+                <div class="alert alert--success" id="save-success" hidden>Saved.</div>
+                <div class="alert alert--error" id="save-error" hidden></div>
+
+                <h2 class="section">Marketing</h2>
+                <label class="pref"><input type="checkbox" name="settingsEmailMarketing"> Product updates &amp; tips</label>
+
+                <h2 class="section">Activity</h2>
+                <label class="pref"><input type="checkbox" name="settingsEmailLikes"> Likes on your posts</label>
+                <label class="pref"><input type="checkbox" name="settingsEmailInvites"> Pact and connection invites</label>
+                <label class="pref"><input type="checkbox" name="settingsEmailMentions"> Mentions and replies</label>
+                <label class="pref"><input type="checkbox" name="settingsEmailMessages"> Direct messages</label>
+                <label class="pref"><input type="checkbox" name="settingsEmailReminders"> Daily check-in reminders</label>
+
+                <h2 class="section">Account</h2>
+                <label class="pref"><input type="checkbox" name="settingsEmailBackground"> Account &amp; security alerts</label>
+
+                <button class="cta" type="submit" id="save-btn">Save preferences</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <a href="/">Home</a>
+            <a href="/privacy-policy">Privacy</a>
+            <a href="/terms-of-service">Terms</a>
+            <div style="margin-top: 0.75rem;">&copy; Therr Inc. &middot; Friends with Habits</div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            var API_BASE = {{{apiBaseJson}}};
+            var qs = new URLSearchParams(window.location.search);
+            var emailToken = qs.get('emailToken') || qs.get('token');
+
+            var loadingEl = document.getElementById('state-loading');
+            var failedLoadEl = document.getElementById('state-failed-load');
+            var loadErrorEl = document.getElementById('load-error');
+            var formEl = document.getElementById('prefs-form');
+            var saveSuccessEl = document.getElementById('save-success');
+            var saveErrorEl = document.getElementById('save-error');
+            var saveBtn = document.getElementById('save-btn');
+
+            var FIELDS = [
+                'settingsEmailMarketing',
+                'settingsEmailLikes',
+                'settingsEmailInvites',
+                'settingsEmailMentions',
+                'settingsEmailMessages',
+                'settingsEmailReminders',
+                'settingsEmailBackground',
+            ];
+
+            function setLoading(isLoading) {
+                loadingEl.hidden = !isLoading;
+            }
+
+            function showLoadFailure(msg) {
+                setLoading(false);
+                if (msg) loadErrorEl.textContent = msg;
+                failedLoadEl.hidden = false;
+            }
+
+            function paint(prefs) {
+                FIELDS.forEach(function (name) {
+                    var el = formEl.querySelector('input[name="' + name + '"]');
+                    if (el) el.checked = !!prefs[name];
+                });
+                setLoading(false);
+                formEl.hidden = false;
+            }
+
+            function readForm() {
+                var out = {
+                    // The backend ignores settingsEmailBusMarketing on consumer accounts but
+                    // requires it in the payload shape. Default to true when not shown.
+                    settingsEmailBusMarketing: true,
+                };
+                FIELDS.forEach(function (name) {
+                    var el = formEl.querySelector('input[name="' + name + '"]');
+                    out[name] = !!(el && el.checked);
+                });
+                return out;
+            }
+
+            if (!emailToken) {
+                showLoadFailure('No unsubscribe token in the link.');
+                return;
+            }
+
+            fetch(API_BASE + '/users-service/subscribers/preferences', {
+                method: 'GET',
+                headers: { 'x-subscriber-token': emailToken, 'x-brand-variation': 'habits' },
+            }).then(function (res) {
+                return res.json().then(function (body) { return { res: res, body: body }; }).catch(function () { return { res: res, body: {} }; });
+            }).then(function (out) {
+                if (!out.res.ok) {
+                    showLoadFailure((out.body && out.body.message) || '');
+                    return;
+                }
+                paint(out.body || {});
+            }).catch(function () {
+                showLoadFailure('Network error. Try again in a moment.');
+            });
+
+            formEl.addEventListener('submit', function (e) {
+                e.preventDefault();
+                saveSuccessEl.hidden = true;
+                saveErrorEl.hidden = true;
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving…';
+                fetch(API_BASE + '/users-service/subscribers/unsubscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-subscriber-token': emailToken,
+                        'x-brand-variation': 'habits',
+                    },
+                    body: JSON.stringify(readForm()),
+                }).then(function (res) {
+                    return res.json().then(function (body) { return { res: res, body: body }; }).catch(function () { return { res: res, body: {} }; });
+                }).then(function (out) {
+                    if (out.res.ok) {
+                        saveSuccessEl.hidden = false;
+                        return;
+                    }
+                    saveErrorEl.textContent = (out.body && out.body.message) || 'Could not save your preferences. Try again.';
+                    saveErrorEl.hidden = false;
+                }).catch(function () {
+                    saveErrorEl.textContent = 'Network error. Try again in a moment.';
+                    saveErrorEl.hidden = false;
+                }).then(function () {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save preferences';
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
