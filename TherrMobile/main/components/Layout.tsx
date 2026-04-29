@@ -2067,7 +2067,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 return true;
                             }
 
-                            if (route.name === 'Landing' && user?.details?.id) {
+                            if (route.name === 'Landing' && user?.isAuthenticated) {
                                 return false;
                             }
 

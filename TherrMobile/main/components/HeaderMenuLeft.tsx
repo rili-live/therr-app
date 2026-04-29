@@ -57,6 +57,10 @@ const HeaderMenuLeft = ({
             navigation.navigate('CreateProfile');
             return;
         }
+        if (!isAuthenticated && CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+            navigation.navigate('Landing');
+            return;
+        }
         if (isMapEnabled) {
             navigation.navigate('Map', isAuthenticated ? { shouldShowPreview: false } : undefined);
             return;
