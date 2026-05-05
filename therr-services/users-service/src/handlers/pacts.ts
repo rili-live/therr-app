@@ -1,5 +1,10 @@
 import { RequestHandler } from 'express';
-import { PushNotifications } from 'therr-js-utilities/constants';
+import {
+    AccessLevels,
+    BrandVariations,
+    HABITS_FREE_PACT_LIMIT,
+    PushNotifications,
+} from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
@@ -24,6 +29,32 @@ import {
 const MAX_BULK_INVITEES = 5;
 
 const dedupeUserIds = (ids: string[]): string[] => Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0)));
+
+/**
+ * Decides whether a pact-create request is exempt from the HABITS free-tier
+ * pact cap. Premium subscribers (HABITS_PREMIUM access level) bypass it.
+ * Non-HABITS brands also bypass it — the cap is a HABITS monetization
+ * mechanic, not a platform-wide policy.
+ *
+ * The actual free-tier limit is HABITS_FREE_PACT_LIMIT (configurable via env
+ * var; default 5). Lower it to 1 once the payment workflow ships and users
+ * can actually upgrade — see docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md.
+ */
+const isPactCapExempt = (
+    brandVariation: string | undefined,
+    accessLevels: string[] | undefined,
+): boolean => {
+    if (brandVariation !== BrandVariations.HABITS) {
+        return true;
+    }
+    if (Array.isArray(accessLevels) && accessLevels.includes(AccessLevels.HABITS_PREMIUM)) {
+        return true;
+    }
+    if (Array.isArray(accessLevels) && accessLevels.includes(AccessLevels.SUPER_ADMIN)) {
+        return true;
+    }
+    return false;
+};
 
 // CREATE
 const createPact: RequestHandler = async (req: any, res: any) => {
@@ -71,6 +102,39 @@ const createPact: RequestHandler = async (req: any, res: any) => {
             message: 'Habit goal not found',
             statusCode: 404,
         });
+    }
+
+    // HABITS free-tier cap. Counts pacts the user *created* (pending or active)
+    // — pacts they were invited to don't consume their cap. Premium users and
+    // non-HABITS brands bypass entirely. Returns 402 with paywall metadata so
+    // the client can route to the upgrade flow rather than swallow as a
+    // generic error.
+    const requesterUser = await Store.users.findUser({ id: userId }, ['accessLevels']);
+    const requesterAccessLevels: string[] = (requesterUser?.[0]?.accessLevels as string[]) || [];
+    if (!isPactCapExempt(brandVariation, requesterAccessLevels)) {
+        const openPactCount = await Store.pacts.countOpenByCreator(userId).catch((err) => {
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to count open pacts; allowing creation'],
+                traceArgs: { 'error.message': err?.message },
+            });
+            // Fail-open: better to let a legitimate user create a pact than to
+            // hard-block on a transient query error. The cap is a soft limit
+            // (no hard data integrity issue at stake).
+            return 0;
+        });
+        if (openPactCount >= HABITS_FREE_PACT_LIMIT) {
+            return res.status(402).send({
+                error: 'pact-limit-reached',
+                message: translate(locale, 'errorMessages.pacts.freeTierLimitReached', {
+                    limit: HABITS_FREE_PACT_LIMIT,
+                }) || `Free tier is limited to ${HABITS_FREE_PACT_LIMIT} active pact(s). Upgrade to premium for unlimited pacts.`,
+                limit: HABITS_FREE_PACT_LIMIT,
+                openPactCount,
+                upgradeRequired: true,
+            });
+        }
     }
 
     // Create the pact
