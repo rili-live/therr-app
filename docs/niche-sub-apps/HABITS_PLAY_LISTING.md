@@ -232,10 +232,10 @@ Upload via Play Console → Internal testing → Create new release → Upload A
 
 ## Open items / blockers
 
-- [ ] **Privacy policy URL live** at `https://habits.therr.com/privacy-policy` (blocker for any track)
+- [/] **Privacy policy URL live** at `https://habits.therr.com/privacy-policy` (blocker for any track)
 - [ ] **HABITS upload keystore generated** and stored (blocker for AAB)
 - [ ] **HABITS Firebase project verification** — confirm Crashlytics + Analytics are actually enabled at the project level for the HABITS google-services.json
-- [ ] **Backend deploy of `258c39c6e`** (proofMedias support) reaches prod via `general → stage → main`
+- [/] **Backend deploy of `258c39c6e`** (proofMedias support) reaches prod via `general → stage → main`
 - [ ] **Feature graphic art** (1024×500) — required before public/closed track, optional for internal
-- [ ] **Brand-final launcher icon + boot splash** — Phase 2 placeholders work for internal testing but block external testing
+- [/] **Brand-final launcher icon + boot splash** — Phase 2 placeholders work for internal testing but block external testing
 - [ ] **Spanish + French translations** of listing copy — required before production track
