@@ -102,11 +102,18 @@ android {
             keyPassword 'android'
         }
         release {
-            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-                storeFile file(MYAPP_UPLOAD_STORE_FILE)
-                storePassword MYAPP_UPLOAD_STORE_PASSWORD
-                keyAlias MYAPP_UPLOAD_KEY_ALIAS
-                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            // Per-brand upload keystore: each niche variant has its own Play app
+            // (separate applicationId), so it must be signed with its own upload
+            // key. Property prefix is chosen from applicationId; values live in
+            // ~/.gradle/gradle.properties (e.g. HABITS_UPLOAD_STORE_FILE).
+            def uploadKeyPrefix = [
+                'com.therr.habits': 'HABITS',
+            ].getOrDefault(defaultConfig.applicationId, 'MYAPP')
+            if (project.hasProperty("${uploadKeyPrefix}_UPLOAD_STORE_FILE")) {
+                storeFile     file(project.property("${uploadKeyPrefix}_UPLOAD_STORE_FILE"))
+                storePassword project.property("${uploadKeyPrefix}_UPLOAD_STORE_PASSWORD")
+                keyAlias      project.property("${uploadKeyPrefix}_UPLOAD_KEY_ALIAS")
+                keyPassword   project.property("${uploadKeyPrefix}_UPLOAD_KEY_PASSWORD")
             }
         }
     }
