@@ -249,9 +249,6 @@ These TODOs live in shared backend and `therr-react`, so they ship from
 `general` even though the consumer is the HABITS app. None today block the
 MVP, but several block the **viral** loop in Phase 3.
 
-- `therr-services/users-service/src/handlers/userConnections.ts:389` —
-  Prevent resending email/phone request if invite already exists (mandatory-
-  invite flow can spam an invitee)
 - `therr-services/users-service/src/handlers/userConnections.ts:724` —
   RSERV-32: Return associated users (same as search userConnections does)
 - `therr-services/users-service/src/handlers/users.ts:454` — Implement
