@@ -428,7 +428,7 @@
       },
       "shareLink": {
         "message": "Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
-        "title": "Friends with Habits | Accountability Partner App"
+        "title": "Friends with Habits | Accountability App for Friends"
       }
     },
     "createProfile": {
@@ -1046,7 +1046,7 @@
       "buttons": {
         "habits": "Habits",
         "pacts": "Pacts",
-        "partners": "Partners",
+        "partners": "Friends",
         "profile": "Profile"
       }
     },
@@ -1487,7 +1487,7 @@
     "login": {
       "headerTitle": "Friends with Habits",
       "pageTitle": "Welcome",
-      "pageSubtitle": "Sign in to check in with your partner",
+      "pageSubtitle": "Sign in to check in with your friends",
       "userAlerts": {
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }
@@ -1668,7 +1668,7 @@
         "shareFeedback": "Share Feedback"
       },
       "subtitles": {
-        "createConnection": "Send a connection request or invite a partner to join Friends with Habits!",
+        "createConnection": "Send a connection request or invite a friend to join Friends with Habits!",
         "whoInviteDisclaimer": "Choose who and how you would like to invite."
       },
       "labels": {
@@ -1683,7 +1683,7 @@
       "pageTitle": "User Profile",
       "siteDescription1": "Welcome to Friends with Habits. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
-      "siteDescription3": "Invite a partner to form a pact, then build habits you'll hold each other to. Check in daily, share proof, and watch your streak grow.",
+      "siteDescription3": "Invite a friend to form a pact, then build habits you'll hold each other to. Check in daily, share proof, and watch your streak grow.",
       "siteDescription4": "Keep the streak alive together. If one of you slips, the other is there to keep things on track — accountability is the whole point.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
@@ -1726,7 +1726,7 @@
       "checkinProof": {
         "title": "Check In",
         "notePrompt": "Add a quick note (optional)",
-        "notePlaceholder": "How did it go? Any wins to share with your partner?",
+        "notePlaceholder": "How did it go? Any wins to share?",
         "takePhoto": "Take Photo",
         "choosePhoto": "Choose Photo",
         "uploadFailed": "We couldn't upload your photo. Try again.",
@@ -1785,7 +1785,7 @@
       "onboarding": {
         "title": "Start with a Friend",
         "subtitle": "Friends with Habits is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",
-        "createPact": "Invite a Partner",
+        "createPact": "Invite a Friend",
         "viewInvites": "View {count} Pact Invite(s)",
         "findPartner": "Browse People",
         "benefit2": "Daily check-ins with someone sharing similar goals"
@@ -1799,8 +1799,8 @@
         "sampleHabitTitle": "Start with a habit/goal",
         "sampleHabitSubtitle": "Build a healthy habit, break a bad one, or save toward a shared goal — we'll lock it in once your friend joins.",
         "samplePartnerName": "Friendly accountability",
-        "sampleStreakLabel": "Day 1 — locks in when your partner joins",
-        "prestagedSuffix": "Ready when your partner joins",
+        "sampleStreakLabel": "Day 1 — locks in when your friend joins",
+        "prestagedSuffix": "Ready when your friend joins",
         "stepBadge": "Step {current} of {total}",
         "step1Label": "Pick",
         "step1Sublabel": "your goal",
@@ -1823,8 +1823,8 @@
       },
       "wizard": {
         "step1Title": "Pick a habit",
-        "step1Subtitle": "Choose what you'd like to build with your partner",
-        "step2Title": "Choose your partners",
+        "step1Subtitle": "Choose what you'd like to build with your friend",
+        "step2Title": "Choose your friends",
         "step2Subtitle": "Invite up to 5 people — anyone who accepts joins your pact",
         "step3Title": "Send your pact invite",
         "step3Subtitle": "Review and send",
@@ -1840,11 +1840,11 @@
         "back": "Back",
         "cancel": "Cancel",
         "pickTemplateFirst": "Pick a habit to continue",
-        "pickPartnerFirst": "Choose at least one partner",
+        "pickPartnerFirst": "Choose at least one friend",
         "templatesEmpty": "No templates available — create your own habit",
         "addPartnerByEmail": "Invite by email",
         "addPartnerEmailPlaceholder": "friend@example.com",
-        "maxPartnersReached": "You can invite up to 5 partners at once",
+        "maxPartnersReached": "You can invite up to 5 friends at once",
         "habitDefaultEmoji": "🎯"
       },
       "status": {
@@ -1863,16 +1863,16 @@
       "checkinsLabel": "{completed}/{total} checkins",
       "completionLabel": "{pct}% completion",
       "vs": "vs",
-      "partnerFallback": "Partner"
+      "partnerFallback": "Friend"
     },
     "pushOptIn": {
       "title": "Get notified when your friend joins",
       "subtitle": "We'll only ping you for pact activity — no spam, ever.",
       "enableButton": "Turn on notifications",
       "skipButton": "Maybe later",
-      "benefit1": "Know the moment your partner accepts your invite",
+      "benefit1": "Know the moment your friend accepts your invite",
       "benefit2": "Daily check-in reminders so you never break a streak",
-      "benefit3": "Cheers from your partner when they finish a check-in"
+      "benefit3": "Cheers from your friend when they finish a check-in"
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",
@@ -2406,7 +2406,7 @@
         "description": "Join your first pact"
       },
       "accountability_1_1_1": {
-        "title": "Loyal Partner",
+        "title": "Loyal Friend",
         "description": "Complete a pact at 80% or higher"
       },
       "accountability_1_1_2": {
@@ -2419,15 +2419,15 @@
       },
       "accountability_1_2": {
         "title": "Wing Person",
-        "description": "Help a partner complete their pact at 80% or higher"
+        "description": "Help a friend complete their pact at 80% or higher"
       },
       "accountability_1_2_1": {
         "title": "Coach",
-        "description": "Help 5 partners complete their pacts at 80% or higher"
+        "description": "Help 5 friends complete their pacts at 80% or higher"
       },
       "accountability_1_2_2": {
         "title": "Mentor",
-        "description": "Help 25 partners complete their pacts at 80% or higher"
+        "description": "Help 25 friends complete their pacts at 80% or higher"
       },
       "resilience_1_1": {
         "title": "Bounce Back",
@@ -2451,23 +2451,23 @@
       },
       "socialEnergizer_1_1": {
         "title": "Cheerleader",
-        "description": "React to 10 partner check-ins"
+        "description": "React to 10 friend check-ins"
       },
       "socialEnergizer_1_1_1": {
         "title": "Hype Squad",
-        "description": "React to 50 partner check-ins"
+        "description": "React to 50 friend check-ins"
       },
       "socialEnergizer_1_1_2": {
         "title": "Crowd Pleaser",
-        "description": "React to 250 partner check-ins"
+        "description": "React to 250 friend check-ins"
       },
       "socialEnergizer_1_2": {
         "title": "Milestone Maker",
-        "description": "Celebrate a partner milestone"
+        "description": "Celebrate a friend's milestone"
       },
       "socialEnergizer_1_2_1": {
         "title": "Confetti Cannon",
-        "description": "Celebrate 25 partner milestones"
+        "description": "Celebrate 25 friend milestones"
       },
       "pactPioneer_1_1": {
         "title": "Pact Starter",
@@ -2487,11 +2487,11 @@
       },
       "pactPioneer_1_2": {
         "title": "First Invite Sent",
-        "description": "Invite your first unique partner"
+        "description": "Invite your first unique friend"
       },
       "pactPioneer_1_2_1": {
         "title": "Network Effect",
-        "description": "Invite 10 unique partners across pacts"
+        "description": "Invite 10 unique friends across pacts"
       }
     },
     "profile": {

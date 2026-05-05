@@ -529,7 +529,7 @@ const routes: RouteConfig<
         name: 'CreatePactInvite',
         component: CreatePactInvite,
         options: () => ({
-            title: 'Invite a Partner',
+            title: 'Invite a Friend',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),

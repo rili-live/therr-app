@@ -95,7 +95,7 @@ const AndroidChannels = {
     },
     contentDiscovery: {
         id: 'contentDiscovery',
-        name: isHabits ? 'Partner Activity' : 'Content Discovery',
+        name: isHabits ? 'Friend Activity' : 'Content Discovery',
         importance: AndroidImportance.DEFAULT,
     },
     rewardUpdates: {

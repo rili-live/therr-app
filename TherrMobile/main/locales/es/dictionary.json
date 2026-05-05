@@ -428,7 +428,7 @@
       },
       "shareLink": {
         "message": "Únete a mí en Friends with Habits: construimos rachas juntos y nos apoyamos con la responsabilidad. Regístrate con mi enlace: {shareUrl}",
-        "title": "Friends with Habits | App de compañeros de rendición de cuentas"
+        "title": "Friends with Habits | App de rendición de cuentas para amigos"
       }
     },
     "createProfile": {
@@ -1046,7 +1046,7 @@
       "buttons": {
         "habits": "Hábitos",
         "pacts": "Pactos",
-        "partners": "Compañeros",
+        "partners": "Amigos",
         "profile": "Perfil"
       }
     },
@@ -1487,7 +1487,7 @@
     "login": {
       "headerTitle": "Friends with Habits",
       "pageTitle": "Bienvenido",
-      "pageSubtitle": "Inicia sesión para hacer tu check-in con tu compañero",
+      "pageSubtitle": "Inicia sesión para hacer tu check-in con tus amigos",
       "userAlerts": {
         "registerSuccess": "¡Registro exitoso! Revisa tu correo electrónico para la verificación."
       }
@@ -1668,7 +1668,7 @@
         "shareFeedback": "Compartir opinión"
       },
       "subtitles": {
-        "createConnection": "¡Envía una solicitud de conexión o invita a un compañero a unirse a Friends with Habits!",
+        "createConnection": "¡Envía una solicitud de conexión o invita a un amigo a unirse a Friends with Habits!",
         "whoInviteDisclaimer": "Elige a quién y cómo te gustaría invitar."
       },
       "labels": {
@@ -1683,7 +1683,7 @@
       "pageTitle": "Perfil de usuario",
       "siteDescription1": "Bienvenido a Friends with Habits. Mientras recopilamos comentarios y desarrollamos nuevas funciones, déjanos saber cómo podemos mejorar la experiencia.",
       "siteDescription2": "Entonces, ¿cómo funciona?",
-      "siteDescription3": "Invita a un compañero para formar un pacto, y luego construyan hábitos a los que se comprometan juntos. Hagan check-in diario, compartan pruebas y vean crecer su racha.",
+      "siteDescription3": "Invita a un amigo para formar un pacto, y luego construyan hábitos a los que se comprometan juntos. Hagan check-in diario, compartan pruebas y vean crecer su racha.",
       "siteDescription4": "Luego, revisa tu feed para momentos publicados por otros en los lugares que más frecuentas. Conoce la cultura local buscando contenido compartido cerca. Solo toca cualquier lugar del mapa para comenzar a explorar.",
       "noActiveConnections": "Actualmente no hay conexiones activas en tu red",
       "requestRecommendation": "Envía una solicitud para hacer conexiones y construir una red",
@@ -1726,7 +1726,7 @@
       "checkinProof": {
         "title": "Registrar",
         "notePrompt": "Añade una nota rápida (opcional)",
-        "notePlaceholder": "¿Cómo te fue? ¿Algún logro para compartir con tu compañero?",
+        "notePlaceholder": "¿Cómo te fue? ¿Algún logro para compartir?",
         "takePhoto": "Tomar foto",
         "choosePhoto": "Elegir foto",
         "uploadFailed": "No pudimos subir tu foto. Inténtalo de nuevo.",
@@ -1785,7 +1785,7 @@
       "onboarding": {
         "title": "Empieza con un amigo",
         "subtitle": "Friends with Habits está hecho para dos — o más. Invita a un amigo o forma un grupo en torno a una meta compartida (como ahorrar para unas vacaciones) y construyan hábitos a los que se comprometan juntos.",
-        "createPact": "Invitar a un compañero",
+        "createPact": "Invitar a un amigo",
         "viewInvites": "Ver {count} invitación(es) de pacto",
         "findPartner": "Explorar personas",
         "benefit2": "Check-ins diarios con alguien que comparte metas similares"
@@ -1799,8 +1799,8 @@
         "sampleHabitTitle": "Empieza con un hábito/meta",
         "sampleHabitSubtitle": "Construye un hábito saludable, rompe uno malo, o ahorra hacia una meta compartida — lo activaremos cuando tu amigo se una.",
         "samplePartnerName": "Responsabilidad amistosa",
-        "sampleStreakLabel": "Día 1 — se activa cuando tu compañero se una",
-        "prestagedSuffix": "Listo cuando tu compañero se una",
+        "sampleStreakLabel": "Día 1 — se activa cuando tu amigo se una",
+        "prestagedSuffix": "Listo cuando tu amigo se una",
         "stepBadge": "Paso {current} de {total}",
         "step1Label": "Elige",
         "step1Sublabel": "tu meta",
@@ -1823,8 +1823,8 @@
       },
       "wizard": {
         "step1Title": "Elige un hábito",
-        "step1Subtitle": "Elige lo que te gustaría construir con tu compañero",
-        "step2Title": "Elige a tus compañeros",
+        "step1Subtitle": "Elige lo que te gustaría construir con tu amigo",
+        "step2Title": "Elige a tus amigos",
         "step2Subtitle": "Invita hasta 5 personas — cualquiera que acepte se une a tu pacto",
         "step3Title": "Envía tu invitación de pacto",
         "step3Subtitle": "Revisa y envía",
@@ -1840,11 +1840,11 @@
         "back": "Atrás",
         "cancel": "Cancelar",
         "pickTemplateFirst": "Elige un hábito para continuar",
-        "pickPartnerFirst": "Elige al menos un compañero",
+        "pickPartnerFirst": "Elige al menos un amigo",
         "templatesEmpty": "No hay plantillas disponibles — crea tu propio hábito",
         "addPartnerByEmail": "Invitar por correo",
         "addPartnerEmailPlaceholder": "amigo@ejemplo.com",
-        "maxPartnersReached": "Puedes invitar hasta 5 compañeros a la vez",
+        "maxPartnersReached": "Puedes invitar hasta 5 amigos a la vez",
         "habitDefaultEmoji": "🎯"
       },
       "status": {
@@ -1863,16 +1863,16 @@
       "checkinsLabel": "{completed}/{total} registros",
       "completionLabel": "{pct}% completado",
       "vs": "vs",
-      "partnerFallback": "Compañero"
+      "partnerFallback": "Amigo"
     },
     "pushOptIn": {
       "title": "Recibe una notificación cuando tu amigo se una",
       "subtitle": "Solo te enviaremos avisos sobre la actividad del pacto — sin spam, nunca.",
       "enableButton": "Activar notificaciones",
       "skipButton": "Quizás más tarde",
-      "benefit1": "Entérate al instante cuando tu compañero acepte tu invitación",
+      "benefit1": "Entérate al instante cuando tu amigo acepte tu invitación",
       "benefit2": "Recordatorios diarios para que nunca rompas una racha",
-      "benefit3": "Aplausos de tu compañero cuando termine un check-in"
+      "benefit3": "Aplausos de tu amigo cuando termine un check-in"
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
@@ -2406,7 +2406,7 @@
         "description": "Únete a tu primer pacto"
       },
       "accountability_1_1_1": {
-        "title": "Compañero leal",
+        "title": "Amigo leal",
         "description": "Completa un pacto al 80% o más"
       },
       "accountability_1_1_2": {
@@ -2419,15 +2419,15 @@
       },
       "accountability_1_2": {
         "title": "Buen acompañante",
-        "description": "Ayuda a un compañero a completar su pacto al 80% o más"
+        "description": "Ayuda a un amigo a completar su pacto al 80% o más"
       },
       "accountability_1_2_1": {
         "title": "Entrenador",
-        "description": "Ayuda a 5 compañeros a completar sus pactos al 80% o más"
+        "description": "Ayuda a 5 amigos a completar sus pactos al 80% o más"
       },
       "accountability_1_2_2": {
         "title": "Mentor",
-        "description": "Ayuda a 25 compañeros a completar sus pactos al 80% o más"
+        "description": "Ayuda a 25 amigos a completar sus pactos al 80% o más"
       },
       "resilience_1_1": {
         "title": "Volver con fuerza",
@@ -2451,23 +2451,23 @@
       },
       "socialEnergizer_1_1": {
         "title": "Animador",
-        "description": "Reacciona a 10 check-ins de tu compañero"
+        "description": "Reacciona a 10 check-ins de tus amigos"
       },
       "socialEnergizer_1_1_1": {
         "title": "Equipo de ánimo",
-        "description": "Reacciona a 50 check-ins de tu compañero"
+        "description": "Reacciona a 50 check-ins de tus amigos"
       },
       "socialEnergizer_1_1_2": {
         "title": "Favorito de la multitud",
-        "description": "Reacciona a 250 check-ins de tu compañero"
+        "description": "Reacciona a 250 check-ins de tus amigos"
       },
       "socialEnergizer_1_2": {
         "title": "Hacedor de hitos",
-        "description": "Celebra un hito de un compañero"
+        "description": "Celebra el hito de un amigo"
       },
       "socialEnergizer_1_2_1": {
         "title": "Cañón de confeti",
-        "description": "Celebra 25 hitos de compañeros"
+        "description": "Celebra 25 hitos de amigos"
       },
       "pactPioneer_1_1": {
         "title": "Iniciador de pactos",
@@ -2487,11 +2487,11 @@
       },
       "pactPioneer_1_2": {
         "title": "Primera invitación enviada",
-        "description": "Invita a tu primer compañero único"
+        "description": "Invita a tu primer amigo único"
       },
       "pactPioneer_1_2_1": {
         "title": "Efecto de red",
-        "description": "Invita a 10 compañeros únicos en distintos pactos"
+        "description": "Invita a 10 amigos únicos en distintos pactos"
       }
     },
     "profile": {
