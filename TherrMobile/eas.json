@@ -1,0 +1,25 @@
+{
+  "cli": {
+    "version": ">= 15.0.0",
+    "promptToConfigurePushNotifications": false
+  },
+  "build": {
+    "habits-internal": {
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease",
+        "credentialsSource": "remote"
+      }
+    }
+  },
+  "submit": {
+    "habits-internal": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft",
+        "changesNotSentForReview": true
+      }
+    }
+  }
+}

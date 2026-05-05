@@ -1,4 +1,17 @@
 {
-  "name": "Therr",
-  "displayName": "Therr Mobile"
+  "name": "Friends with Habits",
+  "displayName": "Friends with Habits",
+  "expo": {
+    "owner": "REPLACE_WITH_EXPO_OWNER",
+    "name": "Friends with Habits",
+    "slug": "friends-with-habits",
+    "android": {
+      "package": "com.therr.habits"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    }
+  }
 }
