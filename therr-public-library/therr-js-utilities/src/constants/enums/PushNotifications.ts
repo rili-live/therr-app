@@ -102,11 +102,19 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 // HABITS
 | 'PACT_INVITATION'
 | 'PACT_ACCEPTED'
+| 'PACT_DECLINED'
 | 'PACT_COMPLETED'
+| 'PACT_EXPIRING'
 | 'PARTNER_CHECKED_IN'
+| 'PARTNER_MISSED_DAY'
+| 'PARTNER_CELEBRATED'
 | 'STREAK_MILESTONE'
 | 'STREAK_AT_RISK'
-| 'DAILY_HABIT_REMINDER';
+| 'STREAK_BROKEN'
+| 'NEW_PERSONAL_RECORD'
+| 'DAILY_HABIT_REMINDER'
+| 'MORNING_MOTIVATION'
+| 'EVENING_CHECK_IN';
 
 enum TeemAndroidIntentActions {
     ACHIEVEMENT_COMPLETED = 'com.therr.mobile.ACHIEVEMENT_COMPLETED',
@@ -184,11 +192,19 @@ enum HabitsAndroidIntentActions {
     // HABITS-specific
     PACT_INVITATION = 'com.therr.mobile.habits.PACT_INVITATION',
     PACT_ACCEPTED = 'com.therr.mobile.habits.PACT_ACCEPTED',
+    PACT_DECLINED = 'com.therr.mobile.habits.PACT_DECLINED',
     PACT_COMPLETED = 'com.therr.mobile.habits.PACT_COMPLETED',
+    PACT_EXPIRING = 'com.therr.mobile.habits.PACT_EXPIRING',
     PARTNER_CHECKED_IN = 'com.therr.mobile.habits.PARTNER_CHECKED_IN',
+    PARTNER_MISSED_DAY = 'com.therr.mobile.habits.PARTNER_MISSED_DAY',
+    PARTNER_CELEBRATED = 'com.therr.mobile.habits.PARTNER_CELEBRATED',
     STREAK_MILESTONE = 'com.therr.mobile.habits.STREAK_MILESTONE',
     STREAK_AT_RISK = 'com.therr.mobile.habits.STREAK_AT_RISK',
+    STREAK_BROKEN = 'com.therr.mobile.habits.STREAK_BROKEN',
+    NEW_PERSONAL_RECORD = 'com.therr.mobile.habits.NEW_PERSONAL_RECORD',
     DAILY_HABIT_REMINDER = 'com.therr.mobile.habits.DAILY_HABIT_REMINDER',
+    MORNING_MOTIVATION = 'com.therr.mobile.habits.MORNING_MOTIVATION',
+    EVENING_CHECK_IN = 'com.therr.mobile.habits.EVENING_CHECK_IN',
 }
 
 export interface INotificationData {

@@ -287,6 +287,15 @@
     "confirmCount": "{{count}} confirmed"
   },
   "components": {
+    "softOptInPush": {
+      "title": "Stay in the loop",
+      "bodyDefault": "Turn on notifications and we'll let you know when something needs your attention. You can change this anytime in Settings.",
+      "bodyHabitsPact": "Turn on notifications and we'll let you know when your accountability partner checks in — or when your streak is on the line.",
+      "bodyHabitsStreak": "Turn on notifications and we'll remind you before your streak resets at midnight.",
+      "bodyDirectMessage": "Turn on notifications so you don't miss a reply.",
+      "enable": "Enable",
+      "notNow": "Not now"
+    },
     "activeConnections": {
       "noActiveConnections": "There are currently no active connections in your network",
       "title": "Active Contacts"

@@ -287,6 +287,15 @@
     "confirmCount": "{{count}} confirmaron"
   },
   "components": {
+    "softOptInPush": {
+      "title": "Mantente al tanto",
+      "bodyDefault": "Activa las notificaciones y te avisaremos cuando algo necesite tu atención. Puedes cambiar esto en cualquier momento en Configuración.",
+      "bodyHabitsPact": "Activa las notificaciones y te avisaremos cuando tu compañero de responsabilidad se registre — o cuando tu racha esté en juego.",
+      "bodyHabitsStreak": "Activa las notificaciones y te recordaremos antes de que tu racha se reinicie a medianoche.",
+      "bodyDirectMessage": "Activa las notificaciones para no perderte una respuesta.",
+      "enable": "Activar",
+      "notNow": "Ahora no"
+    },
     "activeConnections": {
       "noActiveConnections": "Actualmente no hay conexiones activas en tu red",
       "title": "Contactos activos"
