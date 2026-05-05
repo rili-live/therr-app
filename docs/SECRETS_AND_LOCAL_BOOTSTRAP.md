@@ -157,27 +157,32 @@ only needs `eas-cli` installed — no local Android SDK required.
 
 ### One-time setup (do this before the first CI build)
 
+**All commands below must be run from inside the `TherrMobile/` directory.**
+Steps 1 and 2 must complete (and `app.json` committed) before any other step
+will work — `eas credentials` and `eas secret:create` require a linked project.
+
 1. **Create an Expo account** at https://expo.dev if you don't have one.
 
-2. **Link the project to EAS** from the `TherrMobile` directory:
+2. **Link the project to EAS** — this is required before credentials or secrets
+   can be managed:
    ```bash
    cd TherrMobile
    npm install -g eas-cli
    eas login
-   eas init --id <new-project-id>   # or let eas init auto-create the project
+   eas init          # auto-creates the project and writes real projectId into app.json
    ```
-   After `eas init`, commit the updated `app.json` — it will have the real
-   `projectId` replacing `REPLACE_WITH_EAS_PROJECT_ID`, and `owner` set to
-   your Expo username.
+   After `eas init` succeeds, **commit and push the updated `app.json`** — it
+   will have the real `projectId` replacing `REPLACE_WITH_EAS_PROJECT_ID` and
+   `owner` set to your Expo username. CI will fail without this committed value.
 
 3. **Upload the HABITS keystore to EAS credentials**:
    ```bash
-   eas credentials
+   eas credentials --platform android
    ```
-   Select **Android** → **habits-internal** → "Upload an existing keystore",
-   then provide `habits-upload.keystore`
-   (see keystore section below). EAS stores it encrypted; the CI job will
-   download it at build time via `credentialsSource: "remote"` in `eas.json`.
+   Select **habits-internal** → "Set up a new keystore" (let EAS generate one)
+   or "Upload an existing keystore" if `habits-upload.keystore` already exists.
+   EAS stores it encrypted; the CI job downloads it at build time via
+   `credentialsSource: "remote"` in `eas.json`.
 
 4. **Store the Google Maps API key as an EAS secret**:
    ```bash
