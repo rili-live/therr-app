@@ -35,6 +35,8 @@ import {
 } from './brandThoughtsVisibility';
 import {
     FeatureFlags,
+    HABITS_FREE_PACT_LIMIT,
+    DEFAULT_HABITS_FREE_PACT_LIMIT,
 } from './enums/FeatureFlags';
 import {
     HabitGoalTypes,
@@ -70,6 +72,8 @@ export {
     BRAND_THOUGHTS_VISIBILITY,
     getReadableBrands,
     FeatureFlags,
+    HABITS_FREE_PACT_LIMIT,
+    DEFAULT_HABITS_FREE_PACT_LIMIT,
     HabitGoalTypes,
     CampaignTypes,
     CampaignAdGoals,
