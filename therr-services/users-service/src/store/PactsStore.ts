@@ -123,6 +123,24 @@ export default class PactsStore {
         return this.getByUserId(userId, 'active');
     }
 
+    /**
+     * Counts pacts this user has created (not joined as partner) that are
+     * still in flight — pending invitation or active. Used to enforce the
+     * HABITS free-tier limit so that pacts they're invited to don't count
+     * against their cap.
+     */
+    countOpenByCreator(creatorUserId: string): Promise<number> {
+        const queryString = knexBuilder
+            .from(PACTS_TABLE_NAME)
+            .count('* as count')
+            .where('creatorUserId', creatorUserId)
+            .whereIn('status', ['pending', 'active'])
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count || '0', 10));
+    }
+
     getPendingInvitesForUser(userId: string) {
         // 1:1 invites match on pacts.partnerUserId; group invites match on a
         // pact_members row with role=partner, status=pending. The pact

@@ -700,10 +700,6 @@ The HABITS achievements system shipped on `claude/build-achievements-system-RhI3
 
 ### High priority
 
-- [ ] **`consistency_1_2` multi-habit detection.** The single-habit `consistency_1_1` ladder is wired in `habitCheckins.ts`. The multi-habit tier (perfect 7-day window across 2 / 3 / 5 habits simultaneously) is not. Computing it on every check-in is N×N over a user's active habits — move it to a nightly scheduler that scans yesterday's completions and fires a single `awardConsistencyMultiAchievement(headers, count)` per user. Reuse `Store.habitCheckins.getCompletedCountForPeriod` and `Store.habitGoals.getByUserId`.
-
-- [ ] **`accountability_1_2_2` (Habit Champion) partner attribution.** `completePact` already credits the OTHER pact member with `awardAccountabilityWingAchievement` based on completion rate. What's *not* covered: crediting the partner when their pact-mate hits a new longest streak. This requires a join between `streak_history.eventType = 'milestone_reached'` and `pact_members` to identify the partner user and award them. Add the trigger inside `habitCheckins.ts` alongside the existing milestone branch.
-
 - [ ] **Verify brand-variation header reliability.** Stage C assumes every authenticated HABITS request carries `x-brand-variation: habits` (parsed by `parseHeaders` and enforced by the allow-list in `helpers/achievements.ts`). Audit `TherrMobile/main/interceptors.ts` and the API gateway forwarding to confirm the header is set on every checkin / pact request — otherwise HABITS users will silently receive the Therr achievement set.
 
 - [ ] **Run the migration in stage and prod.** `20260428000001_habits.habit_goals_addGoalType.js` adds `habits.habit_goals.goalType NOT NULL DEFAULT 'build_good'`. Postgres backfills existing rows, but verify on stage before prod and confirm no in-flight `incrementUsageCount` calls collide.

@@ -13,6 +13,10 @@
         "posts": {
             "duplicatePost": "No se permiten publicaciones duplicadas"
         },
+        "pacts": {
+            "habitGoalRequired": "Se requiere una meta de hábito para crear un pacto",
+            "freeTierLimitReached": "El nivel gratuito está limitado a {limit} pacto(s) activo(s). Actualiza a premium para tener pactos ilimitados."
+        },
         "user": {
             "invalidUserNamePassword": "La combinación de usuario/contraseña es incorrecta",
             "maxOrgs": "Se alcanzó el máximo de organizaciones",
