@@ -36,6 +36,9 @@ import {
 import {
     FeatureFlags,
 } from './enums/FeatureFlags';
+import {
+    HabitGoalTypes,
+} from './enums/HabitGoalTypes';
 import CampaignTypes from './enums/CampaignTypes';
 import CampaignAdGoals from './enums/CampaignAdGoals';
 import CampaignAssetTypes from './enums/CampaignAssetTypes';
@@ -67,6 +70,7 @@ export {
     BRAND_THOUGHTS_VISIBILITY,
     getReadableBrands,
     FeatureFlags,
+    HabitGoalTypes,
     CampaignTypes,
     CampaignAdGoals,
     CampaignAssetTypes,

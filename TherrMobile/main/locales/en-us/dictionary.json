@@ -436,8 +436,8 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 {shareUrl}",
-        "title": "Therr App | Local Community & Rewards App"
+        "message": "Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
+        "title": "Friends with Habits | Accountability App for Friends"
       }
     },
     "createProfile": {
@@ -711,6 +711,7 @@
         "addImageNote": "Select an existing image or capture a new one to represent your thought.",
         "cost": "Cost: {pointCost} coins",
         "message": "Have an idea...?",
+        "messageGoal": "What's your goal today?",
         "messageReply": "Share your reply",
         "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
@@ -719,7 +720,9 @@
         "radius": "Radius: {meters} meters"
       },
       "deleteConfirmation": "Are you sure you want to delete this thought?",
+      "deleteConfirmationGoal": "Are you sure you want to delete this goal?",
       "backendSuccessMessage": "You have shared a thought!",
+      "backendSuccessMessageGoal": "You have shared a goal!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "forgotPassword": {
@@ -1009,6 +1012,9 @@
       "media": "Media",
       "news": "News",
       "thoughts": "Thoughts",
+      "goals": "Goals",
+      "pacts": "Pacts",
+      "achievements": "Achievements",
       "groupsDiscover": "Discover"
     },
     "mapActions": {
@@ -1042,6 +1048,14 @@
         "settings": "Settings",
         "toggle": "Toggle",
         "notifications": "Notifications",
+        "profile": "Profile"
+      }
+    },
+    "habits": {
+      "buttons": {
+        "habits": "Habits",
+        "pacts": "Pacts",
+        "partners": "Friends",
         "profile": "Profile"
       }
     },
@@ -1217,7 +1231,8 @@
       "labels": {
         "allUsers": "All Users",
         "peopleYouMightKnow": "People You Might Know",
-        "noContactsFound": "No users found."
+        "noContactsFound": "No users found.",
+        "crossBrandFriendsHint": "Your friends list spans every Therr app you use."
       }
     },
     "createForum": {
@@ -1229,7 +1244,7 @@
       "pageTitle": "Forums"
     },
     "createProfile": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageHeaderDetails": "Create your profile",
       "pageSubHeaderDetails": "You can change your username at any time",
       "pageHeaderPhone": "Keep it secure",
@@ -1398,7 +1413,8 @@
       }
     },
     "editThought": {
-      "headerTitle": "Share a Thought"
+      "headerTitle": "Share a Thought",
+      "headerTitleGoal": "Share a Goal"
     },
     "emailVerification": {
       "buttons": {
@@ -1457,9 +1473,9 @@
     },
     "landing": {
       "background": {
-        "shareYourInterests": "Share Your Interests",
-        "inviteFriends": "Invite Your Friends",
-        "getMatched": "Match with people & places for your next hangout"
+        "shareYourInterests": "Build Habits That Stick",
+        "inviteFriends": "Invite Friends to Keep You Accountable",
+        "getMatched": "Make pacts with friends and change your lives together"
       },
       "headerTitle": "Welcome",
       "buttons": {
@@ -1478,9 +1494,9 @@
       }
     },
     "login": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageTitle": "Welcome",
-      "pageSubtitle": "Sign in to Therr to see what you missed",
+      "pageSubtitle": "Sign in to check in with your friends",
       "userAlerts": {
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }
@@ -1560,8 +1576,8 @@
       "headerTitle": "Phone Contacts",
       "pageTitle": "Phone Contacts",
       "sections": {
-        "onApp": "Friends Already on Therr",
-        "notOnApp": "Invite to Therr"
+        "onApp": "Friends Already on Friends with Habits",
+        "notOnApp": "Invite to Friends with Habits"
       },
       "buttons": {
         "connect": "Connect",
@@ -1569,11 +1585,11 @@
         "inviteSelected": "Invite Selected"
       },
       "empty": {
-        "onApp": "None of your contacts are on Therr yet",
-        "notOnApp": "All your contacts are already on Therr!"
+        "onApp": "None of your contacts are on Friends with Habits yet",
+        "notOnApp": "All your contacts are already on Friends with Habits!"
       },
-      "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: {shareUrl}",
-      "inviteSubject": "Join me on Therr!",
+      "inviteMessage": "Hey! Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
+      "inviteSubject": "Join me on Friends with Habits!",
       "alertTitles": {
         "contactInvitesSent": "Invite Success",
         "connectRequestSent": "Connect Request Sent",
@@ -1586,7 +1602,7 @@
       }
     },
     "register": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageTitle": "Sign Up",
       "pageSubtitle": "Create a profile and see what you are missing or view the",
       "pageSubtitleMapPreviewLink": "public map",
@@ -1661,7 +1677,7 @@
         "shareFeedback": "Share Feedback"
       },
       "subtitles": {
-        "createConnection": "Send a connection request or invite someone to join Therr!",
+        "createConnection": "Send a connection request or invite a friend to join Friends with Habits!",
         "whoInviteDisclaimer": "Choose who and how you would like to invite."
       },
       "labels": {
@@ -1674,10 +1690,10 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
+      "siteDescription1": "Welcome to Friends with Habits. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
-      "siteDescription3": "Content on the map is proximity activated. Share a moment with your connections on the map. Discover spaces nearby, and claim TherrCoins for actions (posting, reviewing, visiting, etc).",
-      "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby. Just tap anywhere on the map to start exploring.",
+      "siteDescription3": "Invite a friend to form a pact, then build habits you'll hold each other to. Check in daily, share proof, and watch your streak grow.",
+      "siteDescription4": "Keep the streak alive together. If one of you slips, the other is there to keep things on track — accountability is the whole point.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {
@@ -1693,8 +1709,179 @@
     },
     "viewThought": {
       "headerTitle": "Thoughts",
+      "headerTitleGoal": "Goal",
       "reply": "Reply",
       "replies": "Replies"
+    },
+    "habits": {
+      "headerTitle": "My Habits",
+      "detailTitle": "Habit Details",
+      "greetingMorning": "Good morning!",
+      "greetingAfternoon": "Good afternoon!",
+      "greetingEvening": "Good evening!",
+      "dashboardSubtitle": "Track your daily habits",
+      "yourHabits": "Your Habits",
+      "todayProgress": "Today",
+      "bestStreak": "Best Streak",
+      "currentStreak": "Current Streak",
+      "longestStreak": "Longest Streak",
+      "graceDays": "Grace Days Left",
+      "stats": "Statistics",
+      "checkin": "Check In",
+      "completed": "Completed!",
+      "noHabitsTitle": "No habits yet",
+      "noHabitsSubtitle": "Create a habit to start tracking your progress",
+      "habitNotFound": "Habit not found",
+      "checkinProof": {
+        "title": "Check In",
+        "notePrompt": "Add a quick note (optional)",
+        "notePlaceholder": "How did it go? Any wins to share?",
+        "takePhoto": "Take Photo",
+        "choosePhoto": "Choose Photo",
+        "uploadFailed": "We couldn't upload your photo. Try again.",
+        "cancel": "Cancel",
+        "confirm": "Check In"
+      },
+      "frequency": {
+        "daily": "Every day",
+        "weekly": "{count}x per week",
+        "monthly": "{count}x per month",
+        "perPeriod": "{count}x per {period}"
+      },
+      "daysOfWeekShort": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "streak": {
+        "day": "day",
+        "days": "days",
+        "nextMilestone": "Next milestone: {days} days",
+        "graceDaysRemaining": "Grace days remaining: {count}"
+      }
+    },
+    "pacts": {
+      "headerTitle": "My Pacts",
+      "detailTitle": "Pact Details",
+      "title": "Accountability Pacts",
+      "subtitle": "Stay accountable with friends",
+      "defaultTitle": "Habit Pact",
+      "you": "You",
+      "comparison": "Progress Comparison",
+      "timeline": "Timeline",
+      "accept": "Accept Pact",
+      "decline": "Decline",
+      "abandon": "Abandon Pact",
+      "noPactsTitle": "No pacts yet",
+      "noPactsSubtitle": "Create a pact with a friend to stay accountable",
+      "allTabLabel": "All",
+      "pactNotFound": "Pact not found",
+      "acceptedTitle": "Pact Accepted!",
+      "acceptedMessage": "You have joined this accountability pact",
+      "successTitle": "Success",
+      "declinedMessage": "You have declined this pact",
+      "abandonedMessage": "You have left this pact",
+      "errorTitle": "Error",
+      "acceptError": "Failed to accept pact. Please try again.",
+      "declineError": "Failed to decline pact. Please try again.",
+      "abandonError": "Failed to abandon pact. Please try again.",
+      "confirmDecline": "Are you sure you want to decline this pact invitation?",
+      "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
+      "onboarding": {
+        "title": "Start with a Friend",
+        "subtitle": "Friends with Habits is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",
+        "createPact": "Invite a Friend",
+        "viewInvites": "View {count} Pact Invite(s)",
+        "findPartner": "Browse People",
+        "benefit2": "Daily check-ins with someone sharing similar goals"
+      },
+      "preview": {
+        "bannerTitle": "Start your first pact",
+        "bannerSubtitle": "Pacts require at least one other person — that's how habits stick.",
+        "bannerHelper": "Tap below to send your first invite",
+        "bannerCTA": "Invite a friend",
+        "bannerSecondaryCTA": "View sent invites",
+        "sampleHabitTitle": "Start with a habit/goal",
+        "sampleHabitSubtitle": "Build a healthy habit, break a bad one, or save toward a shared goal — we'll lock it in once your friend joins.",
+        "samplePartnerName": "Friendly accountability",
+        "sampleStreakLabel": "Day 1 — locks in when your friend joins",
+        "prestagedSuffix": "Ready when your friend joins",
+        "stepBadge": "Step {current} of {total}",
+        "step1Label": "Pick",
+        "step1Sublabel": "your goal",
+        "step2Label": "Invite",
+        "step2Sublabel": "a friend",
+        "step3Label": "Lock in",
+        "step3Sublabel": "your pact",
+        "habitCardHeader": "Your habit or savings goal",
+        "partnerCardHeader": "Your accountability team",
+        "pactCardHeader": "Your pact",
+        "samplePactStatus": "Pending your accepted invite"
+      },
+      "outgoing": {
+        "tabLabel": "Sent",
+        "emptyTitle": "No invites sent yet",
+        "emptySubtitle": "Send a pact invite to get started",
+        "cardSubtitle": "Awaiting acceptance",
+        "nudgeButton": "Nudge",
+        "nudgeShareTitle": "Friendly reminder"
+      },
+      "wizard": {
+        "step1Title": "Pick a habit",
+        "step1Subtitle": "Choose what you'd like to build with your friend",
+        "step2Title": "Choose your friends",
+        "step2Subtitle": "Invite up to 5 people — anyone who accepts joins your pact",
+        "step3Title": "Send your pact invite",
+        "step3Subtitle": "Review and send",
+        "multiSelectCounter": "{count} of 5 selected",
+        "customHabitLabel": "Or create your own",
+        "customHabitNamePlaceholder": "Habit name (e.g., Run 3x/week)",
+        "send": "Send invite",
+        "sendMultiple": "Send {count} invites",
+        "sendingError": "Couldn't send your pact invite. Please try again.",
+        "sendSuccess": "Pact invite sent!",
+        "sendMultipleSuccess": "{count} pact invites sent!",
+        "next": "Next",
+        "back": "Back",
+        "cancel": "Cancel",
+        "pickTemplateFirst": "Pick a habit to continue",
+        "pickPartnerFirst": "Choose at least one friend",
+        "templatesEmpty": "No templates available — create your own habit",
+        "addPartnerByEmail": "Invite by email",
+        "addPartnerEmailPlaceholder": "friend@example.com",
+        "maxPartnersReached": "You can invite up to 5 friends at once",
+        "habitDefaultEmoji": "🎯"
+      },
+      "status": {
+        "pending": "Pending",
+        "active": "Active",
+        "completed": "Completed",
+        "abandoned": "Abandoned",
+        "expired": "Expired"
+      },
+      "pactType": {
+        "accountability": "Accountability",
+        "challenge": "Challenge",
+        "support": "Support"
+      },
+      "durationLabel": "{days} day {type}",
+      "checkinsLabel": "{completed}/{total} checkins",
+      "completionLabel": "{pct}% completion",
+      "vs": "vs",
+      "partnerFallback": "Friend"
+    },
+    "pushOptIn": {
+      "title": "Get notified when your friend joins",
+      "subtitle": "We'll only ping you for pact activity — no spam, ever.",
+      "enableButton": "Turn on notifications",
+      "skipButton": "Maybe later",
+      "benefit1": "Know the moment your friend accepts your invite",
+      "benefit2": "Daily check-in reminders so you never break a streak",
+      "benefit3": "Cheers from your friend when they finish a check-in"
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",
@@ -1768,7 +1955,7 @@
     },
     "myQRCodes": {
       "headerTitle": "My QR Codes",
-      "subtitle": "Share any of your Therr content with a scan.",
+      "subtitle": "Share any of your Friends with Habits content with a scan.",
       "profileCardHint": "Tap to view the full QR for your profile.",
       "profileAccessibilityLabel": "View full QR code for your profile",
       "profileFallbackName": "My Profile",
@@ -1785,7 +1972,7 @@
     },
     "myQRCodeDetail": {
       "headerTitle": "QR Code",
-      "helperText": "Have anyone scan this with their camera to open it in Therr.",
+      "helperText": "Have anyone scan this with their camera to open it in Friends with Habits.",
       "accessibility": "QR code linking to {{title}}",
       "copied": "Link Copied",
       "privateNote": "Your profile is private — scanners will see a limited view until you connect.",
@@ -2094,6 +2281,226 @@
       "influencer_1_3_7": {
         "title": "Unstoppable Creativity",
         "description": "Create 1,000 moments"
+      },
+      "habitBuilder_1_1": {
+        "title": "First Steps",
+        "description": "Reach a 3-day streak on a habit"
+      },
+      "habitBuilder_1_1_1": {
+        "title": "One Week Strong",
+        "description": "Reach a 7-day streak on a habit"
+      },
+      "habitBuilder_1_1_2": {
+        "title": "Two Week Wonder",
+        "description": "Reach a 14-day streak on a habit"
+      },
+      "habitBuilder_1_1_3": {
+        "title": "Habit Formed",
+        "description": "Reach a 30-day streak on a habit"
+      },
+      "habitBuilder_1_1_4": {
+        "title": "Two Months In",
+        "description": "Reach a 60-day streak on a habit"
+      },
+      "habitBuilder_1_1_5": {
+        "title": "Quarter Master",
+        "description": "Reach a 90-day streak on a habit"
+      },
+      "habitBuilder_1_1_6": {
+        "title": "Half Year Hero",
+        "description": "Reach a 180-day streak on a habit"
+      },
+      "habitBuilder_1_1_7": {
+        "title": "Habit Legend",
+        "description": "Reach a 365-day streak on a habit"
+      },
+      "cleanBreak_1_1": {
+        "title": "First Day Free",
+        "description": "Complete 1 day without breaking a habit"
+      },
+      "cleanBreak_1_1_1": {
+        "title": "Three Strong",
+        "description": "Reach a 3-day clean streak"
+      },
+      "cleanBreak_1_1_2": {
+        "title": "One Week Clean",
+        "description": "Reach a 7-day clean streak"
+      },
+      "cleanBreak_1_1_3": {
+        "title": "Two Weeks Clear",
+        "description": "Reach a 14-day clean streak"
+      },
+      "cleanBreak_1_1_4": {
+        "title": "Thirty Days Reborn",
+        "description": "Reach a 30-day clean streak"
+      },
+      "cleanBreak_1_1_5": {
+        "title": "Sixty Day Stride",
+        "description": "Reach a 60-day clean streak"
+      },
+      "cleanBreak_1_1_6": {
+        "title": "Ninety Day Reset",
+        "description": "Reach a 90-day clean streak"
+      },
+      "cleanBreak_1_1_7": {
+        "title": "Half Year Free",
+        "description": "Reach a 180-day clean streak"
+      },
+      "cleanBreak_1_1_8": {
+        "title": "A Year Reborn",
+        "description": "Reach a 365-day clean streak"
+      },
+      "treasureBuilder_1_1": {
+        "title": "Penny Saved",
+        "description": "Reach a 7-day no-spend streak"
+      },
+      "treasureBuilder_1_1_1": {
+        "title": "Frugal Fortnight",
+        "description": "Reach a 14-day no-spend streak"
+      },
+      "treasureBuilder_1_1_2": {
+        "title": "Coin Collector",
+        "description": "Reach a 30-day no-spend streak"
+      },
+      "treasureBuilder_1_1_3": {
+        "title": "Vault Keeper",
+        "description": "Reach a 60-day no-spend streak"
+      },
+      "treasureBuilder_1_1_4": {
+        "title": "Treasure Hunter",
+        "description": "Reach a 100-day no-spend streak"
+      },
+      "treasureBuilder_1_2": {
+        "title": "First Goal Reached",
+        "description": "Complete 1 savings pact"
+      },
+      "treasureBuilder_1_2_1": {
+        "title": "Goal Setter",
+        "description": "Complete 3 savings pacts"
+      },
+      "treasureBuilder_1_2_2": {
+        "title": "Wealth Builder",
+        "description": "Complete 10 savings pacts"
+      },
+      "consistency_1_1": {
+        "title": "Perfect Week",
+        "description": "Complete every scheduled check-in for 7 days on one habit"
+      },
+      "consistency_1_1_1": {
+        "title": "Flawless Fortnight",
+        "description": "Complete every scheduled check-in for 14 days on one habit"
+      },
+      "consistency_1_1_2": {
+        "title": "Spotless Month",
+        "description": "Complete every scheduled check-in for 30 days on one habit"
+      },
+      "consistency_1_1_3": {
+        "title": "Pristine Quarter",
+        "description": "Complete every scheduled check-in for 90 days on one habit"
+      },
+      "consistency_1_2": {
+        "title": "Two At Once",
+        "description": "Complete a perfect 7-day window on 2 habits simultaneously"
+      },
+      "consistency_1_2_1": {
+        "title": "Triple Threat",
+        "description": "Complete a perfect 7-day window on 3 habits simultaneously"
+      },
+      "consistency_1_2_2": {
+        "title": "All Things at Once",
+        "description": "Complete a perfect 7-day window on 5 habits simultaneously"
+      },
+      "accountability_1_1": {
+        "title": "First Pact",
+        "description": "Join your first pact"
+      },
+      "accountability_1_1_1": {
+        "title": "Loyal Friend",
+        "description": "Complete a pact at 80% or higher"
+      },
+      "accountability_1_1_2": {
+        "title": "Reliable Ally",
+        "description": "Complete 5 pacts at 80% or higher"
+      },
+      "accountability_1_1_3": {
+        "title": "Habit Champion",
+        "description": "Complete 25 pacts at 80% or higher"
+      },
+      "accountability_1_2": {
+        "title": "Wing Person",
+        "description": "Help a friend complete their pact at 80% or higher"
+      },
+      "accountability_1_2_1": {
+        "title": "Coach",
+        "description": "Help 5 friends complete their pacts at 80% or higher"
+      },
+      "accountability_1_2_2": {
+        "title": "Mentor",
+        "description": "Help 25 friends complete their pacts at 80% or higher"
+      },
+      "resilience_1_1": {
+        "title": "Bounce Back",
+        "description": "Restart a streak after a previous one ended"
+      },
+      "resilience_1_1_1": {
+        "title": "Phoenix",
+        "description": "Beat your previous longest streak after a reset"
+      },
+      "resilience_1_1_2": {
+        "title": "Unbreakable",
+        "description": "Beat your previous longest streak 5 times"
+      },
+      "resilience_1_2": {
+        "title": "Second Wind",
+        "description": "Finish a pact strong after losing your streak mid-pact"
+      },
+      "resilience_1_2_1": {
+        "title": "Comeback Kid",
+        "description": "Finish 5 pacts strong after losing your streak mid-pact"
+      },
+      "socialEnergizer_1_1": {
+        "title": "Cheerleader",
+        "description": "React to 10 friend check-ins"
+      },
+      "socialEnergizer_1_1_1": {
+        "title": "Hype Squad",
+        "description": "React to 50 friend check-ins"
+      },
+      "socialEnergizer_1_1_2": {
+        "title": "Crowd Pleaser",
+        "description": "React to 250 friend check-ins"
+      },
+      "socialEnergizer_1_2": {
+        "title": "Milestone Maker",
+        "description": "Celebrate a friend's milestone"
+      },
+      "socialEnergizer_1_2_1": {
+        "title": "Confetti Cannon",
+        "description": "Celebrate 25 friend milestones"
+      },
+      "pactPioneer_1_1": {
+        "title": "Pact Starter",
+        "description": "Create your first pact"
+      },
+      "pactPioneer_1_1_1": {
+        "title": "Pact Maker",
+        "description": "Create 5 pacts"
+      },
+      "pactPioneer_1_1_2": {
+        "title": "Pact Architect",
+        "description": "Create 25 pacts"
+      },
+      "pactPioneer_1_1_3": {
+        "title": "Pact Visionary",
+        "description": "Create 100 pacts"
+      },
+      "pactPioneer_1_2": {
+        "title": "First Invite Sent",
+        "description": "Invite your first unique friend"
+      },
+      "pactPioneer_1_2_1": {
+        "title": "Network Effect",
+        "description": "Invite 10 unique friends across pacts"
       }
     },
     "profile": {
@@ -2124,7 +2531,12 @@
         "noMeMoments": "No moments to display. You can create moments from the map.",
         "noMoments": "No moments to display. Travel where they travel to activate nearby moments.",
         "noMeThoughts": "No thoughts to display. You can create thoughts from the 'Discovered' page.",
-        "noThoughts": "This user has not shared any thoughts yet."
+        "noThoughts": "This user has not shared any thoughts yet.",
+        "noMeGoals": "No goals yet. Tap the + button to log your first goal.",
+        "noGoals": "This user has not shared any goals yet.",
+        "noMePacts": "No pacts yet. Invite a friend to create your first pact.",
+        "noMeAchievements": "No achievements yet. Keep building habits to unlock rewards.",
+        "noAchievements": "This user hasn't earned any achievements yet."
       }
     }
   }

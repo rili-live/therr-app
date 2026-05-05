@@ -24,6 +24,7 @@ import {
 import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
@@ -76,9 +77,9 @@ import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroi
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
-import background1 from '../assets/dinner-burgers.webp';
-import background2 from '../assets/dinner-overhead.webp';
-import background3 from '../assets/dinner-overhead-2.webp';
+import background1 from '../assets/landing-jungle.webp';
+import background2 from '../assets/landing-tree.webp';
+import background3 from '../assets/landing-chameleon.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
@@ -280,7 +281,33 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.readyAndStartBackgroundGeolocation();
         this.prefetchContent();
+
+        // Persisted-session launch: componentDidUpdate's auth-transition gate
+        // doesn't fire when the user is already authenticated at mount, so
+        // reset to the brand-appropriate landing screen here.
+        if (this.props.user?.isAuthenticated && CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+            this.resetToHabitsLanding();
+        }
     }
+
+    // For HABITS, the first authenticated reset goes to a one-time push opt-in
+    // screen (the highest-leverage retention lever — the user needs to know
+    // when their pact invite is accepted). Subsequent launches skip straight
+    // to HabitsDashboard.
+    resetToHabitsLanding = async () => {
+        let optInShown = 'true';
+        try {
+            optInShown = (await AsyncStorage.getItem('HABITS_PUSH_OPTIN_SHOWN')) || '';
+        } catch {
+            // best-effort — fall through to dashboard if AsyncStorage is broken
+            optInShown = 'true';
+        }
+        const target = optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
+        RootNavigation.reset({
+            index: 0,
+            routes: [{ name: target }],
+        });
+    };
 
     componentDidUpdate(prevProps: ILayoutProps) {
         const { targetRouteView, targetRouteParams } = this.state;
@@ -319,7 +346,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     }
                 }
 
-                if (targetRouteView) {
+                if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                    // HABITS has its own dashboard; the targetRouteView path
+                    // below routes through Areas, which is feature-flagged off
+                    // for HABITS and would otherwise leave the user on a
+                    // fallback screen (e.g., Home) after login.
+                    this.resetToHabitsLanding();
+                } else if (targetRouteView) {
                     RootNavigation.reset({
                         index: 0,
                         routes: [
@@ -331,7 +364,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
                 this.prefetchContent();
 
-                if (!forums?.forumCategories || !forums.forumCategories.length) {
+                const featureFlags = getConfig().featureFlags || {};
+                if (featureFlags.ENABLE_FORUMS && (!forums?.forumCategories || !forums.forumCategories.length)) {
                     searchCategories({
                         itemsPerPage: 100,
                         pageNumber: 1,
@@ -570,8 +604,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             completePrefetchRequest,
         } = this.props;
         if (user.isAuthenticated) {
+            // Skip data fetches for features the current brand has disabled.
+            // Otherwise we hit endpoints (e.g., /reactions-service/moments/active/search)
+            // for content the brand never displays, generating 401/404 noise and
+            // — worst case — auth-recovery cascades on a still-valid session.
+            const featureFlags = getConfig().featureFlags || {};
+
             // Pre-load activated content
-            if (!content?.content?.activeMoments?.length) {
+            if (featureFlags.ENABLE_MOMENTS && !content?.content?.activeMoments?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveMoments: true,
                 });
@@ -590,7 +630,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeThoughts?.length) {
+            if (featureFlags.ENABLE_THOUGHTS && !content?.content?.activeThoughts?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveThoughts: true,
                 });
@@ -609,7 +649,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeEvents?.length) {
+            if (featureFlags.ENABLE_EVENTS && !content?.content?.activeEvents?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveEvents: true,
                 });
@@ -629,58 +669,70 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
 
-            // Pre-load notifications
-            beginPrefetchRequest({
-                isLoadingAchievements: true,
-                isLoadingUsers: true,
-                isLoadingGroups: true,
-                isLoadingNotifications: true,
-            });
-            searchNotifications({
-                filterBy: 'userId',
-                query: user.details.id,
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-            }).catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingNotifications: false,
+            if (featureFlags.ENABLE_NOTIFICATIONS) {
+                beginPrefetchRequest({
+                    isLoadingNotifications: true,
                 });
-            });
+                searchNotifications({
+                    filterBy: 'userId',
+                    query: user.details.id,
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                }).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingNotifications: false,
+                    });
+                });
+            }
 
-            // Pre-load achievements
-            getMyAchievements().catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingAchievements: false,
+            if (featureFlags.ENABLE_ACHIEVEMENTS) {
+                beginPrefetchRequest({
+                    isLoadingAchievements: true,
                 });
-            });
+                getMyAchievements().catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingAchievements: false,
+                    });
+                });
+            }
 
-            searchUsers(
-                {
-                    query: '',
-                    limit: DEFAULT_PAGE_SIZE,
-                    offset: 0,
-                    withMedia: true,
-                },
-            ).catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingUsers: false,
+            if (featureFlags.ENABLE_CONNECT) {
+                beginPrefetchRequest({
+                    isLoadingUsers: true,
                 });
-            });
+                searchUsers(
+                    {
+                        query: '',
+                        limit: DEFAULT_PAGE_SIZE,
+                        offset: 0,
+                        withMedia: true,
+                    },
+                ).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingUsers: false,
+                    });
+                });
+            }
 
-            getUserGroups().catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingGroups: false,
+            if (featureFlags.ENABLE_GROUPS) {
+                beginPrefetchRequest({
+                    isLoadingGroups: true,
                 });
-            });
+                getUserGroups().catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingGroups: false,
+                    });
+                });
+            }
         }
     };
 
@@ -2078,7 +2130,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 return true;
                             }
 
-                            if (route.name === 'Landing' && user?.details?.id) {
+                            if (route.name === 'Landing' && user?.isAuthenticated) {
                                 return false;
                             }
 

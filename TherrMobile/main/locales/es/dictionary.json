@@ -436,8 +436,8 @@
         "email": "Correo del invitado"
       },
       "shareLink": {
-        "message": "Únete a Therr app con mi enlace y ambos ganaremos puntos para canjear por una tarjeta de regalo 🤝 🎁 {shareUrl}",
-        "title": "Therr App | Comunidad local y app de recompensas"
+        "message": "Únete a mí en Friends with Habits: construimos rachas juntos y nos apoyamos con la responsabilidad. Regístrate con mi enlace: {shareUrl}",
+        "title": "Friends with Habits | App de rendición de cuentas para amigos"
       }
     },
     "createProfile": {
@@ -711,6 +711,7 @@
         "addImageNote": "Selecciona una imagen existente o captura una nueva para representar tu pensamiento.",
         "cost": "Costo: {pointCost} monedas",
         "message": "¿Tienes una idea...?",
+        "messageGoal": "¿Cuál es tu meta hoy?",
         "messageReply": "Comparte tu respuesta",
         "notificationMsg": "Título o nombre del lugar",
         "hashTags": "Hashtags (ej. mi_etiqueta, miEtiqueta)",
@@ -719,7 +720,9 @@
         "radius": "Radio: {meters} metros"
       },
       "deleteConfirmation": "¿Estás seguro de que quieres eliminar este pensamiento?",
+      "deleteConfirmationGoal": "¿Estás seguro de que quieres eliminar esta meta?",
       "backendSuccessMessage": "¡Has compartido un pensamiento!",
+      "backendSuccessMessageGoal": "¡Has compartido una meta!",
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde."
     },
     "forgotPassword": {
@@ -1009,6 +1012,9 @@
       "media": "Multimedia",
       "news": "Noticias",
       "thoughts": "Pensamientos",
+      "goals": "Metas",
+      "pacts": "Pactos",
+      "achievements": "Logros",
       "groupsDiscover": "Descubrir"
     },
     "mapActions": {
@@ -1042,6 +1048,14 @@
         "settings": "Configuración",
         "toggle": "Alternar",
         "notifications": "Notificaciones",
+        "profile": "Perfil"
+      }
+    },
+    "habits": {
+      "buttons": {
+        "habits": "Hábitos",
+        "pacts": "Pactos",
+        "partners": "Amigos",
         "profile": "Perfil"
       }
     },
@@ -1217,7 +1231,8 @@
       "labels": {
         "allUsers": "Todos los usuarios",
         "peopleYouMightKnow": "Personas que podrías conocer",
-        "noContactsFound": "No se encontraron usuarios."
+        "noContactsFound": "No se encontraron usuarios.",
+        "crossBrandFriendsHint": "Tu lista de amigos se extiende a todas las apps de Therr que usas."
       }
     },
     "createForum": {
@@ -1229,7 +1244,7 @@
       "pageTitle": "Foros"
     },
     "createProfile": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageHeaderDetails": "Crea tu perfil",
       "pageSubHeaderDetails": "Puedes cambiar tu nombre de usuario en cualquier momento",
       "pageHeaderPhone": "Mantenlo seguro",
@@ -1398,7 +1413,8 @@
       }
     },
     "editThought": {
-      "headerTitle": "Compartir un pensamiento"
+      "headerTitle": "Compartir un pensamiento",
+      "headerTitleGoal": "Comparte una meta"
     },
     "emailVerification": {
       "buttons": {
@@ -1457,9 +1473,9 @@
     },
     "landing": {
       "background": {
-        "shareYourInterests": "Comparte tus intereses",
-        "inviteFriends": "Invita a tus amigos",
-        "getMatched": "Conecta con personas y lugares para tu próximo encuentro"
+        "shareYourInterests": "Construye hábitos duraderos",
+        "inviteFriends": "Invita a tus amigos para mantenerte responsable",
+        "getMatched": "Haz pactos con amigos y cambien sus vidas juntos"
       },
       "headerTitle": "Bienvenido",
       "buttons": {
@@ -1478,9 +1494,9 @@
       }
     },
     "login": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageTitle": "Bienvenido",
-      "pageSubtitle": "Inicia sesión en Therr para ver lo que te perdiste",
+      "pageSubtitle": "Inicia sesión para hacer tu check-in con tus amigos",
       "userAlerts": {
         "registerSuccess": "¡Registro exitoso! Revisa tu correo electrónico para la verificación."
       }
@@ -1560,8 +1576,8 @@
       "headerTitle": "Contactos del teléfono",
       "pageTitle": "Contactos del teléfono",
       "sections": {
-        "onApp": "Amigos que ya están en Therr",
-        "notOnApp": "Invitar a Therr"
+        "onApp": "Amigos que ya están en Friends with Habits",
+        "notOnApp": "Invitar a Friends with Habits"
       },
       "buttons": {
         "connect": "Conectar",
@@ -1569,11 +1585,11 @@
         "inviteSelected": "Invitar seleccionados"
       },
       "empty": {
-        "onApp": "Ninguno de tus contactos está en Therr todavía",
-        "notOnApp": "¡Todos tus contactos ya están en Therr!"
+        "onApp": "Ninguno de tus contactos está en Friends with Habits todavía",
+        "notOnApp": "¡Todos tus contactos ya están en Friends with Habits!"
       },
-      "inviteMessage": "¡Hola! Únete a Therr, una red social local para descubrir lo que hay a tu alrededor. Regístrate con mi enlace de invitación: {shareUrl}",
-      "inviteSubject": "¡Únete a Therr!",
+      "inviteMessage": "¡Hola! Únete a mí en Friends with Habits: construimos rachas juntos y nos apoyamos con la responsabilidad. Regístrate con mi enlace: {shareUrl}",
+      "inviteSubject": "¡Únete a mí en Friends with Habits!",
       "alertTitles": {
         "contactInvitesSent": "Invitación exitosa",
         "connectRequestSent": "Solicitud de conexión enviada",
@@ -1586,7 +1602,7 @@
       }
     },
     "register": {
-      "headerTitle": "Therr",
+      "headerTitle": "Friends with Habits",
       "pageTitle": "Registrarse",
       "pageSubtitle": "Crea un perfil y descubre lo que te estás perdiendo o ve el",
       "pageSubtitleMapPreviewLink": "mapa público",
@@ -1661,7 +1677,7 @@
         "shareFeedback": "Compartir opinión"
       },
       "subtitles": {
-        "createConnection": "¡Envía una solicitud de conexión o invita a alguien a unirse a Therr!",
+        "createConnection": "¡Envía una solicitud de conexión o invita a un amigo a unirse a Friends with Habits!",
         "whoInviteDisclaimer": "Elige a quién y cómo te gustaría invitar."
       },
       "labels": {
@@ -1674,9 +1690,9 @@
         "userName": "Nombre de usuario"
       },
       "pageTitle": "Perfil de usuario",
-      "siteDescription1": "Bienvenido a Therr app. Mientras recopilamos comentarios y desarrollamos nuevas funciones, déjanos saber cómo podemos mejorar la experiencia.",
+      "siteDescription1": "Bienvenido a Friends with Habits. Mientras recopilamos comentarios y desarrollamos nuevas funciones, déjanos saber cómo podemos mejorar la experiencia.",
       "siteDescription2": "Entonces, ¿cómo funciona?",
-      "siteDescription3": "El contenido en el mapa se activa por proximidad. Comparte un momento con tus conexiones en el mapa. Descubre espacios cercanos y reclama TherrCoins por acciones (publicar, reseñar, visitar, etc).",
+      "siteDescription3": "Invita a un amigo para formar un pacto, y luego construyan hábitos a los que se comprometan juntos. Hagan check-in diario, compartan pruebas y vean crecer su racha.",
       "siteDescription4": "Luego, revisa tu feed para momentos publicados por otros en los lugares que más frecuentas. Conoce la cultura local buscando contenido compartido cerca. Solo toca cualquier lugar del mapa para comenzar a explorar.",
       "noActiveConnections": "Actualmente no hay conexiones activas en tu red",
       "requestRecommendation": "Envía una solicitud para hacer conexiones y construir una red",
@@ -1693,8 +1709,179 @@
     },
     "viewThought": {
       "headerTitle": "Pensamientos",
+      "headerTitleGoal": "Meta",
       "reply": "Responder",
       "replies": "Respuestas"
+    },
+    "habits": {
+      "headerTitle": "Mis hábitos",
+      "detailTitle": "Detalles del hábito",
+      "greetingMorning": "¡Buenos días!",
+      "greetingAfternoon": "¡Buenas tardes!",
+      "greetingEvening": "¡Buenas noches!",
+      "dashboardSubtitle": "Sigue tus hábitos diarios",
+      "yourHabits": "Tus hábitos",
+      "todayProgress": "Hoy",
+      "bestStreak": "Mejor racha",
+      "currentStreak": "Racha actual",
+      "longestStreak": "Racha más larga",
+      "graceDays": "Días de gracia restantes",
+      "stats": "Estadísticas",
+      "checkin": "Registrar",
+      "completed": "¡Completado!",
+      "noHabitsTitle": "Aún no hay hábitos",
+      "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
+      "habitNotFound": "Hábito no encontrado",
+      "checkinProof": {
+        "title": "Registrar",
+        "notePrompt": "Añade una nota rápida (opcional)",
+        "notePlaceholder": "¿Cómo te fue? ¿Algún logro para compartir?",
+        "takePhoto": "Tomar foto",
+        "choosePhoto": "Elegir foto",
+        "uploadFailed": "No pudimos subir tu foto. Inténtalo de nuevo.",
+        "cancel": "Cancelar",
+        "confirm": "Registrar"
+      },
+      "frequency": {
+        "daily": "Cada día",
+        "weekly": "{count} veces por semana",
+        "monthly": "{count} veces al mes",
+        "perPeriod": "{count} veces por {period}"
+      },
+      "daysOfWeekShort": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb"
+      },
+      "streak": {
+        "day": "día",
+        "days": "días",
+        "nextMilestone": "Próximo hito: {days} días",
+        "graceDaysRemaining": "Días de gracia restantes: {count}"
+      }
+    },
+    "pacts": {
+      "headerTitle": "Mis pactos",
+      "detailTitle": "Detalles del pacto",
+      "title": "Pactos de responsabilidad",
+      "subtitle": "Mantente responsable con amigos",
+      "defaultTitle": "Pacto de hábito",
+      "you": "Tú",
+      "comparison": "Comparación de progreso",
+      "timeline": "Cronología",
+      "accept": "Aceptar pacto",
+      "decline": "Rechazar",
+      "abandon": "Abandonar pacto",
+      "noPactsTitle": "Aún no hay pactos",
+      "noPactsSubtitle": "Crea un pacto con un amigo para mantenerte responsable",
+      "allTabLabel": "Todos",
+      "pactNotFound": "Pacto no encontrado",
+      "acceptedTitle": "¡Pacto aceptado!",
+      "acceptedMessage": "Te has unido a este pacto de responsabilidad",
+      "successTitle": "Éxito",
+      "declinedMessage": "Has rechazado este pacto",
+      "abandonedMessage": "Has salido de este pacto",
+      "errorTitle": "Error",
+      "acceptError": "No se pudo aceptar el pacto. Inténtalo de nuevo.",
+      "declineError": "No se pudo rechazar el pacto. Inténtalo de nuevo.",
+      "abandonError": "No se pudo abandonar el pacto. Inténtalo de nuevo.",
+      "confirmDecline": "¿Estás seguro de que quieres rechazar esta invitación al pacto?",
+      "confirmAbandon": "¿Estás seguro de que quieres abandonar este pacto? Se perderá tu progreso.",
+      "onboarding": {
+        "title": "Empieza con un amigo",
+        "subtitle": "Friends with Habits está hecho para dos — o más. Invita a un amigo o forma un grupo en torno a una meta compartida (como ahorrar para unas vacaciones) y construyan hábitos a los que se comprometan juntos.",
+        "createPact": "Invitar a un amigo",
+        "viewInvites": "Ver {count} invitación(es) de pacto",
+        "findPartner": "Explorar personas",
+        "benefit2": "Check-ins diarios con alguien que comparte metas similares"
+      },
+      "preview": {
+        "bannerTitle": "Empieza tu primer pacto",
+        "bannerSubtitle": "Los pactos requieren al menos a otra persona — así es como los hábitos se mantienen.",
+        "bannerHelper": "Toca abajo para enviar tu primera invitación",
+        "bannerCTA": "Invitar a un amigo",
+        "bannerSecondaryCTA": "Ver invitaciones enviadas",
+        "sampleHabitTitle": "Empieza con un hábito/meta",
+        "sampleHabitSubtitle": "Construye un hábito saludable, rompe uno malo, o ahorra hacia una meta compartida — lo activaremos cuando tu amigo se una.",
+        "samplePartnerName": "Responsabilidad amistosa",
+        "sampleStreakLabel": "Día 1 — se activa cuando tu amigo se una",
+        "prestagedSuffix": "Listo cuando tu amigo se una",
+        "stepBadge": "Paso {current} de {total}",
+        "step1Label": "Elige",
+        "step1Sublabel": "tu meta",
+        "step2Label": "Invita",
+        "step2Sublabel": "a un amigo",
+        "step3Label": "Activa",
+        "step3Sublabel": "tu pacto",
+        "habitCardHeader": "Tu hábito o meta de ahorro",
+        "partnerCardHeader": "Tu equipo de responsabilidad",
+        "pactCardHeader": "Tu pacto",
+        "samplePactStatus": "Pendiente que acepten tu invitación"
+      },
+      "outgoing": {
+        "tabLabel": "Enviadas",
+        "emptyTitle": "Aún no has enviado invitaciones",
+        "emptySubtitle": "Envía una invitación de pacto para empezar",
+        "cardSubtitle": "Esperando aceptación",
+        "nudgeButton": "Recordar",
+        "nudgeShareTitle": "Recordatorio amistoso"
+      },
+      "wizard": {
+        "step1Title": "Elige un hábito",
+        "step1Subtitle": "Elige lo que te gustaría construir con tu amigo",
+        "step2Title": "Elige a tus amigos",
+        "step2Subtitle": "Invita hasta 5 personas — cualquiera que acepte se une a tu pacto",
+        "step3Title": "Envía tu invitación de pacto",
+        "step3Subtitle": "Revisa y envía",
+        "multiSelectCounter": "{count} de 5 seleccionados",
+        "customHabitLabel": "O crea el tuyo propio",
+        "customHabitNamePlaceholder": "Nombre del hábito (ej., Correr 3x/semana)",
+        "send": "Enviar invitación",
+        "sendMultiple": "Enviar {count} invitaciones",
+        "sendingError": "No se pudo enviar tu invitación de pacto. Inténtalo de nuevo.",
+        "sendSuccess": "¡Invitación de pacto enviada!",
+        "sendMultipleSuccess": "¡{count} invitaciones de pacto enviadas!",
+        "next": "Siguiente",
+        "back": "Atrás",
+        "cancel": "Cancelar",
+        "pickTemplateFirst": "Elige un hábito para continuar",
+        "pickPartnerFirst": "Elige al menos un amigo",
+        "templatesEmpty": "No hay plantillas disponibles — crea tu propio hábito",
+        "addPartnerByEmail": "Invitar por correo",
+        "addPartnerEmailPlaceholder": "amigo@ejemplo.com",
+        "maxPartnersReached": "Puedes invitar hasta 5 amigos a la vez",
+        "habitDefaultEmoji": "🎯"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "active": "Activo",
+        "completed": "Completado",
+        "abandoned": "Abandonado",
+        "expired": "Expirado"
+      },
+      "pactType": {
+        "accountability": "Responsabilidad",
+        "challenge": "Desafío",
+        "support": "Apoyo"
+      },
+      "durationLabel": "{type} de {days} días",
+      "checkinsLabel": "{completed}/{total} registros",
+      "completionLabel": "{pct}% completado",
+      "vs": "vs",
+      "partnerFallback": "Amigo"
+    },
+    "pushOptIn": {
+      "title": "Recibe una notificación cuando tu amigo se una",
+      "subtitle": "Solo te enviaremos avisos sobre la actividad del pacto — sin spam, nunca.",
+      "enableButton": "Activar notificaciones",
+      "skipButton": "Quizás más tarde",
+      "benefit1": "Entérate al instante cuando tu amigo acepte tu invitación",
+      "benefit2": "Recordatorios diarios para que nunca rompas una racha",
+      "benefit3": "Aplausos de tu amigo cuando termine un check-in"
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
@@ -1768,7 +1955,7 @@
     },
     "myQRCodes": {
       "headerTitle": "Mis códigos QR",
-      "subtitle": "Comparte cualquier contenido de Therr con un escaneo.",
+      "subtitle": "Comparte cualquier contenido de Friends with Habits con un escaneo.",
       "profileCardHint": "Toca para ver el código QR completo de tu perfil.",
       "profileAccessibilityLabel": "Ver código QR completo de tu perfil",
       "profileFallbackName": "Mi perfil",
@@ -1785,7 +1972,7 @@
     },
     "myQRCodeDetail": {
       "headerTitle": "Código QR",
-      "helperText": "Pide a alguien que escanee esto con su cámara para abrirlo en Therr.",
+      "helperText": "Pide a alguien que escanee esto con su cámara para abrirlo en Friends with Habits.",
       "accessibility": "Código QR que enlaza a {{title}}",
       "copied": "Enlace copiado",
       "privateNote": "Tu perfil es privado — quienes escaneen verán una vista limitada hasta que se conecten.",
@@ -2094,6 +2281,226 @@
       "influencer_1_3_7": {
         "title": "Creatividad imparable",
         "description": "Crea 1,000 momentos"
+      },
+      "habitBuilder_1_1": {
+        "title": "Primeros pasos",
+        "description": "Alcanza una racha de 3 días en un hábito"
+      },
+      "habitBuilder_1_1_1": {
+        "title": "Una semana fuerte",
+        "description": "Alcanza una racha de 7 días en un hábito"
+      },
+      "habitBuilder_1_1_2": {
+        "title": "Maravilla de dos semanas",
+        "description": "Alcanza una racha de 14 días en un hábito"
+      },
+      "habitBuilder_1_1_3": {
+        "title": "Hábito formado",
+        "description": "Alcanza una racha de 30 días en un hábito"
+      },
+      "habitBuilder_1_1_4": {
+        "title": "Dos meses dentro",
+        "description": "Alcanza una racha de 60 días en un hábito"
+      },
+      "habitBuilder_1_1_5": {
+        "title": "Maestro del trimestre",
+        "description": "Alcanza una racha de 90 días en un hábito"
+      },
+      "habitBuilder_1_1_6": {
+        "title": "Héroe de medio año",
+        "description": "Alcanza una racha de 180 días en un hábito"
+      },
+      "habitBuilder_1_1_7": {
+        "title": "Leyenda del hábito",
+        "description": "Alcanza una racha de 365 días en un hábito"
+      },
+      "cleanBreak_1_1": {
+        "title": "Primer día libre",
+        "description": "Completa 1 día sin romper un hábito"
+      },
+      "cleanBreak_1_1_1": {
+        "title": "Tres firmes",
+        "description": "Alcanza una racha limpia de 3 días"
+      },
+      "cleanBreak_1_1_2": {
+        "title": "Una semana limpia",
+        "description": "Alcanza una racha limpia de 7 días"
+      },
+      "cleanBreak_1_1_3": {
+        "title": "Dos semanas claras",
+        "description": "Alcanza una racha limpia de 14 días"
+      },
+      "cleanBreak_1_1_4": {
+        "title": "Treinta días renacido",
+        "description": "Alcanza una racha limpia de 30 días"
+      },
+      "cleanBreak_1_1_5": {
+        "title": "Sesenta días firmes",
+        "description": "Alcanza una racha limpia de 60 días"
+      },
+      "cleanBreak_1_1_6": {
+        "title": "Noventa días reiniciados",
+        "description": "Alcanza una racha limpia de 90 días"
+      },
+      "cleanBreak_1_1_7": {
+        "title": "Medio año libre",
+        "description": "Alcanza una racha limpia de 180 días"
+      },
+      "cleanBreak_1_1_8": {
+        "title": "Un año renacido",
+        "description": "Alcanza una racha limpia de 365 días"
+      },
+      "treasureBuilder_1_1": {
+        "title": "Centavo ahorrado",
+        "description": "Alcanza una racha de 7 días sin gastar"
+      },
+      "treasureBuilder_1_1_1": {
+        "title": "Quincena frugal",
+        "description": "Alcanza una racha de 14 días sin gastar"
+      },
+      "treasureBuilder_1_1_2": {
+        "title": "Coleccionista de monedas",
+        "description": "Alcanza una racha de 30 días sin gastar"
+      },
+      "treasureBuilder_1_1_3": {
+        "title": "Guardián de la bóveda",
+        "description": "Alcanza una racha de 60 días sin gastar"
+      },
+      "treasureBuilder_1_1_4": {
+        "title": "Cazador de tesoros",
+        "description": "Alcanza una racha de 100 días sin gastar"
+      },
+      "treasureBuilder_1_2": {
+        "title": "Primera meta alcanzada",
+        "description": "Completa 1 pacto de ahorro"
+      },
+      "treasureBuilder_1_2_1": {
+        "title": "Fijador de metas",
+        "description": "Completa 3 pactos de ahorro"
+      },
+      "treasureBuilder_1_2_2": {
+        "title": "Constructor de riqueza",
+        "description": "Completa 10 pactos de ahorro"
+      },
+      "consistency_1_1": {
+        "title": "Semana perfecta",
+        "description": "Completa cada check-in programado durante 7 días en un hábito"
+      },
+      "consistency_1_1_1": {
+        "title": "Quincena impecable",
+        "description": "Completa cada check-in programado durante 14 días en un hábito"
+      },
+      "consistency_1_1_2": {
+        "title": "Mes inmaculado",
+        "description": "Completa cada check-in programado durante 30 días en un hábito"
+      },
+      "consistency_1_1_3": {
+        "title": "Trimestre intachable",
+        "description": "Completa cada check-in programado durante 90 días en un hábito"
+      },
+      "consistency_1_2": {
+        "title": "Dos a la vez",
+        "description": "Completa una ventana perfecta de 7 días en 2 hábitos simultáneamente"
+      },
+      "consistency_1_2_1": {
+        "title": "Triple amenaza",
+        "description": "Completa una ventana perfecta de 7 días en 3 hábitos simultáneamente"
+      },
+      "consistency_1_2_2": {
+        "title": "Todo a la vez",
+        "description": "Completa una ventana perfecta de 7 días en 5 hábitos simultáneamente"
+      },
+      "accountability_1_1": {
+        "title": "Primer pacto",
+        "description": "Únete a tu primer pacto"
+      },
+      "accountability_1_1_1": {
+        "title": "Amigo leal",
+        "description": "Completa un pacto al 80% o más"
+      },
+      "accountability_1_1_2": {
+        "title": "Aliado confiable",
+        "description": "Completa 5 pactos al 80% o más"
+      },
+      "accountability_1_1_3": {
+        "title": "Campeón de hábitos",
+        "description": "Completa 25 pactos al 80% o más"
+      },
+      "accountability_1_2": {
+        "title": "Buen acompañante",
+        "description": "Ayuda a un amigo a completar su pacto al 80% o más"
+      },
+      "accountability_1_2_1": {
+        "title": "Entrenador",
+        "description": "Ayuda a 5 amigos a completar sus pactos al 80% o más"
+      },
+      "accountability_1_2_2": {
+        "title": "Mentor",
+        "description": "Ayuda a 25 amigos a completar sus pactos al 80% o más"
+      },
+      "resilience_1_1": {
+        "title": "Volver con fuerza",
+        "description": "Reinicia una racha después de que terminó una anterior"
+      },
+      "resilience_1_1_1": {
+        "title": "Fénix",
+        "description": "Supera tu racha más larga después de un reinicio"
+      },
+      "resilience_1_1_2": {
+        "title": "Inquebrantable",
+        "description": "Supera tu racha más larga 5 veces"
+      },
+      "resilience_1_2": {
+        "title": "Segundo aire",
+        "description": "Termina un pacto fuerte después de perder tu racha a mitad de pacto"
+      },
+      "resilience_1_2_1": {
+        "title": "Niño del regreso",
+        "description": "Termina 5 pactos fuerte después de perder tu racha a mitad de pacto"
+      },
+      "socialEnergizer_1_1": {
+        "title": "Animador",
+        "description": "Reacciona a 10 check-ins de tus amigos"
+      },
+      "socialEnergizer_1_1_1": {
+        "title": "Equipo de ánimo",
+        "description": "Reacciona a 50 check-ins de tus amigos"
+      },
+      "socialEnergizer_1_1_2": {
+        "title": "Favorito de la multitud",
+        "description": "Reacciona a 250 check-ins de tus amigos"
+      },
+      "socialEnergizer_1_2": {
+        "title": "Hacedor de hitos",
+        "description": "Celebra el hito de un amigo"
+      },
+      "socialEnergizer_1_2_1": {
+        "title": "Cañón de confeti",
+        "description": "Celebra 25 hitos de amigos"
+      },
+      "pactPioneer_1_1": {
+        "title": "Iniciador de pactos",
+        "description": "Crea tu primer pacto"
+      },
+      "pactPioneer_1_1_1": {
+        "title": "Hacedor de pactos",
+        "description": "Crea 5 pactos"
+      },
+      "pactPioneer_1_1_2": {
+        "title": "Arquitecto de pactos",
+        "description": "Crea 25 pactos"
+      },
+      "pactPioneer_1_1_3": {
+        "title": "Visionario de pactos",
+        "description": "Crea 100 pactos"
+      },
+      "pactPioneer_1_2": {
+        "title": "Primera invitación enviada",
+        "description": "Invita a tu primer amigo único"
+      },
+      "pactPioneer_1_2_1": {
+        "title": "Efecto de red",
+        "description": "Invita a 10 amigos únicos en distintos pactos"
       }
     },
     "profile": {
@@ -2124,7 +2531,12 @@
         "noMeMoments": "No hay momentos para mostrar. Puedes crear momentos desde el mapa.",
         "noMoments": "No hay momentos para mostrar. Viaja donde ellos viajan para activar momentos cercanos.",
         "noMeThoughts": "No hay pensamientos para mostrar. Puedes crear pensamientos desde la página de 'Descubiertos'.",
-        "noThoughts": "Este usuario aún no ha compartido ningún pensamiento."
+        "noThoughts": "Este usuario aún no ha compartido ningún pensamiento.",
+        "noMeGoals": "Aún no tienes metas. Toca el botón + para registrar tu primera meta.",
+        "noGoals": "Este usuario aún no ha compartido ninguna meta.",
+        "noMePacts": "Aún no tienes pactos. Invita a un amigo para crear tu primer pacto.",
+        "noMeAchievements": "Aún no tienes logros. Sigue construyendo hábitos para desbloquear recompensas.",
+        "noAchievements": "Este usuario aún no ha obtenido ningún logro."
       }
     }
   }

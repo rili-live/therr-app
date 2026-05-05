@@ -1,11 +1,14 @@
 /* eslint-disable class-methods-use-this */
 import axios from 'axios';
 
+export type HabitGoalTypeBody = 'build_good' | 'break_bad' | 'savings_goal' | 'maintenance';
+
 export interface ICreateHabitGoalBody {
     name: string;
     description?: string;
     category?: string;
     emoji?: string;
+    goalType?: HabitGoalTypeBody;
     frequencyType?: string;
     frequencyCount?: number;
     targetDaysOfWeek?: number[];
@@ -17,6 +20,7 @@ export interface IUpdateHabitGoalBody {
     description?: string;
     category?: string;
     emoji?: string;
+    goalType?: HabitGoalTypeBody;
     frequencyType?: string;
     frequencyCount?: number;
     targetDaysOfWeek?: number[];

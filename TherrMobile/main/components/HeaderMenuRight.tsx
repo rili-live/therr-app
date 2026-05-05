@@ -11,7 +11,7 @@ import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { INotificationsState } from 'therr-react/types';
-import { FeatureFlags } from 'therr-js-utilities/constants';
+import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
@@ -24,9 +24,14 @@ import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
 import InfoModal from './Modals/InfoModal';
 import TherrIcon from './TherrIcon';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import FeatureGate from './FeatureGate';
 import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../constants';
 import { Sheets } from 'react-native-actions-sheet';
+
+const LOGO_GLYPH_NAME = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+    ? 'cami-glyph'
+    : 'therr-logo';
 
 // const TherrIcon = createIconSetFromIcoMoon(
 //     therrIconConfig,
@@ -622,7 +627,7 @@ class HeaderMenuRight extends React.PureComponent<
                                         type="clear"
                                         icon={
                                             <TherrIcon
-                                                name="therr-logo"
+                                                name={LOGO_GLYPH_NAME}
                                                 size={24}
                                                 style={themeMenu.styles.subheaderTitleIcon}
                                             />

@@ -11,7 +11,8 @@
 #      if it doesn't already match the target.
 #   3. Kills any running Metro bundler process.
 #   4. Clears Metro's temp caches.
-#   5. Prints next commands to run.
+#   5. Reminds to reinstall iOS Pods when the brand actually changed.
+#   6. Prints next commands to run.
 
 set -e
 
@@ -98,6 +99,18 @@ rm -rf "${TMPDIR}"react-native-packager-cache-* 2>/dev/null || true
 
 printMessageSuccess "Switched to brand: $ENUM_KEY"
 echo ""
+
+# Remind about iOS pod reinstall when the brand actually changed. Different
+# niches can exclude different native modules via react-native.config.js
+# (e.g. HABITS skips react-native-background-geolocation), so the iOS Pods
+# from the previous brand will be stale until you reinstall.
+if [ "$CURRENT_ENUM" != "$ENUM_KEY" ]; then
+    printMessageWarning "Brand changed: ${CURRENT_ENUM} → ${ENUM_KEY}."
+    printMessageWarning "If you're about to build iOS, run: cd TherrMobile && npm run ios:pod:install"
+    printMessageWarning "(autolinking can differ per brand — Android picks up changes on next build automatically)"
+    echo ""
+fi
+
 echo "Next commands (two terminals):"
 echo "  Terminal 1:  cd TherrMobile && npm start"
 echo "  Terminal 2:  cd TherrMobile && npm run android:${TARGET_LOWER}"

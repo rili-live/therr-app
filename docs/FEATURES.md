@@ -147,14 +147,15 @@ These flags control which features are enabled per brand variant. Set in `TherrM
 
 ## Niche App Extensions
 
-### Habits System (Friends With Habits — `BrandVariations.HABITS`)
+### Habits System (Friends with Habits — `BrandVariations.HABITS`)
 
-- **Habit goals** — create from templates or custom; frequency config (daily/weekly/custom), target days
+- **Habit goals** — create from templates or custom; frequency config (daily/weekly/custom), target days; goal-orientation (`goalType`: build_good / break_bad / savings_goal / maintenance)
 - **Pacts** — accountability partnerships; invite partners, set consequences (donation/dare/custom)
 - **Habit check-ins** — daily completion tracking with photo/video/note proof
 - **Streaks & milestones** — streak counting, milestone events, celebration triggers
 - **Real-time pact updates** — WebSocket events for partner check-ins, celebrations, encouragement
-- **Pact status management** — pending, active, completed, abandoned lifecycle
+- **Pact status management** — pending, active, completed, abandoned, completed lifecycle
+- **HABITS achievements** — 8 brand-scoped achievement classes (habitBuilder, cleanBreak, treasureBuilder, consistency, accountability, resilience, socialEnergizer, pactPioneer) plus reused `socialite` for invite virality. Filtered per-brand via `getAchievementsForBrand()`. **Follow-up TODOs** (multi-habit consistency, partner-streak attribution, brand-header audit, lottie cards, etc.) — see `docs/niche-sub-apps/habits/HABITS_STREAKS_DESIGN.md` § "Follow-up TODOs"
 
 ---
 
@@ -165,7 +166,7 @@ All variants share the same backend and auth system. Current variants defined in
 | Variant | Key | Description |
 |---------|-----|-------------|
 | Therr | `therr` | Core location-based social network |
-| Friends With Habits | `habits` | Accountability and habit tracking |
+| Friends with Habits | `habits` | Accountability and habit tracking |
 | Teem | `teem` | Community/team features |
 | Otaku | `otaku` | Niche interest communities |
 | Appy Social | `appy_social` | General social variant |
