@@ -172,9 +172,10 @@ only needs `eas-cli` installed — no local Android SDK required.
 
 3. **Upload the HABITS keystore to EAS credentials**:
    ```bash
-   eas credentials --platform android --profile habits-internal
+   eas credentials
    ```
-   Choose "Upload an existing keystore" and provide `habits-upload.keystore`
+   Select **Android** → **habits-internal** → "Upload an existing keystore",
+   then provide `habits-upload.keystore`
    (see keystore section below). EAS stores it encrypted; the CI job will
    download it at build time via `credentialsSource: "remote"` in `eas.json`.
 
