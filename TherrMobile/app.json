@@ -2,7 +2,7 @@
   "name": "Therr",
   "displayName": "Friends with Habits",
   "expo": {
-    "owner": "REPLACE_WITH_EXPO_OWNER",
+    "owner": "therr-inc",
     "name": "Friends with Habits",
     "slug": "friends-with-habits",
     "android": {
@@ -10,7 +10,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+        "projectId": "59e59c96-e58a-4b93-bed5-d20ccdf395c2"
       }
     }
   }
