@@ -163,6 +163,27 @@ jobs:
       - run:
           name: Run Integration Tests
           command: echo "Hello, Integration Tests"
+  eas_build_habits_android:
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Install EAS CLI
+          command: npm install -g eas-cli
+      - run:
+          name: Build and Submit HABITS Android to Google Play Internal Testing
+          # EXPO_TOKEN must be set as a CircleCI project-level environment variable.
+          # GOOGLE_APIS_ANDROID_KEY and the Google Play service account key must be
+          # stored as EAS secrets (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
+          command: |
+            cd TherrMobile
+            eas build \
+              --platform android \
+              --profile habits-internal \
+              --non-interactive \
+              --auto-submit
+
   deploy:
     docker:
       - image: cimg/gcp:2025.01
@@ -253,3 +274,11 @@ workflows:
             branches:
               only:
                 - main
+
+  habits_mobile_release:
+    jobs:
+      - eas_build_habits_android:
+          filters:
+            branches:
+              only:
+                - niche/HABITS-main
