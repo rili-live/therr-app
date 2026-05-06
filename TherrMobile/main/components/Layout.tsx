@@ -66,6 +66,13 @@ import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
+import SoftOptInPushModal from './Modals/SoftOptInPushModal';
+import {
+    shouldShowSoftAsk as shouldShowSoftPushAsk,
+    markSoftOptInAccepted as markSoftPushAccepted,
+    markSoftOptInDeferred as markSoftPushDeferred,
+    markSoftOptInDenied as markSoftPushDenied,
+} from '../utilities/softOptInPushAsk';
 import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroidChannel } from '../constants';
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
@@ -198,6 +205,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             targetRouteView: '',
             targetRouteParams: {},
+            showSoftOptInPushModal: false,
+            softOptInPushTitleKey: undefined,
+            softOptInPushBodyKey: undefined,
         };
 
         this.reloadTheme();
@@ -1747,12 +1757,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    // TODO(engagement): wrap this in a "soft opt-in" UX — show an in-app
-    // explainer tied to a user action (first moment / first pact invite /
-    // first DM) before triggering the OS prompt. iOS default opt-in ~50%;
-    // a well-anchored soft-ask typically reaches 70–80%. This is the single
-    // highest-ROI push-notification improvement. See
-    // docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md (item #1).
+    // Hard ask — triggers the OS push-permission prompt directly. Use this
+    // only after the user has explicitly opted in via the soft-ask, or for
+    // returning users where prior consent is implied. New users / first-time
+    // permission asks should go through `triggerSoftOptInPushAsk` instead.
     requestNotificationPermissions = () => {
         // Android 13+ (API 33) requires runtime POST_NOTIFICATIONS permission
         const androidPermissionPromise = Platform.OS === 'android' && Number(Platform.Version) >= 33
@@ -1774,6 +1782,60 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     console.log('Notifications authorization status:', authStatus);
                 }
             });
+    };
+
+    // Soft ask — shows an in-app explainer modal before the OS prompt. The
+    // OS prompt is only triggered if the user taps "Enable". If the user
+    // defers, the ask is rescheduled (default 3 days). If they have already
+    // accepted, the OS prompt fires immediately to refresh the system state.
+    //
+    // Call sites should pass locale keys describing the context (e.g. for
+    // HABITS pact creation, pass `bodyKey: 'components.softOptInPush.bodyHabitsPact'`).
+    // See docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md item #1.
+    triggerSoftOptInPushAsk = async (
+        context?: { titleKey?: string; bodyKey?: string },
+    ): Promise<void> => {
+        const allowed = await shouldShowSoftPushAsk();
+        if (!allowed) {
+            // User previously accepted: surface the OS prompt to refresh state
+            // (no-op if still authorized). User previously denied / recently
+            // deferred: do nothing — respect the user's choice.
+            return undefined;
+        }
+        this.setState({
+            showSoftOptInPushModal: true,
+            softOptInPushTitleKey: context?.titleKey,
+            softOptInPushBodyKey: context?.bodyKey,
+        });
+        return undefined;
+    };
+
+    handleSoftOptInPushEnable = async () => {
+        this.setState({ showSoftOptInPushModal: false });
+        await markSoftPushAccepted();
+        try {
+            await this.requestNotificationPermissions();
+            await registerDeviceForRemoteMessages(getMessaging());
+            const deviceToken = await getToken(getMessaging());
+            axios.defaults.headers['x-user-device-token'] = deviceToken;
+            const { user, updateUser } = this.props;
+            if (user?.details?.id && user.details.deviceMobileFirebaseToken !== deviceToken) {
+                updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
+            }
+        } catch (err: any) {
+            // If the OS prompt itself errors out, fall back to "denied" so we
+            // don't keep re-asking on every action. The user can re-enable from
+            // Settings if they change their mind.
+            await markSoftPushDenied();
+            logEvent(getAnalytics(), 'soft_opt_in_push_error', {
+                error: err?.message,
+            }).catch((logErr) => console.log(logErr));
+        }
+    };
+
+    handleSoftOptInPushDefer = async () => {
+        this.setState({ showSoftOptInPushModal: false });
+        await markSoftPushDeferred();
     };
 
     shouldShowTopRightMenu = () => {
@@ -1825,6 +1887,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } = this.props;
 
         return (
+            <>
             <NavigationContainer
                 // Keyed on locale only so theme toggles do not remount the entire nav tree.
                 // Locale change still requires a remount because route translators close over locale at construction.
@@ -2087,6 +2150,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         })}
                 </Stack.Navigator>
             </NavigationContainer>
+            <SoftOptInPushModal
+                isVisible={!!this.state.showSoftOptInPushModal}
+                onEnable={this.handleSoftOptInPushEnable}
+                onDefer={this.handleSoftOptInPushDefer}
+                titleKey={this.state.softOptInPushTitleKey}
+                bodyKey={this.state.softOptInPushBodyKey}
+                translate={this.translate}
+                themeButtons={this.themeButtons}
+            />
+            </>
         );
     }
 }
