@@ -287,6 +287,15 @@
     "confirmCount": "{{count}} confirmé(s)"
   },
   "components": {
+    "softOptInPush": {
+      "title": "Reste informé",
+      "bodyDefault": "Active les notifications et nous t'avertirons quand quelque chose nécessite ton attention. Tu peux modifier cela à tout moment dans les Paramètres.",
+      "bodyHabitsPact": "Active les notifications et nous t'avertirons quand ton partenaire de responsabilité s'enregistrera — ou quand ta série sera en jeu.",
+      "bodyHabitsStreak": "Active les notifications et nous te le rappellerons avant que ta série ne se réinitialise à minuit.",
+      "bodyDirectMessage": "Active les notifications pour ne manquer aucune réponse.",
+      "enable": "Activer",
+      "notNow": "Pas maintenant"
+    },
     "activeConnections": {
       "noActiveConnections": "Il n'y a actuellement aucune connexion active dans votre réseau",
       "title": "Contacts actifs"
