@@ -45,6 +45,38 @@ export default class InvitesStore {
         return this.getInvites(conditions);
     }
 
+    /**
+     * Returns prior invites this user has sent within the given window. Used
+     * by the bulk-invite handler to dedupe email/SMS sends so a user can't
+     * spam the same recipient. Returns empty for empty input arrays — guards
+     * against `WHERE email IN ()` which Postgres rejects.
+     */
+    getRecentByRequestingUser(
+        requestingUserId: string,
+        emails: string[],
+        phones: string[],
+        sinceDate: Date,
+    ) {
+        if (!requestingUserId || (emails.length === 0 && phones.length === 0)) {
+            return Promise.resolve([] as Array<{ email?: string; phoneNumber?: string }>);
+        }
+        const queryBuilder = knexBuilder.select('email', 'phoneNumber')
+            .from(INVITES_TABLE_NAME)
+            .where('requestingUserId', requestingUserId)
+            .andWhere('createdAt', '>=', sinceDate)
+            .andWhere((qb) => {
+                if (emails.length > 0) {
+                    qb.whereIn('email', emails);
+                }
+                if (phones.length > 0) {
+                    qb.orWhereIn('phoneNumber', phones);
+                }
+            });
+
+        return this.db.read.query(queryBuilder.toString())
+            .then((response) => response.rows as Array<{ email?: string; phoneNumber?: string }>);
+    }
+
     createIfNotExist(invites: ICreateInviteParams[]) {
         // TODO: Filter out invites that have neither a phone number or email
         const queryString = knexBuilder.insert(invites)

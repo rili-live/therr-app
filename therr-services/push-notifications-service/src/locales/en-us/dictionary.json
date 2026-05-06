@@ -99,6 +99,68 @@
     "inviteFriendsReminder": {
       "title": "Bring Your Crew Along",
       "body": "Share your invite link and you'll both earn rewards when your friends join!"
+    },
+    "streakAtRisk": {
+      "title": "Don't Break Your Streak",
+      "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive."
+    },
+    "streakBroken": {
+      "title": "Streak Reset",
+      "body": "Your {streakCount}-day {habitName} streak ended — start a new one today."
+    },
+    "streakMilestone": {
+      "title": "Milestone Hit!",
+      "body": "{streakCount} days strong on {habitName} — keep the momentum going."
+    },
+    "newPersonalRecord": {
+      "title": "New Personal Record",
+      "body": "You just beat your old {habitName} record of {previousRecordDays} days. Now at {streakCount}!"
+    },
+    "partnerCheckedIn": {
+      "title": "{partnerName} Just Checked In",
+      "body": "{partnerName} hit Day {streakCount} on {habitName} — don't let them lap you."
+    },
+    "partnerMissedDay": {
+      "title": "{partnerName} Missed a Day",
+      "body": "{partnerName} skipped {habitName} yesterday — send some encouragement."
+    },
+    "partnerCelebrated": {
+      "title": "{partnerName} Sent a Celebration",
+      "body": "{partnerName} just cheered you on — open the app to see what they said."
+    },
+    "pactInvitation": {
+      "title": "You've Been Invited to a Pact",
+      "body": "{userName} invited you to do {habitName} together — accountability starts here.",
+      "pressActionAccept": "Accept",
+      "pressActionView": "View"
+    },
+    "pactAccepted": {
+      "title": "Pact Accepted!",
+      "body": "{partnerName} is in. You're both committed to {habitName} — first check-in starts the streak."
+    },
+    "pactDeclined": {
+      "title": "Pact Declined",
+      "body": "{partnerName} can't commit to this one. Invite someone else to keep the goal alive."
+    },
+    "pactCompleted": {
+      "title": "Pact Complete!",
+      "body": "You and {partnerName} finished your {habitName} pact — that's a win for both of you."
+    },
+    "pactExpiring": {
+      "title": "Pact Wrapping Up Soon",
+      "body": "{daysRemaining} day(s) left on your {habitName} pact — finish strong."
+    },
+    "dailyHabitReminder": {
+      "title": "Time to Check In",
+      "body": "Don't forget to log {habitName} today — a quick tap keeps your streak alive."
+    },
+    "morningMotivation": {
+      "title": "Good Morning",
+      "body": "Today is a fresh chance to build the habit you committed to. Let's go."
+    },
+    "eveningCheckIn": {
+      "title": "How Did Today Go?",
+      "body": "Tap to log your check-in and lock in another day on your streak."
     }
   },
   "validation": "The required parameters were not provided."
