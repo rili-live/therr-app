@@ -122,6 +122,17 @@ interface ICreateMessageConfig {
     userLocale: string;
     viewCount?: number;
     groupMembersList?: string[],
+    // HABITS payload fields. Streak / pact / habit copy is the entire HABITS
+    // engagement story (see docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md §5);
+    // generic copy converts noticeably worse than name-anchored copy.
+    streakCount?: number;
+    previousRecordDays?: number;
+    partnerName?: string;
+    pactId?: string;
+    pactName?: string;
+    habitId?: string;
+    habitName?: string;
+    daysRemaining?: number;
 }
 
 interface INotificationMetrics {
@@ -166,6 +177,8 @@ const getAppBundleIdentifier = (brandVariation: BrandVariations) => {
     switch (brandVariation) {
         case BrandVariations.TEEM:
             return 'com.therr.mobile.Teem';
+        case BrandVariations.HABITS:
+            return 'com.therr.mobile.habits';
         case BrandVariations.THERR:
             return 'com.therr.mobile.Therr';
         default:
@@ -177,6 +190,8 @@ const getAppBrandingClickAction = (brandVariation: BrandVariations, clickActionK
     switch (brandVariation) {
         case BrandVariations.TEEM:
             return PushNotifications.AndroidIntentActions.Teem[clickActionKey];
+        case BrandVariations.HABITS:
+            return PushNotifications.AndroidIntentActions.Habits[clickActionKey];
         case BrandVariations.THERR:
             return PushNotifications.AndroidIntentActions.Therr[clickActionKey];
         default:
@@ -655,6 +670,221 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'NEW_THOUGHT_REPLY_RECEIVED'));
             return baseMessage;
+
+        // HABITS — Streak framing & pact lifecycle.
+        // These notifications are HABITS' core retention loop. Loss-aversion
+        // copy ("Don't break your N-day streak") and partner-anchored copy
+        // ("Sam just hit Day N — don't let them lap you") consistently
+        // out-perform generic reminders for habit apps.
+        case PushNotifications.Types.streakAtRisk:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.streakAtRisk.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.streakAtRisk.body', {
+                        streakCount: Number(config.streakCount || 0),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.checkinView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'STREAK_AT_RISK'));
+            return baseMessage;
+        case PushNotifications.Types.streakBroken:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.streakBroken.title'),
+                notificationBody: translate(config.userLocale, 'notifications.streakBroken.body', {
+                    streakCount: Number(config.streakCount || 0),
+                    habitName: String(config.habitName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'STREAK_BROKEN');
+            return baseMessage;
+        case PushNotifications.Types.streakMilestone:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.streakMilestone.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.streakMilestone.body', {
+                        streakCount: Number(config.streakCount || 0),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.streakView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'STREAK_MILESTONE'));
+            return baseMessage;
+        case PushNotifications.Types.newPersonalRecord:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newPersonalRecord.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newPersonalRecord.body', {
+                        streakCount: Number(config.streakCount || 0),
+                        previousRecordDays: Number(config.previousRecordDays || 0),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.streakView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'NEW_PERSONAL_RECORD'));
+            return baseMessage;
+        case PushNotifications.Types.partnerCheckedIn:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.partnerCheckedIn.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.partnerCheckedIn.body', {
+                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                        streakCount: Number(config.streakCount || 0),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PARTNER_CHECKED_IN'));
+            return baseMessage;
+        case PushNotifications.Types.partnerMissedDay:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.partnerMissedDay.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.partnerMissedDay.body', {
+                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PARTNER_MISSED_DAY'));
+            return baseMessage;
+        case PushNotifications.Types.partnerCelebrated:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.partnerCelebrated.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.partnerCelebrated.body', {
+                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PARTNER_CELEBRATED'));
+            return baseMessage;
+        case PushNotifications.Types.pactInvitation:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.pactInvitation.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.pactInvitation.body', {
+                        userName: String(config.fromUserName || ''),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.pactAccept,
+                            title: translate(config.userLocale, 'notifications.pactInvitation.pressActionAccept'),
+                        },
+                        {
+                            id: PushNotifications.PressActionIds.pactView,
+                            title: translate(config.userLocale, 'notifications.pactInvitation.pressActionView'),
+                        },
+                    ]),
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PACT_INVITATION'));
+            return baseMessage;
+        case PushNotifications.Types.pactAccepted:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.pactAccepted.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.pactAccepted.body', {
+                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PACT_ACCEPTED'));
+            return baseMessage;
+        case PushNotifications.Types.pactDeclined:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.pactDeclined.title'),
+                notificationBody: translate(config.userLocale, 'notifications.pactDeclined.body', {
+                    partnerName: String(config.partnerName || config.fromUserName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'PACT_DECLINED');
+            return baseMessage;
+        case PushNotifications.Types.pactCompleted:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.pactCompleted.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.pactCompleted.body', {
+                        habitName: String(config.habitName || ''),
+                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PACT_COMPLETED'));
+            return baseMessage;
+        case PushNotifications.Types.pactExpiring:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.pactExpiring.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.pactExpiring.body', {
+                        daysRemaining: Number(config.daysRemaining || 0),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PACT_EXPIRING'));
+            return baseMessage;
+        case PushNotifications.Types.dailyHabitReminder:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.dailyHabitReminder.title'),
+                notificationBody: translate(config.userLocale, 'notifications.dailyHabitReminder.body', {
+                    habitName: String(config.habitName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'DAILY_HABIT_REMINDER');
+            return baseMessage;
+        case PushNotifications.Types.morningMotivation:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.morningMotivation.title'),
+                notificationBody: translate(config.userLocale, 'notifications.morningMotivation.body'),
+                channelId: AndroidChannelId.reminders,
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'MORNING_MOTIVATION');
+            return baseMessage;
+        case PushNotifications.Types.eveningCheckIn:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.eveningCheckIn.title'),
+                notificationBody: translate(config.userLocale, 'notifications.eveningCheckIn.body'),
+                channelId: AndroidChannelId.reminders,
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'EVENING_CHECK_IN');
+            return baseMessage;
+
         default:
             return false;
     }
@@ -761,6 +991,25 @@ const predictAndSendNotification = (
             }
 
             if (type === PushNotifications.Types.newThoughtReplyReceived) {
+                return messaging.send(message);
+            }
+
+            // HABITS — Streak, partner, pact lifecycle, habit reminders
+            if (type === PushNotifications.Types.streakAtRisk
+                || type === PushNotifications.Types.streakBroken
+                || type === PushNotifications.Types.streakMilestone
+                || type === PushNotifications.Types.newPersonalRecord
+                || type === PushNotifications.Types.partnerCheckedIn
+                || type === PushNotifications.Types.partnerMissedDay
+                || type === PushNotifications.Types.partnerCelebrated
+                || type === PushNotifications.Types.pactInvitation
+                || type === PushNotifications.Types.pactAccepted
+                || type === PushNotifications.Types.pactDeclined
+                || type === PushNotifications.Types.pactCompleted
+                || type === PushNotifications.Types.pactExpiring
+                || type === PushNotifications.Types.dailyHabitReminder
+                || type === PushNotifications.Types.morningMotivation
+                || type === PushNotifications.Types.eveningCheckIn) {
                 return messaging.send(message);
             }
 

@@ -17,6 +17,9 @@ import {
     awardStreakAchievement,
     awardConsistencyAchievement,
     awardResilienceComebackAchievement,
+    awardAccountabilityWingAchievement,
+    scanMultiHabitConsistency,
+    headersForOtherUser,
     HabitGoalType,
 } from './helpers/awardHabitAchievements';
 
@@ -144,6 +147,9 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     currentStreak: updatedStreak.currentStreak,
                 });
                 awardConsistencyAchievement(req.headers, updatedStreak.currentStreak);
+                // Multi-habit consistency (Two At Once / Triple Threat / All Things at Once).
+                // No-op if the user has fewer than 2 active habits or no perfect 7-day window.
+                scanMultiHabitConsistency(req.headers, userId, checkinDate);
                 if (isComebackStart(streakBefore, updatedStreak.currentStreak, longestBefore)) {
                     awardResilienceComebackAchievement(req.headers, 1);
                 }
@@ -179,6 +185,28 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             traceArgs: { 'error.message': err?.message },
                         });
                     });
+
+                    // Partner credit (Wing Person ladder) when the milestone is
+                    // also a new longest streak. The completePact handler awards
+                    // wing-person credit when the partner *finishes* the pact at
+                    // ≥80% — this fills the gap mid-pact: every time the
+                    // pact-mate sets a new personal best, the partner is part of
+                    // why. Skip when there's no pact (solo habits only credit
+                    // the user's own ladder).
+                    const isNewLongestStreak = updatedStreak.longestStreak > longestBefore;
+                    if (isNewLongestStreak && pactId && pact) {
+                        const partnerForMilestoneId = getPartnerUserId(
+                            userId,
+                            pact.creatorUserId,
+                            pact.partnerUserId,
+                        );
+                        if (partnerForMilestoneId) {
+                            awardAccountabilityWingAchievement(
+                                headersForOtherUser(req.headers, partnerForMilestoneId),
+                                1,
+                            );
+                        }
+                    }
                 }
 
                 // Update pact member stats if in a pact

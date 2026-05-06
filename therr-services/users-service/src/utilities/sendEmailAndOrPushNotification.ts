@@ -59,6 +59,16 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     retentionEmailType?: PushNotifications.Types;
     whiteLabelOrigin: string;
     brandVariation: string;
+    // HABITS payload fields. Forwarded as-is to push-notifications-service so
+    // streak / pact / partner copy can render rich, name-anchored content.
+    streakCount?: number;
+    previousRecordDays?: number;
+    partnerName?: string;
+    pactId?: string;
+    pactName?: string;
+    habitId?: string;
+    habitName?: string;
+    daysRemaining?: number;
 }
 
 interface ISendPushNotificationAndOrEmailConfig {
@@ -89,6 +99,14 @@ export default (
         retentionEmailType,
         whiteLabelOrigin,
         brandVariation,
+        streakCount,
+        previousRecordDays,
+        partnerName,
+        pactId,
+        pactName,
+        habitId,
+        habitName,
+        daysRemaining,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
         shouldSendPushNotification: true,
@@ -211,6 +229,14 @@ export default (
                     toUserDeviceToken: resolvedDeviceToken,
                     type,
                     thought,
+                    streakCount,
+                    previousRecordDays,
+                    partnerName,
+                    pactId,
+                    pactName,
+                    habitId,
+                    habitName,
+                    daysRemaining,
                     // achievementsCount,
                     // likeCount,
                     // notificationsCount,
