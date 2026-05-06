@@ -99,6 +99,68 @@
     "inviteFriendsReminder": {
       "title": "Amène tes amis",
       "body": "Partage ton lien d'invitation et vous gagnerez tous les deux des récompenses quand tes amis s'inscriront!"
+    },
+    "streakAtRisk": {
+      "title": "Ne brise pas ta série",
+      "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder."
+    },
+    "streakBroken": {
+      "title": "Série réinitialisée",
+      "body": "Ta série de {streakCount} jours sur {habitName} s'est terminée — commence-en une nouvelle aujourd'hui."
+    },
+    "streakMilestone": {
+      "title": "Objectif atteint!",
+      "body": "{streakCount} jours sur {habitName} — garde le rythme."
+    },
+    "newPersonalRecord": {
+      "title": "Nouveau record personnel",
+      "body": "Tu viens de battre ton ancien record de {previousRecordDays} jours sur {habitName}. Tu es à {streakCount}!"
+    },
+    "partnerCheckedIn": {
+      "title": "{partnerName} vient de s'enregistrer",
+      "body": "{partnerName} a atteint le jour {streakCount} sur {habitName} — ne te laisse pas distancer."
+    },
+    "partnerMissedDay": {
+      "title": "{partnerName} a manqué un jour",
+      "body": "{partnerName} n'a pas enregistré {habitName} hier — envoie-lui un peu de soutien."
+    },
+    "partnerCelebrated": {
+      "title": "{partnerName} t'a envoyé une célébration",
+      "body": "{partnerName} vient de t'encourager — ouvre l'application pour voir ce qu'il/elle a dit."
+    },
+    "pactInvitation": {
+      "title": "Tu as été invité à un pacte",
+      "body": "{userName} t'a invité à faire {habitName} ensemble — la responsabilité commence ici.",
+      "pressActionAccept": "Accepter",
+      "pressActionView": "Voir"
+    },
+    "pactAccepted": {
+      "title": "Pacte accepté!",
+      "body": "{partnerName} est partant. Vous êtes engagés sur {habitName} — le premier enregistrement lance la série."
+    },
+    "pactDeclined": {
+      "title": "Pacte refusé",
+      "body": "{partnerName} ne peut pas s'engager sur celui-ci. Invite quelqu'un d'autre pour garder l'objectif vivant."
+    },
+    "pactCompleted": {
+      "title": "Pacte complété!",
+      "body": "Toi et {partnerName} avez terminé votre pacte sur {habitName} — une victoire pour vous deux."
+    },
+    "pactExpiring": {
+      "title": "Ton pacte arrive à sa fin",
+      "body": "Il reste {daysRemaining} jour(s) sur ton pacte {habitName} — termine en force."
+    },
+    "dailyHabitReminder": {
+      "title": "C'est l'heure de t'enregistrer",
+      "body": "N'oublie pas d'enregistrer {habitName} aujourd'hui — un simple appui garde ta série vivante."
+    },
+    "morningMotivation": {
+      "title": "Bon matin",
+      "body": "Aujourd'hui est une nouvelle chance de bâtir l'habitude à laquelle tu t'es engagé. Allons-y."
+    },
+    "eveningCheckIn": {
+      "title": "Comment s'est passée ta journée?",
+      "body": "Appuie pour enregistrer ton suivi et garantir un jour de plus dans ta série."
     }
   },
   "validation": "Les paramètres requis n'ont pas été fournis."
