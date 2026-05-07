@@ -70,6 +70,9 @@ const brandFeatureFlagOverrides = {
         ENABLE_COIN_RECHARGE: false,
         ENABLE_MAPBOX_SEARCH: false,
 
+        // HABITS is an accountability/pacts app — no maps, no nearby content, no location prompts
+        ENABLE_LOCATION_SERVICES: false,
+
         // Enable HABITS-specific flow
         ENABLE_HABITS: true,
         ENABLE_PACTS: true,
