@@ -302,7 +302,16 @@ type PaperColorPatch = Partial<MD3Theme['colors']>;
 const brandPaperColorOverrides: Partial<Record<BrandVariations, PaperColorPatch>> = {
     [BrandVariations.THERR]: {},
     [BrandVariations.TEEM]: {},
-    [BrandVariations.HABITS]: {},
+    // Mirrors brandColorOverrides[HABITS] in ./index.ts so Paper-driven
+    // components (FAB, AppBar, TextInput, Snackbar, Card) render the
+    // HABITS purple/gold palette.
+    [BrandVariations.HABITS]: {
+        primary: '#6E5C85',
+        onPrimary: '#fcfeff',
+        primaryContainer: 'rgba(110, 92, 133, 0.15)',
+        secondary: '#D49617',
+        onSecondary: '#fcfeff',
+    },
     [BrandVariations.OTAKU]: {},
     [BrandVariations.PARALLELS]: {},
     [BrandVariations.APPY_SOCIAL]: {},
