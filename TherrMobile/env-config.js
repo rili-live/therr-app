@@ -33,6 +33,9 @@ const featureFlags = {
     ENABLE_FORUMS: true,
     ENABLE_ACTIVITY_SCHEDULER: true,
 
+    // Device / OS Permissions
+    ENABLE_LOCATION_SERVICES: true,
+
     // Search Providers
     ENABLE_MAPBOX_SEARCH: false,
 
