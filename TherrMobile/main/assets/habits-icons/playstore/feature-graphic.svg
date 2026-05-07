@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" width="1024" height="500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#241832"/>
+      <stop offset="55%"  stop-color="#3B2A4E"/>
+      <stop offset="100%" stop-color="#52406D"/>
+    </linearGradient>
+
+    <linearGradient id="body" x1="0" y1="0" x2="320" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#5B4273"/>
+      <stop offset="55%"  stop-color="#6E5C85"/>
+      <stop offset="100%" stop-color="#7C8094"/>
+    </linearGradient>
+
+    <linearGradient id="stripe" x1="151" y1="36" x2="170" y2="91" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#F6C94A"/>
+      <stop offset="100%" stop-color="#D49617"/>
+    </linearGradient>
+
+    <radialGradient id="glow" cx="0.25" cy="0.5" r="0.55">
+      <stop offset="0%"  stop-color="#7A5C9F" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#7A5C9F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#bg)"/>
+  <rect width="1024" height="500" fill="url(#glow)"/>
+
+  <!-- Subtle decorative dots (achievement marks) -->
+  <g opacity="0.18" fill="#F6C94A">
+    <circle cx="900" cy="80"  r="4"/>
+    <circle cx="940" cy="110" r="3"/>
+    <circle cx="880" cy="140" r="3"/>
+    <circle cx="970" cy="170" r="2.5"/>
+    <circle cx="850" cy="60"  r="2.5"/>
+  </g>
+
+  <!-- Chameleon (Sage v5), scaled 0.32 from 1024 origin, positioned left.
+       Body size ~330px, vertically centered (y from ~85 to ~415). -->
+  <g transform="translate(60 88) scale(0.32)">
+    <!-- Body -->
+    <path d="M 437 335
+             Q 512 205 587 335
+             Q 722 482 757 629
+             Q 832 759 682 759
+             Q 512 779 342 759
+             Q 192 759 267 629
+             Q 302 482 437 335 Z"
+          fill="url(#body)"/>
+
+    <!-- Forehead stripe -->
+    <path d="M 494 325
+             Q 494 305 512 305
+             Q 530 305 530 325
+             L 525 477
+             Q 525 493 512 493
+             Q 499 493 499 477 Z"
+          fill="url(#stripe)"/>
+
+    <!-- Left eye -->
+    <circle cx="260" cy="510" r="148" fill="url(#body)"/>
+    <circle cx="260" cy="510" r="95"  fill="#FFFFFF"/>
+    <circle cx="280" cy="517" r="44"  fill="#2E2140"/>
+    <circle cx="294" cy="504" r="15"  fill="#FFFFFF"/>
+    <circle cx="272" cy="525" r="5"   fill="#FFFFFF" opacity="0.8"/>
+
+    <!-- Right eye -->
+    <circle cx="764" cy="510" r="148" fill="url(#body)"/>
+    <circle cx="764" cy="510" r="95"  fill="#FFFFFF"/>
+    <circle cx="744" cy="517" r="44"  fill="#2E2140"/>
+    <circle cx="730" cy="504" r="15"  fill="#FFFFFF"/>
+    <circle cx="752" cy="525" r="5"   fill="#FFFFFF" opacity="0.8"/>
+
+    <!-- Nostrils -->
+    <circle cx="488" cy="653" r="11" fill="#2E2140" opacity="0.62"/>
+    <circle cx="536" cy="653" r="11" fill="#2E2140" opacity="0.62"/>
+
+    <!-- Smile -->
+    <path d="M 418 718 Q 512 762 606 718"
+          stroke="#2E2140" stroke-width="12" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Wordmark + tagline -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <text x="430" y="195" font-size="74" font-weight="800" fill="#FCFEFF" letter-spacing="-1">Friends</text>
+    <text x="430" y="270" font-size="74" font-weight="800" fill="#FCFEFF" letter-spacing="-1">with <tspan fill="#F6C94A">Habits</tspan></text>
+
+    <!-- Yellow accent bar -->
+    <rect x="430" y="298" width="92" height="6" rx="3" fill="url(#stripe)"/>
+
+    <!-- Tagline -->
+    <text x="430" y="350" font-size="28" font-weight="500" fill="#E8DEF2">Build habits together.</text>
+    <text x="430" y="388" font-size="28" font-weight="500" fill="#E8DEF2">Stay accountable with friends.</text>
+  </g>
+</svg>
