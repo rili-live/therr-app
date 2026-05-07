@@ -1,9 +1,8 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
+import { HabitGoalType } from 'therr-js-utilities/constants';
 import Store from '../../store';
 import { createOrUpdateAchievement } from './achievements';
-
-export type HabitGoalType = 'build_good' | 'break_bad' | 'savings_goal' | 'maintenance';
 
 // Goal-type → achievement-class routing for streak-based awards.
 const CLASS_BY_GOAL_TYPE: Record<HabitGoalType, string> = {

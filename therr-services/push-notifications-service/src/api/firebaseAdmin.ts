@@ -36,7 +36,8 @@ const parseServiceAccount = (envKey: string, brandVariation: BrandVariations): a
     }
     if (!parsed?.project_id || !parsed?.client_email || !parsed?.private_key) {
         throw new Error(
-            `push-notifications-service: Firebase service account JSON for ${brandVariation} is missing required fields (project_id, client_email, private_key).`,
+            `push-notifications-service: Firebase service account JSON for ${brandVariation} `
+            + 'is missing required fields (project_id, client_email, private_key).',
         );
     }
     return parsed as admin.ServiceAccount;
@@ -896,8 +897,8 @@ const predictAndSendNotification = (
     data: PushNotifications.INotificationData,
     config: ICreateMessageConfig,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    metrics?: INotificationMetrics,
-    brandVariation: BrandVariations = BrandVariations.THERR,
+    metrics: INotificationMetrics | undefined,
+    brandVariation: BrandVariations,
     headers?: InternalConfigHeaders,
 ) => {
     const message = createMessage(type, data, config, brandVariation);

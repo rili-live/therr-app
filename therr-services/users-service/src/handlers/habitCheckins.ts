@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { PushNotifications } from 'therr-js-utilities/constants';
+import { HabitGoalType, PushNotifications } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
@@ -20,7 +20,6 @@ import {
     awardAccountabilityWingAchievement,
     scanMultiHabitConsistency,
     headersForOtherUser,
-    HabitGoalType,
 } from './helpers/awardHabitAchievements';
 
 // CREATE

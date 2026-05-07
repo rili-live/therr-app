@@ -1,10 +1,9 @@
 import KnexBuilder, { Knex } from 'knex';
+import { HabitGoalType } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { HABIT_GOALS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
-
-export type HabitGoalType = 'build_good' | 'break_bad' | 'savings_goal' | 'maintenance';
 
 export interface ICreateHabitGoalParams {
     name: string;

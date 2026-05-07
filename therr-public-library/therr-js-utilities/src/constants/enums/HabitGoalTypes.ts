@@ -5,6 +5,11 @@ enum HabitGoalTypes {
     MAINTENANCE = 'maintenance',
 }
 
+// Literal union derived from the enum so DB columns / wire payloads can be
+// typed without re-declaring the strings. Update both at once if values change.
+type HabitGoalType = `${HabitGoalTypes}`;
+
 export {
     HabitGoalTypes,
+    HabitGoalType,
 };

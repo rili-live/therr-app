@@ -1,14 +1,13 @@
 /* eslint-disable class-methods-use-this */
 import axios from 'axios';
-
-export type HabitGoalTypeBody = 'build_good' | 'break_bad' | 'savings_goal' | 'maintenance';
+import { HabitGoalType } from 'therr-js-utilities/constants';
 
 export interface ICreateHabitGoalBody {
     name: string;
     description?: string;
     category?: string;
     emoji?: string;
-    goalType?: HabitGoalTypeBody;
+    goalType?: HabitGoalType;
     frequencyType?: string;
     frequencyCount?: number;
     targetDaysOfWeek?: number[];
@@ -20,7 +19,7 @@ export interface IUpdateHabitGoalBody {
     description?: string;
     category?: string;
     emoji?: string;
-    goalType?: HabitGoalTypeBody;
+    goalType?: HabitGoalType;
     frequencyType?: string;
     frequencyCount?: number;
     targetDaysOfWeek?: number[];
