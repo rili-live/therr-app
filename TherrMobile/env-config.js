@@ -39,6 +39,9 @@ const baseFeatureFlags = {
     ENABLE_PACTS: false,
     REQUIRE_PACT_ONBOARDING: false,
 
+    // Device / OS Permissions
+    ENABLE_LOCATION_SERVICES: true,
+
     // Search Providers
     ENABLE_MAPBOX_SEARCH: false,
 

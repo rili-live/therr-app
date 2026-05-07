@@ -95,6 +95,8 @@ const getRequestHeaders = (user) => ({
     'x-brand-variation': CURRENT_BRAND_VARIATION,
 });
 
+const isLocationServicesEnabled = () => getConfig()?.featureFlags?.[FeatureFlags.ENABLE_LOCATION_SERVICES] !== false;
+
 interface ILayoutDispatchProps {
     createUserGroup: Function;
     deleteUserGroup: Function;
@@ -374,25 +376,27 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 }
 
                 if (Platform.OS !== 'ios') {
-                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
-                        .then((grantStatus) => {
-                            updateLocationPermissions({
-                                [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
+                    if (isLocationServicesEnabled()) {
+                        PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+                            .then((grantStatus) => {
+                                updateLocationPermissions({
+                                    [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
+                                });
                             });
-                        });
-                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
-                        .then((grantStatus) => {
-                            updateLocationPermissions({
-                                [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
+                        PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
+                            .then((grantStatus) => {
+                                updateLocationPermissions({
+                                    [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
+                                });
                             });
-                        });
+                    }
                     PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)
                         .then((grantStatus) => {
                             updateLocationPermissions({
                                 [PermissionsAndroid.PERMISSIONS.CAMERA]: grantStatus,
                             });
                         });
-                } else {
+                } else if (isLocationServicesEnabled()) {
                     checkMultiple([PERMISSIONS.IOS.LOCATION_ALWAYS]).then((statuses) => {
                         updateLocationPermissions(statuses);
                     });
@@ -512,6 +516,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     // IMPORTANT: This should only be called once per session
     readyAndStartBackgroundGeolocation = () => {
+        if (!isLocationServicesEnabled()) {
+            return;
+        }
         const userToken = this.props?.user?.details?.idToken;
         if (this.props.user?.isAuthenticated && userToken
             && this.props.user?.settings?.settingsPushBackground) {
