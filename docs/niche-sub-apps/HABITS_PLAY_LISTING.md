@@ -1,7 +1,7 @@
 # Friends with Habits — Google Play Listing
 
 **Status:** Draft for internal-testing track submission
-**Last Updated:** 2026-04-23
+**Last Updated:** 2026-05-07
 **Branch:** `niche/HABITS-general`
 
 This document holds the canonical Play Console listing copy, Data Safety form
@@ -174,22 +174,37 @@ track.
 
 **Device target:** Pixel 9 emulator (1080×2400, 6.7" portrait)
 
-**Required count:** 2–8 phone screenshots. Plan for 6 to leave one or two as
-hold-back if any look weak.
+**Required count:** 2–8 phone screenshots. Plan for 6–8 in the final upload.
+
+**Output directory:** `docs/niche-sub-apps/habits/play-listing-screenshots/`
 
 **Capture command:**
 ```bash
-adb -s emulator-5554 exec-out screencap -p > screenshot-NN.png
+adb -s emulator-5554 exec-out screencap -p \
+  > docs/niche-sub-apps/habits/play-listing-screenshots/NN-<slug>.png
 ```
+
+### Captured
+
+| # | File | Screen | Why |
+|---|---|---|---|
+| 1 | `01-onboarding-make-pacts-hero.png` | Onboarding slide 3 — chameleon mascot, "Make pacts with friends and change your lives together", Get Started CTA | Strongest branded hero — leads with mascot + value prop |
+| 2 | `02-onboarding-build-habits.png` | Onboarding slide 1 — "Build Habits That Stick" (waterfall) | Reinforces the value prop with category framing |
+| 3 | `03-onboarding-invite-friends.png` | Onboarding slide 2 — "Invite Friends to Keep You Accountable" (tree) | Surfaces the differentiator (accountability via friends) |
+| 4 | `04-pact-onboarding-empty-state.png` | PactOnboardingGuard — "Start your first pact", 3-step guide, Invite a friend CTA | First product UI — explains the pact flow before showing data |
+| 5 | `05-dashboard-multi-habit.png` | HabitsDashboard top — "Good evening!" greeting, 1/7 Today + 13 Best Streak overall progress, Pull-ups + Read 15 minutes habit cards with Check In CTAs | Shows the lived dashboard with active habits and quick-action check-ins |
+| 6 | `06-active-streak-widget.png` | HabitsDashboard scrolled — "Morning workout" with 13-day current streak ribbon, "Next milestone: 14 days" progress bar, Completed! state, plus Meditation & Daily journal cards | Visualises the streak widget and pact-linked habit completion — the core "it's working" moment |
+
+`_holdback-boot-splash.png` is the boot splash; held back from the listing
+(Play discourages splash-only screenshots, and it doesn't communicate
+product value).
+
+### Still to capture
 
 | # | Screen | Why |
 |---|---|---|
-| 1 | HabitsDashboard with active pact + StreakWidget | Leads with the value prop — "you and your partner are on day N together" |
-| 2 | PactDetail showing partner activity feed | Social accountability mechanic in visual form |
-| 3 | Check-in modal with photo + note (Phase 4b feature) | Freshest visual; demonstrates daily proof |
-| 4 | PactOnboardingGuard empty state | "No pact without a partner" — surfaces the differentiator |
-| 5 | Invite flow | Supports the viral mechanic narrative; hints at growth model |
-| 6 | HabitsDashboard with multiple active pacts | Teases premium tier (free tier limits to 1) |
+| 7 | PactDetail showing partner activity feed | Social accountability mechanic in visual form |
+| 8 | Check-in modal with photo + note (Phase 4b feature) | Freshest visual; demonstrates daily proof |
 
 **Feature graphic** (1024×500, required before listing publishes):
 - Defer until brand assets are finalized.
