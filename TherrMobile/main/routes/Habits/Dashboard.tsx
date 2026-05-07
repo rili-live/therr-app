@@ -25,6 +25,7 @@ interface IHabitsDashboardDispatchProps {
     getUserGoals: Function;
     getTodayCheckins: Function;
     getActiveStreaks: Function;
+    getActivePacts: Function;
     createCheckin: Function;
 }
 
@@ -53,6 +54,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getUserGoals: HabitActions.getUserGoals,
     getTodayCheckins: HabitActions.getTodayCheckins,
     getActiveStreaks: HabitActions.getActiveStreaks,
+    getActivePacts: HabitActions.getActivePacts,
     createCheckin: HabitActions.createCheckin,
 }, dispatch);
 
@@ -102,7 +104,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     }
 
     handleRefresh = () => {
-        const { getUserGoals, getTodayCheckins, getActiveStreaks } = this.props;
+        const {
+            getUserGoals, getTodayCheckins, getActiveStreaks, getActivePacts,
+        } = this.props;
 
         this.setState({ isRefreshing: true });
 
@@ -110,6 +114,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             getUserGoals(),
             getTodayCheckins(),
             getActiveStreaks(),
+            getActivePacts(),
         ]).finally(() => {
             this.setState({ isRefreshing: false });
         });
