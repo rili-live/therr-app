@@ -15,10 +15,10 @@ import {
     getInitialNotification,
     getMessaging,
     getToken,
+    hasPermission,
     onMessage,
     onNotificationOpenedApp,
     registerDeviceForRemoteMessages,
-    requestPermission,
     AuthorizationStatus,
 } from '@react-native-firebase/messaging';
 import LogRocket from '@logrocket/react-native';
@@ -62,18 +62,14 @@ import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
+import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
+import permissions, { PermType } from '../utilities/permissionsOrchestrator';
+import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
-import SoftOptInPushModal from './Modals/SoftOptInPushModal';
-import {
-    shouldShowSoftAsk as shouldShowSoftPushAsk,
-    markSoftOptInAccepted as markSoftPushAccepted,
-    markSoftOptInDeferred as markSoftPushDeferred,
-    markSoftOptInDenied as markSoftPushDenied,
-} from '../utilities/softOptInPushAsk';
 import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroidChannel } from '../constants';
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
@@ -124,8 +120,6 @@ interface ILayoutDispatchProps {
     // Prefetch
     beginPrefetchRequest: Function;
     completePrefetchRequest: Function;
-    // Soft-opt-in push ask (cleared after Layout consumes the request)
-    clearSoftOptInPush: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
@@ -146,6 +140,7 @@ export interface ILayoutProps extends IStoreProps {
 interface ILayoutState {
     targetRouteView: string;
     targetRouteParams: any;
+    permissionPrimerType: PermType | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -185,7 +180,6 @@ const mapDispatchToProps = (dispatch: any) =>
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
             completePrefetchRequest: UIActions.completePrefetchRequest,
-            clearSoftOptInPush: UIActions.clearSoftOptInPush,
         },
         dispatch
     );
@@ -205,6 +199,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private themeInfoModal = buildInfoModalStyles();
     private themeModal = buildModalStyles();
     private themeMenu = buildMenuStyles();
+    private themeDisclosure = buildDisclosureStyles();
+    private permissionPrimerResolve: ((allowed: boolean) => void) | null = null;
+    private unsubscribeNotificationsGranted: (() => void) | null = null;
+    private fcmRegistrationStarted = false;
     subscriptions: Subscription[] = [];
 
     constructor(props) {
@@ -213,9 +211,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             targetRouteView: '',
             targetRouteParams: {},
-            showSoftOptInPushModal: false,
-            softOptInPushTitleKey: undefined,
-            softOptInPushBodyKey: undefined,
+            permissionPrimerType: null,
         };
 
         this.reloadTheme();
@@ -290,45 +286,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.readyAndStartBackgroundGeolocation();
         this.prefetchContent();
 
-        // Persisted-session launch: componentDidUpdate's auth-transition gate
-        // doesn't fire when the user is already authenticated at mount, so
-        // reset to the brand-appropriate landing screen here.
-        if (this.props.user?.isAuthenticated && CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
-            this.resetToHabitsLanding();
+        // Wire the permissions orchestrator: a single primer modal lives at the
+        // root, opened by any call site that goes through `permissions.request`.
+        permissions.registerPrimerListener(({ type, resolve }) => {
+            this.permissionPrimerResolve = resolve;
+            this.setState({ permissionPrimerType: type });
+        });
+        // Whenever notifications are granted (login already-granted path or
+        // post-primer OS approval), register the FCM device token and the
+        // foreground message handler. Replaces the unconditional chain that
+        // used to run on auth state change.
+        this.unsubscribeNotificationsGranted = permissions.onGranted('notifications', () => {
+            this.registerDeviceForFCM();
+        });
+
+        if (this.props.user?.isAuthenticated) {
+            // Persisted-session launch: componentDidUpdate's auth-transition gate
+            // doesn't fire when the user is already authenticated at mount, so
+            // reset to the brand-appropriate landing screen here.
+            if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                this.resetToHabitsLanding();
+            }
+            // Returning session: try silent FCM registration and give the
+            // soft-ask a chance via the second-session fallback.
+            this.tryRegisterDeviceTokenIfAuthorized();
+            permissions.requestIfAppropriate('notifications', { trigger: 'secondSession' });
         }
     }
-
-    // For HABITS, the first authenticated reset goes to a one-time push opt-in
-    // screen (the highest-leverage retention lever — the user needs to know
-    // when their pact invite is accepted). Subsequent launches skip straight
-    // to HabitsDashboard.
-    resetToHabitsLanding = async () => {
-        let optInShown = 'true';
-        try {
-            optInShown = (await AsyncStorage.getItem('HABITS_PUSH_OPTIN_SHOWN')) || '';
-        } catch {
-            // best-effort — fall through to dashboard if AsyncStorage is broken
-            optInShown = 'true';
-        }
-        const target = optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
-        RootNavigation.reset({
-            index: 0,
-            routes: [{ name: target }],
-        });
-    };
 
     componentDidUpdate(prevProps: ILayoutProps) {
         const { targetRouteView, targetRouteParams } = this.state;
         const {
             forums,
-            addNotification,
-            location,
             searchCategories,
-            searchActiveMomentsByIds,
-            searchActiveSpacesByIds,
             updateLocationPermissions,
             user,
-            updateUser,
         } = this.props;
 
         if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
@@ -408,97 +400,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
 
-                this.requestNotificationPermissions()
-                    .then(() => {
-                        return registerDeviceForRemoteMessages(getMessaging());
-                    })
-                    .then(() => {
-                        // Get the token
-                        return getToken(getMessaging());
-                    })
-                    .then((deviceToken) => {
-                        axios.defaults.headers['x-user-device-token'] = deviceToken;
-                        if (user.details.deviceMobileFirebaseToken !== deviceToken) {
-                            updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
-                        }
-                        this.unsubscribePushNotifications = onMessage(getMessaging(), async remoteMessage => {
-                            await wrapOnMessageReceived(true, remoteMessage);
-
-                            if (remoteMessage?.data?.areasActivated) {
-                                const parsedAreasData = typeof (remoteMessage?.data?.areasActivated) === 'string'
-                                    ? JSON.parse(remoteMessage?.data?.areasActivated)
-                                    : [];
-                                const momentsData = parsedAreasData.filter(area => area.momentId);
-                                const spacesData = parsedAreasData.filter(area => area.spaceId);
-                                if (parsedAreasData.length) {
-                                    sendForegroundNotification({
-                                        title: this.translate('alertTitles.newAreasActivated'),
-                                        body: this.translate('alertMessages.newAreasActivated', {
-                                            total: momentsData.length + spacesData.length,
-                                        }),
-                                        android: {
-                                            pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
-                                        },
-                                        data: {
-                                            activatedMomentIds: JSON.stringify(momentsData.map((moment) => moment.momentId)),
-                                            activatedSpaceIds: JSON.stringify(spacesData.map((space) => space.spaceId)),
-                                        },
-                                    }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
-                                    if (momentsData.length) {
-                                        searchActiveMomentsByIds({
-                                            userLatitude: location?.user?.latitude,
-                                            userLongitude: location?.user?.longitude,
-                                            withMedia: true,
-                                            withUser: true,
-                                            blockedUsers: user.details.blockedUsers,
-                                            shouldHideMatureContent: user.details.shouldHideMatureContent,
-                                        }, momentsData.map(moment => moment.momentId));
-                                    }
-                                    if (spacesData.length) {
-                                        searchActiveSpacesByIds({
-                                            userLatitude: location?.user?.latitude,
-                                            userLongitude: location?.user?.longitude,
-                                            withMedia: true,
-                                            withUser: true,
-                                            blockedUsers: user.details.blockedUsers,
-                                            shouldHideMatureContent: user.details.shouldHideMatureContent,
-                                        }, spacesData.map(space => space.spaceId));
-                                    }
-                                }
-                                // TODO: Fetch associated media files
-                                // TODO: Fetch and call insertActiveMoments to "activate" moments on map and discovered
-                            }
-                            if (remoteMessage?.data?.notificationData) {
-                                const parsedNotificationData = typeof (remoteMessage?.data?.notificationData) === 'string'
-                                    ? JSON.parse(remoteMessage?.data?.notificationData)
-                                    : {};
-                                addNotification(parsedNotificationData);
-                            }
-                        });
-                    })
-                    .catch((err) => {
-                        console.log('NOTIFICATIONS_ERROR', err);
-                        if (!__DEV__) {
-                            try {
-                                const crashlytics = getCrashlytics();
-                                crashlyticsLog(crashlytics, `NOTIFICATIONS_ERROR: ${err?.message || String(err)}`);
-                                recordError(crashlytics, err instanceof Error ? err : new Error(String(err)));
-                            } catch {
-                                // Crashlytics may not be initialized yet on very early startup.
-                            }
-                        }
-                    });
+                // Silent token registration only — no OS prompt fires here.
+                // Notification permission asks are anchored to engagement triggers
+                // and a second-session fallback via permissionsOrchestrator.
+                this.tryRegisterDeviceTokenIfAuthorized();
             } else {
                 BackgroundGeolocation.stop();
+                // Tear down the FCM subscription so a subsequent login re-registers
+                // (refreshes the device token and re-attaches axios headers).
+                if (this.unsubscribePushNotifications) {
+                    this.unsubscribePushNotifications();
+                    this.unsubscribePushNotifications = undefined;
+                }
+                this.fcmRegistrationStarted = false;
             }
-        }
-
-        const prevPending = prevProps.ui?.pendingSoftOptInPush ?? null;
-        const nextPending = this.props.ui?.pendingSoftOptInPush ?? null;
-        if (nextPending && nextPending !== prevPending) {
-            this.triggerSoftOptInPushAsk(nextPending).finally(() => {
-                this.props.clearSoftOptInPush();
-            });
         }
     }
 
@@ -516,7 +431,29 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
         this.subscriptions.forEach((subscription) => subscription.remove());
+        this.unsubscribeNotificationsGranted?.();
+        this.unsubscribeNotificationsGranted = null;
+        permissions.registerPrimerListener(null);
     }
+
+    // For HABITS, the first authenticated reset goes to a one-time push opt-in
+    // screen (the highest-leverage retention lever — the user needs to know
+    // when their pact invite is accepted). Subsequent launches skip straight
+    // to HabitsDashboard.
+    resetToHabitsLanding = async () => {
+        let optInShown = 'true';
+        try {
+            optInShown = (await AsyncStorage.getItem('HABITS_PUSH_OPTIN_SHOWN')) || '';
+        } catch {
+            // best-effort — fall through to dashboard if AsyncStorage is broken
+            optInShown = 'true';
+        }
+        const target = optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
+        RootNavigation.reset({
+            index: 0,
+            routes: [{ name: target }],
+        });
+    };
 
     handleSocketReconnectAttempt = () => {
         updateSocketToken(this.props.user);
@@ -605,6 +542,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.themeMenu = buildMenuStyles(themeName);
         this.themeInfoModal = buildInfoModalStyles(themeName);
         this.themeModal = buildModalStyles(themeName);
+        this.themeDisclosure = buildDisclosureStyles(themeName);
         if (shouldForceUpdate) {
             this.forceUpdate();
         }
@@ -1778,85 +1716,106 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    // Hard ask — triggers the OS push-permission prompt directly. Use this
-    // only after the user has explicitly opted in via the soft-ask, or for
-    // returning users where prior consent is implied. New users / first-time
-    // permission asks should go through `triggerSoftOptInPushAsk` instead.
-    requestNotificationPermissions = () => {
-        // Android 13+ (API 33) requires runtime POST_NOTIFICATIONS permission
-        const androidPermissionPromise = Platform.OS === 'android' && Number(Platform.Version) >= 33
-            ? PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS)
-            : Promise.resolve(null);
+    tryRegisterDeviceTokenIfAuthorized = async () => {
+        try {
+            const status = await hasPermission(getMessaging());
+            const authorized = status === AuthorizationStatus.AUTHORIZED
+                || status === AuthorizationStatus.PROVISIONAL;
+            if (!authorized) return;
+            this.registerDeviceForFCM();
+        } catch (err) {
+            console.log('NOTIFICATIONS_HAS_PERMISSION_ERROR', err);
+        }
+    };
 
-        return androidPermissionPromise
-            .then(() => notifee.requestPermission())
-            .then((permissions) => {
-                if (permissions?.authorizationStatus !== 1) {
-                    console.log('Notifee authorization status:', permissions);
+    registerDeviceForFCM = () => {
+        const {
+            addNotification,
+            location,
+            searchActiveMomentsByIds,
+            searchActiveSpacesByIds,
+            user,
+            updateUser,
+        } = this.props;
+        // Avoid double-subscribing. The token chain is async so the
+        // `unsubscribePushNotifications` ref is only set once getToken resolves;
+        // the synchronous flag closes the race when two callers (e.g. login
+        // transition + orchestrator's onGranted) trigger registration in the
+        // same tick.
+        if (this.fcmRegistrationStarted) return;
+        this.fcmRegistrationStarted = true;
+        registerDeviceForRemoteMessages(getMessaging())
+            .then(() => getToken(getMessaging()))
+            .then((deviceToken) => {
+                axios.defaults.headers['x-user-device-token'] = deviceToken;
+                if (user.details.deviceMobileFirebaseToken !== deviceToken) {
+                    updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
                 }
-                return requestPermission(getMessaging());
+                this.unsubscribePushNotifications = onMessage(getMessaging(), async (remoteMessage) => {
+                    await wrapOnMessageReceived(true, remoteMessage);
+
+                    if (remoteMessage?.data?.areasActivated) {
+                        const parsedAreasData = typeof (remoteMessage?.data?.areasActivated) === 'string'
+                            ? JSON.parse(remoteMessage?.data?.areasActivated)
+                            : [];
+                        const momentsData = parsedAreasData.filter((area) => area.momentId);
+                        const spacesData = parsedAreasData.filter((area) => area.spaceId);
+                        if (parsedAreasData.length) {
+                            sendForegroundNotification({
+                                title: this.translate('alertTitles.newAreasActivated'),
+                                body: this.translate('alertMessages.newAreasActivated', {
+                                    total: momentsData.length + spacesData.length,
+                                }),
+                                android: {
+                                    pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
+                                },
+                                data: {
+                                    activatedMomentIds: JSON.stringify(momentsData.map((moment) => moment.momentId)),
+                                    activatedSpaceIds: JSON.stringify(spacesData.map((space) => space.spaceId)),
+                                },
+                            }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
+                            if (momentsData.length) {
+                                searchActiveMomentsByIds({
+                                    userLatitude: location?.user?.latitude,
+                                    userLongitude: location?.user?.longitude,
+                                    withMedia: true,
+                                    withUser: true,
+                                    blockedUsers: user.details.blockedUsers,
+                                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                                }, momentsData.map((moment) => moment.momentId));
+                            }
+                            if (spacesData.length) {
+                                searchActiveSpacesByIds({
+                                    userLatitude: location?.user?.latitude,
+                                    userLongitude: location?.user?.longitude,
+                                    withMedia: true,
+                                    withUser: true,
+                                    blockedUsers: user.details.blockedUsers,
+                                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                                }, spacesData.map((space) => space.spaceId));
+                            }
+                        }
+                    }
+                    if (remoteMessage?.data?.notificationData) {
+                        const parsedNotificationData = typeof (remoteMessage?.data?.notificationData) === 'string'
+                            ? JSON.parse(remoteMessage?.data?.notificationData)
+                            : {};
+                        addNotification(parsedNotificationData);
+                    }
+                });
             })
-            .then((authStatus) => {
-                const enabled = authStatus === AuthorizationStatus.AUTHORIZED
-                    || authStatus === AuthorizationStatus.PROVISIONAL;
-                if (!enabled) {
-                    console.log('Notifications authorization status:', authStatus);
+            .catch((err) => {
+                console.log('NOTIFICATIONS_ERROR', err);
+                if (!__DEV__) {
+                    try {
+                        const crashlytics = getCrashlytics();
+                        crashlyticsLog(crashlytics, `NOTIFICATIONS_ERROR: ${err?.message || String(err)}`);
+                        recordError(crashlytics, err instanceof Error ? err : new Error(String(err)));
+                    } catch {
+                        // Crashlytics may not be initialized yet on very early startup.
+                    }
                 }
             });
-    };
-
-    // Soft ask — shows an in-app explainer modal before the OS prompt. The
-    // OS prompt is only triggered if the user taps "Enable". If the user
-    // defers, the ask is rescheduled (default 3 days). If they have already
-    // accepted, the OS prompt fires immediately to refresh the system state.
-    //
-    // Call sites should pass locale keys describing the context (e.g. for
-    // HABITS pact creation, pass `bodyKey: 'components.softOptInPush.bodyHabitsPact'`).
-    // See docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md item #1.
-    triggerSoftOptInPushAsk = async (
-        context?: { titleKey?: string; bodyKey?: string },
-    ): Promise<void> => {
-        const allowed = await shouldShowSoftPushAsk();
-        if (!allowed) {
-            // User previously accepted: surface the OS prompt to refresh state
-            // (no-op if still authorized). User previously denied / recently
-            // deferred: do nothing — respect the user's choice.
-            return undefined;
-        }
-        this.setState({
-            showSoftOptInPushModal: true,
-            softOptInPushTitleKey: context?.titleKey,
-            softOptInPushBodyKey: context?.bodyKey,
-        });
-        return undefined;
-    };
-
-    handleSoftOptInPushEnable = async () => {
-        this.setState({ showSoftOptInPushModal: false });
-        await markSoftPushAccepted();
-        try {
-            await this.requestNotificationPermissions();
-            await registerDeviceForRemoteMessages(getMessaging());
-            const deviceToken = await getToken(getMessaging());
-            axios.defaults.headers['x-user-device-token'] = deviceToken;
-            const { user, updateUser } = this.props;
-            if (user?.details?.id && user.details.deviceMobileFirebaseToken !== deviceToken) {
-                updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
-            }
-        } catch (err: any) {
-            // If the OS prompt itself errors out, fall back to "denied" so we
-            // don't keep re-asking on every action. The user can re-enable from
-            // Settings if they change their mind.
-            await markSoftPushDenied();
-            logEvent(getAnalytics(), 'soft_opt_in_push_error', {
-                error: err?.message,
-            }).catch((logErr) => console.log(logErr));
-        }
-    };
-
-    handleSoftOptInPushDefer = async () => {
-        this.setState({ showSoftOptInPushModal: false });
-        await markSoftPushDeferred();
     };
 
     shouldShowTopRightMenu = () => {
@@ -1899,6 +1858,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         return logout(userDetails);
     };
 
+    handlePermissionPrimerAllow = () => {
+        const resolve = this.permissionPrimerResolve;
+        this.permissionPrimerResolve = null;
+        this.setState({ permissionPrimerType: null });
+        resolve?.(true);
+    };
+
+    handlePermissionPrimerNotNow = () => {
+        const resolve = this.permissionPrimerResolve;
+        this.permissionPrimerResolve = null;
+        this.setState({ permissionPrimerType: null });
+        resolve?.(false);
+    };
+
     render() {
         const {
             location,
@@ -1906,54 +1879,55 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
+        const { permissionPrimerType } = this.state;
 
         return (
             <>
-            <NavigationContainer
+                <NavigationContainer
                 // Keyed on locale only so theme toggles do not remount the entire nav tree.
                 // Locale change still requires a remount because route translators close over locale at construction.
-                key={this.props.user?.settings?.locale || 'en-us'}
-                theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
-                ref={navigationRef}
-                onReady={() => {
-                    this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
-                    Promise.allSettled(preLoadImageList.map((image) => {
-                        const img = Image.resolveAssetSource(image).uri;
-                        return Image.prefetch(img);
-                    })).finally(() => {
+                    key={this.props.user?.settings?.locale || 'en-us'}
+                    theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
+                    ref={navigationRef}
+                    onReady={() => {
+                        this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
+                        Promise.allSettled(preLoadImageList.map((image) => {
+                            const img = Image.resolveAssetSource(image).uri;
+                            return Image.prefetch(img);
+                        })).finally(() => {
                         // TODO: Update users lastSessionStartAt property to track user activity
-                        SplashScreen.hide({ fade: true });
-                    });
-                }}
-                onStateChange={async () => {
-                    const previousRouteName = this.routeNameRef.current;
-                    const currentRouteName = navigationRef?.getCurrentRoute()?.name;
-                    if (currentRouteName !== 'Map') {
-                        // Prevent stuck tour on wrong routes
-                        this.props.stopNavigationTour();
-                    }
-
-                    if (previousRouteName !== currentRouteName) {
-                        await logScreenView(getAnalytics(), {
-                            screen_name: currentRouteName,
-                            screen_class: currentRouteName,
-                            is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
+                            SplashScreen.hide({ fade: true });
                         });
-                    }
-                    this.routeNameRef.current = currentRouteName;
-                }}
-            >
-                <Stack.Navigator
-                    id={undefined}
-                    screenOptions={({ route, navigation }) => {
-                        const themeName = this.props?.user?.settings?.mobileThemeName;
-                        const currentScreen = route.name;
-                        const currentScreenParams = (route.params as Record<string, any>) || {};
-                        const isConnect = currentScreen === 'Connect';
-                        const isAreas = currentScreen === 'Areas';
-                        const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
-                        const isMap = currentScreen === 'Map';
-                        const hasLogoHeaderTitle = currentScreen === 'Login'
+                    }}
+                    onStateChange={async () => {
+                        const previousRouteName = this.routeNameRef.current;
+                        const currentRouteName = navigationRef?.getCurrentRoute()?.name;
+                        if (currentRouteName !== 'Map') {
+                        // Prevent stuck tour on wrong routes
+                            this.props.stopNavigationTour();
+                        }
+
+                        if (previousRouteName !== currentRouteName) {
+                            await logScreenView(getAnalytics(), {
+                                screen_name: currentRouteName,
+                                screen_class: currentRouteName,
+                                is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
+                            });
+                        }
+                        this.routeNameRef.current = currentRouteName;
+                    }}
+                >
+                    <Stack.Navigator
+                        id={undefined}
+                        screenOptions={({ route, navigation }) => {
+                            const themeName = this.props?.user?.settings?.mobileThemeName;
+                            const currentScreen = route.name;
+                            const currentScreenParams = (route.params as Record<string, any>) || {};
+                            const isConnect = currentScreen === 'Connect';
+                            const isAreas = currentScreen === 'Areas';
+                            const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
+                            const isMap = currentScreen === 'Map';
+                            const hasLogoHeaderTitle = currentScreen === 'Login'
                             || currentScreen === 'Landing'
                             || currentScreen === 'Home'
                             || currentScreen === 'ForgotPassword'
@@ -1961,225 +1935,226 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             || currentScreen === 'EmailVerification'
                             || currentScreen === 'CreateProfile'
                             || currentScreen === 'Register';
-                        const isAccentPage = currentScreen === 'EditMoment'
+                            const isAccentPage = currentScreen === 'EditMoment'
                             || currentScreen === 'EditSpace'
                             || currentScreen === 'ViewMoment'
                             || currentScreen === 'ViewGroup'
                             || currentScreen === 'ViewSpace';
-                        let headerTitle;
-                        let headerStyle = this.theme.styles.headerStyle;
-                        let headerStyleName: any = 'light';
-                        let headerTitleColor = themeName === 'light'
-                            ? this.theme.colors.primary3
-                            : this.theme.colors.textWhite;
-                        const advancedSearchPlaceholderText = currentScreen === 'Areas'
-                            ? this.translate('components.header.searchContentInput.placeholder')
-                            : this.translate('components.header.searchInput.placeholder');
-                        if (isMoment) {
-                            headerStyleName = 'accent';
-                            headerTitleColor = this.theme.colors.accentLogo;
-                        }
-                        if (isAccentPage) {
-                            headerStyle = this.theme.styles.headerStyleAccent;
-                        }
-                        if (hasLogoHeaderTitle) {
-                            headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
-                        }
-                        const isSearchRoute = isAreas || isMap || isConnect;
-                        let searchInputNode: React.ReactNode = null;
-                        if (isAreas) {
-                            searchInputNode = <HeaderSearchInput
-                                isAdvancedSearch
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                placeholderText={advancedSearchPlaceholderText}
-                            />;
-                        }
-                        if (isMap) {
-                            searchInputNode = <HeaderSearchInput
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                placeholderText={advancedSearchPlaceholderText}
-                            />;
-                        }
-                        if (isConnect) {
-                            searchInputNode = <HeaderSearchUsersInput
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                            />;
-                        }
-
-                        const headerLeftNode = <HeaderMenuLeft
-                            styleName={headerStyleName}
-                            navigation={navigation}
-                            isAuthenticated={user.isAuthenticated}
-                            isEmailVerifed={this.isUserEmailVerified()}
-                            theme={this.theme}
-                        />;
-                        const headerRightNode = this.shouldShowTopRightMenu() ?
-                            <HeaderMenuRight
-                                currentScreen={currentScreen}
-                                currentScreenParams={currentScreenParams}
-                                navigation={navigation}
-                                notifications={notifications}
-                                styleName={headerStyleName}
-                                isEmailVerifed={this.isUserEmailVerified()}
-                                isVisible={this.shouldShowTopRightMenu()}
-                                location={location}
-                                logout={this.logout}
-                                updateGpsStatus={updateGpsStatus}
-                                user={user}
-                                showActionSheet={this.actionSheetShow}
-                                startNavigationTour={this.props.startNavigationTour}
-                                theme={this.theme}
-                                themeButtons={this.themeButtons}
-                                themeInfoModal={this.themeInfoModal}
-                                themeMenu={this.themeMenu}
-                            /> :
-                            <HeaderLinkRight
-                                navigation={navigation}
-                                themeForms={this.themeForms}
-                                styleName={headerStyleName}
-                            />;
-
-                        const baseOptions: any = {
-                            animation: 'fade',
-                            freezeOnBlur: true,
-                            headerLeft: () => headerLeftNode,
-                            headerRight: () => headerRightNode,
-                            headerTitleStyle: {
-                                ...this.theme.styles.headerTitleStyle,
-                                color: headerTitleColor,
-                                textShadowOffset: { width: 0, height: 0 },
-                                textShadowRadius: 0,
-                            },
-                            headerTitleAlign: 'center',
-                            headerStyle,
-                            headerTransparent: false,
-                            headerBackVisible: false,
-                            headerBackTitle: '',
-                            headerTitle,
-                        };
-
-                        // Use a custom JS header for every route so the left
-                        // logo and right menu button sit flush against the
-                        // screen edges. Native-stack's built-in header adds an
-                        // inset that pushed them inward on non-search routes.
-                        const customHeaderStyle = {
-                            backgroundColor: headerStyle?.backgroundColor,
-                            borderBottomColor: headerStyle?.borderBottomColor,
-                            borderBottomWidth: headerStyle?.borderBottomWidth,
-                        };
-                        baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
-                            let middleNode: React.ReactNode;
-                            if (isSearchRoute) {
-                                middleNode = (
-                                    <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
-                                        {searchInputNode}
-                                    </View>
-                                );
-                            } else if (typeof hOpts?.headerTitle === 'function') {
-                                middleNode = (
-                                    <View style={{ flex: 1, alignItems: 'center' }}>
-                                        {hOpts.headerTitle({
-                                            children: hOpts.title ?? hRoute.name,
-                                            tintColor: headerTitleColor,
-                                        })}
-                                    </View>
-                                );
-                            } else {
-                                const titleText = typeof hOpts?.headerTitle === 'string'
-                                    ? hOpts.headerTitle
-                                    : (hOpts?.title ?? hRoute.name);
-                                middleNode = (
-                                    <View style={{ flex: 1, alignItems: 'center' }}>
-                                        <Text
-                                            numberOfLines={1}
-                                            style={[
-                                                this.theme.styles.headerTitleStyle,
-                                                { color: headerTitleColor },
-                                            ]}
-                                        >
-                                            {titleText}
-                                        </Text>
-                                    </View>
-                                );
+                            let headerTitle;
+                            let headerStyle = this.theme.styles.headerStyle;
+                            let headerStyleName: any = 'light';
+                            let headerTitleColor = themeName === 'light'
+                                ? this.theme.colors.primary3
+                                : this.theme.colors.textWhite;
+                            const advancedSearchPlaceholderText = currentScreen === 'Areas'
+                                ? this.translate('components.header.searchContentInput.placeholder')
+                                : this.translate('components.header.searchInput.placeholder');
+                            if (isMoment) {
+                                headerStyleName = 'accent';
+                                headerTitleColor = this.theme.colors.accentLogo;
                             }
-                            return (
-                                <View style={[customHeaderStyle, { paddingTop: getHeaderTopInset() }]}>
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        height: 52,
-                                        paddingHorizontal: 8,
-                                    }}>
-                                        {headerLeftNode}
-                                        {middleNode}
-                                        {headerRightNode}
+                            if (isAccentPage) {
+                                headerStyle = this.theme.styles.headerStyleAccent;
+                            }
+                            if (hasLogoHeaderTitle) {
+                                headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
+                            }
+                            const isSearchRoute = isAreas || isMap || isConnect;
+                            let searchInputNode: React.ReactNode = null;
+                            if (isAreas) {
+                                searchInputNode = <HeaderSearchInput
+                                    isAdvancedSearch
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                    placeholderText={advancedSearchPlaceholderText}
+                                />;
+                            }
+                            if (isMap) {
+                                searchInputNode = <HeaderSearchInput
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                    placeholderText={advancedSearchPlaceholderText}
+                                />;
+                            }
+                            if (isConnect) {
+                                searchInputNode = <HeaderSearchUsersInput
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                />;
+                            }
+
+                            const headerLeftNode = <HeaderMenuLeft
+                                styleName={headerStyleName}
+                                navigation={navigation}
+                                isAuthenticated={user.isAuthenticated}
+                                isEmailVerifed={this.isUserEmailVerified()}
+                                theme={this.theme}
+                            />;
+                            const headerRightNode = this.shouldShowTopRightMenu() ?
+                                <HeaderMenuRight
+                                    currentScreen={currentScreen}
+                                    currentScreenParams={currentScreenParams}
+                                    navigation={navigation}
+                                    notifications={notifications}
+                                    styleName={headerStyleName}
+                                    isEmailVerifed={this.isUserEmailVerified()}
+                                    isVisible={this.shouldShowTopRightMenu()}
+                                    location={location}
+                                    logout={this.logout}
+                                    updateGpsStatus={updateGpsStatus}
+                                    user={user}
+                                    showActionSheet={this.actionSheetShow}
+                                    startNavigationTour={this.props.startNavigationTour}
+                                    theme={this.theme}
+                                    themeButtons={this.themeButtons}
+                                    themeInfoModal={this.themeInfoModal}
+                                    themeMenu={this.themeMenu}
+                                /> :
+                                <HeaderLinkRight
+                                    navigation={navigation}
+                                    themeForms={this.themeForms}
+                                    styleName={headerStyleName}
+                                />;
+
+                            const baseOptions: any = {
+                                animation: 'fade',
+                                freezeOnBlur: true,
+                                headerLeft: () => headerLeftNode,
+                                headerRight: () => headerRightNode,
+                                headerTitleStyle: {
+                                    ...this.theme.styles.headerTitleStyle,
+                                    color: headerTitleColor,
+                                    textShadowOffset: { width: 0, height: 0 },
+                                    textShadowRadius: 0,
+                                },
+                                headerTitleAlign: 'center',
+                                headerStyle,
+                                headerTransparent: false,
+                                headerBackVisible: false,
+                                headerBackTitle: '',
+                                headerTitle,
+                            };
+
+                            // Use a custom JS header for every route so the left
+                            // logo and right menu button sit flush against the
+                            // screen edges. Native-stack's built-in header adds an
+                            // inset that pushed them inward on non-search routes.
+                            const customHeaderStyle = {
+                                backgroundColor: headerStyle?.backgroundColor,
+                                borderBottomColor: headerStyle?.borderBottomColor,
+                                borderBottomWidth: headerStyle?.borderBottomWidth,
+                            };
+                            baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
+                                let middleNode: React.ReactNode;
+                                if (isSearchRoute) {
+                                    middleNode = (
+                                        <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
+                                            {searchInputNode}
+                                        </View>
+                                    );
+                                } else if (typeof hOpts?.headerTitle === 'function') {
+                                    middleNode = (
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            {hOpts.headerTitle({
+                                                children: hOpts.title ?? hRoute.name,
+                                                tintColor: headerTitleColor,
+                                            })}
+                                        </View>
+                                    );
+                                } else {
+                                    const titleText = typeof hOpts?.headerTitle === 'string'
+                                        ? hOpts.headerTitle
+                                        : (hOpts?.title ?? hRoute.name);
+                                    middleNode = (
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text
+                                                numberOfLines={1}
+                                                style={[
+                                                    this.theme.styles.headerTitleStyle,
+                                                    { color: headerTitleColor },
+                                                ]}
+                                            >
+                                                {titleText}
+                                            </Text>
+                                        </View>
+                                    );
+                                }
+                                return (
+                                    <View style={[customHeaderStyle, { paddingTop: getHeaderTopInset() }]}>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            height: 52,
+                                            paddingHorizontal: 8,
+                                        }}>
+                                            {headerLeftNode}
+                                            {middleNode}
+                                            {headerRightNode}
+                                        </View>
                                     </View>
-                                </View>
-                            );
-                        };
-
-                        return baseOptions;
-                    }}
-                >
-                    {routes
-                        .filter((route: any) => {
-                            const routeOptions = route.options && typeof route.options === 'function'
-                                ? route.options()
-                                : {};
-
-                            // Filter by feature flags first
-                            const requiredFeatures: FeatureFlags[] = routeOptions.requiredFeatures || [];
-                            if (requiredFeatures.length > 0) {
-                                const config = getConfig();
-                                const featureFlags = config.featureFlags || {};
-                                const allFeaturesEnabled = requiredFeatures.every(
-                                    (flag: FeatureFlags) => featureFlags[flag] === true
                                 );
-                                if (!allFeaturesEnabled) {
+                            };
+
+                            return baseOptions;
+                        }}
+                    >
+                        {routes
+                            .filter((route: any) => {
+                                const routeOptions = route.options && typeof route.options === 'function'
+                                    ? route.options()
+                                    : {};
+
+                                // Filter by feature flags first
+                                const requiredFeatures: FeatureFlags[] = routeOptions.requiredFeatures || [];
+                                if (requiredFeatures.length > 0) {
+                                    const config = getConfig();
+                                    const featureFlags = config.featureFlags || {};
+                                    const allFeaturesEnabled = requiredFeatures.every(
+                                        (flag: FeatureFlags) => featureFlags[flag] === true
+                                    );
+                                    if (!allFeaturesEnabled) {
+                                        return false;
+                                    }
+                                }
+
+                                // Then filter by access control
+                                if (!routeOptions.access) {
+                                    return true;
+                                }
+
+                                if (route.name === 'Landing' && user?.isAuthenticated) {
                                     return false;
                                 }
-                            }
 
-                            // Then filter by access control
-                            if (!routeOptions.access) {
-                                return true;
-                            }
+                                const isAuthorized = UsersService.isAuthorized(
+                                    routeOptions.access,
+                                    user
+                                );
 
-                            if (route.name === 'Landing' && user?.isAuthenticated) {
-                                return false;
-                            }
+                                delete route.options.access;
 
-                            const isAuthorized = UsersService.isAuthorized(
-                                routeOptions.access,
-                                user
-                            );
-
-                            delete route.options.access;
-
-                            return isAuthorized;
-                        })
-                        .map((route: any) => {
-                            route.name = this.translate(route.name);
-                            delete route.key;
-                            return <Stack.Screen key={route.name} {...route} />;
-                        })}
-                </Stack.Navigator>
-            </NavigationContainer>
-            <SoftOptInPushModal
-                isVisible={!!this.state.showSoftOptInPushModal}
-                onEnable={this.handleSoftOptInPushEnable}
-                onDefer={this.handleSoftOptInPushDefer}
-                titleKey={this.state.softOptInPushTitleKey}
-                bodyKey={this.state.softOptInPushBodyKey}
-                translate={this.translate}
-                themeButtons={this.themeButtons}
-            />
+                                return isAuthorized;
+                            })
+                            .map((route: any) => {
+                                route.name = this.translate(route.name);
+                                delete route.key;
+                                return <Stack.Screen key={route.name} {...route} />;
+                            })}
+                    </Stack.Navigator>
+                    {permissionPrimerType ? (
+                        <PermissionPrimerModal
+                            permissionType={permissionPrimerType}
+                            isVisible={!!permissionPrimerType}
+                            onAllow={this.handlePermissionPrimerAllow}
+                            onNotNow={this.handlePermissionPrimerNotNow}
+                            translate={this.translate}
+                            themeDisclosure={this.themeDisclosure}
+                        />
+                    ) : null}
+                </NavigationContainer>
             </>
         );
     }

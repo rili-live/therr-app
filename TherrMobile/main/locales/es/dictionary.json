@@ -63,6 +63,9 @@
     "updated": "¡Actualizado!",
     "exitedGroup": "Has salido del grupo",
     "joinedGroup": "Te uniste al grupo",
+    "userReportSent": "Reporte de usuario enviado",
+    "userBlocked": "Usuario bloqueado",
+    "connectionRemoved": "Conexión eliminada",
     "waitlistSuccess": "¡Registro exitoso!",
     "reactionSent": "¡Reacción enviada!",
     "reactionFailed": "Reacción fallida",
@@ -287,15 +290,6 @@
     "confirmCount": "{{count}} confirmaron"
   },
   "components": {
-    "softOptInPush": {
-      "title": "Mantente al tanto",
-      "bodyDefault": "Activa las notificaciones y te avisaremos cuando algo necesite tu atención. Puedes cambiar esto en cualquier momento en Configuración.",
-      "bodyHabitsPact": "Activa las notificaciones y te avisaremos cuando tu compañero de responsabilidad se registre — o cuando tu racha esté en juego.",
-      "bodyHabitsStreak": "Activa las notificaciones y te recordaremos antes de que tu racha se reinicie a medianoche.",
-      "bodyDirectMessage": "Activa las notificaciones para no perderte una respuesta.",
-      "enable": "Activar",
-      "notNow": "Ahora no"
-    },
     "activeConnections": {
       "noActiveConnections": "Actualmente no hay conexiones activas en tu red",
       "title": "Contactos activos"
@@ -2123,6 +2117,24 @@
       "no": "NO",
       "yes": "SÍ",
       "close": "Cerrar"
+    },
+    "primer": {
+      "shared": {
+        "allow": "Permitir",
+        "notNow": "Ahora no"
+      },
+      "notifications": {
+        "title": "Mantente al tanto",
+        "body": "Recibe avisos cuando tus amigos respondan, acepten tus invitaciones o publiquen cerca."
+      },
+      "camera": {
+        "title": "Captura el momento",
+        "body": "Therr necesita acceso a la cámara para adjuntar una foto a tu publicación."
+      },
+      "contacts": {
+        "title": "Encuentra amigos más rápido",
+        "body": "Conecta con contactos que ya están en Therr. Tu agenda permanece en tu dispositivo."
+      }
     }
   },
   "validations": {

@@ -624,25 +624,14 @@ component trees. Hoist to Redux for a single source of truth.
 These small toasts/dialogs each individually look minor but the
 post-onboarding feel is the sum of them.
 
-- `TherrMobile/main/components/0_First_Time_UI/onboarding-stages/CreateProfilePhoneVerify.tsx:178`
-  — Replace alert dialog with toast
 - `TherrMobile/main/routes/Login/LoginForm.tsx:133`,
   `routes/Register/RegisterForm.tsx:294` — RMOBILE-26: UI alert for
   registration failures
-- `TherrMobile/main/routes/ViewUser/index.tsx:552, 555, 583` — Success
-  toast on follow / unfollow / block
-- `TherrMobile/main/routes/Settings/index.tsx:142` — Message when password
-  fields don't match
-- `TherrMobile/main/routes/Settings/ManageAccount.tsx:111`,
-  `Settings/ManageNotifications.tsx:156` — Confirmation modal on destructive
-  action
 - `TherrMobile/main/routes/Areas/Nearby/NearbyWrapper.tsx:505, 532, 571`,
   `routes/Map/index.tsx:1087, 1172` — Display modal/instructions for
   enabling location after `never_ask_again`
-- `TherrMobile/main/components/Input/HeaderSearchInput.tsx:131`,
-  `HeaderSearchUsersInput.tsx:95` — Red dot to show filters enabled
-- `TherrMobile/main/components/BottomSheet/MapBottomSheetContent.tsx:56` —
-  Add last element to prevent final-item cutoff
+- `TherrMobile/main/components/Input/HeaderSearchUsersInput.tsx:95` — Red
+  dot to show filters enabled (blocked: user-search has no filter UI yet)
 - `TherrMobile/main/components/UserContent/UserImage.tsx:33` — Image
   cropping fails with some datatypes; upgrade or disable crop initially
 

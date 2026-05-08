@@ -139,7 +139,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     isFormDisabled() {
         const { inputs, isSubmitting } = this.state;
 
-        // TODO: Add message to show when passwords not equal
         // Phone number is not required for Apple users (due to stupid Apple SSO rule)
         // ...so we need to add more logic here
         return (
@@ -257,7 +256,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
 
     onInputChange = (name: string, value: string) => {
-        let passwordErrorMessage = '';
         const { inputs } = this.state;
         let sanitizedValue = value;
         if (name === 'userName') {
@@ -266,24 +264,19 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const newInputChanges = {
             [name]: sanitizedValue,
         };
+        const mergedInputs = {
+            ...inputs,
+            ...newInputChanges,
+        };
 
-        if (name === 'repeatPassword' && inputs.oldPassword) {
-            if (inputs.password !== newInputChanges.repeatPassword) {
-                passwordErrorMessage = this.translate('forms.settings.errorMessages.repeatPassword');
-            }
-        }
-
-        if (name === 'password' && inputs.repeatPassword) {
-            if (inputs.repeatPassword !== newInputChanges.password) {
-                passwordErrorMessage = this.translate('forms.settings.errorMessages.repeatPassword');
-            }
-        }
+        const hasPasswordMismatch = (mergedInputs.password || mergedInputs.repeatPassword)
+            && mergedInputs.password !== mergedInputs.repeatPassword;
+        const passwordErrorMessage = hasPasswordMismatch
+            ? this.translate('forms.settings.errorMessages.repeatPassword')
+            : '';
 
         this.setState({
-            inputs: {
-                ...inputs,
-                ...newInputChanges,
-            },
+            inputs: mergedInputs,
             isSubmitting: false,
             passwordErrorMessage,
         });

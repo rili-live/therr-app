@@ -639,12 +639,16 @@ class ViewUser extends React.Component<
 
         if (activeConfirmModal === 'report-user') {
             UsersService.report(user?.userInView.id);
-            // TODO: Add success toast
+            showToast.success({
+                text1: this.translate('alertTitles.userReportSent'),
+            });
             resetProcessing();
         } else if (activeConfirmModal === 'block-user') {
-            // TODO: Add success toast
             // TODO: RMOBILE-35: ...
             blockUser(user.userInView?.id, user.details.blockedUsers);
+            showToast.success({
+                text1: this.translate('alertTitles.userBlocked'),
+            });
             resetProcessing();
             navigation.navigate('Areas');
         } else if (activeConfirmModal === 'send-connection-request') {
@@ -670,13 +674,15 @@ class ViewUser extends React.Component<
                 resetProcessing();
             });
         } else if (activeConfirmModal === 'remove-connection-request') {
-            // TODO: Add success toast
             updateUserConnection({
                 connection: {
                     isConnectionBroken: true,
                     otherUserId: user.userInView?.id,
                 },
                 user: user.details,
+            });
+            showToast.success({
+                text1: this.translate('alertTitles.connectionRemoved'),
             });
             resetProcessing();
             navigation.navigate('Areas');

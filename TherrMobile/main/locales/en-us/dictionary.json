@@ -63,6 +63,9 @@
     "updated": "Updated!",
     "exitedGroup": "You have left the group",
     "joinedGroup": "You joined the group",
+    "userReportSent": "User Report Sent",
+    "userBlocked": "User Blocked",
+    "connectionRemoved": "Connection Removed",
     "waitlistSuccess": "Registration Success!",
     "reactionSent": "Reaction Sent!",
     "reactionFailed": "Reaction Failed",
@@ -287,15 +290,6 @@
     "confirmCount": "{{count}} confirmed"
   },
   "components": {
-    "softOptInPush": {
-      "title": "Stay in the loop",
-      "bodyDefault": "Turn on notifications and we'll let you know when something needs your attention. You can change this anytime in Settings.",
-      "bodyHabitsPact": "Turn on notifications and we'll let you know when your accountability partner checks in — or when your streak is on the line.",
-      "bodyHabitsStreak": "Turn on notifications and we'll remind you before your streak resets at midnight.",
-      "bodyDirectMessage": "Turn on notifications so you don't miss a reply.",
-      "enable": "Enable",
-      "notNow": "Not now"
-    },
     "activeConnections": {
       "noActiveConnections": "There are currently no active connections in your network",
       "title": "Active Contacts"
@@ -2123,6 +2117,24 @@
       "no": "NO",
       "yes": "YES",
       "close": "Close"
+    },
+    "primer": {
+      "shared": {
+        "allow": "Allow",
+        "notNow": "Not now"
+      },
+      "notifications": {
+        "title": "Stay in the loop",
+        "body": "Get notified when friends reply, accept your invites, or post nearby."
+      },
+      "camera": {
+        "title": "Capture the moment",
+        "body": "Therr needs camera access to attach a photo to your post."
+      },
+      "contacts": {
+        "title": "Find friends faster",
+        "body": "Match contacts who are already on Therr. Your address book stays on your device."
+      }
     }
   },
   "validations": {
