@@ -1927,6 +1927,24 @@
       "no": "NO",
       "yes": "YES",
       "close": "Close"
+    },
+    "primer": {
+      "shared": {
+        "allow": "Allow",
+        "notNow": "Not now"
+      },
+      "notifications": {
+        "title": "Stay in the loop",
+        "body": "Get notified when friends reply, accept your invites, or post nearby."
+      },
+      "camera": {
+        "title": "Capture the moment",
+        "body": "Therr needs camera access to attach a photo to your post."
+      },
+      "contacts": {
+        "title": "Find friends faster",
+        "body": "Match contacts who are already on Therr. Your address book stays on your device."
+      }
     }
   },
   "validations": {

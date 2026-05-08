@@ -1,7 +1,7 @@
 import Contacts from 'react-native-contacts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { UserConnectionsService } from 'therr-react/services';
-import { requestOSContactsPermissions } from './requestOSPermissions';
+import permissions from './permissionsOrchestrator';
 
 interface IMatchedUser {
     id: string;
@@ -20,11 +20,11 @@ interface ISyncResult {
 const synceMobileContacts = ({
     storePermissions,
     user,
-}): Promise<ISyncResult> => requestOSContactsPermissions(storePermissions).then((response) => {
-    const permissionsDenied = Object.keys(response).some((key) => {
-        return response[key] !== 'granted';
-    });
-    if (!permissionsDenied) {
+}): Promise<ISyncResult> => permissions.request('contacts', {
+    trigger: 'findFriendsTap',
+    storePermissionsResponse: storePermissions,
+}).then((result) => {
+    if (result.status === 'granted') {
         logEvent(getAnalytics(),'phone_contacts_perm_granted', {
             userId: user.details.id,
         }).catch((err) => console.log(err));

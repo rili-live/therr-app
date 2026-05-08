@@ -19,6 +19,7 @@ import TherrIcon from '../../components/TherrIcon';
 import LoadingPlaceholder from './LoadingPlaceholder';
 import spacingStyles from '../../styles/layouts/spacing';
 import ListEmpty from '../../components/ListEmpty';
+import permissions from '../../utilities/permissionsOrchestrator';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -166,6 +167,13 @@ class DirectMessage extends React.Component<
 
             this.setState({
                 msgInputVal: '',
+            });
+
+            // Engagement-anchored soft-ask. The first DM a user sends is when
+            // the value of receiving notifications becomes obvious. No-op if
+            // already asked, granted, or blocked.
+            permissions.requestIfAppropriate('notifications', {
+                trigger: 'firstMessageSent',
             });
 
             // Brief cooldown to prevent double-tap

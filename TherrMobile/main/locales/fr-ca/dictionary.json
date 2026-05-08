@@ -1927,6 +1927,24 @@
       "no": "NON",
       "yes": "OUI",
       "close": "Fermer"
+    },
+    "primer": {
+      "shared": {
+        "allow": "Autoriser",
+        "notNow": "Pas maintenant"
+      },
+      "notifications": {
+        "title": "Reste au courant",
+        "body": "Reçois une notification quand tes amis répondent, acceptent tes invitations ou publient à proximité."
+      },
+      "camera": {
+        "title": "Capte l'instant",
+        "body": "Therr a besoin d'accéder à la caméra pour joindre une photo à ta publication."
+      },
+      "contacts": {
+        "title": "Trouve tes amis plus vite",
+        "body": "Identifie les contacts déjà sur Therr. Ton carnet d'adresses reste sur ton appareil."
+      }
     }
   },
   "validations": {
