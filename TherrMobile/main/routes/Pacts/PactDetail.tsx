@@ -6,6 +6,7 @@ import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
+import UIActions from '../../redux/actions/UIActions';
 import translator from '../../utilities/translator';
 import { Button } from '../../components/BaseButton';
 import { buildStyles } from '../../styles';
@@ -20,6 +21,7 @@ interface IPactDetailDispatchProps {
     acceptPact: Function;
     declinePact: Function;
     abandonPact: Function;
+    requestSoftOptInPush: Function;
 }
 
 interface IStoreProps extends IPactDetailDispatchProps {
@@ -53,6 +55,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
     abandonPact: HabitActions.abandonPact,
+    requestSoftOptInPush: UIActions.requestSoftOptInPush,
 }, dispatch);
 
 export class PactDetail extends React.Component<IPactDetailProps, IPactDetailState> {
@@ -105,7 +108,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     };
 
     handleAccept = () => {
-        const { acceptPact, route } = this.props;
+        const { acceptPact, requestSoftOptInPush, route } = this.props;
         const { pactId } = route.params;
 
         this.setState({ isActionLoading: true });
@@ -118,6 +121,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                     text2: this.translate('pages.pacts.acceptedMessage'),
                     visibilityTime: 2000,
                 });
+                requestSoftOptInPush({ bodyKey: 'components.softOptInPush.bodyHabitsPact' });
                 this.handleRefresh();
             })
             .catch(() => {

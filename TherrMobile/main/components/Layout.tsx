@@ -28,6 +28,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
+import { IUIState } from '../types/redux/ui';
 import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
@@ -123,6 +124,8 @@ interface ILayoutDispatchProps {
     // Prefetch
     beginPrefetchRequest: Function;
     completePrefetchRequest: Function;
+    // Soft-opt-in push ask (cleared after Layout consumes the request)
+    clearSoftOptInPush: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
@@ -130,6 +133,7 @@ interface IStoreProps extends ILayoutDispatchProps {
     forums: IForumsState;
     location: ILocationState;
     notifications: INotificationsState;
+    ui: IUIState;
     user: IUserState;
 }
 
@@ -149,6 +153,7 @@ const mapStateToProps = (state: any) => ({
     forums: state.forums,
     location: state.location,
     notifications: state.notifications,
+    ui: state.ui,
     user: state.user,
 });
 
@@ -180,6 +185,7 @@ const mapDispatchToProps = (dispatch: any) =>
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
             completePrefetchRequest: UIActions.completePrefetchRequest,
+            clearSoftOptInPush: UIActions.clearSoftOptInPush,
         },
         dispatch
     );
@@ -485,6 +491,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             } else {
                 BackgroundGeolocation.stop();
             }
+        }
+
+        const prevPending = prevProps.ui?.pendingSoftOptInPush ?? null;
+        const nextPending = this.props.ui?.pendingSoftOptInPush ?? null;
+        if (nextPending && nextPending !== prevPending) {
+            this.triggerSoftOptInPushAsk(nextPending).finally(() => {
+                this.props.clearSoftOptInPush();
+            });
         }
     }
 

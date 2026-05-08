@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
+import UIActions from '../../redux/actions/UIActions';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
@@ -40,6 +41,7 @@ interface IDispatchProps {
     getTemplates: Function;
     createGoal: Function;
     bulkInvitePact: Function;
+    requestSoftOptInPush: Function;
 }
 
 interface IStoreProps extends IDispatchProps {
@@ -71,6 +73,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getTemplates: HabitActions.getTemplates,
     createGoal: HabitActions.createGoal,
     bulkInvitePact: HabitActions.bulkInvitePact,
+    requestSoftOptInPush: UIActions.requestSoftOptInPush,
 }, dispatch);
 
 const resolvePartnerDetails = (
@@ -215,7 +218,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     };
 
     handleSend = async () => {
-        const { habits, createGoal, bulkInvitePact, navigation } = this.props;
+        const { habits, createGoal, bulkInvitePact, requestSoftOptInPush, navigation } = this.props;
         const { selectedTemplateId, customHabitName, selectedPartnerIds } = this.state;
 
         this.setState({ isSending: true });
@@ -269,6 +272,8 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                 type: 'success',
                 text1: this.translate(successKey, { count: selectedPartnerIds.length }),
             });
+
+            requestSoftOptInPush({ bodyKey: 'components.softOptInPush.bodyHabitsPact' });
 
             navigation.navigate('HabitsDashboard');
         } catch {

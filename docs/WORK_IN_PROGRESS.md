@@ -248,10 +248,6 @@ depend on these working correctly.
 
 ### 2.1 Push notification engagement
 
-- `TherrMobile/main/components/Layout.tsx` — Wire HABITS pact creation to
-  call `triggerSoftOptInPushAsk({ bodyKey: 'components.softOptInPush.bodyHabitsPact' })`
-  on the niche/HABITS-general branch. The modal infrastructure ships on
-  general; the per-brand anchor still needs to be added on the niche side.
 - `therr-services/push-notifications-service/src/handlers/helpers/areaLocationHelpers.ts:222`
   — RDATA-3: Smart rules around when to send push notifications
 - `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:676` —

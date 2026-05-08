@@ -12,6 +12,7 @@ const initialState: IUIState = {
         isLoadingGroups: false,
         isLoadingNotifications: false,
     },
+    pendingSoftOptInPush: null,
 };
 
 const locations = produce((draft: IUIState, action: any) => {
@@ -27,6 +28,12 @@ const locations = produce((draft: IUIState, action: any) => {
                 ...draft.prefetch,
                 ...action.data,
             };
+            break;
+        case UIActionTypes.REQUEST_SOFT_OPT_IN_PUSH:
+            draft.pendingSoftOptInPush = action.data || {};
+            break;
+        case UIActionTypes.CLEAR_SOFT_OPT_IN_PUSH:
+            draft.pendingSoftOptInPush = null;
             break;
         default:
             break;
