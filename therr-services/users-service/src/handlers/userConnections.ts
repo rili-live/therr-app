@@ -353,12 +353,46 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             }
         });
 
-        // NOTE: Current set to 0 coin reward while we debug spammers
-        coinRewardsTotal += (otherUserEmails.length * CurrentSocialValuations.inviteSent) + (otherUserPhoneNumbers.length * CurrentSocialValuations.inviteSent);
+        // 2a. Dedupe by requestingUserId — skip invitees this user already
+        // contacted in the past INVITE_RESEND_COOLDOWN_DAYS days. Without this,
+        // a user can re-trigger the same email/SMS by re-tapping the invite
+        // button. For HABITS where invites are mandatory for pact creation,
+        // that's a high-volume spam vector against the very people the viral
+        // loop depends on. The cooldown still allows legitimate re-invites
+        // after a meaningful gap.
+        const INVITE_RESEND_COOLDOWN_DAYS = 30;
+        const cooldownSinceDate = new Date(Date.now() - INVITE_RESEND_COOLDOWN_DAYS * 24 * 60 * 60 * 1000);
+        const recentInvites = await Store.invites.getRecentByRequestingUser(
+            userId,
+            otherUserEmails.map((e) => e.email).filter(Boolean),
+            otherUserPhoneNumbers.map((p) => p.phoneNumber).filter(Boolean),
+            cooldownSinceDate,
+        ).catch((err) => {
+            // Fail-open on dedupe lookup: better to send a possible duplicate
+            // than to hard-block a legitimate invite. Log so we notice if this
+            // path is consistently failing.
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to query recent invites for dedupe; allowing send'],
+                traceArgs: { 'error.message': err?.message },
+            });
+            return [] as Array<{ email?: string; phoneNumber?: string }>;
+        });
 
-        // 2. Send email invites if user does not exist
+        const recentInviteEmails = new Set(recentInvites.map((row) => row.email).filter(Boolean) as string[]);
+        const recentInvitePhones = new Set(recentInvites.map((row) => row.phoneNumber).filter(Boolean) as string[]);
+
+        const sendableEmailContacts = otherUserEmails.filter((contact) => !recentInviteEmails.has(contact.email));
+        const sendablePhoneContacts = otherUserPhoneNumbers.filter((contact) => !recentInvitePhones.has(contact.phoneNumber));
+
+        // NOTE: Current set to 0 coin reward while we debug spammers
+        coinRewardsTotal += (sendableEmailContacts.length * CurrentSocialValuations.inviteSent)
+            + (sendablePhoneContacts.length * CurrentSocialValuations.inviteSent);
+
+        // 2. Send email invites if user does not exist (dedupe-filtered)
         const emailSendPromises: any[] = [];
-        otherUserEmails.forEach((contact) => {
+        sendableEmailContacts.forEach((contact) => {
             emailSendPromises.push(sendContactInviteEmail({
                 subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
                 locale,
@@ -372,9 +406,9 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             }));
         });
 
-        // 3. Send phone invites if user does not exist
+        // 3. Send phone invites if user does not exist (dedupe-filtered)
         const phoneSendPromises: any[] = [];
-        otherUserPhoneNumbers.forEach((contact) => {
+        sendablePhoneContacts.forEach((contact) => {
             phoneSendPromises.push(twilioClient.messages
                 .create({
                     body: translate(locale, 'invites.phone', {
@@ -385,8 +419,10 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 }));
         });
 
-        // 4. Create db invites for tracking
-        // TODO: Prevent resending email/phone request if invite already exists
+        // 4. Create db invites for tracking. Pass the original (non-deduped)
+        // arrays so the existing onConflict-ignore path remains responsible
+        // for row uniqueness — the dedupe above is purely about not re-firing
+        // outbound email/SMS to the same recipient.
         Store.invites.createIfNotExist([...existingUsers, ...otherUserEmails, ...otherUserPhoneNumbers]
             .map((invite) => ({
                 requestingUserId: userId,

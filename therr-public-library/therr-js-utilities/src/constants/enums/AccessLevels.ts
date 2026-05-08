@@ -19,6 +19,7 @@ enum AccessLevels {
   // eslint-disable-next-line max-len
   ORGANIZATIONS_SUBSCRIBER = 'user.organizations.subscriber', // Assigned by white-label organization admin when adding a subscriber/customer
   API_ACCESS = 'user.api.access', // Granted to dashboard subscribers to enable API key management
+  HABITS_PREMIUM = 'user.habits.premium', // Added by Stripe webhook when a HABITS user activates the premium subscription
 }
 
 export default AccessLevels;

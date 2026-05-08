@@ -11,6 +11,15 @@ const cardImagesLottie: { [key: string]: any } = {
     localPatron: require('../../assets/local-patron-card.json'),
     socialite: require('../../assets/socialite-card.json'),
     thinker: require('../../assets/thinker-card.json'),
+    // HABITS classes — reuse existing Lottie animations to avoid new design assets
+    accountability: require('../../assets/socialite-card.json'),
+    cleanBreak: require('../../assets/thinker-card.json'),
+    consistency: require('../../assets/influencer-card.json'),
+    habitBuilder: require('../../assets/explorer-card.json'),
+    pactPioneer: require('../../assets/socialite-card.json'),
+    resilience: require('../../assets/thinker-card.json'),
+    socialEnergizer: require('../../assets/socialite-card.json'),
+    treasureBuilder: require('../../assets/local-patron-card.json'),
 };
 
 const AchievementTile = ({ claimText, completedText, handleClaim, isClaiming, onPressAchievement, userAchievement, themeAchievements }) => {

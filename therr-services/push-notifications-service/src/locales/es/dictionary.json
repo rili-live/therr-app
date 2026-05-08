@@ -99,6 +99,68 @@
     "inviteFriendsReminder": {
       "title": "Trae a tus amigos",
       "body": "¡Comparte tu enlace de invitación y ambos ganarán recompensas cuando tus amigos se unan!"
+    },
+    "streakAtRisk": {
+      "title": "No rompas tu racha",
+      "body": "Tu racha de {streakCount} días en {habitName} está en juego — registra antes de medianoche para mantenerla."
+    },
+    "streakBroken": {
+      "title": "Racha reiniciada",
+      "body": "Tu racha de {streakCount} días en {habitName} terminó — empieza una nueva hoy."
+    },
+    "streakMilestone": {
+      "title": "¡Meta alcanzada!",
+      "body": "{streakCount} días seguidos en {habitName} — mantén el ritmo."
+    },
+    "newPersonalRecord": {
+      "title": "Nuevo récord personal",
+      "body": "Acabas de superar tu récord anterior en {habitName} de {previousRecordDays} días. ¡Vas por {streakCount}!"
+    },
+    "partnerCheckedIn": {
+      "title": "{partnerName} acaba de registrarse",
+      "body": "{partnerName} llegó al día {streakCount} en {habitName} — no te quedes atrás."
+    },
+    "partnerMissedDay": {
+      "title": "{partnerName} se perdió un día",
+      "body": "{partnerName} no registró {habitName} ayer — envía un poco de aliento."
+    },
+    "partnerCelebrated": {
+      "title": "{partnerName} envió una felicitación",
+      "body": "{partnerName} acaba de animarte — abre la app para ver lo que dijo."
+    },
+    "pactInvitation": {
+      "title": "Te invitaron a un pacto",
+      "body": "{userName} te invitó a hacer {habitName} juntos — la responsabilidad empieza aquí.",
+      "pressActionAccept": "Aceptar",
+      "pressActionView": "Ver"
+    },
+    "pactAccepted": {
+      "title": "¡Pacto aceptado!",
+      "body": "{partnerName} se unió. Ambos están comprometidos con {habitName} — el primer registro inicia la racha."
+    },
+    "pactDeclined": {
+      "title": "Pacto rechazado",
+      "body": "{partnerName} no puede comprometerse con este. Invita a alguien más para mantener viva la meta."
+    },
+    "pactCompleted": {
+      "title": "¡Pacto completado!",
+      "body": "Tú y {partnerName} terminaron su pacto de {habitName} — una victoria para ambos."
+    },
+    "pactExpiring": {
+      "title": "Tu pacto está por terminar",
+      "body": "Quedan {daysRemaining} día(s) en tu pacto de {habitName} — termina con fuerza."
+    },
+    "dailyHabitReminder": {
+      "title": "Hora de registrarte",
+      "body": "No olvides registrar {habitName} hoy — un toque rápido mantiene tu racha viva."
+    },
+    "morningMotivation": {
+      "title": "Buenos días",
+      "body": "Hoy es una nueva oportunidad para construir el hábito al que te comprometiste. Vamos."
+    },
+    "eveningCheckIn": {
+      "title": "¿Cómo te fue hoy?",
+      "body": "Toca para registrar tu día y asegurar uno más en tu racha."
     }
   },
   "validation": "No se proporcionaron los parámetros requeridos."

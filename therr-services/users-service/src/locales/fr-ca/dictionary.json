@@ -13,6 +13,10 @@
         "posts": {
             "duplicatePost": "Les publications en double ne sont pas autorisées"
         },
+        "pacts": {
+            "habitGoalRequired": "Un objectif d'habitude est requis pour créer un pacte",
+            "freeTierLimitReached": "Le niveau gratuit est limité à {limit} pacte(s) actif(s). Passe au premium pour des pactes illimités."
+        },
         "user": {
             "invalidUserNamePassword": "La combinaison utilisateur/mot de passe est incorrecte",
             "maxOrgs": "Nombre maximum d'organisations atteint",

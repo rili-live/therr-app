@@ -13,6 +13,10 @@
         "posts": {
             "duplicatePost": "Duplicate posts are not allowed"
         },
+        "pacts": {
+            "habitGoalRequired": "A habit goal is required to create a pact",
+            "freeTierLimitReached": "Free tier is limited to {limit} active pact(s). Upgrade to premium for unlimited pacts."
+        },
         "user": {
             "invalidUserNamePassword": "User/password combination is incorrect",
             "maxOrgs": "Max organizations reached",

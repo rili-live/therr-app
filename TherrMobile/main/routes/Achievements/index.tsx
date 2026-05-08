@@ -6,7 +6,8 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { showToast } from '../../utilities/toasts';
 import { RefreshControl } from 'react-native-gesture-handler';
-import { achievementsByClass } from 'therr-js-utilities/config';
+import { getAchievementsForBrand } from 'therr-js-utilities/config';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -196,8 +197,8 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             });
         }
 
-        // Group completed by achievementClass
-        const classNames = Object.keys(achievementsByClass);
+        // Group completed by achievementClass — restricted to classes available for current brand
+        const classNames = Object.keys(getAchievementsForBrand(CURRENT_BRAND_VARIATION));
         classNames.forEach((className) => {
             if (claimedByClass[className]?.length > 0) {
                 const displayName = className.replace(/([A-Z])/g, ' $1').trim();

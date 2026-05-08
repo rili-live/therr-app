@@ -1,5 +1,10 @@
 import { RequestHandler } from 'express';
-import { PushNotifications } from 'therr-js-utilities/constants';
+import {
+    AccessLevels,
+    BrandVariations,
+    HABITS_FREE_PACT_LIMIT,
+    PushNotifications,
+} from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
@@ -11,10 +16,45 @@ import {
     isUserInPact,
     isCreator,
 } from '../utilities/pactHelpers';
+import {
+    awardPactPioneerCreatedAchievement,
+    awardPactPioneerInvitesAchievement,
+    awardAccountabilitySelfAchievement,
+    awardAccountabilityWingAchievement,
+    awardSocialiteInviteAchievement,
+    awardTreasurePactCompletionAchievement,
+    awardResilienceWithinPactAchievement,
+} from './helpers/awardHabitAchievements';
 
 const MAX_BULK_INVITEES = 5;
 
 const dedupeUserIds = (ids: string[]): string[] => Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0)));
+
+/**
+ * Decides whether a pact-create request is exempt from the HABITS free-tier
+ * pact cap. Premium subscribers (HABITS_PREMIUM access level) bypass it.
+ * Non-HABITS brands also bypass it — the cap is a HABITS monetization
+ * mechanic, not a platform-wide policy.
+ *
+ * The actual free-tier limit is HABITS_FREE_PACT_LIMIT (configurable via env
+ * var; default 5). Lower it to 1 once the payment workflow ships and users
+ * can actually upgrade — see docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md.
+ */
+const isPactCapExempt = (
+    brandVariation: string | undefined,
+    accessLevels: string[] | undefined,
+): boolean => {
+    if (brandVariation !== BrandVariations.HABITS) {
+        return true;
+    }
+    if (Array.isArray(accessLevels) && accessLevels.includes(AccessLevels.HABITS_PREMIUM)) {
+        return true;
+    }
+    if (Array.isArray(accessLevels) && accessLevels.includes(AccessLevels.SUPER_ADMIN)) {
+        return true;
+    }
+    return false;
+};
 
 // CREATE
 const createPact: RequestHandler = async (req: any, res: any) => {
@@ -64,6 +104,39 @@ const createPact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // HABITS free-tier cap. Counts pacts the user *created* (pending or active)
+    // — pacts they were invited to don't consume their cap. Premium users and
+    // non-HABITS brands bypass entirely. Returns 402 with paywall metadata so
+    // the client can route to the upgrade flow rather than swallow as a
+    // generic error.
+    const requesterUser = await Store.users.findUser({ id: userId }, ['accessLevels']);
+    const requesterAccessLevels: string[] = (requesterUser?.[0]?.accessLevels as string[]) || [];
+    if (!isPactCapExempt(brandVariation, requesterAccessLevels)) {
+        const openPactCount = await Store.pacts.countOpenByCreator(userId).catch((err) => {
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to count open pacts; allowing creation'],
+                traceArgs: { 'error.message': err?.message },
+            });
+            // Fail-open: better to let a legitimate user create a pact than to
+            // hard-block on a transient query error. The cap is a soft limit
+            // (no hard data integrity issue at stake).
+            return 0;
+        });
+        if (openPactCount >= HABITS_FREE_PACT_LIMIT) {
+            return res.status(402).send({
+                error: 'pact-limit-reached',
+                message: translate(locale, 'errorMessages.pacts.freeTierLimitReached', {
+                    limit: HABITS_FREE_PACT_LIMIT,
+                }) || `Free tier is limited to ${HABITS_FREE_PACT_LIMIT} active pact(s). Upgrade to premium for unlimited pacts.`,
+                limit: HABITS_FREE_PACT_LIMIT,
+                openPactCount,
+                upgradeRequired: true,
+            });
+        }
+    }
+
     // Create the pact
     return Store.pacts.create({
         creatorUserId: userId,
@@ -82,6 +155,10 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                 role: 'creator',
                 status: 'active',
             });
+
+            // Award creator achievements for creating a pact (HABITS brand only — allow-list filters)
+            awardPactPioneerCreatedAchievement(req.headers, 1);
+            awardAccountabilitySelfAchievement(req.headers, 1);
 
             // If partner is specified, create their member entry and send notification
             if (partnerUserId) {
@@ -109,6 +186,10 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                         traceArgs: { 'error.message': err?.message },
                     });
                 });
+
+                // Each invite to a (potentially new) partner counts as a unique invitation tier-2 hit and a socialite invite
+                awardPactPioneerInvitesAchievement(req.headers, 1);
+                awardSocialiteInviteAchievement(req.headers, 1);
 
                 // Increment habit goal usage count (fire and forget)
                 Store.habitGoals.incrementUsageCount(habitGoalId).catch((e) => e);
@@ -390,6 +471,9 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
             }
             await Promise.all(streakPromises);
 
+            // Award accepting partner for joining their first pact
+            awardAccountabilitySelfAchievement(req.headers, 1);
+
             // Notify creator
             sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                 authorization,
@@ -577,6 +661,100 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
 
+// COMPLETE — finalize an active pact, compute completion rates, award achievements
+const completePact: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    const pact = await Store.pacts.getById(id);
+    if (!pact) {
+        return handleHttpError({
+            res,
+            message: `Pact not found with id ${id}`,
+            statusCode: 404,
+        });
+    }
+
+    if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)) {
+        return handleHttpError({
+            res,
+            message: 'You are not a participant in this pact',
+            statusCode: 403,
+        });
+    }
+
+    if (pact.status !== 'active') {
+        return handleHttpError({
+            res,
+            message: 'Pact is not active',
+            statusCode: 400,
+        });
+    }
+
+    // Recompute completion rates for both members before persisting status=completed
+    const members = await Store.pactMembers.getByPactId(id);
+    await Promise.all(members.map((m: any) => Store.pactMembers.updateCompletionRate(m.id)));
+    const refreshedMembers = await Store.pactMembers.getByPactId(id);
+
+    const creatorMember = refreshedMembers.find((m: any) => m.role === 'creator');
+    const partnerMember = refreshedMembers.find((m: any) => m.role === 'partner');
+    const creatorCompletionRate = creatorMember ? Number(creatorMember.completionRate) || 0 : 0;
+    const partnerCompletionRate = partnerMember ? Number(partnerMember.completionRate) || 0 : 0;
+
+    let winnerId: string | undefined;
+    if (creatorCompletionRate > partnerCompletionRate) {
+        winnerId = pact.creatorUserId;
+    } else if (partnerCompletionRate > creatorCompletionRate) {
+        winnerId = pact.partnerUserId;
+    }
+
+    return Store.pacts.complete(id, winnerId, creatorCompletionRate, partnerCompletionRate)
+        .then(async (updatedPact) => {
+            // Inspect goalType to know whether to award treasureBuilder tier-2
+            const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
+            const goalType = habitGoal?.goalType || 'build_good';
+
+            const isCreatorRequester = pact.creatorUserId === userId;
+            const requesterCompletionRate = isCreatorRequester ? creatorCompletionRate : partnerCompletionRate;
+            const otherCompletionRate = isCreatorRequester ? partnerCompletionRate : creatorCompletionRate;
+
+            // Tier 1_1 — self pact completion at >=80%
+            if (requesterCompletionRate >= 80) {
+                awardAccountabilitySelfAchievement(req.headers, 1);
+            }
+            // Tier 1_2 — wing-person credit if the OTHER member completed at >=80%
+            if (otherCompletionRate >= 80) {
+                awardAccountabilityWingAchievement(req.headers, 1);
+            }
+            // Savings pact completion → treasureBuilder 1_2
+            if (goalType === 'savings_goal' && requesterCompletionRate >= 80) {
+                awardTreasurePactCompletionAchievement(req.headers, 1);
+            }
+            // Within-pact resilience: detect at least one streak reset event during the pact window
+            try {
+                const streaks = await Store.streaks.getByPactId(id);
+                const requesterStreak = streaks.find((s: any) => s.userId === userId);
+                if (requesterStreak && requesterCompletionRate >= 80) {
+                    const history = await Store.streaks.getHistoryByStreakId(requesterStreak.id);
+                    const hadReset = history.some((h: any) => h.eventType === 'missed' || (h.streakBefore > 0 && h.streakAfter === 0));
+                    if (hadReset) {
+                        awardResilienceWithinPactAchievement(req.headers, 1);
+                    }
+                }
+            } catch (err) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to evaluate within-pact resilience'],
+                    traceArgs: { 'error.message': (err as Error)?.message },
+                });
+            }
+
+            return res.status(200).send(updatedPact);
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
+};
+
 // DELETE
 const deletePact: RequestHandler = async (req: any, res: any) => {
     const { locale, userId } = parseHeaders(req.headers);
@@ -606,5 +784,6 @@ export {
     acceptPact,
     declinePact,
     abandonPact,
+    completePact,
     deletePact,
 };

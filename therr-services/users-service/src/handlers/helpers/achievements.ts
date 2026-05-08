@@ -33,12 +33,12 @@ const createOrUpdateAchievement: (
 
     const { brandVariation } = getBrandContext(headers as Record<string, any>);
 
-    // Skip Therr-themed achievement creation/updates when the request is from a
-    // niche brand. Otherwise activity from a HABITS user (e.g., a connection
-    // request triggering 'socialite_1_1') would write a Therr-themed row stamped
-    // with brandVariation='habits' — passes the SQL brand filter, but surfaces a
-    // Therr-shaped achievement (and ACHIEVEMENT_COMPLETED notification) in the
-    // niche app. See therr-js-utilities/config/achievements for the brand map.
+    // Skip when the achievement class isn't enabled for the request's brand. For example,
+    // a HABITS user creating a connection would otherwise trigger 'socialite_1_1' and write
+    // a Therr-themed row stamped with brandVariation='habits' — it passes the SQL brand
+    // filter but surfaces a Therr-shaped achievement (and ACHIEVEMENT_COMPLETED push) in
+    // the niche app. The HABITS class allow-list (see therr-js-utilities/config/achievements)
+    // now also includes the 8 streak/pact-themed classes plus reused `socialite` for invites.
     if (!isAchievementClassEnabledForBrand(achievementClass, brandVariation)) {
         return Promise.resolve(NO_OP_RESPONSE);
     }
