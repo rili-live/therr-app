@@ -183,7 +183,20 @@ app.use((req, res, next) => {
 // serves therr.com. This middleware short-circuits those requests before the
 // rest of the Therr SSR pipeline runs.
 const HABITS_HOSTS = new Set(['habits.therr.com', 'www.habits.therr.com']);
-const HABITS_ROUTE_RENDERERS: Record<string, { view: string; title: string; description: string }> = {
+interface IHabitsRendererEntry {
+    view: string;
+    title: string;
+    description: string;
+    // Auth-sensitive pages (verify, login, unsubscribe) opt out of caching;
+    // public marketing pages get the default SWR cache.
+    cacheControl?: string;
+    // Pages that hit the API from inline JS need the gateway base URL injected
+    // into the template (Handlebars triple-stash safe-string for raw JSON).
+    needsApiBase?: boolean;
+}
+const HABITS_DEFAULT_CACHE = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
+const HABITS_NO_STORE = 'no-store';
+const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
     '/': {
         view: 'habits/landing',
         title: 'Friends with Habits — Habits that stick when a friend\'s on the hook too',
@@ -198,6 +211,27 @@ const HABITS_ROUTE_RENDERERS: Record<string, { view: string; title: string; desc
         view: 'habits/terms-of-service',
         title: 'Terms of Service — Friends with Habits',
         description: 'Terms of service for the Friends with Habits mobile app.',
+    },
+    '/verify-account': {
+        view: 'habits/verify-account',
+        title: 'Verify your email — Friends with Habits',
+        description: 'Confirm your Friends with Habits email address.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
+    '/login': {
+        view: 'habits/login',
+        title: 'Sign in — Friends with Habits',
+        description: 'Sign in to your Friends with Habits account.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
+    '/emails/unsubscribe': {
+        view: 'habits/unsubscribe',
+        title: 'Email preferences — Friends with Habits',
+        description: 'Manage which Friends with Habits emails you receive.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
     },
 };
 // Public profile path on the Habits subdomain — used by user-profile QR codes.
@@ -267,12 +301,21 @@ app.use(async (req, res, next) => {
     if (!renderer) {
         return res.status(404).type('text/plain').send('Not found');
     }
-    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400');
-    return res.render(renderer.view, {
+    res.setHeader('Cache-Control', renderer.cacheControl || HABITS_DEFAULT_CACHE);
+    const renderContext: Record<string, unknown> = {
         title: renderer.title,
         description: renderer.description,
         canonicalUrl: `https://habits.therr.com${req.path === '/' ? '' : req.path}`,
-    });
+    };
+    if (renderer.needsApiBase) {
+        // serialize-javascript escapes <, >, &, etc. so it's safe to interpolate
+        // into a <script> body via Handlebars triple-stash ({{{apiBaseJson}}}).
+        renderContext.apiBaseJson = serialize(
+            (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute,
+            { isJSON: true },
+        );
+    }
+    return res.render(renderer.view, renderContext);
 });
 
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));

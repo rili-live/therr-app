@@ -20,8 +20,19 @@ export interface ITemplateParams {
 /**
  * Uses the localhost path in developement or applies the brand context to the various environment
  * paths. Ex.) maintains stage. on stage [stage.<some-host>]
+ *
+ * When `brandAppHostFull` is set, we serve onboarding on a brand-specific subdomain
+ * (e.g. https://habits.therr.com) and skip the host-rewrite dance below.
  */
-const getLinkUrl = (verificationCodeToken: string, host: string, isDashboardRegistration: boolean) => {
+const getLinkUrl = (
+    verificationCodeToken: string,
+    host: string,
+    isDashboardRegistration: boolean,
+    brandAppHostFull?: string,
+) => {
+    if (brandAppHostFull && !isDashboardRegistration) {
+        return `${brandAppHostFull}/verify-account?token=${verificationCodeToken}`;
+    }
     const isDevelopment = process.env.NODE_ENV === 'development';
     const basePath = isDashboardRegistration
         ? globalConfig[process.env.NODE_ENV].dashboardHostFull
@@ -35,7 +46,12 @@ export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemp
     const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
-    const linkUrl = getLinkUrl(templateParams.verificationCodeToken, contextConfig.host, isDashboardRegistration);
+    const linkUrl = getLinkUrl(
+        templateParams.verificationCodeToken,
+        contextConfig.host,
+        isDashboardRegistration,
+        contextConfig.emailTemplates.appHostFull,
+    );
     const htmlConfig = {
         header: translate(locale, 'emails.verification.header', { brandName: contextConfig.brandName }),
         dearUser: translate(locale, 'emails.verification.dearUser', { name: templateParams.name }),

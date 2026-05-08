@@ -1,4 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
+import { HabitGoalType } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { HABIT_GOALS_TABLE_NAME } from './tableNames';
 
@@ -9,6 +10,7 @@ export interface ICreateHabitGoalParams {
     description?: string;
     category?: string;
     emoji?: string;
+    goalType?: HabitGoalType;
     frequencyType?: string;
     frequencyCount?: number;
     targetDaysOfWeek?: number[];
@@ -22,6 +24,7 @@ export interface IUpdateHabitGoalParams {
     description?: string;
     category?: string;
     emoji?: string;
+    goalType?: HabitGoalType;
     frequencyType?: string;
     frequencyCount?: number;
     targetDaysOfWeek?: number[];
@@ -99,6 +102,7 @@ export default class HabitGoalsStore {
         const queryString = knexBuilder
             .insert({
                 ...params,
+                goalType: params.goalType || 'build_good',
                 frequencyType: params.frequencyType || 'daily',
                 frequencyCount: params.frequencyCount || 1,
             })

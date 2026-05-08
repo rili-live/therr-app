@@ -41,6 +41,15 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         postType,
         totalAreasActivated,
         viewCount,
+        // HABITS streak / pact / partner payload fields
+        streakCount,
+        previousRecordDays,
+        partnerName,
+        pactId,
+        pactName,
+        habitId,
+        habitName,
+        daysRemaining,
     } = req.body;
 
     return predictAndSendNotification(
@@ -68,6 +77,14 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             viewCount,
             groupName,
             groupMembersList,
+            streakCount,
+            previousRecordDays,
+            partnerName,
+            pactId,
+            pactName,
+            habitId,
+            habitName,
+            daysRemaining,
         },
         undefined,
         brandVariation,
@@ -105,6 +122,15 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         notificationsCount,
         totalAreasActivated,
         viewCount,
+        // HABITS streak / pact / partner payload fields
+        streakCount,
+        previousRecordDays,
+        partnerName,
+        pactId,
+        pactName,
+        habitId,
+        habitName,
+        daysRemaining,
     } = req.body;
 
     const recipients: any[] = (users || []).filter((user: any) => !user.shouldMuteNotifs);
@@ -136,6 +162,14 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             notificationsCount,
             totalAreasActivated,
             viewCount,
+            streakCount,
+            previousRecordDays,
+            partnerName,
+            pactId,
+            pactName,
+            habitId,
+            habitName,
+            daysRemaining,
         },
         undefined,
         brandVariation,

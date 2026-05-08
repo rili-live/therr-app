@@ -121,6 +121,32 @@ append new items here rather than only printing them once.
   index `idx_thoughts_brand_variation` to `main.thoughts`. Therr-brand reads
   preserve "see everything" via the `BRAND_THOUGHTS_VISIBILITY` allowlist, but
   HABITS/TEEM reads will reference the column and 500 until the column exists.
+- [ ] (2026-05-07, /quality-peer-review) Run users-service migration
+  `20260428000001_habits.habit_goals_addGoalType` on production before deploying
+  this `general` merge. Adds `goalType` (NOT NULL DEFAULT 'build_good') +
+  index to `habits.habit_goals`. Backwards-compatible (legacy rows backfill to
+  `build_good`), but new pact-completion logic and goal-type-specific
+  achievement ladders (cleanBreak, treasureBuilder) read this column —
+  pact-create / habit-checkin handlers will 500 until it exists.
+- [ ] (2026-05-07, /quality-peer-review) (Optional) Set
+  `HABITS_FREE_PACT_LIMIT` env var on production users-service if you want to
+  override the default of 5. Project brief target is 1 once HABITS payment
+  workflow is live and users can actually upgrade — see
+  `docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md`. Lowering before
+  payments ship will block early HABITS adopters from creating pacts.
+- [ ] (2026-05-07, /quality-peer-review) Provision the HABITS Android upload
+  keystore on the build server: set `HABITS_UPLOAD_STORE_FILE`,
+  `HABITS_UPLOAD_STORE_PASSWORD`, `HABITS_UPLOAD_KEY_ALIAS`,
+  `HABITS_UPLOAD_KEY_PASSWORD` in `~/.gradle/gradle.properties`. Without
+  these, release builds for `com.therr.habits` will be unsigned and rejected
+  by Play Console. (Therr / `MYAPP_*` vars stay in place — the new gradle
+  block falls through to them when `applicationId` doesn't match the
+  per-brand prefix map.)
+- [ ] (2026-05-07, /quality-peer-review) Add new SSR routes to
+  `habits.therr.com` sitemap if applicable (`/login`, `/verify-account`,
+  `/emails/unsubscribe` — these are `noindex` so likely skip, but the
+  sitemap-generator script may still emit them). Re-submit sitemap to Search
+  Console after deploy.
 <!-- skill-followups:end -->
 
 ---
@@ -222,9 +248,10 @@ depend on these working correctly.
 
 ### 2.1 Push notification engagement
 
-- `TherrMobile/main/components/Layout.tsx:1698` — Wrap engagement tracking in
-  soft opt-in UX with in-app messaging (biggest single push lever per
-  engagement roadmap)
+- `TherrMobile/main/components/Layout.tsx` — Wire HABITS pact creation to
+  call `triggerSoftOptInPushAsk({ bodyKey: 'components.softOptInPush.bodyHabitsPact' })`
+  on the niche/HABITS-general branch. The modal infrastructure ships on
+  general; the per-brand anchor still needs to be added on the niche side.
 - `therr-services/push-notifications-service/src/handlers/helpers/areaLocationHelpers.ts:222`
   — RDATA-3: Smart rules around when to send push notifications
 - `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:676` —
@@ -249,9 +276,6 @@ These TODOs live in shared backend and `therr-react`, so they ship from
 `general` even though the consumer is the HABITS app. None today block the
 MVP, but several block the **viral** loop in Phase 3.
 
-- `therr-services/users-service/src/handlers/userConnections.ts:389` —
-  Prevent resending email/phone request if invite already exists (mandatory-
-  invite flow can spam an invitee)
 - `therr-services/users-service/src/handlers/userConnections.ts:724` —
   RSERV-32: Return associated users (same as search userConnections does)
 - `therr-services/users-service/src/handlers/users.ts:454` — Implement
@@ -282,6 +306,26 @@ saw the message.
 - `therr-services/websocket-service/src/handlers/reactions.ts:13, 62` —
   Notify active users on bookmark of moment/space/thought (drives back-to-app
   loops)
+
+### 2.5 HABITS payment workflow (Phase 4 monetization)
+
+The free-tier pact gate is wired (`isPactCapExempt` in `pacts.ts`, env var
+`HABITS_FREE_PACT_LIMIT`, default 5; pact-create returns HTTP 402 when
+exceeded). The actual purchase flow is documented in
+`docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md` — 4 components still
+to build:
+
+- Stripe Product + webhook handler that grants `AccessLevels.HABITS_PREMIUM`
+  on subscription activation and removes it on cancellation.
+- Web checkout page on `habits.therr.com` (Stripe Checkout, hosted) gated
+  by a short-lived JWT minted by the mobile app.
+- Mobile paywall UI (`UpgradePaywall.tsx`) that opens the web URL in the
+  external browser on the 402 response.
+- `habits://upgrade-complete` deeplink handler that refreshes the user's
+  access levels.
+
+Once shipped, lower `HABITS_FREE_PACT_LIMIT` env var on prod from 5 to 1 to
+match the project brief target.
 
 ---
 

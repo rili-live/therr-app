@@ -1,3 +1,5 @@
+import { HabitGoalType } from 'therr-js-utilities/constants';
+
 // Habit Goal Types
 export interface IHabitGoal {
     id: string;
@@ -5,6 +7,7 @@ export interface IHabitGoal {
     description?: string;
     category?: string;
     emoji?: string;
+    goalType: HabitGoalType;
     frequencyType: string;
     frequencyCount: number;
     targetDaysOfWeek?: number[];
