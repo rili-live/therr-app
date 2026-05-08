@@ -108,7 +108,6 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
             userId: user.details.id,
         }).catch((err) => console.log(err));
 
-        // TODO: Add are you sure modal and test
         UsersService.delete(user.details.id).then(() => {
             logEvent(getAnalytics(),'account_delete_success', {
                 userId: user.details.id,

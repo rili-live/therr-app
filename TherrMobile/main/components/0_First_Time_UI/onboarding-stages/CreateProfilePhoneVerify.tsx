@@ -5,7 +5,6 @@ import { ApiService } from 'therr-react/services';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { showToast } from '../../../utilities/toasts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
-import Alert from '../../Alert';
 import SquareInput from '../../Input/Square';
 import PhoneNumberInput from '../../Input/PhoneNumberInput';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';
@@ -52,6 +51,15 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
             phoneNumber: '',
             verificationCode: '',
         };
+    }
+
+    componentDidUpdate(prevProps: ICreateProfilePhoneVerifyProps) {
+        const { errorMsg } = this.props;
+        if (errorMsg && errorMsg !== prevProps.errorMsg) {
+            showToast.error({
+                text1: errorMsg,
+            });
+        }
     }
 
     onCodeInputChange = (value: string) => {
@@ -164,7 +172,6 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
 
     render() {
         const {
-            errorMsg,
             isFormDisabled,
             onSubmit,
             translate,
@@ -175,16 +182,8 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
         } = this.props;
         const { isSubmitting, isVerifying, verificationCode } = this.state;
 
-        // TODO: Replace alert with toast
         return (
             <View style={themeSettingsForm.styles.userContainer}>
-                <Alert
-                    containerStyles={themeSettingsForm.styles.alert}
-                    isVisible={errorMsg}
-                    message={errorMsg}
-                    type="error"
-                    themeAlerts={themeAlerts}
-                />
                 {
                     !isVerifying &&
                     <>

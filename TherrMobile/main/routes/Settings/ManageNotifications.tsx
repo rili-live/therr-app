@@ -7,9 +7,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
-import { UsersService } from 'therr-react/services';
 import { showToast } from '../../utilities/toasts';
-import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
@@ -23,7 +21,6 @@ import spacingStyles from '../../styles/layouts/spacing';
 import BaseStatusBar from '../../components/BaseStatusBar';
 
 interface IManageNotificationsDispatchProps {
-    logout: Function;
     updateUser: Function;
 }
 
@@ -102,7 +99,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: UsersActions.logout,
     updateUser: UsersActions.update,
 }, dispatch);
 
@@ -143,34 +139,6 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
     componentDidMount = () => {
         this.props.navigation.setOptions({
             title: this.translate('pages.manageNotifications.headerTitle'),
-        });
-    };
-
-    onDeleteAccountConfirm = () => {
-        const { logout, user } = this.props;
-
-        logEvent(getAnalytics(),'account_delete_start', {
-            userId: user.details.id,
-        }).catch((err) => console.log(err));
-
-        // TODO: Add are you sure modal and test
-        UsersService.delete(user.details.id).then(() => {
-            logEvent(getAnalytics(),'account_delete_success', {
-                userId: user.details.id,
-            }).catch((err) => console.log(err));
-
-            showToast.success({
-                text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
-                text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
-                onHide: () => {
-                    logout();
-                },
-            });
-        }).catch((error) => {
-            logEvent(getAnalytics(),'account_delete_failed', {
-                userId: user.details.id,
-                error: error?.message,
-            }).catch((err) => console.log(err));
         });
     };
 
