@@ -40,6 +40,7 @@ import {
 } from './enums/FeatureFlags';
 import {
     HabitGoalTypes,
+    HabitGoalType,
 } from './enums/HabitGoalTypes';
 import CampaignTypes from './enums/CampaignTypes';
 import CampaignAdGoals from './enums/CampaignAdGoals';
@@ -75,6 +76,7 @@ export {
     HABITS_FREE_PACT_LIMIT,
     DEFAULT_HABITS_FREE_PACT_LIMIT,
     HabitGoalTypes,
+    HabitGoalType,
     CampaignTypes,
     CampaignAdGoals,
     CampaignAssetTypes,

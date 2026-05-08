@@ -15,7 +15,9 @@ const CELEBRATION_TYPES: PactActivityType[] = ['celebration_sent'];
 const createActivity: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
     const { pactId } = req.params;
-    const { activityType, targetUserId, checkinId, data } = req.body;
+    const {
+        activityType, targetUserId, checkinId, data,
+    } = req.body;
 
     if (!activityType) {
         return handleHttpError({

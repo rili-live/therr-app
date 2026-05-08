@@ -1,4 +1,4 @@
-export type HabitGoalType = 'build_good' | 'break_bad' | 'savings_goal' | 'maintenance';
+import { HabitGoalType } from 'therr-js-utilities/constants';
 
 // Habit Goal Types
 export interface IHabitGoal {

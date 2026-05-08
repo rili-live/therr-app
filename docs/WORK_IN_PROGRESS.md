@@ -121,6 +121,32 @@ append new items here rather than only printing them once.
   index `idx_thoughts_brand_variation` to `main.thoughts`. Therr-brand reads
   preserve "see everything" via the `BRAND_THOUGHTS_VISIBILITY` allowlist, but
   HABITS/TEEM reads will reference the column and 500 until the column exists.
+- [ ] (2026-05-07, /quality-peer-review) Run users-service migration
+  `20260428000001_habits.habit_goals_addGoalType` on production before deploying
+  this `general` merge. Adds `goalType` (NOT NULL DEFAULT 'build_good') +
+  index to `habits.habit_goals`. Backwards-compatible (legacy rows backfill to
+  `build_good`), but new pact-completion logic and goal-type-specific
+  achievement ladders (cleanBreak, treasureBuilder) read this column —
+  pact-create / habit-checkin handlers will 500 until it exists.
+- [ ] (2026-05-07, /quality-peer-review) (Optional) Set
+  `HABITS_FREE_PACT_LIMIT` env var on production users-service if you want to
+  override the default of 5. Project brief target is 1 once HABITS payment
+  workflow is live and users can actually upgrade — see
+  `docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md`. Lowering before
+  payments ship will block early HABITS adopters from creating pacts.
+- [ ] (2026-05-07, /quality-peer-review) Provision the HABITS Android upload
+  keystore on the build server: set `HABITS_UPLOAD_STORE_FILE`,
+  `HABITS_UPLOAD_STORE_PASSWORD`, `HABITS_UPLOAD_KEY_ALIAS`,
+  `HABITS_UPLOAD_KEY_PASSWORD` in `~/.gradle/gradle.properties`. Without
+  these, release builds for `com.therr.habits` will be unsigned and rejected
+  by Play Console. (Therr / `MYAPP_*` vars stay in place — the new gradle
+  block falls through to them when `applicationId` doesn't match the
+  per-brand prefix map.)
+- [ ] (2026-05-07, /quality-peer-review) Add new SSR routes to
+  `habits.therr.com` sitemap if applicable (`/login`, `/verify-account`,
+  `/emails/unsubscribe` — these are `noindex` so likely skip, but the
+  sitemap-generator script may still emit them). Re-submit sitemap to Search
+  Console after deploy.
 <!-- skill-followups:end -->
 
 ---
