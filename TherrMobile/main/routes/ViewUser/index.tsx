@@ -65,8 +65,32 @@ const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 const { width: viewportWidth } = Dimensions.get('window');
 const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
 
+// The TherrFont "idea" glyph sits ~14% below the em-box center
+// (visual cy ≈ 651 in a 1024 grid), so it renders visibly low inside the
+// circular FAB. Wrap it in a square box and nudge it upward so the
+// lightbulb appears optically centered.
 const renderIdeaIcon = (props: { size: number; color: string }) => (
-    <TherrIcon name="idea" size={props.size} color={props.color} />
+    <View
+        style={{
+            width: props.size,
+            height: props.size,
+            alignItems: 'center',
+            justifyContent: 'center',
+        }}
+    >
+        <TherrIcon
+            name="idea"
+            size={props.size}
+            color={props.color}
+            style={{
+                lineHeight: props.size,
+                textAlign: 'center',
+                textAlignVertical: 'center',
+                includeFontPadding: false,
+                transform: [{ translateY: -Math.round(props.size * 0.08) }],
+            }}
+        />
+    </View>
 );
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
