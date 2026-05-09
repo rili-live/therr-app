@@ -196,7 +196,10 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                                             size={22}
                                             color={themeConfirmModal.colors.brand}
                                         />
-                                        <Text style={[localStyles.photoButtonLabel, { color: themeConfirmModal.colors.brand }]}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[localStyles.photoButtonLabel, { color: themeConfirmModal.colors.brand }]}
+                                        >
                                             {translate('pages.habits.checkinProof.takePhoto')}
                                         </Text>
                                     </Pressable>
@@ -219,7 +222,10 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                                             size={22}
                                             color={themeConfirmModal.colors.brand}
                                         />
-                                        <Text style={[localStyles.photoButtonLabel, { color: themeConfirmModal.colors.brand }]}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[localStyles.photoButtonLabel, { color: themeConfirmModal.colors.brand }]}
+                                        >
                                             {translate('pages.habits.checkinProof.choosePhoto')}
                                         </Text>
                                     </Pressable>
@@ -292,17 +298,18 @@ const localStyles = StyleSheet.create({
         flex: 1,
         borderWidth: 1.5,
         borderRadius: 10,
-        paddingVertical: 14,
+        paddingVertical: 12,
         paddingHorizontal: 8,
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'row',
-        gap: 8,
+        flexDirection: 'column',
+        gap: 4,
     },
     photoButtonLabel: {
         fontSize: 14,
         fontWeight: '600',
         letterSpacing: 0.2,
+        textAlign: 'center',
     },
     previewContainer: {
         position: 'relative',

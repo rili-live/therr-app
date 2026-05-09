@@ -241,7 +241,7 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        backgroundColor: theme.colors.brandingWhite,
+                        backgroundColor: theme.colors.surface,
                         borderTopLeftRadius: 16,
                         borderTopRightRadius: 16,
                         paddingTop: 20,
