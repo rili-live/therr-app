@@ -180,34 +180,46 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                                     <Pressable
                                         onPress={() => pickImage('camera')}
                                         disabled={isSubmitting}
-                                        style={[
+                                        style={({ pressed }) => [
                                             localStyles.photoButton,
-                                            { borderColor: themeConfirmModal.colors.textGray },
+                                            {
+                                                borderColor: themeConfirmModal.colors.brand,
+                                                backgroundColor: pressed
+                                                    ? themeConfirmModal.colors.brandFaded
+                                                    : themeConfirmModal.colors.surface,
+                                                opacity: isSubmitting ? 0.5 : 1,
+                                            },
                                         ]}
                                     >
                                         <MaterialIcon
                                             name="photo-camera"
-                                            size={20}
-                                            color={themeConfirmModal.colors.textWhite}
+                                            size={22}
+                                            color={themeConfirmModal.colors.brand}
                                         />
-                                        <Text style={[localStyles.photoButtonLabel, { color: themeConfirmModal.colors.textWhite }]}>
+                                        <Text style={[localStyles.photoButtonLabel, { color: themeConfirmModal.colors.brand }]}>
                                             {translate('pages.habits.checkinProof.takePhoto')}
                                         </Text>
                                     </Pressable>
                                     <Pressable
                                         onPress={() => pickImage('library')}
                                         disabled={isSubmitting}
-                                        style={[
+                                        style={({ pressed }) => [
                                             localStyles.photoButton,
-                                            { borderColor: themeConfirmModal.colors.textGray },
+                                            {
+                                                borderColor: themeConfirmModal.colors.brand,
+                                                backgroundColor: pressed
+                                                    ? themeConfirmModal.colors.brandFaded
+                                                    : themeConfirmModal.colors.surface,
+                                                opacity: isSubmitting ? 0.5 : 1,
+                                            },
                                         ]}
                                     >
                                         <MaterialIcon
                                             name="photo-library"
-                                            size={20}
-                                            color={themeConfirmModal.colors.textWhite}
+                                            size={22}
+                                            color={themeConfirmModal.colors.brand}
                                         />
-                                        <Text style={[localStyles.photoButtonLabel, { color: themeConfirmModal.colors.textWhite }]}>
+                                        <Text style={[localStyles.photoButtonLabel, { color: themeConfirmModal.colors.brand }]}>
                                             {translate('pages.habits.checkinProof.choosePhoto')}
                                         </Text>
                                     </Pressable>
@@ -274,20 +286,23 @@ const localStyles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         gap: 10,
+        paddingTop: 4,
     },
     photoButton: {
         flex: 1,
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingVertical: 12,
+        borderWidth: 1.5,
+        borderRadius: 10,
+        paddingVertical: 14,
+        paddingHorizontal: 8,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
-        gap: 6,
+        gap: 8,
     },
     photoButtonLabel: {
-        fontSize: 13,
-        fontWeight: '500',
+        fontSize: 14,
+        fontWeight: '600',
+        letterSpacing: 0.2,
     },
     previewContainer: {
         position: 'relative',
