@@ -219,7 +219,7 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                     flexDirection: 'row',
                     paddingHorizontal: 8,
                     paddingTop: 8,
-                    backgroundColor: this.theme.colors.brandingWhite,
+                    backgroundColor: this.theme.colors.surface,
                 }}
             >
                 {TABS.map((tab) => {

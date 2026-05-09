@@ -487,7 +487,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                     right: 0,
                     flexDirection: 'row',
                     padding: 16,
-                    backgroundColor: this.theme.colors.brandingWhite,
+                    backgroundColor: this.theme.colors.surface,
                     shadowColor: this.theme.colors.textBlack,
                     shadowOffset: { width: 0, height: -2 },
                     shadowOpacity: 0.1,

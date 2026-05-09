@@ -60,7 +60,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginHorizontal: 16,
             marginVertical: 8,
             borderRadius: 16,
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.surface,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,
@@ -78,7 +78,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 16,
             fontWeight: '600',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
             flexShrink: 1,
         },
         streakBadge: {
@@ -136,7 +136,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
         // Habit Card
         habitCardContainer: {
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.surface,
             borderRadius: 16,
             padding: 16,
             marginHorizontal: 16,
@@ -163,7 +163,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 18,
             fontWeight: '600',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
         },
         habitCardSubtitle: {
             fontFamily: therrFontFamily,
@@ -186,7 +186,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
         // Calendar
         calendarContainer: {
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.surface,
             borderRadius: 16,
             padding: 16,
             marginHorizontal: 16,
@@ -202,7 +202,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 18,
             fontWeight: '600',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
         },
         calendarNavButton: {
             padding: 8,
@@ -254,7 +254,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         calendarDayText: {
             fontFamily: therrFontFamily,
             fontSize: 14,
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
         },
         calendarDayTextCompleted: {
             color: therrTheme.colors.brandingWhite,
@@ -262,7 +262,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
         // Pact Card
         pactCardContainer: {
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.surface,
             borderRadius: 16,
             padding: 16,
             marginHorizontal: 16,
@@ -310,7 +310,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 14,
             fontWeight: '500',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
         },
         pactComparisonContainer: {
             flexDirection: 'row',
@@ -328,7 +328,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 24,
             fontWeight: '700',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
         },
         pactComparisonLabel: {
             fontFamily: therrFontFamily,
@@ -344,13 +344,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         dashboardHeader: {
             padding: 20,
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.surface,
         },
         dashboardGreeting: {
             fontFamily: therrFontFamily,
             fontSize: 24,
             fontWeight: '700',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
         },
         dashboardSubtitle: {
             fontFamily: therrFontFamily,
@@ -401,7 +401,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             justifyContent: 'space-between',
             paddingHorizontal: 24,
             paddingVertical: 20,
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.surface,
         },
         stepperItem: {
             alignItems: 'center',
@@ -444,7 +444,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 14,
             fontWeight: '600',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
             textAlign: 'center',
         },
         stepperLabelActive: {
@@ -491,14 +491,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: 19,
             fontWeight: '700',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
             marginBottom: 6,
         },
         onboardingCardBody: {
             fontFamily: therrFontFamily,
             fontSize: 15,
             lineHeight: 21,
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.onSurface,
         },
         onboardingCardFooter: {
             fontFamily: therrFontFamily,
