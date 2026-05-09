@@ -11,6 +11,19 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+  <!-- HABITS niche app does not use location. The native libraries
+       react-native-background-geolocation and react-native-geolocation-service are
+       still bundled (shared with the Therr/Teem variants) but their JS entrypoints
+       are gated by ENABLE_LOCATION_SERVICES=false. Strip the permissions and
+       location-typed foreground services they would otherwise inject into the
+       merged manifest so Play Store does not flag the app for undeclared location
+       use. Do NOT port these removals to general/THERR/TEEM — those variants do
+       use background location. -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" tools:node="remove" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" tools:node="remove" />
+
   <uses-feature
     android:name="android.hardware.camera"
     android:required="false" />
@@ -167,6 +180,24 @@
     <uses-library
       android:name="org.apache.http.legacy"
       android:required="false" />
+
+    <!-- HABITS niche: strip foreground services from react-native-background-geolocation
+         that declare foregroundServiceType="location". These ride in via the
+         tslocationmanager AAR and would otherwise keep Play Store flagging the
+         app even after permissions are removed above. The library is never
+         invoked at runtime on HABITS (ENABLE_LOCATION_SERVICES=false). -->
+    <service
+      android:name="com.transistorsoft.locationmanager.service.TrackingService"
+      tools:node="remove" />
+    <service
+      android:name="com.transistorsoft.locationmanager.service.LocationRequestService"
+      tools:node="remove" />
+    <service
+      android:name="com.transistorsoft.locationmanager.service.GeofencingService"
+      tools:node="remove" />
+    <service
+      android:name="com.transistorsoft.locationmanager.service.PolygonGeofencingService"
+      tools:node="remove" />
   </application>
 
   <queries>
