@@ -8,12 +8,13 @@ import EditFormFooter from '../../components/EditFormFooter';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
 import { IUserState } from 'therr-react/types';
-import { Categories, Content, FilePaths } from 'therr-js-utilities/constants';
+import { Categories, Content, FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import UsersActions from '../../redux/actions/UsersActions';
 import DropDown from '../../components/Input/DropDown';
+import getConfig from '../../utilities/getConfig';
 import translator from '../../utilities/translator';
 import { isDarkTheme } from '../../styles/themes';
 import { buildStyles, addMargins } from '../../styles';
@@ -252,7 +253,14 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                     }).catch((err) => console.log(err));
 
                     setTimeout(() => {
-                        this.props.navigation.navigate('Areas');
+                        const isAreasEnabled = getConfig().featureFlags?.[FeatureFlags.ENABLE_AREAS] === true;
+                        if (isAreasEnabled) {
+                            this.props.navigation.navigate('Areas');
+                        } else {
+                            this.props.navigation.navigate('ViewUser', {
+                                userInView: { id: user.details.id },
+                            });
+                        }
                     }, 500);
                 })
                 .catch((error: any) => {
