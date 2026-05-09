@@ -617,7 +617,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 userId: user?.details?.id,
             }).catch((err) => console.log(err));
             // TODO: Handle Permissions denied
-            if (e?.message.toLowerCase().includes('cancel')) {
+            if (e?.message?.toLowerCase().includes('cancel')) {
                 console.log('canceled');
             }
         });
