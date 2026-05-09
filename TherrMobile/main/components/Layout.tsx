@@ -440,7 +440,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     // screen (the highest-leverage retention lever — the user needs to know
     // when their pact invite is accepted). Subsequent launches skip straight
     // to HabitsDashboard.
+    //
+    // If the user only has EMAIL_VERIFIED_MISSING_PROPERTIES (and not full
+    // EMAIL_VERIFIED), HabitsDashboard is filtered out of the navigator by the
+    // route-filter below (it requires AccessPresets.EMAIL_VERIFIED), and the
+    // reset would silently fail with a "RESET was not handled" warning while
+    // the user lands on whichever fallback route their access level allows.
+    // Route them to CreateProfile instead so they can complete their profile
+    // and self-upgrade to EMAIL_VERIFIED.
     resetToHabitsLanding = async () => {
+        if (!isUserEmailVerified(this.props.user)) {
+            RootNavigation.reset({
+                index: 0,
+                routes: [{ name: 'CreateProfile' }],
+            });
+            return;
+        }
         let optInShown = 'true';
         try {
             optInShown = (await AsyncStorage.getItem('HABITS_PUSH_OPTIN_SHOWN')) || '';
