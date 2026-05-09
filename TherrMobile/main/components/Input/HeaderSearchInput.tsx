@@ -128,7 +128,6 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         }
     };
 
-    // TODO: Display red dot to show filters enabled
     render() {
         const { inputText } = this.state;
         const { content, isAdvancedSearch, map, theme, themeForms, placeholderText } = this.props;

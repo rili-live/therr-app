@@ -8,6 +8,7 @@ import {
     Platform,
 } from 'react-native';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
 import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
@@ -15,10 +16,10 @@ import {
     getInitialNotification,
     getMessaging,
     getToken,
+    hasPermission,
     onMessage,
     onNotificationOpenedApp,
     registerDeviceForRemoteMessages,
-    requestPermission,
     AuthorizationStatus,
 } from '@react-native-firebase/messaging';
 import LogRocket from '@logrocket/react-native';
@@ -60,6 +61,9 @@ import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
+import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
+import permissions, { PermType } from '../utilities/permissionsOrchestrator';
+import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
@@ -134,6 +138,7 @@ export interface ILayoutProps extends IStoreProps {
 interface ILayoutState {
     targetRouteView: string;
     targetRouteParams: any;
+    permissionPrimerType: PermType | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -191,6 +196,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private themeInfoModal = buildInfoModalStyles();
     private themeModal = buildModalStyles();
     private themeMenu = buildMenuStyles();
+    private themeDisclosure = buildDisclosureStyles();
+    private permissionPrimerResolve: ((allowed: boolean) => void) | null = null;
+    private unsubscribeNotificationsGranted: (() => void) | null = null;
+    private fcmRegistrationStarted = false;
     subscriptions: Subscription[] = [];
 
     constructor(props) {
@@ -199,6 +208,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             targetRouteView: '',
             targetRouteParams: {},
+            permissionPrimerType: null,
         };
 
         this.reloadTheme();
@@ -245,47 +255,65 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
         socketIO.on('reconnect', this.handleSocketReconnect);
 
-        this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
-            logEvent(getAnalytics(),'background_location_on_location', {
-                userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
-        }, (error) => {
-            logEvent(getAnalytics(),'background_location_error', {
-                userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
-            console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
-        }));
-        // this.subscriptions.push(BackgroundGeolocation.onMotionChange((event) => {
-        //     console.log('BackgroundGeolocation-[onMotionChange]', event);
-        // }));
-        // this.subscriptions.push(BackgroundGeolocation.onActivityChange((event) => {
-        //     console.log('BackgroundGeolocation-[onActivityChange]', event);
-        // }));
-        this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-            // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
-            // listener (emitted by react-native-android-location-services-dialog-box,
-            // which was removed in the New Architecture migration). Fires on
-            // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
-            // changes (iOS). Reducer checks status === 'enabled'.
-            this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
-        }));
+        // Gate every BackgroundGeolocation method behind the feature flag, not just
+        // .ready()/.start(). Subscribing to .onLocation / .onProviderChange instantiates
+        // the native TSLocationManager, which fires transistorsoft's license validator;
+        // on niches whose applicationId is not on the license (e.g. HABITS / com.therr.habits)
+        // that produces a runtime license-error log even when the listeners are no-ops.
+        if (isLocationServicesEnabled()) {
+            this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
+                logEvent(getAnalytics(),'background_location_on_location', {
+                    userId: this.props.user?.details?.id,
+                }).catch((err) => console.log(err));
+            }, (error) => {
+                logEvent(getAnalytics(),'background_location_error', {
+                    userId: this.props.user?.details?.id,
+                }).catch((err) => console.log(err));
+                console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
+            }));
+            this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
+                // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
+                // listener (emitted by react-native-android-location-services-dialog-box,
+                // which was removed in the New Architecture migration). Fires on
+                // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
+                // changes (iOS). Reducer checks status === 'enabled'.
+                this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
+            }));
+        }
 
         this.readyAndStartBackgroundGeolocation();
         this.prefetchContent();
+
+        // Wire the permissions orchestrator: a single primer modal lives at the
+        // root, opened by any call site that goes through `permissions.request`.
+        permissions.registerPrimerListener(({ type, resolve }) => {
+            this.permissionPrimerResolve = resolve;
+            this.setState({ permissionPrimerType: type });
+        });
+        // Whenever notifications are granted (login already-granted path or
+        // post-primer OS approval), register the FCM device token and the
+        // foreground message handler. Replaces the unconditional chain that
+        // used to run on auth state change.
+        this.unsubscribeNotificationsGranted = permissions.onGranted('notifications', () => {
+            this.registerDeviceForFCM();
+        });
+
+        // If the user is already authenticated at app launch, this is a returning
+        // session. Try the silent FCM registration (no-op if not authorized) and
+        // give the soft-ask a chance via the second-session fallback.
+        if (this.props.user?.isAuthenticated) {
+            this.tryRegisterDeviceTokenIfAuthorized();
+            permissions.requestIfAppropriate('notifications', { trigger: 'secondSession' });
+        }
     }
 
     componentDidUpdate(prevProps: ILayoutProps) {
         const { targetRouteView, targetRouteParams } = this.state;
         const {
             forums,
-            addNotification,
-            location,
             searchCategories,
-            searchActiveMomentsByIds,
-            searchActiveSpacesByIds,
             updateLocationPermissions,
             user,
-            updateUser,
         } = this.props;
 
         if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
@@ -358,88 +386,19 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
 
-                this.requestNotificationPermissions()
-                    .then(() => {
-                        return registerDeviceForRemoteMessages(getMessaging());
-                    })
-                    .then(() => {
-                        // Get the token
-                        return getToken(getMessaging());
-                    })
-                    .then((deviceToken) => {
-                        axios.defaults.headers['x-user-device-token'] = deviceToken;
-                        if (user.details.deviceMobileFirebaseToken !== deviceToken) {
-                            updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
-                        }
-                        this.unsubscribePushNotifications = onMessage(getMessaging(), async remoteMessage => {
-                            await wrapOnMessageReceived(true, remoteMessage);
-
-                            if (remoteMessage?.data?.areasActivated) {
-                                const parsedAreasData = typeof (remoteMessage?.data?.areasActivated) === 'string'
-                                    ? JSON.parse(remoteMessage?.data?.areasActivated)
-                                    : [];
-                                const momentsData = parsedAreasData.filter(area => area.momentId);
-                                const spacesData = parsedAreasData.filter(area => area.spaceId);
-                                if (parsedAreasData.length) {
-                                    sendForegroundNotification({
-                                        title: this.translate('alertTitles.newAreasActivated'),
-                                        body: this.translate('alertMessages.newAreasActivated', {
-                                            total: momentsData.length + spacesData.length,
-                                        }),
-                                        android: {
-                                            pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
-                                        },
-                                        data: {
-                                            activatedMomentIds: JSON.stringify(momentsData.map((moment) => moment.momentId)),
-                                            activatedSpaceIds: JSON.stringify(spacesData.map((space) => space.spaceId)),
-                                        },
-                                    }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
-                                    if (momentsData.length) {
-                                        searchActiveMomentsByIds({
-                                            userLatitude: location?.user?.latitude,
-                                            userLongitude: location?.user?.longitude,
-                                            withMedia: true,
-                                            withUser: true,
-                                            blockedUsers: user.details.blockedUsers,
-                                            shouldHideMatureContent: user.details.shouldHideMatureContent,
-                                        }, momentsData.map(moment => moment.momentId));
-                                    }
-                                    if (spacesData.length) {
-                                        searchActiveSpacesByIds({
-                                            userLatitude: location?.user?.latitude,
-                                            userLongitude: location?.user?.longitude,
-                                            withMedia: true,
-                                            withUser: true,
-                                            blockedUsers: user.details.blockedUsers,
-                                            shouldHideMatureContent: user.details.shouldHideMatureContent,
-                                        }, spacesData.map(space => space.spaceId));
-                                    }
-                                }
-                                // TODO: Fetch associated media files
-                                // TODO: Fetch and call insertActiveMoments to "activate" moments on map and discovered
-                            }
-                            if (remoteMessage?.data?.notificationData) {
-                                const parsedNotificationData = typeof (remoteMessage?.data?.notificationData) === 'string'
-                                    ? JSON.parse(remoteMessage?.data?.notificationData)
-                                    : {};
-                                addNotification(parsedNotificationData);
-                            }
-                        });
-                    })
-                    .catch((err) => {
-                        console.log('NOTIFICATIONS_ERROR', err);
-                        if (!__DEV__) {
-                            try {
-                                const crashlytics = getCrashlytics();
-                                crashlyticsLog(crashlytics, `NOTIFICATIONS_ERROR: ${err?.message || String(err)}`);
-                                recordError(crashlytics, err instanceof Error ? err : new Error(String(err)));
-                            } catch {
-                                // Crashlytics may not be initialized yet on very early startup.
-                            }
-                        }
-                    });
+                // Silent token registration only — no OS prompt fires here.
+                // Notification permission asks are anchored to engagement triggers
+                // and a second-session fallback via permissionsOrchestrator.
+                this.tryRegisterDeviceTokenIfAuthorized();
             } else {
                 BackgroundGeolocation.stop();
+                // Tear down the FCM subscription so a subsequent login re-registers
+                // (refreshes the device token and re-attaches axios headers).
+                if (this.unsubscribePushNotifications) {
+                    this.unsubscribePushNotifications();
+                    this.unsubscribePushNotifications = undefined;
+                }
+                this.fcmRegistrationStarted = false;
             }
         }
     }
@@ -458,6 +417,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
         this.subscriptions.forEach((subscription) => subscription.remove());
+        this.unsubscribeNotificationsGranted?.();
+        this.unsubscribeNotificationsGranted = null;
+        permissions.registerPrimerListener(null);
     }
 
     handleSocketReconnectAttempt = () => {
@@ -547,6 +509,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.themeMenu = buildMenuStyles(themeName);
         this.themeInfoModal = buildInfoModalStyles(themeName);
         this.themeModal = buildModalStyles(themeName);
+        this.themeDisclosure = buildDisclosureStyles(themeName);
         if (shouldForceUpdate) {
             this.forceUpdate();
         }
@@ -1702,31 +1665,108 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    // TODO(engagement): wrap this in a "soft opt-in" UX — show an in-app
-    // explainer tied to a user action (first moment / first pact invite /
-    // first DM) before triggering the OS prompt. iOS default opt-in ~50%;
-    // a well-anchored soft-ask typically reaches 70–80%. This is the single
-    // highest-ROI push-notification improvement. See
-    // docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md (item #1).
-    requestNotificationPermissions = () => {
-        // Android 13+ (API 33) requires runtime POST_NOTIFICATIONS permission
-        const androidPermissionPromise = Platform.OS === 'android' && Number(Platform.Version) >= 33
-            ? PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS)
-            : Promise.resolve(null);
+    // Silent FCM token registration. Runs at login and on app launch when the
+    // user is already authenticated; only proceeds if the OS-level notification
+    // permission is already authorized, so it never surfaces an OS prompt.
+    // Soft-asks (and the OS prompt itself) are owned by permissionsOrchestrator.
+    tryRegisterDeviceTokenIfAuthorized = async () => {
+        try {
+            const status = await hasPermission(getMessaging());
+            const authorized = status === AuthorizationStatus.AUTHORIZED
+                || status === AuthorizationStatus.PROVISIONAL;
+            if (!authorized) return;
+            this.registerDeviceForFCM();
+        } catch (err) {
+            console.log('NOTIFICATIONS_HAS_PERMISSION_ERROR', err);
+        }
+    };
 
-        return androidPermissionPromise
-            .then(() => notifee.requestPermission())
-            .then((permissions) => {
-                if (permissions?.authorizationStatus !== 1) {
-                    console.log('Notifee authorization status:', permissions);
+    registerDeviceForFCM = () => {
+        const {
+            addNotification,
+            location,
+            searchActiveMomentsByIds,
+            searchActiveSpacesByIds,
+            user,
+            updateUser,
+        } = this.props;
+        // Avoid double-subscribing. The token chain is async so the
+        // `unsubscribePushNotifications` ref is only set once getToken resolves;
+        // the synchronous flag closes the race when two callers (e.g. login
+        // transition + orchestrator's onGranted) trigger registration in the
+        // same tick.
+        if (this.fcmRegistrationStarted) return;
+        this.fcmRegistrationStarted = true;
+        registerDeviceForRemoteMessages(getMessaging())
+            .then(() => getToken(getMessaging()))
+            .then((deviceToken) => {
+                axios.defaults.headers['x-user-device-token'] = deviceToken;
+                if (user.details.deviceMobileFirebaseToken !== deviceToken) {
+                    updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
                 }
-                return requestPermission(getMessaging());
+                this.unsubscribePushNotifications = onMessage(getMessaging(), async (remoteMessage) => {
+                    await wrapOnMessageReceived(true, remoteMessage);
+
+                    if (remoteMessage?.data?.areasActivated) {
+                        const parsedAreasData = typeof (remoteMessage?.data?.areasActivated) === 'string'
+                            ? JSON.parse(remoteMessage?.data?.areasActivated)
+                            : [];
+                        const momentsData = parsedAreasData.filter((area) => area.momentId);
+                        const spacesData = parsedAreasData.filter((area) => area.spaceId);
+                        if (parsedAreasData.length) {
+                            sendForegroundNotification({
+                                title: this.translate('alertTitles.newAreasActivated'),
+                                body: this.translate('alertMessages.newAreasActivated', {
+                                    total: momentsData.length + spacesData.length,
+                                }),
+                                android: {
+                                    pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
+                                },
+                                data: {
+                                    activatedMomentIds: JSON.stringify(momentsData.map((moment) => moment.momentId)),
+                                    activatedSpaceIds: JSON.stringify(spacesData.map((space) => space.spaceId)),
+                                },
+                            }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
+                            if (momentsData.length) {
+                                searchActiveMomentsByIds({
+                                    userLatitude: location?.user?.latitude,
+                                    userLongitude: location?.user?.longitude,
+                                    withMedia: true,
+                                    withUser: true,
+                                    blockedUsers: user.details.blockedUsers,
+                                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                                }, momentsData.map((moment) => moment.momentId));
+                            }
+                            if (spacesData.length) {
+                                searchActiveSpacesByIds({
+                                    userLatitude: location?.user?.latitude,
+                                    userLongitude: location?.user?.longitude,
+                                    withMedia: true,
+                                    withUser: true,
+                                    blockedUsers: user.details.blockedUsers,
+                                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                                }, spacesData.map((space) => space.spaceId));
+                            }
+                        }
+                    }
+                    if (remoteMessage?.data?.notificationData) {
+                        const parsedNotificationData = typeof (remoteMessage?.data?.notificationData) === 'string'
+                            ? JSON.parse(remoteMessage?.data?.notificationData)
+                            : {};
+                        addNotification(parsedNotificationData);
+                    }
+                });
             })
-            .then((authStatus) => {
-                const enabled = authStatus === AuthorizationStatus.AUTHORIZED
-                    || authStatus === AuthorizationStatus.PROVISIONAL;
-                if (!enabled) {
-                    console.log('Notifications authorization status:', authStatus);
+            .catch((err) => {
+                console.log('NOTIFICATIONS_ERROR', err);
+                if (!__DEV__) {
+                    try {
+                        const crashlytics = getCrashlytics();
+                        crashlyticsLog(crashlytics, `NOTIFICATIONS_ERROR: ${err?.message || String(err)}`);
+                        recordError(crashlytics, err instanceof Error ? err : new Error(String(err)));
+                    } catch {
+                        // Crashlytics may not be initialized yet on very early startup.
+                    }
                 }
             });
     };
@@ -1771,6 +1811,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         return logout(userDetails);
     };
 
+    handlePermissionPrimerAllow = () => {
+        const resolve = this.permissionPrimerResolve;
+        this.permissionPrimerResolve = null;
+        this.setState({ permissionPrimerType: null });
+        resolve?.(true);
+    };
+
+    handlePermissionPrimerNotNow = () => {
+        const resolve = this.permissionPrimerResolve;
+        this.permissionPrimerResolve = null;
+        this.setState({ permissionPrimerType: null });
+        resolve?.(false);
+    };
+
     render() {
         const {
             location,
@@ -1778,6 +1832,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
+        const { permissionPrimerType } = this.state;
 
         return (
             <NavigationContainer
@@ -1980,18 +2035,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 );
                             }
                             return (
-                                <View style={[customHeaderStyle, { paddingTop: getHeaderTopInset() }]}>
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        height: 52,
-                                        paddingHorizontal: 8,
-                                    }}>
-                                        {headerLeftNode}
-                                        {middleNode}
-                                        {headerRightNode}
-                                    </View>
-                                </View>
+                                <SafeAreaInsetsContext.Consumer>
+                                    {(insets) => (
+                                        <View style={[customHeaderStyle, { paddingTop: insets?.top ?? getHeaderTopInset() }]}>
+                                            <View style={{
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                height: 52,
+                                                paddingHorizontal: 8,
+                                            }}>
+                                                {headerLeftNode}
+                                                {middleNode}
+                                                {headerRightNode}
+                                            </View>
+                                        </View>
+                                    )}
+                                </SafeAreaInsetsContext.Consumer>
                             );
                         };
 
@@ -2041,6 +2100,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             return <Stack.Screen key={route.name} {...route} />;
                         })}
                 </Stack.Navigator>
+                {permissionPrimerType ? (
+                    <PermissionPrimerModal
+                        permissionType={permissionPrimerType}
+                        isVisible={!!permissionPrimerType}
+                        onAllow={this.handlePermissionPrimerAllow}
+                        onNotNow={this.handlePermissionPrimerNotNow}
+                        translate={this.translate}
+                        themeDisclosure={this.themeDisclosure}
+                    />
+                ) : null}
             </NavigationContainer>
         );
     }

@@ -2,6 +2,7 @@ package app.therrmobile
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.core.view.WindowCompat
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.bridge.Arguments
@@ -25,6 +26,14 @@ class MainActivity : ReactActivity() {
 
   // https://github.com/software-mansion/react-native-screens/issues/17#issuecomment-424704067
   override fun onCreate(savedInstanceState: Bundle?) {
+    // Enable edge-to-edge before super.onCreate so the activity window is in
+    // edge-to-edge mode by the time react-native-safe-area-context reads its
+    // initial WindowInsets via getConstants(). The BootTheme parent
+    // (Theme.BootSplash) does NOT inherit Theme.EdgeToEdge — that only applies
+    // after RNBootSplash hands off to AppTheme — so without this call the JS
+    // bundle initializes with stale (zero) bottom insets on Android, leaving
+    // bottom-anchored UI flush against the gesture handle.
+    WindowCompat.setDecorFitsSystemWindows(window, false)
     RNBootSplash.init(this, R.style.BootTheme) // <- initialize the splash screen
     super.onCreate(null)
   }

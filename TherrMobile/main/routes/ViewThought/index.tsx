@@ -10,10 +10,12 @@ import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { IContentState, IUserState } from 'therr-react/types';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
+import getConfig from '../../utilities/getConfig';
 import translator from '../../utilities/translator';
 import { isDarkTheme } from '../../styles/themes';
 import { buildStyles } from '../../styles';
@@ -235,7 +237,14 @@ const ViewThought = ({
         if (checkIsMyContent(thought, user)) {
             deleteThought({ ids: [thought.id] })
                 .then(() => {
-                    navigation.navigate('Areas');
+                    const isAreasEnabled = getConfig().featureFlags?.[FeatureFlags.ENABLE_AREAS] === true;
+                    if (isAreasEnabled) {
+                        navigation.navigate('Areas');
+                    } else {
+                        navigation.navigate('ViewUser', {
+                            userInView: { id: user.details.id },
+                        });
+                    }
                 })
                 .catch((err) => {
                     console.log('Error deleting thought', err);
