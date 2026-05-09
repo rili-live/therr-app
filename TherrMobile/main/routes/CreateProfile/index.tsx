@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Content } from 'therr-js-utilities/constants';
+import { BrandVariations, Content } from 'therr-js-utilities/constants';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
@@ -29,6 +29,7 @@ import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../constants';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { getUserImageUri } from '../../utilities/content';
 import { synceMobileContacts } from '../../utilities/contacts';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 
 const verifyPhoneLoader = require('../../assets/verify-phone-shield.json');
 
@@ -245,9 +246,12 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             firstName,
             lastName,
             userName,
-            isBusinessAccount: accountType === 'business',
-            isCreatorAccount: accountType === 'creator',
         };
+
+        if (CURRENT_BRAND_VARIATION !== BrandVariations.HABITS) {
+            updateArgs.isBusinessAccount = accountType === 'business';
+            updateArgs.isCreatorAccount = accountType === 'creator';
+        }
 
         if (stage === 'phone' && !isPhoneNumberValid) {
             this.setState({
