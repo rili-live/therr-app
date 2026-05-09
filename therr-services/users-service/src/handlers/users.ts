@@ -12,7 +12,7 @@ import syncDeviceTokenForBrand from '../utilities/syncDeviceTokenForBrand';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import {
-    createUserHelper, getUserHelper, isUserProfileIncomplete, redactUserCreds,
+    createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
@@ -648,17 +648,12 @@ const updateUser = (req, res) => {
             };
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
-
-            // Upgrade missing-properties → email-verified once the profile is complete.
-            // The reverse demotion was intentionally removed: a settings save (e.g. theme change)
-            // round-trips name/phone fields and would re-evaluate as "incomplete" against any user
-            // whose existingUser row has a falsy required field, demoting them and bouncing the
-            // client to CreateProfile via the route-filter in Layout.tsx. Once a user has reached
-            // EMAIL_VERIFIED they keep it; clearing a required field is rare and not worth the UX cost.
-            if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
-                const userAccessLevels = new Set(userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES));
-                userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
-                updateArgs.accessLevels = JSON.stringify([...userAccessLevels]);
+            const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
+                userSearchResults[0].accessLevels,
+                isMissingUserProps,
+            );
+            if (nextAccessLevels) {
+                updateArgs.accessLevels = nextAccessLevels;
             }
 
             return Promise.all([passwordPromise, orgsPromise, mediaPromise])
@@ -881,13 +876,12 @@ const updateUserCoins = (req, res) => {
             }
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
-
-            // Upgrade-only: see updateUser for the rationale on why we no longer demote
-            // EMAIL_VERIFIED → EMAIL_VERIFIED_MISSING_PROPERTIES on every save.
-            if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
-                const userAccessLevels = new Set(userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES));
-                userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
-                updateArgs.accessLevels = JSON.stringify([...userAccessLevels]);
+            const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
+                userSearchResults[0].accessLevels,
+                isMissingUserProps,
+            );
+            if (nextAccessLevels) {
+                updateArgs.accessLevels = nextAccessLevels;
             }
 
             passwordPromise
