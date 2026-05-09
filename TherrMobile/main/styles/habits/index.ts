@@ -72,12 +72,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
             justifyContent: 'space-between',
             marginBottom: 12,
+            gap: 12,
         },
         streakWidgetTitle: {
             fontFamily: therrFontFamily,
             fontSize: 16,
             fontWeight: '600',
             color: therrTheme.colors.brandingBlack,
+            flexShrink: 1,
         },
         streakBadge: {
             ...getStreakBadgeStyles(therrTheme),
