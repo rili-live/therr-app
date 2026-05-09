@@ -4,10 +4,28 @@ import { IMobileThemeName } from 'therr-react/types';
 import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
-export const bottomSafeAreaInset = initialWindowMetrics?.insets.bottom || 0;
-const buttonMenuContentHeight = Platform.OS === 'ios' ? 64 : 56;
+// Conservative fallback for the Android gesture-nav handle when
+// `initialWindowMetrics` is unavailable at module-load — under edge-to-edge,
+// `decorView.rootWindowInsets` can be null before the activity's first
+// layout pass, in which case the native bridge reports zero insets and the
+// menu would otherwise render flush against the gesture handle. Components
+// that subscribe to `SafeAreaInsetsContext` will replace this with the real
+// inset on first measurement.
+const ANDROID_BOTTOM_FALLBACK = 16;
+
+const computeBottomSafeAreaInset = () => {
+    const fromMetrics = initialWindowMetrics?.insets?.bottom;
+    if (fromMetrics != null && fromMetrics > 0) {
+        return fromMetrics;
+    }
+    return Platform.OS === 'android' ? ANDROID_BOTTOM_FALLBACK : 0;
+};
+
+export const bottomSafeAreaInset = computeBottomSafeAreaInset();
+export const buttonMenuContentHeight = Platform.OS === 'ios' ? 64 : 56;
+export const buttonMenuCompactContentHeight = 48;
 export const buttonMenuHeight = buttonMenuContentHeight + bottomSafeAreaInset;
-export const buttonMenuHeightCompact = 48 + bottomSafeAreaInset;
+export const buttonMenuHeightCompact = buttonMenuCompactContentHeight + bottomSafeAreaInset;
 
 const buttonStyle: any = {
     backgroundColor: 'transparent',
@@ -110,11 +128,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         containerInner: {
             display: 'flex',
-            height: buttonMenuHeight,
+            // Height and paddingBottom are applied dynamically by the
+            // ButtonMenu component via SafeAreaInsetsContext so the menu
+            // reacts to the real bottom inset once the SafeAreaProvider
+            // has measured (initialWindowMetrics is unreliable on Android).
             width: '100%',
             alignSelf: 'flex-end',
             flexDirection: 'row',
-            paddingBottom: bottomSafeAreaInset,
             backgroundColor: therrTheme.colors.primary,
             // backgroundColor: therrTheme.colorVariations.backgroundCreamLighten,
             borderTopWidth: 1,

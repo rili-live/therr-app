@@ -8,6 +8,7 @@ import {
     Platform,
 } from 'react-native';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
 import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
@@ -2098,18 +2099,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     );
                                 }
                                 return (
-                                    <View style={[customHeaderStyle, { paddingTop: getHeaderTopInset() }]}>
-                                        <View style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            height: 52,
-                                            paddingHorizontal: 8,
-                                        }}>
-                                            {headerLeftNode}
-                                            {middleNode}
-                                            {headerRightNode}
-                                        </View>
-                                    </View>
+                                    <SafeAreaInsetsContext.Consumer>
+                                        {(insets) => (
+                                            <View style={[customHeaderStyle, { paddingTop: insets?.top ?? getHeaderTopInset() }]}>
+                                                <View style={{
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    height: 52,
+                                                    paddingHorizontal: 8,
+                                                }}>
+                                                    {headerLeftNode}
+                                                    {middleNode}
+                                                    {headerRightNode}
+                                                </View>
+                                            </View>
+                                        )}
+                                    </SafeAreaInsetsContext.Consumer>
                                 );
                             };
 
