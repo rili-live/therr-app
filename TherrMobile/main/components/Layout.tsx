@@ -255,30 +255,31 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
         socketIO.on('reconnect', this.handleSocketReconnect);
 
-        this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
-            logEvent(getAnalytics(),'background_location_on_location', {
-                userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
-        }, (error) => {
-            logEvent(getAnalytics(),'background_location_error', {
-                userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
-            console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
-        }));
-        // this.subscriptions.push(BackgroundGeolocation.onMotionChange((event) => {
-        //     console.log('BackgroundGeolocation-[onMotionChange]', event);
-        // }));
-        // this.subscriptions.push(BackgroundGeolocation.onActivityChange((event) => {
-        //     console.log('BackgroundGeolocation-[onActivityChange]', event);
-        // }));
-        this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-            // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
-            // listener (emitted by react-native-android-location-services-dialog-box,
-            // which was removed in the New Architecture migration). Fires on
-            // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
-            // changes (iOS). Reducer checks status === 'enabled'.
-            this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
-        }));
+        // Gate every BackgroundGeolocation method behind the feature flag, not just
+        // .ready()/.start(). Subscribing to .onLocation / .onProviderChange instantiates
+        // the native TSLocationManager, which fires transistorsoft's license validator;
+        // on niches whose applicationId is not on the license (e.g. HABITS / com.therr.habits)
+        // that produces a runtime license-error log even when the listeners are no-ops.
+        if (isLocationServicesEnabled()) {
+            this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
+                logEvent(getAnalytics(),'background_location_on_location', {
+                    userId: this.props.user?.details?.id,
+                }).catch((err) => console.log(err));
+            }, (error) => {
+                logEvent(getAnalytics(),'background_location_error', {
+                    userId: this.props.user?.details?.id,
+                }).catch((err) => console.log(err));
+                console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
+            }));
+            this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
+                // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
+                // listener (emitted by react-native-android-location-services-dialog-box,
+                // which was removed in the New Architecture migration). Fires on
+                // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
+                // changes (iOS). Reducer checks status === 'enabled'.
+                this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
+            }));
+        }
 
         this.readyAndStartBackgroundGeolocation();
         this.prefetchContent();
