@@ -19,6 +19,11 @@ const notifications = StyleSheet.create({
     container: {
         marginTop: 20,
     },
+    // FlashList only accepts padding/background-color in contentContainerStyle;
+    // mirror the legacy `container` margin as top padding instead.
+    flashListContentContainer: {
+        paddingTop: 20,
+    },
     markAllReadContainer: {
         alignItems: 'flex-end',
         paddingRight: 14,

@@ -71,4 +71,14 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
     );
 };
 
-export default ConnectionItem;
+// Custom equality: parent passes inline arrow handlers per render so a default
+// shallow compare would re-render every row on every parent render. Compare the
+// fields that actually drive what's drawn instead.
+export default React.memo(ConnectionItem, (prev, next) => (
+    prev.connectionDetails?.id === next.connectionDetails?.id
+    && prev.connectionDetails?.userName === next.connectionDetails?.userName
+    && prev.connectionDetails?.firstName === next.connectionDetails?.firstName
+    && prev.connectionDetails?.lastName === next.connectionDetails?.lastName
+    && prev.isActive === next.isActive
+    && prev.theme === next.theme
+));
