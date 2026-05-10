@@ -113,6 +113,18 @@ The baseline must monotonically decrease — never raise it without explicit jus
 
 _Move entries here with the merge SHA when complete; trim periodically._
 
+### 2. Replace `google-services.example.json` with per-brand sanitized examples (2026-05-10, pending merge to `general`)
+
+Added committed sanitized templates at
+`_bin/firebase/therr/google-services.example.json` and
+`_bin/firebase/habits/google-services.example.json` — one `client[]` entry
+each, secrets scrubbed. Rewrote
+`TherrMobile/android/app/google-services.example.json` as a pointer file
+listing the per-brand template paths (kept for discoverability in the
+conventional location). Updated `_bin/firebase/README.md`,
+`docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`, and `docs/MULTI_BRAND_ARCHITECTURE.md`
+to reference the new templates.
+
 ### 1. Unify `BrandScopedStore.ts` across services (2026-04-28, on `general`)
 
 Class moved to `therr-public-library/therr-js-utilities/src/db-server/brand-scoped-store.ts`

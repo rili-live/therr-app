@@ -35,16 +35,23 @@ document and have a working build.
 ### `TherrMobile/android/app/google-services.json`
 
 **What it is:** Firebase configuration for the Android client. Defines the
-Firebase project and a `client[]` entry per registered `applicationId`. Read
-by Gradle's `com.google.gms.google-services` plugin at build time, which
-selects the matching client block from the build's `applicationId`.
+Firebase project and a `client[]` entry for the build's `applicationId`. Read
+by Gradle's `com.google.gms.google-services` plugin at build time.
 
-**Current contents (as of 2026-04-23):**
+**Source of truth:** Per-brand vault at `_bin/firebase/<brand>/google-services.json`
+(also gitignored). The active build file at
+`TherrMobile/android/app/google-services.json` is **populated by
+`_bin/switch-brand.sh <brand>`** — it is treated as a build artifact, not a
+hand-edited file. Editing it directly will be overwritten by the next
+`switch-brand.sh` run. See `_bin/firebase/README.md` for the vault convention.
+
+**Current contents (as of 2026-05-10):**
 - Project: `therr-app` (single Firebase project shared by all brand variants)
-- Registered `package_name`s:
-  - `app.therrmobile` (Therr — the default brand)
+- Active file contains exactly one `client[]` entry — the brand currently
+  selected by the most recent `switch-brand.sh` invocation:
+  - `app.therrmobile` (Therr — default brand)
   - `com.therr.habits` (Friends with Habits)
-  - Future TEEM `package_name` should be added here when introduced
+  - Future TEEM `package_name` will be added when registered in Firebase.
 
 **Why gitignored:** Contains an OAuth client ID and API key. Even though both
 are scoped (the OAuth client is restricted to the registered SHA-1
@@ -53,25 +60,34 @@ of the repo reduces the blast radius of an accidental public repo flip.
 
 **Regenerate from upstream if lost:**
 1. Sign in to https://console.firebase.google.com/project/therr-app/settings/general
-2. Under "Your apps", click each Android app entry
-3. Click "Download google-services.json" — repeat for each registered app
-4. The downloaded files each contain the full project config and a single
-   `client[]` entry for that app
-5. Manually merge: take any one as the base, then copy the `client[]` array
-   entries from the others into the base's `client[]` array
-6. Save the merged file at `TherrMobile/android/app/google-services.json`
-7. Verify by building both Therr (`switch-brand.sh therr`) and Habits
-   (`switch-brand.sh habits`) — both should succeed without the
-   "No matching client found" Gradle error
+2. Under "Your apps", for **each** registered Android app, click "Download
+   google-services.json".
+3. Save each download to `_bin/firebase/<brand>/google-services.json` —
+   `therr/` for `app.therrmobile`, `habits/` for `com.therr.habits`. No
+   manual merging required; each file holds exactly one `client[]` entry.
+4. Run `./_bin/switch-brand.sh <brand>` to copy the matching file into
+   `TherrMobile/android/app/google-services.json` and validate it. The
+   script will fail loudly if the JSON's `package_name` doesn't match the
+   brand's expected `applicationId`.
+5. Verify by building (`cd TherrMobile && npm run android:<brand>`) — should
+   succeed without the "No matching client found" Gradle error.
 
-**Sanity-check template:** `TherrMobile/android/app/google-services.example.json`
-shows the expected shape (with secrets scrubbed). Compare your real file's
-`client[].client_info.android_client_info.package_name` list to the example;
-if the real file is missing entries listed in the example, you have a stale
-copy and need to re-export from Firebase Console.
+**Sanity-check templates:** Each brand has a committed sanitized template
+next to its vault entry, with secrets scrubbed:
+- `_bin/firebase/therr/google-services.example.json` — one `client[]` entry,
+  `package_name == app.therrmobile`.
+- `_bin/firebase/habits/google-services.example.json` — one `client[]` entry,
+  `package_name == com.therr.habits`.
+
+Diff your real `_bin/firebase/<brand>/google-services.json` against the
+matching template to confirm shape; if your file has extra or different
+`client[]` entries, re-export the matching Android app from Firebase
+Console. `TherrMobile/android/app/google-services.example.json` is kept as
+a pointer that lists the per-brand template paths above.
 
 **See also:** `docs/MULTI_BRAND_ARCHITECTURE.md` for the brand-flag-driven
-build behavior; `TherrMobile/CLAUDE.md` for module-resolution gotchas.
+build behavior; `_bin/firebase/README.md` for the vault layout and
+populating procedure; `TherrMobile/CLAUDE.md` for module-resolution gotchas.
 
 ---
 
@@ -84,15 +100,21 @@ Firebase iOS SDK at runtime (not build time).
 Android counterpart, this is per-Firebase-project. iOS does NOT support the
 merged-file pattern — each `BUNDLE_ID` requires its own plist.
 
-**Per-brand handling:** Currently the iOS build serves only Therr. When
-HABITS iOS ships, the build pipeline will need either Xcode build phase
-schemes that swap the plist or an `_bin/switch-brand.sh` extension that
-copies from `_bin/firebase/<brand>/GoogleService-Info.plist`.
+**Source of truth:** Per-brand vault at
+`_bin/firebase/<brand>/GoogleService-Info.plist`. `_bin/switch-brand.sh
+<brand>` copies the matching file into
+`TherrMobile/ios/TherrMobile/GoogleService-Info.plist` on every run.
+Currently only `_bin/firebase/therr/GoogleService-Info.plist` is populated
+because Therr is the only brand shipping iOS today; switching to a niche
+brand without a vault plist leaves the Therr plist in place and prints a
+non-fatal warning.
 
 **Regenerate from upstream if lost:**
-1. Firebase Console → therr-app project → iOS app entry
-2. Download `GoogleService-Info.plist`
-3. Place at `TherrMobile/ios/TherrMobile/GoogleService-Info.plist`
+1. Firebase Console → therr-app project → iOS app entry for the brand.
+2. Download `GoogleService-Info.plist`.
+3. Save to `_bin/firebase/<brand>/GoogleService-Info.plist`.
+4. Run `./_bin/switch-brand.sh <brand>` to copy it into
+   `TherrMobile/ios/TherrMobile/GoogleService-Info.plist`.
 
 ---
 
