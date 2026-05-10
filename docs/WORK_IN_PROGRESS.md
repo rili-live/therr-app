@@ -698,6 +698,12 @@ note that should be honored on a calendar reminder.
   instead of duplicating
 - `scripts/generate-content/utils/contentSchema.ts:143` — Implement planned
   new content section types per `docs/CONTENT_GUIDES_ROADMAP.md`
+- `TherrMobile/main/**` (~56 import sites) — Migrate
+  `react-native-vector-icons` (deprecated monolith, ships classic-JSX-
+  transform builds → React 19 warning currently suppressed in `App.tsx`) to
+  per-family packages: `@react-native-vector-icons/material-icons`,
+  `/font-awesome`, `/font-awesome-5`, `/ionicons`, `/octicons`. Removes the
+  suppression and unblocks future RN/React upgrades.
 
 ---
 
