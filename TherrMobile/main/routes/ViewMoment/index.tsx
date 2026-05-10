@@ -205,6 +205,10 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         if (checkIsMyMoment(moment, user)) {
             deleteMoment({ ids: [moment.id] })
                 .then(() => {
+                    this.setState({
+                        isDeleting: false,
+                        isDeleteDialogVisible: false,
+                    });
                     navigation.navigate('Map', {
                         shouldShowPreview: false,
                     });
