@@ -109,6 +109,33 @@ The baseline must monotonically decrease — never raise it without explicit jus
 
 ---
 
+### Replace `google-services.example.json` with per-brand sanitized examples
+
+**Status**: Open
+**Origin**: Per-brand Firebase config vault rollout (2026-05, on `general`)
+
+`TherrMobile/android/app/google-services.example.json` was originally written
+to demonstrate the merged-file shape (multiple `client[]` entries across both
+`app.therrmobile` and `com.therr.habits`). With the per-brand vault pattern
+in `_bin/firebase/<brand>/`, the active build file holds exactly one
+`client[]` entry, so the legacy template is misleading.
+
+**Steps**:
+
+1. Generate sanitized per-brand templates committed alongside the vault, e.g.
+   `_bin/firebase/therr/google-services.example.json` and
+   `_bin/firebase/habits/google-services.example.json` (single `client[]`
+   each, secrets scrubbed).
+2. Either delete `TherrMobile/android/app/google-services.example.json` or
+   rewrite it to reference the per-brand templates.
+3. Update `_bin/firebase/README.md` and
+   `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md` to point at the new templates.
+
+Low priority — the vault README already explains the populating procedure;
+the legacy template is a sanity-check aid, not a build-blocking artifact.
+
+---
+
 ## Done
 
 _Move entries here with the merge SHA when complete; trim periodically._
