@@ -141,6 +141,18 @@ if (process.env.NODE_ENV !== 'development') {
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Digital Asset Links — must be served per-brand on the matching hostname so
+// Android App Links verification picks up the correct package + cert fingerprint.
+// Runs before expressStaticGzip; otherwise habits.therr.com would receive the
+// default Therr file from /.well-known/assetlinks.json.
+app.get('/.well-known/assetlinks.json', (req, res, next) => {
+    if (req.hostname === 'habits.therr.com' || req.hostname === 'www.habits.therr.com') {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.sendFile(path.join(__dirname, '/../build/static/.well-known/assetlinks.habits.json'));
+    }
+    return next();
+});
+
 // Define the folder that will be used for static assets
 // Serves pre-compressed .br and .gz files when the client supports them
 app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
