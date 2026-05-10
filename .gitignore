@@ -85,6 +85,12 @@ google-service.json*
 _bin/firebase/**/google-services.json
 _bin/firebase/**/GoogleService-Info.plist
 
+# Per-brand Firebase config vault (secrets, populated by developers from
+# Firebase Console; copied into TherrMobile/{android,ios} by switch-brand.sh).
+# See _bin/firebase/README.md.
+_bin/firebase/**/google-services.json
+_bin/firebase/**/GoogleService-Info.plist
+
 # android
 bugreport-sdk*
 .aider*

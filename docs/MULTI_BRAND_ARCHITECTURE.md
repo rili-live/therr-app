@@ -239,15 +239,29 @@ The mobile-client side of Firebase is structured differently from the
 backend push-notification service. Read this section before introducing a
 new brand or attempting to split projects.
 
-### Current state (as of 2026-04)
+### Current state (as of 2026-05)
 
 **Single shared Firebase project (`therr-app`) for all brand variants on the
-mobile client.** The Android client uses one merged `google-services.json`
-at `TherrMobile/android/app/google-services.json` containing one `client[]`
-entry per registered `applicationId`. Gradle's
-`com.google.gms.google-services` plugin selects the matching client block at
-build time based on the build's `applicationId` (e.g., `com.therr.habits`
-selects the HABITS client block).
+mobile client.** Per-brand Firebase config files live in a gitignored vault
+at `_bin/firebase/<brand>/`, and `_bin/switch-brand.sh <brand>` copies the
+matching files into the active build locations every time it runs:
+
+| Source                                              | Destination                                              |
+|-----------------------------------------------------|----------------------------------------------------------|
+| `_bin/firebase/<brand>/google-services.json`        | `TherrMobile/android/app/google-services.json`           |
+| `_bin/firebase/<brand>/GoogleService-Info.plist`    | `TherrMobile/ios/TherrMobile/GoogleService-Info.plist`   |
+
+Each vault file is the unmodified single-app export from Firebase Console —
+no manual merging. After copying, `switch-brand.sh` validates that the
+Android JSON's `package_name` matches the brand's expected `applicationId`
+and prints the registered SHA-1, failing loudly on mismatch. It also
+clears `TherrMobile/android/app/build/generated/res/google-services` so
+Gradle re-derives `default_web_client_id` strings.xml from the new JSON
+on the next build.
+
+The active build files are gitignored and treated as build artifacts; do
+not edit them by hand. See `_bin/firebase/README.md` for the vault
+convention and population procedure.
 
 The Android `namespace` stays `app.therrmobile` across all brands so Kotlin
 source paths don't change. Only the `applicationId` (defined in
@@ -292,27 +306,24 @@ This is **fine for MVP** but becomes painful once any brand needs:
 
 ### Risks of the current single-project model
 
-1. **Bus factor.** The active `google-services.json` is gitignored and
-   reconstructable only by re-exporting from Firebase Console for every
-   registered app and merging the `client[]` arrays manually. See
-   `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md` for the recovery procedure.
-
-2. **Cross-brand contamination.** A noisy crash in Therr clutters HABITS'
+1. **Cross-brand contamination.** A noisy crash in Therr clutters HABITS'
    Crashlytics dashboard and vice versa. Alert rules on issue count get
    noisier as brand count grows.
 
-3. **No template-in-repo by default.** A new developer cloning the repo
-   cannot build until they obtain the file out-of-band. Mitigated by
-   `TherrMobile/android/app/google-services.example.json` (sanitized
-   template) — keep the example file's `package_name` list current as new
-   brands are added.
+2. **No template-in-repo by default.** A new developer cloning the repo
+   cannot build until they obtain the per-brand vault files out-of-band.
+   Mitigated by `_bin/firebase/README.md` (the populating procedure) and
+   per-brand sanitized templates committed alongside the vault
+   (`_bin/firebase/<brand>/google-services.example.json`).
+   `TherrMobile/android/app/google-services.example.json` is retained as a
+   pointer file listing the per-brand template paths for discoverability
+   in the conventional location.
 
-4. **iOS does not support the merged-file pattern.** Each `BUNDLE_ID`
+3. **iOS does not support a merged-file pattern.** Each `BUNDLE_ID`
    requires its own `GoogleService-Info.plist`. Today only the Therr
-   variant is configured for iOS. When HABITS iOS ships, the build
-   pipeline will need either Xcode build phase scheme switching or a
-   `_bin/switch-brand.sh` extension that copies the correct plist into
-   place.
+   variant is configured for iOS. When HABITS iOS ships, populate
+   `_bin/firebase/habits/GoogleService-Info.plist` and `switch-brand.sh`
+   will copy it on its own.
 
 ### Migration path: when to split into per-brand Firebase projects
 
@@ -332,13 +343,16 @@ Migration playbook (when a trigger fires):
 2. Register the brand's Android `applicationId` and iOS `BUNDLE_ID` in the
    new project; collect SHA-1 fingerprints from existing keystores and
    register them
-3. Extract the brand's `client[]` entry from the merged
-   `google-services.json` and replace it with the new project's exported
-   block; place the new file at `TherrMobile/android/app/src/<brand>/google-services.json`
-4. Convert `TherrMobile/android/app/build.gradle` to use Gradle product
-   flavors so the per-flavor `google-services.json` is selected
-   automatically; update `_bin/switch-brand.sh` to no longer copy the
-   merged file (it'll select via flavor)
+3. Replace the brand's vault entry at
+   `_bin/firebase/<brand>/google-services.json` with the new project's
+   exported block. (Optionally relocate the vault into Gradle's
+   per-flavor source-set path `TherrMobile/android/app/src/<brand>/google-services.json`
+   if migrating to product flavors at the same time.)
+4. Either keep the existing `_bin/switch-brand.sh` copy step (it works
+   unchanged for split projects, since the vault file is now from the
+   brand's own project) OR convert `TherrMobile/android/app/build.gradle`
+   to use Gradle product flavors so per-flavor `google-services.json` is
+   selected automatically without a copy step.
 5. Add a new `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_<BRAND>` env var
    to the backend push service, populated with a service-account export
    from the new project
@@ -350,8 +364,10 @@ Migration playbook (when a trigger fires):
    once token refresh is statistically complete).
 7. Update `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md` with the new project's
    recovery procedure.
-8. Update `TherrMobile/android/app/google-services.example.json` to remove
-   the brand's client entry (it's no longer in the merged file).
+8. Update `_bin/firebase/<brand>/google-services.example.json` to reflect
+   the brand's new project assignment (and the pointer at
+   `TherrMobile/android/app/google-services.example.json` if the brand
+   list changes).
 
 This work is meaningful (~1 week) and risky (FCM token transition window).
 Do not undertake it speculatively — wait for an actual trigger.
