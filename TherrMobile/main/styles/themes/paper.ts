@@ -4,6 +4,7 @@ import type { MD3Theme } from 'react-native-paper';
 import { IMobileThemeName } from 'therr-react/types';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import { resolveMobileThemeName } from './resolveThemeName';
 import { colors as lightColors } from './light/colors';
 import { colors as darkColors } from './dark/colors';
 import { colors as retroColors } from './retro/colors';
@@ -338,8 +339,9 @@ export const getPaperTheme = (
     name?: IMobileThemeName,
     brand?: BrandVariations,
 ): ITherrPaperTheme => {
-    const baseTheme = basePaperThemeFor(name);
     const resolvedBrand = brand ?? CURRENT_BRAND_VARIATION;
+    const resolvedName = resolveMobileThemeName(name, resolvedBrand);
+    const baseTheme = basePaperThemeFor(resolvedName);
     const override = brandPaperColorOverrides[resolvedBrand];
 
     // Fast path — no override for this brand → return cached theme by
