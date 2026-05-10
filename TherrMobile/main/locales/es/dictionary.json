@@ -561,6 +561,7 @@
         "insufficientFundsMessage": "El propietario de este espacio no tiene fondos suficientes para enviarte TherrCoin. Les hemos notificado para una actualización.",
         "insufficientFundsMessage2": "¿Continuar creando contenido sin recompensas?"
       },
+      "deleteConfirmation": "¿Estás seguro de que quieres eliminar este momento?",
       "backendSuccessMessage": "¡Tu momento se guardó exitosamente!",
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde."
     },
