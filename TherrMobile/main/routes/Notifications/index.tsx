@@ -23,6 +23,7 @@ import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import Notification from './Notification';
 import ListEmpty from '../../components/ListEmpty';
+import permissions from '../../utilities/permissionsOrchestrator';
 import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../../constants';
 
 interface INotificationsDispatchProps {
@@ -122,6 +123,15 @@ class Notifications extends React.Component<
             },
             user: user.details,
         });
+
+        // Engagement-anchored soft-ask: a freshly accepted connection is a
+        // strong signal the user wants to stay informed about that person's
+        // activity. No-op if already asked, granted, or blocked.
+        if (isAccepted) {
+            permissions.requestIfAppropriate('notifications', {
+                trigger: 'firstConnectionAccepted',
+            });
+        }
     };
 
     onNotificationPress = (event, notification, userConnection?: any, shouldNavigate = true) => {

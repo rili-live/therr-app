@@ -49,7 +49,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import formatHashtags from '../../utilities/formatHashtags';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { getUserContentUri, signImageUrl } from '../../utilities/content';
-import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
+import permissions from '../../utilities/permissionsOrchestrator';
 import { sendForegroundNotification, sendTriggerNotification } from '../../utilities/pushNotifications';
 import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../../components/TherrIcon';
@@ -435,6 +435,15 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             category,
                         }).catch((err) => console.log(err));
 
+                        // Engagement-anchored soft-ask: a freshly published moment
+                        // is the strongest "you'll want to know when people react"
+                        // moment. No-op if already asked, granted, or blocked.
+                        if (!areaId && !isDraft) {
+                            permissions.requestIfAppropriate('notifications', {
+                                trigger: 'firstMomentPosted',
+                            });
+                        }
+
                         if (!shouldSkipNavigate) {
                             if (!isDraft) {
                                 this.setState({
@@ -566,10 +575,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         // TODO: Store permissions in redux
         const storePermissions = () => {};
 
-        return requestOSCameraPermissions(storePermissions).then((response) => {
-            const permissionsDenied = Object.keys(response).some((key) => {
-                return response[key] !== 'granted';
-            });
+        return permissions.request('camera', {
+            trigger: 'capturePress',
+            storePermissionsResponse: storePermissions,
+        }).then((result) => {
             const pickerOptions: any = {
                 mediaType: 'photo',
                 includeBase64: false,
@@ -578,7 +587,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 multiple: false,
                 cropping: true,
             };
-            if (!permissionsDenied) {
+            if (result.status === 'granted') {
                 if (action === 'camera') {
                     return ImageCropPicker.openCamera(pickerOptions)
                         .then((cameraResponse) => this.handleImageSelect(cameraResponse));
@@ -587,14 +596,19 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         .then((cameraResponse) => this.handleImageSelect(cameraResponse));
                 }
             } else {
-                logEvent(getAnalytics(),'permissions_denied_issue', {
-                    platform: Platform.OS,
-                    userId: user?.details?.id,
-                }).catch((err) => console.log(err));
-                showToast.error({
-                    text1: this.translate('alertTitles.permissionsDenied'),
-                    text2: this.translate('alertMessages.cameraOrFilePermissionsDenied'),
-                });
+                // Soft-ask dismissals stay quiet — the user explicitly chose
+                // "Not now" and the toast would feel like a scolding. Only
+                // surface an error toast when the OS itself denied/blocked.
+                if (result.source === 'os' || result.status === 'blocked') {
+                    logEvent(getAnalytics(),'permissions_denied_issue', {
+                        platform: Platform.OS,
+                        userId: user?.details?.id,
+                    }).catch((err) => console.log(err));
+                    showToast.error({
+                        text1: this.translate('alertTitles.permissionsDenied'),
+                        text2: this.translate('alertMessages.cameraOrFilePermissionsDenied'),
+                    });
+                }
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
@@ -603,7 +617,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 userId: user?.details?.id,
             }).catch((err) => console.log(err));
             // TODO: Handle Permissions denied
-            if (e?.message.toLowerCase().includes('cancel')) {
+            if (e?.message?.toLowerCase().includes('cancel')) {
                 console.log('canceled');
             }
         });

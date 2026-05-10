@@ -234,6 +234,27 @@ const getUserHelper = ({
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
+// Upgrade-only access-level transition for profile/settings saves.
+// Returns a JSON-stringified accessLevels array when the user has just
+// completed their profile and should move EMAIL_VERIFIED_MISSING_PROPERTIES
+// → EMAIL_VERIFIED. Returns undefined when no transition applies.
+//
+// The reverse demotion (EMAIL_VERIFIED → EMAIL_VERIFIED_MISSING_PROPERTIES)
+// was intentionally removed in commit f89e98805: a routine settings save
+// (e.g. theme change) round-trips name/phone fields and would re-evaluate
+// as "incomplete" against any existing-user row with a falsy required
+// field, demoting the user and bouncing them back to CreateProfile.
+const computeAccessLevelsAfterProfileUpdate = (
+    existingAccessLevels: string[] | undefined,
+    isMissingUserProps: boolean,
+): string | undefined => {
+    if (isMissingUserProps) return undefined;
+    if (!existingAccessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) return undefined;
+    const next = new Set(existingAccessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES));
+    next.add(AccessLevels.EMAIL_VERIFIED);
+    return JSON.stringify([...next]);
+};
+
 const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     const isBusiness = updateArgs?.isBusinessAccount || existingUser?.isBusinessAccount;
 
@@ -691,6 +712,7 @@ const getUserOrgsIdsFromHeaders = (userOrgs: { [key: string]: string[] }, access
 export {
     getUserHelper,
     isUserProfileIncomplete,
+    computeAccessLevelsAfterProfileUpdate,
     createUserHelper,
     validateCredentials,
     redactUserCreds,

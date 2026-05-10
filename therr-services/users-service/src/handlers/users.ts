@@ -12,7 +12,7 @@ import syncDeviceTokenForBrand from '../utilities/syncDeviceTokenForBrand';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import {
-    createUserHelper, getUserHelper, isUserProfileIncomplete, redactUserCreds,
+    createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
@@ -648,18 +648,12 @@ const updateUser = (req, res) => {
             };
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
-
-            // Replace the email verified access level with the missing properties access level
-            if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
-                const userAccessLevels = new Set(userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED));
-                userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-                updateArgs.accessLevels = JSON.stringify([...userAccessLevels]);
-            }
-            // Replace the missing properties access level with the email verified access level
-            if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
-                const userAccessLevels = new Set(userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES));
-                userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
-                updateArgs.accessLevels = JSON.stringify([...userAccessLevels]);
+            const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
+                userSearchResults[0].accessLevels,
+                isMissingUserProps,
+            );
+            if (nextAccessLevels) {
+                updateArgs.accessLevels = nextAccessLevels;
             }
 
             return Promise.all([passwordPromise, orgsPromise, mediaPromise])
@@ -882,16 +876,12 @@ const updateUserCoins = (req, res) => {
             }
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
-
-            if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
-                const userAccessLevels = new Set(userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED));
-                userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-                updateArgs.accessLevels = JSON.stringify([...userAccessLevels]);
-            }
-            if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
-                const userAccessLevels = new Set(userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES));
-                userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
-                updateArgs.accessLevels = JSON.stringify([...userAccessLevels]);
+            const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
+                userSearchResults[0].accessLevels,
+                isMissingUserProps,
+            );
+            if (nextAccessLevels) {
+                updateArgs.accessLevels = nextAccessLevels;
             }
 
             passwordPromise

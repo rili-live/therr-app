@@ -63,6 +63,9 @@
     "updated": "¡Actualizado!",
     "exitedGroup": "Has salido del grupo",
     "joinedGroup": "Te uniste al grupo",
+    "userReportSent": "Reporte de usuario enviado",
+    "userBlocked": "Usuario bloqueado",
+    "connectionRemoved": "Conexión eliminada",
     "waitlistSuccess": "¡Registro exitoso!",
     "reactionSent": "¡Reacción enviada!",
     "reactionFailed": "Reacción fallida",
@@ -1927,6 +1930,24 @@
       "no": "NO",
       "yes": "SÍ",
       "close": "Cerrar"
+    },
+    "primer": {
+      "shared": {
+        "allow": "Permitir",
+        "notNow": "Ahora no"
+      },
+      "notifications": {
+        "title": "Mantente al tanto",
+        "body": "Recibe avisos cuando tus amigos respondan, acepten tus invitaciones o publiquen cerca."
+      },
+      "camera": {
+        "title": "Captura el momento",
+        "body": "Therr necesita acceso a la cámara para adjuntar una foto a tu publicación."
+      },
+      "contacts": {
+        "title": "Encuentra amigos más rápido",
+        "body": "Conecta con contactos que ya están en Therr. Tu agenda permanece en tu dispositivo."
+      }
     }
   },
   "validations": {
