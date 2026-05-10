@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
 import permissions from '../../utilities/permissionsOrchestrator';
+import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
@@ -42,6 +43,7 @@ interface IDispatchProps {
     getTemplates: Function;
     createGoal: Function;
     bulkInvitePact: Function;
+    searchUsers: Function;
 }
 
 interface IStoreProps extends IDispatchProps {
@@ -59,6 +61,9 @@ interface ICreatePactInviteState {
     selectedTemplateId: string | null;
     customHabitName: string;
     selectedPartnerIds: string[];
+    selectedPartnerDetailsById: { [id: string]: IConnectionDetails };
+    searchQuery: string;
+    isSearching: boolean;
     isSending: boolean;
     isLoadingTemplates: boolean;
 }
@@ -73,6 +78,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getTemplates: HabitActions.getTemplates,
     createGoal: HabitActions.createGoal,
     bulkInvitePact: HabitActions.bulkInvitePact,
+    searchUsers: UsersActions.search,
 }, dispatch);
 
 const resolvePartnerDetails = (
@@ -100,6 +106,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     private theme = buildStyles();
     private themeButtons = buildButtonStyles();
     private themeHabits = buildHabitStyles();
+    private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(props: ICreatePactInviteProps) {
         super(props);
@@ -109,6 +116,9 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             selectedTemplateId: null,
             customHabitName: '',
             selectedPartnerIds: [],
+            selectedPartnerDetailsById: {},
+            searchQuery: '',
+            isSearching: false,
             isSending: false,
             isLoadingTemplates: false,
         };
@@ -132,11 +142,23 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         }
     }
 
+    componentWillUnmount() {
+        if (this.searchDebounceTimer) {
+            clearTimeout(this.searchDebounceTimer);
+            this.searchDebounceTimer = null;
+        }
+    }
+
     setStep = (step: Step) => {
         this.props.navigation.setOptions({
             title: this.translate(`pages.pacts.wizard.step${step}Title`),
         });
         this.setState({ step });
+        if (step === 2) {
+            // Fetch a default browse list (no query) so the user has people to
+            // pick from immediately, including non-friends.
+            this.runUserSearch('');
+        }
     };
 
     selectTemplate = (templateId: string) => {
@@ -147,11 +169,36 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         this.setState({ customHabitName: text, selectedTemplateId: null });
     };
 
-    togglePartner = (partnerId: string) => {
-        const { selectedPartnerIds } = this.state;
+    runUserSearch = (query: string) => {
+        this.setState({ isSearching: true });
+        Promise.resolve(this.props.searchUsers({
+            query,
+            limit: 20,
+            offset: 0,
+            withMedia: true,
+        }))
+            .catch(() => {})
+            .finally(() => this.setState({ isSearching: false }));
+    };
+
+    onChangeSearchQuery = (query: string) => {
+        this.setState({ searchQuery: query });
+        if (this.searchDebounceTimer) {
+            clearTimeout(this.searchDebounceTimer);
+        }
+        this.searchDebounceTimer = setTimeout(() => {
+            this.runUserSearch(query.trim());
+        }, 300);
+    };
+
+    togglePartner = (partnerId: string, partnerDetails?: IConnectionDetails) => {
+        const { selectedPartnerIds, selectedPartnerDetailsById } = this.state;
         if (selectedPartnerIds.includes(partnerId)) {
+            const nextDetails = { ...selectedPartnerDetailsById };
+            delete nextDetails[partnerId];
             this.setState({
                 selectedPartnerIds: selectedPartnerIds.filter((id) => id !== partnerId),
+                selectedPartnerDetailsById: nextDetails,
             });
             return;
         }
@@ -162,7 +209,12 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             });
             return;
         }
-        this.setState({ selectedPartnerIds: [...selectedPartnerIds, partnerId] });
+        this.setState({
+            selectedPartnerIds: [...selectedPartnerIds, partnerId],
+            selectedPartnerDetailsById: partnerDetails
+                ? { ...selectedPartnerDetailsById, [partnerId]: partnerDetails }
+                : selectedPartnerDetailsById,
+        });
     };
 
     canAdvanceFromStep1 = (): boolean => Boolean(
@@ -358,39 +410,67 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         );
     };
 
+    renderPartnerRow = (partner: IConnectionDetails, isFriend: boolean) => {
+        const partnerId = partner.id;
+        if (!partnerId) return null;
+        const isSelected = this.state.selectedPartnerIds.includes(partnerId);
+        return (
+            <Pressable
+                key={partnerId}
+                onPress={() => this.togglePartner(partnerId, partner)}
+                style={[
+                    this.themeHabits.styles.habitCardContainer,
+                    { flexDirection: 'row', alignItems: 'center' },
+                    isSelected && { borderWidth: 2, borderColor: this.theme.colors.primary3 },
+                ]}
+            >
+                <View style={this.themeHabits.styles.pactPartnerAvatar}>
+                    <Text>{(partner.firstName?.[0] || partner.userName?.[0] || '?').toUpperCase()}</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={this.themeHabits.styles.pactPartnerName}>
+                        {partnerDisplayName(partner, this.translate('pages.pacts.partnerFallback'))}
+                    </Text>
+                    {isFriend && (
+                        <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                            {this.translate('pages.pacts.wizard.friendBadge')}
+                        </Text>
+                    )}
+                </View>
+                {isSelected && <Text style={{ fontSize: 20 }}>{'✅'}</Text>}
+            </Pressable>
+        );
+    };
+
     renderStep2 = () => {
         const { user, userConnections } = this.props;
-        const { selectedPartnerIds } = this.state;
+        const { selectedPartnerIds, searchQuery, isSearching } = this.state;
         const currentUserId = user.details?.id || '';
         const connections = (userConnections?.activeConnections || userConnections?.connections || []) as any[];
 
-        if (connections.length === 0) {
-            return (
-                <View style={[this.themeHabits.styles.emptyStateContainer, { paddingTop: 32 }]}>
-                    <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
-                    <Text style={this.themeHabits.styles.emptyStateTitle}>
-                        {this.translate('pages.pacts.onboarding.title')}
-                    </Text>
-                    <Text style={this.themeHabits.styles.emptyStateSubtitle}>
-                        {this.translate('pages.pacts.wizard.step2Subtitle')}
-                    </Text>
-                    <Button
-                        buttonStyle={[this.themeButtons.styles.btnLargeWithText, { marginTop: 24, width: '100%' }]}
-                        titleStyle={this.themeButtons.styles.btnLargeTitle}
-                        title={this.translate('pages.pacts.onboarding.findPartner')}
-                        onPress={() => this.props.navigation.navigate('Connect')}
-                    />
-                    <Pressable
-                        onPress={this.onShareLink}
-                        style={{ marginTop: 16, paddingVertical: 12 }}
-                    >
-                        <Text style={this.themeButtons.styles.btnTitleBlack}>
-                            {this.translate('forms.createConnection.shareLink.title')}
-                        </Text>
-                    </Pressable>
-                </View>
-            );
-        }
+        const friendsById: { [id: string]: IConnectionDetails } = {};
+        const friends: IConnectionDetails[] = [];
+        connections.forEach((c: any) => {
+            const partner = resolvePartnerDetails(c, currentUserId);
+            if (partner?.id && partner.id !== currentUserId && !friendsById[partner.id]) {
+                friendsById[partner.id] = partner;
+                friends.push(partner);
+            }
+        });
+
+        const usersMap = ((this.props.user as any).users || {}) as { [id: string]: IConnectionDetails };
+        const searchResults: IConnectionDetails[] = Object.values(usersMap)
+            .filter((u) => u?.id && u.id !== currentUserId && !friendsById[u.id]);
+
+        const q = searchQuery.trim().toLowerCase();
+        const visibleFriends = q
+            ? friends.filter((f) => {
+                const haystack = `${f.firstName || ''} ${f.lastName || ''} ${f.userName || ''}`.toLowerCase();
+                return haystack.includes(q);
+            })
+            : friends;
+
+        const hasAnyResults = visibleFriends.length > 0 || searchResults.length > 0;
 
         return (
             <View>
@@ -401,31 +481,71 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                     {this.translate('pages.pacts.wizard.multiSelectCounter', { count: selectedPartnerIds.length })}
                 </Text>
 
-                {connections.map((c: any) => {
-                    const partner = resolvePartnerDetails(c, currentUserId);
-                    const partnerId = partner.id;
-                    if (!partnerId) return null;
-                    const isSelected = selectedPartnerIds.includes(partnerId);
-                    return (
-                        <Pressable
-                            key={partnerId}
-                            onPress={() => this.togglePartner(partnerId)}
-                            style={[
-                                this.themeHabits.styles.habitCardContainer,
-                                { flexDirection: 'row', alignItems: 'center' },
-                                isSelected && { borderWidth: 2, borderColor: this.theme.colors.primary3 },
-                            ]}
-                        >
-                            <View style={this.themeHabits.styles.pactPartnerAvatar}>
-                                <Text>{(partner.firstName?.[0] || partner.userName?.[0] || '?').toUpperCase()}</Text>
+                <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+                    <TextInput
+                        value={searchQuery}
+                        onChangeText={this.onChangeSearchQuery}
+                        placeholder={this.translate('pages.pacts.wizard.searchPeoplePlaceholder')}
+                        style={{
+                            borderWidth: 1,
+                            borderColor: this.theme.colorVariations.textGrayFade || '#ccc',
+                            borderRadius: 8,
+                            padding: 12,
+                            color: this.theme.colors.accentTextBlack,
+                        }}
+                        placeholderTextColor={this.theme.colors.textGray}
+                        autoCorrect={false}
+                        autoCapitalize="none"
+                    />
+                </View>
+
+                {visibleFriends.length > 0 && (
+                    <>
+                        <Text style={[this.themeHabits.styles.habitCardSubtitle, { paddingHorizontal: 20, marginTop: 16, fontWeight: '600' }]}>
+                            {this.translate('pages.pacts.wizard.friendsSectionTitle')}
+                        </Text>
+                        {visibleFriends.map((p) => this.renderPartnerRow(p, true))}
+                    </>
+                )}
+
+                {(searchResults.length > 0 || isSearching) && (
+                    <>
+                        <Text style={[this.themeHabits.styles.habitCardSubtitle, { paddingHorizontal: 20, marginTop: 16, fontWeight: '600' }]}>
+                            {q
+                                ? this.translate('pages.pacts.wizard.searchResultsTitle')
+                                : this.translate('pages.pacts.wizard.suggestedTitle')}
+                        </Text>
+                        {isSearching && (
+                            <View style={{ padding: 12, alignItems: 'center' }}>
+                                <ActivityIndicator />
                             </View>
-                            <Text style={[this.themeHabits.styles.pactPartnerName, { flex: 1, marginLeft: 12 }]}>
-                                {partnerDisplayName(partner, this.translate('pages.pacts.partnerFallback'))}
-                            </Text>
-                            {isSelected && <Text style={{ fontSize: 20 }}>{'✅'}</Text>}
-                        </Pressable>
-                    );
-                })}
+                        )}
+                        {searchResults.map((p) => this.renderPartnerRow(p, false))}
+                    </>
+                )}
+
+                {!isSearching && !hasAnyResults && (
+                    <View style={[this.themeHabits.styles.emptyStateContainer, { paddingTop: 24 }]}>
+                        <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
+                        <Text style={this.themeHabits.styles.emptyStateTitle}>
+                            {q
+                                ? this.translate('pages.pacts.wizard.noPeopleFound')
+                                : this.translate('pages.pacts.onboarding.title')}
+                        </Text>
+                        <Text style={this.themeHabits.styles.emptyStateSubtitle}>
+                            {this.translate('pages.pacts.wizard.searchHelp')}
+                        </Text>
+                    </View>
+                )}
+
+                <Pressable
+                    onPress={this.onShareLink}
+                    style={{ paddingHorizontal: 20, marginTop: 16, paddingVertical: 12 }}
+                >
+                    <Text style={[this.themeButtons.styles.btnTitleBlack, { textAlign: 'center' }]}>
+                        {this.translate('forms.createConnection.shareLink.title')}
+                    </Text>
+                </Pressable>
             </View>
         );
     };

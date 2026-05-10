@@ -1849,6 +1849,13 @@
         "addPartnerByEmail": "Invite by email",
         "addPartnerEmailPlaceholder": "friend@example.com",
         "maxPartnersReached": "You can invite up to 5 friends at once",
+        "searchPeoplePlaceholder": "Search people by name…",
+        "friendsSectionTitle": "Your friends",
+        "searchResultsTitle": "Search results",
+        "suggestedTitle": "Suggested people",
+        "noPeopleFound": "No people found",
+        "searchHelp": "Type a name to find someone, or share an invite link.",
+        "friendBadge": "Friend",
         "habitDefaultEmoji": "🎯"
       },
       "status": {

@@ -1849,6 +1849,13 @@
         "addPartnerByEmail": "Inviter par courriel",
         "addPartnerEmailPlaceholder": "ami@exemple.com",
         "maxPartnersReached": "Tu peux inviter jusqu'à 5 amis à la fois",
+        "searchPeoplePlaceholder": "Cherche des personnes par nom…",
+        "friendsSectionTitle": "Tes amis",
+        "searchResultsTitle": "Résultats de recherche",
+        "suggestedTitle": "Personnes suggérées",
+        "noPeopleFound": "Aucune personne trouvée",
+        "searchHelp": "Tape un nom pour trouver quelqu'un, ou partage un lien d'invitation.",
+        "friendBadge": "Ami",
         "habitDefaultEmoji": "🎯"
       },
       "status": {
