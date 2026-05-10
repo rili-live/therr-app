@@ -135,8 +135,15 @@ export const dispatchPactInvitation = async (
 
     const partnerLocale = partner.settingsLocale || args.locale || 'en-us';
     const contextConfig = getHostContext(args.whiteLabelOrigin, args.brandVariation);
+    const baseHost = contextConfig.emailTemplates.appHostFull
+        || contextConfig.parentHomepageUrl;
+    const claimUrl = `${baseHost}/claim-pact/${claimToken}`;
+    const hasCode = !!claimCode;
 
-    if (hasEmail) {
+    // Single-channel delivery: email is preferred, SMS is the fallback only
+    // when the partner has no email on file. Sending both on every invite
+    // doubles cost and feels spammy; the chosen channel matches `invitedVia`.
+    if (invitedVia === 'email') {
         sendPactInvitationEmail({
             subject: translate(partnerLocale, 'emails.pactInvitation.header', { fromName: args.fromUserName }),
             locale: partnerLocale,
@@ -147,7 +154,7 @@ export const dispatchPactInvitation = async (
             fromName: args.fromUserName,
             toName: partner.firstName || '',
             habitName: args.habitName,
-            claimToken,
+            claimUrl,
             claimCode,
         }).catch((err) => {
             logSpan({
@@ -160,21 +167,27 @@ export const dispatchPactInvitation = async (
                 },
             });
         });
-    }
-
-    if (hasPhone) {
+    } else if (invitedVia === 'sms') {
         const sender = getSmsSender(partner.phoneNumber);
         if (sender) {
-            const baseHost = contextConfig.emailTemplates.appHostFull
-                || contextConfig.parentHomepageUrl;
-            const claimUrl = `${baseHost}/claim-pact/${claimToken}`;
-            const smsBody = translate(partnerLocale, 'invites.pact.sms', {
-                fromName: args.fromUserName,
-                habitName: args.habitName,
-                brandName: contextConfig.brandName,
-                claimUrl,
-                claimCode,
-            });
+            const smsBody = translate(
+                partnerLocale,
+                hasCode ? 'invites.pact.sms' : 'invites.pact.smsTokenOnly',
+                hasCode
+                    ? {
+                        fromName: args.fromUserName,
+                        habitName: args.habitName,
+                        brandName: contextConfig.brandName,
+                        claimUrl,
+                        claimCode,
+                    }
+                    : {
+                        fromName: args.fromUserName,
+                        habitName: args.habitName,
+                        brandName: contextConfig.brandName,
+                        claimUrl,
+                    },
+            );
             twilioClient.messages.create({
                 body: smsBody,
                 to: partner.phoneNumber,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StyleSheet, TextInput as RNTextInput, TextInputProps, View } from 'react-native';
+import { Platform, TextInput as RNTextInput, TextInputProps, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import 'react-native-gesture-handler';
@@ -8,6 +8,7 @@ import translator from '../../utilities/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import UsersActions from '../../redux/actions/UsersActions';
 import TherrIcon from '../TherrIcon';
+import localStyles from './headerSearchStyles';
 
 
 interface IHeaderSearchUsersInputState {
@@ -132,34 +133,5 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
         );
     }
 }
-
-const localStyles = StyleSheet.create({
-    flex: {
-        flex: 1,
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-    },
-    iconButton: {
-        paddingHorizontal: 4,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    textInputBase: {
-        margin: 0,
-        padding: 0,
-        paddingVertical: 0,
-        paddingHorizontal: 0,
-        backgroundColor: 'transparent',
-    },
-    fontSizeDefault: {
-        fontSize: 16,
-    },
-    fontSizeIos: {
-        fontSize: 19,
-    },
-});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HeaderSearchUsersInput);

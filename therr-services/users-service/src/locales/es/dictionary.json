@@ -60,7 +60,8 @@
     "invites": {
         "phone": "{name} te invitó a Therr — la app de comunidad local y recompensas. Regístrate aquí para conectar: https://therr.com",
         "pact": {
-            "sms": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala y abre {claimUrl} — o usa el código {claimCode} al registrarte."
+            "sms": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala y abre {claimUrl} — o usa el código {claimCode} al registrarte.",
+            "smsTokenOnly": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala la app y abre {claimUrl} para aceptar."
         }
     },
     "thoughts": {
@@ -145,8 +146,10 @@
             "dearUser": "¡Hola {toName}!",
             "body1": "{fromName} te retó a un pacto en {brandName} para {habitName}. Los hábitos se mantienen mejor cuando un amigo te apoya — únete para lograrlo.",
             "body2": "Toca el botón para instalar {brandName} y aceptar el pacto, o pega este código en la pantalla de registro:",
+            "body2TokenOnly": "Toca el botón para instalar {brandName} y aceptar el pacto.",
             "buttonText": "Instalar {brandName}",
-            "postBody1": "Si el botón no funciona, abre este enlace en tu teléfono: {linkUrl} — o ingresa el código {claimCode} en la aplicación."
+            "postBody1": "Si el botón no funciona, abre este enlace en tu teléfono: {linkUrl} — o ingresa el código {claimCode} en la aplicación.",
+            "postBody1TokenOnly": "Si el botón no funciona, abre este enlace en tu teléfono: {linkUrl}"
         },
         "coinsReceived": {
             "header": "¡Ganaste monedas!",
