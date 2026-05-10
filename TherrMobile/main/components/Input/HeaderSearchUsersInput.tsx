@@ -1,10 +1,9 @@
 import React from 'react';
-import { Platform, StyleSheet, TextInput as RNTextInput, TextInputProps } from 'react-native';
+import { Platform, StyleSheet, TextInput as RNTextInput, TextInputProps, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import 'react-native-gesture-handler';
 import { IMapState as IMapReduxState } from 'therr-react/types';
-import RoundInput from '.';
 import translator from '../../utilities/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -96,58 +95,64 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
     render() {
         const { inputText } = this.state;
         const { theme, themeForms } = this.props;
-        const textStyle = !inputText?.length
-            ? [themeForms.styles.placeholderText, { fontSize: 16 }]
-            : [themeForms.styles.inputText, { fontSize: 16 }];
         const placeholderText = this.translate('components.header.searchUsersInput.placeholder');
+
+        const inputContainerStyle = [
+            themeForms.styles.inputContainerRound,
+            theme.styles.headerSearchInputContainer,
+            localStyles.row,
+        ];
+
+        const textInputStyle = [
+            Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt,
+            localStyles.flex,
+            localStyles.textInputBase,
+            Platform.OS !== 'ios' ? localStyles.fontSizeDefault : localStyles.fontSizeIos,
+        ];
+
         return (
-            <>
-                <RoundInput
-                    errorStyle={localStyles.hidden}
-                    style={textStyle}
-                    containerStyle={theme.styles.headerSearchContainer}
-                    inputStyle={
-                        [
-                            Platform.OS !== 'ios'
-                                ? themeForms.styles.input
-                                : themeForms.styles.inputAlt,
-                            Platform.OS !== 'ios'
-                                ? localStyles.fontSizeDefault
-                                : localStyles.fontSizeIos,
-                        ]
-                    }
-                    inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
-                    roundness={18}
+            <View style={[theme.styles.headerSearchContainer, inputContainerStyle]}>
+                <RNTextInput
                     onChangeText={this.onInputChange}
                     placeholder={placeholderText}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
-                    render={(inputProps) => (
-                        <RNTextInput
-                            {...inputProps}
-                            placeholder={placeholderText}
-                            placeholderTextColor={theme.colorVariations.textGrayFade}
-                        />
-                    )}
-                    underlineColor="transparent"
-                    activeUnderlineColor="transparent"
-                    rightIcon={
-                        <TherrIcon
-                            name={'search'}
-                            size={18}
-                            color={theme.colors.primary3}
-                        />
-                    }
-                    themeForms={themeForms}
+                    selectionColor={themeForms.colors.selectionColor as unknown as string}
+                    cursorColor={themeForms.colors.selectionColor as unknown as string}
+                    style={textInputStyle}
                     value={inputText}
                 />
-            </>
+                <View style={localStyles.iconButton}>
+                    <TherrIcon
+                        name={'search'}
+                        size={18}
+                        color={theme.colors.primary3}
+                    />
+                </View>
+            </View>
         );
     }
 }
 
 const localStyles = StyleSheet.create({
-    hidden: {
-        display: 'none',
+    flex: {
+        flex: 1,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+    },
+    iconButton: {
+        paddingHorizontal: 4,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    textInputBase: {
+        margin: 0,
+        padding: 0,
+        paddingVertical: 0,
+        paddingHorizontal: 0,
+        backgroundColor: 'transparent',
     },
     fontSizeDefault: {
         fontSize: 16,
