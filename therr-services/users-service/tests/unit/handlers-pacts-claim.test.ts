@@ -45,13 +45,24 @@ describe('Pacts handler — claim flow', () => {
         });
 
         after(() => {
-            process.env.TWILIO_SENDER_PHONE_NUMBER_GB = originalGb;
-            process.env.TWILIO_SENDER_PHONE_NUMBER = originalDefault;
+            // process.env values must be strings; assigning `undefined`
+            // stringifies to "undefined" (a truthy string) and leaks into
+            // sibling describes — the SMS-fallback test downstream would
+            // then call twilioClient.messages.create() and crash on the
+            // unconfigured client. Delete instead when originally unset.
+            if (originalGb === undefined) {
+                delete process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
+            } else {
+                process.env.TWILIO_SENDER_PHONE_NUMBER_GB = originalGb;
+            }
+            if (originalDefault === undefined) {
+                delete process.env.TWILIO_SENDER_PHONE_NUMBER;
+            } else {
+                process.env.TWILIO_SENDER_PHONE_NUMBER = originalDefault;
+            }
         });
 
         it('routes UK numbers (+44) through the GB sender', () => {
-            // Note: dispatchPactInvitation captures these env vars at module
-            // load. This test exercises the routing predicate directly.
             expect(getSmsSender('+447700900000')).to.match(/^\+44/);
         });
 

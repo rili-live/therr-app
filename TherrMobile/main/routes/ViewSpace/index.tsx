@@ -450,6 +450,8 @@ const ViewSpace = ({
         if (checkIsMySpace(fetchedSpace, user)) {
             deleteSpace({ ids: [fetchedSpace.id] })
                 .then(() => {
+                    setIsDeleting(false);
+                    setIsDeleteDialogVisible(false);
                     navigation.navigate('Map', { shouldShowPreview: false });
                 })
                 .catch((err) => {

@@ -243,6 +243,8 @@ const ViewThought = ({
         if (checkIsMyContent(thought, user)) {
             deleteThought({ ids: [thought.id] })
                 .then(() => {
+                    setIsDeleting(false);
+                    setIsDeleteDialogVisible(false);
                     const isAreasEnabled = getConfig().featureFlags?.[FeatureFlags.ENABLE_AREAS] === true;
                     if (isAreasEnabled) {
                         navigation.navigate('Areas');

@@ -561,6 +561,7 @@
         "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
         "insufficientFundsMessage2": "Continue creating content without rewards?"
       },
+      "deleteConfirmation": "Are you sure you want to delete this moment?",
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },

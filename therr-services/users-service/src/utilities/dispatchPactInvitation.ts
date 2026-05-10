@@ -17,8 +17,6 @@ const CLAIM_TOKEN_TTL_DAYS = 14;
 // giving up — caller falls back to the long token-only deep link.
 const CLAIM_CODE_MAX_ATTEMPTS = 5;
 const PG_UNIQUE_VIOLATION = '23505';
-const SMS_SENDER_DEFAULT = process.env.TWILIO_SENDER_PHONE_NUMBER;
-const SMS_SENDER_GB = process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
 
 export const generateClaimCode = (): string => {
     const bytes = randomBytes(CLAIM_CODE_LENGTH);
@@ -29,9 +27,11 @@ export const generateClaimCode = (): string => {
     return `PACT-${code}`;
 };
 
+// Read env at call time, not module load. Otherwise import order vs dotenv
+// (or unset env in test) silently produces undefined senders.
 export const getSmsSender = (toPhoneNumber: string): string | undefined => {
-    if (toPhoneNumber.startsWith('+44')) return SMS_SENDER_GB;
-    return SMS_SENDER_DEFAULT;
+    if (toPhoneNumber.startsWith('+44')) return process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
+    return process.env.TWILIO_SENDER_PHONE_NUMBER;
 };
 
 export const isOnHabits = (brandVariationsJson: any): boolean => {
@@ -135,8 +135,15 @@ export const dispatchPactInvitation = async (
 
     const partnerLocale = partner.settingsLocale || args.locale || 'en-us';
     const contextConfig = getHostContext(args.whiteLabelOrigin, args.brandVariation);
+    const baseHost = contextConfig.emailTemplates.appHostFull
+        || contextConfig.parentHomepageUrl;
+    const claimUrl = `${baseHost}/claim-pact/${claimToken}`;
+    const hasCode = !!claimCode;
 
-    if (hasEmail) {
+    // Single-channel delivery: email is preferred, SMS is the fallback only
+    // when the partner has no email on file. Sending both on every invite
+    // doubles cost and feels spammy; the chosen channel matches `invitedVia`.
+    if (invitedVia === 'email') {
         sendPactInvitationEmail({
             subject: translate(partnerLocale, 'emails.pactInvitation.header', { fromName: args.fromUserName }),
             locale: partnerLocale,
@@ -147,7 +154,7 @@ export const dispatchPactInvitation = async (
             fromName: args.fromUserName,
             toName: partner.firstName || '',
             habitName: args.habitName,
-            claimToken,
+            claimUrl,
             claimCode,
         }).catch((err) => {
             logSpan({
@@ -160,21 +167,27 @@ export const dispatchPactInvitation = async (
                 },
             });
         });
-    }
-
-    if (hasPhone) {
+    } else if (invitedVia === 'sms') {
         const sender = getSmsSender(partner.phoneNumber);
         if (sender) {
-            const baseHost = contextConfig.emailTemplates.appHostFull
-                || contextConfig.parentHomepageUrl;
-            const claimUrl = `${baseHost}/claim-pact/${claimToken}`;
-            const smsBody = translate(partnerLocale, 'invites.pact.sms', {
-                fromName: args.fromUserName,
-                habitName: args.habitName,
-                brandName: contextConfig.brandName,
-                claimUrl,
-                claimCode,
-            });
+            const smsBody = translate(
+                partnerLocale,
+                hasCode ? 'invites.pact.sms' : 'invites.pact.smsTokenOnly',
+                hasCode
+                    ? {
+                        fromName: args.fromUserName,
+                        habitName: args.habitName,
+                        brandName: contextConfig.brandName,
+                        claimUrl,
+                        claimCode,
+                    }
+                    : {
+                        fromName: args.fromUserName,
+                        habitName: args.habitName,
+                        brandName: contextConfig.brandName,
+                        claimUrl,
+                    },
+            );
             twilioClient.messages.create({
                 body: smsBody,
                 to: partner.phoneNumber,

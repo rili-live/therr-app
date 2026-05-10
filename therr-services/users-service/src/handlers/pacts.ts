@@ -320,6 +320,10 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
 
             partnerMembers.forEach((member: any) => {
                 const toUserId = member.userId;
+                // Mirror createPact's recovery: a dispatch error must still
+                // try the on-brand push, otherwise a transient DB error in
+                // partner lookup silently drops the notification for a Habits
+                // invitee. Default to isOnBrand=true on failure.
                 dispatchPactInvitation({
                     pactMemberId: member.id,
                     partnerUserId: toUserId,
@@ -328,6 +332,14 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
                     brandVariation,
                     whiteLabelOrigin,
                     locale,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error dispatching pact invitation'],
+                        traceArgs: { 'error.message': err?.message, toUserId },
+                    });
+                    return { isOnBrand: true };
                 }).then((dispatchResult) => {
                     if (!dispatchResult.isOnBrand) {
                         return undefined;

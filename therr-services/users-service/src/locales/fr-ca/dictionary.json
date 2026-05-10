@@ -60,7 +60,8 @@
     "invites": {
         "phone": "{name} t'a invité sur Therr — l'appli de communauté locale et de récompenses. Inscris-toi ici pour te connecter : https://therr.com",
         "pact": {
-            "sms": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} — ou utilise le code {claimCode} à l'inscription."
+            "sms": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} — ou utilise le code {claimCode} à l'inscription.",
+            "smsTokenOnly": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} pour accepter."
         }
     },
     "thoughts": {
@@ -145,8 +146,10 @@
             "dearUser": "Salut {toName}!",
             "body1": "{fromName} t'a lancé un défi sur {brandName} pour {habitName}. Les habitudes durent quand un ami est là pour t'appuyer — joins-toi à lui pour y arriver.",
             "body2": "Appuie sur le bouton pour installer {brandName} et accepter le pacte, ou colle ce code à l'inscription :",
+            "body2TokenOnly": "Appuie sur le bouton pour installer {brandName} et accepter le pacte.",
             "buttonText": "Installer {brandName}",
-            "postBody1": "Si le bouton ne fonctionne pas, ouvre ce lien sur ton téléphone : {linkUrl} — ou saisis le code {claimCode} dans l'application."
+            "postBody1": "Si le bouton ne fonctionne pas, ouvre ce lien sur ton téléphone : {linkUrl} — ou saisis le code {claimCode} dans l'application.",
+            "postBody1TokenOnly": "Si le bouton ne fonctionne pas, ouvre ce lien sur ton téléphone : {linkUrl}"
         },
         "coinsReceived": {
             "header": "Tu as gagné des pièces!",

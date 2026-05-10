@@ -147,6 +147,20 @@ append new items here rather than only printing them once.
   `/emails/unsubscribe` — these are `noindex` so likely skip, but the
   sitemap-generator script may still emit them). Re-submit sitemap to Search
   Console after deploy.
+- [ ] (2026-05-10, /quality-peer-review) Run users-service migration
+  `20260509000001_habits.pact_members.claimToken` on production before
+  deploying this `general` merge. Adds `claimToken`/`claimCode`/
+  `claimTokenExpiresAt`/`invitedVia` columns + partial unique index to
+  `habits.pact_members` for cross-app pact invite redemption. Until the
+  migration runs, `dispatchPactInvitation` writes (createPact + bulkInvitePact
+  cross-app paths) will 500 on column-missing errors.
+- [ ] (2026-05-10, /quality-peer-review) Add `/claim-pact/:token` to
+  `habits.therr.com` sitemap if you want Search Console coverage (likely
+  skip — the page is a transient install bouncer, not indexable content),
+  and confirm Android App Links verification picks up the new
+  `assetlinks.habits.json` once habits.therr.com serves it (visit
+  `https://habits.therr.com/.well-known/assetlinks.json` and re-run the
+  Play Console "App links" check for `com.therr.habits`).
 <!-- skill-followups:end -->
 
 ---

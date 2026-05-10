@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
-import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
 import translate from '../../../utilities/translator';
 
@@ -17,16 +16,15 @@ export interface ITemplateParams {
     fromName: string;
     toName?: string;
     habitName: string;
-    claimToken: string;
+    claimUrl: string;
     claimCode: string;
 }
 
 export default (emailParams: ISendPactInvitationEmailConfig, templateParams: ITemplateParams) => {
     const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
-    const baseHost = contextConfig.emailTemplates.appHostFull
-        || globalConfig[process.env.NODE_ENV].hostFull;
-    const linkUrl = `${baseHost}/claim-pact/${templateParams.claimToken}`;
+    const { claimUrl, claimCode } = templateParams;
+    const hasCode = !!claimCode;
 
     const htmlConfig = {
         header: translate(locale, 'emails.pactInvitation.header', { fromName: templateParams.fromName }),
@@ -36,14 +34,19 @@ export default (emailParams: ISendPactInvitationEmailConfig, templateParams: ITe
             habitName: templateParams.habitName,
             brandName: contextConfig.brandName,
         }),
-        body2: translate(locale, 'emails.pactInvitation.body2', { brandName: contextConfig.brandName }),
-        bodyBold: templateParams.claimCode,
-        buttonHref: linkUrl,
+        body2: translate(
+            locale,
+            hasCode ? 'emails.pactInvitation.body2' : 'emails.pactInvitation.body2TokenOnly',
+            { brandName: contextConfig.brandName },
+        ),
+        bodyBold: hasCode ? claimCode : '',
+        buttonHref: claimUrl,
         buttonText: translate(locale, 'emails.pactInvitation.buttonText', { brandName: contextConfig.brandName }),
-        postBody1: translate(locale, 'emails.pactInvitation.postBody1', {
-            linkUrl,
-            claimCode: templateParams.claimCode,
-        }),
+        postBody1: translate(
+            locale,
+            hasCode ? 'emails.pactInvitation.postBody1' : 'emails.pactInvitation.postBody1TokenOnly',
+            hasCode ? { linkUrl: claimUrl, claimCode } : { linkUrl: claimUrl },
+        ),
         fromEmailTitle: `${templateParams.fromName}, ${contextConfig.brandName}`,
     };
 

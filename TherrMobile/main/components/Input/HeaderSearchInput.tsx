@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Pressable, StyleSheet, TextInput as RNTextInput, TextInputProps, View } from 'react-native';
+import { Platform, Pressable, TextInput as RNTextInput, TextInputProps, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge } from 'react-native-paper';
@@ -12,6 +12,7 @@ import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/them
 import TherrIcon from '../TherrIcon';
 import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../../constants';
 import getConfig from '../../utilities/getConfig';
+import localStyles from './headerSearchStyles';
 
 
 interface IHeaderSearchInputState {
@@ -214,39 +215,5 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         );
     }
 }
-
-const localStyles = StyleSheet.create({
-    flex: {
-        flex: 1,
-    },
-    flexRow: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-    },
-    iconButton: {
-        paddingHorizontal: 4,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    textInputBase: {
-        margin: 0,
-        padding: 0,
-        paddingVertical: 0,
-        paddingHorizontal: 0,
-        backgroundColor: 'transparent',
-    },
-    fontSizeDefault: {
-        fontSize: 16,
-    },
-    fontSizeIos: {
-        fontSize: 19,
-    },
-});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HeaderSearchInput);

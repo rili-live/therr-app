@@ -46,7 +46,6 @@ const getBtnGroupBtnStyles = (theme: ITherrTheme): any => ({
 
 const getFloatingBtnContainer = (_theme: ITherrTheme): any => ({
     position: 'absolute',
-    ...shadowSm,
     borderRadius: 100,
     padding: 0,
     alignItems: 'center',
