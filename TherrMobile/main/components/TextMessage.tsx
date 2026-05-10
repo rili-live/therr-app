@@ -5,7 +5,7 @@ import { getUserImageUri } from '../utilities/content';
 import RichText from './RichText';
 import handleMentionPress from '../utilities/handleMentionPress';
 
-export default ({
+const TextMessage = ({
     connectionDetails,
     goToUser,
     userDetails,
@@ -65,6 +65,20 @@ export default ({
         </>
     );
 };
+
+// Custom equality: parent passes inline arrow handlers per render in chat
+// scrolls; bail out when message identity, styling flags, and theme refs are
+// unchanged so older messages skip re-render as new ones arrive.
+export default React.memo(TextMessage, (prev, next) => (
+    prev.message?.id === next.message?.id
+    && prev.message?.text === next.message?.text
+    && prev.message?.time === next.message?.time
+    && prev.message?.fromUserId === next.message?.fromUserId
+    && prev.isLeft === next.isLeft
+    && prev.isFirstOfMessage === next.isFirstOfMessage
+    && prev.theme === next.theme
+    && prev.themeMessage === next.themeMessage
+));
 
 const localStyles = StyleSheet.create({
     justifyEnd: {
