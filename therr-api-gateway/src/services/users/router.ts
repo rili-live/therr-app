@@ -632,6 +632,10 @@ usersServiceRouter.post('/habits/pacts/bulk-invite', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
+usersServiceRouter.post('/habits/pacts/claim', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
 usersServiceRouter.post('/habits/pacts', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',

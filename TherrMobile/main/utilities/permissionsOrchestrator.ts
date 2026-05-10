@@ -263,6 +263,7 @@ const requestIfAppropriate = async (type: PermType, opts: RequestOptions): Promi
     const native = await nativeCheck(type);
     if (native === 'granted') {
         await updateStateFor(type, { lastStatus: 'granted' });
+        opts.onGranted?.();
         fireGrantedListeners(type);
         return;
     }

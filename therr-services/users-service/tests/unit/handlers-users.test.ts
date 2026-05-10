@@ -5,6 +5,7 @@ import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants'
 import normalizeEmail from 'normalize-email';
 import Store from '../../src/store';
 import {
+    computeAccessLevelsAfterProfileUpdate,
     isUserProfileIncomplete,
     redactUserCreds,
 } from '../../src/handlers/helpers/user';
@@ -264,6 +265,75 @@ describe('Users Handler', () => {
             };
             const result = isUserProfileIncomplete(mockUpdate, mockExistingUser);
             expect(result).to.be.eq(true);
+        });
+    });
+
+    describe('computeAccessLevelsAfterProfileUpdate helper', () => {
+        // Regression coverage for f89e98805: a routine settings save (e.g. theme
+        // change) used to demote EMAIL_VERIFIED users to MISSING_PROPERTIES,
+        // bouncing them to CreateProfile. The helper must be upgrade-only.
+        it('returns undefined when EMAIL_VERIFIED user saves with a complete profile (no demotion)', () => {
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED],
+                false,
+            );
+            expect(result).to.be.eq(undefined);
+        });
+
+        it('returns undefined when EMAIL_VERIFIED user saves with an incomplete profile (no demotion)', () => {
+            // The pre-fix code would have demoted EMAIL_VERIFIED → MISSING_PROPERTIES here.
+            // The helper now refuses the demotion entirely.
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED],
+                true,
+            );
+            expect(result).to.be.eq(undefined);
+        });
+
+        it('upgrades MISSING_PROPERTIES → EMAIL_VERIFIED when the profile is now complete', () => {
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                false,
+            );
+            expect(result).to.be.a('string');
+            const parsed = JSON.parse(result as string);
+            expect(parsed).to.include(AccessLevels.EMAIL_VERIFIED);
+            expect(parsed).to.not.include(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+            expect(parsed).to.include(AccessLevels.DEFAULT);
+        });
+
+        it('returns undefined when MISSING_PROPERTIES user is still incomplete (no upgrade)', () => {
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                true,
+            );
+            expect(result).to.be.eq(undefined);
+        });
+
+        it('returns undefined when accessLevels is undefined', () => {
+            const result = computeAccessLevelsAfterProfileUpdate(undefined, false);
+            expect(result).to.be.eq(undefined);
+        });
+
+        it('returns undefined when user has neither EMAIL_VERIFIED nor MISSING_PROPERTIES', () => {
+            const result = computeAccessLevelsAfterProfileUpdate([AccessLevels.DEFAULT], false);
+            expect(result).to.be.eq(undefined);
+        });
+
+        it('preserves unrelated access levels during the upgrade', () => {
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [
+                    AccessLevels.DEFAULT,
+                    AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES,
+                    AccessLevels.DASHBOARD_SIGNUP,
+                ],
+                false,
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed).to.include(AccessLevels.DASHBOARD_SIGNUP);
+            expect(parsed).to.include(AccessLevels.DEFAULT);
+            expect(parsed).to.include(AccessLevels.EMAIL_VERIFIED);
+            expect(parsed).to.not.include(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
         });
     });
 

@@ -861,6 +861,13 @@
       "appStoreText": "Aussi disponible sur mobile",
       "returnHome": "Retour à la page d'accueil"
     },
+    "claimPactLanding": {
+      "title": "Accepte ton pacte",
+      "description": "Un ami t'a invité à un pacte d'habitude sur Friends with Habits. Installe l'appli pour accepter et démarrer la série ensemble.",
+      "instructions": "Après l'installation, appuie de nouveau sur le lien de ton invitation — ou colle le code PACT-XXXX du courriel à l'inscription.",
+      "tokenLabel": "Jeton d'invitation",
+      "returnHome": "Retour à la page d'accueil"
+    },
     "viewSpace": {
       "pageTitle": "",
       "headings": {

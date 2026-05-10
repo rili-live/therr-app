@@ -24,6 +24,15 @@ export interface IUpdatePactMemberParams {
     shouldMuteNotifs?: boolean;
     dailyReminderTime?: string;
     celebratePartnerCheckins?: boolean;
+    claimToken?: string | null;
+    claimCode?: string | null;
+    claimTokenExpiresAt?: Date | null;
+    invitedVia?: string | null;
+}
+
+export interface IPactInviteClaim {
+    token?: string;
+    code?: string;
 }
 
 export default class PactMembersStore {
@@ -150,7 +159,48 @@ export default class PactMembersStore {
         return this.updateByPactAndUser(pactId, userId, {
             status: 'active',
             joinedAt: new Date(),
+            claimToken: null,
+            claimCode: null,
+            claimTokenExpiresAt: null,
         });
+    }
+
+    /**
+     * Re-points a pending pact_members row to a freshly-registered user when
+     * a Therr connection signs up on Habits with a different user id than the
+     * one we recorded at invite time. Caller is responsible for ensuring the
+     * member is still pending and unexpired.
+     */
+    rebindUserId(memberId: string, userId: string) {
+        const queryString = knexBuilder
+            .where({ id: memberId })
+            .update({ userId, updatedAt: new Date() })
+            .into(PACT_MEMBERS_TABLE_NAME)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows[0]);
+    }
+
+    findByClaim(claim: IPactInviteClaim) {
+        if (!claim.token && !claim.code) {
+            return Promise.resolve(undefined);
+        }
+
+        const queryString = knexBuilder
+            .from(PACT_MEMBERS_TABLE_NAME)
+            .where((builder) => {
+                if (claim.token) {
+                    builder.orWhere('claimToken', claim.token);
+                }
+                if (claim.code) {
+                    builder.orWhere('claimCode', claim.code);
+                }
+            })
+            .limit(1)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows[0]);
     }
 
     leave(pactId: string, userId: string) {
