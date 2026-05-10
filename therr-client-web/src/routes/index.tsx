@@ -28,6 +28,7 @@ import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
 import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
+import ClaimPactLanding from './ClaimPactLanding';
 import Guide from './Guide';
 import GuidesIndex from './Guide/GuidesIndex';
 import PublicListView from './Bookmarks/PublicListView';
@@ -181,6 +182,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/invite/:username',
         element: <InviteLanding />,
+    },
+    {
+        path: '/claim-pact/:token',
+        element: <ClaimPactLanding />,
     },
     {
         path: '/user/profile',

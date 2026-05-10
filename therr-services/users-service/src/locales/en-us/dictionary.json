@@ -58,7 +58,10 @@
         "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!"
     },
     "invites": {
-        "phone": "{name} invited you to Therr — the local community and rewards app. Sign up here to connect: https://therr.com"
+        "phone": "{name} invited you to Therr — the local community and rewards app. Sign up here to connect: https://therr.com",
+        "pact": {
+            "sms": "{fromName} invited you to a {brandName} pact: {habitName}. Install and tap {claimUrl} — or use code {claimCode} at sign-up."
+        }
     },
     "thoughts": {
         "notFound": "Thought not found"
@@ -136,6 +139,14 @@
             "body1": "{fromName} invited you to connect on {brandName}. You can reach them directly at {fromEmail}.",
             "body2": "Click below to finish setting up your profile. Use this one-time password to get started:",
             "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
+        },
+        "pactInvitation": {
+            "header": "{fromName} Wants to Build a Habit With You",
+            "dearUser": "Hey {toName}!",
+            "body1": "{fromName} just challenged you to a pact on {brandName} to {habitName}. Habits stick when a friend has your back — join them to make it happen.",
+            "body2": "Tap the button to install {brandName} and accept the pact, or paste this code on the sign-up screen:",
+            "buttonText": "Install {brandName}",
+            "postBody1": "If the button doesn't work, open this link on your phone: {linkUrl} — or enter the code {claimCode} in the app."
         },
         "coinsReceived": {
             "header": "You Earned Coins!",

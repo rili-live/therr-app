@@ -58,7 +58,10 @@
         "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!"
     },
     "invites": {
-        "phone": "{name} t'a invité sur Therr — l'appli de communauté locale et de récompenses. Inscris-toi ici pour te connecter : https://therr.com"
+        "phone": "{name} t'a invité sur Therr — l'appli de communauté locale et de récompenses. Inscris-toi ici pour te connecter : https://therr.com",
+        "pact": {
+            "sms": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} — ou utilise le code {claimCode} à l'inscription."
+        }
     },
     "thoughts": {
         "notFound": "Pensée non trouvée"
@@ -136,6 +139,14 @@
             "body1": "{fromName} t'a invité à te connecter sur {brandName}. Tu peux le joindre directement à {fromEmail}.",
             "body2": "Clique ci-dessous pour terminer la configuration de ton profil. Utilise ce mot de passe à usage unique pour commencer :",
             "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+        },
+        "pactInvitation": {
+            "header": "{fromName} veut bâtir une habitude avec toi",
+            "dearUser": "Salut {toName}!",
+            "body1": "{fromName} t'a lancé un défi sur {brandName} pour {habitName}. Les habitudes durent quand un ami est là pour t'appuyer — joins-toi à lui pour y arriver.",
+            "body2": "Appuie sur le bouton pour installer {brandName} et accepter le pacte, ou colle ce code à l'inscription :",
+            "buttonText": "Installer {brandName}",
+            "postBody1": "Si le bouton ne fonctionne pas, ouvre ce lien sur ton téléphone : {linkUrl} — ou saisis le code {claimCode} dans l'application."
         },
         "coinsReceived": {
             "header": "Tu as gagné des pièces!",

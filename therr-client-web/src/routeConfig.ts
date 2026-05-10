@@ -145,6 +145,14 @@ export default [
         view: 'invite',
     },
     {
+        route: '/claim-pact/:token',
+        head: {
+            title: 'Accept Your Pact | Friends with Habits',
+            description: 'Install Friends with Habits to accept your pact invitation and build a habit with a friend.',
+        },
+        view: 'index',
+    },
+    {
         route: '/delete-account',
         head: {
             title: 'Delete Your Account',
