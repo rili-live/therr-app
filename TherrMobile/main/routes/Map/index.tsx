@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, Keyboard, Platform, View } from 'react-native';
+import { Dimensions, InteractionManager, PermissionsAndroid, Keyboard, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-maps';
@@ -114,6 +114,10 @@ const hapticFeedbackOptions = {
     ignoreAndroidSystemSettings: false,
 };
 
+// Frozen empties so a missing `state.reactions.*` slice doesn't return a fresh
+// `{}` on every render (which would defeat downstream memoization).
+const EMPTY_REACTIONS: { [areaId: string]: any } = Object.freeze({});
+
 interface IMapDispatchProps {
     captureClickTarget: Function;
     createOrUpdateMomentReaction: Function;
@@ -204,9 +208,9 @@ const mapStateToProps = (state: any) => ({
     // don't change, so a content/notifications/reactions mutation only re-renders Map
     // when the specific values it uses changed.
     notificationsHasUnread: !!(state.notifications?.messages?.some((m: any) => m.isUnread)),
-    myEventReactions: state.reactions?.myEventReactions || {},
-    myMomentReactions: state.reactions?.myMomentReactions || {},
-    mySpaceReactions: state.reactions?.mySpaceReactions || {},
+    myEventReactions: state.reactions?.myEventReactions || EMPTY_REACTIONS,
+    myMomentReactions: state.reactions?.myMomentReactions || EMPTY_REACTIONS,
+    mySpaceReactions: state.reactions?.mySpaceReactions || EMPTY_REACTIONS,
     user: state.user,
 });
 
@@ -374,11 +378,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             user,
         } = this.props;
 
-        UsersService.getExchangeRate().then((response) => {
-            this.setState({
-                exchangeRate: response.data?.exchangeRate,
-            });
-        }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
+        // Exchange rate only feeds price formatting in the preview cards, never
+        // shown before the user interacts with a marker — defer off the cold-start
+        // critical path so the map paints first.
+        InteractionManager.runAfterInteractions(() => {
+            UsersService.getExchangeRate().then((response) => {
+                this.setState({
+                    exchangeRate: response.data?.exchangeRate,
+                });
+            }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
+        });
 
         if (user?.details?.loginCount < 2 && !user.settings?.hasCompletedFTUI) {
             updateFirstTimeUI(true);

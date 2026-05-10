@@ -56,6 +56,40 @@ const hapticFeedbackOptions = {
     ignoreAndroidSystemSettings: false,
 };
 
+// Stable-reference marker anchor; inlining `{ x: 0.5, y: 0.5 }` made every
+// Marker reconcile its props on every parent re-render.
+const MARKER_ANCHOR = Object.freeze({ x: 0.5, y: 0.5 });
+const EMPTY_MARKER_VIEW_STYLE = Object.freeze({});
+
+interface IMapAreaMarkerProps {
+    area: any;
+    areaType: 'events' | 'moments' | 'spaces';
+    onPress: (event: MarkerPressEvent) => void;
+    theme: any;
+}
+
+// Memoized so unrelated parent re-renders (theme reload aside, region change,
+// preview sheet toggle) skip reconciling the ~250-400 markers when the area
+// reference and its sibling props haven't changed.
+const MapAreaMarker = React.memo(function MapAreaMarker({ area, areaType, onPress, theme }: IMapAreaMarkerProps) {
+    return (
+        <Marker
+            anchor={MARKER_ANCHOR}
+            coordinate={{
+                longitude: area.longitude,
+                latitude: area.latitude,
+            }}
+            onPress={onPress}
+            stopPropagation={true}
+            tracksViewChanges={false}
+        >
+            <View style={EMPTY_MARKER_VIEW_STYLE}>
+                <MarkerIcon area={area} areaType={areaType} theme={theme} />
+            </View>
+        </Marker>
+    );
+});
+
 
 interface ITherrMapViewDispatchProps {
     fetchMedia: Function;
@@ -980,77 +1014,38 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         />
                     }
                     {
-                        isMapReady && filteredEvents.map((event: any) => {
-                            return (
-                                <Marker
-                                    anchor={{
-                                        x: 0.5,
-                                        y: 0.5,
-                                    }}
-                                    key={event.id}
-                                    coordinate={{
-                                        longitude: event.longitude,
-                                        latitude: event.latitude,
-                                    }}
-                                    onPress={this.handleMapPress}
-                                    stopPropagation={true}
-                                    tracksViewChanges={false} // Note: Supposedly affects performance but not sure the implications
-                                >
-                                    <View style={{ /* transform: [{ translateY: 0 }] */ }}>
-                                        <MarkerIcon area={event} areaType="events" theme={this.theme} />
-                                    </View>
-                                </Marker>
-                            );
-                        })
+                        isMapReady && filteredEvents.map((event: any) => (
+                            <MapAreaMarker
+                                key={event.id}
+                                area={event}
+                                areaType="events"
+                                onPress={this.handleMapPress}
+                                theme={this.theme}
+                            />
+                        ))
                     }
                     {
-                        isMapReady && filteredMoments.map((moment: any) => {
-                            return (
-                                <Marker
-                                    anchor={{
-                                        x: 0.5,
-                                        y: 0.5,
-                                    }}
-                                    key={moment.id}
-                                    coordinate={{
-                                        longitude: moment.longitude,
-                                        latitude: moment.latitude,
-                                    }}
-                                    onPress={this.handleMapPress}
-                                    stopPropagation={true}
-                                    tracksViewChanges={false} // Note: Supposedly affects performance but not sure the implications
-                                >
-                                    <View style={{ /* transform: [{ translateY: 0 }] */ }}>
-                                        <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
-                                    </View>
-                                </Marker>
-                            );
-                        })
+                        isMapReady && filteredMoments.map((moment: any) => (
+                            <MapAreaMarker
+                                key={moment.id}
+                                area={moment}
+                                areaType="moments"
+                                onPress={this.handleMapPress}
+                                theme={this.theme}
+                            />
+                        ))
                     }
                     {
                         // (!areasInPreview?.length || Platform.OS === 'android') &&
-                        isMapReady && filteredSpaces.map((space: any) => {
-                            return (
-                                <Marker
-                                    anchor={{
-                                        x: 0.5,
-                                        y: 0.5,
-                                    }}
-                                    key={space.id}
-                                    coordinate={{
-                                        longitude: space.longitude,
-                                        latitude: space.latitude,
-                                    }}
-                                    onPress={this.handleMapPress}
-                                    stopPropagation={true}
-                                    tracksViewChanges={false} // Note: Supposedly affects performance but not sure the implications
-                                >
-                                    <View style={{ /* transform: [{ translateY: 0 }] */ }}>
-                                        <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
-                                    </View>
-                                </Marker>
-                            );
-                        })
+                        isMapReady && filteredSpaces.map((space: any) => (
+                            <MapAreaMarker
+                                key={space.id}
+                                area={space}
+                                areaType="spaces"
+                                onPress={this.handleMapPress}
+                                theme={this.theme}
+                            />
+                        ))
                     }
                     {/* {
                         isMapReady && Platform.OS !== 'android' && areasInPreview.map((space: any, index) => {
