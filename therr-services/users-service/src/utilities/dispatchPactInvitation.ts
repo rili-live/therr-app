@@ -12,10 +12,15 @@ import { getHostContext } from '../constants/hostContext';
 const CLAIM_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const CLAIM_CODE_LENGTH = 4;
 const CLAIM_TOKEN_TTL_DAYS = 14;
+// 32^4 ≈ 1M live codes worst-case; with a 14-day TTL collisions on the
+// partial unique index will eventually fire. Retry a handful of times before
+// giving up — caller falls back to the long token-only deep link.
+const CLAIM_CODE_MAX_ATTEMPTS = 5;
+const PG_UNIQUE_VIOLATION = '23505';
 const SMS_SENDER_DEFAULT = process.env.TWILIO_SENDER_PHONE_NUMBER;
 const SMS_SENDER_GB = process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
 
-const generateClaimCode = (): string => {
+export const generateClaimCode = (): string => {
     const bytes = randomBytes(CLAIM_CODE_LENGTH);
     let code = '';
     for (let i = 0; i < CLAIM_CODE_LENGTH; i += 1) {
@@ -24,12 +29,12 @@ const generateClaimCode = (): string => {
     return `PACT-${code}`;
 };
 
-const getSmsSender = (toPhoneNumber: string): string | undefined => {
+export const getSmsSender = (toPhoneNumber: string): string | undefined => {
     if (toPhoneNumber.startsWith('+44')) return SMS_SENDER_GB;
     return SMS_SENDER_DEFAULT;
 };
 
-const isOnHabits = (brandVariationsJson: any): boolean => {
+export const isOnHabits = (brandVariationsJson: any): boolean => {
     if (!Array.isArray(brandVariationsJson)) return false;
     return brandVariationsJson.some((entry) => entry
         && entry.brand === BrandVariations.HABITS
@@ -84,7 +89,6 @@ export const dispatchPactInvitation = async (
     }
 
     const claimToken = randomUUID();
-    const claimCode = generateClaimCode();
     const claimTokenExpiresAt = new Date(Date.now() + CLAIM_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
 
     const hasEmail = !!partner.email && !partner.isUnclaimed;
@@ -95,12 +99,39 @@ export const dispatchPactInvitation = async (
 
     const invitedVia: 'email' | 'sms' = hasEmail ? 'email' : 'sms';
 
-    await Store.pactMembers.update(args.pactMemberId, {
-        claimToken,
-        claimCode,
-        claimTokenExpiresAt,
-        invitedVia,
-    });
+    let claimCode = generateClaimCode();
+    let attempt = 0;
+    let persisted = false;
+    while (!persisted && attempt < CLAIM_CODE_MAX_ATTEMPTS) {
+        try {
+            // eslint-disable-next-line no-await-in-loop
+            await Store.pactMembers.update(args.pactMemberId, {
+                claimToken,
+                claimCode,
+                claimTokenExpiresAt,
+                invitedVia,
+            });
+            persisted = true;
+        } catch (err: any) {
+            if (err?.code !== PG_UNIQUE_VIOLATION) {
+                throw err;
+            }
+            attempt += 1;
+            claimCode = generateClaimCode();
+        }
+    }
+    if (!persisted) {
+        // Token-only fallback: write the row without a code so the deep-link
+        // path still works, even if the human-readable code path is unavailable
+        // for this invite.
+        await Store.pactMembers.update(args.pactMemberId, {
+            claimToken,
+            claimCode: null,
+            claimTokenExpiresAt,
+            invitedVia,
+        });
+        claimCode = '';
+    }
 
     const partnerLocale = partner.settingsLocale || args.locale || 'en-us';
     const contextConfig = getHostContext(args.whiteLabelOrigin, args.brandVariation);
