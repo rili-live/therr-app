@@ -861,6 +861,13 @@
       "appStoreText": "Also available on mobile",
       "returnHome": "Return to home page"
     },
+    "claimPactLanding": {
+      "title": "Accept Your Pact",
+      "description": "A friend invited you to a habit pact on Friends with Habits. Install the app to accept and start the streak together.",
+      "instructions": "After installing, tap the link in your invitation again — or paste the PACT-XXXX code from the email on the sign-up screen.",
+      "tokenLabel": "Invitation token",
+      "returnHome": "Return to home page"
+    },
     "viewGroup": {
       "headings": {
         "about": "About",

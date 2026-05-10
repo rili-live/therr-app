@@ -85,61 +85,56 @@ export const achievementsByClass: { [key: string]: { [key: string]: IAchievement
     treasureBuilder,
 };
 
+// Every class currently shipped is Therr-themed (location/social/content). Niche brands
+// like HABITS will land their own streak/pact-themed classes per HABITS_PROJECT_BRIEF.md;
+// until those exist, niche brands earn nothing — registration seeds and activity-driven
+// creates skip on a niche brand because no class is allow-listed for it.
 const therrClassNames = [
+    'accountability',
     'activist',
+    'cleanBreak',
     'communityLeader',
+    'consistency',
     'critic',
     'entrepreneur',
     'eventPlanner',
     'explorer',
+    'habitBuilder',
     'humanitarian',
     'influencer',
     'journalist',
     'localPatron',
     'localScout',
-    'socialite',
-    'thinker',
-    'tourGuide',
-];
-
-const habitsClassNames = [
-    'accountability',
-    'cleanBreak',
-    'consistency',
-    'habitBuilder',
     'pactPioneer',
     'resilience',
     'socialEnergizer',
     'socialite',
+    'thinker',
+    'tourGuide',
     'treasureBuilder',
 ];
 
-const pickClasses = (names: string[]) => names.reduce((acc, name) => {
-    if (achievementsByClass[name]) {
-        acc[name] = achievementsByClass[name];
-    }
-    return acc;
-}, {} as { [key: string]: { [key: string]: IAchievement } });
+// Maps an achievement class to the brands that may earn it. Without this gate,
+// registration seeds and connection/thought activity would create Therr achievements
+// stamped with a niche brand, which then surface in the niche app's achievements list
+// even though brand-scoped SQL filters are working as intended.
+export const achievementClassesByBrand: { [brand: string]: ReadonlySet<string> } = {
+    [BrandVariations.THERR]: new Set(therrClassNames),
+    [BrandVariations.DASHBOARD_THERR]: new Set(therrClassNames),
+};
 
 export const getAchievementsForBrand = (
     brandVariation?: BrandVariations | string,
 ): { [key: string]: { [key: string]: IAchievement } } => {
-    if (brandVariation === BrandVariations.HABITS) {
-        return pickClasses(habitsClassNames);
-    }
-    return pickClasses(therrClassNames);
-};
-
-// Maps an achievement class to the brands that may earn it. The Therr classes are
-// location/social/content-themed; HABITS has its own 8 streak/pact-themed classes plus
-// the reused `socialite` for invite virality. Without this gate, registration seeds and
-// connection/thought activity would create Therr achievements stamped with the niche
-// brand, which then surface in the niche app's achievements list even though brand-scoped
-// SQL filters are working as intended.
-export const achievementClassesByBrand: { [brand: string]: ReadonlySet<string> } = {
-    [BrandVariations.THERR]: new Set(therrClassNames),
-    [BrandVariations.DASHBOARD_THERR]: new Set(therrClassNames),
-    [BrandVariations.HABITS]: new Set(habitsClassNames),
+    const allowed = brandVariation ? achievementClassesByBrand[brandVariation] : undefined;
+    if (!allowed) return {};
+    const result: { [key: string]: { [key: string]: IAchievement } } = {};
+    allowed.forEach((name) => {
+        if (achievementsByClass[name]) {
+            result[name] = achievementsByClass[name];
+        }
+    });
+    return result;
 };
 
 export const isAchievementClassEnabledForBrand = (
