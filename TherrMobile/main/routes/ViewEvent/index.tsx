@@ -292,6 +292,8 @@ const ViewEvent = ({
         if (checkIsMyEvent(event, user)) {
             deleteEvent({ ids: [event.id] })
                 .then(() => {
+                    setIsDeleting(false);
+                    setIsDeleteDialogVisible(false);
                     navigation.navigate('Map', { shouldShowPreview: false });
                 })
                 .catch((err) => {
