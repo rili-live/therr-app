@@ -4,7 +4,8 @@
  *
  * Generates a believable demo state for the HABITS app:
  *   - Enrolls dev users alice..hannah (the first 8 from 003_dev_users) into the HABITS brand
- *   - Creates 6 system-template habit goals (browse / "discover" surface)
+ *   - Creates 7 system-template habit goals (browse / "discover" surface) — these mirror the
+ *     prod seed installed by migration 20260510000001_habits.habit_goals.seedTemplates
  *   - Creates 4 user-created habit goals
  *   - Creates 4 pacts (3 active, 1 pending invite) pairing different users
  *   - Creates pact_members rows for each pact participant
@@ -32,6 +33,12 @@ const HABITS_USER_IDS = [
     'a0000008-de00-4000-a000-d00000000008', // hannah
 ];
 
+// Mirrors the rows installed by migration 20260510000001_habits.habit_goals.seedTemplates.
+// In any fresh DB the migration runs first, so these inserts will normally hit
+// ON CONFLICT (id) DO NOTHING — but we keep the list here as a readable summary
+// of what dev DBs should expect, and so older DBs that pre-date the migration
+// (e.g. a dev environment without super-admin row) still get the same data via
+// the seed.
 const TEMPLATE_GOALS = [
     {
         id: 'b0000001-de00-4000-a000-000000000001',
@@ -39,6 +46,9 @@ const TEMPLATE_GOALS = [
         description: '20-minute movement session before 9am',
         category: 'fitness',
         emoji: '🏋️',
+        frequencyType: 'daily',
+        frequencyCount: 1,
+        goalType: 'build_good',
     },
     {
         id: 'b0000002-de00-4000-a000-000000000002',
@@ -46,6 +56,9 @@ const TEMPLATE_GOALS = [
         description: 'Read a book (no phone) for 15 minutes daily',
         category: 'learning',
         emoji: '📚',
+        frequencyType: 'daily',
+        frequencyCount: 1,
+        goalType: 'build_good',
     },
     {
         id: 'b0000003-de00-4000-a000-000000000003',
@@ -53,6 +66,9 @@ const TEMPLATE_GOALS = [
         description: '10 minutes of guided or silent meditation',
         category: 'mindfulness',
         emoji: '🧘',
+        frequencyType: 'daily',
+        frequencyCount: 1,
+        goalType: 'build_good',
     },
     {
         id: 'b0000004-de00-4000-a000-000000000004',
@@ -60,6 +76,9 @@ const TEMPLATE_GOALS = [
         description: 'Hit your hydration target by end of day',
         category: 'health',
         emoji: '💧',
+        frequencyType: 'daily',
+        frequencyCount: 1,
+        goalType: 'build_good',
     },
     {
         id: 'b0000005-de00-4000-a000-000000000005',
@@ -67,6 +86,9 @@ const TEMPLATE_GOALS = [
         description: '3 sentences: what went well, what didn\'t, what\'s next',
         category: 'mindfulness',
         emoji: '📓',
+        frequencyType: 'daily',
+        frequencyCount: 1,
+        goalType: 'build_good',
     },
     {
         id: 'b0000006-de00-4000-a000-000000000006',
@@ -74,6 +96,19 @@ const TEMPLATE_GOALS = [
         description: 'No phone for the first hour after waking',
         category: 'productivity',
         emoji: '📵',
+        frequencyType: 'daily',
+        frequencyCount: 1,
+        goalType: 'break_bad',
+    },
+    {
+        id: 'b0000007-de00-4000-a000-000000000007',
+        name: 'Save for a group trip',
+        description: 'Set aside money each week toward a vacation with friends or family',
+        category: 'social',
+        emoji: '✈️',
+        frequencyType: 'weekly',
+        frequencyCount: 1,
+        goalType: 'savings_goal',
     },
 ];
 
@@ -214,20 +249,28 @@ const insertHabitGoals = async (knex) => {
         ...TEMPLATE_GOALS.map((g) => ({
             ...g, createdByUserId: HABITS_USER_IDS[0], isTemplate: true, isPublic: true,
         })),
-        ...USER_GOALS.map((g) => ({ ...g, isTemplate: false, isPublic: false })),
+        ...USER_GOALS.map((g) => ({
+            ...g,
+            isTemplate: false,
+            isPublic: false,
+            frequencyType: g.frequencyType || 'daily',
+            frequencyCount: g.frequencyCount || 1,
+            goalType: g.goalType || 'build_good',
+        })),
     ];
     const results = await Promise.all(all.map((goal) => knex.raw(`
         INSERT INTO habits.habit_goals (
             id, name, description, category, emoji,
-            "frequencyType", "frequencyCount",
+            "frequencyType", "frequencyCount", "goalType",
             "createdByUserId", "isTemplate", "isPublic"
         ) VALUES (
             ?::uuid, ?, ?, ?, ?,
-            'daily', 1,
+            ?, ?, ?,
             ?::uuid, ?, ?
         ) ON CONFLICT (id) DO NOTHING
     `, [
         goal.id, goal.name, goal.description, goal.category, goal.emoji,
+        goal.frequencyType, goal.frequencyCount, goal.goalType,
         goal.createdByUserId, goal.isTemplate, goal.isPublic,
     ])));
     return results.filter((r) => r.rowCount > 0).length;
