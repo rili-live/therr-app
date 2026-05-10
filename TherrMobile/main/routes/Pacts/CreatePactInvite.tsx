@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-    SafeAreaView,
     ScrollView,
     View,
     Text,
@@ -9,6 +8,7 @@ import {
     ActivityIndicator,
     Share,
 } from 'react-native';
+import { SafeAreaView, SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,6 +20,7 @@ import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
+import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { Button } from '../../components/BaseButton';
 import { HABITS_PRESTAGED_TEMPLATE_ID } from '../../components/Habits/PactPreviewOverlay';
@@ -479,43 +480,52 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             : this.translate('pages.pacts.wizard.next');
 
         return (
-            <View
-                style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    flexDirection: 'row',
-                    padding: 16,
-                    backgroundColor: this.theme.colors.surface,
-                    shadowColor: this.theme.colors.textBlack,
-                    shadowOffset: { width: 0, height: -2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 4,
+            <SafeAreaInsetsContext.Consumer>
+                {(insets) => {
+                    const bottomInset = insets?.bottom ?? bottomSafeAreaInset;
+                    return (
+                        <View
+                            style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                flexDirection: 'row',
+                                paddingHorizontal: 16,
+                                paddingTop: 16,
+                                paddingBottom: 16 + bottomInset,
+                                backgroundColor: this.theme.colors.surface,
+                                shadowColor: this.theme.colors.textBlack,
+                                shadowOffset: { width: 0, height: -2 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 4,
+                                elevation: 4,
+                            }}
+                        >
+                            <Pressable
+                                onPress={this.handleBack}
+                                disabled={isSending}
+                                style={{ paddingVertical: 12, paddingHorizontal: 16 }}
+                            >
+                                <Text style={this.themeButtons.styles.btnTitleBlack}>
+                                    {step === 1
+                                        ? this.translate('pages.pacts.wizard.cancel')
+                                        : this.translate('pages.pacts.wizard.back')}
+                                </Text>
+                            </Pressable>
+                            <View style={{ flex: 1 }}>
+                                <Button
+                                    buttonStyle={[this.themeButtons.styles.btnLargeWithText, { width: '100%' }]}
+                                    titleStyle={this.themeButtons.styles.btnLargeTitle}
+                                    title={primaryTitle}
+                                    onPress={isFinalStep ? this.handleSend : this.handleNext}
+                                    disabled={isSending}
+                                />
+                            </View>
+                        </View>
+                    );
                 }}
-            >
-                <Pressable
-                    onPress={this.handleBack}
-                    disabled={isSending}
-                    style={{ paddingVertical: 12, paddingHorizontal: 16 }}
-                >
-                    <Text style={this.themeButtons.styles.btnTitleBlack}>
-                        {step === 1
-                            ? this.translate('pages.pacts.wizard.cancel')
-                            : this.translate('pages.pacts.wizard.back')}
-                    </Text>
-                </Pressable>
-                <View style={{ flex: 1 }}>
-                    <Button
-                        buttonStyle={[this.themeButtons.styles.btnLargeWithText, { width: '100%' }]}
-                        titleStyle={this.themeButtons.styles.btnLargeTitle}
-                        title={primaryTitle}
-                        onPress={isFinalStep ? this.handleSend : this.handleNext}
-                        disabled={isSending}
-                    />
-                </View>
-            </View>
+            </SafeAreaInsetsContext.Consumer>
         );
     };
 
@@ -525,10 +535,20 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}>
-                    <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-                        {this.renderStepContent()}
-                    </ScrollView>
+                <SafeAreaView
+                    edges={[]}
+                    style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}
+                >
+                    <SafeAreaInsetsContext.Consumer>
+                        {(insets) => {
+                            const bottomInset = insets?.bottom ?? bottomSafeAreaInset;
+                            return (
+                                <ScrollView contentContainerStyle={{ paddingBottom: 120 + bottomInset }}>
+                                    {this.renderStepContent()}
+                                </ScrollView>
+                            );
+                        }}
+                    </SafeAreaInsetsContext.Consumer>
                     {this.renderFooter()}
                 </SafeAreaView>
             </>

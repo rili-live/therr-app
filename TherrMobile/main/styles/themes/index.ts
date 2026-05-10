@@ -6,6 +6,7 @@ import lightTheme from './light';
 import darkTheme from './dark';
 import retroTheme from './retro';
 import { getPaperTheme } from './paper';
+import { resolveMobileThemeName } from './resolveThemeName';
 
 
 export const isDarkTheme = (name?: IMobileThemeName) => name !== 'light';
@@ -100,8 +101,9 @@ export const getTheme = (
     name?: IMobileThemeName,
     brand?: BrandVariations,
 ): ITherrTheme => {
-    const baseTheme = baseThemeFor(name);
     const resolvedBrand = brand ?? CURRENT_BRAND_VARIATION;
+    const resolvedName = resolveMobileThemeName(name, resolvedBrand);
+    const baseTheme = baseThemeFor(resolvedName);
     const colorOverride = brandColorOverrides[resolvedBrand];
     const variationOverride = brandColorVariationOverrides[resolvedBrand];
 
@@ -119,6 +121,7 @@ export const getTheme = (
 };
 
 export { getPaperTheme };
+export { resolveMobileThemeName };
 
 export interface ITherrThemeColors {
     // -----------------------------------------------------------------------
