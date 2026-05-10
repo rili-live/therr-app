@@ -284,7 +284,7 @@ class Notifications extends React.Component<
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
-                    <FlashList
+                    <FlashList<any>
                         data={notifications.messages || []}
                         keyExtractor={(item) => String(item.id)}
                         ListHeaderComponent={notifications.messages?.length ? (
