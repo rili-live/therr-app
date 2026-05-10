@@ -237,7 +237,7 @@ class DirectMessage extends React.Component<
                                     <LoadingPlaceholder />
                                 </View> :
                                 <View style={spacingStyles.flex}>
-                                    <FlashList
+                                    <FlashList<any>
                                         data={dms}
                                         inverted
                                         keyExtractor={(item) => String(item.id || item.key)}

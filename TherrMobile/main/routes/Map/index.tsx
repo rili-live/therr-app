@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Dimensions, InteractionManager, PermissionsAndroid, Keyboard, Platform, View } from 'react-native';
+import { Dimensions, InteractionManager, PermissionsAndroid, Keyboard, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-maps';
@@ -1260,7 +1260,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             meItemsPerPage: number,
         },
         distanceOverride?: any,
-        options?: { signal?: AbortSignal }) => {
+        options?: { signal?: AbortSignal }
+    ) => {
         const {
             findEventReactions,
             findMomentReactions,
