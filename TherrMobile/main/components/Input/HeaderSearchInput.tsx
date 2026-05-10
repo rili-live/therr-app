@@ -1,14 +1,12 @@
 import React from 'react';
-import { Platform, StyleSheet, TextInput as RNTextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput as RNTextInput, TextInputProps, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge } from 'react-native-paper';
-import { TextInputProps } from 'react-native';
 import 'react-native-gesture-handler';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState as IMapReduxState } from 'therr-react/types';
 import { FeatureFlags } from 'therr-js-utilities/constants';
-import RoundInput from './';
 import translator from '../../utilities/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
@@ -131,9 +129,6 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
     render() {
         const { inputText } = this.state;
         const { content, isAdvancedSearch, map, theme, themeForms, placeholderText } = this.props;
-        const textStyle = !inputText?.length
-            ? [themeForms.styles.placeholderText, { fontSize: 16 }]
-            : [themeForms.styles.inputText, { fontSize: 16 }];
         const mapFilters = {
             filtersAuthor: map.filtersAuthor,
             filtersCategory: map.filtersCategory,
@@ -149,49 +144,64 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
             filterCount += 1;
         }
 
+        const inputContainerStyle = [
+            themeForms.styles.inputContainerRound,
+            theme.styles.headerSearchInputContainer,
+            localStyles.row,
+        ];
+
+        const textInputStyle = [
+            Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt,
+            localStyles.flex,
+            localStyles.textInputBase,
+            Platform.OS !== 'ios' ? localStyles.fontSizeDefault : localStyles.fontSizeIos,
+        ];
+
         return (
             <>
-                <RoundInput
-                    errorStyle={localStyles.hidden}
-                    style={textStyle}
-                    containerStyle={theme.styles.headerSearchContainer}
-                    inputStyle={
-                        [
-                            Platform.OS !== 'ios'
-                                ? themeForms.styles.input
-                                : themeForms.styles.inputAlt,
-                            Platform.OS !== 'ios'
-                                ? localStyles.fontSizeDefault
-                                : localStyles.fontSizeIos,
-                        ]
-                    }
-                    inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
-                    roundness={18}
-                    onChangeText={this.onInputChange}
-                    onFocus={() => this.handlePress('onfocus')}
-                    placeholder={placeholderText}
-                    placeholderTextColor={theme.colorVariations.textGrayFade}
-                    render={(inputProps) => (
+                <View style={[theme.styles.headerSearchContainer, inputContainerStyle]}>
+                    {isAdvancedSearch ? (
+                        // Areas screen: tapping the field navigates to AdvancedSearch instead of
+                        // accepting input in place. Wrap the input area in a Pressable so taps on
+                        // the text region (not just the icon) still trigger the navigation, and
+                        // make the inner field non-editable to suppress the keyboard.
+                        <Pressable
+                            style={localStyles.flexRow}
+                            onPress={() => this.handlePress('onpress')}
+                        >
+                            <RNTextInput
+                                editable={false}
+                                pointerEvents="none"
+                                placeholder={placeholderText}
+                                placeholderTextColor={theme.colorVariations.textGrayFade}
+                                style={textInputStyle}
+                                value={inputText}
+                            />
+                        </Pressable>
+                    ) : (
                         <RNTextInput
-                            {...inputProps}
+                            onChangeText={this.onInputChange}
+                            onFocus={() => this.handlePress('onfocus')}
                             placeholder={placeholderText}
                             placeholderTextColor={theme.colorVariations.textGrayFade}
+                            selectionColor={themeForms.colors.selectionColor as unknown as string}
+                            cursorColor={themeForms.colors.selectionColor as unknown as string}
+                            style={textInputStyle}
+                            value={inputText}
                         />
                     )}
-                    underlineColor="transparent"
-                    activeUnderlineColor="transparent"
-                    dense
-                    rightIcon={
+                    <Pressable
+                        onPress={() => this.handlePress('onpress')}
+                        hitSlop={8}
+                        style={localStyles.iconButton}
+                    >
                         <TherrIcon
                             name={isAdvancedSearch ? 'filters' : 'search'}
                             size={18}
                             color={theme.colors.primary3}
-                            onPress={() => this.handlePress('onpress')}
                         />
-                    }
-                    themeForms={themeForms}
-                    value={inputText}
-                />
+                    </Pressable>
+                </View>
                 {
                     isAdvancedSearch && filterCount > 0 &&
                     <View style={themeForms.styles.headerInputBadgeContainer}>
@@ -206,8 +216,30 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
 }
 
 const localStyles = StyleSheet.create({
-    hidden: {
-        display: 'none',
+    flex: {
+        flex: 1,
+    },
+    flexRow: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+    },
+    iconButton: {
+        paddingHorizontal: 4,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    textInputBase: {
+        margin: 0,
+        padding: 0,
+        paddingVertical: 0,
+        paddingHorizontal: 0,
+        backgroundColor: 'transparent',
     },
     fontSizeDefault: {
         fontSize: 16,
