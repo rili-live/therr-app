@@ -313,9 +313,11 @@ This is **fine for MVP** but becomes painful once any brand needs:
 2. **No template-in-repo by default.** A new developer cloning the repo
    cannot build until they obtain the per-brand vault files out-of-band.
    Mitigated by `_bin/firebase/README.md` (the populating procedure) and
-   `TherrMobile/android/app/google-services.example.json` (legacy sanitized
-   template — staged for replacement with per-brand examples; see
-   `docs/PEER_REVIEW_FOLLOWUP.md`).
+   per-brand sanitized templates committed alongside the vault
+   (`_bin/firebase/<brand>/google-services.example.json`).
+   `TherrMobile/android/app/google-services.example.json` is retained as a
+   pointer file listing the per-brand template paths for discoverability
+   in the conventional location.
 
 3. **iOS does not support a merged-file pattern.** Each `BUNDLE_ID`
    requires its own `GoogleService-Info.plist`. Today only the Therr
@@ -362,9 +364,10 @@ Migration playbook (when a trigger fires):
    once token refresh is statistically complete).
 7. Update `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md` with the new project's
    recovery procedure.
-8. Update `TherrMobile/android/app/google-services.example.json` (or its
-   per-brand replacements per `docs/PEER_REVIEW_FOLLOWUP.md`) to reflect
-   the brand's new project assignment.
+8. Update `_bin/firebase/<brand>/google-services.example.json` to reflect
+   the brand's new project assignment (and the pointer at
+   `TherrMobile/android/app/google-services.example.json` if the brand
+   list changes).
 
 This work is meaningful (~1 week) and risky (FCM token transition window).
 Do not undertake it speculatively — wait for an actual trigger.

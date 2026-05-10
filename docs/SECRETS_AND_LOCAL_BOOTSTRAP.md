@@ -72,11 +72,18 @@ of the repo reduces the blast radius of an accidental public repo flip.
 5. Verify by building (`cd TherrMobile && npm run android:<brand>`) — should
    succeed without the "No matching client found" Gradle error.
 
-**Sanity-check template:** `TherrMobile/android/app/google-services.example.json`
-shows the expected shape (with secrets scrubbed). NOTE: that template still
-shows the legacy merged-file shape (multiple `client[]` entries); the active
-file under the per-brand-vault pattern will have exactly one. The template
-is staged for replacement — see `docs/PEER_REVIEW_FOLLOWUP.md`.
+**Sanity-check templates:** Each brand has a committed sanitized template
+next to its vault entry, with secrets scrubbed:
+- `_bin/firebase/therr/google-services.example.json` — one `client[]` entry,
+  `package_name == app.therrmobile`.
+- `_bin/firebase/habits/google-services.example.json` — one `client[]` entry,
+  `package_name == com.therr.habits`.
+
+Diff your real `_bin/firebase/<brand>/google-services.json` against the
+matching template to confirm shape; if your file has extra or different
+`client[]` entries, re-export the matching Android app from Firebase
+Console. `TherrMobile/android/app/google-services.example.json` is kept as
+a pointer that lists the per-brand template paths above.
 
 **See also:** `docs/MULTI_BRAND_ARCHITECTURE.md` for the brand-flag-driven
 build behavior; `_bin/firebase/README.md` for the vault layout and

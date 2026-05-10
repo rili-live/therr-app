@@ -9,19 +9,24 @@ is discoverable.
 
 ```
 _bin/firebase/
-├── README.md                      <-- this file (committed)
+├── README.md                              <-- this file (committed)
 ├── therr/
-│   ├── google-services.json       <-- Android, package_name=app.therrmobile
-│   └── GoogleService-Info.plist   <-- iOS, BUNDLE_ID=app.therrmobile
+│   ├── google-services.example.json       <-- committed sanitized template
+│   ├── google-services.json               <-- Android, package_name=app.therrmobile (gitignored)
+│   └── GoogleService-Info.plist           <-- iOS, BUNDLE_ID=app.therrmobile (gitignored)
 ├── habits/
-│   ├── google-services.json       <-- Android, package_name=com.therr.habits
-│   └── GoogleService-Info.plist   <-- iOS (when Habits ships on iOS)
+│   ├── google-services.example.json       <-- committed sanitized template
+│   ├── google-services.json               <-- Android, package_name=com.therr.habits (gitignored)
+│   └── GoogleService-Info.plist           <-- iOS, when Habits ships on iOS (gitignored)
 └── teem/
     └── (future, when TEEM is registered in Firebase)
 ```
 
-Each Firebase config file is the **unmodified single-app export** from
-Firebase Console — no manual merging required.
+Each `google-services.json` is the **unmodified single-app export** from
+Firebase Console — no manual merging required. The sibling
+`google-services.example.json` is a committed, sanitized template you can
+diff your real file against to confirm shape (one `client[]` entry,
+correct `package_name`).
 
 ## How it gets used
 
