@@ -17,8 +17,6 @@ const CLAIM_TOKEN_TTL_DAYS = 14;
 // giving up — caller falls back to the long token-only deep link.
 const CLAIM_CODE_MAX_ATTEMPTS = 5;
 const PG_UNIQUE_VIOLATION = '23505';
-const SMS_SENDER_DEFAULT = process.env.TWILIO_SENDER_PHONE_NUMBER;
-const SMS_SENDER_GB = process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
 
 export const generateClaimCode = (): string => {
     const bytes = randomBytes(CLAIM_CODE_LENGTH);
@@ -29,9 +27,11 @@ export const generateClaimCode = (): string => {
     return `PACT-${code}`;
 };
 
+// Read env at call time, not module load. Otherwise import order vs dotenv
+// (or unset env in test) silently produces undefined senders.
 export const getSmsSender = (toPhoneNumber: string): string | undefined => {
-    if (toPhoneNumber.startsWith('+44')) return SMS_SENDER_GB;
-    return SMS_SENDER_DEFAULT;
+    if (toPhoneNumber.startsWith('+44')) return process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
+    return process.env.TWILIO_SENDER_PHONE_NUMBER;
 };
 
 export const isOnHabits = (brandVariationsJson: any): boolean => {
