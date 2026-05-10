@@ -394,6 +394,70 @@ service or burning unbounded cost.
   duplicate requests; throttle
 - `TherrMobile/main/routes/Map/index.tsx:1247` — Consolidate multiple map
   requests into one dynamic request
+- `TherrMobile/main/routes/Map/index.tsx:207-209` — `mapStateToProps`
+  returns new `{}` fallbacks every render (`reactions || {}` etc.); freeze
+  module-level empties so child memoization isn't defeated on every state
+  update
+- `TherrMobile/main/routes/Map/TherrMapView.tsx` — wrap per-marker render
+  output in a `React.memo`'d component keyed by stable id; the
+  `events.map` / `moments.map` / `spaces.map` projections are unmemoized
+  and re-run on every parent render
+- `TherrMobile/main/routes/Notifications/index.tsx` — migrate `FlatList`
+  to `@shopify/flash-list` (already in deps, currently zero usages),
+  memoize the `Notification` row component, add `removeClippedSubviews`
+- `TherrMobile/main/routes/Connect/index.tsx` — migrate to FlashList
+- `TherrMobile/main/routes/DirectMessage/index.tsx` — migrate to FlashList
+- `TherrMobile/main/routes/Groups/index.tsx`,
+  `routes/Areas/AreaCarousel.tsx`, `routes/Areas/MyLists.tsx`,
+  `routes/ManageSpaces/index.tsx`,
+  `routes/Invite/components/CreateConnection.tsx` — props-only FlatList
+  tuning: `removeClippedSubviews`, `windowSize`, `maxToRenderPerBatch`,
+  `initialNumToRender`, `getItemLayout` where row height is constant; wrap
+  rows in `React.memo`
+- New `TherrMobile/main/utilities/signedUrlCache.ts` — LRU + in-flight
+  request dedupe wrapper around `MapsService.getSignedUrl{Public,Private}Bucket`;
+  swap callers in `EditMoment/index.tsx:242`, `EditSpace/index.tsx:350`,
+  `EditThought/index.tsx:176`, `Events/EditEvent.tsx:310`,
+  `Groups/EditGroup.tsx:380`, and Map's image-loading paths (replaces the
+  five duplicate "image signing too slow" bullets above with a single fix)
+- `TherrMobile/main/routes/Map/index.tsx` `componentDidMount` — wrap
+  non-critical socket subscriptions, analytics setup, and reaction
+  prefetches in `InteractionManager.runAfterInteractions(...)` to defer
+  work off the cold-start critical path
+- `TherrMobile/main/getStore.tsx` — verify `redux-logger@3.0.6` is gated
+  on `__DEV__`; confirm production bundle from `npm run ios:bundle:release`
+  does not contain it
+
+### 3.3.1 Mobile New Architecture follow-ups
+
+Higher-value items deferred from the cheap-wins batch above because they
+cross either the dependency-bump or migration-step risk threshold. Land
+these after items in 3.3 are merged and a perf baseline is captured.
+
+- Replace `AsyncStorage` in `redux-persist` with `react-native-mmkv`
+  (already in deps at 3.3.3). 10–50× faster cold reads; needs a one-shot
+  persisted-state migration step on first launch after the swap.
+- Adopt `@shopify/flash-list` across the remaining ~26 `FlatList` usages
+  beyond the three hot screens already in 3.3.
+- `TherrMobile/main/components/BaseImage.tsx` — replace RN `Image` with a
+  caching image component (`expo-image` or `react-native-fast-image`) for
+  persistent disk cache; touches 24+ call sites and changes loading-state
+  semantics, so audit each consumer.
+- iOS New Architecture enablement: explicit `:fabric_enabled => true` and
+  `:new_arch_enabled => true` in `TherrMobile/ios/Podfile`; per-pod
+  Fabric-compat audit (react-native-maps, lottie-react-native,
+  react-native-linear-gradient, react-native-image-crop-picker,
+  react-native-webview).
+- Replace deprecated `react-native-image-crop-picker@0.51.1` (used in
+  Map and 5 Edit* screens) with a maintained Fabric-compatible
+  alternative.
+- Bump `react-native-linear-gradient` 2.8.3 → 3.x (Fabric support).
+- Audit `lottie-react-native@7.3.5` Fabric path on Android with New Arch
+  on; today only one usage in `Map/index.tsx`.
+- Promote React Compiler from annotation mode (`'use memo'` opt-in) to
+  `infer` mode on selected route trees once per-marker memoization and
+  list migrations are merged so Compiler-generated memo doesn't fight
+  hand-written memo.
 
 ### 3.4 Resilience & error paths
 
