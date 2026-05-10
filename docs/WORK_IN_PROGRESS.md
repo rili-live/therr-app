@@ -414,12 +414,16 @@ service or burning unbounded cost.
   tuning: `removeClippedSubviews`, `windowSize`, `maxToRenderPerBatch`,
   `initialNumToRender`, `getItemLayout` where row height is constant; wrap
   rows in `React.memo`
-- New `TherrMobile/main/utilities/signedUrlCache.ts` — LRU + in-flight
-  request dedupe wrapper around `MapsService.getSignedUrl{Public,Private}Bucket`;
-  swap callers in `EditMoment/index.tsx:242`, `EditSpace/index.tsx:350`,
-  `EditThought/index.tsx:176`, `Events/EditEvent.tsx:310`,
-  `Groups/EditGroup.tsx:380`, and Map's image-loading paths (replaces the
-  five duplicate "image signing too slow" bullets above with a single fix)
+- ~~New `TherrMobile/main/utilities/signedUrlCache.ts`~~ — *investigated
+  and dropped*: Map already dedupes via the Redux `content.media` cache
+  before calling `MapsService.fetchMedia`
+  (`TherrMobile/main/routes/Map/TherrMapView.tsx:573`), and each Edit
+  upload constructs a unique filename from the message text so an LRU
+  keyed on filename never hits. Caching completed signed URLs would
+  also be unsafe on retry (returns the failed URL). The remaining
+  "image signing too slow" cost is the network round-trip itself —
+  fix is server-side (e.g., pre-warm S3 credentials or move signing
+  in-process) rather than a client cache
 - `TherrMobile/main/routes/Map/index.tsx` `componentDidMount` — wrap
   non-critical socket subscriptions, analytics setup, and reaction
   prefetches in `InteractionManager.runAfterInteractions(...)` to defer
