@@ -428,6 +428,14 @@ export default class MomentsStore {
             query = query.where({ isMatureContent: false });
         }
 
+        // Hide expired quick reports. Non-quick-report moments have expiresAt = NULL and pass through.
+        // Backed by the partial index on expiresAt added in 20260326000000_main.moments_quick_report_indexes.
+        if (options?.shouldHideExpired) {
+            query = query.andWhere(function () { // eslint-disable-line func-names
+                this.whereNull('expiresAt').orWhere('expiresAt', '>', new Date().toISOString());
+            });
+        }
+
         return this.db.read.query(query.toString()).then(async ({ rows: moments }) => {
             if (options.withMedia || options.withUser) {
                 const mediaIds: string[] = [];
