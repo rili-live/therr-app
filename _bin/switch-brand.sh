@@ -121,8 +121,19 @@ if [ -f "$ANDROID_GS_SRC" ]; then
     fi
 else
     printMessageWarning "No source file at $ANDROID_GS_SRC"
-    printMessageWarning "  Android build for $TARGET_LOWER will use whatever is currently at $ANDROID_GS_DST"
-    printMessageWarning "  See _bin/firebase/README.md and docs/SECRETS_AND_LOCAL_BOOTSTRAP.md to populate the vault."
+    if [ -f "$ANDROID_GS_DST" ] && command -v jq >/dev/null 2>&1; then
+        DEST_PKGS=$(jq -r '.client[].client_info.android_client_info.package_name' "$ANDROID_GS_DST" | tr '\n' ' ')
+        if echo " $DEST_PKGS " | grep -q " $EXPECTED_PKG "; then
+            printMessageWarning "  Existing $ANDROID_GS_DST already contains $EXPECTED_PKG — proceeding."
+        else
+            printMessageError "Existing $ANDROID_GS_DST has package_name(s) [$DEST_PKGS] but $TARGET_LOWER build expects [$EXPECTED_PKG]."
+            printMessageError "Populate $ANDROID_GS_SRC from Firebase Console (see _bin/firebase/README.md) before building."
+            exit 1
+        fi
+    else
+        printMessageWarning "  Android build for $TARGET_LOWER will use whatever is currently at $ANDROID_GS_DST"
+        printMessageWarning "  See _bin/firebase/README.md and docs/SECRETS_AND_LOCAL_BOOTSTRAP.md to populate the vault."
+    fi
 fi
 
 # 3b. iOS GoogleService-Info.plist (only Therr ships iOS today; absent for niches is OK)
