@@ -148,7 +148,14 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
             }
 
-            if (inviteCode) {
+            // PACT-XXXX codes are pact-invite claims, not username referrals.
+            // Pass the trimmed/uppercased code through so the post-create hook
+            // can resolve it to a pending pact_members row.
+            const pactClaimCode: string | null = (typeof inviteCode === 'string' && /^PACT-[A-Z0-9]{4}$/i.test(inviteCode))
+                ? inviteCode.toUpperCase()
+                : null;
+
+            if (inviteCode && !pactClaimCode) {
                 Store.users.findUser({
                     userName: inviteCode,
                 }).then((inviter) => {
@@ -220,7 +227,47 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 false,
                 undefined,
                 !!inviteCode,
-            ).then((user) => res.status(201).send(user)));
+            ).then(async (user) => {
+                if (pactClaimCode && user?.id) {
+                    // Best-effort: link the new user to the pending pact_members
+                    // row keyed by claimCode and activate it. Done out-of-band
+                    // so a redemption failure can't break the registration
+                    // response.
+                    try {
+                        const member = await Store.pactMembers.findByClaim({ code: pactClaimCode });
+                        if (member && member.status === 'pending'
+                            && (!member.claimTokenExpiresAt
+                                || new Date(member.claimTokenExpiresAt).getTime() >= Date.now())) {
+                            // Repoint the pending row to the just-created user
+                            // (their id may differ from the partnerUserId we
+                            // recorded at invite time if they signed up fresh).
+                            if (member.userId !== user.id) {
+                                await Store.pactMembers.rebindUserId(member.id, user.id);
+                            }
+                            const pact = await Store.pacts.getById(member.pactId);
+                            // Only flip pact → active on the first acceptance.
+                            // For an already-active group pact this would reset
+                            // startDate/endDate; for completed/abandoned pacts
+                            // it would resurrect them.
+                            if (pact && pact.status === 'pending') {
+                                await Store.pacts.activate(member.pactId);
+                                await Store.pactMembers.activate(member.pactId, pact.creatorUserId);
+                            }
+                            if (pact && (pact.status === 'pending' || pact.status === 'active')) {
+                                await Store.pactMembers.activate(member.pactId, user.id);
+                            }
+                        }
+                    } catch (err: any) {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error redeeming pact claim code on signup'],
+                            traceArgs: { 'error.message': err?.message, pactClaimCode },
+                        });
+                    }
+                }
+                return res.status(201).send(user);
+            }));
         })
         .catch((err) => {
             if (err?.message === 'invalid-password') {

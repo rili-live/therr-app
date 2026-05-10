@@ -11,6 +11,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
+import { dispatchPactInvitation } from '../utilities/dispatchPactInvitation';
 import {
     validatePactParams,
     isUserInPact,
@@ -162,30 +163,52 @@ const createPact: RequestHandler = async (req: any, res: any) => {
 
             // If partner is specified, create their member entry and send notification
             if (partnerUserId) {
-                await Store.pactMembers.create({
+                const partnerMember = await Store.pactMembers.create({
                     pactId: pact.id,
                     userId: partnerUserId,
                     role: 'partner',
                     status: 'pending',
                 });
 
-                // Send push notification to partner
-                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
-                    authorization,
-                    fromUser: { id: userId, userName },
-                    locale,
-                    toUserId: partnerUserId,
-                    type: PushNotifications.Types.pactInvitation,
-                    whiteLabelOrigin,
+                // Cross-app routing: if the partner has not used Habits, send
+                // an email/SMS install + claim invite instead of the brand-
+                // scoped push (which would otherwise misroute via Therr FCM).
+                const dispatchResult = await dispatchPactInvitation({
+                    pactMemberId: partnerMember.id,
+                    partnerUserId,
+                    fromUserName: userName,
+                    habitName: habitGoal.name,
                     brandVariation,
+                    whiteLabelOrigin,
+                    locale,
                 }).catch((err) => {
                     logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
-                        messages: ['Error sending pact invitation notification'],
+                        messages: ['Error dispatching pact invitation'],
                         traceArgs: { 'error.message': err?.message },
                     });
+                    return { isOnBrand: true };
                 });
+
+                if (dispatchResult.isOnBrand) {
+                    sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                        authorization,
+                        fromUser: { id: userId, userName },
+                        locale,
+                        toUserId: partnerUserId,
+                        type: PushNotifications.Types.pactInvitation,
+                        whiteLabelOrigin,
+                        brandVariation,
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error sending pact invitation notification'],
+                            traceArgs: { 'error.message': err?.message },
+                        });
+                    });
+                }
 
                 // Each invite to a (potentially new) partner counts as a unique invitation tier-2 hit and a socialite invite
                 awardPactPioneerInvitesAchievement(req.headers, 1);
@@ -288,22 +311,36 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
                 status: 'active',
             });
 
-            await Store.pactMembers.createBulk(invitees.map((partnerId) => ({
+            const partnerMembers = await Store.pactMembers.createBulk(invitees.map((partnerId) => ({
                 pactId: pact.id,
                 userId: partnerId,
                 role: 'partner' as const,
                 status: 'pending',
             })));
 
-            invitees.forEach((toUserId) => {
-                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
-                    authorization,
-                    fromUser: { id: userId, userName },
-                    locale,
-                    toUserId,
-                    type: PushNotifications.Types.pactInvitation,
-                    whiteLabelOrigin,
+            partnerMembers.forEach((member: any) => {
+                const toUserId = member.userId;
+                dispatchPactInvitation({
+                    pactMemberId: member.id,
+                    partnerUserId: toUserId,
+                    fromUserName: userName,
+                    habitName: habitGoal.name,
                     brandVariation,
+                    whiteLabelOrigin,
+                    locale,
+                }).then((dispatchResult) => {
+                    if (!dispatchResult.isOnBrand) {
+                        return undefined;
+                    }
+                    return sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                        authorization,
+                        fromUser: { id: userId, userName },
+                        locale,
+                        toUserId,
+                        type: PushNotifications.Types.pactInvitation,
+                        whiteLabelOrigin,
+                        brandVariation,
+                    });
                 }).catch((err) => {
                     logSpan({
                         level: 'error',
@@ -495,6 +532,68 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
             return res.status(200).send(updatedPact);
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
+};
+
+// Redeem a cross-app pact invitation that was delivered via email/SMS as a
+// long claimToken (deep link) or short claimCode (manual entry on Register).
+// We trust pact_members.userId — it was written at invite time from the
+// inviter's connection list. This endpoint simply maps the claim back to
+// the pending pact and runs the same activation flow as acceptPact.
+const claimPactInvite: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { token, code } = req.body || {};
+
+    if (!token && !code) {
+        return handleHttpError({
+            res,
+            message: 'A claim token or code is required',
+            statusCode: 400,
+        });
+    }
+
+    const member = await Store.pactMembers.findByClaim({ token, code });
+    if (!member) {
+        return handleHttpError({
+            res,
+            message: 'Invitation not found',
+            statusCode: 404,
+        });
+    }
+
+    if (member.userId !== userId) {
+        return handleHttpError({
+            res,
+            message: 'This invitation belongs to another user',
+            statusCode: 403,
+        });
+    }
+
+    if (member.claimTokenExpiresAt && new Date(member.claimTokenExpiresAt).getTime() < Date.now()) {
+        return handleHttpError({
+            res,
+            message: 'Invitation has expired',
+            statusCode: 410,
+        });
+    }
+
+    if (member.status === 'active') {
+        // Idempotent — already accepted.
+        const pact = await Store.pacts.getByIdWithDetails(member.pactId);
+        return res.status(200).send(pact);
+    }
+
+    if (member.status !== 'pending') {
+        return handleHttpError({
+            res,
+            message: 'Invitation is no longer redeemable',
+            statusCode: 400,
+        });
+    }
+
+    const delegatedReq = Object.assign(Object.create(Object.getPrototypeOf(req)), req, {
+        params: { ...(req.params || {}), id: member.pactId },
+    });
+    return acceptPact(delegatedReq, res, () => undefined);
 };
 
 const declinePact: RequestHandler = async (req: any, res: any) => {
@@ -782,6 +881,7 @@ export {
     getActivePacts,
     getPendingInvites,
     acceptPact,
+    claimPactInvite,
     declinePact,
     abandonPact,
     completePact,

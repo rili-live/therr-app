@@ -7,6 +7,7 @@ import {
     getActivePacts,
     getPendingInvites,
     acceptPact,
+    claimPactInvite,
     declinePact,
     abandonPact,
     completePact,
@@ -24,6 +25,7 @@ router.get('/', getUserPacts);
 // CREATE
 router.post('/', createPact);
 router.post('/bulk-invite', bulkInvitePact);
+router.post('/claim', claimPactInvite);
 
 // UPDATE
 router.put('/:id/accept', acceptPact);
