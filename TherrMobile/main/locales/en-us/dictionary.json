@@ -750,7 +750,7 @@
         "password": "Password",
         "repeatPassword": "Repeat Password",
         "userName": "Username",
-        "inviteCode": "Invite Code (optional)"
+        "inviteCode": "Invite or Pact Code (optional)"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "missingEmail": "Please enter a valid email address.",
@@ -759,7 +759,7 @@
       "subtitles": {
         "disclaimer": "By creating an account, you agree to our ",
         "and": " and ",
-        "inviteCodeHint": "Enter a friend's invite code - they earn 10 coins and you earn 5!"
+        "inviteCodeHint": "Enter a friend's username to earn coins, or paste a PACT-XXXX code from your invitation."
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"

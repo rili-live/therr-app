@@ -750,7 +750,7 @@
         "password": "Contraseña",
         "repeatPassword": "Repetir contraseña",
         "userName": "Nombre de usuario",
-        "inviteCode": "Código de invitación (opcional)"
+        "inviteCode": "Código de invitación o pacto (opcional)"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "missingEmail": "Por favor, ingresa una dirección de correo válida.",
@@ -759,7 +759,7 @@
       "subtitles": {
         "disclaimer": "Al crear una cuenta, aceptas nuestros ",
         "and": " y ",
-        "inviteCodeHint": "Ingresa el código de invitación de un amigo: ¡ellos ganan 10 monedas y tú ganas 5!"
+        "inviteCodeHint": "Ingresa el nombre de usuario de un amigo para ganar monedas, o pega un código PACT-XXXX de tu invitación."
       },
       "validationErrors": {
         "phoneNumber": "Número de teléfono inválido"

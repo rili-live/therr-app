@@ -750,7 +750,7 @@
         "password": "Mot de passe",
         "repeatPassword": "Répéter le mot de passe",
         "userName": "Nom d'utilisateur",
-        "inviteCode": "Code d'invitation (facultatif)"
+        "inviteCode": "Code d'invitation ou de pacte (facultatif)"
       },
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
       "missingEmail": "Veuillez entrer une adresse courriel valide.",
@@ -759,7 +759,7 @@
       "subtitles": {
         "disclaimer": "En créant un compte, vous acceptez nos ",
         "and": " et ",
-        "inviteCodeHint": "Entrez le code d'invitation d'un ami — il gagne 10 pièces et vous en gagnez 5!"
+        "inviteCodeHint": "Entrez le nom d'un ami pour gagner des pièces, ou collez un code PACT-XXXX de votre invitation."
       },
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"

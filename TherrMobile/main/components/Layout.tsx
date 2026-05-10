@@ -336,6 +336,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     this.readyAndStartBackgroundGeolocation();
                 }
 
+                // One-shot drain: if the user opened a /claim-pact/<token> link
+                // before authenticating, redeem it now so the inviter's gate
+                // (PactOnboardingGuard) can lift on their first refresh.
+                AsyncStorage.getItem('pendingPactClaimToken')
+                    .then((pendingToken) => {
+                        if (!pendingToken) return undefined;
+                        return axios.post('/users-service/habits/pacts/claim', { token: pendingToken })
+                            .finally(() => AsyncStorage.removeItem('pendingPactClaimToken'));
+                    })
+                    .catch((err) => {
+                        console.log('PACT_CLAIM_DRAIN_ERROR', err?.message);
+                        AsyncStorage.removeItem('pendingPactClaimToken').catch(() => undefined);
+                    });
+
                 if (user.details?.id) {
                     setCrashlyticsUserId(getCrashlytics(), user.details?.id?.toString());
                     if (!__DEV__) {
@@ -1549,6 +1563,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     handleAppUniversalLinkURL = (url) => {
         const { user } = this.props;
         const urlSplit = url?.split('?') || [];
+        const claimPactRegex = RegExp('claim-pact/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewMomentRegex = RegExp('moments/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
         const viewMomentFromDesktopRegex = RegExp('moments/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewSpaceRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
@@ -1574,7 +1589,31 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             user
         );
 
-        if (url?.includes('therr.com/?access_token=')) {
+        if (url?.match(claimPactRegex)) {
+            // Cross-app pact invite. The email/SMS sent by users-service points
+            // here; on tap we either claim immediately (authed) or stash the
+            // token for the post-login drain (unauthed first launch).
+            const claimToken = (url.match(claimPactRegex) || [])[1];
+            if (claimToken) {
+                if (isUserLoggedIn && !isUserMissingProps) {
+                    axios.post('/users-service/habits/pacts/claim', { token: claimToken })
+                        .then(() => {
+                            RootNavigation.navigate('Notifications');
+                        })
+                        .catch((err) => {
+                            console.log('PACT_CLAIM_ERROR', err?.message);
+                            RootNavigation.navigate('Notifications');
+                        });
+                } else {
+                    AsyncStorage.setItem('pendingPactClaimToken', claimToken).catch((err) => {
+                        console.log('PACT_CLAIM_STORE_ERROR', err?.message);
+                    });
+                    this.setState({
+                        targetRouteView: 'Notifications',
+                    });
+                }
+            }
+        } else if (url?.includes('therr.com/?access_token=')) {
             // Route for 3rd party OAuth (Facebook, Instagram, etc.)
             // TODO: This is needs updated and tested
             const urlWithNoHash = url.split('#_');
