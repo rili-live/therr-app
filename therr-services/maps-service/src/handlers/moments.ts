@@ -1247,6 +1247,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         lastContentCreatedAt,
         authorId,
         isDraft,
+        shouldHideExpired,
     } = req.body;
 
     return Store.moments.findMoments(req.headers, momentIds, {
@@ -1259,6 +1260,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         withMedia: !!withMedia,
         withUser: !!withUser,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
+        shouldHideExpired: !!shouldHideExpired,
     })
         .then(({ moments, media }) => res.status(200).send({ moments, media }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
