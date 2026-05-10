@@ -1,0 +1,36 @@
+{
+  "_comment_": "Sanitized template of the Therr-brand google-services.json placed under the per-brand vault at _bin/firebase/therr/. The real (gitignored) file with secrets sits next to it as google-services.json. _bin/switch-brand.sh therr copies the real file into TherrMobile/android/app/google-services.json. See _bin/firebase/README.md and docs/SECRETS_AND_LOCAL_BOOTSTRAP.md.",
+  "_purpose_": "Use this file to verify the shape of your local _bin/firebase/therr/google-services.json. It should contain exactly one client[] entry, with package_name == app.therrmobile. If your real file has more or different entries, re-export the Therr Android app from Firebase Console.",
+  "project_info": {
+    "project_number": "REPLACE_WITH_FIREBASE_PROJECT_NUMBER",
+    "project_id": "therr-app",
+    "storage_bucket": "therr-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "REPLACE_WITH_MOBILESDK_APP_ID",
+        "android_client_info": {
+          "package_name": "app.therrmobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "REPLACE_WITH_OAUTH_CLIENT_ID",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.therrmobile",
+            "certificate_hash": "REPLACE_WITH_SHA1_FINGERPRINT_LOWERCASE_NO_COLONS"
+          }
+        }
+      ],
+      "api_key": [
+        { "current_key": "REPLACE_WITH_FIREBASE_API_KEY" }
+      ],
+      "services": {
+        "appinvite_service": { "other_platform_oauth_client": [] }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

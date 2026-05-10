@@ -1,7 +1,6 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useMemo } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
-import { List } from 'react-native-paper';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';
 import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
@@ -14,30 +13,24 @@ interface IContentOption {
     type: IContentSelectionType;
 }
 
-const ContentOptionIcon = ({ iconName, iconColor, style }: { iconName: string; iconColor: string | undefined; style: any }) => (
-    <MaterialIcon
-        name={iconName}
-        size={22}
-        color={iconColor}
-        style={style}
-    />
-);
+const ANDROID_RIPPLE = { color: 'rgba(0,0,0,0.08)' };
 
 const ContentOptionsSheet = (props: SheetProps<'content-options-sheet'>) => {
     const { payload } = props;
     const contentType = payload?.contentType;
+    const shouldIncludeShareButton = !!payload?.shouldIncludeShareButton;
 
-    const allOptions: (IContentOption | false)[] = [
+    const options = useMemo<IContentOption[]>(() => ([
         contentType === 'area' && { icon: 'directions', title: 'getDirections', type: 'getDirections' as const },
-        contentType === 'area' && !!payload?.shouldIncludeShareButton && { icon: 'share', title: 'shareALink', type: 'shareALink' as const },
+        contentType === 'area' && shouldIncludeShareButton && { icon: 'share', title: 'shareALink', type: 'shareALink' as const },
         { icon: 'thumb-up', title: 'superLike', type: 'superLike' as const },
         { icon: 'thumb-down', title: 'dislike', type: 'dislike' as const },
         { icon: 'thumb-down', title: 'superDislike', type: 'superDislike' as const },
         { icon: 'report-problem', title: 'report', type: 'report' as const },
-    ];
+    ].filter(Boolean) as IContentOption[]), [contentType, shouldIncludeShareButton]);
 
-    const options = allOptions.filter(Boolean) as IContentOption[];
     const iconColor = payload?.themeForms.colors.primary3;
+    const titleStyle = useMemo(() => [localStyles.title, { color: iconColor }], [iconColor]);
 
     return (
         <ActionSheet id={props.sheetId}>
@@ -48,22 +41,47 @@ const ContentOptionsSheet = (props: SheetProps<'content-options-sheet'>) => {
                 { paddingBottom: bottomSafeAreaInset },
             ]}>
                 {options.map((option) => (
-                    <List.Item
+                    <Pressable
                         key={option.type}
-                        title={payload?.translate(`modals.contentOptions.buttons.${option.title}`)}
-                        titleStyle={{ color: iconColor }}
-                        left={(listProps) => (
-                            <ContentOptionIcon iconName={option.icon} iconColor={iconColor} style={listProps.style} />
-                        )}
+                        style={localStyles.row}
+                        android_ripple={ANDROID_RIPPLE}
                         onPress={() => {
                             SheetManager.hide('content-options-sheet');
                             payload?.onSelect(option.type);
                         }}
-                    />
+                    >
+                        <MaterialIcon
+                            name={option.icon}
+                            size={22}
+                            color={iconColor}
+                            style={localStyles.icon}
+                        />
+                        <Text style={titleStyle}>
+                            {payload?.translate(`modals.contentOptions.buttons.${option.title}`)}
+                        </Text>
+                    </Pressable>
                 ))}
             </View>
         </ActionSheet>
     );
 };
+
+const localStyles = StyleSheet.create({
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+    },
+    icon: {
+        width: 40,
+        textAlign: 'center',
+    },
+    title: {
+        fontSize: 16,
+        marginLeft: 4,
+        flexShrink: 1,
+    },
+});
 
 export default ContentOptionsSheet;
