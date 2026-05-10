@@ -861,6 +861,13 @@
       "appStoreText": "También disponible en móvil",
       "returnHome": "Volver a la página de inicio"
     },
+    "claimPactLanding": {
+      "title": "Acepta tu pacto",
+      "description": "Un amigo te invitó a un pacto de hábito en Friends with Habits. Instala la app para aceptar y comenzar la racha juntos.",
+      "instructions": "Después de instalar, toca de nuevo el enlace de tu invitación — o pega el código PACT-XXXX del correo en la pantalla de registro.",
+      "tokenLabel": "Token de invitación",
+      "returnHome": "Volver a la página de inicio"
+    },
     "viewGroup": {
       "headings": {
         "about": "Acerca de",

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.therr.habits",
+      "sha256_cert_fingerprints": [
+        "45:D4:88:5D:04:0E:8C:D9:4F:82:C9:2B:1E:97:8C:08:F2:7F:99:AC:34:96:AC:CE:C4:7D:34:5B:14:61:8E:06"
+      ]
+    }
+  }
+]

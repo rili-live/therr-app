@@ -14,6 +14,7 @@ import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequest
 import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
+import { isMatchingInvitee } from './helpers/pactRedemption';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -148,7 +149,14 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
             }
 
-            if (inviteCode) {
+            // PACT-XXXX codes are pact-invite claims, not username referrals.
+            // Pass the trimmed/uppercased code through so the post-create hook
+            // can resolve it to a pending pact_members row.
+            const pactClaimCode: string | null = (typeof inviteCode === 'string' && /^PACT-[A-Z0-9]{4}$/i.test(inviteCode))
+                ? inviteCode.toUpperCase()
+                : null;
+
+            if (inviteCode && !pactClaimCode) {
                 Store.users.findUser({
                     userName: inviteCode,
                 }).then((inviter) => {
@@ -220,7 +228,78 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 false,
                 undefined,
                 !!inviteCode,
-            ).then((user) => res.status(201).send(user)));
+            ).then(async (user) => {
+                if (pactClaimCode && user?.id) {
+                    // Best-effort: link the new user to the pending pact_members
+                    // row keyed by claimCode and activate it. Done out-of-band
+                    // so a redemption failure can't break the registration
+                    // response.
+                    try {
+                        const member = await Store.pactMembers.findByClaim({ code: pactClaimCode });
+                        const memberIsRedeemable = !!member
+                            && member.status === 'pending'
+                            && (!member.claimTokenExpiresAt
+                                || new Date(member.claimTokenExpiresAt).getTime() >= Date.now());
+
+                        // Identity check: the PACT-XXXX code only redeems for
+                        // the address the invite was sent to. Without this a
+                        // leaked code would let a stranger claim the original
+                        // invitee's slot in the pact.
+                        let identityMatches = false;
+                        if (memberIsRedeemable) {
+                            if (member.userId === user.id) {
+                                identityMatches = true;
+                            } else {
+                                const originalInviteeRows = await Store.users.findUser(
+                                    { id: member.userId },
+                                    ['email', 'phoneNumber'],
+                                );
+                                const originalInvitee = originalInviteeRows?.[0];
+                                identityMatches = !!originalInvitee && isMatchingInvitee(
+                                    { email: req.body.email, phoneNumber: req.body.phoneNumber },
+                                    {
+                                        email: originalInvitee.email,
+                                        phoneNumber: originalInvitee.phoneNumber,
+                                    },
+                                );
+                            }
+                        }
+
+                        if (memberIsRedeemable && identityMatches) {
+                            if (member.userId !== user.id) {
+                                await Store.pactMembers.rebindUserId(member.id, user.id);
+                            }
+                            const pact = await Store.pacts.getById(member.pactId);
+                            // Only flip pact → active on the first acceptance.
+                            // For an already-active group pact this would reset
+                            // startDate/endDate; for completed/abandoned pacts
+                            // it would resurrect them.
+                            if (pact && pact.status === 'pending') {
+                                await Store.pacts.activate(member.pactId);
+                                await Store.pactMembers.activate(member.pactId, pact.creatorUserId);
+                            }
+                            if (pact && (pact.status === 'pending' || pact.status === 'active')) {
+                                await Store.pactMembers.activate(member.pactId, user.id);
+                            }
+                        } else if (memberIsRedeemable && !identityMatches) {
+                            logSpan({
+                                level: 'warn',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Refused pact claim redemption: registrant does not match invitee'],
+                                traceArgs: { pactClaimCode, newUserId: user.id },
+                            });
+                        }
+                    } catch (err: any) {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error redeeming pact claim code on signup'],
+                            traceArgs: { 'error.message': err?.message, pactClaimCode },
+                        });
+                    }
+                }
+                return res.status(201).send(user);
+            }));
         })
         .catch((err) => {
             if (err?.message === 'invalid-password') {
