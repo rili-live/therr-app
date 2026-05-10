@@ -161,6 +161,15 @@ append new items here rather than only printing them once.
   `assetlinks.habits.json` once habits.therr.com serves it (visit
   `https://habits.therr.com/.well-known/assetlinks.json` and re-run the
   Play Console "App links" check for `com.therr.habits`).
+- [ ] (2026-05-10, /quality-peer-review) Run users-service migration
+  `20260510000001_habits.habit_goals.seedTemplates` on production after
+  deploying this `general` merge. Inserts 7 system-template rows into
+  `habits.habit_goals` (six starter habits + one savings-goal template)
+  under the prod SUPER_ADMIN_ID `568bf5d2-8595-4fd6-95da-32cc318618d3`,
+  populating the HABITS "pick a habit" picker which has been empty in
+  prod. Idempotent (ON CONFLICT id DO NOTHING). If the SUPER_ADMIN_ID
+  row is missing in `main.users` the migration logs a warning and
+  skips — verify it exists before running, or re-run after creating it.
 <!-- skill-followups:end -->
 
 ---
