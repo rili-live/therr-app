@@ -965,6 +965,38 @@
         "successMessage": "Tu reseña ha sido enviada. ¡Gracias!",
         "errorMessage": "Hubo un error al enviar tu reseña. Por favor, intenta de nuevo."
       },
+      "suggestEdit": {
+        "trigger": "Sugerir una edición",
+        "title": "Sugerir una edición",
+        "description": "¿Viste información incorrecta? Sugiere una corrección. La aplicaremos cuando varias personas estén de acuerdo.",
+        "fieldLabel": "¿Qué necesita actualización?",
+        "valueLabel": "Valor correcto",
+        "phoneOption": "Número de teléfono",
+        "websiteOption": "Sitio web",
+        "phonePlaceholder": "+34 600 000 000",
+        "websitePlaceholder": "https://ejemplo.com",
+        "normalizedPreview": "Se guardará como",
+        "invalidValue": "Ese valor no parece correcto. Por favor, revisa el formato.",
+        "submit": "Enviar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "appliedMessage": "¡Gracias! Tu corrección ha sido aplicada.",
+        "pendingMessage": "¡Gracias! Necesitamos {remaining} confirmación(es) más antes de aplicar este cambio.",
+        "ownerClaimedMessage": "¡Gracias! Este negocio tiene un propietario — le hemos reenviado tu sugerencia.",
+        "errorMessage": "Algo salió mal al enviar tu sugerencia. Por favor, intenta de nuevo.",
+        "errors": {
+          "EMPTY_URL": "Por favor, introduce un sitio web.",
+          "INVALID_URL": "Eso no parece una URL válida.",
+          "EMPTY_PHONE": "Por favor, introduce un número de teléfono.",
+          "INVALID_PHONE": "Eso no parece un número de teléfono válido.",
+          "PHONE_NOT_STRING": "El número de teléfono debe ser texto.",
+          "URL_NOT_STRING": "El sitio web debe ser texto.",
+          "INVALID_HOURS_SHAPE": "El formato del horario no es válido.",
+          "INVALID_HOURS_SCHEMA": "El esquema del horario no es válido.",
+          "INVALID_HOURS_TIMEZONE": "La zona horaria no es válida.",
+          "UNSUPPORTED_FIELD": "Ese campo no se puede editar."
+        }
+      },
       "claimSpace": {
         "title": "¿Es este tu negocio?",
         "body": "Reclama este espacio para ver la actividad de clientes en tiempo real, conectarte con negocios locales complementarios y recompensar a los clientes que difunden tu negocio. Actualiza tu información, agrega fotos y toma el control de tu presencia.",

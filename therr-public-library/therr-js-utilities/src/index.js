@@ -44,6 +44,7 @@ const utilities = [
     'sanitizers',
     'scroll-to',
     'normalize-phone-number',
+    'normalize-correction-value',
     'print-logs',
     'log-or-update-span',
     'slugify',

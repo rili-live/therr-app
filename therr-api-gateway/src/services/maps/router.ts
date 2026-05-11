@@ -14,6 +14,9 @@ import {
     createMomentLimiter,
     createSpaceLimiter,
     pairingFeedbackLimiter,
+    correctionsLimiterPerIpBurst,
+    correctionsLimiterPerIpHour,
+    correctionsLimiterPerIdentity,
     placesApiLimiter,
     geocodeApiLimiter,
 } from './limitation/map';
@@ -35,8 +38,11 @@ import {
     getSpacePairingsValidation,
     updateSpaceValidation,
     submitPairingFeedbackValidation,
+    submitCorrectionValidation,
+    getCorrectionsSummaryValidation,
 } from './validation/spaces';
 import CacheStore from '../../store';
+import authenticate from '../../middleware/authenticate';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import authorize, { AccessCheckType } from '../../middleware/authorize';
 import { createEventValidations, getEventDetailsValidation } from './validation/events';
@@ -254,6 +260,68 @@ mapsServiceRouter.post(
     handleServiceRequest({
         basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
         method: 'post',
+    }),
+);
+
+// Space Corrections (crowdsourced business info edits)
+// For anonymous submissions, compute a salted hash of req.ip + x-anon-session-id
+// here at the gateway (where req.ip is the real client thanks to trust-proxy)
+// and forward it as x-correction-identity-hash. Maps-service is internal-only,
+// so trusting that header is safe.
+const computeCorrectionIdentity = (req, res, next) => {
+    if (req['x-userid'] || req.headers['x-userid']) {
+        return next();
+    }
+    const anonSessionId = (req.headers['x-anon-session-id'] || '').toString().trim();
+    if (!anonSessionId) {
+        return res.status(400).send({ message: 'MISSING_ANON_SESSION_ID', statusCode: 400 });
+    }
+    const salt = process.env.CORRECTION_IDENTITY_SALT
+        || (process.env.NODE_ENV !== 'production' ? 'dev-correction-salt' : '');
+    if (!salt) {
+        return res.status(500).send({ message: 'CORRECTION_CONFIG_ERROR', statusCode: 500 });
+    }
+    req.headers['x-correction-identity-hash'] = crypto
+        .createHash('sha256')
+        .update(`${salt}:${req.ip}:${anonSessionId}`)
+        .digest('hex');
+    return next();
+};
+
+mapsServiceRouter.post(
+    '/spaces/:spaceId/corrections',
+    correctionsLimiterPerIpBurst,
+    correctionsLimiterPerIpHour,
+    authenticateOptional,
+    correctionsLimiterPerIdentity,
+    submitCorrectionValidation,
+    validate,
+    computeCorrectionIdentity,
+    handleServiceRequest({
+        basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+        method: 'post',
+    }, (response, reqBody) => {
+        // When the maps-service auto-applies a correction, invalidate the
+        // space-details cache so the new value is visible immediately.
+        if (response?.status === 'applied' && reqBody) {
+            // spaceId is on the URL; not available to this callback directly.
+            // The maps-service echoes it via the response.
+            const spaceId = response.spaceId || response.id;
+            if (spaceId) {
+                CacheStore.mapsService.invalidateAreaDetails('spaces', spaceId);
+            }
+        }
+    }),
+);
+
+mapsServiceRouter.get(
+    '/spaces/:spaceId/corrections/summary',
+    authenticate,
+    getCorrectionsSummaryValidation,
+    validate,
+    handleServiceRequest({
+        basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+        method: 'get',
     }),
 );
 

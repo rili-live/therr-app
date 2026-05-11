@@ -342,6 +342,22 @@ class MapsService {
         });
     };
 
+    submitSpaceCorrection = (
+        spaceId: string,
+        body: { fieldName: 'phoneNumber' | 'websiteUrl' | 'openingHours'; value: unknown },
+        extraHeaders?: Record<string, string>,
+    ) => axios({
+        method: 'post',
+        url: `/maps-service/spaces/${spaceId}/corrections`,
+        data: body,
+        headers: extraHeaders,
+    });
+
+    getSpaceCorrectionsSummary = (spaceId: string) => axios({
+        method: 'get',
+        url: `/maps-service/spaces/${spaceId}/corrections/summary`,
+    });
+
     requestSpaceDisplayKit = (args: IRequestSpaceDisplayKitArgs) => axios({
         method: 'post',
         url: '/maps-service/space-display-requests',
