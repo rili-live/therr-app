@@ -1,6 +1,13 @@
 import './ReactotronConfig';
 import React, { useMemo } from 'react';
-import { InteractionManager, StyleSheet } from 'react-native';
+import { InteractionManager, LogBox, StyleSheet } from 'react-native';
+
+// react-native-vector-icons@10 ships dist/ files compiled with the classic JSX
+// transform; React 19 flags these at runtime. Package is deprecated as a monolith
+// — proper fix is migration to @react-native-vector-icons/<family> packages.
+LogBox.ignoreLogs([
+    /Your app \(or one of its dependencies\) is using an outdated JSX transform/,
+]);
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import LogRocket from '@logrocket/react-native';

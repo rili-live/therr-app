@@ -563,6 +563,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         initialNumToRender={8}
                         maxToRenderPerBatch={5}
                         windowSize={11}
+                        removeClippedSubviews={true}
                     />
                 );
             }
@@ -616,6 +617,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         initialNumToRender={8}
                         maxToRenderPerBatch={5}
                         windowSize={11}
+                        removeClippedSubviews={true}
                     />
                 );
             }

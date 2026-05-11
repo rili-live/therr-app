@@ -161,6 +161,15 @@ append new items here rather than only printing them once.
   `assetlinks.habits.json` once habits.therr.com serves it (visit
   `https://habits.therr.com/.well-known/assetlinks.json` and re-run the
   Play Console "App links" check for `com.therr.habits`).
+- [ ] (2026-05-10, /quality-peer-review) Run users-service migration
+  `20260510000001_habits.habit_goals.seedTemplates` on production after
+  deploying this `general` merge. Inserts 7 system-template rows into
+  `habits.habit_goals` (six starter habits + one savings-goal template)
+  under the prod SUPER_ADMIN_ID `568bf5d2-8595-4fd6-95da-32cc318618d3`,
+  populating the HABITS "pick a habit" picker which has been empty in
+  prod. Idempotent (ON CONFLICT id DO NOTHING). If the SUPER_ADMIN_ID
+  row is missing in `main.users` the migration logs a warning and
+  skips — verify it exists before running, or re-run after creating it.
 <!-- skill-followups:end -->
 
 ---
@@ -394,6 +403,74 @@ service or burning unbounded cost.
   duplicate requests; throttle
 - `TherrMobile/main/routes/Map/index.tsx:1247` — Consolidate multiple map
   requests into one dynamic request
+- `TherrMobile/main/routes/Map/index.tsx:207-209` — `mapStateToProps`
+  returns new `{}` fallbacks every render (`reactions || {}` etc.); freeze
+  module-level empties so child memoization isn't defeated on every state
+  update
+- `TherrMobile/main/routes/Map/TherrMapView.tsx` — wrap per-marker render
+  output in a `React.memo`'d component keyed by stable id; the
+  `events.map` / `moments.map` / `spaces.map` projections are unmemoized
+  and re-run on every parent render
+- `TherrMobile/main/routes/Notifications/index.tsx` — migrate `FlatList`
+  to `@shopify/flash-list` (already in deps, currently zero usages),
+  memoize the `Notification` row component, add `removeClippedSubviews`
+- `TherrMobile/main/routes/Connect/index.tsx` — migrate to FlashList
+- `TherrMobile/main/routes/DirectMessage/index.tsx` — migrate to FlashList
+- `TherrMobile/main/routes/Groups/index.tsx`,
+  `routes/Areas/AreaCarousel.tsx`, `routes/Areas/MyLists.tsx`,
+  `routes/ManageSpaces/index.tsx`,
+  `routes/Invite/components/CreateConnection.tsx` — props-only FlatList
+  tuning: `removeClippedSubviews`, `windowSize`, `maxToRenderPerBatch`,
+  `initialNumToRender`, `getItemLayout` where row height is constant; wrap
+  rows in `React.memo`
+- ~~New `TherrMobile/main/utilities/signedUrlCache.ts`~~ — *investigated
+  and dropped*: Map already dedupes via the Redux `content.media` cache
+  before calling `MapsService.fetchMedia`
+  (`TherrMobile/main/routes/Map/TherrMapView.tsx:573`), and each Edit
+  upload constructs a unique filename from the message text so an LRU
+  keyed on filename never hits. Caching completed signed URLs would
+  also be unsafe on retry (returns the failed URL). The remaining
+  "image signing too slow" cost is the network round-trip itself —
+  fix is server-side (e.g., pre-warm S3 credentials or move signing
+  in-process) rather than a client cache
+- `TherrMobile/main/routes/Map/index.tsx` `componentDidMount` — wrap
+  non-critical socket subscriptions, analytics setup, and reaction
+  prefetches in `InteractionManager.runAfterInteractions(...)` to defer
+  work off the cold-start critical path
+- `TherrMobile/main/getStore.tsx` — verify `redux-logger@3.0.6` is gated
+  on `__DEV__`; confirm production bundle from `npm run ios:bundle:release`
+  does not contain it
+
+### 3.3.1 Mobile New Architecture follow-ups
+
+Higher-value items deferred from the cheap-wins batch above because they
+cross either the dependency-bump or migration-step risk threshold. Land
+these after items in 3.3 are merged and a perf baseline is captured.
+
+- Replace `AsyncStorage` in `redux-persist` with `react-native-mmkv`
+  (already in deps at 3.3.3). 10–50× faster cold reads; needs a one-shot
+  persisted-state migration step on first launch after the swap.
+- Adopt `@shopify/flash-list` across the remaining ~26 `FlatList` usages
+  beyond the three hot screens already in 3.3.
+- `TherrMobile/main/components/BaseImage.tsx` — replace RN `Image` with a
+  caching image component (`expo-image` or `react-native-fast-image`) for
+  persistent disk cache; touches 24+ call sites and changes loading-state
+  semantics, so audit each consumer.
+- iOS New Architecture enablement: explicit `:fabric_enabled => true` and
+  `:new_arch_enabled => true` in `TherrMobile/ios/Podfile`; per-pod
+  Fabric-compat audit (react-native-maps, lottie-react-native,
+  react-native-linear-gradient, react-native-image-crop-picker,
+  react-native-webview).
+- Replace deprecated `react-native-image-crop-picker@0.51.1` (used in
+  Map and 5 Edit* screens) with a maintained Fabric-compatible
+  alternative.
+- Bump `react-native-linear-gradient` 2.8.3 → 3.x (Fabric support).
+- Audit `lottie-react-native@7.3.5` Fabric path on Android with New Arch
+  on; today only one usage in `Map/index.tsx`.
+- Promote React Compiler from annotation mode (`'use memo'` opt-in) to
+  `infer` mode on selected route trees once per-marker memoization and
+  list migrations are merged so Compiler-generated memo doesn't fight
+  hand-written memo.
 
 ### 3.4 Resilience & error paths
 
@@ -698,6 +775,12 @@ note that should be honored on a calendar reminder.
   instead of duplicating
 - `scripts/generate-content/utils/contentSchema.ts:143` — Implement planned
   new content section types per `docs/CONTENT_GUIDES_ROADMAP.md`
+- `TherrMobile/main/**` (~56 import sites) — Migrate
+  `react-native-vector-icons` (deprecated monolith, ships classic-JSX-
+  transform builds → React 19 warning currently suppressed in `App.tsx`) to
+  per-family packages: `@react-native-vector-icons/material-icons`,
+  `/font-awesome`, `/font-awesome-5`, `/ionicons`, `/octicons`. Removes the
+  suppression and unblocks future RN/React upgrades.
 
 ---
 
