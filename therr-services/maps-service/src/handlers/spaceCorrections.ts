@@ -105,8 +105,8 @@ const submitCorrection: RequestHandler = async (req: any, res: any) => {
             threshold,
             isOwnerClaimed: result.isOwnerClaimed,
         });
-    } catch (err) {
-        return handleHttpError({ err, res, message: 'SQL:SPACE_CORRECTIONS:SUBMIT' });
+    } catch (err: unknown) {
+        return handleHttpError({ err: err instanceof Error ? err : undefined, res, message: 'SQL:SPACE_CORRECTIONS:SUBMIT' });
     }
 };
 
@@ -125,8 +125,8 @@ const getCorrectionsSummary: RequestHandler = async (req: any, res: any) => {
     try {
         const rows = await Store.spaces.getByIdSimple(spaceId);
         space = rows?.[0];
-    } catch (err) {
-        return handleHttpError({ err, res, message: 'SQL:SPACE_CORRECTIONS:LOOKUP' });
+    } catch (err: unknown) {
+        return handleHttpError({ err: err instanceof Error ? err : undefined, res, message: 'SQL:SPACE_CORRECTIONS:LOOKUP' });
     }
 
     if (!space) {
@@ -143,8 +143,8 @@ const getCorrectionsSummary: RequestHandler = async (req: any, res: any) => {
     try {
         const rows = await Store.spaceCorrections.getPendingSummary(spaceId);
         return res.status(200).send({ corrections: rows, threshold: getThreshold() });
-    } catch (err) {
-        return handleHttpError({ err, res, message: 'SQL:SPACE_CORRECTIONS:SUMMARY' });
+    } catch (err: unknown) {
+        return handleHttpError({ err: err instanceof Error ? err : undefined, res, message: 'SQL:SPACE_CORRECTIONS:SUMMARY' });
     }
 };
 

@@ -49,8 +49,10 @@ const SuggestEditModal: React.FC<ISuggestEditModalProps> = ({
 
     const previewText = (() => {
         if (!normalized) return '';
-        if (!normalized.ok) return translate(`pages.viewSpace.suggestEdit.errors.${normalized.error}`)
-            || translate('pages.viewSpace.suggestEdit.invalidValue');
+        if (!normalized.ok) {
+            return translate(`pages.viewSpace.suggestEdit.errors.${normalized.error}`)
+                || translate('pages.viewSpace.suggestEdit.invalidValue');
+        }
         return normalized.canonical as string;
     })();
 

@@ -48,7 +48,7 @@ export default class SpaceCorrectionsStore {
         this.db = dbConnection;
     }
 
-    private async upsertOnClient(client: any, params: IUpsertCorrectionParams): Promise<void> {
+    private static async upsertOnClient(client: any, params: IUpsertCorrectionParams): Promise<void> {
         const isAuthed = !!params.userId;
         const conflictCols = isAuthed
             ? '("spaceId", "fieldName", "userId") WHERE "userId" IS NOT NULL'
@@ -80,7 +80,7 @@ export default class SpaceCorrectionsStore {
         ]);
     }
 
-    private async countAgreementOnClient(
+    private static async countAgreementOnClient(
         client: any,
         spaceId: string,
         fieldName: SpaceCorrectionFieldName,
@@ -138,8 +138,8 @@ export default class SpaceCorrectionsStore {
             const isOwnerClaimed = space.fromUserId !== opts.superAdminId || space.requestedByUserId != null;
             const autoApplyAllowed = !isOwnerClaimed;
 
-            await this.upsertOnClient(client, params);
-            const agreementCount = await this.countAgreementOnClient(
+            await SpaceCorrectionsStore.upsertOnClient(client, params);
+            const agreementCount = await SpaceCorrectionsStore.countAgreementOnClient(
                 client,
                 params.spaceId,
                 params.fieldName,
