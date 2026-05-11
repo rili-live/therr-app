@@ -6,7 +6,7 @@ import { NavigateFunction } from 'react-router-dom';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
-import { IconCheck } from '@tabler/icons-react';
+import { IconCheck, IconPencil } from '@tabler/icons-react';
 import { Categories, Cities, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
@@ -959,7 +959,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         size="xs"
                         onClick={() => this.setState({ isSuggestEditModalOpen: true, suggestEditInitialField: undefined })}
                     >
-                        {this.props.translate('pages.viewSpace.suggestEdit.trigger')}
+                        <Group gap={4} align="center" wrap="nowrap">
+                            <IconPencil size={12} />
+                            {this.props.translate('pages.viewSpace.suggestEdit.trigger')}
+                        </Group>
                     </Anchor>
                 </Group>
                 {hasAddress && (

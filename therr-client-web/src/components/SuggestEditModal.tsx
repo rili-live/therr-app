@@ -49,14 +49,30 @@ const SuggestEditModal: React.FC<ISuggestEditModalProps> = ({
 
     const previewText = (() => {
         if (!normalized) return '';
-        if (!normalized.ok) {
-            return translate(`pages.viewSpace.suggestEdit.errors.${normalized.error}`)
-                || translate('pages.viewSpace.suggestEdit.invalidValue');
-        }
-        return normalized.canonical as string;
+        if (normalized.ok) return normalized.canonical as string;
+        // TS doesn't reliably narrow generic discriminated unions through the
+        // .ok flag here, so reach for the field explicitly via the failure type.
+        const errorCode = (normalized as { error: string }).error;
+        return translate(`pages.viewSpace.suggestEdit.errors.${errorCode}`)
+            || translate('pages.viewSpace.suggestEdit.invalidValue');
     })();
 
     const canSubmit = !!normalized && normalized.ok && !isSubmitting;
+
+    // Server returns codes like 'INVALID_VALUE:INVALID_PHONE' from the normalizer
+    // or bare codes like 'MISSING_ANON_IDENTITY' for infrastructure failures.
+    // The translator returns the key string when a lookup misses, so we detect
+    // that and fall back to the generic errorMessage rather than showing the raw
+    // code to the user.
+    const translateServerError = (raw: unknown): string => {
+        const fallback = translate('pages.viewSpace.suggestEdit.errorMessage');
+        if (typeof raw !== 'string' || !raw) return fallback;
+        const parts = raw.split(':');
+        const code = parts[0] === 'INVALID_VALUE' && parts[1] ? parts[1] : parts[0];
+        const lookupKey = `pages.viewSpace.suggestEdit.errors.${code}`;
+        const specific = translate(lookupKey);
+        return specific !== lookupKey ? specific : fallback;
+    };
 
     const handleSubmit = async () => {
         if (!normalized || !normalized.ok) return;
@@ -71,7 +87,7 @@ const SuggestEditModal: React.FC<ISuggestEditModalProps> = ({
             );
             setResult(response.data as ISubmissionResult);
         } catch (err: any) {
-            setError(err?.response?.data?.message || translate('pages.viewSpace.suggestEdit.errorMessage'));
+            setError(translateServerError(err?.response?.data?.message));
         } finally {
             setIsSubmitting(false);
         }
