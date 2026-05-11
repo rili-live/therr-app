@@ -45,3 +45,15 @@ export const submitPairingFeedbackValidation = [
     body('pairedSpaceId').isString().notEmpty(),
     body('isHelpful').isBoolean(),
 ];
+
+export const submitCorrectionValidation = [
+    param('spaceId').isUUID(),
+    body('fieldName').isIn(['phoneNumber', 'websiteUrl', 'openingHours']),
+    body('value').exists(),
+];
+
+export const getCorrectionsSummaryValidation = [
+    header('authorization').exists(),
+    header('x-userid').exists(),
+    param('spaceId').isUUID(),
+];

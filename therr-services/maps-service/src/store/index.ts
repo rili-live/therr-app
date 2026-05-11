@@ -8,6 +8,7 @@ import SpacesStore from './SpacesStore';
 import SpaceMetricsStore from './SpaceMetricsStore';
 import SpaceIncentivesStore from './SpaceIncentivesStore';
 import SpaceIncentiveCouponsStore from './SpaceIncentiveCouponsStore';
+import SpaceCorrectionsStore from './SpaceCorrectionsStore';
 import SpacePairingFeedbackStore from './SpacePairingFeedbackStore';
 import SpaceDisplayRequestsStore from './SpaceDisplayRequestsStore';
 
@@ -34,6 +35,8 @@ class Store {
 
     spacePairingFeedback: SpacePairingFeedbackStore;
 
+    spaceCorrections: SpaceCorrectionsStore;
+
     spaceDisplayRequests: SpaceDisplayRequestsStore;
 
     constructor(dbConnection) {
@@ -58,6 +61,8 @@ class Store {
         this.spaceIncentiveCoupons = new SpaceIncentiveCouponsStore(this.db);
 
         this.spacePairingFeedback = new SpacePairingFeedbackStore(this.db);
+
+        this.spaceCorrections = new SpaceCorrectionsStore(this.db);
 
         this.spaceDisplayRequests = new SpaceDisplayRequestsStore(this.db);
     }
