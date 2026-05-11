@@ -88,6 +88,10 @@ class MyLists extends React.Component<IMyListsProps, IMyListsState> {
                         data={userLists}
                         keyExtractor={(item) => item.id}
                         contentContainerStyle={{ padding: 12 }}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
+                        removeClippedSubviews={true}
                         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={this.refresh} />}
                         ListEmptyComponent={() => (
                             !isLoading ? (
