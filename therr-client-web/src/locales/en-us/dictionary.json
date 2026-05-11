@@ -965,6 +965,38 @@
         "successMessage": "Your review has been submitted. Thank you!",
         "errorMessage": "There was an error submitting your review. Please try again."
       },
+      "suggestEdit": {
+        "trigger": "Suggest an edit",
+        "title": "Suggest an edit",
+        "description": "Spotted incorrect info? Suggest a fix. We'll apply it once a few visitors agree.",
+        "fieldLabel": "What needs updating?",
+        "valueLabel": "Correct value",
+        "phoneOption": "Phone number",
+        "websiteOption": "Website",
+        "phonePlaceholder": "(415) 555-1234",
+        "websitePlaceholder": "https://example.com",
+        "normalizedPreview": "Will be saved as",
+        "invalidValue": "That value doesn't look right. Please check the format.",
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "close": "Close",
+        "appliedMessage": "Thanks! Your correction has been applied.",
+        "pendingMessage": "Thanks! We need {remaining} more agreement(s) before applying this change.",
+        "ownerClaimedMessage": "Thanks! This business has an owner — we've forwarded your suggestion to them.",
+        "errorMessage": "Something went wrong submitting your suggestion. Please try again.",
+        "errors": {
+          "EMPTY_URL": "Please enter a website.",
+          "INVALID_URL": "That doesn't look like a valid website URL.",
+          "EMPTY_PHONE": "Please enter a phone number.",
+          "INVALID_PHONE": "That doesn't look like a valid phone number.",
+          "PHONE_NOT_STRING": "Phone number must be text.",
+          "URL_NOT_STRING": "Website must be text.",
+          "INVALID_HOURS_SHAPE": "Hours format is invalid.",
+          "INVALID_HOURS_SCHEMA": "Hours schema is invalid.",
+          "INVALID_HOURS_TIMEZONE": "Timezone is invalid.",
+          "UNSUPPORTED_FIELD": "That field can't be edited."
+        }
+      },
       "claimSpace": {
         "title": "Is this your business?",
         "body": "Claim this space to see real-time customer activity, get paired with complementary local businesses, and reward customers who spread the word. Update your info, add photos, and take control of your presence.",

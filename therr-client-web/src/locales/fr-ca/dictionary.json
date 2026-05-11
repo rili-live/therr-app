@@ -921,6 +921,38 @@
         "successMessage": "Votre avis a été soumis. Merci!",
         "errorMessage": "Une erreur s'est produite lors de la soumission de votre avis. Veuillez réessayer."
       },
+      "suggestEdit": {
+        "trigger": "Suggérer une modification",
+        "title": "Suggérer une modification",
+        "description": "Vous avez repéré une information incorrecte? Suggérez une correction. Nous l'appliquerons lorsque plusieurs visiteurs seront d'accord.",
+        "fieldLabel": "Qu'est-ce qui doit être mis à jour?",
+        "valueLabel": "Valeur correcte",
+        "phoneOption": "Numéro de téléphone",
+        "websiteOption": "Site Web",
+        "phonePlaceholder": "(514) 555-1234",
+        "websitePlaceholder": "https://exemple.com",
+        "normalizedPreview": "Sera enregistré sous",
+        "invalidValue": "Cette valeur ne semble pas correcte. Veuillez vérifier le format.",
+        "submit": "Soumettre",
+        "cancel": "Annuler",
+        "close": "Fermer",
+        "appliedMessage": "Merci! Votre correction a été appliquée.",
+        "pendingMessage": "Merci! Nous avons besoin de {remaining} accord(s) supplémentaire(s) avant d'appliquer ce changement.",
+        "ownerClaimedMessage": "Merci! Cette entreprise a un propriétaire — nous lui avons transmis votre suggestion.",
+        "errorMessage": "Une erreur s'est produite lors de l'envoi de votre suggestion. Veuillez réessayer.",
+        "errors": {
+          "EMPTY_URL": "Veuillez saisir un site Web.",
+          "INVALID_URL": "Cela ne ressemble pas à une URL valide.",
+          "EMPTY_PHONE": "Veuillez saisir un numéro de téléphone.",
+          "INVALID_PHONE": "Cela ne ressemble pas à un numéro de téléphone valide.",
+          "PHONE_NOT_STRING": "Le numéro de téléphone doit être du texte.",
+          "URL_NOT_STRING": "Le site Web doit être du texte.",
+          "INVALID_HOURS_SHAPE": "Le format des heures n'est pas valide.",
+          "INVALID_HOURS_SCHEMA": "Le schéma des heures n'est pas valide.",
+          "INVALID_HOURS_TIMEZONE": "Le fuseau horaire n'est pas valide.",
+          "UNSUPPORTED_FIELD": "Ce champ ne peut pas être modifié."
+        }
+      },
       "claimSpace": {
         "title": "C'est votre entreprise?",
         "body": "Réclamez cet espace pour voir l'activité de vos clients en temps réel, être jumelé avec des entreprises locales complémentaires et récompenser les clients qui parlent de vous. Mettez à jour vos informations, ajoutez des photos et prenez le contrôle de votre présence.",
