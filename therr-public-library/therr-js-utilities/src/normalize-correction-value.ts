@@ -1,4 +1,4 @@
-import normalizePhoneNumber from './normalize-phone-number';
+import { parsePhoneNumber } from 'awesome-phonenumber';
 
 export type SpaceCorrectionFieldName = 'phoneNumber' | 'websiteUrl' | 'openingHours';
 
@@ -77,15 +77,21 @@ const normalizeWebsiteUrl = (raw: string): NormalizeResult<string> => {
 const normalizePhone = (raw: string): NormalizeResult<string> => {
     const trimmed = raw.trim();
     if (!trimmed) return { ok: false, error: 'EMPTY_PHONE' };
-    const normalized = normalizePhoneNumber(trimmed);
-    if (!normalized || normalized === trimmed) {
-        // normalizePhoneNumber returns the input unchanged when parsing fails.
-        // For corrections we want strict E.164 — require the leading '+'.
-        if (!normalized || !normalized.startsWith('+')) {
-            return { ok: false, error: 'INVALID_PHONE' };
-        }
+    // Parse directly so we can grab E.164. The shared normalize-phone-number
+    // helper returns US-local format ('1 (415) 555-1234') for numbers without
+    // a country-code prefix, which is not what corrections want — we need a
+    // canonical form (+14155551234) for equality bucketing.
+    const regionCode = trimmed.includes('+') ? undefined : 'US';
+    let pn;
+    try {
+        pn = parsePhoneNumber(trimmed, regionCode ? { regionCode } : undefined);
+    } catch {
+        return { ok: false, error: 'INVALID_PHONE' };
     }
-    return { ok: true, normalized, canonical: normalized };
+    if (!pn?.valid || !pn.number?.e164) {
+        return { ok: false, error: 'INVALID_PHONE' };
+    }
+    return { ok: true, normalized: pn.number.e164, canonical: pn.number.e164 };
 };
 
 const isStringArray = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string');
