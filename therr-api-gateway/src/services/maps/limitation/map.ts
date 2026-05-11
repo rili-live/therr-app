@@ -38,7 +38,12 @@ const buildIdentityRateLimiter = (msg, count = 1, minutes = 1, keySuffix = '') =
     legacyHeaders: false,
     statusCode: limitReachedStatusCode,
     keyGenerator: (req) => {
-        const identity = (req.headers && req.headers['x-userid']) || req.ip;
+        // authenticateOptional sets `req['x-userid']` directly on the request
+        // object — not on req.headers. Fall back to header (internal calls) and
+        // then IP to preserve a working bucket for anonymous submitters.
+        const identity = req['x-userid']
+            || (req.headers && req.headers['x-userid'])
+            || req.ip;
         return `${req.method}${req.path}${identity}${keySuffix}`;
     },
     handler: (req, res) => handleHttpError({

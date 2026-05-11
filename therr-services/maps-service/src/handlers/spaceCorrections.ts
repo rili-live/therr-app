@@ -2,6 +2,8 @@ import { RequestHandler } from 'express';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { parseHeaders } from 'therr-js-utilities/http';
 // eslint-disable-next-line import/extensions, import/no-unresolved
+import { AccessLevels } from 'therr-js-utilities/constants';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import normalizeCorrectionValue, { SpaceCorrectionFieldName } from 'therr-js-utilities/normalize-correction-value';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -133,7 +135,7 @@ const getCorrectionsSummary: RequestHandler = async (req: any, res: any) => {
 
     const isOwner = space.fromUserId === userId;
     const isSuperAdmin = Array.isArray(userAccessLevels)
-        && userAccessLevels.includes('super-admin');
+        && userAccessLevels.includes(AccessLevels.SUPER_ADMIN);
     if (!isOwner && !isSuperAdmin) {
         return handleHttpError({ res, message: 'FORBIDDEN', statusCode: 403 });
     }
