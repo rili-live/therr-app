@@ -20,6 +20,7 @@ import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
 import ListPickerPopover from './Bookmarks/ListPickerPopover';
+import SuggestEditModal from '../components/SuggestEditModal';
 import { getGuidesBySpaceId } from '../utilities/guideContent';
 
 // Only lazy-load on client (Leaflet requires window/document)
@@ -100,6 +101,8 @@ interface IViewSpaceState {
     isLocationLoading: boolean;
     locationError: string;
     isHeroBlank: boolean;
+    isSuggestEditModalOpen: boolean;
+    suggestEditInitialField: 'phoneNumber' | 'websiteUrl' | undefined;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -158,6 +161,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isLocationLoading: false,
             locationError: '',
             isHeroBlank: false,
+            isSuggestEditModalOpen: false,
+            suggestEditInitialField: undefined,
         };
     }
 
@@ -946,7 +951,17 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         return (
             <>
-                <Title order={3} size="h4" mt="lg">{this.props.translate('pages.viewSpace.headings.contactAndLocation')}</Title>
+                <Group justify="space-between" align="flex-end" mt="lg">
+                    <Title order={3} size="h4">{this.props.translate('pages.viewSpace.headings.contactAndLocation')}</Title>
+                    <Anchor
+                        component="button"
+                        type="button"
+                        size="xs"
+                        onClick={() => this.setState({ isSuggestEditModalOpen: true, suggestEditInitialField: undefined })}
+                    >
+                        {this.props.translate('pages.viewSpace.suggestEdit.trigger')}
+                    </Anchor>
+                </Group>
                 {hasAddress && (
                     <address className="space-address">
                         {space.addressStreetAddress && <Text>{space.addressStreetAddress}</Text>}
@@ -1432,6 +1447,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     </Paper>
                 </Stack>
                 {this.renderLoginModal()}
+                <SuggestEditModal
+                    opened={this.state.isSuggestEditModalOpen}
+                    onClose={() => this.setState({ isSuggestEditModalOpen: false })}
+                    spaceId={this.state.spaceId}
+                    initialField={this.state.suggestEditInitialField}
+                    translate={this.props.translate}
+                />
             </Container>
         );
     }

@@ -87,6 +87,14 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-05-11, business-info-validation) Set `CORRECTION_IDENTITY_SALT`
+  env var (random ≥32-byte hex) in stage and production for the api-gateway
+  service — without it, the gateway falls back to a static dev placeholder
+  and anonymous-submitter identity hashes become guessable.
+- [ ] (2026-05-11, business-info-validation) Run maps-service migration on
+  production: `20260511000000_main.spaceCorrections` — creates the table
+  that stores crowdsourced business-info edits. Web endpoint will 500 until
+  this runs.
 - [ ] (2026-04-27, /quality-peer-review) Run users-service migrations on production
   (`20260425000001_main.users.brandVariations_v2`,
   `20260425000002_main.notifications.brandVariation`,
