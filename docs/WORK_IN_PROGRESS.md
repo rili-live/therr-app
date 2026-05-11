@@ -87,10 +87,15 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
-- [ ] (2026-05-11, business-info-validation) Set `CORRECTION_IDENTITY_SALT`
-  env var (random ≥32-byte hex) in stage and production for the api-gateway
-  service — without it, the gateway falls back to a static dev placeholder
-  and anonymous-submitter identity hashes become guessable.
+- [ ] (2026-05-11, business-info-validation) Create the `correction-identity-salt`
+  k8s secret (key `CORRECTION_IDENTITY_SALT`, random ≥32-byte hex) in both
+  the prod and test clusters before applying the api-gateway deployment.
+  Generate with `openssl rand -hex 32`. Both
+  `k8s/prod/api-gateway-service-deployment.yaml` and
+  `k8s/test/api-gateway-service-deployment.yaml` now reference this secret
+  via `secretKeyRef`, so the pods will fail to start if it's missing. The
+  image runs `NODE_ENV=production` in both clusters, so the in-code dev
+  fallback does not apply.
 - [ ] (2026-05-11, business-info-validation) Run maps-service migration on
   production: `20260511000000_main.spaceCorrections` — creates the table
   that stores crowdsourced business-info edits. Web endpoint will 500 until
