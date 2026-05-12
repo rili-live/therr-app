@@ -67,6 +67,7 @@ import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
+import SplashLogoSpinner from './SplashLogoSpinner';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
 import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroidChannel } from '../constants';
@@ -139,6 +140,8 @@ interface ILayoutState {
     targetRouteView: string;
     targetRouteParams: any;
     permissionPrimerType: PermType | null;
+    shouldSpinSplashLogo: boolean;
+    isSplashSpinnerVisible: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -209,6 +212,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             targetRouteView: '',
             targetRouteParams: {},
             permissionPrimerType: null,
+            shouldSpinSplashLogo: false,
+            isSplashSpinnerVisible: true,
         };
 
         this.reloadTheme();
@@ -1825,6 +1830,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         resolve?.(false);
     };
 
+    handleSplashSpinComplete = () => {
+        this.setState({ isSplashSpinnerVisible: false });
+    };
+
     render() {
         const {
             location,
@@ -1832,9 +1841,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
-        const { permissionPrimerType } = this.state;
+        const { permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
 
         return (
+            <>
             <NavigationContainer
                 // Keyed on locale only so theme toggles do not remount the entire nav tree.
                 // Locale change still requires a remount because route translators close over locale at construction.
@@ -1848,7 +1858,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         return Image.prefetch(img);
                     })).finally(() => {
                         // TODO: Update users lastSessionStartAt property to track user activity
-                        SplashScreen.hide({ fade: true });
+                        // Hand off to JS overlay with no fade: the overlay matches the native splash bg
+                        // exactly, so the transition is invisible and the spin starts cleanly.
+                        SplashScreen.hide({ fade: false });
+                        this.setState({ shouldSpinSplashLogo: true });
                     });
                 }}
                 onStateChange={async () => {
@@ -2111,6 +2124,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     />
                 ) : null}
             </NavigationContainer>
+            {isSplashSpinnerVisible ? (
+                <SplashLogoSpinner
+                    start={shouldSpinSplashLogo}
+                    onAnimationComplete={this.handleSplashSpinComplete}
+                />
+            ) : null}
+            </>
         );
     }
 }
