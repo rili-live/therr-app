@@ -955,7 +955,6 @@ const renderMomentView = (req, res, config, {
         // eslint-disable-next-line max-len
         || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
-    // TODO: Mimic existing best SEO practices for a location page
     const momentId = req.params?.momentId;
     const content = initialState?.content || {};
     const moment = initialState?.map?.moments[momentId];
@@ -965,21 +964,37 @@ const renderMomentView = (req, res, config, {
     const authorName = moment?.fromUserFirstName && moment?.fromUserLastName ? `${moment?.fromUserFirstName} ${moment?.fromUserLastName}` : '';
     const authorId = moment?.fromUserId || '';
 
+    // autocrop=true is required so ImageKit returns exact 1200x630 and the og:image:width/height meta tags stay accurate.
     let metaImgUrl;
+    let metaImgWidth = 0;
+    let metaImgHeight = 0;
+    const schemaImages: string[] = [];
+    if (moment?.medias?.length) {
+        moment.medias.forEach((media) => {
+            if (media?.path && media?.type === Content.mediaTypes.USER_IMAGE_PUBLIC) {
+                const uri = getUserContentUri(media, 1200, 1200);
+                if (uri && (uri.includes('.jpg') || uri.includes('.jpeg') || uri.includes('.png'))) {
+                    schemaImages.push(uri);
+                }
+            }
+        });
+    }
 
-    // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-    const mediaPath = (moment.medias?.[0]?.path);
-    const mediaType = (moment.medias?.[0]?.type);
+    const mediaPath = (moment?.medias?.[0]?.path);
+    const mediaType = (moment?.medias?.[0]?.type);
     const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(moment.medias?.[0], 600, 600)
+        ? getUserContentUri(moment.medias?.[0], 630, 1200, true)
         : content?.media?.[mediaPath];
 
     if (momentMediaUri) {
         if (momentMediaUri.includes('.jpg') || momentMediaUri.includes('.jpeg') || momentMediaUri.includes('.png')) {
             metaImgUrl = momentMediaUri;
+            metaImgWidth = 1200;
+            metaImgHeight = 630;
         }
     }
 
+    const metaImgAlt = authorName ? `${authorName} on Therr: ${momentTitle}` : momentTitle;
     const momentCategory = moment?.category || '';
 
     const momentSchema: any = {
@@ -989,7 +1004,7 @@ const renderMomentView = (req, res, config, {
         headline: momentTitle,
         datePublished: moment?.createdAt || '',
         dateModified: moment?.updatedAt || moment?.createdAt || '',
-        image: metaImgUrl || '',
+        image: schemaImages.length > 0 ? schemaImages : (metaImgUrl || ''),
         author: {
             '@type': 'Person',
             name: authorName,
@@ -1022,10 +1037,14 @@ const renderMomentView = (req, res, config, {
         title: momentTitle,
         description: momentDescription,
         datePublished: moment?.createdAt,
+        dateModified: moment?.updatedAt || moment?.createdAt,
         authorName,
         authorId,
         momentCategory,
         metaImgUrl,
+        metaImgAlt,
+        metaImgWidth,
+        metaImgHeight,
         momentSchema: JSON.stringify(momentSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
@@ -1046,7 +1065,6 @@ const renderSpaceView = (req, res, config, {
         // eslint-disable-next-line max-len
         || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
-    // TODO: Mimic existing best SEO practices for a location page
     const spaceId = req.params?.spaceId;
     const content = initialState?.content || {};
     const space = initialState?.map?.spaces[spaceId];
@@ -1484,24 +1502,31 @@ const renderUserView = (req, res, config, {
         // eslint-disable-next-line max-len
         || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
-    // TODO: Mimic existing best SEO practices for a location page
     const user = initialState?.user?.userInView;
     const userName = user ? `${user.firstName} ${user.lastName}` : '';
 
     let metaImgUrl;
-
-    // TODO: Use an image optimized for meta image
+    let metaImgWidth = 0;
+    let metaImgHeight = 0;
     if (user?.media?.profilePicture) {
         const url = getUserImageUri({
             details: user,
-        });
+        }, 1200);
         if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
             metaImgUrl = url;
+            metaImgWidth = 1200;
+            metaImgHeight = 1200;
         }
     }
 
     const userHandle = user?.userName || '';
     const userBio = user?.settingsBio || '';
+    let metaImgAlt = '';
+    if (userName) {
+        metaImgAlt = `${userName} on Therr`;
+    } else if (userHandle) {
+        metaImgAlt = `@${userHandle} on Therr`;
+    }
 
     // Collect social links for schema sameAs
     const sameAs: string[] = [];
@@ -1509,6 +1534,8 @@ const renderUserView = (req, res, config, {
     if (user?.socialSyncs?.twitter?.link) sameAs.push(user.socialSyncs.twitter.link);
     if (user?.socialSyncs?.youtube?.link) sameAs.push(user.socialSyncs.youtube.link);
     if (user?.socialSyncs?.instagram?.link) sameAs.push(user.socialSyncs.instagram.link);
+    const twitterUsername = user?.socialSyncs?.twitter?.platformUsername || '';
+    const twitterCreator = twitterUsername ? `@${twitterUsername.replace(/^@/, '')}` : '';
 
     const userSchema: any = {
         '@context': 'https://schema.org',
@@ -1549,6 +1576,10 @@ const renderUserView = (req, res, config, {
         description: userBio || description,
         userHandle,
         metaImgUrl,
+        metaImgAlt,
+        metaImgWidth,
+        metaImgHeight,
+        twitterCreator,
         userSchema: JSON.stringify(userSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,

@@ -201,18 +201,10 @@ The space landing page **is** the B2B sales pitch. Missing OG/meta on
 sibling content types (moments, user profiles) leaks indexing weight and
 breaks share previews from claim-emails.
 
-- `therr-client-web/src/server-client.tsx:849` — Mimic best-SEO practices for
-  moment SSR meta tags
-- `therr-client-web/src/server-client.tsx:940` — Mimic best-SEO practices for
-  space SSR meta tags
-- `therr-client-web/src/server-client.tsx:1378` — Mimic best-SEO practices for
-  user-profile SSR meta tags
-- `therr-client-web/src/server-client.tsx:1384` — Use an image optimized for
-  the OG `meta` image (current path uses unsized media)
 - `therr-client-web/src/routes/ListSpaces.tsx:31` — Geo-targeted meta tags +
   URL slugs for category/location landing (compounds with city-category page
   work in `docs/GROWTH_STRATEGY.md` Priority 7)
-- `therr-client-web/src/server-client.tsx:1892` — Locale-first guide rendering
+- `therr-client-web/src/server-client.tsx:2001` — Locale-first guide rendering
   per `docs/CONTENT_LOCALE_FIRST_PLAN.md`
 
 ### 1.2 Spoofable / unauthenticated mutation endpoints
