@@ -2,10 +2,6 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-// background-geolocation
-def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
-apply from: "${background_geolocation_path}/app.gradle"
-
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -143,8 +139,6 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             shrinkResources enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            // background_geolocation requires custom Proguard Rules
-            proguardFiles "${background_geolocation_path}/proguard-rules.pro"
         }
     }
 }
