@@ -32,6 +32,11 @@
     <meta name="description" content="{{description}}">
     <meta name="author" content="Therr">
 
+    {{#if geoPosition}}<meta name="geo.position" content="{{geoPosition}}">{{/if}}
+    {{#if geoPlacename}}<meta name="geo.placename" content="{{geoPlacename}}">{{/if}}
+    {{#if geoRegion}}<meta name="geo.region" content="{{geoRegion}}">{{/if}}
+    {{#if icbm}}<meta name="ICBM" content="{{icbm}}">{{/if}}
+
     <meta property="og:site_name" content="Therr" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="{{ogLocale}}" />

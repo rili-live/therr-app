@@ -1616,6 +1616,27 @@ const renderLocationsView = (req, res, config, {
     const cityEntry = citySlug ? Cities.CitySlugMap[citySlug] : null;
     const cityDisplayName = cityEntry ? `${cityEntry.name}, ${cityEntry.stateAbbr}` : '';
 
+    // Geo-targeted meta tags. When a city is selected, emit the full set;
+    // when only ?lat=&lng= are present, emit coords-only so crawlers still
+    // get a geo anchor even without a known placename.
+    let geoPosition = '';
+    let geoPlacename = '';
+    let geoRegion = '';
+    let icbm = '';
+    if (cityEntry) {
+        geoPosition = `${cityEntry.lat};${cityEntry.lng}`;
+        geoPlacename = `${cityEntry.name}, ${cityEntry.state}`;
+        geoRegion = `US-${cityEntry.stateAbbr}`;
+        icbm = `${cityEntry.lat}, ${cityEntry.lng}`;
+    } else if (hasCoords) {
+        const lat = parseFloat(req.query.lat);
+        const lng = parseFloat(req.query.lng);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            geoPosition = `${lat};${lng}`;
+            icbm = `${lat}, ${lng}`;
+        }
+    }
+
     // Dynamic title/description based on city, category, or search query
     let title: string;
     let description: string;
@@ -1891,6 +1912,10 @@ const renderLocationsView = (req, res, config, {
         introParagraph,
         prevPage,
         nextPage,
+        geoPosition,
+        geoPlacename,
+        geoRegion,
+        icbm,
         markup,
         routePath,
         state,
@@ -1913,6 +1938,11 @@ const renderCityPulseView = (req, res, config, {
     const citySlug = req.params?.citySlug || '';
     const cityEntry = citySlug ? Cities.CitySlugMap[citySlug] : null;
     const cityDisplayName = cityEntry ? `${cityEntry.name}, ${cityEntry.stateAbbr}` : '';
+
+    const geoPosition = cityEntry ? `${cityEntry.lat};${cityEntry.lng}` : '';
+    const geoPlacename = cityEntry ? `${cityEntry.name}, ${cityEntry.state}` : '';
+    const geoRegion = cityEntry ? `US-${cityEntry.stateAbbr}` : '';
+    const icbm = cityEntry ? `${cityEntry.lat}, ${cityEntry.lng}` : '';
 
     const pulse = initialState?.map?.cityPulse?.[citySlug] || null;
     const trendingCount = pulse?.therr?.trendingSpaces?.length || 0;
@@ -2022,6 +2052,10 @@ const renderCityPulseView = (req, res, config, {
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         itemListSchema: itemListSchema ? JSON.stringify(itemListSchema) : '',
         touristDestinationSchema: touristDestinationSchema ? JSON.stringify(touristDestinationSchema) : '',
+        geoPosition,
+        geoPlacename,
+        geoRegion,
+        icbm,
         markup,
         routePath,
         state,
@@ -2029,11 +2063,6 @@ const renderCityPulseView = (req, res, config, {
     });
 };
 
-// TODO: locale-first guide rendering — see docs/CONTENT_LOCALE_FIRST_PLAN.md.
-// When a post has `locales.es` / `locales.fr-ca` and the request is at /es/guides
-// or /fr-ca/guides, resolveGuideForLocale already swaps in the localized
-// title/description/sections. Phase 1 of the plan is to verify htmlLang and
-// canonicalPath reflect the request locale (not hardcoded en-us).
 const renderGuideView = (req, res, config, { markup, state }, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
@@ -2055,6 +2084,16 @@ const renderGuideView = (req, res, config, { markup, state }, initialState, loca
     const urlLocale = req.localeFromUrl || 'en-us';
     const resolved = resolveGuideForLocale(post, urlLocale);
 
+    // If the URL locale has no actual translation, the body falls back to en-us
+    // content. Point canonical + Article @id at the en-us URL so Google consolidates
+    // ranking signal there instead of indexing the locale URL as a thin duplicate.
+    // hreflang siblings still emit all three (see guides.hbs) so the language
+    // cluster is discoverable once translations land.
+    const hasLocalizedContent = urlLocale === 'en-us' || !!post.locales?.[urlLocale];
+    const effectiveCanonicalPath = hasLocalizedContent
+        ? localeVars.canonicalPath
+        : localeVars.hreflangEn;
+
     // Build spaceMeta from spaces hydrated by the route's fetchData (see routes/index.tsx),
     // so JSON-LD itemList/touristTrip schemas use real names instead of UUIDs.
     const spaceMeta: Record<string, { name: string; slug?: string }> = {};
@@ -2071,7 +2110,7 @@ const renderGuideView = (req, res, config, { markup, state }, initialState, loca
     const schemas = buildGuideSchemas({
         post,
         resolved,
-        canonicalPath: localeVars.canonicalPath,
+        canonicalPath: effectiveCanonicalPath,
         spaceMeta,
     });
 
@@ -2093,6 +2132,7 @@ const renderGuideView = (req, res, config, { markup, state }, initialState, loca
         routePath,
         state,
         ...localeVars,
+        canonicalPath: effectiveCanonicalPath,
     });
 };
 
