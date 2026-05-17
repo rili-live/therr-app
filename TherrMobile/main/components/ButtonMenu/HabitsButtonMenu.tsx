@@ -43,6 +43,7 @@ const ViewProfileButton = ({
         <Button
             buttonStyle={themeMenu.styles.buttons}
             containerStyle={themeMenu.styles.buttonContainerUserProfile}
+            iconContainerStyle={{ marginRight: 6 }}
             titleStyle={themeMenu.styles.buttonsTitle}
             icon={
                 isUserAuthenticated(user) ?
@@ -249,8 +250,8 @@ class HabitsButtonMenu extends ButtonMenu {
                         <View
                             style={{
                                 position: 'absolute',
-                                top: 4,
-                                right: buttonWidth / 2 - 24,
+                                top: 7,
+                                right: buttonWidth / 2 - 20,
                                 minWidth: 18,
                                 height: 18,
                                 borderRadius: 9,
