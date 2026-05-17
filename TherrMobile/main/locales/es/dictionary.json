@@ -1037,7 +1037,8 @@
         "settings": "Configuración",
         "toggle": "Alternar",
         "notifications": "Notificaciones",
-        "profile": "Perfil"
+        "profile": "Perfil",
+        "habits": "Hábitos"
       }
     },
     "connections": {
@@ -2358,6 +2359,51 @@
         "noMoments": "No hay momentos para mostrar. Viaja donde ellos viajan para activar momentos cercanos.",
         "noMeThoughts": "No hay pensamientos para mostrar. Puedes crear pensamientos desde la página de 'Descubiertos'.",
         "noThoughts": "Este usuario aún no ha compartido ningún pensamiento."
+      }
+    },
+    "myHabits": {
+      "headerTitle": "Mis Hábitos",
+      "pageHeader": "Mis Hábitos",
+      "buttons": {
+        "viewPactStatus": "Ver estado del pacto →",
+        "createHabit": "Crear un hábito"
+      },
+      "labels": {
+        "invitedTimeAgo": "Invitado hace {timeAgo}",
+        "pendingInvite": "Invitación pendiente",
+        "teamMembers": "Miembros del equipo"
+      },
+      "messages": {
+        "noHabits": "Aún no hay hábitos activos. ¡Empieza creando un hábito para construir tu racha!"
+      }
+    },
+    "myPacts": {
+      "headerTitle": "Mis Pactos",
+      "pageHeader": "Mis Pactos",
+      "tabs": {
+        "sent": "Enviados",
+        "received": "Recibidos"
+      },
+      "buttons": {
+        "sendNudge": "Enviar recordatorio",
+        "nudgeSent": "Recordatorio enviado",
+        "inviteSomeoneElse": "Invitar a alguien más",
+        "startNewPact": "Iniciar un nuevo pacto",
+        "accept": "Aceptar",
+        "decline": "Rechazar"
+      },
+      "labels": {
+        "invitedTimeAgo": "Invitado hace {timeAgo}",
+        "nudgeSentTimeAgo": "Recordatorio enviado hace {timeAgo}",
+        "waitingForResponse": "Esperando respuesta...",
+        "habitGoal": "Hábito",
+        "noResponseYet": "Sin respuesta aún. ¿Qué te gustaría hacer?"
+      },
+      "messages": {
+        "noSentPacts": "No hay invitaciones enviadas pendientes.",
+        "noReceivedPacts": "No hay invitaciones recibidas pendientes.",
+        "nudgeSuccess": "¡Recordatorio enviado! Tu compañero será notificado.",
+        "nudgeCooldown": "Ya enviaste un recordatorio recientemente. Inténtalo de nuevo en unos días."
       }
     }
   }

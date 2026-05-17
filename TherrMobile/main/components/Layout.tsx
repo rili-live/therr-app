@@ -1051,11 +1051,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
 
             // HABITS pact / streak / partner / habit-reminder notifications.
-            // The matching screens (Pact view, Streak view, etc.) don't yet
-            // exist in TherrMobile; route to the in-app notifications list as
-            // a sensible default until those routes ship. Once the screens
-            // land, swap these branches for direct deep links.
             case PushNotifications.Types.pactInvitation:
+                return { targetRouteView: 'MyPacts', targetRouteParams: { activeTab: 'Received' } };
+
+            case PushNotifications.Types.pactNudge:
+                return { targetRouteView: 'MyPacts', targetRouteParams: { activeTab: 'Received' } };
+
             case PushNotifications.Types.pactAccepted:
             case PushNotifications.Types.pactDeclined:
             case PushNotifications.Types.pactCompleted:

@@ -70,6 +70,19 @@ const habits = produce((draft: IHabitsState, action: any) => {
         case HabitsActionTypes.CREATE_PACT:
             draft.pacts.unshift(action.data);
             break;
+        case HabitsActionTypes.NUDGE_PACT: {
+            // Update nudgedAt on the matching partner member across all pact slices
+            const updateNudgedAt = (pacts: any[]) => {
+                const idx = pacts.findIndex((p) => p.id === action.data.id);
+                if (idx > -1) {
+                    pacts[idx] = action.data;
+                }
+            };
+            updateNudgedAt(draft.pacts);
+            updateNudgedAt(draft.activePacts);
+            updateNudgedAt(draft.pendingInvites);
+            break;
+        }
         case HabitsActionTypes.ACCEPT_PACT: {
             // Move from pending invites to active pacts
             draft.pendingInvites = draft.pendingInvites.filter((p) => p.id !== action.data.id);

@@ -51,6 +51,8 @@ export interface IPactMember {
     userId: string;
     role: 'creator' | 'partner';
     status: string;
+    invitedAt?: string;
+    nudgedAt?: string;
     totalCheckins: number;
     completedCheckins: number;
     currentStreak: number;
@@ -156,6 +158,7 @@ export enum HabitsActionTypes {
     GET_PENDING_INVITES = 'GET_PENDING_INVITES',
     GET_PACT_DETAILS = 'GET_PACT_DETAILS',
     CREATE_PACT = 'CREATE_PACT',
+    NUDGE_PACT = 'NUDGE_PACT',
     ACCEPT_PACT = 'ACCEPT_PACT',
     DECLINE_PACT = 'DECLINE_PACT',
     ABANDON_PACT = 'ABANDON_PACT',

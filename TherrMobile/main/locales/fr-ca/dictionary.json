@@ -1037,7 +1037,8 @@
         "settings": "Paramètres",
         "toggle": "Basculer",
         "notifications": "Notifications",
-        "profile": "Profil"
+        "profile": "Profil",
+        "habits": "Habitudes"
       }
     },
     "connections": {
@@ -2358,6 +2359,51 @@
         "noMoments": "Aucun moment à afficher. Voyagez là où ils voyagent pour activer les moments à proximité.",
         "noMeThoughts": "Aucune pensée à afficher. Vous pouvez créer des pensées depuis la page « Découvertes ».",
         "noThoughts": "Cet utilisateur n'a pas encore partagé de pensées."
+      }
+    },
+    "myHabits": {
+      "headerTitle": "Mes Habitudes",
+      "pageHeader": "Mes Habitudes",
+      "buttons": {
+        "viewPactStatus": "Voir le statut du pacte →",
+        "createHabit": "Créer une habitude"
+      },
+      "labels": {
+        "invitedTimeAgo": "Invité il y a {timeAgo}",
+        "pendingInvite": "Invitation en attente",
+        "teamMembers": "Membres de l'équipe"
+      },
+      "messages": {
+        "noHabits": "Aucune habitude active pour l'instant. Commencez par créer une habitude pour développer votre série !"
+      }
+    },
+    "myPacts": {
+      "headerTitle": "Mes Pactes",
+      "pageHeader": "Mes Pactes",
+      "tabs": {
+        "sent": "Envoyés",
+        "received": "Reçus"
+      },
+      "buttons": {
+        "sendNudge": "Envoyer un rappel",
+        "nudgeSent": "Rappel envoyé",
+        "inviteSomeoneElse": "Inviter quelqu'un d'autre",
+        "startNewPact": "Démarrer un nouveau pacte",
+        "accept": "Accepter",
+        "decline": "Refuser"
+      },
+      "labels": {
+        "invitedTimeAgo": "Invité il y a {timeAgo}",
+        "nudgeSentTimeAgo": "Rappel envoyé il y a {timeAgo}",
+        "waitingForResponse": "En attente de réponse...",
+        "habitGoal": "Habitude",
+        "noResponseYet": "Pas encore de réponse. Que souhaitez-vous faire ?"
+      },
+      "messages": {
+        "noSentPacts": "Aucune invitation envoyée en attente.",
+        "noReceivedPacts": "Aucune invitation reçue en attente.",
+        "nudgeSuccess": "Rappel envoyé ! Votre partenaire sera notifié.",
+        "nudgeCooldown": "Vous avez déjà envoyé un rappel récemment. Réessayez dans quelques jours."
       }
     }
   }

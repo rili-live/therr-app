@@ -41,6 +41,10 @@ const featureFlags = {
 
     // Monetization
     ENABLE_COIN_RECHARGE: true,
+
+    // Habits (HABITS niche app)
+    ENABLE_HABITS: true,
+    ENABLE_PACTS: true,
 };
 
 // TODO: Find a way to import this from global config

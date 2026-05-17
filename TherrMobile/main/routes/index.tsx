@@ -52,6 +52,8 @@ import ManageSpaces from './ManageSpaces';
 import MyQRCodes from './MyQRCodes';
 import MyQRCodeDetail from './MyQRCodes/MyQRCodeDetail';
 import Invite from './Invite';
+import MyHabits from './MyHabits';
+import MyPacts from './MyPacts';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 import { AccessPresets } from './access';
@@ -483,6 +485,24 @@ const routes: RouteConfig<
             requiredFeatures: [FeatureFlags.ENABLE_THOUGHTS],
             access: AccessPresets.EMAIL_VERIFIED,
             ...viewStackOptions,
+        }),
+    },
+    {
+        name: 'MyHabits',
+        component: MyHabits,
+        options: () => ({
+            title: 'My Habits',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'MyPacts',
+        component: MyPacts,
+        options: () => ({
+            title: 'My Pacts',
+            requiredFeatures: [FeatureFlags.ENABLE_PACTS],
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
 ];
