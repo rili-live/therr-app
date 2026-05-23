@@ -410,7 +410,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
                         if (isDraft && Platform.OS !== 'android') {
                             const nowPlus = new Date();
-                            nowPlus.setHours(nowPlus.getMinutes() + 1);
+                            nowPlus.setMinutes(nowPlus.getMinutes() + 1);
                             sendTriggerNotification(nowPlus, {
                                 title: this.translate('alertTitles.draftReminder'),
                                 body: this.translate('alertMessages.draftReminder'),
@@ -482,15 +482,16 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             if (error.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
                                 this.toggleInfoModal();
                             }
-                        } else if (error.statusCode >= 500) {
+                        } else {
                             this.setState({
                                 errorMsg: this.translate('forms.editMoment.backendErrorMessage'),
                             });
                         }
                     })
                     .finally(() => {
+                        this.setState({ isSubmitting: false });
                         Keyboard.dismiss();
-                        this.scrollViewRef.scrollToEnd({ animated: true });
+                        this.scrollViewRef?.scrollToEnd({ animated: true });
                     });
             }).catch((err) => {
                 console.log(err);

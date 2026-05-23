@@ -204,6 +204,11 @@ const Maps = {
                     ...data,
                 }, // server doesn't return changes, so use request data
             });
+
+            return {
+                ...response.data,
+                ...data,
+            };
         }),
     getMomentDetails: (id: number, data: any) => (dispatch: any) => MapsService.getMomentDetails(id, data)
         .then((response: any) => {
