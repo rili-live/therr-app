@@ -1,0 +1,3 @@
+[embedding]
+provider = "local"
+model = "all-MiniLM-L6-v2"
