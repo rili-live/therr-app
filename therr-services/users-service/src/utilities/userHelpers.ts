@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import config from '../config';
 
 const saltRounds = 12;
 
@@ -46,7 +47,7 @@ export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean
 
     return jwt.sign(
         payload,
-        (process.env.JWT_SECRET || ''),
+        config.jwtSecret,
         {
             algorithm: 'HS256',
             expiresIn: rememberMe ? '7d' : '1d',
@@ -68,7 +69,7 @@ export const createRefreshToken = (userId: string, rememberMe?: boolean, brand?:
 
     const token = jwt.sign(
         payload,
-        (process.env.JWT_SECRET || ''),
+        config.jwtSecret,
         {
             algorithm: 'HS256',
             expiresIn: rememberMe ? '90d' : '30d',
@@ -92,7 +93,7 @@ export const createUserEmailToken = (user: { id: string, email: string }) => {
             id,
             email,
         },
-        (process.env.JWT_EMAIL_SECRET || ''),
+        config.jwtEmailSecret,
         {
             algorithm: 'HS256',
             expiresIn: '24h',

@@ -2,6 +2,11 @@ import jwt from 'jsonwebtoken';
 import unless from 'express-unless';
 import handleHttpError from '../utilities/handleHttpError';
 
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('api-gateway: JWT_SECRET environment variable is required');
+}
+
 /**
  * This middleware should be used cautiously and in rare situations where
  * the backing service has secure logic to mitigated authenticated/non-authenticated users
@@ -10,7 +15,7 @@ const authenticateOptional = async (req, res, next) => {
     try {
         if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
             await new Promise((resolve, reject) => {
-                jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '', (err, decoded) => {
+                jwt.verify(req.headers.authorization.split(' ')[1], JWT_SECRET, (err, decoded) => {
                     if (err) {
                         return reject(err);
                     }

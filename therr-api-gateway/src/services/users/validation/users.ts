@@ -2,6 +2,7 @@ import {
     body,
     oneOf,
     param,
+    query,
 } from 'express-validator';
 
 export const createUserValidation = [
@@ -34,7 +35,7 @@ export const forgotPasswordValidation = [
 export const searchUsersValidation = [
     body('ids').optional(),
     body('query').optional().isString(),
-    body('queryColumnName').optional().isIn(['firstName', 'lastName', 'usersName']),
+    body('queryColumnName').optional().isIn(['firstName', 'lastName', 'userName']),
     body('limit').optional(),
     body('offset').optional(),
     body('withMedia').isBoolean().optional(),
@@ -55,4 +56,44 @@ export const resendVerificationValidation = [
     ]),
     body('email').exists().isEmail().normalizeEmail(),
     body('isDashboardRegistration').optional().isBoolean(),
+];
+
+export const updateUserValidation = [
+    param('id').exists().isUUID(4),
+    body('email').optional().isEmail().normalizeEmail(),
+    body('phoneNumber').optional().isMobilePhone('any'),
+    body('userName').optional().isString().trim().isLength({ max: 50 }),
+    body('firstName').optional().isString().trim().isLength({ max: 100 }),
+    body('lastName').optional().isString().trim().isLength({ max: 100 }),
+    body('isBusinessAccount').optional().isBoolean(),
+    body('isCreatorAccount').optional().isBoolean(),
+    body('settingsEmailMarketing').optional().isBoolean(),
+    body('settingsEmailBusMarketing').optional().isBoolean(),
+    body('settingsIsProfilePublic').optional().isBoolean(),
+    body('settingsPushMarketing').optional().isBoolean(),
+    body('settingsPushBackground').optional().isBoolean(),
+    body('shouldSendPushNotification').optional().isBoolean(),
+];
+
+export const blockUserValidation = [
+    param('id').exists().isUUID(4),
+];
+
+export const reportUserValidation = [
+    param('id').exists().isUUID(4),
+    body('reason').optional().isString().trim().isLength({ max: 500 }),
+    query('reportType').optional().isString(),
+];
+
+export const deleteUserValidation = [
+    param('id').exists().isUUID(4),
+];
+
+export const createNotificationValidation = [
+    body('userId').exists().isUUID(4),
+    body('type').exists().isString().isLength({ max: 100 }),
+    body('associationId').optional().isUUID(4),
+    body('isUnread').optional().isBoolean(),
+    body('messageLocaleKey').optional().isString().isLength({ max: 200 }),
+    body('messageParams').optional().isObject(),
 ];
