@@ -35,6 +35,7 @@
 
 ### Location-Based Content
 - **Moments** — geo-tagged ephemeral photo posts; proximity-gated visibility, max view limits
+- **Live Moments** — moving-picture moments (a still paired with a short muted clip, like iOS Live Photos / Android Motion Photos); plays when scrolling settles on a moment or on the View Moment screen. Gated by `ENABLE_LIVE_MOMENTS`; capture-Live and feed-autoplay are per-user settings (see `docs/LIVE_MOMENTS_PLAN.md`)
 - **Spaces** — persistent location/business pages; claim storefronts, menu/reservation/order URLs, ratings, check-ins
 - **Events** — time-bound location happenings; start/stop scheduling, group/space association
 - **Thoughts** — micro-posts with categories, reply threads, mentions, hashtags
