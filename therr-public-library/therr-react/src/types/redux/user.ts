@@ -32,6 +32,13 @@ export interface IUserSettings {
   mobileThemeName: string;
   navigationTourCount?: number;
   settingsTherrCoinTotal?: any;
+  // Live Moments preferences.
+  // `settingsCaptureLiveByDefault` seeds the "Live" capture toggle — undefined is treated as
+  // `true` so existing users default to capturing motion (no backfill required).
+  settingsCaptureLiveByDefault?: boolean;
+  // `settingsAutoplayLiveMoments` controls whether Live clips autoplay while scrolling the
+  // feed — undefined is treated as `false` so the feed stays still by default.
+  settingsAutoplayLiveMoments?: boolean;
   [key: string]: any;
 }
 
