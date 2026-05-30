@@ -419,6 +419,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                     isSuperUser: momentUserIsSuperUser,
                                 }}
                                 areaMedia={momentMedia}
+                                isActive={true}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
                                 themeViewArea={this.themeArea}

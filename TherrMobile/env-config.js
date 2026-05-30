@@ -23,6 +23,10 @@ const featureFlags = {
     ENABLE_EVENTS: true,
     ENABLE_THOUGHTS: true,
 
+    // Live Moments (moving-picture moments: still + short muted clip).
+    // NICHE: flip per brand. Default OFF until native playback is verified on device.
+    ENABLE_LIVE_MOMENTS: false,
+
     // Social Features
     ENABLE_DIRECT_MESSAGING: true,
     ENABLE_ACHIEVEMENTS: true,

@@ -25,6 +25,8 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
+import { getVideoMedia } from '../../utilities/liveMomentMedia';
+import LiveMomentMedia from './LiveMomentMedia';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
 import formatDate from '../../utilities/formatDate';
@@ -73,6 +75,8 @@ interface IAreaDisplayProps {
     area: any;
     areaMedia: string;
     areaMediaPadding?: number;
+    // Live Moments: true when this moment is the settled/visible item (feed) or on ViewMoment.
+    isActive?: boolean;
     goToViewIncentives?: Function;
     goToViewUser: Function;
     goToViewMap: (lat: string, long: string) => any;
@@ -398,8 +402,18 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             themeViewArea,
             translate,
             user,
+            isActive,
         } = this.props;
         const { isLiked, isBookmarked, likeCount } = this.state;
+
+        // Live Moments: a paired video clip enables moving-picture playback. Feed autoplay is
+        // opt-in (settingsAutoplayLiveMoments); the whole feature is gated by ENABLE_LIVE_MOMENTS.
+        const liveVideoMedia = getVideoMedia(area.medias);
+        const isLiveMomentsEnabled = envConfig.featureFlags?.ENABLE_LIVE_MOMENTS === true;
+        // On the detail (expanded) view we always autoplay since the user explicitly opened the
+        // moment; in the feed, playback is opt-in via settingsAutoplayLiveMoments.
+        const isLivePlaybackEnabled = isLiveMomentsEnabled
+            && (isExpanded || user?.settings?.settingsAutoplayLiveMoments === true);
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
@@ -554,17 +568,28 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         /> */}
                         {
                             areaMedia ?
-                                <Image
-                                    source={{
-                                        uri: areaMedia,
-                                    }}
-                                    style={{
-                                        width: mediaDimensions.width,
-                                        height: mediaDimensions.height,
-                                    }}
-                                    resizeMode="contain"
-                                    PlaceholderContent={<ActivityIndicator />}
-                                /> :
+                                (isLiveMomentsEnabled && liveVideoMedia ?
+                                    <LiveMomentMedia
+                                        stillUri={areaMedia}
+                                        videoMedia={liveVideoMedia}
+                                        isActive={!!isActive}
+                                        isPlaybackEnabled={isLivePlaybackEnabled}
+                                        width={mediaDimensions.width}
+                                        height={mediaDimensions.height}
+                                        resizeMode="contain"
+                                        theme={theme}
+                                    /> :
+                                    <Image
+                                        source={{
+                                            uri: areaMedia,
+                                        }}
+                                        style={{
+                                            width: mediaDimensions.width,
+                                            height: mediaDimensions.height,
+                                        }}
+                                        resizeMode="contain"
+                                        PlaceholderContent={<ActivityIndicator />}
+                                    />) :
                                 placeholderMediaType && <MissingImagePlaceholder
                                     area={area}
                                     themeViewArea={themeViewArea}

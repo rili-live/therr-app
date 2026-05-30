@@ -794,6 +794,8 @@
         "settingsEmailMessages": "User 'messages' e-mails",
         "settingsEmailReminders": "Social App reminder e-mails",
         "settingsEmailBackground": "Social App automated e-mails",
+        "settingsCaptureLiveByDefault": "Capture Live moments by default",
+        "settingsAutoplayLiveMoments": "Autoplay Live moments while scrolling",
         "on": "On",
         "off": "Off",
         "myQRCodes": "Manage My QR Codes"
@@ -1288,6 +1290,7 @@
     "manageNotifications": {
       "headerTitle": "Email & Alert Settings",
       "pageHeaderEmailSettings": "Email Preferences",
+      "pageHeaderLiveMoments": "Live Moments",
       "alertTitles": {
         "notificationSettingsUpdated": "Account Updated",
         "accountError": "Unknown Error"

@@ -794,6 +794,8 @@
         "settingsEmailMessages": "Correos de 'mensajes' de usuarios",
         "settingsEmailReminders": "Correos de recordatorios de la app social",
         "settingsEmailBackground": "Correos automatizados de la app social",
+        "settingsCaptureLiveByDefault": "Capturar momentos Live de forma predeterminada",
+        "settingsAutoplayLiveMoments": "Reproducir momentos Live al desplazarse",
         "on": "Activado",
         "off": "Desactivado",
         "myQRCodes": "Gestionar mis códigos QR"
@@ -1288,6 +1290,7 @@
     "manageNotifications": {
       "headerTitle": "Configuración de correo y alertas",
       "pageHeaderEmailSettings": "Preferencias de correo electrónico",
+      "pageHeaderLiveMoments": "Momentos Live",
       "alertTitles": {
         "notificationSettingsUpdated": "Cuenta actualizada",
         "accountError": "Error desconocido"
