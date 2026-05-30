@@ -18,6 +18,7 @@ module.exports = {
         '@invertase/react-native-apple-authentication': '<rootDir>/__mocks__/@invertase/react-native-apple-authentication.js',
         'react-native-device-info': '<rootDir>/__mocks__/react-native-device-info.ts',
         'react-native-video': '<rootDir>/__mocks__/react-native-video.tsx',
+        'react-native-create-thumbnail': '<rootDir>/__mocks__/react-native-create-thumbnail.ts',
         '^pretty-format$': '<rootDir>/../node_modules/pretty-format',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],

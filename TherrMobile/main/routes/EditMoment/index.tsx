@@ -49,6 +49,9 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import formatHashtags from '../../utilities/formatHashtags';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { getUserContentUri, signImageUrl } from '../../utilities/content';
+import { getVideoMedia } from '../../utilities/liveMomentMedia';
+import captureLiveMoment from '../../utilities/captureLiveMoment';
+import getConfig from '../../utilities/getConfig';
 import permissions from '../../utilities/permissionsOrchestrator';
 import { sendForegroundNotification, sendTriggerNotification } from '../../utilities/pushNotifications';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -95,6 +98,10 @@ interface IEditMomentState {
     previewStyleState: any;
     imagePreviewPath: string;
     selectedImage?: any;
+    // Live Moments: the paired short clip (when capturing a moving-picture moment).
+    selectedVideo?: any;
+    // Whether the next capture should be a Live moment (seeded by user setting + feature flag).
+    captureLive: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -161,6 +168,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
             selectedImage: imageDetails || {},
+            selectedVideo: getVideoMedia(area?.medias),
+            captureLive: getConfig().featureFlags?.ENABLE_LIVE_MOMENTS === true
+                && props.user.settings?.settingsCaptureLiveByDefault !== false,
             imagePreviewPath,
         };
 
@@ -223,50 +233,88 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         );
     }
 
+    // Sign a destination URL then PUT the local file to Google Cloud. Resolves with the stored
+    // media path. Falls back to stat'ing the file when size is unknown (e.g. extracted stills).
+    uploadFileToSignedUrl = (isPublic: boolean, { localPath, mime, size, baseFilename, extension }) => signImageUrl(isPublic, {
+        action: 'write',
+        filename: `${FilePaths.CONTENT}/${baseFilename.replace(/[^a-zA-Z0-9]/g, '_')}.${extension}`,
+    }).then(async (response) => {
+        const signedUrl = response?.data?.url && response?.data?.url[0];
+        let contentLength = size;
+        if (!contentLength) {
+            try {
+                const stat = await RNFB.fs.stat(localPath.replace('file://', ''));
+                contentLength = Number(stat?.size) || 0;
+            } catch {
+                contentLength = 0;
+            }
+        }
+
+        return RNFB.fetch(
+            'PUT',
+            signedUrl,
+            {
+                'Content-Type': mime,
+                'Content-Length': contentLength.toString(),
+                'Content-Disposition': 'inline',
+            },
+            RNFB.wrap(`${localPath}`),
+        ).then(() => response?.data?.path);
+    });
+
     signAndUploadImage = (createArgs) => {
-        const { selectedImage } = this.state;
+        const { selectedImage, selectedVideo } = this.state;
         const {
             message,
             notificationMsg,
             isPublic,
         } = this.state.inputs;
-        const {
-            route,
-        } = this.props;
-        const {
-        } = route.params;
         const imageDetails = selectedImage;
         const filePathSplit = imageDetails?.path?.split('.');
         const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+        const baseFilename = notificationMsg || message.substring(0, 20);
+        const isLivePhoto = !!selectedVideo?.path;
+        const imageType = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
+        const videoType = isPublic ? Content.mediaTypes.USER_VIDEO_PUBLIC : Content.mediaTypes.USER_VIDEO_PRIVATE;
 
         // TODO: This is too slow
-        // Use public method for public spaces
-        return signImageUrl(isPublic, {
-            action: 'write',
-            filename: `${FilePaths.CONTENT}/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
-        }).then((response) => {
-            const signedUrl = response?.data?.url && response?.data?.url[0];
-            createArgs.media = [{}];
-            createArgs.media[0].altText = notificationMsg;
-            createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
-            createArgs.media[0].path = response?.data?.path;
-            // TODO: Replace media with medias after migrations
-            createArgs.medias = createArgs.media;
+        // 1. Upload the still image (medias[0]). Mark it as the still half of a Live Moment
+        //    when a paired clip exists so clients know a moving-picture clip is available.
+        return this.uploadFileToSignedUrl(isPublic, {
+            localPath: imageDetails?.path,
+            mime: imageDetails?.mime || 'image/jpeg',
+            size: imageDetails?.size,
+            baseFilename,
+            extension: fileExtension,
+        }).then((stillPath) => {
+            createArgs.media = [{
+                altText: notificationMsg,
+                type: imageType,
+                path: stillPath,
+                isLivePhoto,
+            }];
 
-            const localFileCroppedPath = `${imageDetails?.path}`;
+            // 2. For a Live Moment, also upload the paired clip as a sibling video entry.
+            if (!isLivePhoto) {
+                createArgs.medias = createArgs.media;
+                return createArgs;
+            }
 
-            // Upload to Google Cloud
-            // TODO: Abstract and add nudity filter sightengine.com
-            return RNFB.fetch(
-                'PUT',
-                signedUrl,
-                {
-                    'Content-Type': imageDetails.mime,
-                    'Content-Length': imageDetails.size.toString(),
-                    'Content-Disposition': 'inline',
-                },
-                RNFB.wrap(localFileCroppedPath),
-            ).then(() => createArgs);
+            return this.uploadFileToSignedUrl(isPublic, {
+                localPath: selectedVideo.path,
+                mime: selectedVideo.mime || 'video/mp4',
+                size: selectedVideo.size,
+                baseFilename: `${baseFilename}_live`,
+                extension: 'mp4',
+            }).then((videoPath) => {
+                createArgs.media.push({
+                    altText: notificationMsg,
+                    type: videoType,
+                    path: videoPath,
+                });
+                createArgs.medias = createArgs.media;
+                return createArgs;
+            });
         });
     };
 
@@ -565,9 +613,19 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         if (!imageResponse.didCancel && !imageResponse.errorCode) {
             this.setState({
                 selectedImage: imageResponse,
+                selectedVideo: undefined,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
             });
         }
+    };
+
+    // Live Moments: store the extracted still (poster) + paired clip together.
+    handleLiveSelect = (capture) => {
+        this.setState({
+            selectedImage: capture.still,
+            selectedVideo: capture.video,
+            imagePreviewPath: getImagePreviewPath(capture.still?.path),
+        });
     };
 
     onAddImage = (action: string) => {
@@ -588,6 +646,21 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 cropping: true,
             };
             if (result.status === 'granted') {
+                const isLiveMomentsEnabled = getConfig().featureFlags?.ENABLE_LIVE_MOMENTS === true;
+                // Live Moments: capture a short clip + still. Falls back to a normal photo when
+                // the device can't produce a clip+still (capture returns null).
+                if (isLiveMomentsEnabled && this.state.captureLive) {
+                    return captureLiveMoment(action)
+                        .then((capture) => {
+                            if (capture) {
+                                return this.handleLiveSelect(capture);
+                            }
+                            return (action === 'camera'
+                                ? ImageCropPicker.openCamera(pickerOptions)
+                                : ImageCropPicker.openPicker(pickerOptions))
+                                .then((cameraResponse) => this.handleImageSelect(cameraResponse));
+                        });
+                }
                 if (action === 'camera') {
                     return ImageCropPicker.openCamera(pickerOptions)
                         .then((cameraResponse) => this.handleImageSelect(cameraResponse));
@@ -756,6 +829,26 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 )
                         }
                     </View>
+                    {
+                        getConfig().featureFlags?.ENABLE_LIVE_MOMENTS === true &&
+                        <Button
+                            containerStyle={spacingStyles.marginBotMd}
+                            buttonStyle={this.state.captureLive ? this.themeForms.styles.buttonPrimary : this.themeForms.styles.buttonRoundAlt}
+                            titleStyle={this.state.captureLive ? this.themeForms.styles.buttonTitle : this.themeForms.styles.buttonTitleAlt}
+                            title={this.translate(
+                                this.state.captureLive ? 'forms.editMoment.buttons.liveCaptureOn' : 'forms.editMoment.buttons.liveCaptureOff'
+                            )}
+                            icon={
+                                <OctIcon
+                                    name="video"
+                                    size={20}
+                                    style={{ color: this.state.captureLive ? this.theme.colors.primary : this.theme.colors.textGray, paddingRight: 8 }}
+                                />
+                            }
+                            onPress={() => this.setState({ captureLive: !this.state.captureLive })}
+                            raised={false}
+                        />
+                    }
                     <Button
                         containerStyle={spacingStyles.marginBotMd}
                         buttonStyle={this.themeForms.styles.buttonPrimary}
@@ -797,7 +890,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
                                 />
                             }
-                            onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                            onPress={() => this.setState({ selectedImage: undefined, selectedVideo: undefined, imagePreviewPath: '' })}
                             raised={false}
                         />
                     }

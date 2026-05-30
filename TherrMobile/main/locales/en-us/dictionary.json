@@ -528,6 +528,8 @@
         "addImage": "Attach an Image",
         "replaceImage": "Replace Image",
         "removeImage": "Remove Image",
+        "liveCaptureOn": "Live: On",
+        "liveCaptureOff": "Live: Off",
         "captureNew": "Capture a New Photo",
         "selectExisting": "Select an Existing Photo",
         "back": "Back",
