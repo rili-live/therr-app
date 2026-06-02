@@ -94,3 +94,7 @@ _bin/firebase/**/GoogleService-Info.plist
 # android
 bugreport-sdk*
 .aider*
+
+# Claude Code memory system
+context/transcripts/
+.memsearch/
