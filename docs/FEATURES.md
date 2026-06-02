@@ -35,7 +35,7 @@
 
 ### Location-Based Content
 - **Moments** — geo-tagged ephemeral photo posts; proximity-gated visibility, max view limits
-- **Live Moments** — moving-picture moments (a still paired with a short muted clip, like iOS Live Photos / Android Motion Photos); plays when scrolling settles on a moment or on the View Moment screen. Gated by `ENABLE_LIVE_MOMENTS`; capture-Live and feed-autoplay are per-user settings (see `docs/LIVE_MOMENTS_PLAN.md`)
+- **Multi-photo moments** — moments can include up to 5 photos shown as a simple swipeable carousel (swipe to change, tap to open, double-tap to like). Gated by `ENABLE_MULTI_PHOTO_MOMENTS` (see `docs/MULTI_PHOTO_MOMENTS_PLAN.md`). A dedicated video moment type is planned/deferred
 - **Spaces** — persistent location/business pages; claim storefronts, menu/reservation/order URLs, ratings, check-ins
 - **Events** — time-bound location happenings; start/stop scheduling, group/space association
 - **Thoughts** — micro-posts with categories, reply threads, mentions, hashtags
