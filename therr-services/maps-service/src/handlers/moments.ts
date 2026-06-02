@@ -36,7 +36,7 @@ import userMetricsService from '../api/userMetricsService';
 import areaMetricsService from '../api/areaMetricsService';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 import scheduleDraftReminder from '../utilities/scheduleDraftReminder';
-import validateLiveMomentMedia from '../utilities/validateLiveMomentMedia';
+import validateMomentMedia from '../utilities/validateMomentMedia';
 
 const MAX_INTERGRATIONS_PER_USER = 50;
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
@@ -194,12 +194,12 @@ const createMoment = async (req, res) => {
         });
     }
 
-    // Live Moments: guard the still+clip media pairing before persisting.
-    const liveMediaValidation = validateLiveMomentMedia(req.body.media);
-    if (!liveMediaValidation.isValid) {
+    // Guard the moment media payload (photos only, capped count) before persisting.
+    const mediaValidation = validateMomentMedia(req.body.media);
+    if (!mediaValidation.isValid) {
         return handleHttpError({
             res,
-            message: liveMediaValidation.message || 'Invalid Live Moment media.',
+            message: mediaValidation.message || 'Invalid moment media.',
             statusCode: 400,
         });
     }

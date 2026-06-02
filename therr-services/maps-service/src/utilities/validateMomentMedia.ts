@@ -1,13 +1,12 @@
 import { Content } from 'therr-js-utilities/constants';
 
-const VIDEO_TYPES = [
-    Content.mediaTypes.USER_VIDEO_PUBLIC,
-    Content.mediaTypes.USER_VIDEO_PRIVATE,
-];
 const IMAGE_TYPES = [
     Content.mediaTypes.USER_IMAGE_PUBLIC,
     Content.mediaTypes.USER_IMAGE_PRIVATE,
 ];
+
+// Moments may include up to this many photos (single photo or a multi-photo carousel).
+export const MAX_MOMENT_PHOTOS = 5;
 
 interface IValidationResult {
     isValid: boolean;
@@ -15,33 +14,26 @@ interface IValidationResult {
 }
 
 /**
- * Live Moments store a still image (medias[0]) paired with a short muted video clip.
- * This guards the create/update payload so the pairing stays well-formed:
- *   - at most one paired video per moment (perf/storage guard)
- *   - a video entry must have a sibling still image to fall back to
- * Non-live payloads (image-only, or empty) always pass.
+ * Guards the moment create/update media payload for the photo / multi-photo model:
+ *   - at most MAX_MOMENT_PHOTOS photos per moment (perf/storage guard)
+ *   - every media entry must be an image (the dedicated video type is deferred)
+ * Empty / single-photo payloads always pass.
  */
-const validateLiveMomentMedia = (media?: Array<{ type?: string }>): IValidationResult => {
+const validateMomentMedia = (media?: Array<{ type?: string }>): IValidationResult => {
     if (!media || !media.length) {
         return { isValid: true };
     }
 
-    const videoCount = media.filter((m) => m?.type && VIDEO_TYPES.includes(m.type)).length;
-
-    if (videoCount === 0) {
-        return { isValid: true };
+    const nonImage = media.find((m) => !m?.type || !IMAGE_TYPES.includes(m.type));
+    if (nonImage) {
+        return { isValid: false, message: 'Moments currently support photos only.' };
     }
 
-    if (videoCount > 1) {
-        return { isValid: false, message: 'A moment may include at most one Live video clip.' };
-    }
-
-    const hasStill = media.some((m) => m?.type && IMAGE_TYPES.includes(m.type));
-    if (!hasStill) {
-        return { isValid: false, message: 'A Live video clip must be paired with a still image.' };
+    if (media.length > MAX_MOMENT_PHOTOS) {
+        return { isValid: false, message: `A moment may include at most ${MAX_MOMENT_PHOTOS} photos.` };
     }
 
     return { isValid: true };
 };
 
-export default validateLiveMomentMedia;
+export default validateMomentMedia;

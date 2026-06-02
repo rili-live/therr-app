@@ -1,34 +1,36 @@
 /* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import { Content } from 'therr-js-utilities/constants';
-import validateLiveMomentMedia from '../../src/utilities/validateLiveMomentMedia';
+import validateMomentMedia, { MAX_MOMENT_PHOTOS } from '../../src/utilities/validateMomentMedia';
 
-const still = { type: Content.mediaTypes.USER_IMAGE_PUBLIC, path: '/content/still.jpg' };
+const photo = (n: number) => ({ type: Content.mediaTypes.USER_IMAGE_PUBLIC, path: `/content/photo-${n}.jpg` });
 const clip = { type: Content.mediaTypes.USER_VIDEO_PUBLIC, path: '/content/clip.mp4' };
 
-describe('validateLiveMomentMedia', () => {
+describe('validateMomentMedia', () => {
     it('passes for empty / undefined media', () => {
-        expect(validateLiveMomentMedia(undefined).isValid).to.equal(true);
-        expect(validateLiveMomentMedia([]).isValid).to.equal(true);
+        expect(validateMomentMedia(undefined).isValid).to.equal(true);
+        expect(validateMomentMedia([]).isValid).to.equal(true);
     });
 
-    it('passes for an image-only moment', () => {
-        expect(validateLiveMomentMedia([still]).isValid).to.equal(true);
+    it('passes for a single photo', () => {
+        expect(validateMomentMedia([photo(1)]).isValid).to.equal(true);
     });
 
-    it('passes for a well-formed live moment (one still + one clip)', () => {
-        expect(validateLiveMomentMedia([still, clip]).isValid).to.equal(true);
+    it('passes for the max number of photos', () => {
+        const media = Array.from({ length: MAX_MOMENT_PHOTOS }, (_, i) => photo(i));
+        expect(validateMomentMedia(media).isValid).to.equal(true);
     });
 
-    it('rejects more than one paired video', () => {
-        const result = validateLiveMomentMedia([still, clip, clip]);
+    it('rejects more than the max number of photos', () => {
+        const media = Array.from({ length: MAX_MOMENT_PHOTOS + 1 }, (_, i) => photo(i));
+        const result = validateMomentMedia(media);
         expect(result.isValid).to.equal(false);
-        expect(result.message).to.match(/at most one/i);
+        expect(result.message).to.match(/at most/i);
     });
 
-    it('rejects a video clip with no sibling still', () => {
-        const result = validateLiveMomentMedia([clip]);
+    it('rejects non-image media (video is deferred)', () => {
+        const result = validateMomentMedia([photo(1), clip]);
         expect(result.isValid).to.equal(false);
-        expect(result.message).to.match(/still image/i);
+        expect(result.message).to.match(/photos only/i);
     });
 });

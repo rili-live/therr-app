@@ -1,9 +1,8 @@
 const mediaTypes = {
     USER_IMAGE_PUBLIC: 'user-image-public',
     USER_IMAGE_PRIVATE: 'user-image-private',
-    // Live Moments: a short muted H.264 clip paired with a still image (medias[0]).
-    // Mirrors iOS Live Photos / Android Motion Photos. Clients that don't understand
-    // video simply ignore these entries and render the paired still.
+    // Reserved for a future dedicated video moment type (deferred). Moments today are a single
+    // photo or a multi-photo set; clients that don't understand video ignore these entries.
     USER_VIDEO_PUBLIC: 'user-video-public',
     USER_VIDEO_PRIVATE: 'user-video-private',
 };
