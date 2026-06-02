@@ -33,8 +33,6 @@ const DEFAULT_DISTANCE_OVERRIDE = 40075 * (1000 / 2); // estimated half distance
 // - Show result count and distance labels per space card (e.g. "2.3 mi away")
 // - Category filtering alongside location search (combine location + category facets)
 // - Saved/recent searches via localStorage for quick re-use
-// - SEO: geo-targeted meta tags (meta name="geo.position") with dynamic description
-// - SEO: URL slugs for popular locations (e.g. /locations/michigan instead of query params)
 // - Faceted search: combine text + location + category + price range filters
 
 const formatCategoryLabel = (category: string): string => {
