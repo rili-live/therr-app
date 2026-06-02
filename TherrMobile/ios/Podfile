@@ -36,12 +36,16 @@ $RNFirebaseAsStaticFramework = true
 
 target 'Therr' do
   project 'Therr', 'Therr_Debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
-  # React Native Maps with Google Maps support
+  # React Native Maps with Google Maps support.
+  # As of react-native-maps v1.27, the standalone `react-native-google-maps`
+  # podspec was removed and merged into the `Google` subspec of
+  # `react-native-maps`. The base pod is autolinked via use_native_modules!;
+  # we only declare the Google subspec here to pull in AirGoogleMaps + the
+  # GoogleMaps deps (now pinned at 9.4.0 / 6.1.0 by that subspec).
   rn_maps_path = '../node_modules/react-native-maps'
-  pod 'react-native-maps', :path => rn_maps_path
-  pod 'react-native-google-maps', :path => rn_maps_path
-  pod 'GoogleMaps', '8.4.0'
-  pod 'Google-Maps-iOS-Utils', '5.0.0'
+  pod 'react-native-maps/Google', :path => rn_maps_path
+  pod 'GoogleMaps', '9.4.0'
+  pod 'Google-Maps-iOS-Utils', '6.1.0'
 
   # Google SSO
   pod 'GoogleSignIn', '~> 9.0'
