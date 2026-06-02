@@ -25,8 +25,7 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
-import { getVideoMedia } from '../../utilities/liveMomentMedia';
-import LiveMomentMedia from './LiveMomentMedia';
+import MultiPhotoCarousel from './MultiPhotoCarousel';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
 import formatDate from '../../utilities/formatDate';
@@ -74,9 +73,9 @@ interface IAreaDisplayProps {
     isExpanded?: boolean;
     area: any;
     areaMedia: string;
+    // Multi-photo moments: resolved URIs for every photo (falls back to [areaMedia]).
+    areaMediaUris?: string[];
     areaMediaPadding?: number;
-    // Live Moments: true when this moment is the settled/visible item (feed) or on ViewMoment.
-    isActive?: boolean;
     goToViewIncentives?: Function;
     goToViewUser: Function;
     goToViewMap: (lat: string, long: string) => any;
@@ -402,18 +401,16 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             themeViewArea,
             translate,
             user,
-            isActive,
+            areaMediaUris,
         } = this.props;
         const { isLiked, isBookmarked, likeCount } = this.state;
 
-        // Live Moments: a paired video clip enables moving-picture playback. Feed autoplay is
-        // opt-in (settingsAutoplayLiveMoments); the whole feature is gated by ENABLE_LIVE_MOMENTS.
-        const liveVideoMedia = getVideoMedia(area.medias);
-        const isLiveMomentsEnabled = envConfig.featureFlags?.ENABLE_LIVE_MOMENTS === true;
-        // On the detail (expanded) view we always autoplay since the user explicitly opened the
-        // moment; in the feed, playback is opt-in via settingsAutoplayLiveMoments.
-        const isLivePlaybackEnabled = isLiveMomentsEnabled
-            && (isExpanded || user?.settings?.settingsAutoplayLiveMoments === true);
+        // Multi-photo moments: render a swipeable carousel when there is more than one photo.
+        const photoUris = (areaMediaUris && areaMediaUris.length)
+            ? areaMediaUris
+            : (areaMedia ? [areaMedia] : []);
+        const isMultiPhotoEnabled = envConfig.featureFlags?.ENABLE_MULTI_PHOTO_MOMENTS === true;
+        const isMultiPhoto = isMultiPhotoEnabled && photoUris.length > 1;
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
@@ -555,52 +552,49 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     />
                 }
                 <View>
-                    <PresssableWithDoubleTap
-                        style={{}}
-                        onPress={inspectContent}
-                        onDoubleTap={() => this.onLikePress(area)}
-                    >
-                        {/* <UserMedia
-                            viewportWidth={viewportWidth}
-                            media={areaMedia}
-                            isVisible={!!areaMedia}
-                            isSingleView={isExpanded}
-                        /> */}
-                        {
-                            areaMedia ?
-                                (isLiveMomentsEnabled && liveVideoMedia ?
-                                    <LiveMomentMedia
-                                        stillUri={areaMedia}
-                                        videoMedia={liveVideoMedia}
-                                        isActive={!!isActive}
-                                        isPlaybackEnabled={isLivePlaybackEnabled}
-                                        width={mediaDimensions.width}
-                                        height={mediaDimensions.height}
-                                        resizeMode="contain"
-                                        theme={theme}
-                                    /> :
-                                    <Image
-                                        source={{
-                                            uri: areaMedia,
-                                        }}
-                                        style={{
-                                            width: mediaDimensions.width,
-                                            height: mediaDimensions.height,
-                                        }}
-                                        resizeMode="contain"
-                                        PlaceholderContent={<ActivityIndicator />}
-                                    />) :
-                                placeholderMediaType && <MissingImagePlaceholder
-                                    area={area}
-                                    themeViewArea={themeViewArea}
-                                    placeholderMediaType={placeholderMediaType}
-                                    dimensions={{
-                                        height: Math.min(mediaDimensions.height, 160),
-                                        width: mediaDimensions.width,
-                                    }}
-                                />
-                        }
-                    </PresssableWithDoubleTap>
+                    {
+                        isMultiPhoto ?
+                            // The carousel handles its own per-photo tap/double-tap so it can
+                            // own the horizontal swipe gesture; no outer pressable wrapper.
+                            <MultiPhotoCarousel
+                                uris={photoUris}
+                                width={mediaDimensions.width}
+                                height={mediaDimensions.height}
+                                resizeMode="contain"
+                                onPress={inspectContent}
+                                onDoubleTap={() => this.onLikePress(area)}
+                                theme={theme}
+                            /> :
+                            <PresssableWithDoubleTap
+                                style={{}}
+                                onPress={inspectContent}
+                                onDoubleTap={() => this.onLikePress(area)}
+                            >
+                                {
+                                    areaMedia ?
+                                        <Image
+                                            source={{
+                                                uri: areaMedia,
+                                            }}
+                                            style={{
+                                                width: mediaDimensions.width,
+                                                height: mediaDimensions.height,
+                                            }}
+                                            resizeMode="contain"
+                                            PlaceholderContent={<ActivityIndicator />}
+                                        /> :
+                                        placeholderMediaType && <MissingImagePlaceholder
+                                            area={area}
+                                            themeViewArea={themeViewArea}
+                                            placeholderMediaType={placeholderMediaType}
+                                            dimensions={{
+                                                height: Math.min(mediaDimensions.height, 160),
+                                                width: mediaDimensions.width,
+                                            }}
+                                        />
+                                }
+                            </PresssableWithDoubleTap>
+                    }
                 </View>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <View style={localStyles.titleWithBadge}>

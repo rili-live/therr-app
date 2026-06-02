@@ -23,9 +23,9 @@ const featureFlags = {
     ENABLE_EVENTS: true,
     ENABLE_THOUGHTS: true,
 
-    // Live Moments (moving-picture moments: still + short muted clip).
-    // NICHE: flip per brand. Default OFF until native playback is verified on device.
-    ENABLE_LIVE_MOMENTS: false,
+    // Multi-photo moments (up to 5 photos shown as a swipeable carousel).
+    // NICHE: flip per brand.
+    ENABLE_MULTI_PHOTO_MOMENTS: true,
 
     // Social Features
     ENABLE_DIRECT_MESSAGING: true,

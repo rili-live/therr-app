@@ -525,13 +525,12 @@
     },
     "editMoment": {
       "buttons": {
-        "addImage": "Joindre une image",
-        "replaceImage": "Remplacer l'image",
-        "removeImage": "Supprimer l'image",
-        "liveCaptureOn": "Live : Activé",
-        "liveCaptureOff": "Live : Désactivé",
+        "addImage": "Ajouter des photos",
+        "addMorePhotos": "Ajouter plus de photos",
+        "replaceImage": "Remplacer les photos",
+        "removeImage": "Supprimer les photos",
         "captureNew": "Prendre une nouvelle photo",
-        "selectExisting": "Sélectionner une photo existante",
+        "selectExisting": "Sélectionner des photos existantes",
         "back": "Retour",
         "draft": "Brouillon",
         "next": "Suivant",
@@ -796,8 +795,6 @@
         "settingsEmailMessages": "Courriels de messages",
         "settingsEmailReminders": "Courriels de rappel de l'application",
         "settingsEmailBackground": "Courriels automatisés de l'application",
-        "settingsCaptureLiveByDefault": "Capturer les moments Live par défaut",
-        "settingsAutoplayLiveMoments": "Lire les moments Live en faisant défiler",
         "on": "Activé",
         "off": "Désactivé",
         "myQRCodes": "Gérer mes codes QR"
@@ -1292,7 +1289,6 @@
     "manageNotifications": {
       "headerTitle": "Paramètres de courriel et alertes",
       "pageHeaderEmailSettings": "Préférences de courriel",
-      "pageHeaderLiveMoments": "Moments Live",
       "alertTitles": {
         "notificationSettingsUpdated": "Compte mis à jour",
         "accountError": "Erreur inconnue"

@@ -525,13 +525,12 @@
     },
     "editMoment": {
       "buttons": {
-        "addImage": "Adjuntar una imagen",
-        "replaceImage": "Reemplazar imagen",
-        "removeImage": "Eliminar imagen",
-        "liveCaptureOn": "Live: Activado",
-        "liveCaptureOff": "Live: Desactivado",
+        "addImage": "Agregar fotos",
+        "addMorePhotos": "Agregar más fotos",
+        "replaceImage": "Reemplazar fotos",
+        "removeImage": "Eliminar fotos",
         "captureNew": "Capturar una nueva foto",
-        "selectExisting": "Seleccionar una foto existente",
+        "selectExisting": "Seleccionar fotos existentes",
         "back": "Atrás",
         "draft": "Borrador",
         "next": "Siguiente",
@@ -796,8 +795,6 @@
         "settingsEmailMessages": "Correos de 'mensajes' de usuarios",
         "settingsEmailReminders": "Correos de recordatorios de la app social",
         "settingsEmailBackground": "Correos automatizados de la app social",
-        "settingsCaptureLiveByDefault": "Capturar momentos Live de forma predeterminada",
-        "settingsAutoplayLiveMoments": "Reproducir momentos Live al desplazarse",
         "on": "Activado",
         "off": "Desactivado",
         "myQRCodes": "Gestionar mis códigos QR"
@@ -1292,7 +1289,6 @@
     "manageNotifications": {
       "headerTitle": "Configuración de correo y alertas",
       "pageHeaderEmailSettings": "Preferencias de correo electrónico",
-      "pageHeaderLiveMoments": "Momentos Live",
       "alertTitles": {
         "notificationSettingsUpdated": "Cuenta actualizada",
         "accountError": "Error desconocido"

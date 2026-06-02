@@ -19,7 +19,6 @@ import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/setti
 import { buildStyles as buildModalStyles } from '../../styles/modal';
 import spacingStyles from '../../styles/layouts/spacing';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import getConfig from '../../utilities/getConfig';
 
 interface IManageNotificationsDispatchProps {
     updateUser: Function;
@@ -128,9 +127,6 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                 settingsEmailMessages: props.user.settings.settingsEmailMessages,
                 settingsEmailReminders: props.user.settings.settingsEmailReminders,
                 settingsEmailBackground: props.user.settings.settingsEmailBackground,
-                // Live Moments: capture defaults ON (undefined → true); feed autoplay defaults OFF.
-                settingsCaptureLiveByDefault: props.user.settings.settingsCaptureLiveByDefault !== false,
-                settingsAutoplayLiveMoments: props.user.settings.settingsAutoplayLiveMoments === true,
             },
             isSubmitting: false,
         };
@@ -313,37 +309,6 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                                     disabled={isSubmitting}
                                 />
                             </View>
-                            {getConfig().featureFlags?.ENABLE_LIVE_MOMENTS === true && (
-                                <>
-                                    <View style={this.theme.styles.sectionContainer}>
-                                        <Text style={this.theme.styles.sectionTitle}>
-                                            {this.translate('pages.manageNotifications.pageHeaderLiveMoments')}
-                                        </Text>
-                                    </View>
-                                    <View style={this.themeSettingsForm.styles.advancedContainer}>
-                                        <NotificationSettingSwitch
-                                            label={this.translate('forms.settings.buttons.settingsCaptureLiveByDefault')}
-                                            value={inputs.settingsCaptureLiveByDefault}
-                                            onChange={() => this.onSwitchChange('settingsCaptureLiveByDefault')}
-                                            theme={this.theme}
-                                            themeForms={this.themeForms}
-                                            themeModal={this.themeModal}
-                                            translate={this.translate}
-                                            disabled={isSubmitting}
-                                        />
-                                        <NotificationSettingSwitch
-                                            label={this.translate('forms.settings.buttons.settingsAutoplayLiveMoments')}
-                                            value={inputs.settingsAutoplayLiveMoments}
-                                            onChange={() => this.onSwitchChange('settingsAutoplayLiveMoments')}
-                                            theme={this.theme}
-                                            themeForms={this.themeForms}
-                                            themeModal={this.themeModal}
-                                            translate={this.translate}
-                                            disabled={isSubmitting}
-                                        />
-                                    </View>
-                                </>
-                            )}
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>

@@ -14,7 +14,7 @@ import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
-import { getUserContentUri } from '../../utilities/content';
+import { getUserContentUri, getMomentImageUris } from '../../utilities/content';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -62,7 +62,6 @@ const renderItem = ({ item: post }, {
     updateReaction,
     user,
     isDarkMode,
-    activeMomentId,
 }) => {
     const mediaPath = post.medias?.[0]?.path;
     const mediaType = post.medias?.[0]?.type;
@@ -71,6 +70,8 @@ const renderItem = ({ item: post }, {
     let postMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
         ? getUserContentUri((post.medias?.[0]), screenWidth, screenWidth)
         : media?.[mediaPath];
+    // Resolve every photo for multi-photo moments (single photo falls back to [postMedia]).
+    const postMediaUris = getMomentImageUris(post.medias, media, screenWidth, screenWidth);
     const isMe = user.details.id === post.fromUserId;
     let userDetails: any = {
         userName: post.fromUserName || (user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown')),
@@ -133,6 +134,7 @@ const renderItem = ({ item: post }, {
                         areaUserDetails={userDetails}
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
+                        areaMediaUris={postMediaUris}
                         isDarkMode={isDarkMode}
                         theme={theme}
                         themeForms={themeForms}
@@ -151,7 +153,7 @@ const renderItem = ({ item: post }, {
                         areaUserDetails={userDetails}
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
-                        isActive={activeMomentId === String(post.id)}
+                        areaMediaUris={postMediaUris}
                         isDarkMode={isDarkMode}
                         placeholderMediaType={post.areaType === 'spaces' ? 'static' : undefined}
                         theme={theme}
@@ -198,11 +200,6 @@ const AreaCarousel = ({
     // viewportWidth,
 }: IAreaCarouselProps) => {
     const [refreshing, setRefreshing] = React.useState(false);
-    // Live Moments: the single item that is settled/centered in the viewport. Only this item
-    // plays its clip, so at most one video decodes at a time (scroll-perf guard).
-    const [activeMomentId, setActiveMomentId] = React.useState<string | null>(null);
-    const [isScrollSettled, setIsScrollSettled] = React.useState(true);
-    const viewableItemIdRef = React.useRef<string | null>(null);
     const mobileThemeName = user.settings?.mobileThemeName;
 
     const { themeRoot, theme, themeArea, themeThought, themeForms, isDarkMode } = React.useMemo(() => {
@@ -226,35 +223,6 @@ const AreaCarousel = ({
     }, [handleRefresh]);
 
     const media = content?.media;
-
-    // Track which item is centered enough to be considered "viewing". We only flip the
-    // active (playing) item once scrolling has settled — see onMomentumScrollEnd below.
-    const viewabilityConfig = React.useRef({
-        itemVisiblePercentThreshold: 80,
-        waitForInteraction: false,
-    }).current;
-
-    const onViewableItemsChanged = React.useRef(({ viewableItems }) => {
-        const centered = viewableItems && viewableItems.length
-            ? viewableItems[Math.floor(viewableItems.length / 2)]
-            : null;
-        viewableItemIdRef.current = centered?.item?.id ? String(centered.item.id) : null;
-    }).current;
-
-    const viewabilityConfigCallbackPairs = React.useRef([
-        { viewabilityConfig, onViewableItemsChanged },
-    ]).current;
-
-    const onScrollBeginDrag = React.useCallback(() => {
-        setIsScrollSettled(false);
-        // Pause the currently-playing clip while the user is actively scrolling.
-        setActiveMomentId(null);
-    }, []);
-
-    const onMomentumScrollEnd = React.useCallback(() => {
-        setIsScrollSettled(true);
-        setActiveMomentId(viewableItemIdRef.current);
-    }, []);
 
     const flatRenderItem = React.useCallback((itemObj) => {
         let updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
@@ -280,14 +248,13 @@ const AreaCarousel = ({
             updateReaction,
             user,
             isDarkMode,
-            activeMomentId: isScrollSettled ? activeMomentId : null,
         });
     }, [
         media, displaySize, inspectContent, goToViewMap, goToViewUser,
         toggleAreaOptions, toggleThoughtOptions, translate,
         theme, themeArea, themeThought, themeForms,
         updateEventReaction, updateMomentReaction, updateSpaceReaction, updateThoughtReaction,
-        user, isDarkMode, activeMomentId, isScrollSettled,
+        user, isDarkMode,
     ]);
 
     const listEmptyComponent = React.useMemo(
@@ -375,9 +342,6 @@ const AreaCarousel = ({
                 refreshing={isUsingBottomSheet ? refreshing : undefined}
                 onRefresh={isUsingBottomSheet ? onRefresh : undefined}
                 style={listStyle}
-                viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-                onScrollBeginDrag={onScrollBeginDrag}
-                onMomentumScrollEnd={onMomentumScrollEnd}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.65}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}

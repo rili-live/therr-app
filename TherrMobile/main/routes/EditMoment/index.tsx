@@ -48,9 +48,7 @@ import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import formatHashtags from '../../utilities/formatHashtags';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
-import { getUserContentUri, signImageUrl } from '../../utilities/content';
-import { getVideoMedia } from '../../utilities/liveMomentMedia';
-import captureLiveMoment from '../../utilities/captureLiveMoment';
+import { getUserContentUri, signImageUrl, MAX_MOMENT_PHOTOS } from '../../utilities/content';
 import getConfig from '../../utilities/getConfig';
 import permissions from '../../utilities/permissionsOrchestrator';
 import { sendForegroundNotification, sendTriggerNotification } from '../../utilities/pushNotifications';
@@ -97,11 +95,8 @@ interface IEditMomentState {
     previewLinkId?: string;
     previewStyleState: any;
     imagePreviewPath: string;
-    selectedImage?: any;
-    // Live Moments: the paired short clip (when capturing a moving-picture moment).
-    selectedVideo?: any;
-    // Whether the next capture should be a Live moment (seeded by user setting + feature flag).
-    captureLive: boolean;
+    // Multi-photo moments: 1..MAX_MOMENT_PHOTOS selected photos, in display order.
+    selectedImages: any[];
 }
 
 const mapStateToProps = (state) => ({
@@ -167,10 +162,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
-            selectedImage: imageDetails || {},
-            selectedVideo: getVideoMedia(area?.medias),
-            captureLive: getConfig().featureFlags?.ENABLE_LIVE_MOMENTS === true
-                && props.user.settings?.settingsCaptureLiveByDefault !== false,
+            selectedImages: imageDetails?.path ? [imageDetails] : [],
             imagePreviewPath,
         };
 
@@ -262,60 +254,41 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         ).then(() => response?.data?.path);
     });
 
-    signAndUploadImage = (createArgs) => {
-        const { selectedImage, selectedVideo } = this.state;
+    signAndUploadImage = async (createArgs) => {
+        const { selectedImages } = this.state;
         const {
             message,
             notificationMsg,
             isPublic,
         } = this.state.inputs;
-        const imageDetails = selectedImage;
-        const filePathSplit = imageDetails?.path?.split('.');
-        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
         const baseFilename = notificationMsg || message.substring(0, 20);
-        const isLivePhoto = !!selectedVideo?.path;
         const imageType = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
-        const videoType = isPublic ? Content.mediaTypes.USER_VIDEO_PUBLIC : Content.mediaTypes.USER_VIDEO_PRIVATE;
 
-        // TODO: This is too slow
-        // 1. Upload the still image (medias[0]). Mark it as the still half of a Live Moment
-        //    when a paired clip exists so clients know a moving-picture clip is available.
-        return this.uploadFileToSignedUrl(isPublic, {
-            localPath: imageDetails?.path,
-            mime: imageDetails?.mime || 'image/jpeg',
-            size: imageDetails?.size,
-            baseFilename,
-            extension: fileExtension,
-        }).then((stillPath) => {
-            createArgs.media = [{
+        // Upload each selected photo (single photo or up to MAX_MOMENT_PHOTOS) sequentially and
+        // build the medias[] array in selection order. Sequential keeps signed-URL pressure low.
+        createArgs.media = [];
+        for (let i = 0; i < selectedImages.length; i += 1) {
+            const imageDetails = selectedImages[i];
+            const filePathSplit = imageDetails?.path?.split('.');
+            const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+            // eslint-disable-next-line no-await-in-loop
+            const storedPath = await this.uploadFileToSignedUrl(isPublic, {
+                localPath: imageDetails?.path,
+                mime: imageDetails?.mime || 'image/jpeg',
+                size: imageDetails?.size,
+                baseFilename: selectedImages.length > 1 ? `${baseFilename}_${i + 1}` : baseFilename,
+                extension: fileExtension,
+            });
+            createArgs.media.push({
                 altText: notificationMsg,
                 type: imageType,
-                path: stillPath,
-                isLivePhoto,
-            }];
-
-            // 2. For a Live Moment, also upload the paired clip as a sibling video entry.
-            if (!isLivePhoto) {
-                createArgs.medias = createArgs.media;
-                return createArgs;
-            }
-
-            return this.uploadFileToSignedUrl(isPublic, {
-                localPath: selectedVideo.path,
-                mime: selectedVideo.mime || 'video/mp4',
-                size: selectedVideo.size,
-                baseFilename: `${baseFilename}_live`,
-                extension: 'mp4',
-            }).then((videoPath) => {
-                createArgs.media.push({
-                    altText: notificationMsg,
-                    type: videoType,
-                    path: videoPath,
-                });
-                createArgs.medias = createArgs.media;
-                return createArgs;
+                path: storedPath,
             });
-        });
+        }
+
+        // TODO: Replace media with medias after migrations
+        createArgs.medias = createArgs.media;
+        return createArgs;
     };
 
     onSubmitBaseDetails = () => {
@@ -344,7 +317,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         shouldSkipNavigate = false,
         shouldSkipDraftToast = false,
     }) => {
-        const { areaId, hashtags, nearbySpaces, selectedImage } = this.state;
+        const { areaId, hashtags, nearbySpaces, selectedImages } = this.state;
         const {
             category,
             message,
@@ -401,7 +374,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
             // Note do not save image on 'create draft' otherwise we end up with duplicate images when finalizing draft
             // This is not the BEST user experience but prevents a lot of potential waste
-            ((selectedImage?.path) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+            ((selectedImages?.length) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
                 const createOrUpdatePromise = areaId
                     ? this.props.updateMoment(areaId, modifiedCreateArgs, !isDraft) // isCompletedDraft (when id and saving finalized)
                     : this.props.createMoment(modifiedCreateArgs);
@@ -609,65 +582,81 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         }
     };
 
-    handleImageSelect = (imageResponse) => {
-        if (!imageResponse.didCancel && !imageResponse.errorCode) {
-            this.setState({
-                selectedImage: imageResponse,
-                selectedVideo: undefined,
-                imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            });
+    // Replace the current selection with a freshly-picked set (gallery), capped at the max.
+    handleImagesSelected = (response) => {
+        const images = (Array.isArray(response) ? response : [response])
+            .filter((img) => img && !img.didCancel && !img.errorCode && img.path)
+            .slice(0, MAX_MOMENT_PHOTOS);
+        if (!images.length) {
+            return;
         }
+        this.setState({
+            selectedImages: images,
+            imagePreviewPath: getImagePreviewPath(images[0]?.path),
+        });
     };
 
-    // Live Moments: store the extracted still (poster) + paired clip together.
-    handleLiveSelect = (capture) => {
+    // Append a single captured photo (camera) to the current selection, up to the max.
+    handleImageAppend = (imageResponse) => {
+        if (imageResponse.didCancel || imageResponse.errorCode || !imageResponse.path) {
+            return;
+        }
+        const selectedImages = [...this.state.selectedImages, imageResponse].slice(0, MAX_MOMENT_PHOTOS);
         this.setState({
-            selectedImage: capture.still,
-            selectedVideo: capture.video,
-            imagePreviewPath: getImagePreviewPath(capture.still?.path),
+            selectedImages,
+            imagePreviewPath: getImagePreviewPath(selectedImages[0]?.path),
         });
+    };
+
+    getAddPhotosLabel = () => {
+        const count = this.state.selectedImages.length;
+        const isMultiPhotoEnabled = getConfig().featureFlags?.ENABLE_MULTI_PHOTO_MOMENTS === true;
+        if (!count) {
+            return 'forms.editMoment.buttons.addImage';
+        }
+        if (isMultiPhotoEnabled && count < MAX_MOMENT_PHOTOS) {
+            return 'forms.editMoment.buttons.addMorePhotos';
+        }
+        return 'forms.editMoment.buttons.replaceImage';
     };
 
     onAddImage = (action: string) => {
         const { user } = this.props;
         // TODO: Store permissions in redux
         const storePermissions = () => {};
+        const isMultiPhotoEnabled = getConfig().featureFlags?.ENABLE_MULTI_PHOTO_MOMENTS === true;
+        const remainingSlots = MAX_MOMENT_PHOTOS - this.state.selectedImages.length;
 
         return permissions.request('camera', {
             trigger: 'capturePress',
             storePermissionsResponse: storePermissions,
         }).then((result) => {
-            const pickerOptions: any = {
-                mediaType: 'photo',
-                includeBase64: false,
-                height: 4 * viewportWidth,
-                width: 4 * viewportWidth,
-                multiple: false,
-                cropping: true,
-            };
             if (result.status === 'granted') {
-                const isLiveMomentsEnabled = getConfig().featureFlags?.ENABLE_LIVE_MOMENTS === true;
-                // Live Moments: capture a short clip + still. Falls back to a normal photo when
-                // the device can't produce a clip+still (capture returns null).
-                if (isLiveMomentsEnabled && this.state.captureLive) {
-                    return captureLiveMoment(action)
-                        .then((capture) => {
-                            if (capture) {
-                                return this.handleLiveSelect(capture);
-                            }
-                            return (action === 'camera'
-                                ? ImageCropPicker.openCamera(pickerOptions)
-                                : ImageCropPicker.openPicker(pickerOptions))
-                                .then((cameraResponse) => this.handleImageSelect(cameraResponse));
-                        });
-                }
+                // Camera always captures a single photo (appended to the selection when
+                // multi-photo is enabled). Gallery allows selecting up to the remaining slots.
                 if (action === 'camera') {
-                    return ImageCropPicker.openCamera(pickerOptions)
-                        .then((cameraResponse) => this.handleImageSelect(cameraResponse));
-                } else {
-                    return ImageCropPicker.openPicker(pickerOptions)
-                        .then((cameraResponse) => this.handleImageSelect(cameraResponse));
+                    return ImageCropPicker.openCamera({
+                        mediaType: 'photo',
+                        includeBase64: false,
+                        height: 4 * viewportWidth,
+                        width: 4 * viewportWidth,
+                        multiple: false,
+                        cropping: true,
+                    }).then((cameraResponse) => (isMultiPhotoEnabled
+                        ? this.handleImageAppend(cameraResponse)
+                        : this.handleImagesSelected(cameraResponse)));
                 }
+                // image-crop-picker does not support cropping together with multiple selection.
+                const allowMultiple = isMultiPhotoEnabled && remainingSlots > 1;
+                return ImageCropPicker.openPicker({
+                    mediaType: 'photo',
+                    includeBase64: false,
+                    height: 4 * viewportWidth,
+                    width: 4 * viewportWidth,
+                    multiple: allowMultiple,
+                    maxFiles: allowMultiple ? MAX_MOMENT_PHOTOS : undefined,
+                    cropping: !allowMultiple,
+                }).then((pickerResponse) => this.handleImagesSelected(pickerResponse));
             } else {
                 // Soft-ask dismissals stay quiet — the user explicitly chose
                 // "Not now" and the toast would feel like a scolding. Only
@@ -829,26 +818,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 )
                         }
                     </View>
-                    {
-                        getConfig().featureFlags?.ENABLE_LIVE_MOMENTS === true &&
-                        <Button
-                            containerStyle={spacingStyles.marginBotMd}
-                            buttonStyle={this.state.captureLive ? this.themeForms.styles.buttonPrimary : this.themeForms.styles.buttonRoundAlt}
-                            titleStyle={this.state.captureLive ? this.themeForms.styles.buttonTitle : this.themeForms.styles.buttonTitleAlt}
-                            title={this.translate(
-                                this.state.captureLive ? 'forms.editMoment.buttons.liveCaptureOn' : 'forms.editMoment.buttons.liveCaptureOff'
-                            )}
-                            icon={
-                                <OctIcon
-                                    name="video"
-                                    size={20}
-                                    style={{ color: this.state.captureLive ? this.theme.colors.primary : this.theme.colors.textGray, paddingRight: 8 }}
-                                />
-                            }
-                            onPress={() => this.setState({ captureLive: !this.state.captureLive })}
-                            raised={false}
-                        />
-                    }
                     <Button
                         containerStyle={spacingStyles.marginBotMd}
                         buttonStyle={this.themeForms.styles.buttonPrimary}
@@ -857,7 +826,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
-                            imagePreviewPath ? 'forms.editMoment.buttons.replaceImage' : 'forms.editMoment.buttons.addImage'
+                            this.getAddPhotosLabel()
                         )}
                         icon={
                             <TherrIcon
@@ -890,7 +859,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
                                 />
                             }
-                            onPress={() => this.setState({ selectedImage: undefined, selectedVideo: undefined, imagePreviewPath: '' })}
+                            onPress={() => this.setState({ selectedImages: [], imagePreviewPath: '' })}
                             raised={false}
                         />
                     }

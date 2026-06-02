@@ -525,13 +525,12 @@
     },
     "editMoment": {
       "buttons": {
-        "addImage": "Attach an Image",
-        "replaceImage": "Replace Image",
-        "removeImage": "Remove Image",
-        "liveCaptureOn": "Live: On",
-        "liveCaptureOff": "Live: Off",
+        "addImage": "Add Photos",
+        "addMorePhotos": "Add More Photos",
+        "replaceImage": "Replace Photos",
+        "removeImage": "Remove Photos",
         "captureNew": "Capture a New Photo",
-        "selectExisting": "Select an Existing Photo",
+        "selectExisting": "Select Existing Photos",
         "back": "Back",
         "draft": "Draft",
         "next": "Next",
@@ -796,8 +795,6 @@
         "settingsEmailMessages": "User 'messages' e-mails",
         "settingsEmailReminders": "Social App reminder e-mails",
         "settingsEmailBackground": "Social App automated e-mails",
-        "settingsCaptureLiveByDefault": "Capture Live moments by default",
-        "settingsAutoplayLiveMoments": "Autoplay Live moments while scrolling",
         "on": "On",
         "off": "Off",
         "myQRCodes": "Manage My QR Codes"
@@ -1292,7 +1289,6 @@
     "manageNotifications": {
       "headerTitle": "Email & Alert Settings",
       "pageHeaderEmailSettings": "Email Preferences",
-      "pageHeaderLiveMoments": "Live Moments",
       "alertTitles": {
         "notificationSettingsUpdated": "Account Updated",
         "accountError": "Unknown Error"

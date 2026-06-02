@@ -1,8 +1,17 @@
 import { Dimensions } from 'react-native';
 import { MapsService } from 'therr-react/services';
+import { Content } from 'therr-js-utilities/constants';
 import getConfig from './getConfig';
 
 const { width: screenWidth } = Dimensions.get('window');
+
+// Moments may include up to this many photos (single photo or a multi-photo carousel).
+const MAX_MOMENT_PHOTOS = 5;
+
+const IMAGE_MEDIA_TYPES = [
+    Content.mediaTypes.USER_IMAGE_PUBLIC,
+    Content.mediaTypes.USER_IMAGE_PRIVATE,
+];
 
 const globalConfig = getConfig();
 const BASE_ENDPOINT = globalConfig.baseImageKitEndpoint ? globalConfig.baseImageKitEndpoint : `${globalConfig.baseApiGatewayRoute}/user-files/`;
@@ -28,24 +37,22 @@ const getUserContentUri = (media, height = screenWidth, width = screenWidth, aut
     return url;
 };
 
-// Live Moments: build the streamed/transcoded MP4 URL for a paired video clip.
-// ImageKit transcodes and adaptively serves the clip; we cap quality to keep the
-// feed light. No `c-at_least` (image-only) param — video uses its own sizing.
-const getUserVideoUri = (media, height = screenWidth, width = screenWidth) => {
-    const maxHeight = Math.ceil((height * 1.25) / 100) * 100;
-    const maxWidth = Math.ceil((width * 1.25) / 100) * 100;
+const isImageMedia = (media): boolean => !!media?.type && IMAGE_MEDIA_TYPES.includes(media.type);
 
-    return `${BASE_ENDPOINT}${media?.path}?tr=h-${maxHeight},w-${maxWidth},q-70`;
-};
+// Resolve display URIs for every image in a moment (single photo or multi-photo carousel),
+// capped at MAX_MOMENT_PHOTOS. Public images use the cacheable ImageKit URL; private images
+// fall back to the signed URL already cached in Redux (`mediaMap[path]`).
+const getMomentImageUris = (medias, mediaMap, height = screenWidth, width = screenWidth): string[] => {
+    if (!medias?.length) {
+        return [];
+    }
 
-// Live Moments: derive a still poster frame from the clip via ImageKit's video
-// thumbnail endpoint. Used as a fallback when a moment has a clip but no paired
-// still image (e.g. clips captured via the video picker path).
-const getLiveMomentPosterUri = (media, height = screenWidth, width = screenWidth) => {
-    const minImageHeight = Math.ceil((height * 1.25) / 100) * 100;
-    const minImageWidth = Math.ceil((width * 1.25) / 100) * 100;
-
-    return `${BASE_ENDPOINT}${media?.path}/ik-thumbnail.jpg?tr=h-${minImageHeight},w-${minImageWidth},f-auto,q-85,c-at_least`;
+    return medias
+        .filter(isImageMedia)
+        .slice(0, MAX_MOMENT_PHOTOS)
+        .map((media) => (media.type === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(media, height, width)
+            : (mediaMap?.[media.path] || getUserContentUri(media, height, width))));
 };
 
 const getUserImageUri = (user, size = screenWidth) => {
@@ -75,9 +82,10 @@ const signImageUrl = (isPublic: boolean, {
 };
 
 export {
+    MAX_MOMENT_PHOTOS,
     getUserContentUri,
-    getUserVideoUri,
-    getLiveMomentPosterUri,
+    getMomentImageUris,
+    isImageMedia,
     getUserImageUri,
     isMyContent,
     signImageUrl,
