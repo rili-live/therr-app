@@ -536,6 +536,18 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     {pageHeaderUser}
                                 </Text>
                             </View>
+                            {!user.details?.firstName && (
+                                <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                    <Text style={[this.theme.styles.sectionDescription, { color: this.theme.colors.primary3 }]}>
+                                        <Text
+                                            style={this.themeForms.styles.buttonLink}
+                                            onPress={this.goToManageAccount}
+                                        >
+                                            {this.translate('forms.settings.labels.addYourNamePrompt')}
+                                        </Text>
+                                    </Text>
+                                </View>
+                            )}
                             <View style={this.themeSettingsForm.styles.userContainer}>
                                 <UserImage
                                     user={user}

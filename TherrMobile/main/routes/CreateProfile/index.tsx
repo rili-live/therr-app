@@ -138,9 +138,10 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     isFormUserDetailsDisabled() {
         const { inputs, isSubmitting } = this.state;
 
+        // First/last name are intentionally optional during onboarding to reduce
+        // friction; we prompt users to add their name later. Only a valid username
+        // is required to advance. See onboarding friction review (2026-06).
         return (
-            !inputs.firstName ||
-            !inputs.lastName ||
             !inputs.userName ||
             inputs.userName?.length < 3 ||
             isSubmitting
