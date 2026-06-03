@@ -1923,6 +1923,14 @@
       "buttonNegative": "Denegar",
       "buttonPositive": "Mientras uso la app"
     },
+    "backgroundLocation": {
+      "header": "Acceso a ubicación en segundo plano",
+      "description1": "Esta aplicación recopila tu ubicación precisa en segundo plano, incluso cuando la app está cerrada o no está en uso.",
+      "description2": "Therr usa la ubicación en segundo plano para encontrar recompensas cercanas, habilitar el descubrimiento de contenido local y enviar notificaciones de proximidad. Puedes desactivar esto en la configuración de tu dispositivo en cualquier momento.",
+      "privacyPolicy": "Ver política de privacidad",
+      "accept": "Continuar",
+      "decline": "Ahora no"
+    },
     "locationGps": {
       "header": "¿Ubicación del usuario?",
       "description1": "Esta aplicación quiere cambiar la configuración de tu dispositivo: Usar GPS, Wi-Fi y red celular para la ubicación",
