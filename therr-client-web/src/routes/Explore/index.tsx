@@ -16,6 +16,7 @@ import {
 } from '@mantine/core';
 import { MantineSearchBox } from 'therr-react/components/mantine';
 import useTranslation from '../../hooks/useTranslation';
+import IncompleteProfileBanner from '../../components/IncompleteProfileBanner';
 import Tile from '../Discovered/Tile';
 
 interface ICategoryCard {
@@ -107,6 +108,7 @@ const Explore: React.FC = () => {
     return (
         <Container id="page_explore" size="lg" py="xl">
             <Stack gap="xl">
+                <IncompleteProfileBanner />
                 <div>
                     <Title order={2}>{translate('pages.explore.pageTitle')}</Title>
                     <Text size="sm" c="dimmed">{translate('pages.explore.subtitle')}</Text>
