@@ -1923,6 +1923,14 @@
       "buttonNegative": "Deny",
       "buttonPositive": "While using the app"
     },
+    "backgroundLocation": {
+      "header": "Background Location Access",
+      "description1": "This app collects your precise location in the background, even when the app is closed or not in use.",
+      "description2": "Therr uses background location to find nearby rewards, enable local content discovery, and send proximity-based notifications. You can disable this in your device settings at any time.",
+      "privacyPolicy": "View Privacy Policy",
+      "accept": "Continue",
+      "decline": "Not Now"
+    },
     "locationGps": {
       "header": "User Location?",
       "description1": "This app wants to change your device settings: Use GPS, Wi-Fi, and cell network for location",

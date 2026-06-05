@@ -63,6 +63,8 @@ import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
 import permissions, { PermType } from '../utilities/permissionsOrchestrator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import BackgroundLocationDisclosureModal from './Modals/BackgroundLocationDisclosureModal';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
@@ -139,10 +141,13 @@ export interface ILayoutProps extends IStoreProps {
 interface ILayoutState {
     targetRouteView: string;
     targetRouteParams: any;
+    isBackgroundLocationDisclosureVisible: boolean;
     permissionPrimerType: PermType | null;
     shouldSpinSplashLogo: boolean;
     isSplashSpinnerVisible: boolean;
 }
+
+const BG_LOCATION_DISCLOSURE_KEY = 'bgLocationDisclosureShown';
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -211,6 +216,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             targetRouteView: '',
             targetRouteParams: {},
+            isBackgroundLocationDisclosureVisible: false,
             permissionPrimerType: null,
             shouldSpinSplashLogo: false,
             isSplashSpinnerVisible: true,
@@ -286,7 +292,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }));
         }
 
-        this.readyAndStartBackgroundGeolocation();
+        this.checkAndShowBackgroundLocationDisclosure();
         this.prefetchContent();
 
         // Wire the permissions orchestrator: a single primer modal lives at the
@@ -329,7 +335,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (user.isAuthenticated) { // Happens after login
                 const token = user?.details?.idToken;
                 if (token) {
-                    this.readyAndStartBackgroundGeolocation();
+                    this.checkAndShowBackgroundLocationDisclosure();
                 }
 
                 if (user.details?.id) {
@@ -435,6 +441,35 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (this.props.user && this.props.user.isAuthenticated) {
             this.props.refreshConnection(this.props.user);
         }
+    };
+
+    checkAndShowBackgroundLocationDisclosure = () => {
+        if (!isLocationServicesEnabled()) {
+            return;
+        }
+        if (!this.props.user?.isAuthenticated || !this.props.user?.settings?.settingsPushBackground) {
+            return;
+        }
+        AsyncStorage.getItem(BG_LOCATION_DISCLOSURE_KEY).then((value) => {
+            if (value === 'true') {
+                this.readyAndStartBackgroundGeolocation();
+            } else {
+                this.setState({ isBackgroundLocationDisclosureVisible: true });
+            }
+        }).catch(() => {
+            this.readyAndStartBackgroundGeolocation();
+        });
+    };
+
+    handleBackgroundLocationDisclosureAccept = () => {
+        this.setState({ isBackgroundLocationDisclosureVisible: false });
+        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
+        this.readyAndStartBackgroundGeolocation();
+    };
+
+    handleBackgroundLocationDisclosureDecline = () => {
+        this.setState({ isBackgroundLocationDisclosureVisible: false });
+        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
     };
 
     // IMPORTANT: This should only be called once per session
@@ -1841,7 +1876,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
-        const { permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
+        const { isBackgroundLocationDisclosureVisible, permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
 
         return (
             <>
@@ -2113,6 +2148,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             return <Stack.Screen key={route.name} {...route} />;
                         })}
                 </Stack.Navigator>
+                <BackgroundLocationDisclosureModal
+                    isVisible={isBackgroundLocationDisclosureVisible}
+                    onAccept={this.handleBackgroundLocationDisclosureAccept}
+                    onDecline={this.handleBackgroundLocationDisclosureDecline}
+                    translate={this.translate}
+                    themeDisclosure={this.themeDisclosure}
+                />
                 {permissionPrimerType ? (
                     <PermissionPrimerModal
                         permissionType={permissionPrimerType}

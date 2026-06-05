@@ -1923,6 +1923,14 @@
       "buttonNegative": "Refuser",
       "buttonPositive": "Pendant l'utilisation de l'application"
     },
+    "backgroundLocation": {
+      "header": "Accès à la localisation en arrière-plan",
+      "description1": "Cette application collecte votre localisation précise en arrière-plan, même lorsque l'application est fermée ou non utilisée.",
+      "description2": "Therr utilise la localisation en arrière-plan pour trouver des récompenses à proximité, permettre la découverte de contenu local et envoyer des notifications de proximité. Vous pouvez désactiver cela dans les paramètres de votre appareil à tout moment.",
+      "privacyPolicy": "Voir la politique de confidentialité",
+      "accept": "Continuer",
+      "decline": "Pas maintenant"
+    },
     "locationGps": {
       "header": "Localisation de l'utilisateur?",
       "description1": "Cette application souhaite modifier les paramètres de votre appareil : Utiliser le GPS, le Wi-Fi et le réseau cellulaire pour la localisation",
