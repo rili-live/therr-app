@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION, hasValidStandardClaims } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 
 // Buffer (in seconds) before token expiry to trigger a fresh verify
@@ -23,7 +23,9 @@ export default (socket, { skipCache = false } = {}) => new Promise((resolve) => 
     }
 
     jwt.verify(socket.handshake.query.token, (process.env.JWT_SECRET || ''), (err, decoded) => {
-        if (err) {
+        // Reject on signature failure OR on a mismatched iss/aud claim (forged /
+        // foreign token). Legacy tokens with no iss/aud claims still pass.
+        if (err || !hasValidStandardClaims(decoded)) {
             // Clear cached token on verification failure
             if (socket.data) {
                 socket.data.decodedToken = undefined; // eslint-disable-line no-param-reassign
@@ -32,7 +34,7 @@ export default (socket, { skipCache = false } = {}) => new Promise((resolve) => 
             logSpan({
                 level: 'info',
                 messageOrigin: 'SOCKET_AUTHENTICATION_ERROR',
-                messages: err,
+                messages: err || 'Invalid token claims',
                 traceArgs: {
                     'socket.id': socket.id,
                 },

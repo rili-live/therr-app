@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { UsersService } from 'therr-react/services';
 import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
 import SecureStorage from './utilities/SecureStorage';
@@ -95,7 +96,16 @@ const attemptRefresh = (store) => {
             return UsersService.refreshToken(refreshToken, rememberMe);
         })
         .then(async (response) => {
-            const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
+            const { idToken: newIdToken, refreshToken: newRefreshToken } = response?.data || {};
+
+            // Guard against a malformed / empty refresh response (e.g. an offline
+            // fallback object). Without this we'd overwrite the stored refresh
+            // token with `undefined`, wiping the only credential that can recover
+            // the session — and then log the user out. Treat it as a transient
+            // failure so the catch handler can retry instead.
+            if (!newIdToken || !newRefreshToken) {
+                throw new Error('Refresh response missing tokens');
+            }
 
             // Update stored tokens
             const userDetailsStr = await SecureStorage.getItem('therrUser');
@@ -104,9 +114,16 @@ const attemptRefresh = (store) => {
             await SecureStorage.setItem('therrUser', JSON.stringify(userDetails));
             await SecureStorage.setItem('therrRefreshToken', newRefreshToken);
 
-            // Update Redux state
+            // Update Redux state so the request interceptor applies the NEW token
+            // to the retried (and all subsequent) requests. This MUST use the
+            // SocketClientActionTypes.UPDATE_USER action ('CLIENT:UPDATE_USER') —
+            // the user reducer only handles that exact type. Dispatching a plain
+            // 'UPDATE_USER' string silently no-ops, leaving the stale (expired)
+            // token in Redux; the retried request then re-applies that expired
+            // token, gets another 401, and the user is logged out. This was the
+            // root cause of "logged out after installing a new app version".
             store.dispatch({
-                type: 'UPDATE_USER',
+                type: SocketClientActionTypes.UPDATE_USER,
                 data: {
                     details: { idToken: newIdToken },
                 },
