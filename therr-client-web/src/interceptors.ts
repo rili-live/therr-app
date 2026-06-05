@@ -1,7 +1,7 @@
 import axios from 'axios';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
-import { BrandVariations } from 'therr-js-utilities/constants';
+import { BrandVariations, SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { NavigateFunction } from 'react-router-dom';
 import { UsersService } from 'therr-react/services';
 import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
@@ -103,7 +103,14 @@ const initInterceptors = (
                     if (refreshToken) {
                         UsersService.refreshToken(refreshToken, rememberMe)
                             .then(async (response) => {
-                                const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
+                                const { idToken: newIdToken, refreshToken: newRefreshToken } = response?.data || {};
+
+                                // Guard against a malformed / empty refresh response so we never
+                                // overwrite the stored refresh token with `undefined` and strand
+                                // the session. Treat it as a refresh failure.
+                                if (!newIdToken || !newRefreshToken) {
+                                    throw new Error('Refresh response missing tokens');
+                                }
 
                                 // Update stored tokens
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,9 +129,14 @@ const initInterceptors = (
                                     localStorage.setItem('therrRefreshToken', newRefreshToken);
                                 }
 
-                                // Update Redux state
+                                // Update Redux state so the request interceptor applies the NEW
+                                // token to the retried request. MUST use
+                                // SocketClientActionTypes.UPDATE_USER ('CLIENT:UPDATE_USER') — the
+                                // user reducer only handles that exact type. A plain 'UPDATE_USER'
+                                // string no-ops, leaving the expired token in Redux, which the
+                                // retry re-applies and triggers a spurious logout.
                                 store.dispatch({
-                                    type: 'UPDATE_USER',
+                                    type: SocketClientActionTypes.UPDATE_USER,
                                     data: {
                                         details: { idToken: newIdToken },
                                     },
