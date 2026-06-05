@@ -399,6 +399,10 @@
         "notifications": "Notifications",
         "profileSettings": "Paramètres du profil"
       }
+    },
+    "incompleteProfileBanner": {
+      "message": "Ajoutez votre nom pour que vos amis puissent vous reconnaître",
+      "dismiss": "Ignorer"
     }
   },
   "forms": {
@@ -738,7 +742,8 @@
       "errorMessages": {
         "invalidPhoneNumber": "Le numéro de téléphone est invalide.",
         "repeatPassword": "Les mots de passe ne correspondent pas",
-        "passwordInsecure": "Le mot de passe ne respecte pas les exigences minimales de sécurité"
+        "passwordInsecure": "Le mot de passe ne respecte pas les exigences minimales de sécurité",
+        "birthdateTooYoung": "Vous devez avoir au moins {minAge} ans pour vous inscrire"
       },
       "labels": {
         "email": "Courriel",
@@ -748,7 +753,8 @@
         "password": "Mot de passe",
         "repeatPassword": "Répéter le mot de passe",
         "userName": "Nom d'utilisateur",
-        "inviteCode": "Code d'invitation (facultatif)"
+        "inviteCode": "Code d'invitation (facultatif)",
+        "birthdate": "Date de naissance"
       },
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
       "missingEmail": "Veuillez entrer une adresse courriel valide.",
@@ -757,7 +763,8 @@
       "subtitles": {
         "disclaimer": "En créant un compte, vous acceptez nos ",
         "and": " et ",
-        "inviteCodeHint": "Entrez le code d'invitation d'un ami — il gagne 10 pièces et vous en gagnez 5!"
+        "inviteCodeHint": "Entrez le code d'invitation d'un ami — il gagne 10 pièces et vous en gagnez 5!",
+        "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser Therr"
       },
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"
@@ -821,7 +828,8 @@
         "bioHeader": "Biographie",
         "businessAccount": "Entreprise",
         "creatorAccount": "Créateur",
-        "personalAccount": "Personnel"
+        "personalAccount": "Personnel",
+        "addYourNamePrompt": "Ajoutez votre nom pour que vos amis puissent vous reconnaître"
       },
       "giftCardProviders": {
         "unselected": "Sélectionner une carte-cadeau...",
@@ -1922,6 +1930,14 @@
       "buttonNeutral": "Cette fois seulement",
       "buttonNegative": "Refuser",
       "buttonPositive": "Pendant l'utilisation de l'application"
+    },
+    "backgroundLocation": {
+      "header": "Accès à la localisation en arrière-plan",
+      "description1": "Cette application collecte votre localisation précise en arrière-plan, même lorsque l'application est fermée ou non utilisée.",
+      "description2": "Therr utilise la localisation en arrière-plan pour trouver des récompenses à proximité, permettre la découverte de contenu local et envoyer des notifications de proximité. Vous pouvez désactiver cela dans les paramètres de votre appareil à tout moment.",
+      "privacyPolicy": "Voir la politique de confidentialité",
+      "accept": "Continuer",
+      "decline": "Pas maintenant"
     },
     "locationGps": {
       "header": "Localisation de l'utilisateur?",

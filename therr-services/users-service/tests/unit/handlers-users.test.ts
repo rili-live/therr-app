@@ -215,22 +215,33 @@ describe('Users Handler', () => {
             expect(result).to.be.eq(true);
         });
 
-        it('returns true when missing firstName', () => {
+        it('returns false when missing firstName (name no longer required for completeness)', () => {
             const result = isUserProfileIncomplete({
                 phoneNumber: '+1234567890',
                 userName: 'test',
                 lastName: 'User',
             });
-            expect(result).to.be.eq(true);
+            expect(result).to.be.eq(false);
         });
 
-        it('returns true when missing lastName', () => {
+        it('returns false when missing lastName (name no longer required for completeness)', () => {
             const result = isUserProfileIncomplete({
                 phoneNumber: '+1234567890',
                 userName: 'test',
                 firstName: 'Test',
             });
-            expect(result).to.be.eq(true);
+            expect(result).to.be.eq(false);
+        });
+
+        it('returns false when names are absent but phone and userName are present (name no longer required)', () => {
+            // Onboarding-friction change (2026-06): a profile is "complete" with
+            // just phone + userName so new users reach the app immediately; name
+            // is prompted contextually later.
+            const result = isUserProfileIncomplete({
+                phoneNumber: '+1234567890',
+                userName: 'test',
+            });
+            expect(result).to.be.eq(false);
         });
 
         it('returns false when all required fields present', () => {
@@ -256,12 +267,14 @@ describe('Users Handler', () => {
             expect(result).to.be.eq(false);
         });
 
-        it('returns true when existing user and update combined still missing fields', () => {
+        it('returns true when existing user and update combined still missing required fields', () => {
+            // Still incomplete because neither the update nor the existing record
+            // supplies a phoneNumber (one of the two remaining required fields).
             const mockUpdate = {
                 userName: 'test',
             };
             const mockExistingUser = {
-                phoneNumber: '+1234567890',
+                firstName: 'Test',
             };
             const result = isUserProfileIncomplete(mockUpdate, mockExistingUser);
             expect(result).to.be.eq(true);

@@ -6,6 +6,7 @@ import {
 } from 'therr-js-utilities/constants';
 import { isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
+import isValidSignupAge from 'therr-js-utilities/is-valid-signup-age';
 import normalizeEmail from 'normalize-email';
 import { getBrandContext } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
@@ -44,6 +45,7 @@ interface IRequiredUserDetails {
     isDashboardRegistration?: boolean;
     settingsEmailMarketing?: boolean;
     settingsEmailBusMarketing?: boolean;
+    settingsBirthdate?: string;
     accessLevels?: string[];
 }
 
@@ -255,23 +257,21 @@ const computeAccessLevelsAfterProfileUpdate = (
     return JSON.stringify([...next]);
 };
 
+// A profile is considered "complete" (eligible for EMAIL_VERIFIED) once it has a
+// phone number and username. First/last name are intentionally NOT required here
+// so new users can reach the app immediately; we prompt them to add their name
+// contextually later. See onboarding friction review (2026-06).
 const isUserProfileIncomplete = (updateArgs, existingUser?) => {
-    const isBusiness = updateArgs?.isBusinessAccount || existingUser?.isBusinessAccount;
-
     if (!existingUser) {
         const requestIsMissingProperties = !updateArgs?.phoneNumber
-            || !updateArgs?.userName
-            || !updateArgs?.firstName
-            || (!isBusiness && !updateArgs?.lastName);
+            || !updateArgs?.userName;
 
         return requestIsMissingProperties;
     }
 
     // NOTE: The user update query does not nullify missing properties when the respective property already exists in the DB
     const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
-        || !(updateArgs.userName || existingUser.userName)
-        || !(updateArgs.firstName || existingUser.firstName)
-        || (!isBusiness && !(updateArgs.lastName || existingUser.lastName));
+        || !(updateArgs.userName || existingUser.userName);
 
     return requestDoesNotCompleteProfile;
 };
@@ -296,6 +296,12 @@ const createUserHelper = (
 
     if (!shouldGeneratePassword && !isValidPassword(password)) {
         throw new Error('invalid-password');
+    }
+
+    // Defense-in-depth: the API gateway already validates this, but enforce the
+    // minimum signup age here too so no registration path can bypass it.
+    if (userDetails.settingsBirthdate && !isValidSignupAge(userDetails.settingsBirthdate)) {
+        throw new Error('invalid-birthdate');
     }
 
     return Store.verificationCodes.createCode(verificationCode)
@@ -334,6 +340,7 @@ const createUserHelper = (
                 isCreatorAccount: userDetails.isCreatorAccount,
                 settingsEmailMarketing: userDetails.settingsEmailMarketing,
                 settingsEmailBusMarketing: userDetails.settingsEmailBusMarketing,
+                settingsBirthdate: userDetails.settingsBirthdate || undefined,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,

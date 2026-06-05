@@ -44,6 +44,13 @@
     "linkCopied": "Lien copié!"
   },
   "components": {
+    "incompleteProfileBanner": {
+      "title": "Complétez votre profil",
+      "message": "Ajoutez votre nom pour que vos amis puissent vous reconnaître",
+      "addName": "Ajouter votre nom",
+      "dismiss": "Ignorer",
+      "inlinePrompt": "Ajoutez votre nom pour que vos amis puissent vous reconnaître et communiquer avec vous plus facilement."
+    },
     "tile": {
       "untitled": "Sans titre",
       "saveToList": "Enregistrer dans une liste"
@@ -163,14 +170,17 @@
         "termsAndConditions": "J'accepte les conditions d'utilisation",
         "userName": "Nom d'utilisateur",
         "mySweet": "Êtes-vous sympathique?",
-        "inviteCode": "Code d'invitation"
+        "inviteCode": "Code d'invitation",
+        "birthdate": "Date de naissance"
       },
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"
       },
       "text": {
         "signupForRewards": "Inscrivez-vous avec le code d'invitation de {userName} — il gagne 10 pièces et vous en gagnez 5!",
-        "inviteCodeHint": "Entrez le code d'invitation d'un ami pour gagner des pièces bonus"
+        "inviteCodeHint": "Entrez le code d'invitation d'un ami pour gagner des pièces bonus",
+        "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser Therr",
+        "birthdateTooYoung": "Vous devez avoir au moins {minAge} ans pour vous inscrire"
       },
       "sso": {
         "orDivider": "ou",

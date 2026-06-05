@@ -65,6 +65,10 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        - name: JWT_ISSUER
+          value: "https://api.stage.therr.com"
+        - name: JWT_AUDIENCE
+          value: "therr-app"
         - name: CORRECTION_IDENTITY_SALT
           valueFrom:
             secretKeyRef:

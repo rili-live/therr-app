@@ -63,10 +63,13 @@ import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
 import permissions, { PermType } from '../utilities/permissionsOrchestrator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import BackgroundLocationDisclosureModal from './Modals/BackgroundLocationDisclosureModal';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
+import SplashLogoSpinner from './SplashLogoSpinner';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
 import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroidChannel } from '../constants';
@@ -138,8 +141,13 @@ export interface ILayoutProps extends IStoreProps {
 interface ILayoutState {
     targetRouteView: string;
     targetRouteParams: any;
+    isBackgroundLocationDisclosureVisible: boolean;
     permissionPrimerType: PermType | null;
+    shouldSpinSplashLogo: boolean;
+    isSplashSpinnerVisible: boolean;
 }
+
+const BG_LOCATION_DISCLOSURE_KEY = 'bgLocationDisclosureShown';
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -208,7 +216,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             targetRouteView: '',
             targetRouteParams: {},
+            isBackgroundLocationDisclosureVisible: false,
             permissionPrimerType: null,
+            shouldSpinSplashLogo: false,
+            isSplashSpinnerVisible: true,
         };
 
         this.reloadTheme();
@@ -281,7 +292,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }));
         }
 
-        this.readyAndStartBackgroundGeolocation();
+        this.checkAndShowBackgroundLocationDisclosure();
         this.prefetchContent();
 
         // Wire the permissions orchestrator: a single primer modal lives at the
@@ -324,7 +335,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (user.isAuthenticated) { // Happens after login
                 const token = user?.details?.idToken;
                 if (token) {
-                    this.readyAndStartBackgroundGeolocation();
+                    this.checkAndShowBackgroundLocationDisclosure();
                 }
 
                 if (user.details?.id) {
@@ -430,6 +441,35 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (this.props.user && this.props.user.isAuthenticated) {
             this.props.refreshConnection(this.props.user);
         }
+    };
+
+    checkAndShowBackgroundLocationDisclosure = () => {
+        if (!isLocationServicesEnabled()) {
+            return;
+        }
+        if (!this.props.user?.isAuthenticated || !this.props.user?.settings?.settingsPushBackground) {
+            return;
+        }
+        AsyncStorage.getItem(BG_LOCATION_DISCLOSURE_KEY).then((value) => {
+            if (value === 'true') {
+                this.readyAndStartBackgroundGeolocation();
+            } else {
+                this.setState({ isBackgroundLocationDisclosureVisible: true });
+            }
+        }).catch(() => {
+            this.readyAndStartBackgroundGeolocation();
+        });
+    };
+
+    handleBackgroundLocationDisclosureAccept = () => {
+        this.setState({ isBackgroundLocationDisclosureVisible: false });
+        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
+        this.readyAndStartBackgroundGeolocation();
+    };
+
+    handleBackgroundLocationDisclosureDecline = () => {
+        this.setState({ isBackgroundLocationDisclosureVisible: false });
+        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
     };
 
     // IMPORTANT: This should only be called once per session
@@ -1825,6 +1865,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         resolve?.(false);
     };
 
+    handleSplashSpinComplete = () => {
+        this.setState({ isSplashSpinnerVisible: false });
+    };
+
     render() {
         const {
             location,
@@ -1832,54 +1876,58 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
-        const { permissionPrimerType } = this.state;
+        const { isBackgroundLocationDisclosureVisible, permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
 
         return (
-            <NavigationContainer
+            <>
+                <NavigationContainer
                 // Keyed on locale only so theme toggles do not remount the entire nav tree.
                 // Locale change still requires a remount because route translators close over locale at construction.
-                key={this.props.user?.settings?.locale || 'en-us'}
-                theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
-                ref={navigationRef}
-                onReady={() => {
-                    this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
-                    Promise.allSettled(preLoadImageList.map((image) => {
-                        const img = Image.resolveAssetSource(image).uri;
-                        return Image.prefetch(img);
-                    })).finally(() => {
+                    key={this.props.user?.settings?.locale || 'en-us'}
+                    theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
+                    ref={navigationRef}
+                    onReady={() => {
+                        this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
+                        Promise.allSettled(preLoadImageList.map((image) => {
+                            const img = Image.resolveAssetSource(image).uri;
+                            return Image.prefetch(img);
+                        })).finally(() => {
                         // TODO: Update users lastSessionStartAt property to track user activity
-                        SplashScreen.hide({ fade: true });
-                    });
-                }}
-                onStateChange={async () => {
-                    const previousRouteName = this.routeNameRef.current;
-                    const currentRouteName = navigationRef?.getCurrentRoute()?.name;
-                    if (currentRouteName !== 'Map') {
-                        // Prevent stuck tour on wrong routes
-                        this.props.stopNavigationTour();
-                    }
-
-                    if (previousRouteName !== currentRouteName) {
-                        await logScreenView(getAnalytics(), {
-                            screen_name: currentRouteName,
-                            screen_class: currentRouteName,
-                            is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
+                        // Hand off to JS overlay with no fade: the overlay matches the native splash bg
+                        // exactly, so the transition is invisible and the spin starts cleanly.
+                            SplashScreen.hide({ fade: false });
+                            this.setState({ shouldSpinSplashLogo: true });
                         });
-                    }
-                    this.routeNameRef.current = currentRouteName;
-                }}
-            >
-                <Stack.Navigator
-                    id={undefined}
-                    screenOptions={({ route, navigation }) => {
-                        const themeName = this.props?.user?.settings?.mobileThemeName;
-                        const currentScreen = route.name;
-                        const currentScreenParams = (route.params as Record<string, any>) || {};
-                        const isConnect = currentScreen === 'Connect';
-                        const isAreas = currentScreen === 'Areas';
-                        const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
-                        const isMap = currentScreen === 'Map';
-                        const hasLogoHeaderTitle = currentScreen === 'Login'
+                    }}
+                    onStateChange={async () => {
+                        const previousRouteName = this.routeNameRef.current;
+                        const currentRouteName = navigationRef?.getCurrentRoute()?.name;
+                        if (currentRouteName !== 'Map') {
+                        // Prevent stuck tour on wrong routes
+                            this.props.stopNavigationTour();
+                        }
+
+                        if (previousRouteName !== currentRouteName) {
+                            await logScreenView(getAnalytics(), {
+                                screen_name: currentRouteName,
+                                screen_class: currentRouteName,
+                                is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
+                            });
+                        }
+                        this.routeNameRef.current = currentRouteName;
+                    }}
+                >
+                    <Stack.Navigator
+                        id={undefined}
+                        screenOptions={({ route, navigation }) => {
+                            const themeName = this.props?.user?.settings?.mobileThemeName;
+                            const currentScreen = route.name;
+                            const currentScreenParams = (route.params as Record<string, any>) || {};
+                            const isConnect = currentScreen === 'Connect';
+                            const isAreas = currentScreen === 'Areas';
+                            const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
+                            const isMap = currentScreen === 'Map';
+                            const hasLogoHeaderTitle = currentScreen === 'Login'
                             || currentScreen === 'Landing'
                             || currentScreen === 'Home'
                             || currentScreen === 'ForgotPassword'
@@ -1887,230 +1935,244 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             || currentScreen === 'EmailVerification'
                             || currentScreen === 'CreateProfile'
                             || currentScreen === 'Register';
-                        const isAccentPage = currentScreen === 'EditMoment'
+                            const isAccentPage = currentScreen === 'EditMoment'
                             || currentScreen === 'EditSpace'
                             || currentScreen === 'ViewMoment'
                             || currentScreen === 'ViewGroup'
                             || currentScreen === 'ViewSpace';
-                        let headerTitle;
-                        let headerStyle = this.theme.styles.headerStyle;
-                        let headerStyleName: any = 'light';
-                        let headerTitleColor = themeName === 'light'
-                            ? this.theme.colors.primary3
-                            : this.theme.colors.textWhite;
-                        const advancedSearchPlaceholderText = currentScreen === 'Areas'
-                            ? this.translate('components.header.searchContentInput.placeholder')
-                            : this.translate('components.header.searchInput.placeholder');
-                        if (isMoment) {
-                            headerStyleName = 'accent';
-                            headerTitleColor = this.theme.colors.accentLogo;
-                        }
-                        if (isAccentPage) {
-                            headerStyle = this.theme.styles.headerStyleAccent;
-                        }
-                        if (hasLogoHeaderTitle) {
-                            headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
-                        }
-                        const isSearchRoute = isAreas || isMap || isConnect;
-                        let searchInputNode: React.ReactNode = null;
-                        if (isAreas) {
-                            searchInputNode = <HeaderSearchInput
-                                isAdvancedSearch
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                placeholderText={advancedSearchPlaceholderText}
-                            />;
-                        }
-                        if (isMap) {
-                            searchInputNode = <HeaderSearchInput
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                placeholderText={advancedSearchPlaceholderText}
-                            />;
-                        }
-                        if (isConnect) {
-                            searchInputNode = <HeaderSearchUsersInput
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                            />;
-                        }
-
-                        const headerLeftNode = <HeaderMenuLeft
-                            styleName={headerStyleName}
-                            navigation={navigation}
-                            isAuthenticated={user.isAuthenticated}
-                            isEmailVerifed={this.isUserEmailVerified()}
-                            theme={this.theme}
-                        />;
-                        const headerRightNode = this.shouldShowTopRightMenu() ?
-                            <HeaderMenuRight
-                                currentScreen={currentScreen}
-                                currentScreenParams={currentScreenParams}
-                                navigation={navigation}
-                                notifications={notifications}
-                                styleName={headerStyleName}
-                                isEmailVerifed={this.isUserEmailVerified()}
-                                isVisible={this.shouldShowTopRightMenu()}
-                                location={location}
-                                logout={this.logout}
-                                updateGpsStatus={updateGpsStatus}
-                                user={user}
-                                showActionSheet={this.actionSheetShow}
-                                startNavigationTour={this.props.startNavigationTour}
-                                theme={this.theme}
-                                themeButtons={this.themeButtons}
-                                themeInfoModal={this.themeInfoModal}
-                                themeMenu={this.themeMenu}
-                            /> :
-                            <HeaderLinkRight
-                                navigation={navigation}
-                                themeForms={this.themeForms}
-                                styleName={headerStyleName}
-                            />;
-
-                        const baseOptions: any = {
-                            animation: 'fade',
-                            freezeOnBlur: true,
-                            headerLeft: () => headerLeftNode,
-                            headerRight: () => headerRightNode,
-                            headerTitleStyle: {
-                                ...this.theme.styles.headerTitleStyle,
-                                color: headerTitleColor,
-                                textShadowOffset: { width: 0, height: 0 },
-                                textShadowRadius: 0,
-                            },
-                            headerTitleAlign: 'center',
-                            headerStyle,
-                            headerTransparent: false,
-                            headerBackVisible: false,
-                            headerBackTitle: '',
-                            headerTitle,
-                        };
-
-                        // Use a custom JS header for every route so the left
-                        // logo and right menu button sit flush against the
-                        // screen edges. Native-stack's built-in header adds an
-                        // inset that pushed them inward on non-search routes.
-                        const customHeaderStyle = {
-                            backgroundColor: headerStyle?.backgroundColor,
-                            borderBottomColor: headerStyle?.borderBottomColor,
-                            borderBottomWidth: headerStyle?.borderBottomWidth,
-                        };
-                        baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
-                            let middleNode: React.ReactNode;
-                            if (isSearchRoute) {
-                                middleNode = (
-                                    <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
-                                        {searchInputNode}
-                                    </View>
-                                );
-                            } else if (typeof hOpts?.headerTitle === 'function') {
-                                middleNode = (
-                                    <View style={{ flex: 1, alignItems: 'center' }}>
-                                        {hOpts.headerTitle({
-                                            children: hOpts.title ?? hRoute.name,
-                                            tintColor: headerTitleColor,
-                                        })}
-                                    </View>
-                                );
-                            } else {
-                                const titleText = typeof hOpts?.headerTitle === 'string'
-                                    ? hOpts.headerTitle
-                                    : (hOpts?.title ?? hRoute.name);
-                                middleNode = (
-                                    <View style={{ flex: 1, alignItems: 'center' }}>
-                                        <Text
-                                            numberOfLines={1}
-                                            style={[
-                                                this.theme.styles.headerTitleStyle,
-                                                { color: headerTitleColor },
-                                            ]}
-                                        >
-                                            {titleText}
-                                        </Text>
-                                    </View>
-                                );
+                            let headerTitle;
+                            let headerStyle = this.theme.styles.headerStyle;
+                            let headerStyleName: any = 'light';
+                            let headerTitleColor = themeName === 'light'
+                                ? this.theme.colors.primary3
+                                : this.theme.colors.textWhite;
+                            const advancedSearchPlaceholderText = currentScreen === 'Areas'
+                                ? this.translate('components.header.searchContentInput.placeholder')
+                                : this.translate('components.header.searchInput.placeholder');
+                            if (isMoment) {
+                                headerStyleName = 'accent';
+                                headerTitleColor = this.theme.colors.accentLogo;
                             }
-                            return (
-                                <SafeAreaInsetsContext.Consumer>
-                                    {(insets) => (
-                                        <View style={[customHeaderStyle, { paddingTop: insets?.top ?? getHeaderTopInset() }]}>
-                                            <View style={{
-                                                flexDirection: 'row',
-                                                alignItems: 'center',
-                                                height: 52,
-                                                paddingHorizontal: 8,
-                                            }}>
-                                                {headerLeftNode}
-                                                {middleNode}
-                                                {headerRightNode}
-                                            </View>
+                            if (isAccentPage) {
+                                headerStyle = this.theme.styles.headerStyleAccent;
+                            }
+                            if (hasLogoHeaderTitle) {
+                                headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
+                            }
+                            const isSearchRoute = isAreas || isMap || isConnect;
+                            let searchInputNode: React.ReactNode = null;
+                            if (isAreas) {
+                                searchInputNode = <HeaderSearchInput
+                                    isAdvancedSearch
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                    placeholderText={advancedSearchPlaceholderText}
+                                />;
+                            }
+                            if (isMap) {
+                                searchInputNode = <HeaderSearchInput
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                    placeholderText={advancedSearchPlaceholderText}
+                                />;
+                            }
+                            if (isConnect) {
+                                searchInputNode = <HeaderSearchUsersInput
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                />;
+                            }
+
+                            const headerLeftNode = <HeaderMenuLeft
+                                styleName={headerStyleName}
+                                navigation={navigation}
+                                isAuthenticated={user.isAuthenticated}
+                                isEmailVerifed={this.isUserEmailVerified()}
+                                theme={this.theme}
+                            />;
+                            const headerRightNode = this.shouldShowTopRightMenu() ?
+                                <HeaderMenuRight
+                                    currentScreen={currentScreen}
+                                    currentScreenParams={currentScreenParams}
+                                    navigation={navigation}
+                                    notifications={notifications}
+                                    styleName={headerStyleName}
+                                    isEmailVerifed={this.isUserEmailVerified()}
+                                    isVisible={this.shouldShowTopRightMenu()}
+                                    location={location}
+                                    logout={this.logout}
+                                    updateGpsStatus={updateGpsStatus}
+                                    user={user}
+                                    showActionSheet={this.actionSheetShow}
+                                    startNavigationTour={this.props.startNavigationTour}
+                                    theme={this.theme}
+                                    themeButtons={this.themeButtons}
+                                    themeInfoModal={this.themeInfoModal}
+                                    themeMenu={this.themeMenu}
+                                /> :
+                                <HeaderLinkRight
+                                    navigation={navigation}
+                                    themeForms={this.themeForms}
+                                    styleName={headerStyleName}
+                                />;
+
+                            const baseOptions: any = {
+                                animation: 'fade',
+                                freezeOnBlur: true,
+                                headerLeft: () => headerLeftNode,
+                                headerRight: () => headerRightNode,
+                                headerTitleStyle: {
+                                    ...this.theme.styles.headerTitleStyle,
+                                    color: headerTitleColor,
+                                    textShadowOffset: { width: 0, height: 0 },
+                                    textShadowRadius: 0,
+                                },
+                                headerTitleAlign: 'center',
+                                headerStyle,
+                                headerTransparent: false,
+                                headerBackVisible: false,
+                                headerBackTitle: '',
+                                headerTitle,
+                            };
+
+                            // Use a custom JS header for every route so the left
+                            // logo and right menu button sit flush against the
+                            // screen edges. Native-stack's built-in header adds an
+                            // inset that pushed them inward on non-search routes.
+                            const customHeaderStyle = {
+                                backgroundColor: headerStyle?.backgroundColor,
+                                borderBottomColor: headerStyle?.borderBottomColor,
+                                borderBottomWidth: headerStyle?.borderBottomWidth,
+                            };
+                            baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
+                                let middleNode: React.ReactNode;
+                                if (isSearchRoute) {
+                                    middleNode = (
+                                        <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
+                                            {searchInputNode}
                                         </View>
-                                    )}
-                                </SafeAreaInsetsContext.Consumer>
-                            );
-                        };
-
-                        return baseOptions;
-                    }}
-                >
-                    {routes
-                        .filter((route: any) => {
-                            const routeOptions = route.options && typeof route.options === 'function'
-                                ? route.options()
-                                : {};
-
-                            // Filter by feature flags first
-                            const requiredFeatures: FeatureFlags[] = routeOptions.requiredFeatures || [];
-                            if (requiredFeatures.length > 0) {
-                                const config = getConfig();
-                                const featureFlags = config.featureFlags || {};
-                                const allFeaturesEnabled = requiredFeatures.every(
-                                    (flag: FeatureFlags) => featureFlags[flag] === true
+                                    );
+                                } else if (typeof hOpts?.headerTitle === 'function') {
+                                    middleNode = (
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            {hOpts.headerTitle({
+                                                children: hOpts.title ?? hRoute.name,
+                                                tintColor: headerTitleColor,
+                                            })}
+                                        </View>
+                                    );
+                                } else {
+                                    const titleText = typeof hOpts?.headerTitle === 'string'
+                                        ? hOpts.headerTitle
+                                        : (hOpts?.title ?? hRoute.name);
+                                    middleNode = (
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text
+                                                numberOfLines={1}
+                                                style={[
+                                                    this.theme.styles.headerTitleStyle,
+                                                    { color: headerTitleColor },
+                                                ]}
+                                            >
+                                                {titleText}
+                                            </Text>
+                                        </View>
+                                    );
+                                }
+                                return (
+                                    <SafeAreaInsetsContext.Consumer>
+                                        {(insets) => (
+                                            <View style={[customHeaderStyle, { paddingTop: insets?.top ?? getHeaderTopInset() }]}>
+                                                <View style={{
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    height: 52,
+                                                    paddingHorizontal: 8,
+                                                }}>
+                                                    {headerLeftNode}
+                                                    {middleNode}
+                                                    {headerRightNode}
+                                                </View>
+                                            </View>
+                                        )}
+                                    </SafeAreaInsetsContext.Consumer>
                                 );
-                                if (!allFeaturesEnabled) {
+                            };
+
+                            return baseOptions;
+                        }}
+                    >
+                        {routes
+                            .filter((route: any) => {
+                                const routeOptions = route.options && typeof route.options === 'function'
+                                    ? route.options()
+                                    : {};
+
+                                // Filter by feature flags first
+                                const requiredFeatures: FeatureFlags[] = routeOptions.requiredFeatures || [];
+                                if (requiredFeatures.length > 0) {
+                                    const config = getConfig();
+                                    const featureFlags = config.featureFlags || {};
+                                    const allFeaturesEnabled = requiredFeatures.every(
+                                        (flag: FeatureFlags) => featureFlags[flag] === true
+                                    );
+                                    if (!allFeaturesEnabled) {
+                                        return false;
+                                    }
+                                }
+
+                                // Then filter by access control
+                                if (!routeOptions.access) {
+                                    return true;
+                                }
+
+                                if (route.name === 'Landing' && user?.details?.id) {
                                     return false;
                                 }
-                            }
 
-                            // Then filter by access control
-                            if (!routeOptions.access) {
-                                return true;
-                            }
+                                const isAuthorized = UsersService.isAuthorized(
+                                    routeOptions.access,
+                                    user
+                                );
 
-                            if (route.name === 'Landing' && user?.details?.id) {
-                                return false;
-                            }
+                                delete route.options.access;
 
-                            const isAuthorized = UsersService.isAuthorized(
-                                routeOptions.access,
-                                user
-                            );
-
-                            delete route.options.access;
-
-                            return isAuthorized;
-                        })
-                        .map((route: any) => {
-                            route.name = this.translate(route.name);
-                            delete route.key;
-                            return <Stack.Screen key={route.name} {...route} />;
-                        })}
-                </Stack.Navigator>
-                {permissionPrimerType ? (
-                    <PermissionPrimerModal
-                        permissionType={permissionPrimerType}
-                        isVisible={!!permissionPrimerType}
-                        onAllow={this.handlePermissionPrimerAllow}
-                        onNotNow={this.handlePermissionPrimerNotNow}
+                                return isAuthorized;
+                            })
+                            .map((route: any) => {
+                                route.name = this.translate(route.name);
+                                delete route.key;
+                                return <Stack.Screen key={route.name} {...route} />;
+                            })}
+                    </Stack.Navigator>
+                    <BackgroundLocationDisclosureModal
+                        isVisible={isBackgroundLocationDisclosureVisible}
+                        onAccept={this.handleBackgroundLocationDisclosureAccept}
+                        onDecline={this.handleBackgroundLocationDisclosureDecline}
                         translate={this.translate}
                         themeDisclosure={this.themeDisclosure}
                     />
+                    {permissionPrimerType ? (
+                        <PermissionPrimerModal
+                            permissionType={permissionPrimerType}
+                            isVisible={!!permissionPrimerType}
+                            onAllow={this.handlePermissionPrimerAllow}
+                            onNotNow={this.handlePermissionPrimerNotNow}
+                            translate={this.translate}
+                            themeDisclosure={this.themeDisclosure}
+                        />
+                    ) : null}
+                </NavigationContainer>
+                {isSplashSpinnerVisible ? (
+                    <SplashLogoSpinner
+                        start={shouldSpinSplashLogo}
+                        onAnimationComplete={this.handleSplashSpinComplete}
+                    />
                 ) : null}
-            </NavigationContainer>
+            </>
         );
     }
 }

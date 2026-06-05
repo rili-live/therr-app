@@ -40,6 +40,7 @@ import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import AreaCarousel from './AreaCarousel';
 import TherrIcon from '../../components/TherrIcon';
+import IncompleteProfileBanner from '../../components/IncompleteProfileBanner';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import { isLocationPermissionGranted } from '../../utilities/requestOSPermissions';
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
@@ -853,6 +854,12 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}
                     onLayout={this.handleTabContainerLayout}
                 >
+                    <IncompleteProfileBanner
+                        navigation={navigation}
+                        translate={this.translate}
+                        user={user}
+                        themeName={user.settings?.mobileThemeName}
+                    />
                     <TabView
                         lazy
                         lazyPreloadDistance={0}

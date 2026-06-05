@@ -180,7 +180,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
             });
         })
         .finally(() => {
-            this.scrollViewRef?.scrollToPosition(0, 0);
+            this.scrollViewRef?.scrollTo({ x: 0, y: 0, animated: true });
         });
 
     toggleDeleteAccountModal = (shouldOpen: boolean) => {

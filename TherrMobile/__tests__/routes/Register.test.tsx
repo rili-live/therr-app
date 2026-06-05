@@ -10,8 +10,17 @@ import renderer, { act } from 'react-test-renderer';
 // Note: import explicitly to use the types shipped with jest.
 import { it, describe, beforeEach, afterEach, expect } from '@jest/globals';
 
+// The shared Button reads the active theme via useSelector. These tests render
+// the unconnected screen with explicit props (no <Provider>), so stub useSelector
+// to resolve against a default state instead of requiring a store.
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: (selector: (state: any) => any) => selector({ user: { settings: {} } }),
+}));
+
 jest.mock('react-native-country-picker-modal');
 jest.mock('react-native-phone-input');
+jest.mock('react-native-date-picker', () => 'DatePicker');
 
 const themeAlerts = buildAlertStyles();
 const themeForms = buildFormStyles();
@@ -109,6 +118,8 @@ describe('RegisterForm', () => {
             act(() => { instance.onInputChange('email', 'test@example.com'); });
             act(() => { instance.onInputChange('password', 'Password123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'Password123!'); });
+            // Registration requires a birthdate meeting the minimum signup age.
+            act(() => { instance.onInputChange('settingsBirthdate', new Date('1990-01-01').toISOString()); });
 
             expect(instance.isFormValid()).toBe(true);
             expect(instance.isRegisterFormDisabled()).toBe(false);
@@ -185,6 +196,8 @@ describe('RegisterForm', () => {
             act(() => { instance.onInputChange('email', 'test@example.com'); });
             act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
+            // Registration requires a birthdate meeting the minimum signup age.
+            act(() => { instance.onInputChange('settingsBirthdate', new Date('1990-01-01').toISOString()); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -211,6 +224,8 @@ describe('RegisterForm', () => {
             act(() => { instance.onInputChange('email', 'test@example.com'); });
             act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
+            // Registration requires a birthdate meeting the minimum signup age.
+            act(() => { instance.onInputChange('settingsBirthdate', new Date('1990-01-01').toISOString()); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -237,6 +252,8 @@ describe('RegisterForm', () => {
             act(() => { instance.onInputChange('email', 'test@example.com'); });
             act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
+            // Registration requires a birthdate meeting the minimum signup age.
+            act(() => { instance.onInputChange('settingsBirthdate', new Date('1990-01-01').toISOString()); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -258,6 +275,8 @@ describe('RegisterForm', () => {
             act(() => { instance.onInputChange('email', 'test@example.com'); });
             act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
+            // Registration requires a birthdate meeting the minimum signup age.
+            act(() => { instance.onInputChange('settingsBirthdate', new Date('1990-01-01').toISOString()); });
 
             act(() => { instance.onSubmit(); });
 
@@ -317,6 +336,8 @@ describe('RegisterForm', () => {
             act(() => { instance.onInputChange('email', 'test@example.com'); });
             act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
+            // Registration requires a birthdate meeting the minimum signup age.
+            act(() => { instance.onInputChange('settingsBirthdate', new Date('1990-01-01').toISOString()); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -339,6 +360,8 @@ describe('RegisterForm', () => {
             act(() => { instance.onInputChange('email', 'test@example.com'); });
             act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
+            // Registration requires a birthdate meeting the minimum signup age.
+            act(() => { instance.onInputChange('settingsBirthdate', new Date('1990-01-01').toISOString()); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -378,6 +401,8 @@ describe('RegisterForm', () => {
             act(() => { instance.onInputChange('inviteCode', 'INVITE123'); });
             act(() => { instance.onInputChange('password', 'ValidPassword123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'ValidPassword123!'); });
+            // Registration requires a birthdate meeting the minimum signup age.
+            act(() => { instance.onInputChange('settingsBirthdate', new Date('1990-01-01').toISOString()); });
 
             await act(async () => {
                 instance.onSubmit();

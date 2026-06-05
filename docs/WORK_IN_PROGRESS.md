@@ -121,6 +121,15 @@ append new items here rather than only printing them once.
   `assetlinks.habits.json` once habits.therr.com serves it (visit
   `https://habits.therr.com/.well-known/assetlinks.json` and re-run the
   Play Console "App links" check for `com.therr.habits`).
+- [ ] (2026-06-05, /quality-peer-review) After deploying the JWT claims-hardening
+  change (general→stage→main), confirm `JWT_ISSUER` / `JWT_AUDIENCE` env vars are
+  actually present on the running prod pods for users-service, api-gateway, and
+  websocket-service (`kubectl describe deploy ... | grep JWT_`). The signer and all
+  verifiers must agree per-environment (`https://api.therr.com` in prod, `therr-app`
+  audience everywhere); if the deploy pipeline updated the image but did not re-apply
+  the deployment manifest's env block, services silently fall back to the
+  `therr-api` default — still internally consistent, so issuer-based cross-env token
+  separation would be inactive without any error surfacing. Verify, don't assume.
 <!-- skill-followups:end -->
 
 ---

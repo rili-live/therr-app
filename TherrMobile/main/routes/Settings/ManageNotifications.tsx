@@ -191,7 +191,7 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
             });
         })
         .finally(() => {
-            this.scrollViewRef?.scrollToPosition(0, 0);
+            this.scrollViewRef?.scrollTo({ x: 0, y: 0, animated: true });
         });
 
     onSwitchChange = (name: string) => {
