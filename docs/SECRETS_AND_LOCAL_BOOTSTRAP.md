@@ -203,23 +203,46 @@ only needs `eas-cli` installed — no local Android SDK required.
 
 4. **Store the Google Maps API key as an EAS secret**:
    ```bash
-   eas secret:create --scope project --name GOOGLE_APIS_ANDROID_KEY --value <key>
+   eas env:create --scope project --name GOOGLE_APIS_ANDROID_KEY \
+     --value <key> --visibility secret
    ```
    Use the Android-restricted Maps SDK key for `com.therr.habits`.
+   (On `eas-cli` < 16 this command was `eas secret:create`; it is now
+   `eas env:create`. Verify which environment(s) — `production`/`preview` —
+   the secret should target; `--scope project` applies to all by default.)
 
 5. **Store the Google Play service account key as an EAS secret**:
    ```bash
-   eas secret:create --scope project --name EXPO_GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_JSON \
-     --type file --value ./path-to-service-account.json
+   eas env:create --scope project --name EXPO_GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_JSON \
+     --type file --value ./path-to-service-account.json --visibility secret
    ```
    This is the service account JSON from the Google Play Console that has
    "Release manager" or "Release" permissions on the `com.therr.habits` listing.
    EAS Submit reads it automatically when `EXPO_GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_JSON`
    is set.
 
+   > Google Play prerequisite: the `com.therr.habits` app listing must already
+   > exist in Play Console, and **one AAB must have been uploaded to the
+   > Internal track manually** (Google rejects the first API-driven submit until
+   > a build has been promoted by hand). Create the service account under
+   > Play Console → Setup → API access and grant it "Release manager".
+
 6. **Add `EXPO_TOKEN` to CircleCI project environment variables**:
    - Generate a token at https://expo.dev/settings/access-tokens
    - In CircleCI: Project Settings → Environment Variables → `EXPO_TOKEN`
+
+7. **Merge the pipeline onto the trigger branch**. The CI workflow only fires
+   on `niche/HABITS-main`, so `eas.json`, the `eas_build_habits_android` job,
+   and the linked `app.json` (with the real `projectId`) must be merged down
+   from `niche/HABITS-general`:
+   ```bash
+   git checkout niche/HABITS-main && git pull --ff-only
+   git merge niche/HABITS-general
+   git push origin niche/HABITS-main   # this push triggers habits_mobile_release
+   ```
+   Do **not** push `niche/HABITS-main` until steps 1–6 are complete — the
+   pushed build/submit will fail at auth without `EXPO_TOKEN` and the EAS
+   secrets in place.
 
 ### `TherrMobile/android/app/habits-upload.keystore` (planned, not yet created)
 
