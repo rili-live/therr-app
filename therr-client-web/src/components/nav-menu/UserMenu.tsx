@@ -8,7 +8,8 @@ import {
     UserConnectionsActions,
 } from 'therr-react/redux/actions';
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
-import { UserConnectionTypes } from 'therr-js-utilities/constants';
+import { UsersService } from 'therr-react/services';
+import { UserConnectionTypes, BrandVariations } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
 import * as globalConfig from '../../../../global-config';
 import Notification from './Notification';
@@ -167,26 +168,40 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     };
 
     navigateToDashboard = () => {
-        const { user } = this.props;
-        const { details, settings } = user;
-        const refreshToken = settings?.rememberMe
-            ? localStorage.getItem('therrRefreshToken')
-            : sessionStorage.getItem('therrRefreshToken');
+        const { settings } = this.props.user;
+        const dashboardOrigin = globalConfig[process.env.NODE_ENV].dashboardHostFull;
+        const rememberMe = settings?.rememberMe ? '1' : '0';
 
-        const params = new URLSearchParams({
-            token: details.idToken || '',
-            userId: details.id || '',
-            email: details.email || '',
-            fn: details.firstName || '',
-            ln: details.lastName || '',
-            un: details.userName || '',
-            al: JSON.stringify(details.accessLevels || []),
-            rm: settings?.rememberMe ? '1' : '0',
-            ...(refreshToken ? { rt: refreshToken } : {}),
-        });
+        // Open the dashboard tab synchronously (still inside the click gesture)
+        // so the browser doesn't block it as a popup, then redirect it once the
+        // single-use handoff code is minted. Only the short-lived, single-use
+        // code (and the non-sensitive rememberMe flag) ride in the URL — never
+        // the JWT or refresh token, which would otherwise leak into browser
+        // history, server access logs, and Referer headers.
+        const newTab = window.open('', '_blank');
+        if (newTab) {
+            newTab.document.write('Loading dashboard…');
+        }
 
-        const dashboardUrl = `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/sso?${params.toString()}`;
-        window.open(dashboardUrl, '_blank', 'noopener');
+        UsersService.mintHandoff(BrandVariations.DASHBOARD_THERR)
+            .then((response) => {
+                const { code } = response?.data || {};
+                if (!code) {
+                    throw new Error('Missing handoff code');
+                }
+                const dashboardUrl = `${dashboardOrigin}/sso?code=${encodeURIComponent(code)}&rm=${rememberMe}`;
+                if (newTab) {
+                    newTab.location.href = dashboardUrl;
+                } else {
+                    window.location.href = dashboardUrl;
+                }
+            })
+            .catch(() => {
+                // Don't leave a blank tab open if minting fails — send it to login.
+                if (newTab) {
+                    newTab.location.href = `${dashboardOrigin}/login`;
+                }
+            });
     };
 
     isBusinessUser = () => !!this.props.user.details.isBusinessAccount;
