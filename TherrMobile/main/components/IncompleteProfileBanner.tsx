@@ -57,7 +57,7 @@ class IncompleteProfileBanner extends React.Component<IIncompleteProfileBannerPr
 
     handlePress = () => {
         const { navigation } = this.props;
-        navigation.navigate('ManageAccount');
+        navigation.navigate('Settings');
     };
 
     handleDismiss = () => {

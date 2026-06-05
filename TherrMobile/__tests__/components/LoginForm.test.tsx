@@ -8,6 +8,14 @@ import renderer, { act } from 'react-test-renderer';
 // Note: import explicitly to use the types shiped with jest.
 import {it} from '@jest/globals';
 
+// The shared Button reads the active theme via useSelector. This test renders
+// the form with explicit props (no <Provider>), so stub useSelector to resolve
+// against a default state instead of requiring a store.
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: (selector: (state: any) => any) => selector({ user: { settings: {} } }),
+}));
+
 beforeEach(() => {
     jest.useFakeTimers();
 });

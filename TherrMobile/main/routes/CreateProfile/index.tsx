@@ -56,7 +56,6 @@ interface ICreateProfileState {
     isPhoneNumberValid: boolean;
     isSubmitting: boolean;
     stage: StageType;
-    hasSelectedInterests: boolean;
     interests: any;
 }
 
@@ -85,7 +84,6 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         this.state = {
             croppedImageDetails: {},
             errorMsg: '',
-            hasSelectedInterests: false,
             inputs: {
                 email: props.user.details.email,
                 firstName: Platform.OS === 'ios' ? (props.user.details.firstName || DEFAULT_FIRSTNAME) : props.user.details.firstName,
@@ -149,12 +147,12 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     }
 
     isFormInterestsDisabled() {
-        const { hasSelectedInterests, isSubmitting } = this.state;
+        const { isSubmitting } = this.state;
 
-        return (
-            !hasSelectedInterests ||
-            isSubmitting
-        );
+        // Whether at least one interest is selected is enforced by
+        // CreateProfileInterests itself (it owns that selection state); here we
+        // only block while a submit is in flight.
+        return isSubmitting;
     }
 
     isFormPhoneDisabled() {
@@ -311,18 +309,12 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                     }
                 })
                 .finally(() => {
-                    this.scrollViewRef?.scrollToPosition(0, 0);
+                    this.scrollViewRef?.scrollTo({ x: 0, y: 0, animated: true });
                     this.setState({
                         isSubmitting: false,
                     });
                 });
         }
-    };
-
-    onInterestsChange = () => {
-        this.setState({
-            hasSelectedInterests: true,
-        });
     };
 
     onInputChange = (name: string, value: string) => {
@@ -523,7 +515,6 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     availableInterests={interests}
                                     isLoading={isLoadingInterests}
                                     isDisabled={this.isFormInterestsDisabled()}
-                                    onChange={this.onInterestsChange}
                                     onSubmit={(selectedInterests) => this.onSubmitInterests(stage, selectedInterests)}
                                     translate={this.translate}
                                     theme={this.theme}
