@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {
-    AccessLevels, BrandVariations, CurrentSocialValuations, OAuthIntegrationProviders,
+    AccessLevels, BrandVariations, CurrentSocialValuations, OAuthIntegrationProviders, hasValidStandardClaims,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
@@ -377,6 +377,16 @@ const refreshToken: RequestHandler = async (req: any, res: any) => {
             return handleHttpError({
                 res,
                 message: 'Invalid token type',
+                statusCode: 403,
+            });
+        }
+
+        // Reject forged/foreign refresh tokens whose iss/aud claims don't match.
+        // Legacy refresh tokens (no iss/aud) still pass and upgrade on rotation.
+        if (!hasValidStandardClaims(decoded)) {
+            return handleHttpError({
+                res,
+                message: 'Invalid refresh token',
                 statusCode: 403,
             });
         }

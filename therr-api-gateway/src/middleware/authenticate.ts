@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import unless from 'express-unless';
+import { hasValidStandardClaims } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import isBlacklisted from '../utilities/isBlacklisted';
 import { isTokenBlacklisted } from '../store/redisClient';
@@ -29,6 +30,18 @@ const authenticate = async (req, res, next) => {
                 return handleHttpError({
                     res,
                     message: 'Token has been revoked',
+                    statusCode: 401,
+                });
+            }
+
+            // Validate standard registered claims (iss/aud). Backward-compatible:
+            // legacy tokens that predate claims-hardening carry no iss/aud and are
+            // allowed through; a token that carries a MISMATCHED claim is rejected
+            // (signals a forged/foreign token).
+            if (!hasValidStandardClaims(decoded)) {
+                return handleHttpError({
+                    res,
+                    message: "Invalid 'authorization.' Token issuer or audience is invalid.",
                     statusCode: 401,
                 });
             }
