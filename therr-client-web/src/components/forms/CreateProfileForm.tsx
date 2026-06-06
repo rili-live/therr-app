@@ -42,14 +42,10 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
 
     isFormDisabled() {
         const { inputs } = this.state;
-        if (this.props.isSubmitting || !inputs.userName || !this.isFormValid()) {
-            return true;
-        }
-        // Business accounts only require firstName; personal accounts require both
-        if (inputs.isBusinessAccount) {
-            return !inputs.firstName;
-        }
-        return !inputs.firstName || !inputs.lastName;
+        // First/last name are intentionally optional during onboarding to reduce
+        // friction; we prompt users to add their name later. Only a username and a
+        // valid phone number are required. See onboarding friction review (2026-06).
+        return this.props.isSubmitting || !inputs.userName || !this.isFormValid();
     }
 
     isFormValid() {

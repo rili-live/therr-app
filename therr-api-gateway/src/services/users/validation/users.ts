@@ -3,11 +3,21 @@ import {
     oneOf,
     param,
 } from 'express-validator';
+import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
 
 export const createUserValidation = [
     body('phoneNumber').optional().isMobilePhone('any'),
     body('email').exists().isEmail().normalizeEmail(),
     body('password').exists().isString().isLength({ min: 8 }), // TODO: RMOBILE-26: Centralize password requirements
+    // Birthdate is optional at the API boundary because SSO providers do not return it
+    // (those users are prompted later). When supplied it must meet the minimum signup age.
+    body('settingsBirthdate')
+        .optional({ nullable: true })
+        .isISO8601()
+        .withMessage('invalid-birthdate')
+        .bail()
+        .custom((value) => isValidSignupAge(value))
+        .withMessage(`must-be-at-least-${MINIMUM_SIGNUP_AGE}`),
     body('userName').optional().isString(),
     body('isBusinessAccount').optional().isBoolean(),
     body('isCreatorAccount').optional().isBoolean(),

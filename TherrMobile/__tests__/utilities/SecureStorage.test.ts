@@ -6,10 +6,14 @@ const mockGetInternetCredentials = jest.fn();
 const mockResetInternetCredentials = jest.fn().mockResolvedValue(true);
 
 jest.mock('react-native-keychain', () => ({
+    ACCESSIBLE: { AFTER_FIRST_UNLOCK: 'AccessibleAfterFirstUnlock' },
     setInternetCredentials: (...args: any[]) => mockSetInternetCredentials(...args),
     getInternetCredentials: (...args: any[]) => mockGetInternetCredentials(...args),
     resetInternetCredentials: (...args: any[]) => mockResetInternetCredentials(...args),
 }));
+
+// Options every secure write should carry (service namespace + accessibility).
+const SECURE_WRITE_OPTIONS = { service: 'therr-secure-storage', accessible: 'AccessibleAfterFirstUnlock' };
 
 // Mock react-native-mmkv with an in-memory backing store
 const mmkvStore: Record<string, string> = {};
@@ -46,7 +50,7 @@ describe('SecureStorage', () => {
                 'therrRefreshToken',
                 'therrRefreshToken',
                 'my-token',
-                { service: 'therr-secure-storage' },
+                SECURE_WRITE_OPTIONS,
             );
             // Should NOT also write to MMKV or AsyncStorage
             expect(mockMmkvSet).not.toHaveBeenCalled();
@@ -61,7 +65,7 @@ describe('SecureStorage', () => {
                 'therrUser',
                 'therrUser',
                 userData,
-                { service: 'therr-secure-storage' },
+                SECURE_WRITE_OPTIONS,
             );
         });
 
@@ -71,6 +75,14 @@ describe('SecureStorage', () => {
             expect(mockSetInternetCredentials).not.toHaveBeenCalled();
             expect(mockMmkvSet).toHaveBeenCalledWith('therrSession', 'session-data');
             expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+        });
+
+        it('does not persist an empty/undefined secret over an existing one', async () => {
+            await SecureStorage.setItem('therrRefreshToken', '');
+            await SecureStorage.setItem('therrRefreshToken', undefined as any);
+
+            expect(mockSetInternetCredentials).not.toHaveBeenCalled();
+            expect(mockMmkvSet).not.toHaveBeenCalled();
         });
 
         it('falls back to MMKV when Keychain setItem throws', async () => {
@@ -90,6 +102,10 @@ describe('SecureStorage', () => {
             const result = await SecureStorage.getItem('therrRefreshToken');
 
             expect(result).toBe('stored-token');
+            expect(mockGetInternetCredentials).toHaveBeenCalledWith(
+                'therrRefreshToken',
+                { service: 'therr-secure-storage' },
+            );
             expect(mockMmkvGetString).not.toHaveBeenCalled();
             expect(AsyncStorage.getItem).not.toHaveBeenCalled();
         });
@@ -233,13 +249,13 @@ describe('SecureStorage', () => {
                 'therrRefreshToken',
                 'therrRefreshToken',
                 'refresh-token-value',
-                { service: 'therr-secure-storage' },
+                SECURE_WRITE_OPTIONS,
             );
             expect(mockSetInternetCredentials).toHaveBeenCalledWith(
                 'therrUser',
                 'therrUser',
                 'user-json-value',
-                { service: 'therr-secure-storage' },
+                SECURE_WRITE_OPTIONS,
             );
             expect(mockMmkvSet).toHaveBeenCalledWith('therr_secure_migration_v1', '1');
             expect(AsyncStorage.setItem).toHaveBeenCalledWith('therr_secure_migration_v1', '1');

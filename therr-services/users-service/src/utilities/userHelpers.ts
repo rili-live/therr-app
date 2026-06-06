@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import { JWT_ISSUER, JWT_AUDIENCE } from 'therr-js-utilities/constants';
 
 const saltRounds = 12;
 
@@ -44,12 +45,20 @@ export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean
         payload.brand = brand;
     }
 
+    // Standard registered claims (iss/aud/sub/nbf) are added via sign options.
+    // `jti` and `id` stay in the payload for backward compatibility — existing
+    // consumers read `decoded.id`, and `sub` is added alongside (not instead) so
+    // nothing that reads `id` breaks.
     return jwt.sign(
         payload,
         (process.env.JWT_SECRET || ''),
         {
             algorithm: 'HS256',
             expiresIn: rememberMe ? '7d' : '1d',
+            issuer: JWT_ISSUER,
+            audience: JWT_AUDIENCE,
+            subject: String(id),
+            notBefore: 0,
         },
     );
 };
@@ -72,6 +81,10 @@ export const createRefreshToken = (userId: string, rememberMe?: boolean, brand?:
         {
             algorithm: 'HS256',
             expiresIn: rememberMe ? '90d' : '30d',
+            issuer: JWT_ISSUER,
+            audience: JWT_AUDIENCE,
+            subject: String(userId),
+            notBefore: 0,
         },
     );
 

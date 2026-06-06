@@ -44,6 +44,13 @@
     "linkCopied": "Link copied!"
   },
   "components": {
+    "incompleteProfileBanner": {
+      "title": "Complete your profile",
+      "message": "Add your name so friends can recognize you",
+      "addName": "Add your name",
+      "dismiss": "Dismiss",
+      "inlinePrompt": "Add your name so friends can recognize you and connect with you more easily."
+    },
     "tile": {
       "untitled": "Untitled",
       "saveToList": "Save to list"
@@ -163,14 +170,17 @@
         "termsAndConditions": "I agree to the terms & conditions",
         "userName": "Username",
         "mySweet": "Are you Sweet?",
-        "inviteCode": "Invite Code"
+        "inviteCode": "Invite Code",
+        "birthdate": "Date of Birth"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
       },
       "text": {
         "signupForRewards": "Use {userName}'s invite code — they get 10 coins and you get 5!",
-        "inviteCodeHint": "Have a friend's invite code? Enter it to earn bonus coins"
+        "inviteCodeHint": "Have a friend's invite code? Enter it to earn bonus coins",
+        "birthdateHint": "You must be at least {minAge} years old to use Therr",
+        "birthdateTooYoung": "You must be at least {minAge} years old to sign up"
       },
       "sso": {
         "orDivider": "or",

@@ -7,6 +7,7 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { MantineButton } from 'therr-react/components/mantine';
 import { MapsService, UsersService } from 'therr-react/services';
 import {
+    Alert,
     Avatar,
     Button,
     Card,
@@ -459,6 +460,11 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                     {/* Account Details */}
                     <Card withBorder radius="md" p="lg">
                         <Title order={4} mb="md">{this.props.translate('pages.userProfile.h2.accountDetails')}</Title>
+                        {!user.details.firstName && (
+                            <Alert color="blue" variant="light" mb="md">
+                                {this.props.translate('components.incompleteProfileBanner.inlinePrompt')}
+                            </Alert>
+                        )}
                         <Stack gap="sm">
                             {this.renderDetailRow(this.props.translate('pages.userProfile.labels.firstName'), user.details.firstName)}
                             <Divider variant="dashed" />

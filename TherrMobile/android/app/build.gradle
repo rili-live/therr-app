@@ -89,8 +89,8 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 424
-        versionName "3.6.11"
+        versionCode 427
+        versionName "3.6.14"
         manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}"]
         vectorDrawables.useSupportLibrary = true
     }
