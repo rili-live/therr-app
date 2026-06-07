@@ -955,7 +955,6 @@ const renderMomentView = (req, res, config, {
         // eslint-disable-next-line max-len
         || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
-    // TODO: Mimic existing best SEO practices for a location page
     const momentId = req.params?.momentId;
     const content = initialState?.content || {};
     const moment = initialState?.map?.moments[momentId];
@@ -965,21 +964,37 @@ const renderMomentView = (req, res, config, {
     const authorName = moment?.fromUserFirstName && moment?.fromUserLastName ? `${moment?.fromUserFirstName} ${moment?.fromUserLastName}` : '';
     const authorId = moment?.fromUserId || '';
 
+    // autocrop=true is required so ImageKit returns exact 1200x630 and the og:image:width/height meta tags stay accurate.
     let metaImgUrl;
+    let metaImgWidth = 0;
+    let metaImgHeight = 0;
+    const schemaImages: string[] = [];
+    if (moment?.medias?.length) {
+        moment.medias.forEach((media) => {
+            if (media?.path && media?.type === Content.mediaTypes.USER_IMAGE_PUBLIC) {
+                const uri = getUserContentUri(media, 1200, 1200);
+                if (uri && (uri.includes('.jpg') || uri.includes('.jpeg') || uri.includes('.png'))) {
+                    schemaImages.push(uri);
+                }
+            }
+        });
+    }
 
-    // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-    const mediaPath = (moment.medias?.[0]?.path);
-    const mediaType = (moment.medias?.[0]?.type);
+    const mediaPath = (moment?.medias?.[0]?.path);
+    const mediaType = (moment?.medias?.[0]?.type);
     const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(moment.medias?.[0], 600, 600)
+        ? getUserContentUri(moment.medias?.[0], 630, 1200, true)
         : content?.media?.[mediaPath];
 
     if (momentMediaUri) {
         if (momentMediaUri.includes('.jpg') || momentMediaUri.includes('.jpeg') || momentMediaUri.includes('.png')) {
             metaImgUrl = momentMediaUri;
+            metaImgWidth = 1200;
+            metaImgHeight = 630;
         }
     }
 
+    const metaImgAlt = authorName ? `${authorName} on Therr: ${momentTitle}` : momentTitle;
     const momentCategory = moment?.category || '';
 
     const momentSchema: any = {
@@ -989,7 +1004,7 @@ const renderMomentView = (req, res, config, {
         headline: momentTitle,
         datePublished: moment?.createdAt || '',
         dateModified: moment?.updatedAt || moment?.createdAt || '',
-        image: metaImgUrl || '',
+        image: schemaImages.length > 0 ? schemaImages : (metaImgUrl || ''),
         author: {
             '@type': 'Person',
             name: authorName,
@@ -1022,10 +1037,14 @@ const renderMomentView = (req, res, config, {
         title: momentTitle,
         description: momentDescription,
         datePublished: moment?.createdAt,
+        dateModified: moment?.updatedAt || moment?.createdAt,
         authorName,
         authorId,
         momentCategory,
         metaImgUrl,
+        metaImgAlt,
+        metaImgWidth,
+        metaImgHeight,
         momentSchema: JSON.stringify(momentSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
@@ -1046,7 +1065,6 @@ const renderSpaceView = (req, res, config, {
         // eslint-disable-next-line max-len
         || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
-    // TODO: Mimic existing best SEO practices for a location page
     const spaceId = req.params?.spaceId;
     const content = initialState?.content || {};
     const space = initialState?.map?.spaces[spaceId];
@@ -1484,24 +1502,31 @@ const renderUserView = (req, res, config, {
         // eslint-disable-next-line max-len
         || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
-    // TODO: Mimic existing best SEO practices for a location page
     const user = initialState?.user?.userInView;
     const userName = user ? `${user.firstName} ${user.lastName}` : '';
 
     let metaImgUrl;
-
-    // TODO: Use an image optimized for meta image
+    let metaImgWidth = 0;
+    let metaImgHeight = 0;
     if (user?.media?.profilePicture) {
         const url = getUserImageUri({
             details: user,
-        });
+        }, 1200);
         if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
             metaImgUrl = url;
+            metaImgWidth = 1200;
+            metaImgHeight = 1200;
         }
     }
 
     const userHandle = user?.userName || '';
     const userBio = user?.settingsBio || '';
+    let metaImgAlt = '';
+    if (userName) {
+        metaImgAlt = `${userName} on Therr`;
+    } else if (userHandle) {
+        metaImgAlt = `@${userHandle} on Therr`;
+    }
 
     // Collect social links for schema sameAs
     const sameAs: string[] = [];
@@ -1509,6 +1534,8 @@ const renderUserView = (req, res, config, {
     if (user?.socialSyncs?.twitter?.link) sameAs.push(user.socialSyncs.twitter.link);
     if (user?.socialSyncs?.youtube?.link) sameAs.push(user.socialSyncs.youtube.link);
     if (user?.socialSyncs?.instagram?.link) sameAs.push(user.socialSyncs.instagram.link);
+    const twitterUsername = user?.socialSyncs?.twitter?.platformUsername || '';
+    const twitterCreator = twitterUsername ? `@${twitterUsername.replace(/^@/, '')}` : '';
 
     const userSchema: any = {
         '@context': 'https://schema.org',
@@ -1549,6 +1576,10 @@ const renderUserView = (req, res, config, {
         description: userBio || description,
         userHandle,
         metaImgUrl,
+        metaImgAlt,
+        metaImgWidth,
+        metaImgHeight,
+        twitterCreator,
         userSchema: JSON.stringify(userSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
@@ -1584,6 +1615,27 @@ const renderLocationsView = (req, res, config, {
     const citySlug = req.params?.citySlug || '';
     const cityEntry = citySlug ? Cities.CitySlugMap[citySlug] : null;
     const cityDisplayName = cityEntry ? `${cityEntry.name}, ${cityEntry.stateAbbr}` : '';
+
+    // Geo-targeted meta tags. When a city is selected, emit the full set;
+    // when only ?lat=&lng= are present, emit coords-only so crawlers still
+    // get a geo anchor even without a known placename.
+    let geoPosition = '';
+    let geoPlacename = '';
+    let geoRegion = '';
+    let icbm = '';
+    if (cityEntry) {
+        geoPosition = `${cityEntry.lat};${cityEntry.lng}`;
+        geoPlacename = `${cityEntry.name}, ${cityEntry.state}`;
+        geoRegion = `US-${cityEntry.stateAbbr}`;
+        icbm = `${cityEntry.lat}, ${cityEntry.lng}`;
+    } else if (hasCoords) {
+        const lat = parseFloat(req.query.lat);
+        const lng = parseFloat(req.query.lng);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            geoPosition = `${lat};${lng}`;
+            icbm = `${lat}, ${lng}`;
+        }
+    }
 
     // Dynamic title/description based on city, category, or search query
     let title: string;
@@ -1860,6 +1912,10 @@ const renderLocationsView = (req, res, config, {
         introParagraph,
         prevPage,
         nextPage,
+        geoPosition,
+        geoPlacename,
+        geoRegion,
+        icbm,
         markup,
         routePath,
         state,
@@ -1882,6 +1938,11 @@ const renderCityPulseView = (req, res, config, {
     const citySlug = req.params?.citySlug || '';
     const cityEntry = citySlug ? Cities.CitySlugMap[citySlug] : null;
     const cityDisplayName = cityEntry ? `${cityEntry.name}, ${cityEntry.stateAbbr}` : '';
+
+    const geoPosition = cityEntry ? `${cityEntry.lat};${cityEntry.lng}` : '';
+    const geoPlacename = cityEntry ? `${cityEntry.name}, ${cityEntry.state}` : '';
+    const geoRegion = cityEntry ? `US-${cityEntry.stateAbbr}` : '';
+    const icbm = cityEntry ? `${cityEntry.lat}, ${cityEntry.lng}` : '';
 
     const pulse = initialState?.map?.cityPulse?.[citySlug] || null;
     const trendingCount = pulse?.therr?.trendingSpaces?.length || 0;
@@ -1991,6 +2052,10 @@ const renderCityPulseView = (req, res, config, {
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         itemListSchema: itemListSchema ? JSON.stringify(itemListSchema) : '',
         touristDestinationSchema: touristDestinationSchema ? JSON.stringify(touristDestinationSchema) : '',
+        geoPosition,
+        geoPlacename,
+        geoRegion,
+        icbm,
         markup,
         routePath,
         state,
@@ -1998,11 +2063,6 @@ const renderCityPulseView = (req, res, config, {
     });
 };
 
-// TODO: locale-first guide rendering — see docs/CONTENT_LOCALE_FIRST_PLAN.md.
-// When a post has `locales.es` / `locales.fr-ca` and the request is at /es/guides
-// or /fr-ca/guides, resolveGuideForLocale already swaps in the localized
-// title/description/sections. Phase 1 of the plan is to verify htmlLang and
-// canonicalPath reflect the request locale (not hardcoded en-us).
 const renderGuideView = (req, res, config, { markup, state }, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
@@ -2024,6 +2084,16 @@ const renderGuideView = (req, res, config, { markup, state }, initialState, loca
     const urlLocale = req.localeFromUrl || 'en-us';
     const resolved = resolveGuideForLocale(post, urlLocale);
 
+    // If the URL locale has no actual translation, the body falls back to en-us
+    // content. Point canonical + Article @id at the en-us URL so Google consolidates
+    // ranking signal there instead of indexing the locale URL as a thin duplicate.
+    // hreflang siblings still emit all three (see guides.hbs) so the language
+    // cluster is discoverable once translations land.
+    const hasLocalizedContent = urlLocale === 'en-us' || !!post.locales?.[urlLocale];
+    const effectiveCanonicalPath = hasLocalizedContent
+        ? localeVars.canonicalPath
+        : localeVars.hreflangEn;
+
     // Build spaceMeta from spaces hydrated by the route's fetchData (see routes/index.tsx),
     // so JSON-LD itemList/touristTrip schemas use real names instead of UUIDs.
     const spaceMeta: Record<string, { name: string; slug?: string }> = {};
@@ -2040,7 +2110,7 @@ const renderGuideView = (req, res, config, { markup, state }, initialState, loca
     const schemas = buildGuideSchemas({
         post,
         resolved,
-        canonicalPath: localeVars.canonicalPath,
+        canonicalPath: effectiveCanonicalPath,
         spaceMeta,
     });
 
@@ -2062,6 +2132,7 @@ const renderGuideView = (req, res, config, { markup, state }, initialState, loca
         routePath,
         state,
         ...localeVars,
+        canonicalPath: effectiveCanonicalPath,
     });
 };
 

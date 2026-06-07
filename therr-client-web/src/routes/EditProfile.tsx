@@ -263,6 +263,12 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                 {this.props.translate('pages.editProfile.h2.profileInfo')}
                             </h2>
 
+                            {!user.details.firstName && (
+                                <Alert color="blue" variant="light">
+                                    {this.props.translate('components.incompleteProfileBanner.inlinePrompt')}
+                                </Alert>
+                            )}
+
                             <MantineInput
                                 id="first_name"
                                 name="firstName"

@@ -399,6 +399,10 @@
         "notifications": "Notifications",
         "profileSettings": "Profile Settings"
       }
+    },
+    "incompleteProfileBanner": {
+      "message": "Add your name so friends can recognize you",
+      "dismiss": "Dismiss"
     }
   },
   "forms": {
@@ -741,7 +745,8 @@
       "errorMessages": {
         "invalidPhoneNumber": "Phone number is invalid.",
         "repeatPassword": "Passwords do not match",
-        "passwordInsecure": "Password does not meet minimum security requirements"
+        "passwordInsecure": "Password does not meet minimum security requirements",
+        "birthdateTooYoung": "You must be at least {minAge} years old to sign up"
       },
       "labels": {
         "email": "E-mail",
@@ -751,7 +756,8 @@
         "password": "Password",
         "repeatPassword": "Repeat Password",
         "userName": "Username",
-        "inviteCode": "Invite or Pact Code (optional)"
+        "inviteCode": "Invite or Pact Code (optional)",
+        "birthdate": "Date of Birth"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "missingEmail": "Please enter a valid email address.",
@@ -760,7 +766,8 @@
       "subtitles": {
         "disclaimer": "By creating an account, you agree to our ",
         "and": " and ",
-        "inviteCodeHint": "Enter a friend's username to earn coins, or paste a PACT-XXXX code from your invitation."
+        "inviteCodeHint": "Enter a friend's username to earn coins, or paste a PACT-XXXX code from your invitation.",
+        "birthdateHint": "You must be at least {minAge} years old to use Friends with Habits"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
@@ -824,7 +831,8 @@
         "bioHeader": "Bio",
         "businessAccount": "Business",
         "creatorAccount": "Creator",
-        "personalAccount": "Personal"
+        "personalAccount": "Personal",
+        "addYourNamePrompt": "Add your name so friends can recognize you"
       },
       "giftCardProviders": {
         "unselected": "Select a gift card...",
@@ -2116,6 +2124,14 @@
       "buttonNeutral": "Only this time",
       "buttonNegative": "Deny",
       "buttonPositive": "While using the app"
+    },
+    "backgroundLocation": {
+      "header": "Background Location Access",
+      "description1": "This app collects your precise location in the background, even when the app is closed or not in use.",
+      "description2": "Therr uses background location to find nearby rewards, enable local content discovery, and send proximity-based notifications. You can disable this in your device settings at any time.",
+      "privacyPolicy": "View Privacy Policy",
+      "accept": "Continue",
+      "decline": "Not Now"
     },
     "locationGps": {
       "header": "User Location?",

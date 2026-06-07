@@ -23,6 +23,11 @@ import {
     DefaultUserResources,
     ResourceExchangeRates,
 } from './Resources';
+import {
+    JWT_ISSUER,
+    JWT_AUDIENCE,
+    hasValidStandardClaims,
+} from './jwt';
 
 // Enums
 import AccessLevels from './enums/AccessLevels';
@@ -114,4 +119,7 @@ export {
     SocketClientActionTypes,
     SocketServerActionTypes,
     UserConnectionTypes,
+    JWT_ISSUER,
+    JWT_AUDIENCE,
+    hasValidStandardClaims,
 };

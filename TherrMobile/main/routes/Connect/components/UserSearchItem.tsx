@@ -83,4 +83,15 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
     );
 };
 
-export default UserSearchItem;
+// Custom equality: parent passes inline arrow handlers per render; compare the
+// fields that drive the visible row instead of the function refs.
+export default React.memo(UserSearchItem, (prev, next) => (
+    prev.userDetails?.id === next.userDetails?.id
+    && prev.userDetails?.userName === next.userDetails?.userName
+    && prev.userDetails?.firstName === next.userDetails?.firstName
+    && prev.userDetails?.lastName === next.userDetails?.lastName
+    && prev.userDetails?.isConnected === next.userDetails?.isConnected
+    && prev.user.details?.id === next.user.details?.id
+    && prev.theme === next.theme
+    && prev.themeButtons === next.themeButtons
+));

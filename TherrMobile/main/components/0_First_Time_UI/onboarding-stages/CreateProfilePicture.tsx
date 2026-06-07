@@ -119,12 +119,15 @@ class CreateProfilePicture extends React.Component<ICreateProfilePictureProps, I
                 />
                 <View style={themeSettingsForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={themeForms.styles.button}
+                        buttonStyle={themeForms.styles.buttonPrimary}
+                        disabledStyle={themeForms.styles.buttonDisabled}
+                        titleStyle={themeForms.styles.buttonTitle}
+                        disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         title={translate(
                             'forms.createProfile.buttons.submit'
                         )}
                         onPress={onContinue}
-                        raised={true}
+                        raised={false}
                         disabled={isDisabled}
                     />
                 </View>

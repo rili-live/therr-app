@@ -44,6 +44,13 @@
     "linkCopied": "Lien copié!"
   },
   "components": {
+    "incompleteProfileBanner": {
+      "title": "Complétez votre profil",
+      "message": "Ajoutez votre nom pour que vos amis puissent vous reconnaître",
+      "addName": "Ajouter votre nom",
+      "dismiss": "Ignorer",
+      "inlinePrompt": "Ajoutez votre nom pour que vos amis puissent vous reconnaître et communiquer avec vous plus facilement."
+    },
     "tile": {
       "untitled": "Sans titre",
       "saveToList": "Enregistrer dans une liste"
@@ -163,14 +170,17 @@
         "termsAndConditions": "J'accepte les conditions d'utilisation",
         "userName": "Nom d'utilisateur",
         "mySweet": "Êtes-vous sympathique?",
-        "inviteCode": "Code d'invitation"
+        "inviteCode": "Code d'invitation",
+        "birthdate": "Date de naissance"
       },
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"
       },
       "text": {
         "signupForRewards": "Inscrivez-vous avec le code d'invitation de {userName} — il gagne 10 pièces et vous en gagnez 5!",
-        "inviteCodeHint": "Entrez le code d'invitation d'un ami pour gagner des pièces bonus"
+        "inviteCodeHint": "Entrez le code d'invitation d'un ami pour gagner des pièces bonus",
+        "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser Therr",
+        "birthdateTooYoung": "Vous devez avoir au moins {minAge} ans pour vous inscrire"
       },
       "sso": {
         "orDivider": "ou",
@@ -920,6 +930,38 @@
         "submitButton": "Soumettre l'avis",
         "successMessage": "Votre avis a été soumis. Merci!",
         "errorMessage": "Une erreur s'est produite lors de la soumission de votre avis. Veuillez réessayer."
+      },
+      "suggestEdit": {
+        "trigger": "Suggérer une modification",
+        "title": "Suggérer une modification",
+        "description": "Vous avez repéré une information incorrecte? Suggérez une correction. Nous l'appliquerons lorsque plusieurs visiteurs seront d'accord.",
+        "fieldLabel": "Qu'est-ce qui doit être mis à jour?",
+        "valueLabel": "Valeur correcte",
+        "phoneOption": "Numéro de téléphone",
+        "websiteOption": "Site Web",
+        "phonePlaceholder": "(514) 555-1234",
+        "websitePlaceholder": "https://exemple.com",
+        "normalizedPreview": "Sera enregistré sous",
+        "invalidValue": "Cette valeur ne semble pas correcte. Veuillez vérifier le format.",
+        "submit": "Soumettre",
+        "cancel": "Annuler",
+        "close": "Fermer",
+        "appliedMessage": "Merci! Votre correction a été appliquée.",
+        "pendingMessage": "Merci! Nous avons besoin de {remaining} accord(s) supplémentaire(s) avant d'appliquer ce changement.",
+        "ownerClaimedMessage": "Merci! Cette entreprise a un propriétaire — nous lui avons transmis votre suggestion.",
+        "errorMessage": "Une erreur s'est produite lors de l'envoi de votre suggestion. Veuillez réessayer.",
+        "errors": {
+          "EMPTY_URL": "Veuillez saisir un site Web.",
+          "INVALID_URL": "Cela ne ressemble pas à une URL valide.",
+          "EMPTY_PHONE": "Veuillez saisir un numéro de téléphone.",
+          "INVALID_PHONE": "Cela ne ressemble pas à un numéro de téléphone valide.",
+          "PHONE_NOT_STRING": "Le numéro de téléphone doit être du texte.",
+          "URL_NOT_STRING": "Le site Web doit être du texte.",
+          "INVALID_HOURS_SHAPE": "Le format des heures n'est pas valide.",
+          "INVALID_HOURS_SCHEMA": "Le schéma des heures n'est pas valide.",
+          "INVALID_HOURS_TIMEZONE": "Le fuseau horaire n'est pas valide.",
+          "UNSUPPORTED_FIELD": "Ce champ ne peut pas être modifié."
+        }
       },
       "claimSpace": {
         "title": "C'est votre entreprise?",
