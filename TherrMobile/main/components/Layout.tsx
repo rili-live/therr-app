@@ -65,7 +65,6 @@ import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
 import permissions, { PermType } from '../utilities/permissionsOrchestrator';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackgroundLocationDisclosureModal from './Modals/BackgroundLocationDisclosureModal';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
