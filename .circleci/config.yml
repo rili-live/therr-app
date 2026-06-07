@@ -170,7 +170,11 @@ jobs:
       - checkout
       - run:
           name: Install EAS CLI
-          command: npm install -g eas-cli
+          # cimg/node runs as the non-root `circleci` user, which cannot write to
+          # the global npm prefix (/usr/local/lib/node_modules) -> EACCES. cimg
+          # images grant passwordless sudo, so install globally as root. Pin the
+          # version for reproducible CI (eas.json requires >= 15.0.0).
+          command: sudo npm install -g eas-cli@18.11.0
       - run:
           name: Build and Submit HABITS Android to Google Play Internal Testing
           # EXPO_TOKEN must be set as a CircleCI project-level environment variable.
