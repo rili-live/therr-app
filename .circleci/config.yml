@@ -176,17 +176,22 @@ jobs:
           # version for reproducible CI (eas.json requires >= 15.0.0).
           command: sudo npm install -g eas-cli@18.11.0
       - run:
-          name: Build and Submit HABITS Android to Google Play Internal Testing
+          name: Build HABITS Android (EAS cloud build)
           # EXPO_TOKEN must be set as a CircleCI project-level environment variable.
-          # GOOGLE_APIS_ANDROID_KEY and the Google Play service account key must be
-          # stored as EAS secrets (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
+          # GOOGLE_APIS_ANDROID_KEY must be stored as an EAS env var attached to the
+          # build's environment (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
+          #
+          # --auto-submit is intentionally NOT used yet: EAS Submit needs a Google
+          # Play service-account key, which must be configured interactively once
+          # (`eas credentials`) before non-interactive submit works. Until then, the
+          # first AAB must be uploaded to the Play Internal track manually. Re-add
+          # `--auto-submit` here after the service account is set up on EAS.
           command: |
             cd TherrMobile
             eas build \
               --platform android \
               --profile habits-internal \
-              --non-interactive \
-              --auto-submit
+              --non-interactive
 
   deploy:
     docker:
