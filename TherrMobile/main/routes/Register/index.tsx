@@ -16,14 +16,17 @@ import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
 import RegisterForm from './RegisterForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
+import setPreLoginLocale from '../../redux/actions/setPreLoginLocale';
 import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import LanguageSelector from '../../components/LanguageSelector';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from '../Map/EULA';
 
 interface IRegisterDispatchProps {
     login: Function;
     register: Function;
+    setPreLoginLocale: Function;
 }
 
 interface IStoreProps extends IRegisterDispatchProps {
@@ -48,6 +51,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             login: UsersActions.login,
             register: UsersActions.register,
+            setPreLoginLocale,
         },
         dispatch
     );
@@ -76,8 +80,10 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
+        // Read from `this.props` (not the captured constructor `props`) so the translation
+        // re-renders live when the pre-login locale changes via the LanguageSelector.
         this.translate = (key: string, params: any): string =>
-            translator(props.user.settings?.locale || 'en-us', key, params);
+            translator(this.props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -85,6 +91,18 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
             title: this.translate('pages.register.headerTitle'),
         });
     }
+
+    componentDidUpdate(prevProps: IRegisterProps) {
+        if (prevProps.user.settings?.locale !== this.props.user.settings?.locale) {
+            this.props.navigation.setOptions({
+                title: this.translate('pages.register.headerTitle'),
+            });
+        }
+    }
+
+    onChangeLocale = (locale: string) => {
+        this.props.setPreLoginLocale(locale);
+    };
 
     onSuccess = () => {
         showToast.success({
@@ -130,6 +148,13 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                     {pageSubtitle} <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>{pageSubtitleMapPreviewLink}</Text>
                                 </Text>
                             </View>
+                            <LanguageSelector
+                                locale={this.props.user?.settings?.locale || 'en-us'}
+                                onChangeLocale={this.onChangeLocale}
+                                translate={this.translate}
+                                theme={this.theme}
+                                containerStyle={this.theme.styles.sectionContainerWide}
+                            />
                             <RegisterForm
                                 login={this.props.login}
                                 register={this.props.register}
