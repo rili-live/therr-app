@@ -10,7 +10,7 @@ import {
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
-import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
+import { getAnalytics, logScreenView } from '@react-native-firebase/analytics';
 import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
 import {
     getInitialNotification,
@@ -26,7 +26,6 @@ import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { IUIState } from '../types/redux/ui';
@@ -39,10 +38,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { showToast } from '../utilities/toasts';
-import BackgroundGeolocation, {
-    Config,
-    Subscription,
-} from 'react-native-background-geolocation';
 import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
@@ -85,13 +80,6 @@ import { buildGroupUrl } from '../utilities/shareUrls';
 const preLoadImageList = [background1, background2, background3];
 
 const Stack = createNativeStackNavigator<ParamListBase, undefined>();
-
-const getRequestHeaders = (user) => ({
-    'x-userid': user?.details?.id,
-    'x-localecode':  user?.settings?.locale || 'en-us',
-    'x-platform': 'mobile',
-    'x-brand-variation': CURRENT_BRAND_VARIATION,
-});
 
 const isLocationServicesEnabled = () => getConfig()?.featureFlags?.[FeatureFlags.ENABLE_LOCATION_SERVICES] !== false;
 
@@ -204,7 +192,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private permissionPrimerResolve: ((allowed: boolean) => void) | null = null;
     private unsubscribeNotificationsGranted: (() => void) | null = null;
     private fcmRegistrationStarted = false;
-    subscriptions: Subscription[] = [];
 
     constructor(props) {
         super(props);
@@ -259,33 +246,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
         socketIO.on('reconnect', this.handleSocketReconnect);
 
-        // Gate every BackgroundGeolocation method behind the feature flag, not just
-        // .ready()/.start(). Subscribing to .onLocation / .onProviderChange instantiates
-        // the native TSLocationManager, which fires transistorsoft's license validator;
-        // on niches whose applicationId is not on the license (e.g. HABITS / com.therr.habits)
-        // that produces a runtime license-error log even when the listeners are no-ops.
-        if (isLocationServicesEnabled()) {
-            this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
-                logEvent(getAnalytics(),'background_location_on_location', {
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-            }, (error) => {
-                logEvent(getAnalytics(),'background_location_error', {
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-                console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
-            }));
-            this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-                // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
-                // listener (emitted by react-native-android-location-services-dialog-box,
-                // which was removed in the New Architecture migration). Fires on
-                // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
-                // changes (iOS). Reducer checks status === 'enabled'.
-                this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
-            }));
-        }
-
-        this.readyAndStartBackgroundGeolocation();
         this.prefetchContent();
 
         // Wire the permissions orchestrator: a single primer modal lives at the
@@ -331,11 +291,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
-                const token = user?.details?.idToken;
-                if (token) {
-                    this.readyAndStartBackgroundGeolocation();
-                }
-
                 // One-shot drain: if the user opened a /claim-pact/<token> link
                 // before authenticating, redeem it now so the inviter's gate
                 // (PactOnboardingGuard) can lift on their first refresh.
@@ -421,7 +376,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // and a second-session fallback via permissionsOrchestrator.
                 this.tryRegisterDeviceTokenIfAuthorized();
             } else {
-                BackgroundGeolocation.stop();
                 // Tear down the FCM subscription so a subsequent login re-registers
                 // (refreshes the device token and re-attaches axios headers).
                 if (this.unsubscribePushNotifications) {
@@ -446,7 +400,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
-        this.subscriptions.forEach((subscription) => subscription.remove());
         this.unsubscribeNotificationsGranted?.();
         this.unsubscribeNotificationsGranted = null;
         permissions.registerPrimerListener(null);
@@ -493,74 +446,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     handleSocketReconnect = () => {
         if (this.props.user && this.props.user.isAuthenticated) {
             this.props.refreshConnection(this.props.user);
-        }
-    };
-
-    // IMPORTANT: This should only be called once per session
-    readyAndStartBackgroundGeolocation = () => {
-        if (!isLocationServicesEnabled()) {
-            return;
-        }
-        const userToken = this.props?.user?.details?.idToken;
-        if (this.props.user?.isAuthenticated && userToken
-            && this.props.user?.settings?.settingsPushBackground) {
-            const backgroundConfig: Config = {
-                // Geolocation Config
-                desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_MEDIUM,
-                distanceFilter: 15,
-                // Activity Recognition
-                stopTimeout: 5,
-                // Application config
-                // debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
-                logLevel: BackgroundGeolocation.LOG_LEVEL_ERROR,
-                stopOnTerminate: false,   // <-- Allow the background-service to continue tracking when user closes the app.
-                startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
-                triggerActivities: 'on_foot, walking, running',
-                notification: {
-                    color: this.theme.colors.primary3,
-                    smallIcon: 'drawable/ic_notification_icon',
-                    text: this.translate('alertTitles.backgroundLocationNotification'),
-                    channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
-                    // channelId: AndroidChannelIds.rewardsFinder,
-                    priority: BackgroundGeolocation.NOTIFICATION_PRIORITY_MIN,
-                },
-                backgroundPermissionRationale: {
-                    title: this.translate('alertTitles.backgroundLocation'),
-                    message: this.translate('alertMessages.backgroundLocation'),
-                    positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
-                },
-                disableLocationAuthorizationAlert: true,
-                // locationAuthorizationAlert
-                locationUpdateInterval: 1000 * 60,
-                // HTTP / SQLite config
-                url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
-                batchSync: false,       // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
-                autoSync: true,         // <-- [Default: true] Set true to sync each location to server as it arrives.
-                headers: {              // <-- Optional HTTP headers
-                    ...getRequestHeaders(this?.props?.user),
-                    authorization: `Bearer ${userToken}`,
-                },
-                params: {               // <-- Optional HTTP params
-                    // 'auth_token': 'maybe_your_server_authenticates_via_token_YES?',
-                    userId: this.props?.user?.details?.id,
-                    platformOS: Platform.OS,
-                    deviceModel: DeviceInfo.getModel(),
-                    isDeviceTablet: DeviceInfo.isTablet(),
-                },
-            };
-
-            /// 2. ready the plugin.
-            BackgroundGeolocation.ready(backgroundConfig).then((state) => {
-                logEvent(getAnalytics(),'background_location_ready', {
-                    isEnabled: state.enabled,
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-
-                // Start background location
-                if (this.props.user?.isAuthenticated && userToken) {
-                    BackgroundGeolocation.start();
-                }
-            });
         }
     };
 
@@ -1901,14 +1786,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.setState({
             targetRouteView: '',
             targetRouteParams: {},
-        });
-
-        this.subscriptions.forEach((subscription) => subscription.remove());
-        BackgroundGeolocation.stop().catch((err) => {
-            console.error(`Failed to stop background location after logout: ${err}`);
-            logEvent(getAnalytics(),'background_location_stop_error', {
-                userId: this.props.user?.details?.id,
-            }).catch((logErr) => console.log(logErr));
         });
 
         return logout(userDetails);

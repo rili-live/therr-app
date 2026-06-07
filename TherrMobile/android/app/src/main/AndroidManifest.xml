@@ -11,14 +11,13 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-  <!-- HABITS niche app does not use location. The native libraries
-       react-native-background-geolocation and react-native-geolocation-service are
-       still bundled (shared with the Therr/Teem variants) but their JS entrypoints
-       are gated by ENABLE_LOCATION_SERVICES=false. Strip the permissions and
-       location-typed foreground services they would otherwise inject into the
-       merged manifest so Play Store does not flag the app for undeclared location
-       use. Do NOT port these removals to general/THERR/TEEM — those variants do
-       use background location. -->
+  <!-- HABITS niche app does not use location. react-native-background-geolocation
+       is removed from package.json on this branch (its Transistorsoft license is
+       per-applicationId and does not cover com.therr.habits). react-native-geolocation-service
+       is still bundled (shared with Therr/Teem) but gated by ENABLE_LOCATION_SERVICES=false.
+       Strip the location permissions it would otherwise inject into the merged manifest
+       so Play Store does not flag the app for undeclared location use. Do NOT port these
+       removals to general/THERR/TEEM — those variants do use location. -->
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
   <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" tools:node="remove" />
@@ -40,10 +39,6 @@
     android:allowBackup="false"
     android:extractNativeLibs="false"
     android:theme="@style/AppTheme">
-    <meta-data
-      android:name="com.transistorsoft.locationmanager.license"
-      android:value="7ae51b9238254e95b67105b91d62ee57189cd534ad26a47c73efb2e2cd257b48" />
-
     <activity
       android:name=".MainActivity"
       android:label="@string/app_name"
@@ -180,24 +175,6 @@
     <uses-library
       android:name="org.apache.http.legacy"
       android:required="false" />
-
-    <!-- HABITS niche: strip foreground services from react-native-background-geolocation
-         that declare foregroundServiceType="location". These ride in via the
-         tslocationmanager AAR and would otherwise keep Play Store flagging the
-         app even after permissions are removed above. The library is never
-         invoked at runtime on HABITS (ENABLE_LOCATION_SERVICES=false). -->
-    <service
-      android:name="com.transistorsoft.locationmanager.service.TrackingService"
-      tools:node="remove" />
-    <service
-      android:name="com.transistorsoft.locationmanager.service.LocationRequestService"
-      tools:node="remove" />
-    <service
-      android:name="com.transistorsoft.locationmanager.service.GeofencingService"
-      tools:node="remove" />
-    <service
-      android:name="com.transistorsoft.locationmanager.service.PolygonGeofencingService"
-      tools:node="remove" />
   </application>
 
   <queries>
