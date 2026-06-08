@@ -71,16 +71,16 @@ const habits = produce((draft: IHabitsState, action: any) => {
             draft.pacts.unshift(action.data);
             break;
         case HabitsActionTypes.NUDGE_PACT: {
-            // Update nudgedAt on the matching partner member across all pact slices
-            const updateNudgedAt = (pacts: any[]) => {
-                const idx = pacts.findIndex((p) => p.id === action.data.id);
+            // `nudgeResults` is a transient, per-partner outcome list for the
+            // caller (toast copy) — keep it out of persisted pact state.
+            const updatedPact = { ...(action.data || {}) };
+            delete updatedPact.nudgeResults;
+            (['pacts', 'activePacts', 'pendingInvites'] as const).forEach((key) => {
+                const idx = draft[key].findIndex((p) => p.id === updatedPact.id);
                 if (idx > -1) {
-                    pacts[idx] = action.data;
+                    draft[key][idx] = updatedPact;
                 }
-            };
-            updateNudgedAt(draft.pacts);
-            updateNudgedAt(draft.activePacts);
-            updateNudgedAt(draft.pendingInvites);
+            });
             break;
         }
         case HabitsActionTypes.ACCEPT_PACT: {

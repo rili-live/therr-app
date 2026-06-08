@@ -134,6 +134,12 @@
       "pressActionAccept": "Accept",
       "pressActionView": "View"
     },
+    "pactNudge": {
+      "title": "A Friendly Nudge",
+      "body": "{partnerName} is still waiting on you to join the {habitName} pact — accountability starts here.",
+      "pressActionAccept": "Accept",
+      "pressActionView": "View"
+    },
     "pactAccepted": {
       "title": "Pact Accepted!",
       "body": "{partnerName} is in. You're both committed to {habitName} — first check-in starts the streak."

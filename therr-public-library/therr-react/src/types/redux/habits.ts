@@ -65,6 +65,15 @@ export interface IPactMember {
     userMedia?: object;
 }
 
+// Per-partner outcome returned by the nudgePact endpoint. Transient — surfaced
+// to the caller (e.g. toast copy) but not persisted into pact state.
+export interface IPactNudgeResult {
+    partnerId: string;
+    nudged: boolean;
+    reason?: 'cooldown' | 'error';
+    nextNudgeAvailableAt?: string;
+}
+
 // Checkin Types
 export interface IHabitCheckin {
     id: string;

@@ -134,6 +134,12 @@
       "pressActionAccept": "Accepter",
       "pressActionView": "Voir"
     },
+    "pactNudge": {
+      "title": "Un petit rappel",
+      "body": "{partnerName} attend toujours que tu rejoignes le pacte {habitName} — la responsabilité commence ici.",
+      "pressActionAccept": "Accepter",
+      "pressActionView": "Voir"
+    },
     "pactAccepted": {
       "title": "Pacte accepté!",
       "body": "{partnerName} est partant. Vous êtes engagés sur {habitName} — le premier enregistrement lance la série."
