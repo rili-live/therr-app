@@ -16,6 +16,7 @@ export interface IUpdatePactMemberParams {
     status?: string;
     joinedAt?: Date;
     leftAt?: Date;
+    nudgedAt?: Date | null;
     totalCheckins?: number;
     completedCheckins?: number;
     currentStreak?: number;
@@ -162,6 +163,12 @@ export default class PactMembersStore {
             claimToken: null,
             claimCode: null,
             claimTokenExpiresAt: null,
+        });
+    }
+
+    markNudged(pactId: string, partnerId: string) {
+        return this.updateByPactAndUser(pactId, partnerId, {
+            nudgedAt: new Date(),
         });
     }
 
