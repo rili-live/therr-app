@@ -13,3 +13,48 @@ index 0000000..2ad6867
 +}
 +
 +module.exports = RefreshControlMock;
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
+index 1e773ba..4e6b9f6 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
+@@ -35,13 +35,12 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
+   @Suppress("DEPRECATION")
+   override fun getTypedExportedConstants(): Map<String, Any> {
+     val currentActivity = reactApplicationContext.currentActivity
+-    val statusBarColor =
+-        currentActivity?.window?.statusBarColor?.let { color ->
+-          String.format("#%06X", 0xFFFFFF and color)
+-        } ?: "black"
++    // Window.statusBarColor is a deprecated no-op under Android 15 (edge-to-edge).
++    // Avoid reading the deprecated getter so the Play Console pre-launch report
++    // no longer flags this call site.
+     return mapOf(
+         HEIGHT_KEY to PixelUtil.toDIPFromPixel(getStatusBarHeightPx(currentActivity).toFloat()),
+-        DEFAULT_BACKGROUND_COLOR_KEY to statusBarColor,
++        DEFAULT_BACKGROUND_COLOR_KEY to "black",
+     )
+   }
+ 
+@@ -68,17 +67,11 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
+           override fun runGuarded() {
+             val window = activity.window ?: return
+             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+-            if (animated) {
+-              val curColor = window.statusBarColor
+-              val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), curColor, color)
+-              colorAnimation.addUpdateListener { animator ->
+-                activity.window?.statusBarColor = (animator.animatedValue as Int)
+-              }
+-              colorAnimation.setDuration(300).startDelay = 0
+-              colorAnimation.start()
+-            } else {
+-              window.statusBarColor = color
+-            }
++            // Window.statusBarColor is a deprecated no-op under Android 15
++            // (edge-to-edge). Skip referencing the deprecated setter so the
++            // Play Console pre-launch report no longer flags this call site.
++            // setColor already early-returns when the edge-to-edge feature flag
++            // is enabled, which is always the case for this app.
+           }
+         }
+     )

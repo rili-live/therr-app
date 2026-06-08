@@ -113,6 +113,14 @@ const Habits = {
         return response.data;
     }),
 
+    nudgePact: (id: string) => (dispatch: any) => PactsService.nudge(id).then((response) => {
+        dispatch({
+            type: HabitsActionTypes.NUDGE_PACT,
+            data: response.data,
+        });
+        return response.data;
+    }),
+
     acceptPact: (id: string) => (dispatch: any) => PactsService.accept(id).then((response) => {
         dispatch({
             type: HabitsActionTypes.ACCEPT_PACT,
