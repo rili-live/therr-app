@@ -169,6 +169,28 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Skip unless TherrMobile or shared libraries changed
+          # This job runs on every niche/HABITS-main merge (alongside the mobile
+          # release), but the mobile app only needs a rebuild when the code it
+          # bundles changed: TherrMobile/ itself, or any of the shared libs in
+          # therr-public-library/ (therr-react and its transitive deps
+          # therr-js-utilities + therr-styles, all compiled into the JS bundle).
+          # Pure-backend deploys (therr-services/, therr-api-gateway/) must NOT
+          # burn an EAS build. A release merge is a real merge commit, so HEAD^1
+          # is the previous tip and `HEAD^1..HEAD` is exactly the delta merged in.
+          # If HEAD^1 can't be resolved (shallow clone), fail open and build
+          # rather than silently skip.
+          command: |
+            BASE="$(git rev-parse --verify --quiet HEAD^1 || true)"
+            if [ -z "$BASE" ]; then
+              echo "Could not resolve HEAD^1 (shallow clone?) — building to be safe."
+            elif git diff --name-only "$BASE" HEAD | grep -qE '^(TherrMobile/|therr-public-library/)'; then
+              echo "TherrMobile/ or therr-public-library/ changed in this merge — proceeding with EAS build."
+            else
+              echo "No TherrMobile/ or therr-public-library/ changes in this merge — skipping EAS build."
+              circleci-agent step halt
+            fi
+      - run:
           name: Install EAS CLI
           # cimg/node runs as the non-root `circleci` user, which cannot write to
           # the global npm prefix (/usr/local/lib/node_modules) -> EACCES. cimg
