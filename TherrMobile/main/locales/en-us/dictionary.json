@@ -1051,7 +1051,8 @@
         "settings": "Settings",
         "toggle": "Toggle",
         "notifications": "Notifications",
-        "profile": "Profile"
+        "profile": "Profile",
+        "habits": "Habits"
       }
     },
     "habits": {
@@ -2573,6 +2574,51 @@
         "noMePacts": "No pacts yet. Invite a friend to create your first pact.",
         "noMeAchievements": "No achievements yet. Keep building habits to unlock rewards.",
         "noAchievements": "This user hasn't earned any achievements yet."
+      }
+    },
+    "myHabits": {
+      "headerTitle": "My Habits",
+      "pageHeader": "My Habits",
+      "buttons": {
+        "viewPactStatus": "View Pact Status →",
+        "createHabit": "Create a Habit"
+      },
+      "labels": {
+        "invitedTimeAgo": "Invited {timeAgo}",
+        "pendingInvite": "Pending invite",
+        "teamMembers": "Team Members"
+      },
+      "messages": {
+        "noHabits": "No active habits yet. Start by creating a habit to build your streak!"
+      }
+    },
+    "myPacts": {
+      "headerTitle": "My Pacts",
+      "pageHeader": "My Pacts",
+      "tabs": {
+        "sent": "Sent",
+        "received": "Received"
+      },
+      "buttons": {
+        "sendNudge": "Send Nudge",
+        "nudgeSent": "Nudge Sent",
+        "inviteSomeoneElse": "Invite Someone Else",
+        "startNewPact": "Start a New Pact",
+        "accept": "Accept",
+        "decline": "Decline"
+      },
+      "labels": {
+        "invitedTimeAgo": "Invited {timeAgo}",
+        "nudgeSentTimeAgo": "Nudge sent {timeAgo}",
+        "waitingForResponse": "Waiting for response...",
+        "habitGoal": "Habit",
+        "noResponseYet": "No response yet. What would you like to do?"
+      },
+      "messages": {
+        "noSentPacts": "No pending sent invites.",
+        "noReceivedPacts": "No pending received invites.",
+        "nudgeSuccess": "Nudge sent! Your partner will be reminded.",
+        "nudgeCooldown": "You already sent a nudge recently. Try again in a few days."
       }
     }
   }

@@ -47,6 +47,10 @@ const baseFeatureFlags = {
 
     // Monetization
     ENABLE_COIN_RECHARGE: true,
+
+    // Habits (HABITS niche app)
+    ENABLE_HABITS: true,
+    ENABLE_PACTS: true,
 };
 
 // Per-brand overrides applied on top of baseFeatureFlags

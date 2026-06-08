@@ -31,6 +31,7 @@ const getEnabledTabCount = () => {
         FeatureFlags.ENABLE_GROUPS,
         FeatureFlags.ENABLE_MAP,
         FeatureFlags.ENABLE_CONNECT,
+        FeatureFlags.ENABLE_HABITS,
     ];
     const enabledCount = tabFlags.filter(flag => featureFlags[flag] === true).length;
     return enabledCount + 1; // +1 for Profile tab (always shown)
@@ -389,6 +390,43 @@ class MainButtonMenuAlt extends ButtonMenu {
                             onPress={() => this.onNavPressDynamic('Map')}
                         />
                     </AttachStep>
+                </FeatureGate>
+                <FeatureGate feature={FeatureFlags.ENABLE_HABITS}>
+                    <Button
+                        title={!isCompact ? translate('menus.main.buttons.habits') : null}
+                        type="clear"
+                        iconTop
+                        buttonStyle={
+                            ['MyHabits', 'MyPacts'].includes(activeRoute)
+                                ? themeMenu.styles.buttonsActive
+                                : themeMenu.styles.buttons
+                        }
+                        containerStyle={[
+                            (['MyHabits', 'MyPacts'].includes(activeRoute)
+                                ? themeMenu.styles.buttonContainerActive
+                                : themeMenu.styles.buttonContainer),
+                            {
+                                width: buttonWidth,
+                            },
+                        ]}
+                        titleStyle={
+                            ['MyHabits', 'MyPacts'].includes(activeRoute)
+                                ? themeMenu.styles.buttonsTitleActive
+                                : themeMenu.styles.buttonsTitle
+                        }
+                        icon={
+                            <TherrIcon
+                                name="flag"
+                                size={22}
+                                style={
+                                    ['MyHabits', 'MyPacts'].includes(activeRoute)
+                                        ? themeMenu.styles.buttonIconActive
+                                        : themeMenu.styles.buttonIcon
+                                }
+                            />
+                        }
+                        onPress={() => this.onNavPressDynamic('MyHabits')}
+                    />
                 </FeatureGate>
                 <FeatureGate feature={FeatureFlags.ENABLE_CONNECT}>
                     <AttachStep index={5}>

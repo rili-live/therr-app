@@ -6,6 +6,7 @@ import {
     getUserPacts,
     getActivePacts,
     getPendingInvites,
+    nudgePact,
     acceptPact,
     claimPactInvite,
     declinePact,
@@ -28,6 +29,7 @@ router.post('/bulk-invite', bulkInvitePact);
 router.post('/claim', claimPactInvite);
 
 // UPDATE
+router.put('/:id/nudge', nudgePact);
 router.put('/:id/accept', acceptPact);
 router.put('/:id/decline', declinePact);
 router.put('/:id/abandon', abandonPact);
