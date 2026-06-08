@@ -38,4 +38,17 @@ for lib in therr-js-utilities therr-styles therr-react; do
   ( cd "therr-public-library/${lib}" && npm install --no-audit --no-fund && npm run build )
 done
 
+# Restore the gitignored google-services.json. It is excluded from version
+# control, so it is absent from the archive EAS uploads, and the Gradle Google
+# Services plugin (:app:processReleaseGoogleServices) cannot find it. EAS exposes
+# the per-project file env var GOOGLE_SERVICES_JSON as a path on the runner; copy
+# it into place. Each EAS project (Therr, Friends with Habits, ...) supplies its
+# own brand-specific value, so this stays brand-agnostic.
+if [ -n "${GOOGLE_SERVICES_JSON:-}" ]; then
+  echo "[eas-pre-install] copying google-services.json into TherrMobile/android/app/"
+  cp "${GOOGLE_SERVICES_JSON}" TherrMobile/android/app/google-services.json
+else
+  echo "[eas-pre-install] WARNING: GOOGLE_SERVICES_JSON not set — Android build will fail at :app:processReleaseGoogleServices"
+fi
+
 echo "[eas-pre-install] prerequisites ready."
