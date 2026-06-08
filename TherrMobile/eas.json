@@ -1,0 +1,35 @@
+{
+    "cli": {
+        "version": ">= 3.0.0",
+        "appVersionSource": "local"
+    },
+    "build": {
+        "preview": {
+            "distribution": "internal",
+            "android": {
+                "buildType": "apk",
+                "gradleCommand": ":app:assembleRelease"
+            },
+            "env": {
+                "NODE_ENV": "production"
+            },
+            "_comment": "Internal distribution APK for campaign partner testers. Installable via direct download (side-load) without Play Store review. Kept on free-tier EAS Build (30 builds/month)."
+        },
+        "production": {
+            "android": {
+                "buildType": "app-bundle",
+                "gradleCommand": ":app:bundleRelease"
+            },
+            "autoIncrement": true,
+            "_comment": "Play Store-ready AAB. Signing credentials are managed by EAS (eas credentials), so the hardcoded /Users/zacharyanselm/... signing path in android/app/build.gradle is no longer required."
+        }
+    },
+    "submit": {
+        "production": {
+            "android": {
+                "_comment": "Play Store submission is manual during campaign launch; uncomment when automated release is desired.",
+                "track": "internal"
+            }
+        }
+    }
+}
