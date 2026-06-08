@@ -6,6 +6,7 @@
   "build": {
     "therr-internal": {
       "distribution": "store",
+      "environment": "production",
       "android": {
         "image": "latest",
         "buildType": "app-bundle",
