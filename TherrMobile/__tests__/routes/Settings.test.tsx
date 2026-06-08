@@ -9,6 +9,15 @@ import renderer, { act } from 'react-test-renderer';
 import { it, describe, beforeEach, afterEach, expect } from '@jest/globals';
 
 // Mock dependencies
+
+// The shared Button reads the active theme via useSelector. These tests render
+// the unconnected screen with explicit props (no <Provider>), so stub useSelector
+// to resolve against a default state instead of requiring a store.
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: (selector: (state: any) => any) => selector({ user: { settings: {} } }),
+}));
+
 jest.mock('react-native-keyboard-controller', () => {
     const { View } = require('react-native');
     return {

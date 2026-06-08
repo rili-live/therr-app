@@ -1,0 +1,26 @@
+{
+  "cli": {
+    "version": ">= 15.0.0",
+    "promptToConfigurePushNotifications": false
+  },
+  "build": {
+    "therr-internal": {
+      "distribution": "store",
+      "android": {
+        "image": "latest",
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease",
+        "credentialsSource": "remote"
+      }
+    }
+  },
+  "submit": {
+    "therr-internal": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft",
+        "changesNotSentForReview": true
+      }
+    }
+  }
+}

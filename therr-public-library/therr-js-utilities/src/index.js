@@ -39,6 +39,7 @@ const utilities = [
     'internal-rest-request',
     'is-valid-input',
     'is-valid-password',
+    'is-valid-signup-age',
     'localization',
     'promiser',
     'sanitizers',
