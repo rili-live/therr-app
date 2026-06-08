@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="echo-body" x1="250" y1="280" x2="774" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#7A5F93"/>
+      <stop offset="100%" stop-color="#9AAFA0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="225" fill="#2E2140"/>
+
+  <!-- Integrated head + casque as ONE shape (peak merges with head, no seam) -->
+  <path d="M 512 182
+           L 554 304
+           C 700 312 812 418 812 552
+           C 812 696 688 812 512 812
+           C 336 812 212 696 212 552
+           C 212 418 324 312 470 304
+           L 512 182 Z"
+        fill="url(#echo-body)"/>
+
+  <!-- Two eyes only — no mouth, no details, pared to essentials -->
+  <circle cx="400" cy="500" r="92" fill="#EBDDF2"/>
+  <circle cx="412" cy="510" r="36" fill="#2E2140"/>
+
+  <circle cx="624" cy="500" r="92" fill="#EBDDF2"/>
+  <circle cx="612" cy="510" r="36" fill="#2E2140"/>
+</svg>

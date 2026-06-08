@@ -22,13 +22,13 @@ const colors: ITherrThemeColors = {
     // Legacy
     primary: '#121212',
     primary2: '#1E1E1E',
-    primary3: '#1C7F8A',
-    primary4: '#22A5B4',
-    primary5: '#17657D',
+    primary3: '#3B2A4E',
+    primary4: '#6B4F8A',
+    primary5: '#52406D',
     secondary: '#E37107',
     ternary: '#E0E0E0',
     ternary2: '#ffc269',
-    tertiary: '#104B52',
+    tertiary: '#241832',
 
     // Text
     textBlack: '#E0E0E0',
@@ -40,12 +40,12 @@ const colors: ITherrThemeColors = {
 
     // Branding - These colors should remain unchanged regardless of theme
     brandingWhite: '#fcfeff',
-    brandingBlack: '#001226',
-    brandingBlueGreen: '#1C7F8A',
+    brandingBlack: '#1A0E26',
+    brandingBlueGreen: '#3B2A4E',
     brandingMapYellow: '#ebc300',
     brandingOrange: '#DE6E07',
     brandingRed: '#FF3041',
-    brandingLightBlue: '#d8f0f2',
+    brandingLightBlue: '#E8DEF2',
 
     // Background
     backgroundCream: '#9E9E9E',
@@ -60,8 +60,8 @@ const colors: ITherrThemeColors = {
     placeholderTextColor: '#78909b',
     placeholderTextColorAlt: 'rgba(255,255,255,.60)',
 
-    hyperlink: '#64B5F6',
-    controlButtons: '#1C7F8A',
+    hyperlink: '#B9A8CC',
+    controlButtons: '#3B2A4E',
 
     // Alerts
     alertError: '#CF6679',
@@ -71,20 +71,20 @@ const colors: ITherrThemeColors = {
 
     // Accents - Alternate color scheme to add variety and reduce blandness
     accent1: '#2A2A2A',
-    accent1Fade: '#97c5bb',
-    accent2: '#22A5B4',
+    accent1Fade: '#B9A8CC',
+    accent2: '#6B4F8A',
     accent3: '#218a35',
-    accentAlt: '#449885',
-    accentTextBlack: '#4DD8E8',
+    accentAlt: '#7A5C9F',
+    accentTextBlack: '#B9A8CC',
     accentTextWhite: '#F5F5F5',
     accentRed: '#fe0156',
     accentYellow: '#fed61e',
-    accentBlue: '#17657D',
+    accentBlue: '#52406D',
     accentPurple: '#BB86FC',
     accentTeal: '#2BC5D6',
     accentLime: '#26B379',
     accentDivider: 'rgba(255,255,255,0.12)',
-    accentLogo: '#1E8A96',
+    accentLogo: '#7A5C9F',
 
     // Socials
     facebook: '#4167b2',

@@ -12,7 +12,7 @@ import { BrandVariations } from 'therr-js-utilities/constants';
 //   - `main/styles/themes/paper.ts → brandPaperColorOverrides`
 // Edits there are picked up automatically by every `getTheme()` /
 // `getPaperTheme()` consumer.
-export const CURRENT_BRAND_VARIATION = BrandVariations.THERR;
+export const CURRENT_BRAND_VARIATION = BrandVariations.HABITS;
 
 export default {
     brandVariation: CURRENT_BRAND_VARIATION,

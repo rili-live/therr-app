@@ -22,6 +22,8 @@ export type Trigger =
     | 'firstMomentPosted'
     | 'firstMessageSent'
     | 'firstConnectionAccepted'
+    | 'pactCreate'
+    | 'pactAccept'
     | 'secondSession';
 
 type Status = 'granted' | 'denied' | 'blocked';

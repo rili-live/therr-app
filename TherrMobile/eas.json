@@ -4,7 +4,7 @@
     "promptToConfigurePushNotifications": false
   },
   "build": {
-    "therr-internal": {
+    "habits-internal": {
       "distribution": "store",
       "android": {
         "image": "latest",
@@ -15,7 +15,7 @@
     }
   },
   "submit": {
-    "therr-internal": {
+    "habits-internal": {
       "android": {
         "track": "internal",
         "releaseStatus": "draft",

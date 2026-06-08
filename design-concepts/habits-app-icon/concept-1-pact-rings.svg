@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Friends With Habits — Pact Rings">
+  <title>Friends With Habits — Pact Rings</title>
+
+  <!-- Rounded-square app-icon background (teal brand) -->
+  <rect width="1024" height="1024" rx="224" ry="224" fill="#1C7F8A"/>
+
+  <!-- Subtle inner highlight to give icon depth at small sizes -->
+  <rect x="0" y="0" width="1024" height="512" rx="224" ry="224" fill="#22A5B4" opacity="0.18"/>
+
+  <!-- Left ring: off-white (the user) -->
+  <circle cx="400" cy="512" r="200" fill="none" stroke="#FCFEFF" stroke-width="72"/>
+
+  <!-- Right ring: orange accent (the friend / accountability partner) -->
+  <circle cx="624" cy="512" r="200" fill="none" stroke="#E37107" stroke-width="72"/>
+
+  <!-- Chain-link illusion: redraw a short arc of the white ring at the bottom
+       crossing so the two rings appear genuinely interlocked. -->
+  <path d="M 573.2 612 A 200 200 0 0 1 434.7 708.96"
+        fill="none" stroke="#FCFEFF" stroke-width="72" stroke-linecap="butt"/>
+</svg>

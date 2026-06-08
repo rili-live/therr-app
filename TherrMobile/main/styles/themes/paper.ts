@@ -4,6 +4,7 @@ import type { MD3Theme } from 'react-native-paper';
 import { IMobileThemeName } from 'therr-react/types';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import { resolveMobileThemeName } from './resolveThemeName';
 import { colors as lightColors } from './light/colors';
 import { colors as darkColors } from './dark/colors';
 import { colors as retroColors } from './retro/colors';
@@ -83,7 +84,7 @@ const customTokens: ITherrPaperCustom = {
 // ---------------------------------------------------------------------------
 // Light Theme
 // ---------------------------------------------------------------------------
-// Primary teal (#1C7F8A) on white background, orange secondary accent.
+// HABITS: deep faded purple primary on white background, orange secondary accent.
 // Maps from the existing light/colors.ts values.
 export const paperLightTheme: ITherrPaperTheme = {
     ...MD3LightTheme,
@@ -152,7 +153,7 @@ export const paperLightTheme: ITherrPaperTheme = {
 // ---------------------------------------------------------------------------
 // Dark Theme
 // ---------------------------------------------------------------------------
-// Standard dark mode: dark grey backgrounds (#121212) with teal primary.
+// HABITS: dark grey backgrounds (#121212) with brightened purple primary.
 // Maps from the new dark/colors.ts values.
 export const paperDarkTheme: ITherrPaperTheme = {
     ...MD3DarkTheme,
@@ -221,7 +222,7 @@ export const paperDarkTheme: ITherrPaperTheme = {
 // ---------------------------------------------------------------------------
 // Retro Theme (alternative dark)
 // ---------------------------------------------------------------------------
-// Teal-heavy palette with warm golden accents. Existing "retro" identity
+// HABITS: purple-heavy palette with warm golden accents. Existing "retro" identity
 // preserved, mapped to Paper's dark theme structure.
 export const paperRetroTheme: ITherrPaperTheme = {
     ...MD3DarkTheme,
@@ -302,7 +303,16 @@ type PaperColorPatch = Partial<MD3Theme['colors']>;
 const brandPaperColorOverrides: Partial<Record<BrandVariations, PaperColorPatch>> = {
     [BrandVariations.THERR]: {},
     [BrandVariations.TEEM]: {},
-    [BrandVariations.HABITS]: {},
+    // Mirrors brandColorOverrides[HABITS] in ./index.ts so Paper-driven
+    // components (FAB, AppBar, TextInput, Snackbar, Card) render the
+    // HABITS purple/gold palette.
+    [BrandVariations.HABITS]: {
+        primary: '#6E5C85',
+        onPrimary: '#fcfeff',
+        primaryContainer: 'rgba(110, 92, 133, 0.15)',
+        secondary: '#D49617',
+        onSecondary: '#fcfeff',
+    },
     [BrandVariations.OTAKU]: {},
     [BrandVariations.PARALLELS]: {},
     [BrandVariations.APPY_SOCIAL]: {},
@@ -329,8 +339,9 @@ export const getPaperTheme = (
     name?: IMobileThemeName,
     brand?: BrandVariations,
 ): ITherrPaperTheme => {
-    const baseTheme = basePaperThemeFor(name);
     const resolvedBrand = brand ?? CURRENT_BRAND_VARIATION;
+    const resolvedName = resolveMobileThemeName(name, resolvedBrand);
+    const baseTheme = basePaperThemeFor(resolvedName);
     const override = brandPaperColorOverrides[resolvedBrand];
 
     // Fast path — no override for this brand → return cached theme by

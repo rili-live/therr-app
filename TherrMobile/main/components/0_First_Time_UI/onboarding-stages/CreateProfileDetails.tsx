@@ -1,10 +1,12 @@
 import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import { Button } from '../../BaseButton';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import Alert from '../../Alert';
 import SquareInput from '../../Input/Square';
+import { CURRENT_BRAND_VARIATION } from '../../../config/brandConfig';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';
 
 interface ICreateProfileDetailsProps {
@@ -45,6 +47,7 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
     themeSettingsForm,
 }) => {
     const isBusiness = inputs.accountType === 'business';
+    const showAccountTypePicker = CURRENT_BRAND_VARIATION !== BrandVariations.HABITS;
 
     // TODO: Debug and determine why we need this (Apple SSO BS?)
     // if (inputs?.firstName !== DEFAULT_FIRSTNAME
@@ -62,30 +65,32 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
                 type="error"
                 themeAlerts={themeAlerts}
             />
-            <View style={localStyles.accountTypeContainer}>
-                <Text style={theme.styles.sectionTitleSmallCenter}>
-                    {translate(
-                        'forms.settings.labels.accountTypeLabel'
-                    )}
-                </Text>
-                <ReactPicker
-                    selectedValue={inputs.accountType}
-                    style={themeForms.styles.picker}
-                    itemStyle={themeForms.styles.pickerItem}
-                    onValueChange={(itemValue) =>
-                        onPickerChange('accountType', itemValue)
-                    }>
-                    <ReactPicker.Item label={translate(
-                        'forms.settings.labels.personalAccount'
-                    )} value={'personal'} />
-                    <ReactPicker.Item label={translate(
-                        'forms.settings.labels.creatorAccount'
-                    )} value={'creator'} />
-                    <ReactPicker.Item label={translate(
-                        'forms.settings.labels.businessAccount'
-                    )} value={'business'} />
-                </ReactPicker>
-            </View>
+            {showAccountTypePicker && (
+                <View style={localStyles.accountTypeContainer}>
+                    <Text style={theme.styles.sectionTitleSmallCenter}>
+                        {translate(
+                            'forms.settings.labels.accountTypeLabel'
+                        )}
+                    </Text>
+                    <ReactPicker
+                        selectedValue={inputs.accountType}
+                        style={themeForms.styles.picker}
+                        itemStyle={themeForms.styles.pickerItem}
+                        onValueChange={(itemValue) =>
+                            onPickerChange('accountType', itemValue)
+                        }>
+                        <ReactPicker.Item label={translate(
+                            'forms.settings.labels.personalAccount'
+                        )} value={'personal'} />
+                        <ReactPicker.Item label={translate(
+                            'forms.settings.labels.creatorAccount'
+                        )} value={'creator'} />
+                        <ReactPicker.Item label={translate(
+                            'forms.settings.labels.businessAccount'
+                        )} value={'business'} />
+                    </ReactPicker>
+                </View>
+            )}
             <SquareInput
                 placeholder={translate(
                     'forms.settings.labels.userName'

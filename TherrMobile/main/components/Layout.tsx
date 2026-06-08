@@ -10,7 +10,7 @@ import {
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
-import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
+import { getAnalytics, logScreenView } from '@react-native-firebase/analytics';
 import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
 import {
     getInitialNotification,
@@ -25,9 +25,9 @@ import {
 import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
-import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
+import { IUIState } from '../types/redux/ui';
 import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
@@ -37,10 +37,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { showToast } from '../utilities/toasts';
-import BackgroundGeolocation, {
-    Config,
-    Subscription,
-} from 'react-native-background-geolocation';
 import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
@@ -64,7 +60,6 @@ import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal'
 import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
 import permissions, { PermType } from '../utilities/permissionsOrchestrator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import BackgroundLocationDisclosureModal from './Modals/BackgroundLocationDisclosureModal';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
@@ -76,9 +71,9 @@ import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroi
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
-import background1 from '../assets/dinner-burgers.webp';
-import background2 from '../assets/dinner-overhead.webp';
-import background3 from '../assets/dinner-overhead-2.webp';
+import background1 from '../assets/landing-jungle.webp';
+import background2 from '../assets/landing-tree.webp';
+import background3 from '../assets/landing-chameleon.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
@@ -86,13 +81,6 @@ import { buildGroupUrl } from '../utilities/shareUrls';
 const preLoadImageList = [background1, background2, background3];
 
 const Stack = createNativeStackNavigator<ParamListBase, undefined>();
-
-const getRequestHeaders = (user) => ({
-    'x-userid': user?.details?.id,
-    'x-localecode':  user?.settings?.locale || 'en-us',
-    'x-platform': 'mobile',
-    'x-brand-variation': CURRENT_BRAND_VARIATION,
-});
 
 const isLocationServicesEnabled = () => getConfig()?.featureFlags?.[FeatureFlags.ENABLE_LOCATION_SERVICES] !== false;
 
@@ -129,6 +117,7 @@ interface IStoreProps extends ILayoutDispatchProps {
     forums: IForumsState;
     location: ILocationState;
     notifications: INotificationsState;
+    ui: IUIState;
     user: IUserState;
 }
 
@@ -141,19 +130,17 @@ export interface ILayoutProps extends IStoreProps {
 interface ILayoutState {
     targetRouteView: string;
     targetRouteParams: any;
-    isBackgroundLocationDisclosureVisible: boolean;
     permissionPrimerType: PermType | null;
     shouldSpinSplashLogo: boolean;
     isSplashSpinnerVisible: boolean;
 }
-
-const BG_LOCATION_DISCLOSURE_KEY = 'bgLocationDisclosureShown';
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
     forums: state.forums,
     location: state.location,
     notifications: state.notifications,
+    ui: state.ui,
     user: state.user,
 });
 
@@ -208,7 +195,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private permissionPrimerResolve: ((allowed: boolean) => void) | null = null;
     private unsubscribeNotificationsGranted: (() => void) | null = null;
     private fcmRegistrationStarted = false;
-    subscriptions: Subscription[] = [];
 
     constructor(props) {
         super(props);
@@ -216,7 +202,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             targetRouteView: '',
             targetRouteParams: {},
-            isBackgroundLocationDisclosureVisible: false,
             permissionPrimerType: null,
             shouldSpinSplashLogo: false,
             isSplashSpinnerVisible: true,
@@ -266,33 +251,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
         socketIO.on('reconnect', this.handleSocketReconnect);
 
-        // Gate every BackgroundGeolocation method behind the feature flag, not just
-        // .ready()/.start(). Subscribing to .onLocation / .onProviderChange instantiates
-        // the native TSLocationManager, which fires transistorsoft's license validator;
-        // on niches whose applicationId is not on the license (e.g. HABITS / com.therr.habits)
-        // that produces a runtime license-error log even when the listeners are no-ops.
-        if (isLocationServicesEnabled()) {
-            this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
-                logEvent(getAnalytics(),'background_location_on_location', {
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-            }, (error) => {
-                logEvent(getAnalytics(),'background_location_error', {
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-                console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
-            }));
-            this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-                // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
-                // listener (emitted by react-native-android-location-services-dialog-box,
-                // which was removed in the New Architecture migration). Fires on
-                // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
-                // changes (iOS). Reducer checks status === 'enabled'.
-                this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
-            }));
-        }
-
-        this.checkAndShowBackgroundLocationDisclosure();
         this.prefetchContent();
 
         // Wire the permissions orchestrator: a single primer modal lives at the
@@ -309,10 +267,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             this.registerDeviceForFCM();
         });
 
-        // If the user is already authenticated at app launch, this is a returning
-        // session. Try the silent FCM registration (no-op if not authorized) and
-        // give the soft-ask a chance via the second-session fallback.
         if (this.props.user?.isAuthenticated) {
+            // Persisted-session launch: componentDidUpdate's auth-transition gate
+            // doesn't fire when the user is already authenticated at mount, so
+            // reset to the brand-appropriate landing screen here.
+            if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                this.resetToHabitsLanding();
+            }
+            // Returning session: try silent FCM registration and give the
+            // soft-ask a chance via the second-session fallback.
             this.tryRegisterDeviceTokenIfAuthorized();
             permissions.requestIfAppropriate('notifications', { trigger: 'secondSession' });
         }
@@ -333,10 +296,19 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
-                const token = user?.details?.idToken;
-                if (token) {
-                    this.checkAndShowBackgroundLocationDisclosure();
-                }
+                // One-shot drain: if the user opened a /claim-pact/<token> link
+                // before authenticating, redeem it now so the inviter's gate
+                // (PactOnboardingGuard) can lift on their first refresh.
+                AsyncStorage.getItem('pendingPactClaimToken')
+                    .then((pendingToken) => {
+                        if (!pendingToken) return undefined;
+                        return axios.post('/users-service/habits/pacts/claim', { token: pendingToken })
+                            .finally(() => AsyncStorage.removeItem('pendingPactClaimToken'));
+                    })
+                    .catch((err) => {
+                        console.log('PACT_CLAIM_DRAIN_ERROR', err?.message);
+                        AsyncStorage.removeItem('pendingPactClaimToken').catch(() => undefined);
+                    });
 
                 if (user.details?.id) {
                     setCrashlyticsUserId(getCrashlytics(), user.details?.id?.toString());
@@ -350,7 +322,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     }
                 }
 
-                if (targetRouteView) {
+                if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                    // HABITS has its own dashboard; the targetRouteView path
+                    // below routes through Areas, which is feature-flagged off
+                    // for HABITS and would otherwise leave the user on a
+                    // fallback screen (e.g., Home) after login.
+                    this.resetToHabitsLanding();
+                } else if (targetRouteView) {
                     RootNavigation.reset({
                         index: 0,
                         routes: [
@@ -362,7 +340,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
                 this.prefetchContent();
 
-                if (!forums?.forumCategories || !forums.forumCategories.length) {
+                const featureFlags = getConfig().featureFlags || {};
+                if (featureFlags.ENABLE_FORUMS && (!forums?.forumCategories || !forums.forumCategories.length)) {
                     searchCategories({
                         itemsPerPage: 100,
                         pageNumber: 1,
@@ -402,7 +381,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // and a second-session fallback via permissionsOrchestrator.
                 this.tryRegisterDeviceTokenIfAuthorized();
             } else {
-                BackgroundGeolocation.stop();
                 // Tear down the FCM subscription so a subsequent login re-registers
                 // (refreshes the device token and re-attaches axios headers).
                 if (this.unsubscribePushNotifications) {
@@ -427,11 +405,44 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
-        this.subscriptions.forEach((subscription) => subscription.remove());
         this.unsubscribeNotificationsGranted?.();
         this.unsubscribeNotificationsGranted = null;
         permissions.registerPrimerListener(null);
     }
+
+    // For HABITS, the first authenticated reset goes to a one-time push opt-in
+    // screen (the highest-leverage retention lever — the user needs to know
+    // when their pact invite is accepted). Subsequent launches skip straight
+    // to HabitsDashboard.
+    //
+    // If the user only has EMAIL_VERIFIED_MISSING_PROPERTIES (and not full
+    // EMAIL_VERIFIED), HabitsDashboard is filtered out of the navigator by the
+    // route-filter below (it requires AccessPresets.EMAIL_VERIFIED), and the
+    // reset would silently fail with a "RESET was not handled" warning while
+    // the user lands on whichever fallback route their access level allows.
+    // Route them to CreateProfile instead so they can complete their profile
+    // and self-upgrade to EMAIL_VERIFIED.
+    resetToHabitsLanding = async () => {
+        if (!isUserEmailVerified(this.props.user)) {
+            RootNavigation.reset({
+                index: 0,
+                routes: [{ name: 'CreateProfile' }],
+            });
+            return;
+        }
+        let optInShown = 'true';
+        try {
+            optInShown = (await AsyncStorage.getItem('HABITS_PUSH_OPTIN_SHOWN')) || '';
+        } catch {
+            // best-effort — fall through to dashboard if AsyncStorage is broken
+            optInShown = 'true';
+        }
+        const target = optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
+        RootNavigation.reset({
+            index: 0,
+            routes: [{ name: target }],
+        });
+    };
 
     handleSocketReconnectAttempt = () => {
         updateSocketToken(this.props.user);
@@ -440,103 +451,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     handleSocketReconnect = () => {
         if (this.props.user && this.props.user.isAuthenticated) {
             this.props.refreshConnection(this.props.user);
-        }
-    };
-
-    checkAndShowBackgroundLocationDisclosure = () => {
-        if (!isLocationServicesEnabled()) {
-            return;
-        }
-        if (!this.props.user?.isAuthenticated || !this.props.user?.settings?.settingsPushBackground) {
-            return;
-        }
-        AsyncStorage.getItem(BG_LOCATION_DISCLOSURE_KEY).then((value) => {
-            if (value === 'true') {
-                this.readyAndStartBackgroundGeolocation();
-            } else {
-                this.setState({ isBackgroundLocationDisclosureVisible: true });
-            }
-        }).catch(() => {
-            this.readyAndStartBackgroundGeolocation();
-        });
-    };
-
-    handleBackgroundLocationDisclosureAccept = () => {
-        this.setState({ isBackgroundLocationDisclosureVisible: false });
-        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
-        this.readyAndStartBackgroundGeolocation();
-    };
-
-    handleBackgroundLocationDisclosureDecline = () => {
-        this.setState({ isBackgroundLocationDisclosureVisible: false });
-        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
-    };
-
-    // IMPORTANT: This should only be called once per session
-    readyAndStartBackgroundGeolocation = () => {
-        if (!isLocationServicesEnabled()) {
-            return;
-        }
-        const userToken = this.props?.user?.details?.idToken;
-        if (this.props.user?.isAuthenticated && userToken
-            && this.props.user?.settings?.settingsPushBackground) {
-            const backgroundConfig: Config = {
-                // Geolocation Config
-                desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_MEDIUM,
-                distanceFilter: 15,
-                // Activity Recognition
-                stopTimeout: 5,
-                // Application config
-                // debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
-                logLevel: BackgroundGeolocation.LOG_LEVEL_ERROR,
-                stopOnTerminate: false,   // <-- Allow the background-service to continue tracking when user closes the app.
-                startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
-                triggerActivities: 'on_foot, walking, running',
-                notification: {
-                    color: this.theme.colors.primary3,
-                    smallIcon: 'drawable/ic_notification_icon',
-                    text: this.translate('alertTitles.backgroundLocationNotification'),
-                    channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
-                    // channelId: AndroidChannelIds.rewardsFinder,
-                    priority: BackgroundGeolocation.NOTIFICATION_PRIORITY_MIN,
-                },
-                backgroundPermissionRationale: {
-                    title: this.translate('alertTitles.backgroundLocation'),
-                    message: this.translate('alertMessages.backgroundLocation'),
-                    positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
-                },
-                disableLocationAuthorizationAlert: true,
-                // locationAuthorizationAlert
-                locationUpdateInterval: 1000 * 60,
-                // HTTP / SQLite config
-                url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
-                batchSync: false,       // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
-                autoSync: true,         // <-- [Default: true] Set true to sync each location to server as it arrives.
-                headers: {              // <-- Optional HTTP headers
-                    ...getRequestHeaders(this?.props?.user),
-                    authorization: `Bearer ${userToken}`,
-                },
-                params: {               // <-- Optional HTTP params
-                    // 'auth_token': 'maybe_your_server_authenticates_via_token_YES?',
-                    userId: this.props?.user?.details?.id,
-                    platformOS: Platform.OS,
-                    deviceModel: DeviceInfo.getModel(),
-                    isDeviceTablet: DeviceInfo.isTablet(),
-                },
-            };
-
-            /// 2. ready the plugin.
-            BackgroundGeolocation.ready(backgroundConfig).then((state) => {
-                logEvent(getAnalytics(),'background_location_ready', {
-                    isEnabled: state.enabled,
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-
-                // Start background location
-                if (this.props.user?.isAuthenticated && userToken) {
-                    BackgroundGeolocation.start();
-                }
-            });
         }
     };
 
@@ -570,8 +484,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             completePrefetchRequest,
         } = this.props;
         if (user.isAuthenticated) {
+            // Skip data fetches for features the current brand has disabled.
+            // Otherwise we hit endpoints (e.g., /reactions-service/moments/active/search)
+            // for content the brand never displays, generating 401/404 noise and
+            // — worst case — auth-recovery cascades on a still-valid session.
+            const featureFlags = getConfig().featureFlags || {};
+
             // Pre-load activated content
-            if (!content?.content?.activeMoments?.length) {
+            if (featureFlags.ENABLE_MOMENTS && !content?.content?.activeMoments?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveMoments: true,
                 });
@@ -590,7 +510,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeThoughts?.length) {
+            if (featureFlags.ENABLE_THOUGHTS && !content?.content?.activeThoughts?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveThoughts: true,
                 });
@@ -609,7 +529,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeEvents?.length) {
+            if (featureFlags.ENABLE_EVENTS && !content?.content?.activeEvents?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveEvents: true,
                 });
@@ -629,58 +549,70 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
 
-            // Pre-load notifications
-            beginPrefetchRequest({
-                isLoadingAchievements: true,
-                isLoadingUsers: true,
-                isLoadingGroups: true,
-                isLoadingNotifications: true,
-            });
-            searchNotifications({
-                filterBy: 'userId',
-                query: user.details.id,
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-            }).catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingNotifications: false,
+            if (featureFlags.ENABLE_NOTIFICATIONS) {
+                beginPrefetchRequest({
+                    isLoadingNotifications: true,
                 });
-            });
+                searchNotifications({
+                    filterBy: 'userId',
+                    query: user.details.id,
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                }).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingNotifications: false,
+                    });
+                });
+            }
 
-            // Pre-load achievements
-            getMyAchievements().catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingAchievements: false,
+            if (featureFlags.ENABLE_ACHIEVEMENTS) {
+                beginPrefetchRequest({
+                    isLoadingAchievements: true,
                 });
-            });
+                getMyAchievements().catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingAchievements: false,
+                    });
+                });
+            }
 
-            searchUsers(
-                {
-                    query: '',
-                    limit: DEFAULT_PAGE_SIZE,
-                    offset: 0,
-                    withMedia: true,
-                },
-            ).catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingUsers: false,
+            if (featureFlags.ENABLE_CONNECT) {
+                beginPrefetchRequest({
+                    isLoadingUsers: true,
                 });
-            });
+                searchUsers(
+                    {
+                        query: '',
+                        limit: DEFAULT_PAGE_SIZE,
+                        offset: 0,
+                        withMedia: true,
+                    },
+                ).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingUsers: false,
+                    });
+                });
+            }
 
-            getUserGroups().catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingGroups: false,
+            if (featureFlags.ENABLE_GROUPS) {
+                beginPrefetchRequest({
+                    isLoadingGroups: true,
                 });
-            });
+                getUserGroups().catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingGroups: false,
+                    });
+                });
+            }
         }
     };
 
@@ -1522,6 +1454,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     handleAppUniversalLinkURL = (url) => {
         const { user } = this.props;
         const urlSplit = url?.split('?') || [];
+        const claimPactRegex = RegExp('claim-pact/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewMomentRegex = RegExp('moments/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
         const viewMomentFromDesktopRegex = RegExp('moments/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewSpaceRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
@@ -1547,7 +1480,31 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             user
         );
 
-        if (url?.includes('therr.com/?access_token=')) {
+        if (url?.match(claimPactRegex)) {
+            // Cross-app pact invite. The email/SMS sent by users-service points
+            // here; on tap we either claim immediately (authed) or stash the
+            // token for the post-login drain (unauthed first launch).
+            const claimToken = (url.match(claimPactRegex) || [])[1];
+            if (claimToken) {
+                if (isUserLoggedIn && !isUserMissingProps) {
+                    axios.post('/users-service/habits/pacts/claim', { token: claimToken })
+                        .then(() => {
+                            RootNavigation.navigate('Notifications');
+                        })
+                        .catch((err) => {
+                            console.log('PACT_CLAIM_ERROR', err?.message);
+                            RootNavigation.navigate('Notifications');
+                        });
+                } else {
+                    AsyncStorage.setItem('pendingPactClaimToken', claimToken).catch((err) => {
+                        console.log('PACT_CLAIM_STORE_ERROR', err?.message);
+                    });
+                    this.setState({
+                        targetRouteView: 'Notifications',
+                    });
+                }
+            }
+        } else if (url?.includes('therr.com/?access_token=')) {
             // Route for 3rd party OAuth (Facebook, Instagram, etc.)
             // TODO: This is needs updated and tested
             const urlWithNoHash = url.split('#_');
@@ -1706,10 +1663,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    // Silent FCM token registration. Runs at login and on app launch when the
-    // user is already authenticated; only proceeds if the OS-level notification
-    // permission is already authorized, so it never surfaces an OS prompt.
-    // Soft-asks (and the OS prompt itself) are owned by permissionsOrchestrator.
     tryRegisterDeviceTokenIfAuthorized = async () => {
         try {
             const status = await hasPermission(getMessaging());
@@ -1841,14 +1794,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             targetRouteParams: {},
         });
 
-        this.subscriptions.forEach((subscription) => subscription.remove());
-        BackgroundGeolocation.stop().catch((err) => {
-            console.error(`Failed to stop background location after logout: ${err}`);
-            logEvent(getAnalytics(),'background_location_stop_error', {
-                userId: this.props.user?.details?.id,
-            }).catch((logErr) => console.log(logErr));
-        });
-
         return logout(userDetails);
     };
 
@@ -1877,7 +1822,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
-        const { isBackgroundLocationDisclosureVisible, permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
+        const { permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
 
         return (
             <>
@@ -2130,7 +2075,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     return true;
                                 }
 
-                                if (route.name === 'Landing' && user?.details?.id) {
+                                if (route.name === 'Landing' && user?.isAuthenticated) {
                                     return false;
                                 }
 
@@ -2149,13 +2094,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 return <Stack.Screen key={route.name} {...route} />;
                             })}
                     </Stack.Navigator>
-                    <BackgroundLocationDisclosureModal
-                        isVisible={isBackgroundLocationDisclosureVisible}
-                        onAccept={this.handleBackgroundLocationDisclosureAccept}
-                        onDecline={this.handleBackgroundLocationDisclosureDecline}
-                        translate={this.translate}
-                        themeDisclosure={this.themeDisclosure}
-                    />
                     {permissionPrimerType ? (
                         <PermissionPrimerModal
                             permissionType={permissionPrimerType}

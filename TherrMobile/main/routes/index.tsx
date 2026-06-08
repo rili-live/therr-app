@@ -56,6 +56,9 @@ import MyHabits from './MyHabits';
 import MyPacts from './MyPacts';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
+// HABITS routes
+import { HabitsDashboard, HabitDetail } from './Habits';
+import { PactsList, PactDetail, CreatePactInvite, HabitsPushOptIn } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
 
@@ -502,6 +505,61 @@ const routes: RouteConfig<
         options: () => ({
             title: 'My Pacts',
             requiredFeatures: [FeatureFlags.ENABLE_PACTS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    // HABITS routes
+    {
+        name: 'HabitsDashboard',
+        component: HabitsDashboard,
+        options: () => ({
+            title: 'My Habits',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'HabitDetail',
+        component: HabitDetail,
+        options: () => ({
+            title: 'Habit Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'PactsList',
+        component: PactsList,
+        options: () => ({
+            title: 'My Pacts',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'PactDetail',
+        component: PactDetail,
+        options: () => ({
+            title: 'Pact Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'CreatePactInvite',
+        component: CreatePactInvite,
+        options: () => ({
+            title: 'Invite a Friend',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'HabitsPushOptIn',
+        component: HabitsPushOptIn,
+        options: () => ({
+            title: 'Notifications',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },

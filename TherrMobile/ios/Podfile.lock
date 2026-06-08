@@ -12,9 +12,6 @@ PODS:
   - boost (1.84.0)
   - BVLinearGradient (2.8.3):
     - React-Core
-  - CocoaLumberjack (3.8.5):
-    - CocoaLumberjack/Core (= 3.8.5)
-  - CocoaLumberjack/Core (3.8.5)
   - DoubleConversion (1.1.6)
   - fast_float (8.0.0)
   - FBLazyVector (0.80.0)
@@ -2675,9 +2672,6 @@ PODS:
   - RNBackgroundFetch (4.3.0):
     - React-Core
     - TSBackgroundFetch (~> 4.0.0)
-  - RNBackgroundGeolocation (4.19.4):
-    - CocoaLumberjack (~> 3.8.5)
-    - React-Core
   - RNBootSplash (6.3.12):
     - boost
     - DoubleConversion
@@ -3373,7 +3367,6 @@ DEPENDENCIES:
   - RecaptchaInterop
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
-  - RNBackgroundGeolocation (from `../node_modules/react-native-background-geolocation`)
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -3403,7 +3396,6 @@ SPEC REPOS:
   trunk:
     - AppAuth
     - AppCheckCore
-    - CocoaLumberjack
     - Firebase
     - FirebaseAnalytics
     - FirebaseAppCheckInterop
@@ -3627,8 +3619,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
   RNBackgroundFetch:
     :path: "../node_modules/react-native-background-fetch"
-  RNBackgroundGeolocation:
-    :path: "../node_modules/react-native-background-geolocation"
   RNBootSplash:
     :path: "../node_modules/react-native-bootsplash"
   RNCAsyncStorage:
@@ -3681,7 +3671,6 @@ SPEC CHECKSUMS:
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   BVLinearGradient: 880f91a7854faff2df62518f0281afb1c60d49a3
-  CocoaLumberjack: 6a459bc897d6d80bd1b8c78482ec7ad05dffc3f0
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 778b815a6fb3fa1599f581ffb9a5e85fad313c1d
@@ -3802,7 +3791,6 @@ SPEC CHECKSUMS:
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   RNAppleAuthentication: d6fe579e5f43cf8db54bdc48518bccea61c592a4
   RNBackgroundFetch: 73318e61a4062a9eb27397045b591e6698c929c5
-  RNBackgroundGeolocation: cd4e4d4b9ff6174a7c5f459d366aede71193607a
   RNBootSplash: e38f7a251bb19d7c2e0107dc9800da8688549059
   RNCAsyncStorage: aa2db51e4dfe91670b5941c65bed077ecb52983b
   RNCClipboard: f09308447254536ab20b243607766796efdf210c

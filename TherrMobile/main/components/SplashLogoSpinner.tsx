@@ -8,7 +8,9 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 
-const BOOTSPLASH_BACKGROUND = '#1c7f8a';
+// Matches the HABITS native bootsplash background (white) so the JS overlay
+// hands off from the native splash with no visible color flash.
+const BOOTSPLASH_BACKGROUND = '#ffffff';
 const LOGO_SIZE = 100;
 const SPIN_DURATION_MS = 700;
 const FADE_OUT_DURATION_MS = 250;

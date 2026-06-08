@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="s5-body" x1="180" y1="205" x2="844" y2="785" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#5B4273"/>
+      <stop offset="55%"  stop-color="#6E5C85"/>
+      <stop offset="100%" stop-color="#7C8094"/>
+    </linearGradient>
+    <linearGradient id="s5-stripe" x1="490" y1="320" x2="534" y2="485" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#F6C94A"/>
+      <stop offset="100%" stop-color="#D49617"/>
+    </linearGradient>
+  </defs>
+
+  <!-- White rounded-square background -->
+  <rect width="1024" height="1024" rx="225" fill="#FFFFFF"/>
+
+  <!-- Head: all three corners softened (r=130 -> 150), side edges now
+       bow outward ~50px (was ~25), chin bulge preserved at 20px.
+       Reads more as a rounded head, less as a triangle. -->
+  <path d="M 437 335
+           Q 512 205 587 335
+           Q 722 482 757 629
+           Q 832 759 682 759
+           Q 512 779 342 759
+           Q 192 759 267 629
+           Q 302 482 437 335
+           Z"
+        fill="url(#s5-body)"/>
+
+  <!-- Yellow forehead stripe, tapered -->
+  <path d="M 494 325
+           Q 494 305 512 305
+           Q 530 305 530 325
+           L 525 477
+           Q 525 493 512 493
+           Q 499 493 499 477
+           Z"
+        fill="url(#s5-stripe)"/>
+
+  <!-- Left eye -->
+  <circle cx="260" cy="510" r="148" fill="url(#s5-body)"/>
+  <circle cx="260" cy="510" r="95"  fill="#FFFFFF"/>
+  <circle cx="280" cy="517" r="44"  fill="#2E2140"/>
+  <circle cx="294" cy="504" r="15"  fill="#FFFFFF"/>
+  <circle cx="272" cy="525" r="5"   fill="#FFFFFF" opacity="0.8"/>
+
+  <!-- Right eye -->
+  <circle cx="764" cy="510" r="148" fill="url(#s5-body)"/>
+  <circle cx="764" cy="510" r="95"  fill="#FFFFFF"/>
+  <circle cx="744" cy="517" r="44"  fill="#2E2140"/>
+  <circle cx="730" cy="504" r="15"  fill="#FFFFFF"/>
+  <circle cx="752" cy="525" r="5"   fill="#FFFFFF" opacity="0.8"/>
+
+  <!-- Nostrils -->
+  <circle cx="488" cy="653" r="11" fill="#2E2140" opacity="0.62"/>
+  <circle cx="536" cy="653" r="11" fill="#2E2140" opacity="0.62"/>
+
+  <!-- Simple single-arc smile (reverted from v4's wavy double segment).
+       Wider than v3 but still one clean curve. Clears the chin. -->
+  <path d="M 418 718 Q 512 762 606 718"
+        stroke="#2E2140" stroke-width="12" fill="none" stroke-linecap="round"/>
+</svg>

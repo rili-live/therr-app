@@ -1,0 +1,12 @@
+<resources>
+    <style name="BootTheme" parent="Theme.BootSplash">
+        <item name="bootSplashBackground">@color/bootsplash_background</item>
+        <item name="bootSplashLogo">@drawable/bootsplash_logo</item>
+        <item name="postBootSplashTheme">@style/AppTheme</item>
+        <!-- Android 12+ clips windowSplashScreenAnimatedIcon to a circle. Use a
+             chameleon-only icon for the system splash so the "Friends with Habits"
+             wordmark on bootsplash_logo isn't visibly cut off. The lib's hide()
+             transition still uses bootSplashLogo and shows the full wordmark. -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/bootsplash_logo_icon</item>
+    </style>
+</resources>

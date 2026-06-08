@@ -208,6 +208,23 @@ const NavigationGuard = ({ children }) => {
 };
 ```
 
+## Firebase: single project, multiple Android apps (current approach)
+
+For MVP, niche apps share the Therr Friend Firebase project and register as additional Android apps under it:
+
+- **Therr** — `applicationId = app.therrmobile`
+- **Friends with Habits** — `applicationId = com.therr.habits`
+- *(future niches add their own `applicationId`)*
+
+Registering each `applicationId` in Firebase Console adds a `client` entry to a single merged `google-services.json`. That file lives at `TherrMobile/android/app/google-services.json` and serves every brand — Gradle picks the correct client block at build time based on the `applicationId` in `build.gradle`. The Android `namespace` stays `app.therrmobile` across brands so Kotlin source paths don't change.
+
+When to split into separate Firebase projects instead:
+- A brand needs isolated Cloud Messaging quotas or Analytics streams.
+- Crashlytics dashboards must not cross brand boundaries.
+- An acquirer, partner, or legal requirement forces separation.
+
+Until one of those applies, stay on the shared-project model — it removes the need for per-brand service-account key management in `push-notifications-service` and simplifies the `switch-brand.sh` workflow.
+
 ## Push Notifications by Brand
 
 Each brand can have its own Firebase project for push notifications:

@@ -1,4 +1,6 @@
 import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
@@ -25,6 +27,10 @@ const PROFILE_CAROUSEL_TABS = {
     THOUGHTS: 'people',
     MEDIA: 'groups',
     MOMENTS: 'moments',
+    // HABITS profile tabs (Friends with Habits niche app)
+    GOALS: 'goals',
+    PACTS: 'pacts',
+    ACHIEVEMENTS: 'achievements',
 };
 
 const HAPTIC_FEEDBACK_TYPE = 'soft';
@@ -79,25 +85,27 @@ enum AndroidChannelIds {
     reminders = 'reminders'
 }
 
+const isHabits = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+
 const AndroidChannels = {
     default: {
         id: 'default',
-        name: 'Other',
+        name: isHabits ? 'General' : 'Other',
         importance: AndroidImportance.DEFAULT,
     },
     contentDiscovery: {
         id: 'contentDiscovery',
-        name: 'Content Discovery',
+        name: isHabits ? 'Friend Activity' : 'Content Discovery',
         importance: AndroidImportance.DEFAULT,
     },
     rewardUpdates: {
         id: 'rewardUpdates',
-        name: 'Reward Updates',
+        name: isHabits ? 'Streak Updates' : 'Reward Updates',
         importance: AndroidImportance.HIGH,
     },
     reminders: {
         id: 'reminders',
-        name: 'Reminders',
+        name: isHabits ? 'Habit Reminders' : 'Reminders',
         importance: AndroidImportance.HIGH,
     },
 };
