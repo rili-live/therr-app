@@ -68,6 +68,11 @@ class PactsService {
         url: '/users-service/habits/pacts/invites',
     });
 
+    nudge = (id: string) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/nudge`,
+    });
+
     accept = (id: string) => axios({
         method: 'put',
         url: `/users-service/habits/pacts/${id}/accept`,

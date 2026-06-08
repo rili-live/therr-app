@@ -885,6 +885,131 @@ const deletePact: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
 
+// NUDGE — resend invite notification to a partner who hasn't responded.
+// Only the creator can nudge. Allows one nudge per partner; after the nudge
+// has been sent the client shows a "pick new partner" / "new pact" path once
+// 24 hours have elapsed.
+const nudgePact: RequestHandler = async (req: any, res: any) => {
+    const {
+        locale,
+        userId,
+        userName,
+        authorization,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    const pact = await Store.pacts.getById(id);
+    if (!pact) {
+        return handleHttpError({
+            res,
+            message: `Pact not found with id ${id}`,
+            statusCode: 404,
+        });
+    }
+
+    if (pact.creatorUserId !== userId) {
+        return handleHttpError({
+            res,
+            message: 'Only the pact creator can send a nudge',
+            statusCode: 403,
+        });
+    }
+
+    if (pact.status !== 'pending') {
+        return handleHttpError({
+            res,
+            message: 'Nudge is only available for pending pacts',
+            statusCode: 400,
+        });
+    }
+
+    // Find pending partner members to nudge
+    const members = await Store.pactMembers.getByPactId(id);
+    const pendingPartners = members.filter(
+        (m: any) => m.role === 'partner' && m.status === 'pending',
+    );
+
+    if (pendingPartners.length === 0) {
+        return handleHttpError({
+            res,
+            message: 'No pending partners to nudge',
+            statusCode: 400,
+        });
+    }
+
+    const NUDGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
+    const habitName = habitGoal?.name || 'your habit';
+
+    const nudgeResults = await Promise.allSettled(
+        pendingPartners.map(async (partner: any) => {
+            if (partner.nudgedAt) {
+                const nudgedMs = new Date(partner.nudgedAt).getTime();
+                if (Date.now() - nudgedMs < NUDGE_COOLDOWN_MS) {
+                    return { skipped: true, reason: 'cooldown' };
+                }
+            }
+
+            // Re-dispatch invitation via the same channel as the original invite
+            const dispatchResult = await dispatchPactInvitation({
+                pactMemberId: partner.id,
+                partnerUserId: partner.userId,
+                fromUserName: userName,
+                habitName,
+                brandVariation,
+                whiteLabelOrigin,
+                locale,
+            }).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Error dispatching pact nudge'],
+                    traceArgs: { 'error.message': err?.message },
+                });
+                return { isOnBrand: true };
+            });
+
+            if (dispatchResult.isOnBrand) {
+                // Partner is on Habits — send brand-scoped push
+                sendEmailAndOrPushNotification({
+                    authorization,
+                    locale,
+                    toUserId: partner.userId,
+                    type: PushNotifications.Types.pactNudge,
+                    whiteLabelOrigin,
+                    brandVariation,
+                    partnerName: userName,
+                    pactId: pact.id,
+                    habitName,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error sending pact nudge push notification'],
+                        traceArgs: { 'error.message': err?.message },
+                    });
+                });
+            }
+
+            await Store.pactMembers.markNudged(id, partner.userId);
+            return { nudged: true, partnerId: partner.userId };
+        }),
+    );
+
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: ['Pact nudge dispatched'],
+        traceArgs: { pactId: id, results: JSON.stringify(nudgeResults) },
+    });
+
+    // Return the updated pact with refreshed members
+    const updatedMembers = await Store.pactMembers.getByPactId(id);
+    return res.status(200).send({ ...pact, members: updatedMembers });
+};
+
 export {
     createPact,
     bulkInvitePact,
@@ -892,6 +1017,7 @@ export {
     getUserPacts,
     getActivePacts,
     getPendingInvites,
+    nudgePact,
     acceptPact,
     claimPactInvite,
     declinePact,
