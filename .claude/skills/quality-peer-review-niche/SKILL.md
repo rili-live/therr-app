@@ -1,6 +1,6 @@
 ---
 name: quality-peer-review-niche
-description: Peer review the **new work** on the current niche/* branch (vs origin/<NICHE_BRANCH> on a -general branch, or vs origin/niche/<TAG>-general on a feature branch). Separately detects backend and shared-library leaks against origin/general (these would never reach production via stage→main) and cherry-picks clean backend-only commits introduced on this branch over to general. Implements low-risk improvements, fixes bugs, adds regression tests for bugfixes where valuable, and resolves quality issues. Requires local Docker Compose infrastructure to be running.
+description: Peer review the work about to ship to Google Play on the current niche/* branch (vs origin/niche/<TAG>-main on a -general or -main branch — the merge that triggers the Android Play build — or vs origin/niche/<TAG>-general on a feature branch). Separately detects backend and shared-library leaks against origin/general and cherry-picks clean backend-only commits introduced on this branch over to general. Implements low-risk improvements, fixes bugs, adds regression tests for bugfixes where valuable, and resolves quality issues. Requires local Docker Compose infrastructure to be running.
 user-invocable: true
 allowed-tools: Bash(docker*), Bash(git*), Bash(npx*), Bash(npm*), Bash(node*), Read, Glob, Grep, Edit, Write, Agent
 argument-hint: [--dry-run]
@@ -8,20 +8,26 @@ argument-hint: [--dry-run]
 
 # Peer Review: niche/* new work
 
-Perform a structured peer review of the **new work** on the current `niche/*` branch — scoped to unpushed commits + uncommitted changes when on `niche/<TAG>-general`, or to commits unique to the feature branch when on `niche/<TAG>-feature-*`. Separately detects and remediates backend / shared-library leaks introduced on this branch (compared to `origin/general`) by cherry-picking them over. This skill is intended to run **locally** with Docker Compose infrastructure active. It will not run automatically — you must invoke it explicitly.
+Perform a structured peer review of the work **about to ship to Google Play** on the current `niche/*` branch — scoped to whatever the next merge into `niche/<TAG>-main` would carry (that merge triggers the Android Play Store build), plus any uncommitted changes. Concretely: on `niche/<TAG>-general` (or `niche/<TAG>-main`) the review base is `origin/niche/<TAG>-main`; on a feature branch (`niche/<TAG>-feature-*`) it is `origin/niche/<TAG>-general`. The intent is to catch issues **before** the merge that kicks off a production Android build. Separately detects and remediates backend / shared-library leaks introduced on this branch (compared to `origin/general`) by cherry-picking them over. This skill is intended to run **locally** with Docker Compose infrastructure active. It will not run automatically — you must invoke it explicitly.
 
 **`--dry-run`**: Analyze and report findings without making any code changes, commits, cherry-picks, or running tests.
 
 ## Why this skill exists (read first)
 
-The deploy pipeline only runs on `stage → main`. Niche branches never merge into `stage`. Therefore:
+There are **two** deploy pipelines, and the niche branch sits on only one of them:
 
-- **Backend service code** (`therr-services/*`, `therr-api-gateway/*`)
-- **Shared library code** (`therr-public-library/*`)
-- **Database migrations**
-- **Shared infrastructure** (root `package.json`, `docker-compose*.yml`, `_bin/*`)
+- **Backend / web / shared-services deploy** runs on `general → stage → main`. Niche branches never merge into `stage`.
+- **Mobile (Android) deploy** runs on `niche/<TAG>-general → niche/<TAG>-main`, which triggers a **Google Play Store build** of the niche app. The mobile build bundles the niche branch's `TherrMobile/*` plus the **compiled** `therr-react` / `therr-js-utilities` it imports.
 
-…committed only to a niche branch is **dead code** — it will never reach production. All such changes must live on `general` instead. This skill's primary job is detecting these leaks and lifting clean ones over to `general`. Niche-appropriate work (mobile branding, brand-specific web views, brand assets, brand-specific config) stays on the niche branch.
+This gives the skill two jobs:
+
+1. **Pre-Play-build review (primary).** Review everything the next merge into `niche/<TAG>-main` would carry into a production Android build — catch bugs, regressions, and backwards-compatibility breaks **before** they reach users on Google Play. This is the diff against `origin/niche/<TAG>-main`.
+
+2. **Leak detection (against `origin/general`).** Some paths can never reach production correctly from a niche branch and must live on `general`:
+   - **Backend service code** (`therr-services/*`, `therr-api-gateway/*`), **database migrations**, and **shared infrastructure** (root `package.json`, `docker-compose*.yml`, `_bin/*`) — these are **dead code** on a niche branch. The mobile Play build does not run them; only `general → stage → main` deploys the backend. The mobile app calls these APIs over HTTP against the production backend, so the niche branch's copy never executes.
+   - **Shared library code** (`therr-public-library/*`) is a special case: it **does** get bundled into the Android Play build (mobile imports it), but it is **also** consumed by the web clients and backend that deploy via `general`. Landing a shared-lib change only on the niche branch ships it to mobile while leaving web/backend on the old version — a silent divergence. So shared-lib changes still belong on `general` first (then merged down), and the skill still flags them as leaks.
+
+   This skill's leak job is detecting these and lifting clean backend/shared commits over to `general`. Niche-appropriate work (mobile branding, brand-specific web views, brand assets, brand-specific config) stays on the niche branch.
 
 ---
 
@@ -125,11 +131,12 @@ If `general` doesn't exist on origin, report it and stop:
 
 This skill uses **two separate diff bases** because leak detection and peer review answer different questions:
 
-- **`<REVIEW_BASE>`** — the peer-review base. Scopes Steps 3–7 to **only the new work on this branch**, not everything that's ever lived on the niche line.
-  - On a main niche branch (`niche/<TAG>-general`): `<REVIEW_BASE>` = `origin/<NICHE_BRANCH>`. Review covers unpushed commits + uncommitted changes.
-  - On a feature branch off a niche line (e.g. `niche/HABITS-feature-foo`): `<REVIEW_BASE>` = `origin/niche/<TAG>-general`. Review covers commits unique to the feature branch + uncommitted changes.
+- **`<REVIEW_BASE>`** — the peer-review base. Scopes Steps 3–7 to **the work about to ship to Google Play**, not everything that's ever lived on the niche line.
+  - On a deploy-track niche branch (`niche/<TAG>-general` or `niche/<TAG>-main`): `<REVIEW_BASE>` = `origin/niche/<TAG>-main`. Review covers everything the next merge into `-main` would carry into a production Android build, plus uncommitted changes. (When the current branch *is* `niche/<TAG>-main`, this naturally reduces to unpushed commits + uncommitted changes.)
+  - On a feature branch off a niche line (e.g. `niche/HABITS-feature-foo`): `<REVIEW_BASE>` = `origin/niche/<TAG>-general`. Review covers commits unique to the feature branch + uncommitted changes (the pre-`-general`-merge review).
+  - **Fallback:** if `origin/niche/<TAG>-main` does not exist (the niche has no Android deploy branch yet), fall back to `<REVIEW_BASE>` = `origin/<NICHE_BRANCH>` (unpushed commits + uncommitted changes) and note in the report that no `-main` deploy branch was found.
 
-- **`origin/general`** — the leak-detection base. Backend / shared-library leaks are dead code regardless of which niche sub-branch introduced them. Used in Step 2 only.
+- **`origin/general`** — the leak-detection base. Backend leaks are dead code, and shared-library leaks diverge mobile from web/backend, regardless of which niche sub-branch introduced them. Used in Step 2 only.
 
 #### Determine `<REVIEW_BASE>`
 
@@ -145,8 +152,9 @@ If extraction fails (output equals input or is empty), warn and stop:
    Expected pattern: niche/<TAG>-... (e.g. niche/HABITS-general, niche/TEEM-feature-foo).
 ```
 
-Fetch the parent niche branch from origin so the comparison is fresh:
+Fetch both the `-main` (Android deploy) and `-general` (parent) branches from origin so the comparison is fresh:
 ```bash
+git fetch origin niche/${NICHE_TAG}-main 2>&1     # may not exist for every niche
 git fetch origin niche/${NICHE_TAG}-general 2>&1
 ```
 
@@ -155,8 +163,15 @@ If `niche/<TAG>-general` doesn't exist on origin, report and stop:
 ⛔ Cannot diff: branch 'niche/<TAG>-general' not found on origin.
 ```
 
+Check whether the `-main` deploy branch exists:
+```bash
+git ls-remote --heads origin niche/${NICHE_TAG}-main 2>&1
+```
+
 Set the review base:
-- If `<NICHE_BRANCH>` == `niche/${NICHE_TAG}-general`: `<REVIEW_BASE>` = `origin/<NICHE_BRANCH>`
+- If `<NICHE_BRANCH>` is `niche/${NICHE_TAG}-general` **or** `niche/${NICHE_TAG}-main`:
+  - If `origin/niche/${NICHE_TAG}-main` exists: `<REVIEW_BASE>` = `origin/niche/${NICHE_TAG}-main` (the Android Play-build gate — review everything the next merge into `-main` would ship).
+  - Otherwise (no `-main` deploy branch yet): `<REVIEW_BASE>` = `origin/<NICHE_BRANCH>` (fallback — unpushed + uncommitted). Note this in the report.
 - Otherwise (feature branch): `<REVIEW_BASE>` = `origin/niche/${NICHE_TAG}-general`
 
 #### Build the review diff (drives Steps 3–7)
@@ -191,6 +206,12 @@ git log --oneline HEAD..origin/niche/${NICHE_TAG}-general 2>&1
 ```
 If non-empty, note it — the feature branch should consider merging the parent niche branch in.
 
+If reviewing against `-main` (deploy-track branch), check whether `-main` has commits this branch lacks — e.g. a hotfix landed directly on `-main`:
+```bash
+git log --oneline HEAD..origin/niche/${NICHE_TAG}-main 2>&1
+```
+If non-empty, note it — the deploy-track branch should merge `-main` back in before shipping so the Play build doesn't drop the hotfix.
+
 #### No-op short-circuit
 
 If the review diff is empty AND no leaked files exist against `origin/general` (Step 2a will compute these — for the short-circuit, do a quick `git diff origin/general --name-only` and grep for must-be-on-general paths):
@@ -205,14 +226,14 @@ If the review diff is empty but pre-existing leaks exist on the broader niche li
 #### Summary
 
 Print:
-- Review base used: `<REVIEW_BASE>`
+- Review base used: `<REVIEW_BASE>` (and whether it's the `-main` Play-build gate, the `-general` parent, or the `-main`-missing fallback)
 - Leak base: `origin/general`
-- Number of commits ahead of `<REVIEW_BASE>` (review scope)
+- Number of commits ahead of `<REVIEW_BASE>` (review scope — for a deploy-track branch, this is **what the next Play build would ship**)
 - Number of commits ahead of `origin/general` (full niche divergence — informational)
 - Files changed in review scope (from `--stat`)
 - Whether unstaged/staged-but-uncommitted changes are included
 - Which packages the review touches (TherrMobile/*, therr-client-web/*, therr-services/*, etc.)
-- Whether the branch is behind `origin/general` and/or behind its parent niche branch
+- Whether the branch is behind `origin/general`, behind `-main` (hotfix not merged back), and/or behind its parent niche branch
 
 ---
 
@@ -424,7 +445,9 @@ For mixed commits, do **not** rewrite history (the niche branch may have been pu
 
 ## Step 3: Backwards compatibility analysis
 
-Even after backend leaks have been moved to `general`, the niche branch still ships frontend/mobile updates that must remain backwards compatible with the API version currently deployed. Mobile apps especially cannot be force-updated.
+Even after backend leaks have been moved to `general`, the niche branch still ships frontend/mobile updates that must remain backwards compatible with the API version currently deployed. This step is the whole point of gating against `-main`: the merge into `niche/<TAG>-main` builds and submits the Android app to Google Play, and **mobile apps cannot be force-updated** — a client that depends on an API or shared-lib change still riding the slower `general → stage → main` backend pipeline will be broken in production until that backend ships. The mobile (Play) and backend (`main`) pipelines run independently, so the mobile release can land *first*.
+
+The cardinal rule: **do not let the Play build go out ahead of the backend it depends on.**
 
 Flag any of the following as **breaking risk**:
 
@@ -610,6 +633,9 @@ take after this review** — items code alone cannot complete.
 
 Examples specific to niche peer reviews:
 
+- Merging `niche/<TAG>-general → niche/<TAG>-main` to trigger the Android
+  Play Store build — only after any backend/shared-lib dependency has
+  shipped (see Step 3), so the mobile release doesn't outrun its API
 - Pushing `general` (after reviewing cherry-picked backend commits)
 - Committing uncommitted backend changes left in `general`'s working tree
 - Manually splitting mixed commits identified in Step 2
@@ -659,13 +685,14 @@ and surface the items only in the final report.
 Output a structured summary:
 
 ```
-## Peer Review Summary: <NICHE_BRANCH> → general
+## Peer Review Summary: <NICHE_BRANCH> → <REVIEW_BASE target> (pre-Play-build)
 
 ### Diff Scope
-  Review base:                       <REVIEW_BASE>
-  Commits ahead of <REVIEW_BASE>:    <N>  (review scope)
+  Review base:                       <REVIEW_BASE>  (<-main Play-build gate | -general parent | -main-missing fallback>)
+  Commits ahead of <REVIEW_BASE>:    <N>  (review scope — what the next Android Play build would ship)
   Commits ahead of origin/general:   <N>  (full niche divergence — informational)
   Behind origin/general by:          <N> commits  (consider merging general → niche)
+  Behind -main by:                   <N> commits  (hotfix on -main not merged back — merge before shipping)  [deploy-track branches only]
   Behind parent niche by:            <N> commits  (consider merging parent → branch)  [feature branches only]
   Niche packages affected:           <list>
   Unstaged/staged local changes:     <yes/no>
@@ -703,6 +730,8 @@ Output a structured summary:
   <"✓ Passed — 0 lint errors, 0 type errors" or list of remaining issues>
 
 ### Manual Steps Required After This Review
+  - Merge to trigger the Android Play build (only after backend deps ship):
+      git checkout niche/<TAG>-main && git merge niche/<TAG>-general && git push origin niche/<TAG>-main
   - Push general (after reviewing cherry-picked commits):
       git checkout general && git push origin general
   - Commit any uncommitted backend changes left on general's working tree
