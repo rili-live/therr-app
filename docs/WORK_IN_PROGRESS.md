@@ -130,6 +130,11 @@ append new items here rather than only printing them once.
   the deployment manifest's env block, services silently fall back to the
   `therr-api` default — still internally consistent, so issuer-based cross-env token
   separation would be inactive without any error surfacing. Verify, don't assume.
+- [ ] (2026-06-08, /quality-peer-review) Run the
+  `20260517000001_habits.pact_members.nudgedAt` migration on production
+  (users-service: `npm run migrations:run`) after deploying — adds the nullable
+  `habits.pact_members.nudgedAt` column the new pact-nudge endpoint writes to via
+  `markNudged`. Without it, every nudge call 500s on the `markNudged` update.
 <!-- skill-followups:end -->
 
 ---

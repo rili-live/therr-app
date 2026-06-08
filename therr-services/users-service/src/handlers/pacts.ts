@@ -973,7 +973,7 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
 
             if (dispatchResult.isOnBrand) {
                 // Partner is on Habits — send brand-scoped push
-                sendEmailAndOrPushNotification({
+                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                     authorization,
                     locale,
                     toUserId: partner.userId,
