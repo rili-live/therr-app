@@ -32,6 +32,7 @@ const handleServiceRequest = ({
             'x-organizations': req.headers['x-organizations'] || req['x-organizations'] || '',
             'x-therr-origin-host': req.headers.origin?.match(hostRegex)?.[1] || '',
             'x-auth-type': req['x-auth-type'] || '',
+            'x-correction-identity-hash': req.headers['x-correction-identity-hash'] || '',
         },
         method,
         url: `${basePath}${overrideUrl || req.url}`,

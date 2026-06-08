@@ -44,6 +44,13 @@
     "linkCopied": "¡Enlace copiado!"
   },
   "components": {
+    "incompleteProfileBanner": {
+      "title": "Completa tu perfil",
+      "message": "Agrega tu nombre para que tus amigos puedan reconocerte",
+      "addName": "Agregar tu nombre",
+      "dismiss": "Descartar",
+      "inlinePrompt": "Agrega tu nombre para que tus amigos puedan reconocerte y conectar contigo más fácilmente."
+    },
     "tile": {
       "untitled": "Sin título",
       "saveToList": "Guardar en lista"
@@ -163,14 +170,17 @@
         "termsAndConditions": "Acepto los términos y condiciones",
         "userName": "Nombre de usuario",
         "mySweet": "¿Eres dulce?",
-        "inviteCode": "Código de invitación"
+        "inviteCode": "Código de invitación",
+        "birthdate": "Fecha de nacimiento"
       },
       "validationErrors": {
         "phoneNumber": "Número de teléfono inválido"
       },
       "text": {
         "signupForRewards": "Regístrate con el código de invitación de {userName}: ¡ellos ganan 10 monedas y tú ganas 5!",
-        "inviteCodeHint": "Introduce el código de invitación de un amigo para ganar monedas extra"
+        "inviteCodeHint": "Introduce el código de invitación de un amigo para ganar monedas extra",
+        "birthdateHint": "Debes tener al menos {minAge} años para usar Therr",
+        "birthdateTooYoung": "Debes tener al menos {minAge} años para registrarte"
       },
       "sso": {
         "orDivider": "o",
@@ -964,6 +974,38 @@
         "submitButton": "Enviar reseña",
         "successMessage": "Tu reseña ha sido enviada. ¡Gracias!",
         "errorMessage": "Hubo un error al enviar tu reseña. Por favor, intenta de nuevo."
+      },
+      "suggestEdit": {
+        "trigger": "Sugerir una edición",
+        "title": "Sugerir una edición",
+        "description": "¿Viste información incorrecta? Sugiere una corrección. La aplicaremos cuando varias personas estén de acuerdo.",
+        "fieldLabel": "¿Qué necesita actualización?",
+        "valueLabel": "Valor correcto",
+        "phoneOption": "Número de teléfono",
+        "websiteOption": "Sitio web",
+        "phonePlaceholder": "+34 600 000 000",
+        "websitePlaceholder": "https://ejemplo.com",
+        "normalizedPreview": "Se guardará como",
+        "invalidValue": "Ese valor no parece correcto. Por favor, revisa el formato.",
+        "submit": "Enviar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "appliedMessage": "¡Gracias! Tu corrección ha sido aplicada.",
+        "pendingMessage": "¡Gracias! Necesitamos {remaining} confirmación(es) más antes de aplicar este cambio.",
+        "ownerClaimedMessage": "¡Gracias! Este negocio tiene un propietario — le hemos reenviado tu sugerencia.",
+        "errorMessage": "Algo salió mal al enviar tu sugerencia. Por favor, intenta de nuevo.",
+        "errors": {
+          "EMPTY_URL": "Por favor, introduce un sitio web.",
+          "INVALID_URL": "Eso no parece una URL válida.",
+          "EMPTY_PHONE": "Por favor, introduce un número de teléfono.",
+          "INVALID_PHONE": "Eso no parece un número de teléfono válido.",
+          "PHONE_NOT_STRING": "El número de teléfono debe ser texto.",
+          "URL_NOT_STRING": "El sitio web debe ser texto.",
+          "INVALID_HOURS_SHAPE": "El formato del horario no es válido.",
+          "INVALID_HOURS_SCHEMA": "El esquema del horario no es válido.",
+          "INVALID_HOURS_TIMEZONE": "La zona horaria no es válida.",
+          "UNSUPPORTED_FIELD": "Ese campo no se puede editar."
+        }
       },
       "claimSpace": {
         "title": "¿Es este tu negocio?",

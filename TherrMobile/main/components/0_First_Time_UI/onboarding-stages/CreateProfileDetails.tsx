@@ -153,13 +153,16 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
             }
             <View style={themeSettingsForm.styles.submitButtonContainer}>
                 <Button
-                    buttonStyle={themeForms.styles.button}
+                    buttonStyle={themeForms.styles.buttonPrimary}
+                    disabledStyle={themeForms.styles.buttonDisabled}
+                    titleStyle={themeForms.styles.buttonTitle}
+                    disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                     title={translate(
                         'forms.createProfile.buttons.submit'
                     )}
                     onPress={() => onSubmit(false)}
                     disabled={isFormDisabled}
-                    raised={true}
+                    raised={false}
                 />
             </View>
         </View>

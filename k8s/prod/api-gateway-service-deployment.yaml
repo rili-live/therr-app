@@ -136,8 +136,17 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        - name: JWT_ISSUER
+          value: "https://api.therr.com"
+        - name: JWT_AUDIENCE
+          value: "therr-app"
         - name: JWT_EMAIL_SECRET
           valueFrom:
             secretKeyRef:
               name: therrjwtemailsecret
               key: THERRJWT_EMAIL_SECRET
+        - name: CORRECTION_IDENTITY_SALT
+          valueFrom:
+            secretKeyRef:
+              name: correction-identity-salt
+              key: CORRECTION_IDENTITY_SALT

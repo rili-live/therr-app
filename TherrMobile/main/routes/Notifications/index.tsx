@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, RefreshControl, FlatList, Text, View } from 'react-native';
+import { Pressable, RefreshControl, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -66,7 +67,7 @@ class Notifications extends React.Component<
     INotificationsProps,
     INotificationsState
 > {
-    private flatListRef: any;
+    private flatListRef: FlashList<any> | null = null;
     private translate: Function;
     private theme = buildStyles();
     private themeForms = buildFormStyles();
@@ -283,7 +284,7 @@ class Notifications extends React.Component<
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
-                    <FlatList
+                    <FlashList<any>
                         data={notifications.messages || []}
                         keyExtractor={(item) => String(item.id)}
                         ListHeaderComponent={notifications.messages?.length ? (
@@ -310,15 +311,13 @@ class Notifications extends React.Component<
                         ListEmptyComponent={<ListEmpty iconName="bell" theme={this.theme} text={this.translate(
                             'pages.notifications.noNotifications'
                         )} />}
-                        ref={(component) => (this.flatListRef = component)}
+                        ref={(component) => { this.flatListRef = component; }}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefresh}
                         />}
-                        style={notificationStyles.container}
-                        initialNumToRender={8}
-                        maxToRenderPerBatch={5}
-                        windowSize={11}
+                        contentContainerStyle={notificationStyles.flashListContentContainer}
+                        estimatedItemSize={88}
                     />
                 </SafeAreaView>
                 <MainButtonMenu

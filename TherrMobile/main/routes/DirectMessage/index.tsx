@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, View, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/BaseButton';
@@ -65,7 +66,7 @@ class DirectMessage extends React.Component<
     IDirectMessageProps,
     IDirectMessageState
 > {
-    private flatListRef: any;
+    private flatListRef: FlashList<any> | null = null;
     private translate: Function;
     private theme = buildStyles();
     private themeForms = buildFormsStyles();
@@ -235,48 +236,46 @@ class DirectMessage extends React.Component<
                                     <LoadingPlaceholder />
                                     <LoadingPlaceholder />
                                 </View> :
-                                <FlatList
-                                    data={dms}
-                                    inverted
-                                    keyExtractor={(item) => String(item.id || item.key)}
-                                    renderItem={({ item, index }) => {
-                                        // Prefer fromUserId when available (authoritative); fall back
-                                        // to the 'you' name convention for messages cached before
-                                        // fromUserId started being persisted.
-                                        const isFromMe = item.fromUserId
-                                            ? item.fromUserId === user.details?.id
-                                            : !!item.fromUserName?.toLowerCase().includes('you');
-                                        return (
-                                            <TextMessage
-                                                connectionDetails={connectionDetails}
-                                                goToUser={this.goToUser}
-                                                userDetails={user.details}
-                                                message={item}
-                                                isLeft={!isFromMe}
-                                                isFirstOfMessage={this.isFirstOfMessage(dms, index)}
-                                                theme={this.theme}
-                                                themeMessage={this.themeMessage}
-                                                translate={this.translate}
-                                            />
-                                        );
-                                    }}
-                                    ref={(component) => (this.flatListRef = component)}
-                                    style={this.theme.styles.stretch}
-                                    // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
-                                    onEndReached={this.tryLoadMore}
-                                    onEndReachedThreshold={0.5}
-                                    initialNumToRender={15}
-                                    maxToRenderPerBatch={10}
-                                    windowSize={11}
-                                    ListEmptyComponent={<View>
-                                        <ListEmpty theme={this.theme} text={this.translate(
-                                            'pages.directMessage.noMessagesFound',
-                                            {
-                                                userName: connectionDetails.userName,
-                                            }
-                                        )} />
-                                    </View>}
-                                />
+                                <View style={spacingStyles.flex}>
+                                    <FlashList<any>
+                                        data={dms}
+                                        inverted
+                                        keyExtractor={(item) => String(item.id || item.key)}
+                                        renderItem={({ item, index }) => {
+                                            // Prefer fromUserId when available (authoritative); fall back
+                                            // to the 'you' name convention for messages cached before
+                                            // fromUserId started being persisted.
+                                            const isFromMe = item.fromUserId
+                                                ? item.fromUserId === user.details?.id
+                                                : !!item.fromUserName?.toLowerCase().includes('you');
+                                            return (
+                                                <TextMessage
+                                                    connectionDetails={connectionDetails}
+                                                    goToUser={this.goToUser}
+                                                    userDetails={user.details}
+                                                    message={item}
+                                                    isLeft={!isFromMe}
+                                                    isFirstOfMessage={this.isFirstOfMessage(dms, index)}
+                                                    theme={this.theme}
+                                                    themeMessage={this.themeMessage}
+                                                    translate={this.translate}
+                                                />
+                                            );
+                                        }}
+                                        ref={(component) => { this.flatListRef = component; }}
+                                        onEndReached={this.tryLoadMore}
+                                        onEndReachedThreshold={0.5}
+                                        estimatedItemSize={60}
+                                        ListEmptyComponent={<View>
+                                            <ListEmpty theme={this.theme} text={this.translate(
+                                                'pages.directMessage.noMessagesFound',
+                                                {
+                                                    userName: connectionDetails.userName,
+                                                }
+                                            )} />
+                                        </View>}
+                                    />
+                                </View>
                         }
                         <View style={this.themeMessage.styles.sendInputsContainer}>
                             <RoundInput

@@ -195,15 +195,18 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                             theme={theme}
                             themeForms={themeForms}
                         />
-                        <View style={themeSettingsForm.styles.submitButtonContainer}>
+                        <View style={[themeSettingsForm.styles.submitButtonContainer, localStyles.verifyButtonContainer]}>
                             <Button
-                                buttonStyle={themeForms.styles.button}
+                                buttonStyle={themeForms.styles.buttonPrimary}
+                                disabledStyle={themeForms.styles.buttonDisabled}
+                                titleStyle={themeForms.styles.buttonTitle}
+                                disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                                 title={translate(
                                     'forms.createProfile.buttons.verifyNow'
                                 )}
                                 onPress={this.onSubmitVerifyPhone}
                                 disabled={isFormDisabled || isSubmitting}
-                                raised={true}
+                                raised={false}
                             />
                         </View>
                         {/* <View style={themeSettingsForm.styles.submitButtonContainer}>
@@ -243,13 +246,16 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                                 maxLength={6}
                             />
                             <Button
-                                buttonStyle={themeForms.styles.button}
+                                buttonStyle={[themeForms.styles.buttonPrimary, localStyles.submitCodeButton]}
+                                disabledStyle={themeForms.styles.buttonDisabled}
+                                titleStyle={themeForms.styles.buttonTitle}
+                                disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                                 title={translate(
                                     'forms.createProfile.buttons.submitCode'
                                 )}
                                 onPress={this.onSubmitCode}
                                 disabled={isFormDisabled || isSubmitting}
-                                raised={true}
+                                raised={false}
                             />
                             <Button
                                 type="clear"
@@ -269,6 +275,12 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
 }
 
 const localStyles = StyleSheet.create({
+    verifyButtonContainer: {
+        marginTop: 24,
+    },
+    submitCodeButton: {
+        marginTop: 24,
+    },
     resendCodeButton: {
         marginTop: 10,
     },

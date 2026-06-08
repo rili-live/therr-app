@@ -87,18 +87,6 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
-- [ ] (2026-04-27, /quality-peer-review) Run users-service migrations on production
-  (`20260425000001_main.users.brandVariations_v2`,
-  `20260425000002_main.notifications.brandVariation`,
-  `20260425000003_main.userDeviceTokens`,
-  `20260426000001_main.userAchievements.brandVariation`) — Phase 2/5 multi-app
-  data isolation; brand-scoped reads will filter to zero rows until columns/tables
-  exist with the 'therr' default backfill.
-- [ ] (2026-04-27, /quality-peer-review) Run messages-service migrations on production
-  (`20260425000004_main.directMessages.brandVariation`,
-  `20260425000005_main.forums.brandVariation`,
-  `20260425000006_main.forumMessages.brandVariation`) — Phase 3 multi-app
-  isolation; same reasoning.
 - [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
   account env vars on push-notifications-service production
   (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
@@ -115,45 +103,17 @@ append new items here rather than only printing them once.
   (mobile clients have re-registered against `main.userDeviceTokens`), drop the
   legacy `users.deviceMobileFirebaseToken` column in a follow-up migration —
   documented in `20260425000003_main.userDeviceTokens` migration header.
-- [ ] (2026-04-28, /quality-peer-review) Run users-service migration
-  `20260427000001_main.thoughts.brandVariation` on production before deploying
-  this `general` merge. Adds `brandVariation` (NOT NULL DEFAULT 'therr') +
-  index `idx_thoughts_brand_variation` to `main.thoughts`. Therr-brand reads
-  preserve "see everything" via the `BRAND_THOUGHTS_VISIBILITY` allowlist, but
-  HABITS/TEEM reads will reference the column and 500 until the column exists.
-- [ ] (2026-05-07, /quality-peer-review) Run users-service migration
-  `20260428000001_habits.habit_goals_addGoalType` on production before deploying
-  this `general` merge. Adds `goalType` (NOT NULL DEFAULT 'build_good') +
-  index to `habits.habit_goals`. Backwards-compatible (legacy rows backfill to
-  `build_good`), but new pact-completion logic and goal-type-specific
-  achievement ladders (cleanBreak, treasureBuilder) read this column —
-  pact-create / habit-checkin handlers will 500 until it exists.
 - [ ] (2026-05-07, /quality-peer-review) (Optional) Set
   `HABITS_FREE_PACT_LIMIT` env var on production users-service if you want to
   override the default of 5. Project brief target is 1 once HABITS payment
   workflow is live and users can actually upgrade — see
   `docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md`. Lowering before
   payments ship will block early HABITS adopters from creating pacts.
-- [ ] (2026-05-07, /quality-peer-review) Provision the HABITS Android upload
-  keystore on the build server: set `HABITS_UPLOAD_STORE_FILE`,
-  `HABITS_UPLOAD_STORE_PASSWORD`, `HABITS_UPLOAD_KEY_ALIAS`,
-  `HABITS_UPLOAD_KEY_PASSWORD` in `~/.gradle/gradle.properties`. Without
-  these, release builds for `com.therr.habits` will be unsigned and rejected
-  by Play Console. (Therr / `MYAPP_*` vars stay in place — the new gradle
-  block falls through to them when `applicationId` doesn't match the
-  per-brand prefix map.)
 - [ ] (2026-05-07, /quality-peer-review) Add new SSR routes to
   `habits.therr.com` sitemap if applicable (`/login`, `/verify-account`,
   `/emails/unsubscribe` — these are `noindex` so likely skip, but the
   sitemap-generator script may still emit them). Re-submit sitemap to Search
   Console after deploy.
-- [ ] (2026-05-10, /quality-peer-review) Run users-service migration
-  `20260509000001_habits.pact_members.claimToken` on production before
-  deploying this `general` merge. Adds `claimToken`/`claimCode`/
-  `claimTokenExpiresAt`/`invitedVia` columns + partial unique index to
-  `habits.pact_members` for cross-app pact invite redemption. Until the
-  migration runs, `dispatchPactInvitation` writes (createPact + bulkInvitePact
-  cross-app paths) will 500 on column-missing errors.
 - [ ] (2026-05-10, /quality-peer-review) Add `/claim-pact/:token` to
   `habits.therr.com` sitemap if you want Search Console coverage (likely
   skip — the page is a transient install bouncer, not indexable content),
@@ -161,6 +121,15 @@ append new items here rather than only printing them once.
   `assetlinks.habits.json` once habits.therr.com serves it (visit
   `https://habits.therr.com/.well-known/assetlinks.json` and re-run the
   Play Console "App links" check for `com.therr.habits`).
+- [ ] (2026-06-05, /quality-peer-review) After deploying the JWT claims-hardening
+  change (general→stage→main), confirm `JWT_ISSUER` / `JWT_AUDIENCE` env vars are
+  actually present on the running prod pods for users-service, api-gateway, and
+  websocket-service (`kubectl describe deploy ... | grep JWT_`). The signer and all
+  verifiers must agree per-environment (`https://api.therr.com` in prod, `therr-app`
+  audience everywhere); if the deploy pipeline updated the image but did not re-apply
+  the deployment manifest's env block, services silently fall back to the
+  `therr-api` default — still internally consistent, so issuer-based cross-env token
+  separation would be inactive without any error surfacing. Verify, don't assume.
 <!-- skill-followups:end -->
 
 ---
@@ -179,19 +148,7 @@ The space landing page **is** the B2B sales pitch. Missing OG/meta on
 sibling content types (moments, user profiles) leaks indexing weight and
 breaks share previews from claim-emails.
 
-- `therr-client-web/src/server-client.tsx:849` — Mimic best-SEO practices for
-  moment SSR meta tags
-- `therr-client-web/src/server-client.tsx:940` — Mimic best-SEO practices for
-  space SSR meta tags
-- `therr-client-web/src/server-client.tsx:1378` — Mimic best-SEO practices for
-  user-profile SSR meta tags
-- `therr-client-web/src/server-client.tsx:1384` — Use an image optimized for
-  the OG `meta` image (current path uses unsized media)
-- `therr-client-web/src/routes/ListSpaces.tsx:31` — Geo-targeted meta tags +
-  URL slugs for category/location landing (compounds with city-category page
-  work in `docs/GROWTH_STRATEGY.md` Priority 7)
-- `therr-client-web/src/server-client.tsx:1892` — Locale-first guide rendering
-  per `docs/CONTENT_LOCALE_FIRST_PLAN.md`
+_All open Tier 1.1 items closed (2026-05-11)._
 
 ### 1.2 Spoofable / unauthenticated mutation endpoints
 
@@ -394,6 +351,74 @@ service or burning unbounded cost.
   duplicate requests; throttle
 - `TherrMobile/main/routes/Map/index.tsx:1247` — Consolidate multiple map
   requests into one dynamic request
+- `TherrMobile/main/routes/Map/index.tsx:207-209` — `mapStateToProps`
+  returns new `{}` fallbacks every render (`reactions || {}` etc.); freeze
+  module-level empties so child memoization isn't defeated on every state
+  update
+- `TherrMobile/main/routes/Map/TherrMapView.tsx` — wrap per-marker render
+  output in a `React.memo`'d component keyed by stable id; the
+  `events.map` / `moments.map` / `spaces.map` projections are unmemoized
+  and re-run on every parent render
+- `TherrMobile/main/routes/Notifications/index.tsx` — migrate `FlatList`
+  to `@shopify/flash-list` (already in deps, currently zero usages),
+  memoize the `Notification` row component, add `removeClippedSubviews`
+- `TherrMobile/main/routes/Connect/index.tsx` — migrate to FlashList
+- `TherrMobile/main/routes/DirectMessage/index.tsx` — migrate to FlashList
+- `TherrMobile/main/routes/Groups/index.tsx`,
+  `routes/Areas/AreaCarousel.tsx`, `routes/Areas/MyLists.tsx`,
+  `routes/ManageSpaces/index.tsx`,
+  `routes/Invite/components/CreateConnection.tsx` — props-only FlatList
+  tuning: `removeClippedSubviews`, `windowSize`, `maxToRenderPerBatch`,
+  `initialNumToRender`, `getItemLayout` where row height is constant; wrap
+  rows in `React.memo`
+- ~~New `TherrMobile/main/utilities/signedUrlCache.ts`~~ — *investigated
+  and dropped*: Map already dedupes via the Redux `content.media` cache
+  before calling `MapsService.fetchMedia`
+  (`TherrMobile/main/routes/Map/TherrMapView.tsx:573`), and each Edit
+  upload constructs a unique filename from the message text so an LRU
+  keyed on filename never hits. Caching completed signed URLs would
+  also be unsafe on retry (returns the failed URL). The remaining
+  "image signing too slow" cost is the network round-trip itself —
+  fix is server-side (e.g., pre-warm S3 credentials or move signing
+  in-process) rather than a client cache
+- `TherrMobile/main/routes/Map/index.tsx` `componentDidMount` — wrap
+  non-critical socket subscriptions, analytics setup, and reaction
+  prefetches in `InteractionManager.runAfterInteractions(...)` to defer
+  work off the cold-start critical path
+- `TherrMobile/main/getStore.tsx` — verify `redux-logger@3.0.6` is gated
+  on `__DEV__`; confirm production bundle from `npm run ios:bundle:release`
+  does not contain it
+
+### 3.3.1 Mobile New Architecture follow-ups
+
+Higher-value items deferred from the cheap-wins batch above because they
+cross either the dependency-bump or migration-step risk threshold. Land
+these after items in 3.3 are merged and a perf baseline is captured.
+
+- Replace `AsyncStorage` in `redux-persist` with `react-native-mmkv`
+  (already in deps at 3.3.3). 10–50× faster cold reads; needs a one-shot
+  persisted-state migration step on first launch after the swap.
+- Adopt `@shopify/flash-list` across the remaining ~26 `FlatList` usages
+  beyond the three hot screens already in 3.3.
+- `TherrMobile/main/components/BaseImage.tsx` — replace RN `Image` with a
+  caching image component (`expo-image` or `react-native-fast-image`) for
+  persistent disk cache; touches 24+ call sites and changes loading-state
+  semantics, so audit each consumer.
+- iOS New Architecture enablement: explicit `:fabric_enabled => true` and
+  `:new_arch_enabled => true` in `TherrMobile/ios/Podfile`; per-pod
+  Fabric-compat audit (react-native-maps, lottie-react-native,
+  react-native-linear-gradient, react-native-image-crop-picker,
+  react-native-webview).
+- Replace deprecated `react-native-image-crop-picker@0.51.1` (used in
+  Map and 5 Edit* screens) with a maintained Fabric-compatible
+  alternative.
+- Bump `react-native-linear-gradient` 2.8.3 → 3.x (Fabric support).
+- Audit `lottie-react-native@7.3.5` Fabric path on Android with New Arch
+  on; today only one usage in `Map/index.tsx`.
+- Promote React Compiler from annotation mode (`'use memo'` opt-in) to
+  `infer` mode on selected route trees once per-marker memoization and
+  list migrations are merged so Compiler-generated memo doesn't fight
+  hand-written memo.
 
 ### 3.4 Resilience & error paths
 

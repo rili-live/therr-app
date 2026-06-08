@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, FlatList, Text, View } from 'react-native';
+import { Dimensions, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -122,9 +123,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     private themeForms = buildFormsStyles();
     private themeCategory = buildCategoryStyles();
     private unsubscribeFocusListener;
-    private peopleListRef;
-    private connectionsListRef;
-    private messagesListRef;
+    private peopleListRef: FlashList<any> | null = null;
+    private connectionsListRef: FlashList<any> | null = null;
+    private messagesListRef: FlashList<any> | null = null;
 
     constructor(props) {
         super(props);
@@ -489,7 +490,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 } = this.sortUsers();
 
                 return (
-                    <FlatList
+                    <FlashList
                         ref={(component) => { this.peopleListRef = component; }}
                         data={people}
                         keyExtractor={(item) => String(item.id)}
@@ -532,7 +533,6 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
                             'components.contactsSearch.noUsersFound'
                         )} />}
-                        stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshingUserSearch}
                             onRefresh={this.handleRefreshUsersSearch}
@@ -542,16 +542,14 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
                         ListFooterComponentStyle={{ marginBottom: 80 }}
-                        initialNumToRender={8}
-                        maxToRenderPerBatch={5}
-                        windowSize={11}
+                        estimatedItemSize={96}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.MESSAGES:
                 const messagedConnections = this.sortMessages();
 
                 return (
-                    <FlatList
+                    <FlashList
                         ref={(component) => { this.messagesListRef = component; }}
                         data={messagedConnections}
                         keyExtractor={(item) => String(item.id)}
@@ -574,22 +572,19 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 )} />
                             </View>
                         }
-                        stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshingDMsSearch}
                             onRefresh={this.handleRefreshDMsSearch}
                         />}
                         onContentSizeChange={this.scrollTop}
-                        initialNumToRender={8}
-                        maxToRenderPerBatch={5}
-                        windowSize={11}
+                        estimatedItemSize={88}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.CONNECTIONS:
                 const connections = this.sortConnections();
 
                 return (
-                    <FlatList
+                    <FlashList
                         ref={(component) => { this.connectionsListRef = component; }}
                         data={connections}
                         keyExtractor={(item) => String(item.id)}
@@ -626,15 +621,12 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 )} />
                             </View>
                         }
-                        stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshingConnections}
                             onRefresh={this.handleRefreshUserConnections}
                         />}
                         onContentSizeChange={this.scrollTop}
-                        initialNumToRender={8}
-                        maxToRenderPerBatch={5}
-                        windowSize={11}
+                        estimatedItemSize={88}
                     />
                 );
         }

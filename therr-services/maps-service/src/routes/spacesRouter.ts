@@ -16,6 +16,7 @@ import {
     updateSpace,
     deleteSpaces,
 } from '../handlers/spaces';
+import { submitCorrection, getCorrectionsSummary } from '../handlers/spaceCorrections';
 
 const router = express.Router();
 
@@ -23,6 +24,10 @@ const router = express.Router();
 router.get('/:spaceId/pairings', getSpacePairings);
 router.get('/:spaceId/reports-summary', getSpaceReportsSummary);
 router.post('/:spaceId/pairings/feedback', submitPairingFeedback);
+
+// CORRECTIONS (crowdsourced edits to business info)
+router.post('/:spaceId/corrections', submitCorrection);
+router.get('/:spaceId/corrections/summary', getCorrectionsSummary);
 
 // WRITE
 router.post('/', createSpace);
