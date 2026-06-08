@@ -29,7 +29,11 @@ react {
     // debuggableVariants = ["liteDebug", "prodDebug"]
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
-    nodeExecutableAndArgs = ["/Users/zacharyanselm/.nvm/versions/node/v24.12.0/bin/node"]
+    // Only override when the developer's local NVM node is present; EAS build servers use PATH.
+    def localNode = new File("/Users/zacharyanselm/.nvm/versions/node/v24.12.0/bin/node")
+    if (localNode.exists()) {
+        nodeExecutableAndArgs = [localNode.absolutePath]
+    }
     //
     //   The command to run when bundling. By default is 'bundle'
     // bundleCommand = "ram-bundle"
