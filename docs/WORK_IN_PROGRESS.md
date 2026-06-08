@@ -734,6 +734,15 @@ note that should be honored on a calendar reminder.
   per-family packages: `@react-native-vector-icons/material-icons`,
   `/font-awesome`, `/font-awesome-5`, `/ionicons`, `/octicons`. Removes the
   suppression and unblocks future RN/React upgrades.
+- **HABITS niche only** — Drop `react-native-maps` (and the iOS `Google`
+  subspec / `GoogleMaps` + `Google-Maps-iOS-Utils` pods) from the HABITS
+  build the same way `react-native-background-geolocation` was removed
+  (commit `88d0c18d3`). HABITS has no map feature, so the native Google Maps
+  SDK (and its API-key requirement + Play/App-store location signals) is dead
+  weight. Requires: gate/remove the `Map/*` route imports on the niche,
+  remove the dep from `TherrMobile/package.json`, revert the Podfile maps
+  block on the niche branch only, and re-run `npm install` + `pod install`.
+  Do **not** port to general/THERR/TEEM — those variants use the map.
 
 ---
 
