@@ -3,6 +3,7 @@
   "version": "0.0.6",
   "private": true,
   "scripts": {
+    "eas-build-pre-install": "bash ./_scripts/eas-build-pre-install.sh",
     "android": "export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
     "android:habits": "npm run android",
     "android:therr": "npm run android",

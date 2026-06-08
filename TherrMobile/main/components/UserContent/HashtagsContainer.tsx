@@ -29,8 +29,7 @@ export default React.memo(({ hasIcon = true, hashtags, onHashtagPress, visibleCo
             {
                 visibleHashtags.map((tag, i) => (
                     <HashtagPill tag={tag} hasIcon={hasIcon} key={i} onPress={onHashtagPress} styles={styles} />
-                )
-                )
+                ))
             }
         </View>
     );

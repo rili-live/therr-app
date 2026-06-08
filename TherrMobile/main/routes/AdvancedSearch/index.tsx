@@ -119,8 +119,7 @@ const AdvancedSearch = ({
     const [categoryFilters, setCategoryFilters] = useState<CategoryFilter[]>(() =>
         map.filtersCategory?.length
             ? JSON.parse(JSON.stringify(map.filtersCategory))
-            : initialCategoryFilters.current.map((x: CategoryFilter) => ({ ...x, isChecked: true }))
-    );
+            : initialCategoryFilters.current.map((x: CategoryFilter) => ({ ...x, isChecked: true })));
 
     // Keep ref up to date so the nav listener always reads the latest value
     useEffect(() => {
