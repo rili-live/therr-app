@@ -885,10 +885,11 @@ const deletePact: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
 
-// NUDGE — resend invite notification to a partner who hasn't responded.
-// Only the creator can nudge. Allows one nudge per partner; after the nudge
-// has been sent the client shows a "pick new partner" / "new pact" path once
-// 24 hours have elapsed.
+// NUDGE — resend the invite notification to partners who haven't responded to
+// a pending pact. Only the creator can nudge, and each partner is rate-limited
+// to one nudge per NUDGE_COOLDOWN_MS (7 days). The response includes a
+// per-partner `nudgeResults` list so the client can surface which partners were
+// re-nudged and which are still in cooldown (with `nextNudgeAvailableAt`).
 const nudgePact: RequestHandler = async (req: any, res: any) => {
     const {
         locale,
@@ -939,16 +940,21 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    const NUDGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const NUDGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days between nudges to the same partner
     const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
     const habitName = habitGoal?.name || 'your habit';
 
-    const nudgeResults = await Promise.allSettled(
+    const settledOutcomes = await Promise.allSettled(
         pendingPartners.map(async (partner: any) => {
             if (partner.nudgedAt) {
                 const nudgedMs = new Date(partner.nudgedAt).getTime();
                 if (Date.now() - nudgedMs < NUDGE_COOLDOWN_MS) {
-                    return { skipped: true, reason: 'cooldown' };
+                    return {
+                        partnerId: partner.userId,
+                        nudged: false,
+                        reason: 'cooldown',
+                        nextNudgeAvailableAt: new Date(nudgedMs + NUDGE_COOLDOWN_MS).toISOString(),
+                    };
                 }
             }
 
@@ -994,9 +1000,17 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
             }
 
             await Store.pactMembers.markNudged(id, partner.userId);
-            return { nudged: true, partnerId: partner.userId };
+            return { partnerId: partner.userId, nudged: true };
         }),
     );
+
+    // Flatten settled results into a clean per-partner outcome list. A rejected
+    // entry means the dispatch/markNudged chain threw for that partner.
+    const nudgeResults = settledOutcomes.map((outcome, idx) => (
+        outcome.status === 'fulfilled'
+            ? outcome.value
+            : { partnerId: pendingPartners[idx].userId, nudged: false, reason: 'error' }
+    ));
 
     logSpan({
         level: 'info',
@@ -1005,9 +1019,14 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
         traceArgs: { pactId: id, results: JSON.stringify(nudgeResults) },
     });
 
-    // Return the updated pact with refreshed members
-    const updatedMembers = await Store.pactMembers.getByPactId(id);
-    return res.status(200).send({ ...pact, members: updatedMembers });
+    // Return the updated pact (with habit-goal detail fields, matching the
+    // get-details / accept response shape) plus refreshed members and the
+    // per-partner nudge outcomes.
+    const [updatedPact, updatedMembers] = await Promise.all([
+        Store.pacts.getByIdWithDetails(id),
+        Store.pactMembers.getByPactId(id),
+    ]);
+    return res.status(200).send({ ...updatedPact, members: updatedMembers, nudgeResults });
 };
 
 export {

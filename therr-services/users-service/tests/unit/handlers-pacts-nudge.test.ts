@@ -59,6 +59,35 @@ const isPartnerNudgeable = (partner: INudgeMember, nowMs: number): boolean => {
     return nowMs - nudgedMs >= NUDGE_COOLDOWN_MS;
 };
 
+interface INudgeOutcome {
+    partnerId: string;
+    nudged: boolean;
+    reason?: 'cooldown' | 'error';
+    nextNudgeAvailableAt?: string;
+}
+
+// Mirrors the cooldown branch's outcome payload returned to the client.
+const cooldownOutcome = (partnerId: string, nudgedAtIso: string): INudgeOutcome => {
+    const nudgedMs = new Date(nudgedAtIso).getTime();
+    return {
+        partnerId,
+        nudged: false,
+        reason: 'cooldown',
+        nextNudgeAvailableAt: new Date(nudgedMs + NUDGE_COOLDOWN_MS).toISOString(),
+    };
+};
+
+// Mirrors how settled per-partner promises are flattened into the response:
+// a rejection becomes a generic error outcome rather than dropping the partner.
+const flattenOutcomes = (
+    settled: PromiseSettledResult<INudgeOutcome>[],
+    partnerIds: string[],
+): INudgeOutcome[] => settled.map((outcome, idx) => (
+    outcome.status === 'fulfilled'
+        ? outcome.value
+        : { partnerId: partnerIds[idx], nudged: false, reason: 'error' }
+));
+
 describe('Pacts handler — nudge authorization', () => {
     const creatorUserId = 'creator-1';
     const pendingPartner: INudgeMember = { role: 'partner', status: 'pending' };
@@ -134,5 +163,28 @@ describe('Pacts handler — nudge cooldown gate', () => {
         const eightDaysAgo = new Date(nowMs - (8 * 24 * 60 * 60 * 1000)).toISOString();
         expect(isPartnerNudgeable({ role: 'partner', status: 'pending', nudgedAt: exactlySevenDaysAgo }, nowMs)).to.be.eq(true);
         expect(isPartnerNudgeable({ role: 'partner', status: 'pending', nudgedAt: eightDaysAgo }, nowMs)).to.be.eq(true);
+    });
+
+    it('reports nextNudgeAvailableAt exactly one cooldown after the last nudge', () => {
+        const sixDaysAgoMs = nowMs - (6 * 24 * 60 * 60 * 1000);
+        const sixDaysAgo = new Date(sixDaysAgoMs).toISOString();
+        const outcome = cooldownOutcome('partner-1', sixDaysAgo);
+        expect(outcome.nudged).to.be.eq(false);
+        expect(outcome.reason).to.equal('cooldown');
+        expect(outcome.nextNudgeAvailableAt).to.equal(new Date(sixDaysAgoMs + NUDGE_COOLDOWN_MS).toISOString());
+    });
+});
+
+describe('Pacts handler — nudge result flattening', () => {
+    it('keeps a per-partner entry for a rejected dispatch instead of dropping it', () => {
+        const partnerIds = ['p1', 'p2'];
+        const settled: any[] = [
+            { status: 'fulfilled', value: { partnerId: 'p1', nudged: true } },
+            { status: 'rejected', reason: new Error('boom') },
+        ];
+        const results = flattenOutcomes(settled, partnerIds);
+        expect(results).to.have.length(2);
+        expect(results[0]).to.deep.equal({ partnerId: 'p1', nudged: true });
+        expect(results[1]).to.deep.equal({ partnerId: 'p2', nudged: false, reason: 'error' });
     });
 });
