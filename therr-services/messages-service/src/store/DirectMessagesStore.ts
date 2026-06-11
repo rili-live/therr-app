@@ -50,33 +50,79 @@ export default class DirectMessagesStore extends BrandScopedStore {
     // eslint-disable-next-line default-param-last
     searchDirectMessages(brand: BrandValue, userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
         this.assertBrand(brand);
-        const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
-        const limit = conditions.pagination.itemsPerPage;
-        let queryString: any = knexBuilder
-            .select((returning && returning.length) ? returning : '*')
-            .from(DIRECT_MESSAGES_TABLE_NAME)
-            .where(`${DIRECT_MESSAGES_TABLE_NAME}.brandVariation`, '=', brand)
-            .orderBy(`${DIRECT_MESSAGES_TABLE_NAME}.updatedAt`, 'desc');
+        const offset = Number(conditions.pagination.itemsPerPage) * (Number(conditions.pagination.pageNumber) - 1);
+        const limit = Number(conditions.pagination.itemsPerPage);
+
+        // Allowlist prevents injection when filterBy comes from URL query params.
+        const FILTER_COL_MAP: Record<string, string> = {
+            fromUserId: '"fromUserId"',
+            toUserId: '"toUserId"',
+            isUnread: '"isUnread"',
+            message: '"message"',
+            locale: '"locale"',
+        };
+
+        let sql: string;
+        let bindings: any[];
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
-            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
-            queryString = queryString.where('toUserId', userId).andWhere(conditions.filterBy, operator, query);
+            const pgOperator = operator.toLowerCase() === 'ilike' ? 'ILIKE' : operator;
+            const query = operator.toLowerCase() === 'ilike' ? `%${conditions.query}%` : conditions.query;
+
             if (shouldCheckReverse === 'true' && conditions.filterBy === 'fromUserId') {
-                queryString = queryString.orWhere('fromUserId', userId)
-                    .andWhere('toUserId', operator, query)
-                    // The orWhere() above resets brand isolation in the OR branch — re-apply it
-                    // so a Habits client's reverse search can't surface a Therr-stamped DM.
-                    .andWhere(`${DIRECT_MESSAGES_TABLE_NAME}.brandVariation`, '=', brand);
+                // Bidirectional DM thread: messages I received from the other user + messages I sent them.
+                // Explicit parenthesisation ensures each OR branch carries its own brand guard.
+                sql = `
+                    SELECT * FROM "main"."directMessages"
+                    WHERE (
+                        "brandVariation" = ?
+                        AND "toUserId" = ?
+                        AND "fromUserId" = ?
+                    ) OR (
+                        "brandVariation" = ?
+                        AND "fromUserId" = ?
+                        AND "toUserId" = ?
+                    )
+                    ORDER BY "updatedAt" DESC
+                    LIMIT ${limit} OFFSET ${offset}
+                `;
+                bindings = [brand, userId, query, brand, userId, query];
+            } else {
+                const filterCol = FILTER_COL_MAP[conditions.filterBy];
+                if (filterCol) {
+                    sql = `
+                        SELECT * FROM "main"."directMessages"
+                        WHERE "brandVariation" = ?
+                        AND "toUserId" = ?
+                        AND ${filterCol} ${pgOperator} ?
+                        ORDER BY "updatedAt" DESC
+                        LIMIT ${limit} OFFSET ${offset}
+                    `;
+                    bindings = [brand, userId, query];
+                } else {
+                    sql = `
+                        SELECT * FROM "main"."directMessages"
+                        WHERE "brandVariation" = ?
+                        AND "toUserId" = ?
+                        ORDER BY "updatedAt" DESC
+                        LIMIT ${limit} OFFSET ${offset}
+                    `;
+                    bindings = [brand, userId];
+                }
             }
+        } else {
+            sql = `
+                SELECT * FROM "main"."directMessages"
+                WHERE "brandVariation" = ?
+                ORDER BY "updatedAt" DESC
+                LIMIT ${limit} OFFSET ${offset}
+            `;
+            bindings = [brand];
         }
 
-        queryString = queryString
-            .limit(limit)
-            .offset(offset)
-            .toString();
-
-        return this.db.read.query(queryString).then((response) => {
+        const native = knexBuilder.raw(sql, bindings).toSQL().toNative();
+        return this.db.read.query(native.sql, native.bindings as any[]).then((response) => {
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
