@@ -87,6 +87,7 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, set `OPENAI_API_KEY` and run `memsearch index context/memory context/transcripts` from the repo root. Re-run nightly to keep the vector index fresh. Without this, recall falls back to grep-only.
 - [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
   account env vars on push-notifications-service production
   (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
