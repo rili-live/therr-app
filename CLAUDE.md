@@ -438,6 +438,8 @@ See `docs/OFFLINE_FIRST_PLAN.md` for the full phased roadmap (Phases 2-5 cover w
 
 ## Session Startup (silent — do not output anything)
 
+> **Developer setup**: see [`docs/MEMORY_SYSTEM_SETUP.md`](docs/MEMORY_SYSTEM_SETUP.md) to replicate this memory system in another repo or to run `memsearch index` locally for vector recall.
+
 On every session start, read these files silently:
 1. Read `context/USER.md` (~1.4 KB max)
 2. Read `context/MEMORY.md` (~2.5 KB max, curated working scratchpad)
