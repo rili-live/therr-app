@@ -62,13 +62,29 @@ export default class DirectMessagesStore extends BrandScopedStore {
             locale: '"locale"',
         };
 
+        // filterOperator is a user-controlled query param interpolated raw into the SQL
+        // string (pg cannot parameter-bind an operator). Allowlist it the same way as the
+        // column above — anything unrecognised falls back to '=' so an attacker can't smuggle
+        // SQL through the operator slot (knex.raw only checks binding *count*, not content).
+        const FILTER_OPERATOR_MAP: Record<string, string> = {
+            '=': '=',
+            '!=': '!=',
+            '<>': '<>',
+            '<': '<',
+            '<=': '<=',
+            '>': '>',
+            '>=': '>=',
+            like: 'LIKE',
+            ilike: 'ILIKE',
+        };
+
         let sql: string;
         let bindings: any[];
 
         if (conditions.filterBy && conditions.query) {
-            const operator = conditions.filterOperator || '=';
-            const pgOperator = operator.toLowerCase() === 'ilike' ? 'ILIKE' : operator;
-            const query = operator.toLowerCase() === 'ilike' ? `%${conditions.query}%` : conditions.query;
+            const rawOperator = String(conditions.filterOperator || '=').toLowerCase();
+            const pgOperator = FILTER_OPERATOR_MAP[rawOperator] || '=';
+            const query = pgOperator === 'ILIKE' ? `%${conditions.query}%` : conditions.query;
 
             if (shouldCheckReverse === 'true' && conditions.filterBy === 'fromUserId') {
                 // Bidirectional DM thread: messages I received from the other user + messages I sent them.

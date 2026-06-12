@@ -121,6 +121,32 @@ describe('DirectMessagesStore', () => {
             expect(bindings).to.include('%hello%');
         });
 
+        it('falls back to "=" when filterOperator is not an allowlisted operator', () => {
+            // Regression: filterOperator is a user-controlled query param interpolated raw into
+            // the SQL string. Before the allowlist, an attacker-supplied operator was emitted
+            // verbatim (e.g. "= (SELECT ...) OR \"message\""), surviving parameterization because
+            // knex.raw only validates the binding count. Anything unrecognised must collapse to "=".
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+            const store = new DirectMessagesStore(mockStore as any);
+            const injection = '= (SELECT "message" FROM "main"."directMessages" LIMIT 1) OR "message"';
+            store.searchDirectMessages('therr', 'user-1', {
+                pagination: { itemsPerPage: 10, pageNumber: 1 },
+                filterBy: 'message',
+                filterOperator: injection,
+                query: 'hello',
+            }, []);
+
+            const [queryString] = mockStore.read.query.args[0];
+            expect(queryString).to.not.include('SELECT "message" FROM');
+            expect(queryString).to.not.include('OR "message"');
+            // Sanitized to the safe default comparison.
+            expect(queryString).to.include('"message" =');
+        });
+
         it('checks reverse direction when shouldCheckReverse is true', () => {
             const mockStore = {
                 read: {
