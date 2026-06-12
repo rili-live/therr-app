@@ -87,6 +87,11 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `memsearch index context/memory context/transcripts`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after sessions to keep the index fresh.
+- [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
+  migration on production messages-service (`npm run migrations:run`). Without it
+  the `brandVariation` column does not exist, `searchDirectMessages` fails with a
+  SQL error, and the DM thread shows empty even when old messages exist.
 - [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
   account env vars on push-notifications-service production
   (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
