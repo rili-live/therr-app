@@ -1,4 +1,14 @@
 {
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .claude/hooks/transcript-capture.js"
+        }
+      ]
+    }
+  ],
   "SessionStart": [
     {
       "matcher": {},
