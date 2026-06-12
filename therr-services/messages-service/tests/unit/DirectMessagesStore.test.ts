@@ -1,7 +1,7 @@
 /* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
-import DirectMessagesStore, { DIRECT_MESSAGES_TABLE_NAME, ICreateDirectMessageParams } from '../../src/store/DirectMessagesStore';
+import DirectMessagesStore, { ICreateDirectMessageParams } from '../../src/store/DirectMessagesStore';
 
 describe('DirectMessagesStore', () => {
     afterEach(() => {
@@ -40,25 +40,34 @@ describe('DirectMessagesStore', () => {
     });
 
     describe('searchDirectMessages', () => {
+        // Parameterized: brand, userId, and query values pass through pg bindings.
+        // Tests verify the SQL shape (fixed clauses + bind placeholders) and the bindings array.
         it('queries and paginates response', () => {
-            const expected = `select * from "main"."directMessages" where "main"."directMessages"."brandVariation" = 'therr' and "toUserId" = 10 and "main"."directMessages"."toUserId" > 7 order by "main"."directMessages"."updatedAt" desc limit 100 offset 100`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
             const store = new DirectMessagesStore(mockStore as any);
-            store.searchDirectMessages('therr', 10, {
+            store.searchDirectMessages('therr', 'user-10', {
                 pagination: {
                     itemsPerPage: 100,
                     pageNumber: 2,
                 },
-                filterBy: `${DIRECT_MESSAGES_TABLE_NAME}.toUserId`,
-                filterOperator: '>',
-                query: 7,
+                filterBy: 'fromUserId',
+                filterOperator: '=',
+                query: 'user-7',
             }, []);
 
-            expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
+            const [queryString, bindings] = mockStore.read.query.args[0];
+            expect(queryString).to.include('"fromUserId"');
+            expect(queryString).to.include('LIMIT 100');
+            expect(queryString).to.include('OFFSET 100'); // (2-1) * 100
+            expect(queryString).to.not.include("'user-10'"); // No literal interpolation
+            expect(queryString).to.not.include("'user-7'"); // No literal interpolation
+            expect(bindings).to.include('user-10');
+            expect(bindings).to.include('user-7');
+            expect(bindings).to.include('therr');
         });
 
         it('calculates correct offset for first page', () => {
@@ -72,10 +81,9 @@ describe('DirectMessagesStore', () => {
                 pagination: { itemsPerPage: 20, pageNumber: 1 },
             }, []);
 
-            const queryString = mockStore.read.query.args[0][0];
-            expect(queryString).to.include('limit 20');
-            // Knex omits offset clause when offset is 0
-            expect(queryString).to.not.include('offset 20');
+            const [queryString] = mockStore.read.query.args[0];
+            expect(queryString).to.include('LIMIT 20');
+            expect(queryString).to.include('OFFSET 0');
         });
 
         it('orders by updatedAt descending', () => {
@@ -89,8 +97,8 @@ describe('DirectMessagesStore', () => {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             }, []);
 
-            const queryString = mockStore.read.query.args[0][0];
-            expect(queryString).to.include(`order by "main"."directMessages"."updatedAt" desc`);
+            const [queryString] = mockStore.read.query.args[0];
+            expect(queryString).to.include('"updatedAt" DESC');
         });
 
         it('applies ilike filter operator', () => {
@@ -107,8 +115,36 @@ describe('DirectMessagesStore', () => {
                 query: 'hello',
             }, []);
 
-            const queryString = mockStore.read.query.args[0][0];
-            expect(queryString).to.include(`"message" ilike '%hello%'`);
+            const [queryString, bindings] = mockStore.read.query.args[0];
+            expect(queryString).to.include('"message" ILIKE');
+            expect(queryString).to.not.include("'%hello%'"); // No literal interpolation
+            expect(bindings).to.include('%hello%');
+        });
+
+        it('falls back to "=" when filterOperator is not an allowlisted operator', () => {
+            // Regression: filterOperator is a user-controlled query param interpolated raw into
+            // the SQL string. Before the allowlist, an attacker-supplied operator was emitted
+            // verbatim (e.g. "= (SELECT ...) OR \"message\""), surviving parameterization because
+            // knex.raw only validates the binding count. Anything unrecognised must collapse to "=".
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+            const store = new DirectMessagesStore(mockStore as any);
+            const injection = '= (SELECT "message" FROM "main"."directMessages" LIMIT 1) OR "message"';
+            store.searchDirectMessages('therr', 'user-1', {
+                pagination: { itemsPerPage: 10, pageNumber: 1 },
+                filterBy: 'message',
+                filterOperator: injection,
+                query: 'hello',
+            }, []);
+
+            const [queryString] = mockStore.read.query.args[0];
+            expect(queryString).to.not.include('SELECT "message" FROM');
+            expect(queryString).to.not.include('OR "message"');
+            // Sanitized to the safe default comparison.
+            expect(queryString).to.include('"message" =');
         });
 
         it('checks reverse direction when shouldCheckReverse is true', () => {
@@ -125,11 +161,19 @@ describe('DirectMessagesStore', () => {
                 query: 'user-2',
             }, [], 'true');
 
-            const queryString = mockStore.read.query.args[0][0];
-            expect(queryString).to.include(`"toUserId" = 'user-1'`);
-            expect(queryString).to.include(`"fromUserId" = 'user-2'`);
-            expect(queryString).to.include(`"fromUserId" = 'user-1'`);
-            expect(queryString).to.include(`"toUserId" = 'user-2'`);
+            const [queryString, bindings] = mockStore.read.query.args[0];
+            // No literal user IDs in the SQL
+            expect(queryString).to.not.include("'user-1'");
+            expect(queryString).to.not.include("'user-2'");
+            // Parameterized placeholders present
+            expect(queryString).to.include('$1');
+            expect(queryString).to.include('$2');
+            expect(queryString).to.include('$3');
+            expect(queryString).to.include('$4');
+            // Both user IDs appear twice in bindings (once per direction branch) plus brand twice
+            expect(bindings.filter((b: string) => b === 'user-1').length).to.equal(2);
+            expect(bindings.filter((b: string) => b === 'user-2').length).to.equal(2);
+            expect(bindings.filter((b: string) => b === 'therr').length).to.equal(2);
         });
 
         it('returns messages in expected format', async () => {

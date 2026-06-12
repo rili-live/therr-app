@@ -1271,7 +1271,7 @@
     },
     "directMessage": {
       "inputPlaceholder": "Écrivez un message...",
-      "noMessagesFound": "Ceci est le début de vos conversations avec {userName}"
+      "noMessagesFound": "Aucun message récent avec {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Créer un groupe",
