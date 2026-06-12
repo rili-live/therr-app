@@ -14,10 +14,14 @@ Reusable implementation guide for adding Store / Inject / Recall memory to any C
 ## Prerequisites
 
 ```bash
-pip install memsearch 'memsearch[onnx]'
+pip install 'memsearch[onnx]'
+# On externally-managed Python (Homebrew, modern Debian/Ubuntu — PEP 668),
+# pip refuses a system-wide install. Use pipx so `memsearch` lands on PATH:
+#   brew install pipx && pipx ensurepath
+#   pipx install 'memsearch[onnx]'
 # memsearch[onnx] installs onnxruntime + tokenizers for local CPU embedding.
 # First index run downloads gpahal/bge-m3-onnx-int8 (~558 MB) from HuggingFace,
-# cached at ~/.cache/memsearch/ — no API key, fully offline after that.
+# cached at ~/.cache/huggingface/hub/ — no API key, fully offline after that.
 ```
 
 Node.js is required for the transcript capture hook (any version ≥ 16).
@@ -276,7 +280,7 @@ context/transcripts/
 memsearch index context/memory context/transcripts
 ```
 
-- First run: downloads the bge-m3 model (~558 MB, cached permanently at `~/.cache/memsearch/`)
+- First run: downloads the bge-m3 model (~558 MB, cached permanently at `~/.cache/huggingface/hub/`)
 - Subsequent runs: fully offline, typically completes in seconds
 - Re-run after sessions to incorporate new daily logs and transcripts
 - Remote/CI environments: skip this step — they don't have writable caches or persistent storage
