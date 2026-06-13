@@ -27,11 +27,16 @@ Node.js is required for the transcript capture hook (any version ≥ 16).
 ## Step 1 — Folder structure
 
 ```bash
-mkdir -p context/memory context/transcripts
+mkdir -p context/memory context/transcripts context/external
 touch context/memory/.gitkeep   # so git tracks the empty directory
+touch context/external/.gitkeep
 ```
 
-`context/transcripts/` will be gitignored (machine-local captures). `context/memory/` is committed (shared daily logs).
+| Directory | Git-tracked | Purpose |
+|-----------|-------------|---------|
+| `context/memory/` | ✅ Yes | Daily session logs — shared across the team |
+| `context/external/` | ✅ Yes | Markdown exports from Notion/Confluence/local docs — shared |
+| `context/transcripts/` | ❌ Gitignored | Machine-local transcript captures |
 
 ---
 
@@ -270,16 +275,38 @@ context/transcripts/
 
 ---
 
-## Step 9 — First index (local machine only)
+## Step 9 — Indexing scripts
+
+Copy `scripts/memsearch-index.sh` and `scripts/fetch-external-docs.py` from this repo (or scaffold them — see below).
+
+**`scripts/memsearch-index.sh`** — rebuilds the local vector index from all sources:
 
 ```bash
-memsearch index context/memory context/transcripts
+scripts/memsearch-index.sh           # index memory + external docs
+scripts/memsearch-index.sh --fetch   # fetch external docs first, then index
+scripts/memsearch-index.sh --force   # re-embed everything (ignore cache)
 ```
 
-- First run: downloads the bge-m3 model (~558 MB, cached permanently at `~/.cache/memsearch/`)
-- Subsequent runs: fully offline, typically completes in seconds
-- Re-run after sessions to incorporate new daily logs and transcripts
-- Remote/CI environments: skip this step — they don't have writable caches or persistent storage
+**`scripts/fetch-external-docs.py`** — pulls external docs into `context/external/` as markdown. All sources are opt-in via env vars — set only what you have:
+
+| Source | Required env vars |
+|--------|-------------------|
+| Notion | `NOTION_API_KEY`, `NOTION_DATABASE_IDS` (comma-separated) |
+| Confluence | `CONFLUENCE_URL`, `CONFLUENCE_EMAIL`, `CONFLUENCE_API_TOKEN`, `CONFLUENCE_SPACE_KEYS` |
+| Local folder | `LOCAL_DOCS_PATH` (absolute path to any local docs directory) |
+
+Unset sources are silently skipped. The script prints which were active and which were skipped on each run.
+
+**First run (local machine only):**
+
+```bash
+pip install 'memsearch[onnx]'
+scripts/memsearch-index.sh
+```
+
+First run downloads the bge-m3 model (~558 MB, cached permanently at `~/.cache/memsearch/`). Subsequent runs are fully offline and complete in seconds.
+
+Remote/CI environments: skip indexing — they lack writable caches and persistent storage. The markdown source files in `context/` are what CI needs; the vector index is a local dev tool.
 
 ---
 
@@ -290,7 +317,7 @@ After setup, start a new Claude Code session and confirm:
 1. Claude reads `context/MEMORY.md` and `context/USER.md` silently at startup (no output)
 2. Say **"remember that our staging URL is staging.example.com"** → Claude writes to `context/MEMORY.md`
 3. After any response, check `context/transcripts/{today}.md` has a new entry
-4. Run `memsearch index context/memory context/transcripts` then `memsearch search "staging"` → finds the entry
+4. Run `scripts/memsearch-index.sh` then `memsearch search "staging"` → finds the entry
 5. In a new session, ask **"what's our staging URL?"** → Tier 0 finds it in `context/MEMORY.md` without a search
 
 ---
@@ -301,8 +328,11 @@ After setup, start a new Claude Code session and confirm:
 |------|--------|---------|
 | `context/MEMORY.md` | Create (if missing) | Curated working memory, 2,500-char cap |
 | `context/USER.md` | Create (if missing) | User profile and preferences, 1,375-char cap |
-| `context/memory/` | Create directory | Daily session logs (git-tracked) |
-| `context/transcripts/` | Create directory | Transcript captures (gitignored) |
+| `context/memory/` | Create directory | Daily session logs (git-tracked, shared) |
+| `context/external/` | Create directory | External doc exports (git-tracked, shared) |
+| `context/transcripts/` | Create directory | Transcript captures (gitignored, machine-local) |
+| `scripts/memsearch-index.sh` | Create | Rebuilds vector index from all sources |
+| `scripts/fetch-external-docs.py` | Create | Pulls Notion/Confluence/local docs → markdown |
 | `.claude/hooks/transcript-capture.js` | Create | Stop hook — auto-captures each response |
 | `.claude/skills/memory-write/SKILL.md` | Create (if skills dir exists) | Curated write/dedup/cap skill |
 | `.memsearch.toml` | Create | Sets ONNX provider (no API key) |
@@ -325,8 +355,63 @@ Switch provider: `memsearch config set embedding.provider <name>` (or edit `.mem
 
 ---
 
+## Team sharing
+
+The vector index itself (`.memsearch/`, gitignored) is a derived artifact — each developer builds it locally. What gets shared via git is the **source**:
+
+| Shared via git (source) | Machine-local (derived) |
+|-------------------------|------------------------|
+| `context/memory/*.md` — daily logs | `.memsearch/` — vector DB |
+| `context/external/**/*.md` — doc exports | `context/transcripts/` — transcripts |
+| `context/MEMORY.md`, `context/USER.md` | `~/.cache/memsearch/` — ONNX model |
+
+**After `git pull`**, any developer rebuilds their index in one command:
+
+```bash
+scripts/memsearch-index.sh
+```
+
+This avoids committing binary database blobs (which generate unreadable diffs and balloon git history). The tradeoff: a ~seconds rebuild step after pulling instead of instant search. For most teams this is the right call.
+
+> **Why not commit the `.db` file?** Milvus-lite stores data as a binary SQLite blob. Every re-index produces a completely different binary diff — git can't compress or diff it. A 500-doc index is ~10–30 MB of opaque binary per commit. Git LFS solves this but adds infrastructure. The markdown-as-source-of-truth approach avoids the problem entirely.
+
+## External docs ingestion
+
+`scripts/fetch-external-docs.py` writes markdown files into `context/external/`, which are then committed and shared. Teammates get new docs on `git pull` without running the fetch script themselves.
+
+**Recommended workflow for the person who owns doc syncing:**
+
+```bash
+# Pull latest docs from all configured sources
+NOTION_API_KEY=... NOTION_DATABASE_IDS=page-id-1,page-id-2 \
+  scripts/memsearch-index.sh --fetch
+
+# Commit the updated markdown exports
+git add context/external/
+git commit -m "docs(memory): refresh external docs from Notion"
+git push
+```
+
+**Or automate with a GitHub Action** (cron, nightly):
+
+```yaml
+- name: Fetch and commit external docs
+  env:
+    NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+    NOTION_DATABASE_IDS: ${{ vars.NOTION_DATABASE_IDS }}
+  run: |
+    pip install memsearch 'memsearch[onnx]' notion-client
+    python3 scripts/fetch-external-docs.py
+    git add context/external/
+    git diff --cached --quiet || git commit -m "chore: refresh external docs"
+    git push
+```
+
+Note: the GitHub Action only fetches and commits the markdown. It does **not** run `memsearch index` — that stays local per developer.
+
 ## Maintenance
 
-- **Nightly**: run `memsearch index context/memory context/transcripts` to incorporate new content
+- **After `git pull`**: run `scripts/memsearch-index.sh` to incorporate new daily logs and external docs
 - **Weekly**: review `context/MEMORY.md` — prune stale entries, merge duplicates, stay under 2,500 chars
-- **Context/transcripts is gitignored** — each developer's local transcript history stays on their machine; only the curated `context/memory/*.md` daily logs are shared via git
+- **When adding a new external source**: set the relevant env vars, run `scripts/memsearch-index.sh --fetch`, commit `context/external/`
+- **Context/transcripts is gitignored** — each developer's local transcript history stays on their machine
