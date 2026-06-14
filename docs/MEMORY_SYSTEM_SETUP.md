@@ -331,6 +331,7 @@ After setup, start a new Claude Code session and confirm:
 | `context/memory/` | Create directory | Daily session logs (git-tracked, shared) |
 | `context/external/` | Create directory | External doc exports (git-tracked, shared) |
 | `context/transcripts/` | Create directory | Transcript captures (gitignored, machine-local) |
+| `scripts/memory-stats.sh` | Create | Health dashboard — utilization, cadence, token cost |
 | `scripts/memsearch-index.sh` | Create | Rebuilds vector index from all sources |
 | `scripts/fetch-external-docs.py` | Create | Pulls Notion/Confluence/local docs → markdown |
 | `.claude/hooks/transcript-capture.js` | Create | Stop hook — auto-captures each response |
@@ -352,6 +353,52 @@ After setup, start a new Claude Code session and confirm:
 | `google` | Varies | GCP credentials | `pip install 'memsearch[google]'` |
 
 Switch provider: `memsearch config set embedding.provider <name>` (or edit `.memsearch.toml`).
+
+---
+
+## Monitoring
+
+Run `scripts/memory-stats.sh` at any time for a health dashboard:
+
+```
+=== Memory System Health ===
+
+Working memory
+  MEMORY.md     847 / 2500 chars  ######..............  34%
+  USER.md       312 / 1375 chars  ####................  23%
+
+Session logs
+  Daily logs: 12 file(s)  (2026-05-28 → 2026-06-14)
+  Last log:   2026-06-14 — 42 line(s)
+
+Transcripts (machine-local, gitignored)
+  Captures:  8 file(s), 24 KB total
+  Latest:    2026-06-14
+
+External docs (context/external/, git-tracked)
+  notion: 14 file(s)
+
+Vector index (machine-local, .memsearch/)
+  Chunks indexed: 312
+  Last indexed:   2026-06-14 09:30
+
+Estimated inject cost per session
+  MEMORY.md:   ~212 tokens
+  USER.md:     ~78 tokens
+  Today's log: ~105 tokens
+  ─────────────────────────────
+  Total inject: ~395 tokens  (chars ÷ 4, rough estimate)
+
+  Budget: 3,000 tokens target. Claude's context window: 200k tokens.
+  Memory overhead: ~0% of available context.
+```
+
+**What to watch:**
+- `MEMORY.md` bar hitting yellow (70%) or red (90%) → time to consolidate entries
+- Session logs cadence → confirms Claude is writing daily logs each session
+- Total inject staying well under 3,000 tokens → healthy; if it creeps up, trim USER.md or MEMORY.md
+
+**Exact token counts** aren't exposed by Claude Code, so the estimate uses `chars ÷ 4` (conservative; real tokenization is closer to `chars ÷ 3.5` for mixed code/prose). Directionally accurate — good enough for budget monitoring.
 
 ---
 
