@@ -74,7 +74,8 @@
 
 ### Settings & Preferences
 - **Theme selection** — light, dark, retro
-- **Language selection** — en-us, es (mobile); en-us, es, fr-ca (web)
+- **Language selection** — en-us, es, fr-ca (mobile & web)
+- **Pre-login language switcher** — change locale on the Login/Register screens before authenticating; selection persists to the new account on signup (`settingsLocale`)
 - **Notification preferences** — per-channel enable/disable
 - **Mature content filter** — toggle visibility of mature content
 

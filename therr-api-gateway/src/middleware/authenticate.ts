@@ -6,6 +6,11 @@ import isBlacklisted from '../utilities/isBlacklisted';
 import { isTokenBlacklisted } from '../store/redisClient';
 import authenticateApiKey from './authenticateApiKey';
 
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('api-gateway: JWT_SECRET environment variable is required');
+}
+
 const verifyJwt = (token: string, secret: string): Promise<any> => new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
         if (err) {
@@ -23,7 +28,7 @@ const authenticate = async (req, res, next) => {
         }
 
         if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
-            const decoded = await verifyJwt(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '');
+            const decoded = await verifyJwt(req.headers.authorization.split(' ')[1], JWT_SECRET);
 
             // Check if token has been revoked (server-side logout)
             if (decoded.jti && await isTokenBlacklisted(decoded.jti)) {

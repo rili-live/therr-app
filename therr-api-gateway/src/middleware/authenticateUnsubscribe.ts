@@ -1,11 +1,16 @@
 import jwt from 'jsonwebtoken';
 import handleHttpError from '../utilities/handleHttpError';
 
+const JWT_EMAIL_SECRET = process.env.JWT_EMAIL_SECRET;
+if (!JWT_EMAIL_SECRET) {
+    throw new Error('api-gateway: JWT_EMAIL_SECRET environment variable is required');
+}
+
 const authenticateUnsubscribe = async (req, res, next) => {
     try {
         if (req.headers['x-subscriber-token']) {
             await new Promise((resolve, reject) => {
-                jwt.verify(req.headers['x-subscriber-token'], process.env.JWT_EMAIL_SECRET || '', (err, decoded) => {
+                jwt.verify(req.headers['x-subscriber-token'], JWT_EMAIL_SECRET, (err, decoded) => {
                     if (err) {
                         return reject(err);
                     }

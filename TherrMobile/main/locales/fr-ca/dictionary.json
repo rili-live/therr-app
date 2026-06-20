@@ -52,6 +52,7 @@
     "momentCreatedSuccess": "Moment créé  🎉",
     "momentDraftSuccess": "Moment sauvegardé comme brouillon",
     "spaceCreatedSuccess": "Vous avez réclamé un espace",
+    "establishmentSpaceCreated": "Nouvel espace ajouté  📍",
     "spaceRequestSuccess": "Demande envoyée",
     "ssoLoginError": "Erreur avec l'authentification unique",
     "startDateAfterEndDate": "Dates de début/fin invalides",
@@ -96,6 +97,7 @@
     "momentCreatedSuccess": "Votre moment a été publié avec succès!",
     "momentDraftSuccess": "Votre moment a été sauvegardé comme brouillon. Continuer la modification?",
     "spaceCreatedSuccess": "Vous avez réclamé cet espace avec succès!",
+    "establishmentSpaceCreated": "Merci! Cet endroit est maintenant sur la carte pour que d'autres le découvrent.",
     "spaceUpdatedSuccess": "Votre espace a été mis à jour avec succès!",
     "spaceRequestSuccess": "Vous avez demandé l'ajout d'un nouvel espace commercial avec succès!",
     "pleaseTryAgain": "Erreur de connexion. Veuillez réessayer plus tard.",
@@ -407,6 +409,9 @@
   },
   "forms": {
     "dividerOr": "ou",
+    "languageSelector": {
+      "label": "Choisissez votre langue"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Envoyer",
@@ -1820,6 +1825,12 @@
         "claimSpace": "Les espaces sont des emplacements commerciaux publics. Réclamer un espace sur la carte vous permet de déclarer la propriété du lieu, d'encourager la fidélité des clients et de modérer le contenu.",
         "requestSpace": "Demandez un espace commercial public et gagnez des points par demande! Nous contacterons le propriétaire pour l'ajouter à la carte afin qu'il puisse commencer à offrir des récompenses de fidélité."
       }
+    },
+    "nearbyEstablishment": {
+      "header": "Étiez-vous à l'un de ces endroits?",
+      "description": "Ajoutez l'endroit que vous avez visité pour que d'autres puissent le découvrir sur la carte.",
+      "none": "Aucun de ceux-ci",
+      "distanceAway": "à {distance} m"
     },
     "contentOptions": {
       "buttons": {
