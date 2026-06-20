@@ -6,6 +6,14 @@
 // Real values from .env are used when present (set by the run script or the
 // developer's shell). These defaults only fill in when unset.
 
+// Load the root .env first so config.ts (read at import time) picks up the real
+// DB host/port. The unit `test:` scripts don't load dotenv themselves, so without
+// this any test that exercises an unstubbed store falls back to localhost:5432 and
+// fails with ECONNREFUSED when the dev DB is mapped to a non-default port (e.g. 5431).
+// dotenv does not override already-set vars, so a CI-provided environment still wins.
+// eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+require('dotenv').config({ path: require('path').join(__dirname, '../../../.env') });
+
 if (!process.env.TWILIO_ACCOUNT_SID) {
     // Twilio's constructor rejects empty strings and anything not starting
     // with 'AC'. Provide a syntactically valid placeholder; tests that

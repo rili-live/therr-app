@@ -7,7 +7,10 @@ import {
 import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
 
 export const createUserValidation = [
-    body('phoneNumber').optional().isMobilePhone('any'),
+    // checkFalsy: SSO/dashboard registration may omit phone by sending ''. A bare .optional()
+    // only skips undefined/null, so '' would fail isMobilePhone and 400 the signup. See the
+    // same fix on updateUserValidation below.
+    body('phoneNumber').optional({ checkFalsy: true }).isMobilePhone('any'),
     body('email').exists().isEmail().normalizeEmail(),
     body('password').exists().isString().isLength({ min: 8 }), // TODO: RMOBILE-26: Centralize password requirements
     // Birthdate is optional at the API boundary because SSO providers do not return it

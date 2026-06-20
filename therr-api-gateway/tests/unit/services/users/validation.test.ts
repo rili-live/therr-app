@@ -7,7 +7,8 @@
  */
 import { expect } from 'chai';
 import { validationResult } from 'express-validator';
-import { updateUserValidation } from '../../../../src/services/users/validation/users';
+import { createUserValidation, updateUserValidation } from '../../../../src/services/users/validation/users';
+import { authenticateUserValidation } from '../../../../src/services/users/validation/auth';
 
 // A valid version-4 UUID (3rd group starts with '4', variant nibble is 'a').
 const VALID_V4_UUID = '550e8400-e29b-41d4-a716-446655440000';
@@ -89,5 +90,53 @@ describe('updateUserValidation', () => {
 
         expect(result.isEmpty()).to.be.eq(false);
         expect(result.array().some((e: any) => e.path === 'id')).to.be.eq(true);
+    });
+});
+
+describe('createUserValidation', () => {
+    it('accepts an empty-string phoneNumber (SSO/dashboard signup may omit it)', async () => {
+        const req = buildReq({
+            body: {
+                email: 'ada@example.com',
+                password: 'stronGpass1',
+                phoneNumber: '',
+            },
+        });
+
+        const result = await runValidation(createUserValidation, req);
+
+        expect(result.isEmpty(), JSON.stringify(result.array())).to.be.eq(true);
+    });
+
+    it('still rejects a non-empty but malformed phoneNumber', async () => {
+        const req = buildReq({
+            body: {
+                email: 'ada@example.com',
+                password: 'stronGpass1',
+                phoneNumber: 'abc123',
+            },
+        });
+
+        const result = await runValidation(createUserValidation, req);
+
+        expect(result.isEmpty()).to.be.eq(false);
+        expect(result.array().some((e: any) => e.path === 'phoneNumber')).to.be.eq(true);
+    });
+});
+
+describe('authenticateUserValidation (SSO branch)', () => {
+    it('accepts an empty-string userEmail when SSO fields are present (Apple omits email on repeat logins)', async () => {
+        const req = buildReq({
+            body: {
+                isSSO: true,
+                ssoProvider: 'apple',
+                idToken: 'some-id-token',
+                userEmail: '',
+            },
+        });
+
+        const result = await runValidation(authenticateUserValidation, req);
+
+        expect(result.isEmpty(), JSON.stringify(result.array())).to.be.eq(true);
     });
 });
