@@ -52,6 +52,7 @@
     "momentCreatedSuccess": "Moment créé  🎉",
     "momentDraftSuccess": "Moment sauvegardé comme brouillon",
     "spaceCreatedSuccess": "Vous avez réclamé un espace",
+    "establishmentSpaceCreated": "Nouvel espace ajouté  📍",
     "spaceRequestSuccess": "Demande envoyée",
     "ssoLoginError": "Erreur avec l'authentification unique",
     "startDateAfterEndDate": "Dates de début/fin invalides",
@@ -96,6 +97,7 @@
     "momentCreatedSuccess": "Votre moment a été publié avec succès!",
     "momentDraftSuccess": "Votre moment a été sauvegardé comme brouillon. Continuer la modification?",
     "spaceCreatedSuccess": "Vous avez réclamé cet espace avec succès!",
+    "establishmentSpaceCreated": "Merci! Cet endroit est maintenant sur la carte pour que d'autres le découvrent.",
     "spaceUpdatedSuccess": "Votre espace a été mis à jour avec succès!",
     "spaceRequestSuccess": "Vous avez demandé l'ajout d'un nouvel espace commercial avec succès!",
     "pleaseTryAgain": "Erreur de connexion. Veuillez réessayer plus tard.",
@@ -399,10 +401,17 @@
         "notifications": "Notifications",
         "profileSettings": "Paramètres du profil"
       }
+    },
+    "incompleteProfileBanner": {
+      "message": "Ajoutez votre nom pour que vos amis puissent vous reconnaître",
+      "dismiss": "Ignorer"
     }
   },
   "forms": {
     "dividerOr": "ou",
+    "languageSelector": {
+      "label": "Choisissez votre langue"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Envoyer",
@@ -738,7 +747,8 @@
       "errorMessages": {
         "invalidPhoneNumber": "Le numéro de téléphone est invalide.",
         "repeatPassword": "Les mots de passe ne correspondent pas",
-        "passwordInsecure": "Le mot de passe ne respecte pas les exigences minimales de sécurité"
+        "passwordInsecure": "Le mot de passe ne respecte pas les exigences minimales de sécurité",
+        "birthdateTooYoung": "Vous devez avoir au moins {minAge} ans pour vous inscrire"
       },
       "labels": {
         "email": "Courriel",
@@ -748,7 +758,8 @@
         "password": "Mot de passe",
         "repeatPassword": "Répéter le mot de passe",
         "userName": "Nom d'utilisateur",
-        "inviteCode": "Code d'invitation (facultatif)"
+        "inviteCode": "Code d'invitation (facultatif)",
+        "birthdate": "Date de naissance"
       },
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
       "missingEmail": "Veuillez entrer une adresse courriel valide.",
@@ -757,7 +768,8 @@
       "subtitles": {
         "disclaimer": "En créant un compte, vous acceptez nos ",
         "and": " et ",
-        "inviteCodeHint": "Entrez le code d'invitation d'un ami — il gagne 10 pièces et vous en gagnez 5!"
+        "inviteCodeHint": "Entrez le code d'invitation d'un ami — il gagne 10 pièces et vous en gagnez 5!",
+        "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser Therr"
       },
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"
@@ -821,7 +833,8 @@
         "bioHeader": "Biographie",
         "businessAccount": "Entreprise",
         "creatorAccount": "Créateur",
-        "personalAccount": "Personnel"
+        "personalAccount": "Personnel",
+        "addYourNamePrompt": "Ajoutez votre nom pour que vos amis puissent vous reconnaître"
       },
       "giftCardProviders": {
         "unselected": "Sélectionner une carte-cadeau...",
@@ -1247,7 +1260,7 @@
     },
     "directMessage": {
       "inputPlaceholder": "Écrivez un message...",
-      "noMessagesFound": "Ceci est le début de vos conversations avec {userName}"
+      "noMessagesFound": "Aucun message récent avec {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Créer un groupe",
@@ -1813,6 +1826,12 @@
         "requestSpace": "Demandez un espace commercial public et gagnez des points par demande! Nous contacterons le propriétaire pour l'ajouter à la carte afin qu'il puisse commencer à offrir des récompenses de fidélité."
       }
     },
+    "nearbyEstablishment": {
+      "header": "Étiez-vous à l'un de ces endroits?",
+      "description": "Ajoutez l'endroit que vous avez visité pour que d'autres puissent le découvrir sur la carte.",
+      "none": "Aucun de ceux-ci",
+      "distanceAway": "à {distance} m"
+    },
     "contentOptions": {
       "buttons": {
         "getDirections": "Obtenir l'itinéraire",
@@ -1922,6 +1941,14 @@
       "buttonNeutral": "Cette fois seulement",
       "buttonNegative": "Refuser",
       "buttonPositive": "Pendant l'utilisation de l'application"
+    },
+    "backgroundLocation": {
+      "header": "Accès à la localisation en arrière-plan",
+      "description1": "Cette application collecte votre localisation précise en arrière-plan, même lorsque l'application est fermée ou non utilisée.",
+      "description2": "Therr utilise la localisation en arrière-plan pour trouver des récompenses à proximité, permettre la découverte de contenu local et envoyer des notifications de proximité. Vous pouvez désactiver cela dans les paramètres de votre appareil à tout moment.",
+      "privacyPolicy": "Voir la politique de confidentialité",
+      "accept": "Continuer",
+      "decline": "Pas maintenant"
     },
     "locationGps": {
       "header": "Localisation de l'utilisateur?",

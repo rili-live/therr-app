@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import unless from 'express-unless';
+import { hasValidStandardClaims } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -18,6 +19,16 @@ const authenticateOptional = async (req, res, next) => {
                 jwt.verify(req.headers.authorization.split(' ')[1], JWT_SECRET, (err, decoded) => {
                     if (err) {
                         return reject(err);
+                    }
+
+                    // Reject tokens whose iss/aud claims don't match (forged/foreign).
+                    // Legacy tokens with no such claims still pass. Surface as a
+                    // JsonWebTokenError so the catch maps it to a 403 like any other
+                    // invalid token.
+                    if (!hasValidStandardClaims(decoded)) {
+                        const claimErr: any = new Error('invalid token claims');
+                        claimErr.name = 'JsonWebTokenError';
+                        return reject(claimErr);
                     }
 
                     req['x-userid'] = decoded.id;

@@ -31,6 +31,7 @@ export enum Types {
 
     // HABITS: Pact Lifecycle
     pactInvitation = 'pact-invitation',
+    pactNudge = 'pact-nudge',
     pactAccepted = 'pact-accepted',
     pactDeclined = 'pact-declined',
     pactCompleted = 'pact-completed',
@@ -101,6 +102,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'REPORT_CONFIRMED'
 // HABITS
 | 'PACT_INVITATION'
+| 'PACT_NUDGE'
 | 'PACT_ACCEPTED'
 | 'PACT_DECLINED'
 | 'PACT_COMPLETED'
@@ -191,6 +193,7 @@ enum HabitsAndroidIntentActions {
     REPORT_CONFIRMED = 'com.therr.mobile.habits.REPORT_CONFIRMED',
     // HABITS-specific
     PACT_INVITATION = 'com.therr.mobile.habits.PACT_INVITATION',
+    PACT_NUDGE = 'com.therr.mobile.habits.PACT_NUDGE',
     PACT_ACCEPTED = 'com.therr.mobile.habits.PACT_ACCEPTED',
     PACT_DECLINED = 'com.therr.mobile.habits.PACT_DECLINED',
     PACT_COMPLETED = 'com.therr.mobile.habits.PACT_COMPLETED',

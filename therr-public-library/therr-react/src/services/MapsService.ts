@@ -152,6 +152,15 @@ export interface IPlaceDetailsArgs {
     shouldIncludeRating?: boolean;
 }
 
+export interface IPlaceNearbySearchByLocationArgs {
+    latitude: number | string;
+    longitude: number | string;
+    radius: number; // meters
+    type?: string; // e.g. 'restaurant' | 'bar' | 'gym' | 'establishment'
+    keyword?: string;
+    sessiontoken?: string;
+}
+
 export interface IActivityArgs {
     distanceMeters?: number;
     groupSize?: number;
@@ -531,6 +540,34 @@ class MapsService {
             headers: {},
         }).finally(() => {
             googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
+        });
+    };
+
+    // Location-based Google Places Nearby Search (location + radius), used to discover
+    // real-world establishments near a posted moment when no DB space exists nearby.
+    getPlaceNearbySearchByLocation = ({
+        latitude,
+        longitude,
+        radius,
+        type,
+        keyword,
+        sessiontoken,
+    }: IPlaceNearbySearchByLocationArgs) => {
+        let url = `/maps-service/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}`;
+
+        if (type) {
+            url = `${url}&type=${type}`;
+        }
+        if (keyword) {
+            url = `${url}&keyword=${encodeURIComponent(keyword)}`;
+        }
+
+        url = `${url}&sessiontoken=${sessiontoken || googleDynamicSessionToken}`;
+
+        return axios({
+            method: 'get',
+            url,
+            headers: {},
         });
     };
 

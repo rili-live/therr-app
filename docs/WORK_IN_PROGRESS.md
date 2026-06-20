@@ -87,31 +87,11 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
-- [ ] (2026-05-11, business-info-validation) Create the `correction-identity-salt`
-  k8s secret (key `CORRECTION_IDENTITY_SALT`, random ≥32-byte hex) in both
-  the prod and test clusters before applying the api-gateway deployment.
-  Generate with `openssl rand -hex 32`. Both
-  `k8s/prod/api-gateway-service-deployment.yaml` and
-  `k8s/test/api-gateway-service-deployment.yaml` now reference this secret
-  via `secretKeyRef`, so the pods will fail to start if it's missing. The
-  image runs `NODE_ENV=production` in both clusters, so the in-code dev
-  fallback does not apply.
-- [ ] (2026-05-11, business-info-validation) Run maps-service migration on
-  production: `20260511000000_main.spaceCorrections` — creates the table
-  that stores crowdsourced business-info edits. Web endpoint will 500 until
-  this runs.
-- [ ] (2026-04-27, /quality-peer-review) Run users-service migrations on production
-  (`20260425000001_main.users.brandVariations_v2`,
-  `20260425000002_main.notifications.brandVariation`,
-  `20260425000003_main.userDeviceTokens`,
-  `20260426000001_main.userAchievements.brandVariation`) — Phase 2/5 multi-app
-  data isolation; brand-scoped reads will filter to zero rows until columns/tables
-  exist with the 'therr' default backfill.
-- [ ] (2026-04-27, /quality-peer-review) Run messages-service migrations on production
-  (`20260425000004_main.directMessages.brandVariation`,
-  `20260425000005_main.forums.brandVariation`,
-  `20260425000006_main.forumMessages.brandVariation`) — Phase 3 multi-app
-  isolation; same reasoning.
+- [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
+- [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
+  migration on production messages-service (`npm run migrations:run`). Without it
+  the `brandVariation` column does not exist, `searchDirectMessages` fails with a
+  SQL error, and the DM thread shows empty even when old messages exist.
 - [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
   account env vars on push-notifications-service production
   (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
@@ -128,45 +108,17 @@ append new items here rather than only printing them once.
   (mobile clients have re-registered against `main.userDeviceTokens`), drop the
   legacy `users.deviceMobileFirebaseToken` column in a follow-up migration —
   documented in `20260425000003_main.userDeviceTokens` migration header.
-- [ ] (2026-04-28, /quality-peer-review) Run users-service migration
-  `20260427000001_main.thoughts.brandVariation` on production before deploying
-  this `general` merge. Adds `brandVariation` (NOT NULL DEFAULT 'therr') +
-  index `idx_thoughts_brand_variation` to `main.thoughts`. Therr-brand reads
-  preserve "see everything" via the `BRAND_THOUGHTS_VISIBILITY` allowlist, but
-  HABITS/TEEM reads will reference the column and 500 until the column exists.
-- [ ] (2026-05-07, /quality-peer-review) Run users-service migration
-  `20260428000001_habits.habit_goals_addGoalType` on production before deploying
-  this `general` merge. Adds `goalType` (NOT NULL DEFAULT 'build_good') +
-  index to `habits.habit_goals`. Backwards-compatible (legacy rows backfill to
-  `build_good`), but new pact-completion logic and goal-type-specific
-  achievement ladders (cleanBreak, treasureBuilder) read this column —
-  pact-create / habit-checkin handlers will 500 until it exists.
 - [ ] (2026-05-07, /quality-peer-review) (Optional) Set
   `HABITS_FREE_PACT_LIMIT` env var on production users-service if you want to
   override the default of 5. Project brief target is 1 once HABITS payment
   workflow is live and users can actually upgrade — see
   `docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md`. Lowering before
   payments ship will block early HABITS adopters from creating pacts.
-- [ ] (2026-05-07, /quality-peer-review) Provision the HABITS Android upload
-  keystore on the build server: set `HABITS_UPLOAD_STORE_FILE`,
-  `HABITS_UPLOAD_STORE_PASSWORD`, `HABITS_UPLOAD_KEY_ALIAS`,
-  `HABITS_UPLOAD_KEY_PASSWORD` in `~/.gradle/gradle.properties`. Without
-  these, release builds for `com.therr.habits` will be unsigned and rejected
-  by Play Console. (Therr / `MYAPP_*` vars stay in place — the new gradle
-  block falls through to them when `applicationId` doesn't match the
-  per-brand prefix map.)
 - [ ] (2026-05-07, /quality-peer-review) Add new SSR routes to
   `habits.therr.com` sitemap if applicable (`/login`, `/verify-account`,
   `/emails/unsubscribe` — these are `noindex` so likely skip, but the
   sitemap-generator script may still emit them). Re-submit sitemap to Search
   Console after deploy.
-- [ ] (2026-05-10, /quality-peer-review) Run users-service migration
-  `20260509000001_habits.pact_members.claimToken` on production before
-  deploying this `general` merge. Adds `claimToken`/`claimCode`/
-  `claimTokenExpiresAt`/`invitedVia` columns + partial unique index to
-  `habits.pact_members` for cross-app pact invite redemption. Until the
-  migration runs, `dispatchPactInvitation` writes (createPact + bulkInvitePact
-  cross-app paths) will 500 on column-missing errors.
 - [ ] (2026-05-10, /quality-peer-review) Add `/claim-pact/:token` to
   `habits.therr.com` sitemap if you want Search Console coverage (likely
   skip — the page is a transient install bouncer, not indexable content),
@@ -174,15 +126,20 @@ append new items here rather than only printing them once.
   `assetlinks.habits.json` once habits.therr.com serves it (visit
   `https://habits.therr.com/.well-known/assetlinks.json` and re-run the
   Play Console "App links" check for `com.therr.habits`).
-- [ ] (2026-05-10, /quality-peer-review) Run users-service migration
-  `20260510000001_habits.habit_goals.seedTemplates` on production after
-  deploying this `general` merge. Inserts 7 system-template rows into
-  `habits.habit_goals` (six starter habits + one savings-goal template)
-  under the prod SUPER_ADMIN_ID `568bf5d2-8595-4fd6-95da-32cc318618d3`,
-  populating the HABITS "pick a habit" picker which has been empty in
-  prod. Idempotent (ON CONFLICT id DO NOTHING). If the SUPER_ADMIN_ID
-  row is missing in `main.users` the migration logs a warning and
-  skips — verify it exists before running, or re-run after creating it.
+- [ ] (2026-06-05, /quality-peer-review) After deploying the JWT claims-hardening
+  change (general→stage→main), confirm `JWT_ISSUER` / `JWT_AUDIENCE` env vars are
+  actually present on the running prod pods for users-service, api-gateway, and
+  websocket-service (`kubectl describe deploy ... | grep JWT_`). The signer and all
+  verifiers must agree per-environment (`https://api.therr.com` in prod, `therr-app`
+  audience everywhere); if the deploy pipeline updated the image but did not re-apply
+  the deployment manifest's env block, services silently fall back to the
+  `therr-api` default — still internally consistent, so issuer-based cross-env token
+  separation would be inactive without any error surfacing. Verify, don't assume.
+- [ ] (2026-06-08, /quality-peer-review) Run the
+  `20260517000001_habits.pact_members.nudgedAt` migration on production
+  (users-service: `npm run migrations:run`) after deploying — adds the nullable
+  `habits.pact_members.nudgedAt` column the new pact-nudge endpoint writes to via
+  `markNudged`. Without it, every nudge call 500s on the `markNudged` update.
 <!-- skill-followups:end -->
 
 ---
@@ -201,19 +158,7 @@ The space landing page **is** the B2B sales pitch. Missing OG/meta on
 sibling content types (moments, user profiles) leaks indexing weight and
 breaks share previews from claim-emails.
 
-- `therr-client-web/src/server-client.tsx:849` — Mimic best-SEO practices for
-  moment SSR meta tags
-- `therr-client-web/src/server-client.tsx:940` — Mimic best-SEO practices for
-  space SSR meta tags
-- `therr-client-web/src/server-client.tsx:1378` — Mimic best-SEO practices for
-  user-profile SSR meta tags
-- `therr-client-web/src/server-client.tsx:1384` — Use an image optimized for
-  the OG `meta` image (current path uses unsized media)
-- `therr-client-web/src/routes/ListSpaces.tsx:31` — Geo-targeted meta tags +
-  URL slugs for category/location landing (compounds with city-category page
-  work in `docs/GROWTH_STRATEGY.md` Priority 7)
-- `therr-client-web/src/server-client.tsx:1892` — Locale-first guide rendering
-  per `docs/CONTENT_LOCALE_FIRST_PLAN.md`
+_All open Tier 1.1 items closed (2026-05-11)._
 
 ### 1.2 Spoofable / unauthenticated mutation endpoints
 

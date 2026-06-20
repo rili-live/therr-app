@@ -52,6 +52,7 @@
     "momentCreatedSuccess": "Momento creado  🎉",
     "momentDraftSuccess": "Momento guardado como borrador",
     "spaceCreatedSuccess": "Reclamaste un espacio",
+    "establishmentSpaceCreated": "Nuevo espacio agregado  📍",
     "spaceRequestSuccess": "Solicitud enviada",
     "ssoLoginError": "Error con inicio de sesión único",
     "startDateAfterEndDate": "Fechas de inicio/fin inválidas",
@@ -96,6 +97,7 @@
     "momentCreatedSuccess": "¡Tu momento se publicó exitosamente!",
     "momentDraftSuccess": "Tu momento se guardó como borrador exitosamente. ¿Continuar editando?",
     "spaceCreatedSuccess": "¡Has reclamado este espacio exitosamente!",
+    "establishmentSpaceCreated": "¡Gracias! Este lugar ya está en el mapa para que otros lo descubran.",
     "spaceUpdatedSuccess": "¡Tu espacio se actualizó exitosamente!",
     "spaceRequestSuccess": "¡Has solicitado agregar un nuevo espacio de negocio exitosamente!",
     "pleaseTryAgain": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
@@ -399,10 +401,17 @@
         "notifications": "Notificaciones",
         "profileSettings": "Configuración de perfil"
       }
+    },
+    "incompleteProfileBanner": {
+      "message": "Agrega tu nombre para que tus amigos puedan reconocerte",
+      "dismiss": "Descartar"
     }
   },
   "forms": {
     "dividerOr": "o",
+    "languageSelector": {
+      "label": "Selecciona tu idioma"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Enviar",
@@ -738,7 +747,8 @@
       "errorMessages": {
         "invalidPhoneNumber": "El número de teléfono es inválido.",
         "repeatPassword": "Las contraseñas no coinciden",
-        "passwordInsecure": "La contraseña no cumple los requisitos mínimos de seguridad"
+        "passwordInsecure": "La contraseña no cumple los requisitos mínimos de seguridad",
+        "birthdateTooYoung": "Debes tener al menos {minAge} años para registrarte"
       },
       "labels": {
         "email": "Correo electrónico",
@@ -748,7 +758,8 @@
         "password": "Contraseña",
         "repeatPassword": "Repetir contraseña",
         "userName": "Nombre de usuario",
-        "inviteCode": "Código de invitación (opcional)"
+        "inviteCode": "Código de invitación (opcional)",
+        "birthdate": "Fecha de nacimiento"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "missingEmail": "Por favor, ingresa una dirección de correo válida.",
@@ -757,7 +768,8 @@
       "subtitles": {
         "disclaimer": "Al crear una cuenta, aceptas nuestros ",
         "and": " y ",
-        "inviteCodeHint": "Ingresa el código de invitación de un amigo: ¡ellos ganan 10 monedas y tú ganas 5!"
+        "inviteCodeHint": "Ingresa el código de invitación de un amigo: ¡ellos ganan 10 monedas y tú ganas 5!",
+        "birthdateHint": "Debes tener al menos {minAge} años para usar Therr"
       },
       "validationErrors": {
         "phoneNumber": "Número de teléfono inválido"
@@ -821,7 +833,8 @@
         "bioHeader": "Biografía",
         "businessAccount": "Negocio",
         "creatorAccount": "Creador",
-        "personalAccount": "Personal"
+        "personalAccount": "Personal",
+        "addYourNamePrompt": "Agrega tu nombre para que tus amigos puedan reconocerte"
       },
       "giftCardProviders": {
         "unselected": "Seleccionar una tarjeta de regalo...",
@@ -1247,7 +1260,7 @@
     },
     "directMessage": {
       "inputPlaceholder": "Escribe un mensaje...",
-      "noMessagesFound": "Este es el inicio de tus conversaciones con {userName}"
+      "noMessagesFound": "Sin mensajes recientes con {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Crear un grupo",
@@ -1813,6 +1826,12 @@
         "requestSpace": "¡Solicita un espacio de negocio público y gana puntos por solicitud! Nos comunicaremos con el propietario para agregarlo al mapa para que puedan comenzar a ofrecer recompensas de lealtad."
       }
     },
+    "nearbyEstablishment": {
+      "header": "¿Estuviste en alguno de estos?",
+      "description": "Agrega el lugar que visitaste para que otros puedan descubrirlo en el mapa.",
+      "none": "Ninguno de estos",
+      "distanceAway": "a {distance} m"
+    },
     "contentOptions": {
       "buttons": {
         "getDirections": "Obtener direcciones",
@@ -1922,6 +1941,14 @@
       "buttonNeutral": "Solo esta vez",
       "buttonNegative": "Denegar",
       "buttonPositive": "Mientras uso la app"
+    },
+    "backgroundLocation": {
+      "header": "Acceso a ubicación en segundo plano",
+      "description1": "Esta aplicación recopila tu ubicación precisa en segundo plano, incluso cuando la app está cerrada o no está en uso.",
+      "description2": "Therr usa la ubicación en segundo plano para encontrar recompensas cercanas, habilitar el descubrimiento de contenido local y enviar notificaciones de proximidad. Puedes desactivar esto en la configuración de tu dispositivo en cualquier momento.",
+      "privacyPolicy": "Ver política de privacidad",
+      "accept": "Continuar",
+      "decline": "Ahora no"
     },
     "locationGps": {
       "header": "¿Ubicación del usuario?",

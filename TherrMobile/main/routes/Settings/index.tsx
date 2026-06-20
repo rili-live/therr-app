@@ -181,7 +181,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     'forms.settings.errorMessages.passwordInsecure'
                 ),
             });
-            this.scrollViewRef?.scrollToPosition(0, 0);
+            this.scrollViewRef?.scrollTo({ x: 0, y: 0, animated: true });
             return;
         }
 
@@ -252,7 +252,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             }
         })
         .finally(() => {
-            this.scrollViewRef?.scrollToPosition(0, 0);
+            this.scrollViewRef?.scrollTo({ x: 0, y: 0, animated: true });
         });
 
     onInputChange = (name: string, value: string) => {
@@ -536,6 +536,18 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     {pageHeaderUser}
                                 </Text>
                             </View>
+                            {!user.details?.firstName && (
+                                <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                    <Text style={[this.theme.styles.sectionDescription, { color: this.theme.colors.primary3 }]}>
+                                        <Text
+                                            style={this.themeForms.styles.buttonLink}
+                                            onPress={this.goToManageAccount}
+                                        >
+                                            {this.translate('forms.settings.labels.addYourNamePrompt')}
+                                        </Text>
+                                    </Text>
+                                </View>
+                            )}
                             <View style={this.themeSettingsForm.styles.userContainer}>
                                 <UserImage
                                     user={user}

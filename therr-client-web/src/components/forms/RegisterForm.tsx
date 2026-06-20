@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Stack } from '@mantine/core';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
+import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
 import {
     PasswordRequirements,
 } from 'therr-react/components';
@@ -43,6 +44,7 @@ export class RegisterFormComponent extends React.Component<
                 email: '',
                 password: '',
                 repeatPassword: '',
+                settingsBirthdate: '',
                 hasAgreedToTerms: false,
                 settingsEmailMarketing: true,
                 inviteCode: props.inviteCode || '',
@@ -55,6 +57,7 @@ export class RegisterFormComponent extends React.Component<
     isFormDisabled() {
         return !this.state.inputs.email
             || !this.state.inputs.password
+            || !this.state.inputs.settingsBirthdate
             || !this.state.inputs.hasAgreedToTerms
             || !this.isFormValid();
     }
@@ -62,7 +65,8 @@ export class RegisterFormComponent extends React.Component<
     isFormValid() {
         const { inputs } = this.state;
         return inputs.password === inputs.repeatPassword
-            && isValidPassword(inputs.password);
+            && isValidPassword(inputs.password)
+            && isValidSignupAge(inputs.settingsBirthdate);
     }
 
     onSubmit = () => {
@@ -187,6 +191,32 @@ export class RegisterFormComponent extends React.Component<
                             className="password-requirements mb-2 px-2"
                             password={this.state.inputs.password}
                             translate={this.props.translate}
+                        />
+
+                        <MantineInput
+                            type="date"
+                            id="birthdate"
+                            name="settingsBirthdate"
+                            value={this.state.inputs.settingsBirthdate}
+                            onChange={this.onInputChange}
+                            translateFn={this.props.translate}
+                            max={new Date().toISOString().split('T')[0]}
+                            label={this.props.translate(
+                                'components.registerForm.labels.birthdate',
+                            )}
+                            description={this.props.translate(
+                                'components.registerForm.text.birthdateHint',
+                                { minAge: `${MINIMUM_SIGNUP_AGE}` },
+                            )}
+                            error={
+                                this.state.inputs.settingsBirthdate
+                                && !isValidSignupAge(this.state.inputs.settingsBirthdate)
+                                    ? this.props.translate(
+                                        'components.registerForm.text.birthdateTooYoung',
+                                        { minAge: `${MINIMUM_SIGNUP_AGE}` },
+                                    )
+                                    : undefined
+                            }
                         />
 
                         <MantineInput
