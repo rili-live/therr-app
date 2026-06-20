@@ -12,7 +12,8 @@
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease",
         "credentialsSource": "remote"
-      }
+      },
+      "autoSubmit": true
     }
   },
   "submit": {
