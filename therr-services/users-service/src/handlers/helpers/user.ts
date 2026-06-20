@@ -46,6 +46,7 @@ interface IRequiredUserDetails {
     settingsEmailMarketing?: boolean;
     settingsEmailBusMarketing?: boolean;
     settingsBirthdate?: string;
+    settingsLocale?: string;
     accessLevels?: string[];
 }
 
@@ -341,6 +342,7 @@ const createUserHelper = (
                 settingsEmailMarketing: userDetails.settingsEmailMarketing,
                 settingsEmailBusMarketing: userDetails.settingsEmailBusMarketing,
                 settingsBirthdate: userDetails.settingsBirthdate || undefined,
+                settingsLocale: userDetails.settingsLocale || undefined,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,

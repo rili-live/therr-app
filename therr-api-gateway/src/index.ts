@@ -1,6 +1,7 @@
 /* eslint-disable import/no-import-module-exports */
 import tracing from './tracing'; // eslint-disable-line import/order
 import axios from 'axios';
+import { httpKeepAliveAgent, httpsKeepAliveAgent } from 'therr-js-utilities/http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -19,18 +20,22 @@ tracing.start();
 
 // Axios defaults
 axios.defaults.timeout = 1000 * 30; // 30 Second Request timeout
+axios.defaults.httpAgent = httpKeepAliveAgent;
+axios.defaults.httpsAgent = httpsKeepAliveAgent;
 
-// NOTE: corsOptions commented out - mobile apps have no concept of CORS
-// const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
-// const corsOptions = {
-//     origin(origin: any, callback: any) {
-//         if (origin === undefined || originWhitelist.indexOf(origin) !== -1) {
-//             callback(null, true);
-//         } else {
-//             callback(new Error('Not allowed by CORS'));
-//         }
-//     },
-// };
+// Mobile apps send no Origin header, so passing `!origin` through is safe and required.
+// Web clients are restricted to the URI_WHITELIST in production so any other browser origin
+// is rejected by CORS preflight before reaching the route handler.
+const originWhitelist = (process.env.URI_WHITELIST || '').split(',').filter(Boolean);
+const corsOptions = {
+    origin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+        if (!origin || originWhitelist.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+};
 
 const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
@@ -40,8 +45,7 @@ if (process.env.NODE_ENV !== 'production') {
     app.use(cors());
     app.set('trust proxy', 0);
 } else {
-    // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have no concept of this
-    app.use(cors());
+    app.use(cors(corsOptions));
     app.set('trust proxy', 1);
 }
 

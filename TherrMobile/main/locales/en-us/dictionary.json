@@ -52,6 +52,7 @@
     "momentCreatedSuccess": "Moment Created  🎉",
     "momentDraftSuccess": "Moment Saved as Draft",
     "spaceCreatedSuccess": "You Claimed a Space",
+    "establishmentSpaceCreated": "New Space Added  📍",
     "spaceRequestSuccess": "Request Sent",
     "ssoLoginError": "Error With Single Sign-On",
     "startDateAfterEndDate": "Invalid Start/End Dates",
@@ -96,6 +97,7 @@
     "momentCreatedSuccess": "Your moment was successfully posted!",
     "momentDraftSuccess": "Your moment was successfully saved as a draft. Continue editing?",
     "spaceCreatedSuccess": "You have successfully claimed this space!",
+    "establishmentSpaceCreated": "Thanks! This place is now on the map for others to discover.",
     "spaceUpdatedSuccess": "Your space was successfully updated!",
     "spaceRequestSuccess": "You have successfully requested to add a new business space!",
     "pleaseTryAgain": "Connection error. Please try again later.",
@@ -407,6 +409,9 @@
   },
   "forms": {
     "dividerOr": "or",
+    "languageSelector": {
+      "label": "Select your language"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Send",
@@ -1255,7 +1260,7 @@
     },
     "directMessage": {
       "inputPlaceholder": "Enter a message...",
-      "noMessagesFound": "This is the start of your conversations with {userName}"
+      "noMessagesFound": "No recent messages with {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Create a Group",
@@ -1820,6 +1825,12 @@
         "claimSpace": "Spaces are public business locations. Claiming a space on the map allows you to declare location ownership, incentivize customer loyalty, and moderate content.",
         "requestSpace": "Request a public business space and earn points per request! We'll connect with the owner to add it to the map so they can start offering loyalty rewards."
       }
+    },
+    "nearbyEstablishment": {
+      "header": "Were you at one of these?",
+      "description": "Add the place you visited so others can discover it on the map.",
+      "none": "None of these",
+      "distanceAway": "{distance}m away"
     },
     "contentOptions": {
       "buttons": {

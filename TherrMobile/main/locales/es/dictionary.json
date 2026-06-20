@@ -52,6 +52,7 @@
     "momentCreatedSuccess": "Momento creado  🎉",
     "momentDraftSuccess": "Momento guardado como borrador",
     "spaceCreatedSuccess": "Reclamaste un espacio",
+    "establishmentSpaceCreated": "Nuevo espacio agregado  📍",
     "spaceRequestSuccess": "Solicitud enviada",
     "ssoLoginError": "Error con inicio de sesión único",
     "startDateAfterEndDate": "Fechas de inicio/fin inválidas",
@@ -96,6 +97,7 @@
     "momentCreatedSuccess": "¡Tu momento se publicó exitosamente!",
     "momentDraftSuccess": "Tu momento se guardó como borrador exitosamente. ¿Continuar editando?",
     "spaceCreatedSuccess": "¡Has reclamado este espacio exitosamente!",
+    "establishmentSpaceCreated": "¡Gracias! Este lugar ya está en el mapa para que otros lo descubran.",
     "spaceUpdatedSuccess": "¡Tu espacio se actualizó exitosamente!",
     "spaceRequestSuccess": "¡Has solicitado agregar un nuevo espacio de negocio exitosamente!",
     "pleaseTryAgain": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
@@ -407,6 +409,9 @@
   },
   "forms": {
     "dividerOr": "o",
+    "languageSelector": {
+      "label": "Selecciona tu idioma"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Enviar",
@@ -1255,7 +1260,7 @@
     },
     "directMessage": {
       "inputPlaceholder": "Escribe un mensaje...",
-      "noMessagesFound": "Este es el inicio de tus conversaciones con {userName}"
+      "noMessagesFound": "Sin mensajes recientes con {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Crear un grupo",
@@ -1820,6 +1825,12 @@
         "claimSpace": "Los espacios son ubicaciones de negocios públicas. Reclamar un espacio en el mapa te permite declarar la propiedad de la ubicación, incentivar la lealtad de los clientes y moderar el contenido.",
         "requestSpace": "¡Solicita un espacio de negocio público y gana puntos por solicitud! Nos comunicaremos con el propietario para agregarlo al mapa para que puedan comenzar a ofrecer recompensas de lealtad."
       }
+    },
+    "nearbyEstablishment": {
+      "header": "¿Estuviste en alguno de estos?",
+      "description": "Agrega el lugar que visitaste para que otros puedan descubrirlo en el mapa.",
+      "none": "Ninguno de estos",
+      "distanceAway": "a {distance} m"
     },
     "contentOptions": {
       "buttons": {

@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { param } from 'express-validator';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
@@ -23,11 +24,16 @@ import {
     createRewardsRequestValidation,
 } from './validation/rewards';
 import {
+    blockUserValidation,
     changePasswordValidation,
+    createNotificationValidation,
     createUserValidation,
+    deleteUserValidation,
     forgotPasswordValidation,
+    reportUserValidation,
     resendVerificationValidation,
     searchUsersValidation,
+    updateUserValidation,
     verifyUserAccountValidation,
 } from './validation/users';
 import {
@@ -353,7 +359,7 @@ usersServiceRouter.post('/users', registerAttemptLimiter, createUserValidation, 
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/:id', handleServiceRequest({
+usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -378,22 +384,17 @@ usersServiceRouter.get('/users/by-username/:userName', authenticateOptional, han
     method: 'get',
 }));
 
-usersServiceRouter.put('/users/:id', handleServiceRequest({
+usersServiceRouter.put('/users/:id', updateUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
 
-usersServiceRouter.put('/users/:id/block', handleServiceRequest({
+usersServiceRouter.put('/users/:id/block', blockUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
 
-usersServiceRouter.put('/users/:id/report', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'put',
-}));
-
-usersServiceRouter.put('/users/:id/report', handleServiceRequest({
+usersServiceRouter.put('/users/:id/report', reportUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
@@ -403,7 +404,7 @@ usersServiceRouter.put('/users/change-password', changePasswordValidation, handl
     method: 'put',
 }));
 
-usersServiceRouter.delete('/users/:id', handleServiceRequest({
+usersServiceRouter.delete('/users/:id', deleteUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
 }));
@@ -470,7 +471,7 @@ usersServiceRouter.delete('/users-groups/:id', handleServiceRequest({
 }));
 
 // Notifications
-usersServiceRouter.post('/users/notifications', handleServiceRequest({
+usersServiceRouter.post('/users/notifications', createNotificationValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

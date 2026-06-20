@@ -475,9 +475,17 @@ export default class SpacesStore {
 
     searchRelatedSpaces(relatedCoordinates: [string, string][], relatedInterestsKeys: string[] = [], overrides: any = {}, returning: string[] = ['*']) {
         const proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
-        const coordsAsString = relatedCoordinates.map((coord) => `${coord[1]} ${coord[0]}`);
+        // Validate that each coordinate pair contains only finite numbers before building WKT
+        const coordsAsString = relatedCoordinates.map((coord) => {
+            const lng = Number(coord[1]);
+            const lat = Number(coord[0]);
+            if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+                throw new Error('Invalid coordinate value in relatedCoordinates');
+            }
+            return `${lng} ${lat}`;
+        });
         const centroidGeom = knexBuilder.raw(`(SELECT ST_SetSRID(ST_Centroid('MULTIPOINT (${coordsAsString.join(', ')})'), 4326))`);
-        const interestsKeysStr = relatedInterestsKeys.map((key) => `'${key}'`).join(',');
+        const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
 
         const returningMod = returning?.length ? returning : ['*'];
         const firstWhere: any = {
@@ -506,7 +514,7 @@ export default class SpacesStore {
 
         if (relatedInterestsKeys?.length) {
             // TODO: Test this with various interests lists
-            query = query.whereRaw(`"interestsKeys" \\?| array[${interestsKeysStr}]`);
+            query = query.whereRaw(`"interestsKeys" \\?| ARRAY[${interestsPlaceholders}]::text[]`, relatedInterestsKeys);
         }
 
         query = query.orderBy('dist')
