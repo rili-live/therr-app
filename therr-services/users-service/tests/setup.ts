@@ -15,3 +15,13 @@ if (!process.env.TWILIO_ACCOUNT_SID) {
 if (!process.env.TWILIO_AUTH_TOKEN) {
     process.env.TWILIO_AUTH_TOKEN = 'test-auth-token';
 }
+// config.ts reads JWT_SECRET / JWT_EMAIL_SECRET once at import time, so they must be
+// present before any module that imports config is loaded. Setting them inside a test's
+// before() hook is too late — the value is already captured. Seed non-empty defaults here
+// (the run script / shell .env override these when present).
+if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = 'test-secret-key';
+}
+if (!process.env.JWT_EMAIL_SECRET) {
+    process.env.JWT_EMAIL_SECRET = 'test-email-secret-key';
+}

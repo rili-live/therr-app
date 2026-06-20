@@ -73,11 +73,19 @@ export const resendVerificationValidation = [
 
 export const updateUserValidation = [
     param('id').exists().isUUID(4),
-    body('email').optional().isEmail().normalizeEmail(),
-    body('phoneNumber').optional().isMobilePhone('any'),
-    body('userName').optional().isString().trim().isLength({ max: 50 }),
-    body('firstName').optional().isString().trim().isLength({ max: 100 }),
-    body('lastName').optional().isString().trim().isLength({ max: 100 }),
+    // checkFalsy so SSO users (whose stored email/phoneNumber is the empty string) can still
+    // update their profile. The deployed mobile app sends `email`/`phoneNumber` from
+    // user.details — Apple/Google SSO accounts persist these as '' — and a bare `.optional()`
+    // only skips undefined/null, so an empty string would fail isEmail/isMobilePhone and 400
+    // the entire update (regression for un-updatable app versions).
+    body('email').optional({ checkFalsy: true }).isEmail().normalizeEmail(),
+    body('phoneNumber').optional({ checkFalsy: true }).isMobilePhone('any'),
+    body('userName').optional().isString().trim()
+        .isLength({ max: 50 }),
+    body('firstName').optional().isString().trim()
+        .isLength({ max: 100 }),
+    body('lastName').optional().isString().trim()
+        .isLength({ max: 100 }),
     body('isBusinessAccount').optional().isBoolean(),
     body('isCreatorAccount').optional().isBoolean(),
     body('settingsEmailMarketing').optional().isBoolean(),
@@ -94,7 +102,8 @@ export const blockUserValidation = [
 
 export const reportUserValidation = [
     param('id').exists().isUUID(4),
-    body('reason').optional().isString().trim().isLength({ max: 500 }),
+    body('reason').optional().isString().trim()
+        .isLength({ max: 500 }),
     query('reportType').optional().isString(),
 ];
 
