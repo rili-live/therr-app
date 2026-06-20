@@ -1,6 +1,7 @@
 /* eslint-disable import/no-import-module-exports */
 import tracing from './tracing'; // eslint-disable-line import/order
 import axios from 'axios';
+import { httpKeepAliveAgent, httpsKeepAliveAgent } from 'therr-js-utilities/http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -19,6 +20,8 @@ tracing.start();
 
 // Axios defaults
 axios.defaults.timeout = 1000 * 30; // 30 Second Request timeout
+axios.defaults.httpAgent = httpKeepAliveAgent;
+axios.defaults.httpsAgent = httpsKeepAliveAgent;
 
 // NOTE: corsOptions commented out - mobile apps have no concept of CORS
 // const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
