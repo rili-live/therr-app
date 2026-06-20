@@ -409,6 +409,9 @@
   },
   "forms": {
     "dividerOr": "ou",
+    "languageSelector": {
+      "label": "Choisissez votre langue"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Envoyer",

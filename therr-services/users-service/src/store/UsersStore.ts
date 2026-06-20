@@ -26,6 +26,7 @@ export interface ICreateUserParams {
     settingsEmailMarketing?: boolean;
     settingsEmailBusMarketing?: boolean;
     settingsBirthdate?: string;
+    settingsLocale?: string;
     lastName?: string;
     password: string;
     phoneNumber?: string;

@@ -24,6 +24,9 @@ export const createUserValidation = [
     body('isDashboardRegistration').optional().isBoolean(),
     body('settingsEmailMarketing').optional().isBoolean(),
     body('settingsEmailBusMarketing').optional().isBoolean(),
+    // Locale chosen on the pre-login language switcher (mobile/web). Persisted to the
+    // new account so the user's first emails and app session match their selected language.
+    body('settingsLocale').optional().isString().isIn(['en-us', 'es', 'fr-ca', 'en', 'fr']),
     body('inviteCode').optional().isString(),
     body('activationCode').optional().isString(),
     body('paymentSessionId').optional().isString(),

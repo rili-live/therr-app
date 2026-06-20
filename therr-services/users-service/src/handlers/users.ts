@@ -220,6 +220,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     isDashboardRegistration: req.body.isDashboardRegistration,
                     settingsEmailMarketing: req.body.settingsEmailMarketing,
                     settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
+                    settingsLocale: req.body.settingsLocale || locale,
                     lastName: req.body.lastName,
                     phoneNumber: req.body.phoneNumber,
                     userName: req.body.userName,
