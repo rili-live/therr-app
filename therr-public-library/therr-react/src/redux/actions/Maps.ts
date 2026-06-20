@@ -276,6 +276,8 @@ const Maps = {
             type: MapActionTypes.SPACE_CREATED,
             data: response.data,
         });
+
+        return response?.data;
     }),
     updateSpace: (id: string, data: any, isCompletedDraft: false) => (dispatch: any) => MapsService
         .updateSpace(id, data).then((response: any) => {
