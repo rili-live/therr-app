@@ -163,6 +163,15 @@ append new items here rather than only printing them once.
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
+- [ ] (2026-06-21, manual) Run the `20260422000000_main.userLists_slug` migration
+  on the reactions-service database (`cd therr-services/reactions-service && npm run
+  migrations:run`). Without it the `main.userLists.slug` column does not exist, and
+  because `createUserList` / `updateUserList` always write `slug` (NULL for private
+  lists) the INSERT fails with `column "slug" does not exist` → 500
+  `SQL:USER_LISTS_ROUTES:CREATE_ERROR` → the mobile picker shows "couldn't create
+  list". Adding a space to an existing list is unaffected (it never writes a
+  `userLists` column beyond `itemCount`), which is why only NEW-list creation breaks.
+  Reproduced locally: insert-with-slug fails pre-migration, succeeds post-migration.
 <!-- skill-followups:end -->
 
 ---
