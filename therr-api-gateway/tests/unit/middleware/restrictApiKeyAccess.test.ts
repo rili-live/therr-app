@@ -160,10 +160,25 @@ describe('restrictApiKeyAccess middleware', () => {
             expect(next.calledOnce).to.be.eq(true);
         });
 
+        // Users service - create thought/reply as the key's own user
+        it('should allow POST to create a thought/reply', () => {
+            req.method = 'POST';
+            req.path = '/v1/users-service/thoughts';
+            restrictApiKeyAccess(req, res, next);
+            expect(next.calledOnce).to.be.eq(true);
+        });
+
         // Reactions service
         it('should allow GET reactions', () => {
             req.method = 'GET';
             req.path = '/v1/reactions-service/some-resource';
+            restrictApiKeyAccess(req, res, next);
+            expect(next.calledOnce).to.be.eq(true);
+        });
+
+        it('should allow POST to react to a thought', () => {
+            req.method = 'POST';
+            req.path = '/v1/reactions-service/thought-reactions/abc-123';
             restrictApiKeyAccess(req, res, next);
             expect(next.calledOnce).to.be.eq(true);
         });
@@ -266,6 +281,22 @@ describe('restrictApiKeyAccess middleware', () => {
         it('should block POST reactions (write)', () => {
             req.method = 'POST';
             req.path = '/v1/reactions-service/some-resource';
+            restrictApiKeyAccess(req, res, next);
+
+            expect(res.status.calledWith(403)).to.be.eq(true);
+        });
+
+        it('should block POST moment-reactions (only thought-reactions writes allowed)', () => {
+            req.method = 'POST';
+            req.path = '/v1/reactions-service/moment-reactions/abc-123';
+            restrictApiKeyAccess(req, res, next);
+
+            expect(res.status.calledWith(403)).to.be.eq(true);
+        });
+
+        it('should block POST to thoughts sub-paths (only exact /thoughts allowed)', () => {
+            req.method = 'POST';
+            req.path = '/v1/users-service/thoughts/some-id/delete';
             restrictApiKeyAccess(req, res, next);
 
             expect(res.status.calledWith(403)).to.be.eq(true);
