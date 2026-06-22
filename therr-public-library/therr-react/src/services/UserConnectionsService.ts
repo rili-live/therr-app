@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import axios from 'axios';
-import { getSearchQueryString } from 'therr-js-utilities/http';
+import getSearchQueryString from 'therr-js-utilities/http/get-search-query-string';
 import { ISearchQuery } from '../types';
 
 interface ICreateConnectionBody {
