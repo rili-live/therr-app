@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import axios from 'axios';
 import uuid from 'react-native-uuid';
-import getSearchQueryString from 'therr-js-utilities/http/get-search-query-string';
+import { getSearchQueryString } from 'therr-js-utilities/http';
 import { IAreaType } from 'therr-js-utilities/types';
 import { ISearchQuery } from '../types';
 
