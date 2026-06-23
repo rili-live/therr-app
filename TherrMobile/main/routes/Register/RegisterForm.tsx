@@ -75,8 +75,9 @@ export class RegisterFormComponent extends React.Component<
             isBirthdatePickerOpen: false,
         };
 
+        // Read from `this.props` so labels re-translate when the pre-login locale changes.
         this.translate = (key: string, params: any) =>
-            translator(props.userSettings?.locale || 'en-us', key, params);
+            translator(this.props.userSettings?.locale || 'en-us', key, params);
     }
 
     isFormValid = () => {
@@ -173,6 +174,9 @@ export class RegisterFormComponent extends React.Component<
 
         const creds = {
             ...inputs,
+            // Persist the language chosen on the pre-login switcher to the new account so the
+            // user's verification email and first session match their selected locale.
+            settingsLocale: this.props.userSettings?.locale || 'en-us',
         };
         delete creds.repeatPassword;
 
