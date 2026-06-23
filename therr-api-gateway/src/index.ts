@@ -1,7 +1,8 @@
 /* eslint-disable import/no-import-module-exports */
 import tracing from './tracing'; // eslint-disable-line import/order
 import axios from 'axios';
-import { httpKeepAliveAgent, httpsKeepAliveAgent } from 'therr-js-utilities/http';
+import * as http from 'http';
+import * as https from 'https';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -20,8 +21,20 @@ tracing.start();
 
 // Axios defaults
 axios.defaults.timeout = 1000 * 30; // 30 Second Request timeout
-axios.defaults.httpAgent = httpKeepAliveAgent;
-axios.defaults.httpsAgent = httpsKeepAliveAgent;
+// Shared keep-alive agents reuse TCP connections across requests to the same host,
+// avoiding repeated DNS lookups and TCP handshakes on every axios call. Defined here
+// (rather than imported from therr-js-utilities/http) so the isomorphic http barrel stays
+// free of node-only `http`/`https`, which would otherwise break the React Native bundle.
+axios.defaults.httpAgent = new http.Agent({
+    keepAlive: true,
+    maxSockets: 50,
+    maxFreeSockets: 10,
+});
+axios.defaults.httpsAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 25,
+    maxFreeSockets: 5,
+});
 
 // Mobile apps send no Origin header, so passing `!origin` through is safe and required.
 // Web clients are restricted to the URI_WHITELIST in production so any other browser origin
