@@ -24,7 +24,9 @@ export const authenticateUserValidation = [
             body('idToken').exists().isString(),
             body('userFirstName').optional().isString(),
             body('userLastName').optional().isString(),
-            body('userEmail').optional().isString().isEmail()
+            // checkFalsy: Apple SSO frequently returns no email on repeat logins, so clients
+            // send userEmail: ''. A bare .optional() would run isEmail on '' and 400 the login.
+            body('userEmail').optional({ checkFalsy: true }).isString().isEmail()
                 .normalizeEmail(),
         ],
     ]),

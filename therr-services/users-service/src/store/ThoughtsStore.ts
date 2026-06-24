@@ -77,7 +77,7 @@ export default class ThoughtsStore {
     }
 
     getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id']) {
-        const interestsKeysStr = relatedInterestsKeys.map((key) => `'${key}'`).join(',');
+        const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
 
         let query = knexBuilder.select(returning)
             .from(THOUGHTS_TABLE_NAME)
@@ -96,7 +96,7 @@ export default class ThoughtsStore {
 
         if (relatedInterestsKeys?.length) {
             // TODO: Test this with various interests lists
-            query = query.whereRaw(`"interestsKeys" \\?| array[${interestsKeysStr}]`);
+            query = query.whereRaw(`"interestsKeys" \\?| ARRAY[${interestsPlaceholders}]::text[]`, relatedInterestsKeys);
         }
 
         return this.db.read.query(query.toString()).then((response) => response.rows);

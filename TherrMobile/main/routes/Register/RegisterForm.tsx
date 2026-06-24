@@ -1,15 +1,17 @@
 import * as React from 'react';
-import { Linking, Platform, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, Text, View } from 'react-native';
+import DatePicker from 'react-native-date-picker';
 import { Button } from '../../components/BaseButton';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { PasswordRegex } from 'therr-js-utilities/constants';
+import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
 import { showToast } from '../../utilities/toasts';
 import translator from '../../utilities/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
-import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
+import { ITherrThemeColors, ITherrThemeColorVariations, isDarkTheme } from '../../styles/themes';
 import { ISSOUserDetails } from '../Login/LoginForm';
 import TherrIcon from '../../components/TherrIcon';
 import OrDivider from '../../components/Input/OrDivider';
@@ -49,6 +51,7 @@ interface IRegisterFormState {
     prevRegisterError: string;
     isSubmitting: boolean;
     isPasswordEntryDirty: boolean;
+    isBirthdatePickerOpen: boolean;
 }
 
 /**
@@ -69,10 +72,12 @@ export class RegisterFormComponent extends React.Component<
             prevRegisterError: '',
             isSubmitting: false,
             isPasswordEntryDirty: false,
+            isBirthdatePickerOpen: false,
         };
 
+        // Read from `this.props` so labels re-translate when the pre-login locale changes.
         this.translate = (key: string, params: any) =>
-            translator(props.userSettings?.locale || 'en-us', key, params);
+            translator(this.props.userSettings?.locale || 'en-us', key, params);
     }
 
     isFormValid = () => {
@@ -81,7 +86,39 @@ export class RegisterFormComponent extends React.Component<
 
     isRegisterFormDisabled = () => {
         const { inputs, isSubmitting } = this.state;
-        return !inputs.email || !inputs.password || !inputs.repeatPassword || !this.isFormValid() || isSubmitting;
+        return !inputs.email
+            || !inputs.password
+            || !inputs.repeatPassword
+            || !inputs.settingsBirthdate
+            || !isValidSignupAge(inputs.settingsBirthdate)
+            || !this.isFormValid()
+            || isSubmitting;
+    };
+
+    getMaxBirthdate = () => new Date();
+
+    getDefaultBirthdate = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - MINIMUM_SIGNUP_AGE);
+        return d;
+    };
+
+    onBirthdateConfirm = (date: Date) => {
+        this.setState({ isBirthdatePickerOpen: false });
+
+        if (!isValidSignupAge(date)) {
+            showToast.error({
+                text1: this.translate('alertTitles.registrationError'),
+                text2: this.translate('forms.registerForm.errorMessages.birthdateTooYoung', { minAge: `${MINIMUM_SIGNUP_AGE}` }),
+            });
+            return;
+        }
+
+        this.onInputChange('settingsBirthdate', date.toISOString());
+    };
+
+    onBirthdateCancel = () => {
+        this.setState({ isBirthdatePickerOpen: false });
     };
 
     onSubmit = () => {
@@ -127,9 +164,19 @@ export class RegisterFormComponent extends React.Component<
             });
             return;
         }
+        if (!inputs.settingsBirthdate || !isValidSignupAge(inputs.settingsBirthdate)) {
+            showToast.error({
+                text1: this.translate('alertTitles.registrationError'),
+                text2: this.translate('forms.registerForm.errorMessages.birthdateTooYoung', { minAge: `${MINIMUM_SIGNUP_AGE}` }),
+            });
+            return;
+        }
 
         const creds = {
             ...inputs,
+            // Persist the language chosen on the pre-login switcher to the new account so the
+            // user's verification email and first session match their selected locale.
+            settingsLocale: this.props.userSettings?.locale || 'en-us',
         };
         delete creds.repeatPassword;
 
@@ -403,6 +450,48 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
+                />
+                <Pressable onPress={() => this.setState({ isBirthdatePickerOpen: true })}>
+                    <View pointerEvents="none">
+                        <RoundInput
+                            editable={false}
+                            placeholder={this.translate(
+                                'forms.registerForm.labels.birthdate'
+                            )}
+                            value={
+                                this.state.inputs.settingsBirthdate
+                                    ? new Date(this.state.inputs.settingsBirthdate)
+                                        .toLocaleDateString(this.props.userSettings?.locale || 'en-us')
+                                    : ''
+                            }
+                            rightIcon={
+                                <TherrIcon
+                                    name="calendar"
+                                    size={24}
+                                    color={themeAlerts.colors.placeholderTextColorAlt}
+                                />
+                            }
+                            themeForms={themeForms}
+                        />
+                    </View>
+                </Pressable>
+                <Text style={[theme.styles.sectionDescription, { fontSize: 12, textAlign: 'center', marginTop: 6, marginBottom: 16 }]}>
+                    {this.translate('forms.registerForm.subtitles.birthdateHint', { minAge: `${MINIMUM_SIGNUP_AGE}` })}
+                </Text>
+                <DatePicker
+                    modal
+                    mode="date"
+                    open={this.state.isBirthdatePickerOpen}
+                    date={
+                        this.state.inputs.settingsBirthdate
+                            ? new Date(this.state.inputs.settingsBirthdate)
+                            : this.getDefaultBirthdate()
+                    }
+                    maximumDate={this.getMaxBirthdate()}
+                    onConfirm={this.onBirthdateConfirm}
+                    onCancel={this.onBirthdateCancel}
+                    theme={isDarkTheme(this.props.userSettings?.mobileThemeName) ? 'dark' : 'light'}
                 />
                 <Alert
                     containerStyles={addMargins({

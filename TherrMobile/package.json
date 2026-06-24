@@ -3,6 +3,8 @@
   "version": "0.0.6",
   "private": true,
   "scripts": {
+    "eas-build-pre-install": "if [ -n \"$GOOGLE_SERVICES_JSON\" ]; then cp \"$GOOGLE_SERVICES_JSON\" android/app/google-services.json && echo 'eas-build-pre-install: copied google-services.json into android/app'; else echo 'eas-build-pre-install: WARNING GOOGLE_SERVICES_JSON not set — Android build will fail at :app:processReleaseGoogleServices'; fi",
+    "eas-build-post-install": "echo 'eas-build-post-install: preparing monorepo (root node_modules + compiled shared libs that Metro bundles)' && cd .. && HUSKY=0 npm install --legacy-peer-deps --include=dev && npm --prefix therr-public-library/therr-js-utilities run build && npm --prefix therr-public-library/therr-styles run build && npm --prefix therr-public-library/therr-react run build && echo 'eas-build-post-install: monorepo prepared (../node_modules + therr-js-utilities/lib + therr-styles/lib + therr-react/lib)'",
     "android": "export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
     "android:clean": "pushd android && rm -rf app/.cxx app/build app/build/generated/autolinking .gradle build && ./gradlew clean; popd",
     "android:clean:cache": "pushd android && rm -rf app/.cxx app/build/generated/autolinking app/build/intermediates/cxx app/build/intermediates/cmake; popd",
@@ -38,7 +40,7 @@
     "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
     "postinstall": "patch-package",
     "app:uninstall": "adb uninstall app.therrmobile",
-    "android:reset": "adb uninstall app.therrmobile || true; adb shell pm trim-caches 999999999999 || true; export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
+    "android:reset": "adb uninstall app.therrmobile || adb uninstall com.therr.habits || true; adb shell pm trim-caches 999999999999 || true; export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
     "troubleshoot:android:stopGradle": "pushd android; ./gradlew --stop; popd",
     "troubleshoot:android:clean": "npm run android:clean",
     "perf:reset": "./_scripts/perf-capture.sh reset",

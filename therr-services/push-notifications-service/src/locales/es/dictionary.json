@@ -134,6 +134,12 @@
       "pressActionAccept": "Aceptar",
       "pressActionView": "Ver"
     },
+    "pactNudge": {
+      "title": "Un recordatorio amistoso",
+      "body": "{partnerName} sigue esperando que te unas al pacto de {habitName} — la responsabilidad empieza aquí.",
+      "pressActionAccept": "Aceptar",
+      "pressActionView": "Ver"
+    },
     "pactAccepted": {
       "title": "¡Pacto aceptado!",
       "body": "{partnerName} se unió. Ambos están comprometidos con {habitName} — el primer registro inicia la racha."

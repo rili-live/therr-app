@@ -42,14 +42,10 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
 
     isFormDisabled() {
         const { inputs } = this.state;
-        if (this.props.isSubmitting || !inputs.userName || !this.isFormValid()) {
-            return true;
-        }
-        // Business accounts only require firstName; personal accounts require both
-        if (inputs.isBusinessAccount) {
-            return !inputs.firstName;
-        }
-        return !inputs.firstName || !inputs.lastName;
+        // First/last name are intentionally optional during onboarding to reduce
+        // friction; we prompt users to add their name later. Only a username and a
+        // valid phone number are required. See onboarding friction review (2026-06).
+        return this.props.isSubmitting || !inputs.userName || !this.isFormValid();
     }
 
     isFormValid() {
@@ -154,6 +150,9 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             label={this.props.translate('components.createProfileForm.labels.userName')}
                         />
 
+                        {/* First/last name are optional during onboarding (see isFormDisabled).
+                            Do not mark them isRequired or the input renders a misleading
+                            "required" error once touched, contradicting the deferred-name flow. */}
                         <MantineInput
                             type="text"
                             id="first_name"
@@ -162,7 +161,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
                             translateFn={this.props.translate}
-                            validations={['isRequired']}
+                            validations={[]}
                             label={isBusiness
                                 ? this.props.translate('components.createProfileForm.labels.businessName')
                                 : this.props.translate('components.createProfileForm.labels.firstName')}
@@ -177,7 +176,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
                                 translateFn={this.props.translate}
-                                validations={['isRequired']}
+                                validations={[]}
                                 label={this.props.translate('components.createProfileForm.labels.lastName')}
                             />
                         )}

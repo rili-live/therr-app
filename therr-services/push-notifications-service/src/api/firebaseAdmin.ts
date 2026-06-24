@@ -799,6 +799,30 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PACT_INVITATION'));
             return baseMessage;
+        case PushNotifications.Types.pactNudge:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.pactNudge.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.pactNudge.body', {
+                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.pactAccept,
+                            title: translate(config.userLocale, 'notifications.pactNudge.pressActionAccept'),
+                        },
+                        {
+                            id: PushNotifications.PressActionIds.pactView,
+                            title: translate(config.userLocale, 'notifications.pactNudge.pressActionView'),
+                        },
+                    ]),
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PACT_NUDGE'));
+            return baseMessage;
         case PushNotifications.Types.pactAccepted:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -1004,6 +1028,7 @@ const predictAndSendNotification = (
                 || type === PushNotifications.Types.partnerMissedDay
                 || type === PushNotifications.Types.partnerCelebrated
                 || type === PushNotifications.Types.pactInvitation
+                || type === PushNotifications.Types.pactNudge
                 || type === PushNotifications.Types.pactAccepted
                 || type === PushNotifications.Types.pactDeclined
                 || type === PushNotifications.Types.pactCompleted

@@ -87,6 +87,11 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
+- [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
+  migration on production messages-service (`npm run migrations:run`). Without it
+  the `brandVariation` column does not exist, `searchDirectMessages` fails with a
+  SQL error, and the DM thread shows empty even when old messages exist.
 - [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
   account env vars on push-notifications-service production
   (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
@@ -121,6 +126,43 @@ append new items here rather than only printing them once.
   `assetlinks.habits.json` once habits.therr.com serves it (visit
   `https://habits.therr.com/.well-known/assetlinks.json` and re-run the
   Play Console "App links" check for `com.therr.habits`).
+- [ ] (2026-06-05, /quality-peer-review) After deploying the JWT claims-hardening
+  change (general→stage→main), confirm `JWT_ISSUER` / `JWT_AUDIENCE` env vars are
+  actually present on the running prod pods for users-service, api-gateway, and
+  websocket-service (`kubectl describe deploy ... | grep JWT_`). The signer and all
+  verifiers must agree per-environment (`https://api.therr.com` in prod, `therr-app`
+  audience everywhere); if the deploy pipeline updated the image but did not re-apply
+  the deployment manifest's env block, services silently fall back to the
+  `therr-api` default — still internally consistent, so issuer-based cross-env token
+  separation would be inactive without any error surfacing. Verify, don't assume.
+- [ ] (2026-06-08, /quality-peer-review) Run the
+  `20260517000001_habits.pact_members.nudgedAt` migration on production
+  (users-service: `npm run migrations:run`) after deploying — adds the nullable
+  `habits.pact_members.nudgedAt` column the new pact-nudge endpoint writes to via
+  `markNudged`. Without it, every nudge call 500s on the `markNudged` update.
+- [ ] (2026-06-20, /quality-peer-review) Production CORS is now enforced.
+  `therr-api-gateway/src/index.ts` switched prod from `cors()` (allow-all) to
+  `cors(corsOptions)` gated on `URI_WHITELIST`. Before deploying to prod, confirm
+  `URI_WHITELIST` (comma-separated, exact scheme+host, no trailing slash) on the
+  api-gateway includes EVERY production web origin: `https://www.therr.com`,
+  `https://therr.com`, the dashboard origin, and any niche web domains
+  (`https://habits.therr.com`, `https://teem.therr.com`, …). Any browser origin
+  not listed will be rejected at CORS preflight and the web/dashboard apps break.
+  Mobile is unaffected (sends no Origin header). Verify the env block is actually
+  applied to the running pod, not just the image.
+- [ ] (2026-06-20, /quality-peer-review) `JWT_SECRET` and `JWT_EMAIL_SECRET` are
+  now hard-required at boot — api-gateway middleware (`authenticate`,
+  `authenticateOptional`, `authenticateUnsubscribe`) throws at import if missing,
+  and users-service `validateEnv` lists them in `requiredKeys`. Confirm both are
+  present on prod api-gateway AND users-service before deploy; a missing var now
+  crash-loops the service on startup instead of silently signing/verifying with an
+  empty secret.
+- [ ] (2026-06-20, /quality-peer-review) Generic gateway rate limit was lowered
+  from 1000 → 300 req/min per IP (`therr-api-gateway/src/middleware/rateLimiters.ts`).
+  After deploy, watch for a spike in 429s — clients behind carrier-grade NAT or a
+  shared corporate/office egress IP collectively count against one bucket and may
+  trip the lower ceiling. If false positives appear, raise the limit or move to a
+  per-user/token keyed limiter.
 <!-- skill-followups:end -->
 
 ---

@@ -1,9 +1,15 @@
 import jwt from 'jsonwebtoken';
 import unless from 'express-unless';
+import { hasValidStandardClaims } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import isBlacklisted from '../utilities/isBlacklisted';
 import { isTokenBlacklisted } from '../store/redisClient';
 import authenticateApiKey from './authenticateApiKey';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('api-gateway: JWT_SECRET environment variable is required');
+}
 
 const verifyJwt = (token: string, secret: string): Promise<any> => new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
@@ -22,13 +28,25 @@ const authenticate = async (req, res, next) => {
         }
 
         if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
-            const decoded = await verifyJwt(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '');
+            const decoded = await verifyJwt(req.headers.authorization.split(' ')[1], JWT_SECRET);
 
             // Check if token has been revoked (server-side logout)
             if (decoded.jti && await isTokenBlacklisted(decoded.jti)) {
                 return handleHttpError({
                     res,
                     message: 'Token has been revoked',
+                    statusCode: 401,
+                });
+            }
+
+            // Validate standard registered claims (iss/aud). Backward-compatible:
+            // legacy tokens that predate claims-hardening carry no iss/aud and are
+            // allowed through; a token that carries a MISMATCHED claim is rejected
+            // (signals a forged/foreign token).
+            if (!hasValidStandardClaims(decoded)) {
+                return handleHttpError({
+                    res,
+                    message: "Invalid 'authorization.' Token issuer or audience is invalid.",
                     statusCode: 401,
                 });
             }

@@ -12,6 +12,7 @@ import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
 import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
+import { MapsService } from 'therr-react/services';
 import { Categories, Content, ErrorCodes, FilePaths, PushNotifications } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
@@ -40,6 +41,7 @@ import {
     getAndroidChannel,
     AndroidChannelIds,
     HAPTIC_FEEDBACK_TYPE,
+    MAX_DISTANCE_TO_NEARBY_SPACE,
 } from '../../constants';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
@@ -56,7 +58,9 @@ import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../../components/TherrIcon';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import SharePromptModal from '../../components/Modals/SharePromptModal';
+import NearbyEstablishmentModal from '../../components/Modals/NearbyEstablishmentModal';
 import SpaceRating from '../../components/Input/SpaceRating';
+import { buildSpaceFromPlace, findNearbyEstablishments, INearbyEstablishment } from '../../utilities/buildSpaceFromPlace';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -68,6 +72,7 @@ const hapticFeedbackOptions = {
 interface IEditMomentDispatchProps {
     createMoment: Function;
     updateMoment: Function;
+    createSpace: Function;
     createOrUpdateSpaceReaction: Function;
 }
 
@@ -88,6 +93,11 @@ interface IEditMomentState {
     hashtags: string[];
     isInsufficientFundsModalVisible: boolean;
     isSharePromptVisible: boolean;
+    isEstablishmentModalVisible: boolean;
+    isCreatingEstablishmentSpace: boolean;
+    nearbyEstablishments: INearbyEstablishment[];
+    establishmentMomentId?: string;
+    confirmingPlaceId?: string;
     inputs: any;
     isEditingNearbySpaces: boolean;
     isSubmitting: boolean;
@@ -107,6 +117,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createMoment: MapActions.createMoment,
     updateMoment: MapActions.updateMoment,
+    createSpace: MapActions.createSpace,
     createOrUpdateSpaceReaction: ReactionActions.createOrUpdateSpaceReaction,
 }, dispatch);
 
@@ -159,6 +170,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isEditingNearbySpaces: false,
             isInsufficientFundsModalVisible: false,
             isSharePromptVisible: false,
+            isEstablishmentModalVisible: false,
+            isCreatingEstablishmentSpace: false,
+            nearbyEstablishments: [],
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
@@ -467,10 +481,14 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
                         if (!shouldSkipNavigate) {
                             if (!isDraft) {
+                                const createdMomentId = response?.id || areaId;
                                 this.setState({
-                                    isSharePromptVisible: true,
+                                    areaId: createdMomentId,
                                     isSubmitting: false,
                                 });
+                                // After posting, if no DB space exists nearby, see if there's a
+                                // real-world establishment the user can confirm and add as a space.
+                                this.checkNearbyEstablishments(latitude, longitude, spaceId, createdMomentId);
                             } else {
                                 setTimeout(() => {
                                     this.props.navigation.navigate('Map', {
@@ -706,6 +724,130 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             shouldSkipRewards: true,
             shouldSkipNavigate: false,
         }));
+    };
+
+    showSharePrompt = () => {
+        this.setState({
+            isSharePromptVisible: true,
+        });
+    };
+
+    // Determines whether to prompt the user to create a space for a nearby
+    // establishment after posting a moment. Only runs when the moment was not
+    // already anchored to a space and no DB space exists within proximity.
+    checkNearbyEstablishments = (latitude?: number, longitude?: number, spaceId?: string, momentId?: string) => {
+        if (spaceId || latitude == null || longitude == null) {
+            this.showSharePrompt();
+            return;
+        }
+
+        MapsService.listSpaces({
+            query: 'connections',
+            itemsPerPage: 1,
+            pageNumber: 1,
+            filterBy: 'fromUserIds',
+            longitude,
+            latitude,
+        }, {
+            distanceOverride: MAX_DISTANCE_TO_NEARBY_SPACE,
+        }).then((spacesResponse: any) => {
+            const existingSpaces = spacesResponse?.data?.results || [];
+            if (existingSpaces.length > 0) {
+                // A space already exists nearby — nothing to create.
+                this.showSharePrompt();
+                return undefined;
+            }
+
+            return MapsService.getPlaceNearbySearchByLocation({
+                latitude,
+                longitude,
+                radius: MAX_DISTANCE_TO_NEARBY_SPACE,
+            }).then((placesResponse: any) => {
+                const candidates = findNearbyEstablishments(
+                    placesResponse?.data?.results,
+                    { latitude, longitude },
+                    MAX_DISTANCE_TO_NEARBY_SPACE,
+                );
+
+                if (candidates.length > 0) {
+                    this.setState({
+                        nearbyEstablishments: candidates,
+                        establishmentMomentId: momentId,
+                        isEstablishmentModalVisible: true,
+                    });
+                } else {
+                    this.showSharePrompt();
+                }
+                return undefined;
+            });
+        }).catch(() => {
+            // Discovery is best-effort; never block the post flow on it.
+            this.showSharePrompt();
+        });
+    };
+
+    onSelectEstablishment = (placeId: string) => {
+        const { createSpace, updateMoment, user } = this.props;
+        const { establishmentMomentId, nearbyEstablishments } = this.state;
+        const selected = nearbyEstablishments.find((e) => e.placeId === placeId);
+
+        if (!selected) {
+            return;
+        }
+
+        this.setState({
+            isCreatingEstablishmentSpace: true,
+            confirmingPlaceId: placeId,
+        });
+
+        MapsService.getPlaceDetails({
+            placeId,
+            fieldsGroup: 'basic',
+            shouldIncludeWebsite: true,
+            shouldIncludeIntlPhone: true,
+            shouldIncludeOpeningHours: true,
+        })
+            .then((detailsResponse: any) => createSpace(buildSpaceFromPlace(selected, detailsResponse?.data?.result, user)))
+            .then((createdSpace: any) => {
+                const createdSpaceId = createdSpace?.id;
+                if (createdSpaceId && establishmentMomentId) {
+                    // Anchor the just-posted moment to the newly created space.
+                    return updateMoment(establishmentMomentId, { spaceId: createdSpaceId }, false);
+                }
+                return undefined;
+            })
+            .then(() => {
+                showToast.success({
+                    text1: this.translate('alertTitles.establishmentSpaceCreated'),
+                    text2: this.translate('alertMessages.establishmentSpaceCreated'),
+                });
+                this.dismissEstablishmentModal();
+            })
+            .catch(() => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('alertMessages.backendErrorMessage'),
+                });
+                this.dismissEstablishmentModal();
+            });
+    };
+
+    dismissEstablishmentModal = () => {
+        this.setState({
+            isEstablishmentModalVisible: false,
+            isCreatingEstablishmentSpace: false,
+            confirmingPlaceId: undefined,
+        }, () => {
+            // Defer the share prompt so the dialogs don't fight over the portal.
+            setTimeout(() => this.showSharePrompt(), 300);
+        });
+    };
+
+    onDismissEstablishmentModal = () => {
+        if (this.state.isCreatingEstablishmentSpace) {
+            return;
+        }
+        this.dismissEstablishmentModal();
     };
 
     onDismissSharePrompt = () => {
@@ -1093,6 +1235,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isEditingNearbySpaces,
             isInsufficientFundsModalVisible,
             isSharePromptVisible,
+            isEstablishmentModalVisible,
+            isCreatingEstablishmentSpace,
+            nearbyEstablishments,
+            confirmingPlaceId,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
         const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
@@ -1204,6 +1350,16 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     onDismiss={this.onDismissSharePrompt}
                     translate={this.translate}
                     themeModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
+                <NearbyEstablishmentModal
+                    isVisible={isEstablishmentModalVisible}
+                    establishments={nearbyEstablishments}
+                    confirmingPlaceId={confirmingPlaceId}
+                    isConfirming={isCreatingEstablishmentSpace}
+                    onSelect={this.onSelectEstablishment}
+                    onDismiss={this.onDismissEstablishmentModal}
+                    translate={this.translate}
                     themeButtons={this.themeButtons}
                 />
             </>
