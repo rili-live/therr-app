@@ -14,7 +14,7 @@ import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
-import { getUserContentUri } from '../../utilities/content';
+import { getUserContentUri, getMomentImageUris } from '../../utilities/content';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -70,6 +70,8 @@ const renderItem = ({ item: post }, {
     let postMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
         ? getUserContentUri((post.medias?.[0]), screenWidth, screenWidth)
         : media?.[mediaPath];
+    // Resolve every photo for multi-photo moments (single photo falls back to [postMedia]).
+    const postMediaUris = getMomentImageUris(post.medias, media, screenWidth, screenWidth);
     const isMe = user.details.id === post.fromUserId;
     let userDetails: any = {
         userName: post.fromUserName || (user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown')),
@@ -132,6 +134,7 @@ const renderItem = ({ item: post }, {
                         areaUserDetails={userDetails}
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
+                        areaMediaUris={postMediaUris}
                         isDarkMode={isDarkMode}
                         theme={theme}
                         themeForms={themeForms}
@@ -150,6 +153,7 @@ const renderItem = ({ item: post }, {
                         areaUserDetails={userDetails}
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
+                        areaMediaUris={postMediaUris}
                         isDarkMode={isDarkMode}
                         placeholderMediaType={post.areaType === 'spaces' ? 'static' : undefined}
                         theme={theme}
