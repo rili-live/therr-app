@@ -2015,7 +2015,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         ? hOpts.headerTitle
                                         : (hOpts?.title ?? hRoute.name);
                                     middleNode = (
-                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                        <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 8 }}>
                                             <Text
                                                 numberOfLines={1}
                                                 style={[
