@@ -32,6 +32,10 @@ export const createUserValidation = [
     // new account so the user's first emails and app session match their selected language.
     body('settingsLocale').optional().isString().isIn(['en-us', 'es', 'fr-ca', 'en', 'fr']),
     body('inviteCode').optional().isString(),
+    // Magic invite-link token. When present and valid, registration trusts the
+    // contact channel the invite was delivered on (email -> email verified,
+    // SMS -> phone verified), auto-accepts the invite, and connects the users.
+    body('inviteToken').optional().isUUID(4),
     body('activationCode').optional().isString(),
     body('paymentSessionId').optional().isString(),
 ];

@@ -320,7 +320,17 @@ usersServiceRouter.post('/users/connections', userConnectionLimiter, createUserC
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, inviteConnectionsValidation, handleServiceRequest({
+// Bulk invite sends email/SMS to arbitrary external contacts — the clearest
+// spam vector. With phone verification now deferred (users can reach
+// EMAIL_VERIFIED with just a username), gate bulk invites on MOBILE_VERIFIED so
+// only phone-verified accounts can fan out invitations. Single connection
+// requests (/users/connections) remain ungated as a core social action.
+usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [AccessLevels.MOBILE_VERIFIED],
+    },
+), inviteConnectionsValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -380,6 +390,12 @@ usersServiceRouter.get('/users/by-phone/:phoneNumber', handleServiceRequest({
 }));
 
 usersServiceRouter.get('/users/by-username/:userName', authenticateOptional, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+// PUBLIC: resolve a magic invite-link token to pre-fill signup data (pre-auth)
+usersServiceRouter.get('/users/invites/:token', emailPrecheckLimiter, [param('token').exists().isUUID(4)], validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
