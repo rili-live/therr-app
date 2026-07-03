@@ -769,6 +769,7 @@
         "disclaimer": "By creating an account, you agree to our ",
         "and": " and ",
         "inviteCodeHint": "Enter a friend's invite code - they earn 10 coins and you earn 5!",
+        "invitedBy": "{inviterName} invited you to Therr — finish signing up to connect!",
         "birthdateHint": "You must be at least {minAge} years old to use Therr"
       },
       "validationErrors": {

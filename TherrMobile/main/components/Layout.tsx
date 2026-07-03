@@ -1530,6 +1530,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewEventRegex = RegExp('events/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewGroupRegex = RegExp('groups/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewPublicListRegex = RegExp('lists/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/([a-z0-9-]+)', 'i');
+        const inviteLinkRegex = RegExp('invite/link/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const isUserLoggedIn = isUserAuthenticated(user);
         const isUserMissingProps = UsersService.isAuthorized(
             {
@@ -1593,6 +1594,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 this.setState({
                     targetRouteView: 'Home',
                 });
+            }
+        } else if (url?.match(inviteLinkRegex)) {
+            // Magic invite link: send unauthenticated users to a pre-filled
+            // signup (Register fetches the invite details from the token).
+            // Already-authenticated users have an account, so ignore.
+            const inviteToken = url.match(inviteLinkRegex)[1];
+            if (!isUserLoggedIn) {
+                RootNavigation.navigate('Register', { inviteToken });
             }
         } else if (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex)) {
             const momentId = (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex))[1];
