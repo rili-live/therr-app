@@ -13,13 +13,20 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
-    - http01:
-        ingress:
-          class: nginx
+    # DNS-01 via Cloudflare API token. Preferred because it is unaffected
+    # by Cloudflare proxy status, supports wildcards, and does not require
+    # the origin to be reachable on port 80 during issuance.
+    # Requires secret `cloudflare-api-token-secret` in the cert-manager
+    # namespace with key `api-token` holding a token scoped to:
+    #   Zone:Zone:Read (all zones)
+    #   Zone:DNS:Edit  (therr.com)
+    - dns01:
+        cloudflare:
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
       selector:
         dnsZones:
         - 'therr.com'
-        - '*.therr.com'
         # Whitelabel
         # - 'adsly.app'
-        # - '*.adsly.app'
