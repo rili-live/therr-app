@@ -2,6 +2,8 @@ import logger from 'redux-logger';
 import { configureStore } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistStore, persistReducer } from 'redux-persist';
+import type { Persistor } from 'redux-persist';
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import basePersistConfig from 'therr-react/redux/persistConfig';
 import SecureStorage from './utilities/SecureStorage';
 import rootReducer from './redux/reducers';
@@ -31,13 +33,39 @@ const persistConfig = {
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
+// Late-bound reference to the persistor created in `getStore`. The purge
+// middleware needs it, but it can only exist after the store is configured.
+let persistor: Persistor | null = null;
+
+// redux-persist keeps its own copy of the whitelisted slices (`user`,
+// `content`, `notifications`, `userConnections`) in AsyncStorage, separate
+// from the SecureStorage/Keychain copy that `getStore` rehydrates into
+// `preloadedState`. On logout the shared action clears SecureStorage and
+// dispatches LOGOUT, but nothing purges redux-persist. Because REHYDRATE
+// merges the persisted `user` slice back over `preloadedState` on the next
+// cold start, a stale *authenticated* snapshot silently re-authenticates the
+// user. Purge the persisted copy here so it can never outlive the session.
+// Covers every logout dispatcher (header menu, Settings, interceptor 401
+// tear-down) from a single point.
+const purgeOnLogoutMiddleware = () => (next: any) => (action: any) => {
+    const result = next(action);
+
+    if (action?.type === SocketClientActionTypes.LOGOUT && persistor) {
+        persistor.purge().catch((err) => {
+            console.log('Failed to purge persisted state on logout:', err);
+        });
+    }
+
+    return result;
+};
+
 const getMiddleware = (getDefaultMiddleware: any) => {
     const middleware = getDefaultMiddleware({
         serializableCheck: {
             // redux-persist actions contain non-serializable values
             ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
         },
-    });
+    }).concat(purgeOnLogoutMiddleware);
 
     if (__DEV__ && ENABLE_REDUX_LOGGER) {
         return middleware.concat(socketIOMiddleWare).concat(logger);
@@ -89,7 +117,7 @@ const getStore = async () => {
         devTools: !!__DEV__,
     });
 
-    const persistor = persistStore(store);
+    persistor = persistStore(store);
 
     return { store, persistor };
 };

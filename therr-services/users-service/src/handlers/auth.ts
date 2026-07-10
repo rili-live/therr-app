@@ -271,6 +271,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     const updateArgs: any = {
                         accessLevels: JSON.stringify([...new Set(user.accessLevels)]),
                         loginCount: user.loginCount + 1,
+                        lastLoginAt: new Date(),
                         integrationsAccess: user.integrations,
                     };
 

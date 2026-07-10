@@ -81,6 +81,26 @@ describe('UsersStore', () => {
             expect(mockStore.write.query.args[0][0].includes(expected)).to.be.equal(true);
         });
 
+        // Guards against a host-timezone-dependent shift: knex renders a raw JS Date into the
+        // Node process's local timezone with no offset, which Postgres then reads as UTC.
+        // Asserting on the emitted SQL keeps this test meaningful regardless of the host's TZ.
+        it('writes lastLoginAt as a UTC ISO-8601 literal', () => {
+            const expected = `"lastLoginAt" = '2026-07-09T18:00:00.000Z'`;
+            const mockStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.updateUser({
+                lastLoginAt: new Date('2026-07-09T18:00:00.000Z'),
+            }, {
+                id: 5,
+            });
+
+            expect(mockStore.write.query.args[0][0].includes(expected)).to.be.equal(true);
+        });
+
         it('requires email or id', () => {
             const mockStore = {
                 write: {

@@ -8,7 +8,7 @@ RUN apk add --no-cache libc6-compat
 # Needed for bcrypt
 RUN apk add --no-cache python3 make g++
 
-RUN npm i npm@latest -g
+RUN npm i npm@11 -g
 
 # Create app directory
 WORKDIR /app
