@@ -432,6 +432,14 @@ export default class UsersStore {
             modifiedParams.loginCount = params.loginCount;
         }
 
+        if (params.lastLoginAt) {
+            // This query is serialized with knex's `.toString()`, which renders a JS Date
+            // into the Node process's local timezone with no offset. Postgres then parses
+            // that naive literal in the DB session's timezone, shifting the stored value on
+            // any non-UTC host. An explicit UTC ISO-8601 string is unambiguous to both.
+            modifiedParams.lastLoginAt = new Date(params.lastLoginAt).toISOString();
+        }
+
         if (params.deviceMobileFirebaseToken) {
             modifiedParams.deviceMobileFirebaseToken = params.deviceMobileFirebaseToken;
         }

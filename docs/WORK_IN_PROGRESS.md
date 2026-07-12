@@ -163,6 +163,13 @@ append new items here rather than only printing them once.
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
+- [ ] (2026-07-09, /quality-peer-review) Run the
+  `20260709000001_main.users.lastLoginAt` migration on production users-service
+  (`npm run migrations:run`) **before** the image carrying the new login handler
+  goes live. The column is nullable and additive, so applying it early is safe for
+  the currently-deployed release. If the code ships first, `updateUser` in the login
+  path fails with `column "lastLoginAt" of relation "users" does not exist` and
+  **every login 500s** — this is on the critical auth path, not a degraded feature.
 <!-- skill-followups:end -->
 
 ---
