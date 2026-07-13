@@ -101,6 +101,7 @@
 - **Nearby content carousels** — swipeable tabs for discoveries, events, thoughts, news
 - **Draft management** — save and resume content drafts
 - **Animated onboarding** — landing page with background carousel
+- **Android app shortcuts** — long-press the launcher icon for quick links straight into Create Moment / Create Thought
 
 ---
 
