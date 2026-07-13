@@ -87,6 +87,12 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
+  project env var (full Play service-account key JSON with the "Release manager"
+  permission) so the `eas_build_therr_android` job can auto-populate Google Play
+  release notes. Until it is set, the release-notes step logs a skip and the
+  pipeline still succeeds — notes just won't update. See
+  `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
 - [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
   migration on production messages-service (`npm run migrations:run`). Without it
