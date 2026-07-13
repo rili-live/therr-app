@@ -769,6 +769,7 @@
         "disclaimer": "En créant un compte, vous acceptez nos ",
         "and": " et ",
         "inviteCodeHint": "Entrez le code d'invitation d'un ami — il gagne 10 pièces et vous en gagnez 5!",
+        "invitedBy": "{inviterName} t'a invité sur Therr — termine ton inscription pour te connecter!",
         "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser Therr"
       },
       "validationErrors": {

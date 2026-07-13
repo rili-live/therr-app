@@ -12,6 +12,18 @@ export interface ICreateInviteParams {
     email?: string;
     phoneNumber?: string;
     isAccepted: boolean;
+    token?: string;
+}
+
+export interface IInviteWithInviter {
+    id: string;
+    requestingUserId: string;
+    email?: string;
+    phoneNumber?: string;
+    isAccepted: boolean;
+    inviterFirstName?: string;
+    inviterLastName?: string;
+    inviterUserName?: string;
 }
 
 export interface IUpdateInviteConditions {
@@ -46,6 +58,32 @@ export default class InvitesStore {
     }
 
     /**
+     * Resolves a magic invite-link token to the invite plus the inviter's
+     * display fields. Used (a) by the public invite-landing endpoint to
+     * pre-fill the invitee's known email/phone and show who invited them,
+     * and (b) during token-aware registration to trust the contact channel
+     * the token was delivered on. Returns undefined for an unknown token.
+     */
+    getInviteByToken(token: string): Promise<IInviteWithInviter | undefined> {
+        const queryString = knexBuilder
+            .select([
+                `${INVITES_TABLE_NAME}.id`,
+                `${INVITES_TABLE_NAME}.requestingUserId`,
+                `${INVITES_TABLE_NAME}.email`,
+                `${INVITES_TABLE_NAME}.phoneNumber`,
+                `${INVITES_TABLE_NAME}.isAccepted`,
+                'main.users.firstName as inviterFirstName',
+                'main.users.lastName as inviterLastName',
+                'main.users.userName as inviterUserName',
+            ])
+            .from(INVITES_TABLE_NAME)
+            .leftJoin('main.users', 'main.users.id', `${INVITES_TABLE_NAME}.requestingUserId`)
+            .where(`${INVITES_TABLE_NAME}.token`, token)
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows[0]);
+    }
+
+    /**
      * Returns prior invites this user has sent within the given window. Used
      * by the bulk-invite handler to dedupe email/SMS sends so a user can't
      * spam the same recipient. Returns empty for empty input arrays — guards
@@ -75,6 +113,29 @@ export default class InvitesStore {
 
         return this.db.read.query(queryBuilder.toString())
             .then((response) => response.rows as Array<{ email?: string; phoneNumber?: string }>);
+    }
+
+    /**
+     * Upserts invites for a single contact channel and returns each row's
+     * token. Used by the bulk-invite flow so the magic link embedded in the
+     * outbound email/SMS matches the persisted row — including when a row
+     * already existed from a prior invite (its token is refreshed so a stale
+     * link can't be reused after a fresh invite). `channel` is the unique
+     * column to conflict on ('email' or 'phoneNumber').
+     */
+    upsertInvitesWithTokens(channel: 'email' | 'phoneNumber', invites: ICreateInviteParams[]) {
+        if (!invites.length) {
+            return Promise.resolve([] as Array<{ email?: string; phoneNumber?: string; token: string }>);
+        }
+        const queryString = knexBuilder.insert(invites)
+            .into(INVITES_TABLE_NAME)
+            .onConflict(channel)
+            .merge(['token'])
+            .returning(['email', 'phoneNumber', 'token'])
+            .toString();
+
+        return this.db.write.query(queryString)
+            .then((response) => response.rows as Array<{ email?: string; phoneNumber?: string; token: string }>);
     }
 
     createIfNotExist(invites: ICreateInviteParams[]) {

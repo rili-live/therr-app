@@ -229,6 +229,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 false,
                 undefined,
                 !!inviteCode,
+                req.body.inviteToken,
             ).then(async (user) => {
                 if (pactClaimCode && user?.id) {
                     // Best-effort: link the new user to the pending pact_members

@@ -87,6 +87,8 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-07-03, magic-invite-links) Run the new users-service migrations on production (`npm run migrations:run` in `therr-services/users-service`): `20260703000001_main.invites.token`, `20260703000002_main.invites.reminders`, `20260703000003_main.userStatsAggregations.onboarding`. The invite-token migration backfills a unique token per existing invite row; the onboarding-stat columns are read by the messaging-automator's completion-nudge pass.
+- [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). Today they get a generic error; ideally surface a "verify your phone to invite" prompt that deep-links to the phone-verification step. Also audit any other action that assumes phone presence now that users can reach `EMAIL_VERIFIED` without a phone.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
 - [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
   migration on production messages-service (`npm run migrations:run`). Without it

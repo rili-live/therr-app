@@ -17,12 +17,17 @@ export interface ITemplateParams {
     fromName: string;
     fromEmail: string;
     toEmail: string;
+    inviteToken?: string;
 }
 
 export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
-    const linkUrl = `${globalConfig[process.env.NODE_ENV].hostFull}`;
+    const hostFull = `${globalConfig[process.env.NODE_ENV].hostFull}`;
+    // Magic invite link: pre-fills the invitee's known email and skips the
+    // email-verification round-trip on signup. Falls back to the homepage if
+    // no token is supplied (e.g. legacy callers).
+    const linkUrl = templateParams.inviteToken ? `${hostFull}/invite/link/${templateParams.inviteToken}` : hostFull;
 
     const htmlConfig = {
         header: translate(locale, 'emails.contactInvite.header', { fromName: templateParams.fromName }),
