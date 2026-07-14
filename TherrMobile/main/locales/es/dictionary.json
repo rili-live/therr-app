@@ -769,6 +769,7 @@
         "disclaimer": "Al crear una cuenta, aceptas nuestros ",
         "and": " y ",
         "inviteCodeHint": "Ingresa el código de invitación de un amigo: ¡ellos ganan 10 monedas y tú ganas 5!",
+        "invitedBy": "{inviterName} te invitó a Therr — ¡termina de registrarte para conectar!",
         "birthdateHint": "Debes tener al menos {minAge} años para usar Therr"
       },
       "validationErrors": {

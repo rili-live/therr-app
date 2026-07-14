@@ -28,6 +28,10 @@ interface IRegisterFormProps {
     title?: string;
     toggleEULA: Function;
     userSettings: any;
+    // Magic invite-link context (set when arriving via /invite/link/:token).
+    inviteToken?: string;
+    prefillEmail?: string;
+    inviterName?: string;
     theme: {
         styles: any;
     };
@@ -67,7 +71,9 @@ export class RegisterFormComponent extends React.Component<
         super(props);
 
         this.state = {
-            inputs: {},
+            inputs: {
+                email: props.prefillEmail || '',
+            },
             passwordErrorMessage: '',
             prevRegisterError: '',
             isSubmitting: false,
@@ -78,6 +84,16 @@ export class RegisterFormComponent extends React.Component<
         // Read from `this.props` so labels re-translate when the pre-login locale changes.
         this.translate = (key: string, params: any) =>
             translator(this.props.userSettings?.locale || 'en-us', key, params);
+    }
+
+    componentDidUpdate(prevProps: IRegisterFormProps) {
+        // The invite email resolves asynchronously in the parent; seed the field
+        // once it arrives, without clobbering anything the user has typed.
+        if (prevProps.prefillEmail !== this.props.prefillEmail
+            && this.props.prefillEmail
+            && !this.state.inputs.email) {
+            this.onInputChange('email', this.props.prefillEmail);
+        }
     }
 
     isFormValid = () => {
@@ -172,13 +188,16 @@ export class RegisterFormComponent extends React.Component<
             return;
         }
 
-        const creds = {
+        const creds: any = {
             ...inputs,
             // Persist the language chosen on the pre-login switcher to the new account so the
             // user's verification email and first session match their selected locale.
             settingsLocale: this.props.userSettings?.locale || 'en-us',
         };
         delete creds.repeatPassword;
+        if (this.props.inviteToken) {
+            creds.inviteToken = this.props.inviteToken;
+        }
 
         this.setState({
             isSubmitting: true,
@@ -358,6 +377,15 @@ export class RegisterFormComponent extends React.Component<
 
         return (
             <>
+                {
+                    this.props.inviterName
+                        ? (
+                            <Text style={[theme.styles.sectionDescription, { textAlign: 'center', marginBottom: 16 }]}>
+                                {this.translate('forms.registerForm.subtitles.invitedBy', { inviterName: this.props.inviterName })}
+                            </Text>
+                        )
+                        : null
+                }
                 <RoundInput
                     autoCapitalize="none"
                     autoCorrect={false}
