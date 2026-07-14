@@ -221,7 +221,16 @@ export default class UsersStore {
             .andWhereNot('id', requestingUserId);
 
         if (onlyVerified) {
-            queryString = queryString.andWhere(knexBuilder.raw(`"accessLevels" \\? '${AccessLevels.MOBILE_VERIFIED}'`));
+            // Discovery surfaces any verified account — email OR mobile. Requiring
+            // MOBILE_VERIFIED alone silently emptied the People list once onboarding
+            // stopped forcing phone verification (feat(users): reduce onboarding
+            // friction): most users now carry EMAIL_VERIFIED but never complete mobile
+            // verification, so the single-level `?` filter matched nobody. The jsonb
+            // `?|` operator matches when accessLevels contains ANY of the listed levels.
+            // AccessLevels values are trusted enum constants, so inlining them is safe.
+            queryString = queryString.andWhere(knexBuilder.raw(
+                `"accessLevels" \\?| ARRAY['${AccessLevels.MOBILE_VERIFIED}', '${AccessLevels.EMAIL_VERIFIED}']::text[]`,
+            ));
         }
 
         queryString = queryString
