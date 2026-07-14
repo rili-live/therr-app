@@ -25,6 +25,7 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
+import MultiPhotoCarousel from './MultiPhotoCarousel';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
 import formatDate from '../../utilities/formatDate';
@@ -72,6 +73,8 @@ interface IAreaDisplayProps {
     isExpanded?: boolean;
     area: any;
     areaMedia: string;
+    // Multi-photo moments: resolved URIs for every photo (falls back to [areaMedia]).
+    areaMediaUris?: string[];
     areaMediaPadding?: number;
     goToViewIncentives?: Function;
     goToViewUser: Function;
@@ -398,8 +401,16 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             themeViewArea,
             translate,
             user,
+            areaMediaUris,
         } = this.props;
         const { isLiked, isBookmarked, likeCount } = this.state;
+
+        // Multi-photo moments: render a swipeable carousel when there is more than one photo.
+        const photoUris = (areaMediaUris && areaMediaUris.length)
+            ? areaMediaUris
+            : (areaMedia ? [areaMedia] : []);
+        const isMultiPhotoEnabled = envConfig.featureFlags?.ENABLE_MULTI_PHOTO_MOMENTS === true;
+        const isMultiPhoto = isMultiPhotoEnabled && photoUris.length > 1;
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
@@ -541,41 +552,49 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     />
                 }
                 <View>
-                    <PresssableWithDoubleTap
-                        style={{}}
-                        onPress={inspectContent}
-                        onDoubleTap={() => this.onLikePress(area)}
-                    >
-                        {/* <UserMedia
-                            viewportWidth={viewportWidth}
-                            media={areaMedia}
-                            isVisible={!!areaMedia}
-                            isSingleView={isExpanded}
-                        /> */}
-                        {
-                            areaMedia ?
-                                <Image
-                                    source={{
-                                        uri: areaMedia,
-                                    }}
-                                    style={{
-                                        width: mediaDimensions.width,
-                                        height: mediaDimensions.height,
-                                    }}
-                                    resizeMode="contain"
-                                    PlaceholderContent={<ActivityIndicator />}
-                                /> :
-                                placeholderMediaType && <MissingImagePlaceholder
-                                    area={area}
-                                    themeViewArea={themeViewArea}
-                                    placeholderMediaType={placeholderMediaType}
-                                    dimensions={{
-                                        height: Math.min(mediaDimensions.height, 160),
-                                        width: mediaDimensions.width,
-                                    }}
-                                />
-                        }
-                    </PresssableWithDoubleTap>
+                    {
+                        isMultiPhoto ?
+                            // The carousel handles its own per-photo tap/double-tap so it can
+                            // own the horizontal swipe gesture; no outer pressable wrapper.
+                            <MultiPhotoCarousel
+                                uris={photoUris}
+                                width={mediaDimensions.width}
+                                height={mediaDimensions.height}
+                                resizeMode="contain"
+                                onPress={inspectContent}
+                                onDoubleTap={() => this.onLikePress(area)}
+                                theme={theme}
+                            /> :
+                            <PresssableWithDoubleTap
+                                style={{}}
+                                onPress={inspectContent}
+                                onDoubleTap={() => this.onLikePress(area)}
+                            >
+                                {
+                                    areaMedia ?
+                                        <Image
+                                            source={{
+                                                uri: areaMedia,
+                                            }}
+                                            style={{
+                                                width: mediaDimensions.width,
+                                                height: mediaDimensions.height,
+                                            }}
+                                            resizeMode="contain"
+                                            PlaceholderContent={<ActivityIndicator />}
+                                        /> :
+                                        placeholderMediaType && <MissingImagePlaceholder
+                                            area={area}
+                                            themeViewArea={themeViewArea}
+                                            placeholderMediaType={placeholderMediaType}
+                                            dimensions={{
+                                                height: Math.min(mediaDimensions.height, 160),
+                                                width: mediaDimensions.width,
+                                            }}
+                                        />
+                                }
+                            </PresssableWithDoubleTap>
+                    }
                 </View>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <View style={localStyles.titleWithBadge}>

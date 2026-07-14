@@ -19,6 +19,8 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
+import getConfig from '../../utilities/getConfig';
+import MultiPhotoCarousel from './MultiPhotoCarousel';
 import PresssableWithDoubleTap from '../PressableWithDoubleTap';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
@@ -48,6 +50,7 @@ interface IAreaDisplayContentProps {
     isDarkMode: boolean;
     area: any;
     areaMedia: string;
+    areaMediaUris?: string[];
     goToViewUser?: Function;
     inspectContent: () => any;
     isBookmarked?: boolean;
@@ -153,6 +156,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
             isDarkMode,
             area,
             areaMedia,
+            areaMediaUris,
             goToViewUser,
             inspectContent,
             areaUserDetails,
@@ -217,6 +221,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         isDarkMode={isDarkMode}
                         area={area}
                         areaMedia={areaMedia}
+                        areaMediaUris={areaMediaUris}
                         goToViewUser={goToViewUser}
                         inspectContent={inspectContent}
                         isBookmarked={this.state.isBookmarked}
@@ -242,6 +247,7 @@ export const AreaDisplayContent = ({
     isDarkMode,
     area,
     areaMedia,
+    areaMediaUris,
     goToViewUser,
     inspectContent,
     isBookmarked: isBookmarkedProp,
@@ -253,6 +259,10 @@ export const AreaDisplayContent = ({
 }: IAreaDisplayContentProps) => {
     // const [mediaWidth, setMediaWidth] = useState<number>(viewportWidth / 4);
     const [mediaWidth] = useState<number>(viewportWidth / 4);
+    const photoUris = (areaMediaUris && areaMediaUris.length)
+        ? areaMediaUris
+        : (areaMedia ? [areaMedia] : []);
+    const isMultiPhoto = getConfig().featureFlags?.ENABLE_MULTI_PHOTO_MOMENTS === true && photoUris.length > 1;
     const isBookmarked = isBookmarkedProp !== undefined
         ? isBookmarkedProp
         : !!area.reaction?.userBookmarkCategory;
@@ -265,39 +275,53 @@ export const AreaDisplayContent = ({
 
     return (
         <View style={localStyles.rowContainer}>
-            <PresssableWithDoubleTap
-                onPress={inspectContent}
-                onDoubleTap={onDoubleTap || (() => {})}
-                style={localStyles.mediaPressable}
-            >
-                <View style={[localStyles.mediaImageWrapper, {
-                    width: mediaWidth,
-                    height: mediaWidth,
-                }]}>
-                    {
-                        areaMedia ?
-                            <Image
-                                source={{
-                                    uri: areaMedia,
-                                }}
-                                style={[localStyles.mediaImage, {
-                                    width: mediaWidth,
-                                    height: mediaWidth,
-                                }]}
-                                resizeMode="contain"
-                                PlaceholderContent={<ActivityIndicator />}
-                            /> :
-                            <MissingImagePlaceholder
-                                area={area}
-                                themeViewArea={themeViewArea}
-                                dimensions={{
-                                    width: mediaWidth,
-                                    height: mediaWidth,
-                                }}
-                            />
-                    }
-                </View>
-            </PresssableWithDoubleTap>
+            {
+                isMultiPhoto ?
+                    <View style={[localStyles.mediaImageWrapper, { width: mediaWidth, height: mediaWidth }]}>
+                        <MultiPhotoCarousel
+                            uris={photoUris}
+                            width={mediaWidth}
+                            height={mediaWidth}
+                            resizeMode="contain"
+                            onPress={inspectContent}
+                            onDoubleTap={onDoubleTap || (() => {})}
+                            theme={theme}
+                        />
+                    </View> :
+                    <PresssableWithDoubleTap
+                        onPress={inspectContent}
+                        onDoubleTap={onDoubleTap || (() => {})}
+                        style={localStyles.mediaPressable}
+                    >
+                        <View style={[localStyles.mediaImageWrapper, {
+                            width: mediaWidth,
+                            height: mediaWidth,
+                        }]}>
+                            {
+                                areaMedia ?
+                                    <Image
+                                        source={{
+                                            uri: areaMedia,
+                                        }}
+                                        style={[localStyles.mediaImage, {
+                                            width: mediaWidth,
+                                            height: mediaWidth,
+                                        }]}
+                                        resizeMode="contain"
+                                        PlaceholderContent={<ActivityIndicator />}
+                                    /> :
+                                    <MissingImagePlaceholder
+                                        area={area}
+                                        themeViewArea={themeViewArea}
+                                        dimensions={{
+                                            width: mediaWidth,
+                                            height: mediaWidth,
+                                        }}
+                                    />
+                            }
+                        </View>
+                    </PresssableWithDoubleTap>
+            }
             <View style={spacingStyles.flexOne}>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <View style={localStyles.titleWithBadge}>

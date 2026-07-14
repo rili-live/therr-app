@@ -50,7 +50,8 @@ import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import formatHashtags from '../../utilities/formatHashtags';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
-import { getUserContentUri, signImageUrl } from '../../utilities/content';
+import { getUserContentUri, signImageUrl, MAX_MOMENT_PHOTOS } from '../../utilities/content';
+import getConfig from '../../utilities/getConfig';
 import permissions from '../../utilities/permissionsOrchestrator';
 import { sendForegroundNotification, sendTriggerNotification } from '../../utilities/pushNotifications';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -104,7 +105,8 @@ interface IEditMomentState {
     previewLinkId?: string;
     previewStyleState: any;
     imagePreviewPath: string;
-    selectedImage?: any;
+    // Multi-photo moments: 1..MAX_MOMENT_PHOTOS selected photos, in display order.
+    selectedImages: any[];
 }
 
 const mapStateToProps = (state) => ({
@@ -174,7 +176,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
-            selectedImage: imageDetails || {},
+            selectedImages: imageDetails?.path ? [imageDetails] : [],
             imagePreviewPath,
         };
 
@@ -237,51 +239,70 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         );
     }
 
-    signAndUploadImage = (createArgs) => {
-        const { selectedImage } = this.state;
+    // Sign a destination URL then PUT the local file to Google Cloud. Resolves with the stored
+    // media path. Falls back to stat'ing the file when size is unknown (e.g. extracted stills).
+    uploadFileToSignedUrl = (isPublic: boolean, { localPath, mime, size, baseFilename, extension }) => signImageUrl(isPublic, {
+        action: 'write',
+        filename: `${FilePaths.CONTENT}/${baseFilename.replace(/[^a-zA-Z0-9]/g, '_')}.${extension}`,
+    }).then(async (response) => {
+        const signedUrl = response?.data?.url && response?.data?.url[0];
+        let contentLength = size;
+        if (!contentLength) {
+            try {
+                const stat = await RNFB.fs.stat(localPath.replace('file://', ''));
+                contentLength = Number(stat?.size) || 0;
+            } catch {
+                contentLength = 0;
+            }
+        }
+
+        return RNFB.fetch(
+            'PUT',
+            signedUrl,
+            {
+                'Content-Type': mime,
+                'Content-Length': contentLength.toString(),
+                'Content-Disposition': 'inline',
+            },
+            RNFB.wrap(`${localPath}`),
+        ).then(() => response?.data?.path);
+    });
+
+    signAndUploadImage = async (createArgs) => {
+        const { selectedImages } = this.state;
         const {
             message,
             notificationMsg,
             isPublic,
         } = this.state.inputs;
-        const {
-            route,
-        } = this.props;
-        const {
-        } = route.params;
-        const imageDetails = selectedImage;
-        const filePathSplit = imageDetails?.path?.split('.');
-        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+        const baseFilename = notificationMsg || message.substring(0, 20);
+        const imageType = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
 
-        // TODO: This is too slow
-        // Use public method for public spaces
-        return signImageUrl(isPublic, {
-            action: 'write',
-            filename: `${FilePaths.CONTENT}/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
-        }).then((response) => {
-            const signedUrl = response?.data?.url && response?.data?.url[0];
-            createArgs.media = [{}];
-            createArgs.media[0].altText = notificationMsg;
-            createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
-            createArgs.media[0].path = response?.data?.path;
-            // TODO: Replace media with medias after migrations
-            createArgs.medias = createArgs.media;
+        // Upload each selected photo (single photo or up to MAX_MOMENT_PHOTOS) sequentially and
+        // build the medias[] array in selection order. Sequential keeps signed-URL pressure low.
+        createArgs.media = [];
+        for (let i = 0; i < selectedImages.length; i += 1) {
+            const imageDetails = selectedImages[i];
+            const filePathSplit = imageDetails?.path?.split('.');
+            const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+            // eslint-disable-next-line no-await-in-loop
+            const storedPath = await this.uploadFileToSignedUrl(isPublic, {
+                localPath: imageDetails?.path,
+                mime: imageDetails?.mime || 'image/jpeg',
+                size: imageDetails?.size,
+                baseFilename: selectedImages.length > 1 ? `${baseFilename}_${i + 1}` : baseFilename,
+                extension: fileExtension,
+            });
+            createArgs.media.push({
+                altText: notificationMsg,
+                type: imageType,
+                path: storedPath,
+            });
+        }
 
-            const localFileCroppedPath = `${imageDetails?.path}`;
-
-            // Upload to Google Cloud
-            // TODO: Abstract and add nudity filter sightengine.com
-            return RNFB.fetch(
-                'PUT',
-                signedUrl,
-                {
-                    'Content-Type': imageDetails.mime,
-                    'Content-Length': imageDetails.size.toString(),
-                    'Content-Disposition': 'inline',
-                },
-                RNFB.wrap(localFileCroppedPath),
-            ).then(() => createArgs);
-        });
+        // TODO: Replace media with medias after migrations
+        createArgs.medias = createArgs.media;
+        return createArgs;
     };
 
     onSubmitBaseDetails = () => {
@@ -310,7 +331,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         shouldSkipNavigate = false,
         shouldSkipDraftToast = false,
     }) => {
-        const { areaId, hashtags, nearbySpaces, selectedImage } = this.state;
+        const { areaId, hashtags, nearbySpaces, selectedImages } = this.state;
         const {
             category,
             message,
@@ -367,7 +388,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
             // Note do not save image on 'create draft' otherwise we end up with duplicate images when finalizing draft
             // This is not the BEST user experience but prevents a lot of potential waste
-            ((selectedImage?.path) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+            ((selectedImages?.length) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
                 const createOrUpdatePromise = areaId
                     ? this.props.updateMoment(areaId, modifiedCreateArgs, !isDraft) // isCompletedDraft (when id and saving finalized)
                     : this.props.createMoment(modifiedCreateArgs);
@@ -579,40 +600,81 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         }
     };
 
-    handleImageSelect = (imageResponse) => {
-        if (!imageResponse.didCancel && !imageResponse.errorCode) {
-            this.setState({
-                selectedImage: imageResponse,
-                imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            });
+    // Replace the current selection with a freshly-picked set (gallery), capped at the max.
+    handleImagesSelected = (response) => {
+        const images = (Array.isArray(response) ? response : [response])
+            .filter((img) => img && !img.didCancel && !img.errorCode && img.path)
+            .slice(0, MAX_MOMENT_PHOTOS);
+        if (!images.length) {
+            return;
         }
+        this.setState({
+            selectedImages: images,
+            imagePreviewPath: getImagePreviewPath(images[0]?.path),
+        });
+    };
+
+    // Append a single captured photo (camera) to the current selection, up to the max.
+    handleImageAppend = (imageResponse) => {
+        if (imageResponse.didCancel || imageResponse.errorCode || !imageResponse.path) {
+            return;
+        }
+        const selectedImages = [...this.state.selectedImages, imageResponse].slice(0, MAX_MOMENT_PHOTOS);
+        this.setState({
+            selectedImages,
+            imagePreviewPath: getImagePreviewPath(selectedImages[0]?.path),
+        });
+    };
+
+    getAddPhotosLabel = () => {
+        const count = this.state.selectedImages.length;
+        const isMultiPhotoEnabled = getConfig().featureFlags?.ENABLE_MULTI_PHOTO_MOMENTS === true;
+        if (!count) {
+            return 'forms.editMoment.buttons.addImage';
+        }
+        if (isMultiPhotoEnabled && count < MAX_MOMENT_PHOTOS) {
+            return 'forms.editMoment.buttons.addMorePhotos';
+        }
+        return 'forms.editMoment.buttons.replaceImage';
     };
 
     onAddImage = (action: string) => {
         const { user } = this.props;
         // TODO: Store permissions in redux
         const storePermissions = () => {};
+        const isMultiPhotoEnabled = getConfig().featureFlags?.ENABLE_MULTI_PHOTO_MOMENTS === true;
+        const remainingSlots = MAX_MOMENT_PHOTOS - this.state.selectedImages.length;
 
         return permissions.request('camera', {
             trigger: 'capturePress',
             storePermissionsResponse: storePermissions,
         }).then((result) => {
-            const pickerOptions: any = {
-                mediaType: 'photo',
-                includeBase64: false,
-                height: 4 * viewportWidth,
-                width: 4 * viewportWidth,
-                multiple: false,
-                cropping: true,
-            };
             if (result.status === 'granted') {
+                // Camera always captures a single photo (appended to the selection when
+                // multi-photo is enabled). Gallery allows selecting up to the remaining slots.
                 if (action === 'camera') {
-                    return ImageCropPicker.openCamera(pickerOptions)
-                        .then((cameraResponse) => this.handleImageSelect(cameraResponse));
-                } else {
-                    return ImageCropPicker.openPicker(pickerOptions)
-                        .then((cameraResponse) => this.handleImageSelect(cameraResponse));
+                    return ImageCropPicker.openCamera({
+                        mediaType: 'photo',
+                        includeBase64: false,
+                        height: 4 * viewportWidth,
+                        width: 4 * viewportWidth,
+                        multiple: false,
+                        cropping: true,
+                    }).then((cameraResponse) => (isMultiPhotoEnabled
+                        ? this.handleImageAppend(cameraResponse)
+                        : this.handleImagesSelected(cameraResponse)));
                 }
+                // image-crop-picker does not support cropping together with multiple selection.
+                const allowMultiple = isMultiPhotoEnabled && remainingSlots > 1;
+                return ImageCropPicker.openPicker({
+                    mediaType: 'photo',
+                    includeBase64: false,
+                    height: 4 * viewportWidth,
+                    width: 4 * viewportWidth,
+                    multiple: allowMultiple,
+                    maxFiles: allowMultiple ? MAX_MOMENT_PHOTOS : undefined,
+                    cropping: !allowMultiple,
+                }).then((pickerResponse) => this.handleImagesSelected(pickerResponse));
             } else {
                 // Soft-ask dismissals stay quiet — the user explicitly chose
                 // "Not now" and the toast would feel like a scolding. Only
@@ -906,7 +968,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
-                            imagePreviewPath ? 'forms.editMoment.buttons.replaceImage' : 'forms.editMoment.buttons.addImage'
+                            this.getAddPhotosLabel()
                         )}
                         icon={
                             <TherrIcon
@@ -939,7 +1001,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
                                 />
                             }
-                            onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                            onPress={() => this.setState({ selectedImages: [], imagePreviewPath: '' })}
                             raised={false}
                         />
                     }

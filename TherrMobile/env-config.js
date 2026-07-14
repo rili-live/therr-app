@@ -23,6 +23,10 @@ const featureFlags = {
     ENABLE_EVENTS: true,
     ENABLE_THOUGHTS: true,
 
+    // Multi-photo moments (up to 5 photos shown as a swipeable carousel).
+    // NICHE: flip per brand.
+    ENABLE_MULTI_PHOTO_MOMENTS: true,
+
     // Social Features
     ENABLE_DIRECT_MESSAGING: true,
     ENABLE_ACHIEVEMENTS: true,

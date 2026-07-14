@@ -28,7 +28,7 @@ import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import formatDate from '../../utilities/formatDate';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
-import { isMyContent as checkIsMyMoment, getUserContentUri } from '../../utilities/content';
+import { isMyContent as checkIsMyMoment, getUserContentUri, getMomentImageUris } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
 import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
@@ -387,6 +387,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
             ? getUserContentUri(momentInView.medias?.[0], screenWidth, screenWidth)
             : content?.media[mediaPath];
+        const momentMediaUris = getMomentImageUris(momentInView.medias, content?.media, screenWidth, screenWidth);
 
         return (
             <>
@@ -419,6 +420,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                     isSuperUser: momentUserIsSuperUser,
                                 }}
                                 areaMedia={momentMedia}
+                                areaMediaUris={momentMediaUris}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
                                 themeViewArea={this.themeArea}

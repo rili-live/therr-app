@@ -534,11 +534,12 @@
     },
     "editMoment": {
       "buttons": {
-        "addImage": "Joindre une image",
-        "replaceImage": "Remplacer l'image",
-        "removeImage": "Supprimer l'image",
+        "addImage": "Ajouter des photos",
+        "addMorePhotos": "Ajouter plus de photos",
+        "replaceImage": "Remplacer les photos",
+        "removeImage": "Supprimer les photos",
         "captureNew": "Prendre une nouvelle photo",
-        "selectExisting": "Sélectionner une photo existante",
+        "selectExisting": "Sélectionner des photos existantes",
         "back": "Retour",
         "draft": "Brouillon",
         "next": "Suivant",

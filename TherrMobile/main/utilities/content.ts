@@ -1,8 +1,17 @@
 import { Dimensions } from 'react-native';
 import { MapsService } from 'therr-react/services';
+import { Content } from 'therr-js-utilities/constants';
 import getConfig from './getConfig';
 
 const { width: screenWidth } = Dimensions.get('window');
+
+// Moments may include up to this many photos (single photo or a multi-photo carousel).
+const MAX_MOMENT_PHOTOS = 5;
+
+const IMAGE_MEDIA_TYPES = [
+    Content.mediaTypes.USER_IMAGE_PUBLIC,
+    Content.mediaTypes.USER_IMAGE_PRIVATE,
+];
 
 const globalConfig = getConfig();
 const BASE_ENDPOINT = globalConfig.baseImageKitEndpoint ? globalConfig.baseImageKitEndpoint : `${globalConfig.baseApiGatewayRoute}/user-files/`;
@@ -26,6 +35,24 @@ const getUserContentUri = (media, height = screenWidth, width = screenWidth, aut
         url = `${url},c-at_least`;
     }
     return url;
+};
+
+const isImageMedia = (media): boolean => !!media?.type && IMAGE_MEDIA_TYPES.includes(media.type);
+
+// Resolve display URIs for every image in a moment (single photo or multi-photo carousel),
+// capped at MAX_MOMENT_PHOTOS. Public images use the cacheable ImageKit URL; private images
+// fall back to the signed URL already cached in Redux (`mediaMap[path]`).
+const getMomentImageUris = (medias, mediaMap, height = screenWidth, width = screenWidth): string[] => {
+    if (!medias?.length) {
+        return [];
+    }
+
+    return medias
+        .filter(isImageMedia)
+        .slice(0, MAX_MOMENT_PHOTOS)
+        .map((media) => (media.type === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(media, height, width)
+            : (mediaMap?.[media.path] || getUserContentUri(media, height, width))));
 };
 
 const getUserImageUri = (user, size = screenWidth) => {
@@ -55,7 +82,10 @@ const signImageUrl = (isPublic: boolean, {
 };
 
 export {
+    MAX_MOMENT_PHOTOS,
     getUserContentUri,
+    getMomentImageUris,
+    isImageMedia,
     getUserImageUri,
     isMyContent,
     signImageUrl,
