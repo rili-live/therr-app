@@ -385,8 +385,25 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         const recentInviteEmails = new Set(recentInvites.map((row) => row.email).filter(Boolean) as string[]);
         const recentInvitePhones = new Set(recentInvites.map((row) => row.phoneNumber).filter(Boolean) as string[]);
 
-        const sendableEmailContacts = otherUserEmails.filter((contact) => !recentInviteEmails.has(contact.email));
-        const sendablePhoneContacts = otherUserPhoneNumbers.filter((contact) => !recentInvitePhones.has(contact.phoneNumber));
+        // 2b. De-duplicate within the batch itself. Phone address books routinely
+        // carry the same email/number on multiple contact cards, so inviteList
+        // can contain the same channel twice. A duplicate is fatal to the
+        // upsert below — Postgres rejects an ON CONFLICT DO UPDATE that would
+        // touch the same row twice ("cannot affect row a second time") — which
+        // would drop the entire batch. It would also double-send and
+        // double-reward. Dedupe before any of those read the arrays.
+        const dedupeByKey = <T>(contacts: T[], key: keyof T): T[] => [
+            ...new Map(contacts.map((contact) => [contact[key], contact])).values(),
+        ];
+
+        const sendableEmailContacts = dedupeByKey(
+            otherUserEmails.filter((contact) => !recentInviteEmails.has(contact.email)),
+            'email',
+        );
+        const sendablePhoneContacts = dedupeByKey(
+            otherUserPhoneNumbers.filter((contact) => !recentInvitePhones.has(contact.phoneNumber)),
+            'phoneNumber',
+        );
 
         // NOTE: Current set to 0 coin reward while we debug spammers
         coinRewardsTotal += (sendableEmailContacts.length * CurrentSocialValuations.inviteSent)

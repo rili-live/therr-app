@@ -122,6 +122,17 @@ export default class InvitesStore {
      * already existed from a prior invite (its token is refreshed so a stale
      * link can't be reused after a fresh invite). `channel` is the unique
      * column to conflict on ('email' or 'phoneNumber').
+     *
+     * `requestingUserId` is merged alongside the token: email/phoneNumber are
+     * globally unique in this table, so a contact previously invited by someone
+     * else already owns the row. Refreshing only the token would hand the new
+     * inviter's magic link to the *original* inviter's row — the invitee would
+     * be auto-connected to, and the coins credited to, the wrong user. Since
+     * the refreshed token invalidates the older link, the latest inviter is the
+     * only one who can convert this invite, so they own it.
+     *
+     * Callers must de-duplicate by `channel` first: Postgres rejects an
+     * ON CONFLICT DO UPDATE that touches the same row twice in one statement.
      */
     upsertInvitesWithTokens(channel: 'email' | 'phoneNumber', invites: ICreateInviteParams[]) {
         if (!invites.length) {
@@ -130,7 +141,7 @@ export default class InvitesStore {
         const queryString = knexBuilder.insert(invites)
             .into(INVITES_TABLE_NAME)
             .onConflict(channel)
-            .merge(['token'])
+            .merge(['token', 'requestingUserId', 'updatedAt'])
             .returning(['email', 'phoneNumber', 'token'])
             .toString();
 
@@ -139,6 +150,14 @@ export default class InvitesStore {
     }
 
     createIfNotExist(invites: ICreateInviteParams[]) {
+        // knex emits an empty string for `.insert([])`, and pg rejects an empty
+        // query. The bulk-invite flow now passes only the existing-user subset
+        // here, which is empty whenever every invited contact is new to the
+        // platform — the common case. Without this guard that rejection
+        // short-circuits the caller's promise chain.
+        if (!invites.length) {
+            return Promise.resolve([] as Array<{ id: string }>);
+        }
         // TODO: Filter out invites that have neither a phone number or email
         const queryString = knexBuilder.insert(invites)
             .into(INVITES_TABLE_NAME)

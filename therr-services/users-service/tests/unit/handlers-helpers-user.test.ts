@@ -34,10 +34,21 @@ describe('handlers/helpers/user', () => {
             expect(isUserProfileIncomplete(mockUpdate)).to.be.equal(false);
         });
 
-        it('is true if user already exists and update is missing properties to complete profile', () => {
-            // Incomplete because neither the update nor the existing record supplies
-            // a phoneNumber. As of the 2026-06 onboarding-friction change, only
-            // phoneNumber + userName are required (first/last name are optional).
+        it('is true if user already exists and neither the update nor the record supplies a userName', () => {
+            // As of the 2026-07 deferred-phone-verification change, userName is the
+            // sole completeness requirement: phone is prompted contextually and
+            // enforced on phone-sensitive actions via MOBILE_VERIFIED at the gateway.
+            const mockUpdate = {
+                phoneNumber: 'foo',
+            };
+            const mockExistingUser = {
+                lastName: 'bar',
+            };
+
+            expect(isUserProfileIncomplete(mockUpdate, mockExistingUser)).to.be.equal(true);
+        });
+
+        it('is false if user already exists and the update supplies the missing userName', () => {
             const mockUpdate = {
                 userName: 'bar',
             };
@@ -45,7 +56,7 @@ describe('handlers/helpers/user', () => {
                 lastName: 'bar',
             };
 
-            expect(isUserProfileIncomplete(mockUpdate, mockExistingUser)).to.be.equal(true);
+            expect(isUserProfileIncomplete(mockUpdate, mockExistingUser)).to.be.equal(false);
         });
 
         it('is false if user already exists and update has all missing, required properties', () => {
