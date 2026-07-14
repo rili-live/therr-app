@@ -229,6 +229,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 false,
                 undefined,
                 !!inviteCode,
+                req.body.inviteToken,
             ).then(async (user) => {
                 if (pactClaimCode && user?.id) {
                     // Best-effort: link the new user to the pending pact_members
@@ -1164,16 +1165,25 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
 
             redactUserCreds(users[0]);
 
-            return Promise.all([
+            const user = users[0];
+
+            // Fire-and-forget the claim-request notification emails. These are
+            // best-effort admin/business notifications and must NOT gate the HTTP
+            // response. Previously they were awaited via Promise.all before the
+            // 200 was sent, so any AWS SES latency (slow/unreachable endpoint, SDK
+            // retry backoff) blocked the response. With no client-side request
+            // timeout on mobile, that surfaced as the "request a space" submit
+            // hanging indefinitely. Respond immediately; log email failures.
+            Promise.all([
                 sendClaimPendingReviewEmail({
                     subject: 'Business Space Request in Review',
                     locale,
-                    toAddresses: [users[0].email],
+                    toAddresses: [user.email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
                     recipientIdentifiers: {
-                        id: users[0].id,
-                        accountEmail: users[0].email,
+                        id: user.id,
+                        accountEmail: user.email,
                     },
                 }, {
                     spaceName: title || notificationMsg,
@@ -1191,16 +1201,27 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                     description,
                     userId,
                 }),
-            ]).then(() => users[0]);
+            ]).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to send space claim request emails'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'user.id': userId,
+                    },
+                });
+            });
+
+            return res.status(200).send({
+                message: 'Request sent to admin',
+                user: {
+                    accessLevels: user.accessLevels,
+                    isBusinessAccount: user.isBusinessAccount,
+                    email: user.email,
+                },
+            });
         })
-        .then((user) => res.status(200).send({
-            message: 'Request sent to admin',
-            user: {
-                accessLevels: user.accessLevels,
-                isBusinessAccount: user.isBusinessAccount,
-                email: user.email,
-            },
-        }))
         .catch((err) => handleHttpError({
             err,
             res,

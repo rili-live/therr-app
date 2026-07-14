@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Static app shortcuts (long-press the launcher icon). Each fires an implicit
+  intent whose action matches an <intent-filter> on MainActivity in
+  AndroidManifest.xml. MainActivity.onNewIntent forwards the action to JS as a
+  "new-intent-action" event (warm start); Layout reads it from the launch
+  intent via the InitialIntent native module on cold start. Layout maps the
+  action suffix to the create routes.
+
+  Actions use the Therr binary prefix (app.therrmobile.*). Niche variants that
+  inherit this file must add filters/shortcuts under their own prefix (see the
+  brand-scoped enums in therr-js-utilities PushNotifications.ts).
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="create_moment"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_moment"
+        android:shortcutShortLabel="@string/shortcut_create_moment_short"
+        android:shortcutLongLabel="@string/shortcut_create_moment_long">
+        <intent
+            android:action="app.therrmobile.QUICK_CREATE_MOMENT" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="create_thought"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_thought"
+        android:shortcutShortLabel="@string/shortcut_create_thought_short"
+        android:shortcutLongLabel="@string/shortcut_create_thought_long">
+        <intent
+            android:action="app.therrmobile.QUICK_CREATE_THOUGHT" />
+    </shortcut>
+</shortcuts>

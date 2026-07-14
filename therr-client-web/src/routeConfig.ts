@@ -137,6 +137,19 @@ export default [
         view: 'index',
     },
     {
+        // Magic invite-link landing. routeConfig is what registers the Express SSR
+        // handler (see the routeConfig.forEach in server-client.tsx), and there is no
+        // catch-all route — so this entry is what makes the URL embedded in every
+        // invite email/SMS resolve at all. Without it a hard load 404s. Declared
+        // ahead of '/invite/:username', which cannot match a 3-segment path.
+        route: '/invite/link/:token',
+        head: {
+            title: 'Join Therr App',
+            description: 'You have been invited to Therr. Sign up to connect with the friend who invited you and start earning coins together.',
+        },
+        view: 'invite',
+    },
+    {
         route: '/invite/:username',
         head: {
             title: 'Join Therr App',
