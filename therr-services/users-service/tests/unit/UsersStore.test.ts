@@ -25,6 +25,43 @@ describe('UsersStore', () => {
         });
     });
 
+    describe('searchUsers', () => {
+        // Regression: the People/discovery list must not be gated on phone verification alone.
+        // Phone verification is deferred under frictionless onboarding, so onlyVerified must
+        // match EMAIL_VERIFIED or MOBILE_VERIFIED, otherwise nearly every user is filtered out.
+        it('gates onlyVerified on email OR phone verification', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.searchUsers('req-user-1', {
+                limit: 50,
+                offset: 0,
+            }, false, true);
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`"accessLevels" ?| ARRAY['user.verified.email', 'user.verified.mobile']::text[]`);
+        });
+
+        it('omits the verification filter when onlyVerified is false', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.searchUsers('req-user-1', {
+                limit: 50,
+                offset: 0,
+            }, false, false);
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.not.contain('accessLevels');
+        });
+    });
+
     describe('findUser', () => {
         it('finds user with variable username', () => {
             const expected = `select * from "main"."users" where ("email" = 'test@email.com') or ("userName" = 'tests') or ("phoneNumber" = '+3176665849')`;

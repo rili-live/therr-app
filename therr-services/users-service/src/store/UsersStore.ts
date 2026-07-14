@@ -221,7 +221,14 @@ export default class UsersStore {
             .andWhereNot('id', requestingUserId);
 
         if (onlyVerified) {
-            queryString = queryString.andWhere(knexBuilder.raw(`"accessLevels" \\? '${AccessLevels.MOBILE_VERIFIED}'`));
+            // "Verified for discovery" means the current onboarding baseline: an email-verified
+            // account with a completed profile (username), OR a phone-verified account. Phone
+            // verification is deferred under the frictionless-onboarding flow, so gating this
+            // list on MOBILE_VERIFIED alone hid nearly every user. Match either access level.
+            queryString = queryString.andWhere(knexBuilder.raw(
+                '"accessLevels" \\?| ARRAY[?, ?]::text[]',
+                [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            ));
         }
 
         queryString = queryString
