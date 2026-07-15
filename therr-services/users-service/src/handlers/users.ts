@@ -3,7 +3,7 @@ import {
     AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import { parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
@@ -476,6 +476,10 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
 
 const searchUsers: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid']; // undefined if user is not logged in
+    // Discovery is brand-scoped: identity-shared main.users has no brand column, so we
+    // filter on brandVariations enrollment. getBrandContext defaults to THERR for legacy
+    // tokens with no x-brand-variation header, matching the column's default membership.
+    const { brandVariation } = getBrandContext(req.headers);
 
     const {
         ids,
@@ -503,6 +507,7 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
+        brandVariation,
     }, true, true);
 
     return Promise.all([mightKnowPromise, searchPromise])

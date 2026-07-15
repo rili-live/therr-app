@@ -45,6 +45,42 @@ describe('UsersStore', () => {
             expect(generatedSql).to.contain(`"accessLevels" ?| ARRAY['user.verified.email', 'user.verified.mobile']::text[]`);
         });
 
+        // Regression: discovery must be brand-scoped. main.users is identity-shared (no brand
+        // column); enrollment lives in the brandVariations JSONB array. Without this filter,
+        // every niche app leaked the full cross-brand user list (e.g. Habits showed Therr users).
+        it('scopes results to the requesting brand when brandVariation is provided', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.searchUsers('req-user-1', {
+                limit: 50,
+                offset: 0,
+                brandVariation: 'habits',
+            }, false, true);
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`"brandVariations" @> '[{"brand":"habits"}]'::jsonb`);
+        });
+
+        it('omits the brand filter when brandVariation is not provided', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.searchUsers('req-user-1', {
+                limit: 50,
+                offset: 0,
+            }, false, true);
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.not.contain('brandVariations');
+        });
+
         it('omits the verification filter when onlyVerified is false', () => {
             const mockStore = {
                 read: {
