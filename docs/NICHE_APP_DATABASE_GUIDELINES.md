@@ -12,7 +12,7 @@ All brand variants share the same PostgreSQL database infrastructure and **singl
 
 | Archetype | Definition | Storage | Enforcement | Default for existing rows |
 |-----------|------------|---------|-------------|---------------------------|
-| **Identity-shared** | One row per human regardless of brand. The data is about the person, not the app they used. | `main.*`, **no brand column** | None at row level. Brand only used when UX is conditional on enrollment (`brandVariations @> '["habits"]'`). | n/a — no schema change needed |
+| **Identity-shared** | One row per human regardless of brand. The data is about the person, not the app they used. | `main.*`, **no brand column** | None at row level. Brand only used when UX is conditional on enrollment. `main.users.brandVariations` stores an **array of objects** (`[{ brand, firstSeenAt, lastSeenAt, isActive }]`), so containment is `brandVariations @> '[{"brand":"habits"}]'` — NOT `@> '["habits"]'` (the column is not an array of strings). | n/a — no schema change needed |
 | **Brand-scoped** | Same row shape, must be partitioned per brand so a user signed into multiple apps does not see leaked data. | `main.*` with `brandVariation TEXT NOT NULL DEFAULT 'therr'` column + composite index `(userId, brandVariation, ...)` | `BrandScopedStore` base class in each service's `src/store/` directory. Handlers cannot omit brand because the store method signatures require it. | Backfill `'therr'` in the same migration that adds the column (every row created before this work was created by the original Therr app) |
 | **Brand-only / niche** | Only exists for one brand. | Dedicated `<niche>.*` schema (e.g. `habits.*`), FK to `main.users(id)`. | Schema name is the boundary; no row-level filter needed. | n/a — only ever populated by the niche app |
 
@@ -376,7 +376,9 @@ The base class accepts a third constructor argument: `'shadow'` (default) or `'e
 
 ### When to use brand-conditional logic in a handler instead
 
-Some flows are genuinely brand-conditional even when the data is identity-shared (e.g. achievements list filtering). Continue to do that with `getBrandContext` at the handler level — the BrandScopedStore pattern is only required for tables in the **Brand-scoped** archetype.
+Some flows are genuinely brand-conditional even when the data is identity-shared (e.g. achievements list filtering, **user discovery / the People list**). Continue to do that with `getBrandContext` at the handler level — the BrandScopedStore pattern is only required for tables in the **Brand-scoped** archetype.
+
+> **User discovery is one of these flows.** `main.users` has no brand column, but the People/Connect list must only surface users enrolled in the requesting brand. `UsersStore.searchUsers` takes a `brandVariation` and filters `brandVariations @> '[{"brand":"<brand>"}]'`. Omitting that filter leaks the full cross-brand user list into every niche app. No backfill is needed for legacy accounts — the `brandVariations` column default already stamps every pre-existing row with a `therr` entry.
 
 ```typescript
 import { getBrandContext } from 'therr-js-utilities/http';
