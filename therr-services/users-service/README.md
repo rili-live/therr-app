@@ -1,5 +1,5 @@
 # users-service
-<!-- Updated: 2026-03-26 -->
+<!-- Updated: 2026-07-17 -->
 Provides endpoints to query data from users database
 
 ## Setting up therr_dev_users database
