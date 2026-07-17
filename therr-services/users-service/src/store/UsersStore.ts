@@ -51,6 +51,10 @@ interface ISearchUsersArgs {
     queryColumnName?: string;
     limit?: number;
     offset?: number;
+    // When set, discovery is scoped to users enrolled in this brand (identity-shared
+    // pattern: main.users has no brand column, membership lives in the brandVariations
+    // JSONB array). See docs/NICHE_APP_DATABASE_GUIDELINES.md.
+    brandVariation?: string;
 }
 
 export interface IFindUsersByContactInfo {
@@ -207,6 +211,7 @@ export default class UsersStore {
             queryColumnName,
             limit,
             offset,
+            brandVariation,
         }: ISearchUsersArgs,
         withConnections = false,
         onlyVerified = false,
@@ -220,8 +225,28 @@ export default class UsersStore {
             .andWhere('settingsIsProfilePublic', true)
             .andWhereNot('id', requestingUserId);
 
+        if (brandVariation) {
+            // Scope discovery to users enrolled in the requesting brand. main.users is
+            // identity-shared (no brand column); brand membership is an entry in the
+            // brandVariations JSONB array, e.g. [{ brand: 'habits', ... }]. The @>
+            // containment check is backed by the GIN index added in brandVariations_v2.
+            // Legacy rows carry the column's default 'therr' entry, so Therr discovery
+            // still returns pre-existing accounts without a separate backfill.
+            queryString = queryString.andWhere(knexBuilder.raw(
+                '"brandVariations" @> ?::jsonb',
+                [JSON.stringify([{ brand: brandVariation }])],
+            ));
+        }
+
         if (onlyVerified) {
-            queryString = queryString.andWhere(knexBuilder.raw(`"accessLevels" \\? '${AccessLevels.MOBILE_VERIFIED}'`));
+            // "Verified for discovery" means the current onboarding baseline: an email-verified
+            // account with a completed profile (username), OR a phone-verified account. Phone
+            // verification is deferred under the frictionless-onboarding flow, so gating this
+            // list on MOBILE_VERIFIED alone hid nearly every user. Match either access level.
+            queryString = queryString.andWhere(knexBuilder.raw(
+                '"accessLevels" \\?| ARRAY[?, ?]::text[]',
+                [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            ));
         }
 
         queryString = queryString

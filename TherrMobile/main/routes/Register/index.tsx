@@ -6,6 +6,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler';
 import { showToast } from '../../utilities/toasts';
 import { IUserState } from 'therr-react/types';
+import { UsersService } from 'therr-react/services';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
@@ -36,10 +37,13 @@ interface IStoreProps extends IRegisterDispatchProps {
 // Regular component props
 export interface IRegisterProps extends IStoreProps {
     navigation: any;
+    route?: any;
 }
 
 interface IRegisterState {
     isEULAVisible: boolean;
+    prefillEmail: string;
+    inviterName: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -71,6 +75,8 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
 
         this.state = {
             isEULAVisible: false,
+            prefillEmail: '',
+            inviterName: '',
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -90,6 +96,22 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         this.props.navigation.setOptions({
             title: this.translate('pages.register.headerTitle'),
         });
+
+        // Magic invite link: resolve the token to pre-fill the invitee's known
+        // email and show who invited them. Best-effort — signup still works if
+        // the token can't be resolved.
+        const inviteToken = this.props.route?.params?.inviteToken;
+        if (inviteToken) {
+            UsersService.getInviteByToken(inviteToken)
+                .then((response: any) => {
+                    const invite = response?.data || {};
+                    this.setState({
+                        prefillEmail: invite.email || '',
+                        inviterName: invite.inviterName || '',
+                    });
+                })
+                .catch(() => { /* ignore unknown/expired token */ });
+        }
     }
 
     componentDidUpdate(prevProps: IRegisterProps) {
@@ -165,6 +187,9 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                 themeForms={this.themeForms}
                                 toggleEULA={this.toggleEULA}
                                 userSettings={this.props.user?.settings || {}}
+                                inviteToken={this.props.route?.params?.inviteToken}
+                                prefillEmail={this.state.prefillEmail}
+                                inviterName={this.state.inviterName}
                             />
                         </View>
                     </KeyboardAwareScrollView>

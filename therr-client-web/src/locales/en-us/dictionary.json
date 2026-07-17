@@ -177,6 +177,7 @@
         "phoneNumber": "Invalid phone number"
       },
       "text": {
+        "invitedBy": "{inviterName} invited you to Therr — finish signing up to connect!",
         "signupForRewards": "Use {userName}'s invite code — they get 10 coins and you get 5!",
         "inviteCodeHint": "Have a friend's invite code? Enter it to earn bonus coins",
         "birthdateHint": "You must be at least {minAge} years old to use Therr",
