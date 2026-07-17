@@ -32,6 +32,7 @@
  *   --changes-not-sent-for-review <bool>  Commit flag (default: true, matches eas.json)
  *   --dry-run               Resolve notes + release, but don't write to Play
  */
+/* eslint-env node */
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
