@@ -55,6 +55,21 @@ const getClusterStyle = (pointCount: number) => {
     return { size: 36, fontSize: 15 };
 };
 
+// Mirrors isMarkerElement in ClusteredMapView.tsx. ClusteredMapView decides
+// which children to feed into supercluster by the presence of a top-level
+// `coordinate` prop. Any marker wrapper (e.g. MapAreaMarker) MUST surface
+// `coordinate`, otherwise it is treated as a non-marker child and rendered
+// un-clustered.
+const isMarkerElement = (child: any): boolean => {
+    return (
+        child !== null &&
+        typeof child === 'object' &&
+        child.props !== null &&
+        typeof child.props === 'object' &&
+        'coordinate' in child.props
+    );
+};
+
 // ============================================================================
 // Tests
 // ============================================================================
@@ -182,6 +197,30 @@ describe('calculateBBox', () => {
 
         const bbox = calculateBBox(region);
         expect(bbox).toEqual([-0.5, -0.5, 0.5, 0.5]);
+    });
+});
+
+describe('isMarkerElement (marker-detection contract)', () => {
+    it('should detect a child that exposes a top-level coordinate prop', () => {
+        const rawMarker = { props: { coordinate: { latitude: 40.7, longitude: -74.0 } } };
+        expect(isMarkerElement(rawMarker)).toBe(true);
+    });
+
+    it('should detect a memoized marker wrapper that forwards coordinate (regression)', () => {
+        // MapAreaMarker passes the stable area object as `coordinate`; the area
+        // carries latitude/longitude. Regression guard: a wrapper that only
+        // exposes `area`/`areaType` (no coordinate) silently disables clustering.
+        const withCoordinate = { props: { coordinate: { latitude: 1, longitude: 2, id: 'a1' }, area: {}, areaType: 'spaces' } };
+        const withoutCoordinate = { props: { area: { latitude: 1, longitude: 2 }, areaType: 'spaces' } };
+
+        expect(isMarkerElement(withCoordinate)).toBe(true);
+        expect(isMarkerElement(withoutCoordinate)).toBe(false);
+    });
+
+    it('should not detect non-marker children (Circle, null, primitives)', () => {
+        expect(isMarkerElement({ props: { center: { latitude: 1, longitude: 2 }, radius: 100 } })).toBe(false);
+        expect(isMarkerElement(null)).toBe(false);
+        expect(isMarkerElement('some string')).toBe(false);
     });
 });
 
