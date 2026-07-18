@@ -310,6 +310,23 @@ class UsersService {
         url: `/users-service/users/achievements/${userId}/public`,
     });
 
+    // Leaderboards
+    getLeaderboard = (args?: {
+        scope?: 'global' | 'connections';
+        period?: 'week' | 'allTime';
+        limit?: number;
+    }) => {
+        const queryParams = [
+            `scope=${args?.scope || 'global'}`,
+            `period=${args?.period || 'week'}`,
+            ...(args?.limit ? [`limit=${args.limit}`] : []),
+        ].join('&');
+        return axios({
+            method: 'get',
+            url: `/users-service/users/leaderboards?${queryParams}`,
+        });
+    };
+
     requestRewardsExchange = (amount: number, provider: string) => axios({
         method: 'post',
         url: '/users-service/rewards',
