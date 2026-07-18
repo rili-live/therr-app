@@ -21,6 +21,8 @@ import {
     scanMultiHabitConsistency,
     headersForOtherUser,
 } from './helpers/awardHabitAchievements';
+import { awardLeaderboardPoints } from './helpers/leaderboards';
+import { LeaderboardXpValues } from '../utilities/leaderboardHelpers';
 
 // CREATE
 const createCheckin: RequestHandler = async (req: any, res: any) => {
@@ -123,6 +125,17 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
             // If completed, update streak
             if (checkin.status === 'completed') {
+                // First completion for this habit+date: the upsert only returns
+                // contributedToStreak=false before this block has ever run for the row, so
+                // re-submitted check-ins (edits, added proofs) never double-award XP.
+                const isFirstCompletionForDate = !checkin.contributedToStreak;
+                if (isFirstCompletionForDate) {
+                    // Direct XP hook — habit activity must feed the leaderboard even while no
+                    // achievement class is allow-listed for the HABITS brand (see
+                    // therr-js-utilities/config/achievements: brand allow-list intentionally
+                    // no-ops all achievement-driven awards for niche brands today).
+                    awardLeaderboardPoints(req.headers, LeaderboardXpValues.habitCheckin, 'habit-checkin');
+                }
                 const streak = await Store.streaks.getOrCreate(userId, habitGoalId, pactId);
                 const streakBefore = streak.currentStreak;
                 const longestBefore = streak.longestStreak;
@@ -158,6 +171,13 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
                 const milestone = checkMilestoneReached(updatedStreak.currentStreak);
                 if (milestone) {
+                    if (isFirstCompletionForDate) {
+                        awardLeaderboardPoints(
+                            req.headers,
+                            milestone * LeaderboardXpValues.streakMilestoneMultiplier,
+                            `streak-milestone:${milestone}`,
+                        );
+                    }
                     await Store.streaks.recordMilestone(
                         streak.id,
                         userId,
