@@ -1141,6 +1141,9 @@
     "achievements": {
       "headerTitle": "Achievements",
       "pageHeader": "Achievements",
+      "buttons": {
+        "viewLeaderboard": "View Leaderboard"
+      },
       "labels": {
         "coinValue": "Coin Value",
         "xpValue": "Experience Value"
@@ -1298,6 +1301,25 @@
     },
     "invite": {
       "headerTitle": "Invite"
+    },
+    "leaderboard": {
+      "headerTitle": "Leaderboard",
+      "tabs": {
+        "thisWeek": "This Week",
+        "allTime": "All Time",
+        "everyone": "Everyone",
+        "friends": "Friends"
+      },
+      "labels": {
+        "you": "You",
+        "xpPoints": "{points} XP",
+        "resetsIn": "Resets in {days} day(s)",
+        "yourRank": "Your rank: #{rank}"
+      },
+      "info": {
+        "noScores": "No scores yet this week. Use the app to earn XP and claim your spot!",
+        "noFriendScores": "None of your connections have earned XP yet. Invite friends to join the competition!"
+      }
     },
     "manageNotifications": {
       "headerTitle": "Email & Alert Settings",
