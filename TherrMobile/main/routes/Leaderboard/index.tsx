@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
@@ -10,6 +10,7 @@ import { Avatar } from '../../components/BaseAvatar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import translator from '../../utilities/translator';
+import { showToast } from '../../utilities/toasts';
 import { getUserImageUri } from '../../utilities/content';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -55,6 +56,12 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
     const [period, setPeriod] = useState<ILeaderboardPeriod>('week');
     const [scope, setScope] = useState<ILeaderboardScope>('global');
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => () => {
+        isMountedRef.current = false;
+    }, []);
 
     const theme = useMemo(() => buildStyles(user.settings?.mobileThemeName), [user.settings?.mobileThemeName]);
     const themeMenu = useMemo(() => buildMenuStyles(user.settings?.mobileThemeName), [user.settings?.mobileThemeName]);
@@ -74,15 +81,34 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
             scope: nextScope,
             limit: PAGE_SIZE,
         }).then((response: any) => {
-            setEntries(response?.data?.entries || []);
-            setCurrentUser(response?.data?.currentUser || null);
-            setPeriodEnd(response?.data?.periodEnd || null);
+            if (!isMountedRef.current) {
+                return;
+            }
+            // The axios interceptor resolves transient/offline GET failures with
+            // `{ data: {}, isOfflineFallback: true }` — keep the last board visible
+            // instead of clobbering it with an empty response (offline-first pattern).
+            if (response?.isOfflineFallback || !Array.isArray(response?.data?.entries)) {
+                return;
+            }
+            setEntries(response.data.entries);
+            setCurrentUser(response.data.currentUser || null);
+            setPeriodEnd(response.data.periodEnd || null);
         }).catch(() => {
-            // Offline/network errors leave the previous board visible (offline-first pattern)
+            // Non-transient server errors (transient ones resolve via the interceptor
+            // fallback above). Keep the previous board and let the user know.
+            if (isMountedRef.current) {
+                showToast.error({
+                    text1: translate('alertTitles.backendErrorMessage'),
+                    text2: translate('alertMessages.backendErrorMessage'),
+                });
+            }
         }).finally(() => {
-            setIsRefreshing(false);
+            if (isMountedRef.current) {
+                setIsRefreshing(false);
+                setHasLoadedOnce(true);
+            }
         });
-    }, []);
+    }, [translate]);
 
     useEffect(() => {
         navigation.setOptions({
@@ -202,11 +228,15 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
                         />}
                         ListEmptyComponent={
                             <View style={themeLeaderboard.styles.emptyContainer}>
-                                <Text style={themeLeaderboard.styles.emptyText}>
-                                    {translate(scope === 'connections'
-                                        ? 'pages.leaderboard.info.noFriendScores'
-                                        : 'pages.leaderboard.info.noScores')}
-                                </Text>
+                                {
+                                    hasLoadedOnce
+                                        ? <Text style={themeLeaderboard.styles.emptyText}>
+                                            {translate(scope === 'connections'
+                                                ? 'pages.leaderboard.info.noFriendScores'
+                                                : 'pages.leaderboard.info.noScores')}
+                                        </Text>
+                                        : <ActivityIndicator size="large" color={theme.colors.primary3} />
+                                }
                             </View>
                         }
                     />

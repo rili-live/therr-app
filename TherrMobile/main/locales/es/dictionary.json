@@ -2377,6 +2377,30 @@
       "pactPioneer_1_2_1": {
         "title": "Efecto de red",
         "description": "Invita a 10 compañeros únicos en distintos pactos"
+      },
+      "weeklyChampion_1_1": {
+        "title": "Contendiente",
+        "description": "Alcanza el top 10 de la tabla semanal"
+      },
+      "weeklyChampion_1_1_1": {
+        "title": "Contendiente habitual",
+        "description": "Alcanza el top 10 semanal cinco veces más"
+      },
+      "weeklyChampion_1_2": {
+        "title": "Podio",
+        "description": "Alcanza el top 3 de la tabla semanal"
+      },
+      "weeklyChampion_1_2_1": {
+        "title": "Habitual del podio",
+        "description": "Alcanza el top 3 semanal cinco veces más"
+      },
+      "weeklyChampion_1_3": {
+        "title": "Número uno",
+        "description": "Alcanza el puesto #1 de la tabla semanal"
+      },
+      "weeklyChampion_1_3_1": {
+        "title": "Campeón en serie",
+        "description": "Alcanza el puesto #1 de la tabla semanal cinco veces más"
       }
     },
     "profile": {
