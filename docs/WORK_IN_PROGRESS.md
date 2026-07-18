@@ -89,6 +89,7 @@ append new items here rather than only printing them once.
 <!-- skill-followups:start -->
 - [ ] (2026-07-18, leaderboards) Run the new users-service migrations on production (`npm run migrations:run` in `therr-services/users-service`): `20260718000001_main.userLeaderboardScores` (weekly XP aggregates table) and `20260718000002_main.users.settingsIsLeaderboardEnabled` (participation opt-out, default true). The leaderboard API 500s until the table exists; XP awards fail soft (logged warnings only).
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
+- [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
 - [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
   project env var (full Play service-account key JSON with the "Release manager"
   permission) so the `eas_build_therr_android` job can auto-populate Google Play
