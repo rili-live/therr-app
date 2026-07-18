@@ -3,11 +3,15 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
 import { getLeaderboardPeriodStart } from '../../utilities/leaderboardHelpers';
+import { detectAndCelebrateRankMilestones } from './leaderboardRankMilestones';
 
 /**
  * Fire-and-forget XP award into the current weekly leaderboard period. Never throws —
  * leaderboard writes must not fail the user-facing action that earned the XP. Callers
  * are responsible for idempotency (award only on genuinely new activity).
+ *
+ * After a successful increment, rank-milestone detection runs on the before/after
+ * points (push + weeklyChampion achievement when the user climbs into the top 10/3/1).
  */
 const awardLeaderboardPoints = (
     headers: InternalConfigHeaders,
@@ -22,6 +26,16 @@ const awardLeaderboardPoints = (
 
     return Store.userLeaderboardScores
         .incrementPoints(brandVariation, userId, getLeaderboardPeriodStart(), points)
+        .then((rows) => {
+            const newPoints = Number(rows?.[0]?.points);
+            if (Number.isFinite(newPoints) && newPoints > 0) {
+                detectAndCelebrateRankMilestones(headers, {
+                    prevPoints: newPoints - Math.round(points),
+                    newPoints,
+                }).catch(() => null); // detector logs internally; never propagate
+            }
+            return rows;
+        })
         .catch((err) => {
             logSpan({
                 level: 'warn',

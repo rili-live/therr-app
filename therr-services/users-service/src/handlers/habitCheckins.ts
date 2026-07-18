@@ -130,10 +130,10 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 // re-submitted check-ins (edits, added proofs) never double-award XP.
                 const isFirstCompletionForDate = !checkin.contributedToStreak;
                 if (isFirstCompletionForDate) {
-                    // Direct XP hook — habit activity must feed the leaderboard even while no
-                    // achievement class is allow-listed for the HABITS brand (see
-                    // therr-js-utilities/config/achievements: brand allow-list intentionally
-                    // no-ops all achievement-driven awards for niche brands today).
+                    // Direct XP hook — base XP for every completed check-in, independent of the
+                    // achievement ladder. Streak/consistency achievements below add their own
+                    // XP on top when they progress (bonus stacking is intentional, and their
+                    // milestone-rung gating means they don't fire on every check-in).
                     awardLeaderboardPoints(req.headers, LeaderboardXpValues.habitCheckin, 'habit-checkin');
                 }
                 const streak = await Store.streaks.getOrCreate(userId, habitGoalId, pactId);

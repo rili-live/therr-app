@@ -4,6 +4,25 @@
  * see the main.userLeaderboardScores migration for the design rationale.
  */
 
+// Weekly-rank thresholds that trigger a celebration (push notification + weeklyChampion
+// achievement progress) when crossed from outside. Ordered best-first.
+export const LEADERBOARD_RANK_MILESTONES = [1, 3, 10];
+
+// weeklyChampion tier awarded per crossed rank threshold.
+export const WEEKLY_CHAMPION_TIER_BY_MILESTONE: { [milestone: number]: string } = {
+    10: '1_1',
+    3: '1_2',
+    1: '1_3',
+};
+
+/**
+ * Rank thresholds newly crossed by moving from prevRank to newRank (rank 1 = best).
+ * A threshold counts only when the user was strictly outside it before, so repeated
+ * awards inside the top N never re-trigger a celebration.
+ */
+export const getCrossedRankMilestones = (prevRank: number, newRank: number): number[] => LEADERBOARD_RANK_MILESTONES
+    .filter((threshold) => newRank <= threshold && prevRank > threshold);
+
 // XP valuations for activity that isn't already valued by an achievement's own `xp` field.
 export const LeaderboardXpValues = {
     // Per unit of achievement progress applied (a created post, a new connection, a streak day…)

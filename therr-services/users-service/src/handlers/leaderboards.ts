@@ -19,6 +19,14 @@ const getLeaderboard: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
     const { brandVariation } = getBrandContext(req.headers);
 
+    if (!userId) {
+        return handleHttpError({
+            res,
+            message: 'Unauthorized',
+            statusCode: 401,
+        });
+    }
+
     const scope = req.query.scope === 'connections' ? 'connections' : 'global';
     const period = req.query.period === 'allTime' ? 'allTime' : 'week';
     const limit = parseInt(req.query.limit, 10) || DEFAULT_PAGE_SIZE;
