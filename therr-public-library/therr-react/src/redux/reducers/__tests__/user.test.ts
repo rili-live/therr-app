@@ -49,6 +49,23 @@ describe('user reducer', () => {
         expect(result.usersMightKnow.u3).toBeDefined();
     });
 
+    it('handles GET_USERS (replaces stale results, does not accumulate)', () => {
+        // Regression: discovery must evict prior entries so cross-brand users cached before
+        // brand-scoping (and rehydrated from redux-persist) cannot survive a fresh fetch.
+        const populated = reducer(initialState, {
+            type: UserActionTypes.GET_USERS,
+            data: { results: [{ id: 'stale-1' }, { id: 'stale-2' }], mightKnowResults: [{ id: 'mk-stale' }] },
+        });
+        const result = reducer(populated, {
+            type: UserActionTypes.GET_USERS,
+            data: { results: [{ id: 'fresh-1' }], mightKnowResults: [] },
+        });
+        expect(result.users['stale-1']).toBeUndefined();
+        expect(result.users['stale-2']).toBeUndefined();
+        expect(result.users['fresh-1']).toBeDefined();
+        expect(result.usersMightKnow['mk-stale']).toBeUndefined();
+    });
+
     it('handles GET_USERS_REFETCH (clears stale results)', () => {
         const populated = reducer(initialState, {
             type: UserActionTypes.GET_USERS,
