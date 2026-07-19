@@ -19,6 +19,9 @@ export enum Types {
     newThoughtReplyReceived = 'new-thought-reply-received',
     reportConfirmed = 'report-confirmed',
 
+    // Leaderboards (all brands)
+    leaderboardRankMilestone = 'leaderboard-rank-milestone',
+
     // Automation
     createYourProfileReminder = 'create-your-profile-reminder',
     createAMomentReminder = 'create-a-moment-reminder',
@@ -76,6 +79,8 @@ export enum PressActionIds {
     pactAccept = 'accept-pact',
     checkinView = 'view-checkin',
     streakView = 'view-streak',
+    // Leaderboards
+    leaderboardView = 'view-leaderboard',
 }
 
 export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
@@ -100,6 +105,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'UNCLAIMED_ACHIEVEMENTS_REMINDER'
 | 'INVITE_FRIENDS_REMINDER'
 | 'REPORT_CONFIRMED'
+| 'LEADERBOARD_RANK_MILESTONE'
 // HABITS
 | 'PACT_INVITATION'
 | 'PACT_NUDGE'
@@ -141,6 +147,7 @@ enum TeemAndroidIntentActions {
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'com.therr.mobile.INVITE_FRIENDS_REMINDER',
     REPORT_CONFIRMED = 'com.therr.mobile.REPORT_CONFIRMED',
+    LEADERBOARD_RANK_MILESTONE = 'com.therr.mobile.LEADERBOARD_RANK_MILESTONE',
 }
 
 enum TherrAndroidIntentActions {
@@ -166,6 +173,7 @@ enum TherrAndroidIntentActions {
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'app.therrmobile.INVITE_FRIENDS_REMINDER',
     REPORT_CONFIRMED = 'app.therrmobile.REPORT_CONFIRMED',
+    LEADERBOARD_RANK_MILESTONE = 'app.therrmobile.LEADERBOARD_RANK_MILESTONE',
 }
 
 enum HabitsAndroidIntentActions {
@@ -191,6 +199,7 @@ enum HabitsAndroidIntentActions {
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.habits.UNCLAIMED_ACHIEVEMENTS_REMINDER',
     INVITE_FRIENDS_REMINDER = 'com.therr.mobile.habits.INVITE_FRIENDS_REMINDER',
     REPORT_CONFIRMED = 'com.therr.mobile.habits.REPORT_CONFIRMED',
+    LEADERBOARD_RANK_MILESTONE = 'com.therr.mobile.habits.LEADERBOARD_RANK_MILESTONE',
     // HABITS-specific
     PACT_INVITATION = 'com.therr.mobile.habits.PACT_INVITATION',
     PACT_NUDGE = 'com.therr.mobile.habits.PACT_NUDGE',
