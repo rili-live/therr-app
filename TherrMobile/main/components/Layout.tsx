@@ -1374,6 +1374,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.leaderboardView) {
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'Leaderboard',
+                        targetRouteParams: {},
+                    });
+
+                    return Promise.resolve();
+                }
+
+                RootNavigation.navigate('Leaderboard');
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.userView) {
                 let fromUserDetails: any = {};
                 if (typeof notification?.data?.fromUser === 'string') {

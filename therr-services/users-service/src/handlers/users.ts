@@ -723,6 +723,7 @@ const updateUser = (req, res) => {
                 settingsEmailBackground: req.body.settingsEmailBackground,
                 settingsThemeName: req.body.settingsThemeName,
                 settingsIsProfilePublic: req.body.settingsIsProfilePublic,
+                settingsIsLeaderboardEnabled: req.body.settingsIsLeaderboardEnabled,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
                 settingsLocale: req.body.settingsLocale,
