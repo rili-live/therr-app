@@ -497,6 +497,10 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
             .then((connections) => Store.users.findUsers({
                 ids: connections
                     .map((con) => (con.requestingUserId === userId ? con.acceptingUserId : con.requestingUserId)),
+                // Brand-scope People-You-May-Know too. Without this, the mightKnow list leaks
+                // cross-brand accounts (contact-matched Therr users showing inside Habits) even
+                // though the primary searchUsers results are already brand-scoped.
+                brandVariation,
             }))
         : Promise.resolve([]);
 
