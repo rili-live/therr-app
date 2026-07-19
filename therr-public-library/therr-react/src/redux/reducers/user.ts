@@ -55,16 +55,22 @@ const getUserReducer = (socketIO) => produce((draft: IUserState, action: any) =>
 
     switch (action.type) {
         case UserActionTypes.GET_USERS:
-            // Convert array to object for faster lookup and de-duping
+            // Replace (not merge) so stale entries from a prior fetch are evicted. Merging into
+            // `modifiedUsers` kept cross-brand users that were cached before discovery became
+            // brand-scoped — and because the `user` slice is persisted (redux-persist), those
+            // leaked rows were rehydrated on every launch and never cleared, so a backend fix
+            // alone could not remove them from the client. Discovery pagination is page-replace
+            // (web ExplorePeople) or unwired (mobile), so nothing relies on accumulation. The
+            // query path (GET_USERS_REFETCH) already clears the same way.
             draft.users = action.data.results
                 .reduce((acc, item) => ({
                     ...acc,
                     [item.id]: item,
-                }), modifiedUsers);
+                }), {});
             draft.usersMightKnow = action.data?.mightKnowResults?.reduce((acc, item) => ({
                 ...acc,
                 [item.id]: item,
-            }), {});
+            }), {}) || {};
             break;
         case UserActionTypes.GET_USERS_REFETCH:
             // Convert array to object for faster lookup and de-duping
