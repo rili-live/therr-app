@@ -16,11 +16,15 @@ const makeRes = () => {
     const res: any = {};
     res.statusCode = undefined;
     res.body = undefined;
+    // Real Express throws ERR_HTTP_HEADERS_SENT on a second send; this double just counts
+    // so tests can assert a handler responds exactly once.
+    res.sendCount = 0;
     res.status = (code: number) => {
         res.statusCode = code;
         return res;
     };
     res.send = (payload: any) => {
+        res.sendCount += 1;
         res.body = payload;
         return res;
     };
@@ -531,6 +535,26 @@ describe('Users Handler', () => {
 
             expect(res.statusCode).to.equal(200);
             expect(res.body.deviceMobileFirebaseToken).to.equal('legacy-token');
+        });
+
+        it('responds exactly once with a 404 when the user does not exist', async () => {
+            // Regression: the 404 branch returned handleHttpError's Response, which then flowed
+            // into a trailing `.then((user) => res.status(200).send(user))`. Against real Express
+            // that second send throws ERR_HTTP_HEADERS_SENT, which the chain's .catch turned into
+            // a *third* send and finally an unhandled rejection — so a plain missing-user lookup
+            // logged a 500-shaped error and overwrote the 404 status.
+            sinon.stub(Store.users, 'getUserByConditions').resolves([]);
+            const getTokensStub = sinon.stub(Store.userDeviceTokens, 'getTokensForUser').resolves([]);
+
+            const req: any = { headers: { 'x-userid': 'missing-user', 'x-brand-variation': 'therr' } };
+            const res = makeRes();
+
+            await getMe(req, res);
+
+            expect(res.statusCode).to.equal(404);
+            expect(res.sendCount).to.equal(1);
+            // Short-circuit should happen before any device-token lookup.
+            expect(getTokensStub.called).to.equal(false);
         });
     });
 

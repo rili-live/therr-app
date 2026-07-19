@@ -356,9 +356,8 @@ const getMe = (req, res) => {
                 userResult.deviceMobileFirebaseToken,
             );
 
-            return userResult;
+            return res.status(200).send(userResult);
         })
-        .then((user) => res.status(200).send(user))
         .catch((err) => handleHttpError({
             err,
             res,
