@@ -505,6 +505,10 @@ export default class UsersStore {
             modifiedParams.settingsIsProfilePublic = params.settingsIsProfilePublic;
         }
 
+        if (params.settingsIsLeaderboardEnabled != null) {
+            modifiedParams.settingsIsLeaderboardEnabled = params.settingsIsLeaderboardEnabled;
+        }
+
         if (params.settingsLocale != null) {
             modifiedParams.settingsLocale = params.settingsLocale;
         }

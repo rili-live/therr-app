@@ -50,6 +50,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         habitId,
         habitName,
         daysRemaining,
+        // Leaderboards
+        rank,
     } = req.body;
 
     return predictAndSendNotification(
@@ -85,6 +87,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             habitId,
             habitName,
             daysRemaining,
+            rank,
         },
         undefined,
         brandVariation,
@@ -131,6 +134,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         habitId,
         habitName,
         daysRemaining,
+        // Leaderboards
+        rank,
     } = req.body;
 
     const recipients: any[] = (users || []).filter((user: any) => !user.shouldMuteNotifs);
@@ -170,6 +175,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             habitId,
             habitName,
             daysRemaining,
+            rank,
         },
         undefined,
         brandVariation,
