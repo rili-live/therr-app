@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
-import { getLeaderboardPeriodStart, getLeaderboardPeriodEnd } from '../utilities/leaderboardHelpers';
+import { getLeaderboardPeriodStart, getLeaderboardPeriodEnd, withCompetitionRanks } from '../utilities/leaderboardHelpers';
 
 const DEFAULT_PAGE_SIZE = 25;
 
@@ -13,7 +13,8 @@ const DEFAULT_PAGE_SIZE = 25;
  * Monday-anchored UTC week; all-time sums every period. The `connections` scope
  * restricts the pool to the requester's accepted connections (plus themself).
  * `currentUser` always reflects the requester — including their rank when they fall
- * outside the returned page — so clients can render a sticky "you" row.
+ * outside the returned page — so clients can render a sticky "you" row. Entry ranks use
+ * competition ranking so they agree with the requester's own rank on a tie.
  */
 const getLeaderboard: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
@@ -47,9 +48,8 @@ const getLeaderboard: RequestHandler = async (req: any, res: any) => {
             .getRankForScore(brandVariation, currentUserPoints, { periodStart, userIds });
 
         return res.status(200).send({
-            entries: entries.map((entry, index) => ({
+            entries: withCompetitionRanks(entries).map((entry) => ({
                 ...entry,
-                rank: index + 1,
                 isRequestingUser: entry.userId === userId,
             })),
             currentUser: {

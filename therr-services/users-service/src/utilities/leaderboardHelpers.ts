@@ -34,6 +34,33 @@ export const LeaderboardXpValues = {
 };
 
 /**
+ * Assigns standard competition ranks (1, 1, 3, 4…) to a points-descending list: tied
+ * scores share the better rank and the next distinct score skips ahead.
+ *
+ * This must match `UserLeaderboardScoresStore.getRankForScore`, which computes
+ * "1 + the number of users strictly ahead". Naively using the array index would give
+ * two tied leaders ranks 1 and 2 in the list while both are told they are #1 in the
+ * sticky current-user row.
+ *
+ * Only correct for a page that starts at rank 1 (the leaderboard endpoint takes a
+ * limit but no offset). Add the page offset here if paging is ever introduced.
+ */
+export const withCompetitionRanks = <T extends { points: number }>(entries: T[]): (T & { rank: number })[] => {
+    let previousPoints: number | null = null;
+    let previousRank = 0;
+
+    return entries.map((entry, index) => {
+        const rank = previousPoints !== null && entry.points === previousPoints
+            ? previousRank
+            : index + 1;
+        previousPoints = entry.points;
+        previousRank = rank;
+
+        return { ...entry, rank };
+    });
+};
+
+/**
  * Monday (UTC) of the ISO week containing `date`, as YYYY-MM-DD. All XP earned in a
  * week accrues to this periodStart; boards "reset" simply because a new week writes
  * to a new row.

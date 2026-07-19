@@ -18,6 +18,7 @@ import {
     getCrossedRankMilestones,
     getLeaderboardPeriodStart,
     getLeaderboardPeriodEnd,
+    withCompetitionRanks,
 } from '../../src/utilities/leaderboardHelpers';
 
 const therrHeaders = {
@@ -47,6 +48,54 @@ describe('leaderboardHelpers — weekly period math', () => {
     it('returns the following Monday as the exclusive period end', () => {
         expect(getLeaderboardPeriodEnd('2026-07-13')).to.equal('2026-07-20');
         expect(getLeaderboardPeriodEnd('2026-06-29')).to.equal('2026-07-06');
+    });
+});
+
+describe('withCompetitionRanks', () => {
+    // Regression: entry ranks came from the array index (1, 2, 3…) while the sticky
+    // current-user row came from getRankForScore ("1 + users strictly ahead"). Two tied
+    // leaders were listed as ranks 1 and 2, yet BOTH were told they were #1 in their own
+    // row. Competition ranking makes the two agree.
+    it('gives tied scores the same rank and skips the next one', () => {
+        const ranked = withCompetitionRanks([
+            { userId: 'a', points: 100 },
+            { userId: 'b', points: 100 },
+            { userId: 'c', points: 90 },
+            { userId: 'd', points: 80 },
+        ]);
+
+        expect(ranked.map((entry) => entry.rank)).to.deep.equal([1, 1, 3, 4]);
+    });
+
+    it('agrees with getRankForScore semantics (1 + count strictly ahead)', () => {
+        const entries = [
+            { userId: 'a', points: 50 },
+            { userId: 'b', points: 50 },
+            { userId: 'c', points: 50 },
+            { userId: 'd', points: 10 },
+        ];
+
+        withCompetitionRanks(entries).forEach((entry) => {
+            const strictlyAhead = entries.filter((other) => other.points > entry.points).length;
+            expect(entry.rank).to.equal(1 + strictlyAhead);
+        });
+    });
+
+    it('numbers a tie-free board sequentially and handles an empty board', () => {
+        expect(withCompetitionRanks([
+            { userId: 'a', points: 30 },
+            { userId: 'b', points: 20 },
+        ]).map((entry) => entry.rank)).to.deep.equal([1, 2]);
+        expect(withCompetitionRanks([])).to.deep.equal([]);
+    });
+
+    it('preserves the original entry fields', () => {
+        expect(withCompetitionRanks([{ userId: 'a', points: 5, userName: 'tester' }])[0]).to.include({
+            userId: 'a',
+            points: 5,
+            userName: 'tester',
+            rank: 1,
+        });
     });
 });
 
