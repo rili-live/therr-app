@@ -9,6 +9,23 @@ import {
     isUserProfileIncomplete,
     redactUserCreds,
 } from '../../src/handlers/helpers/user';
+import { getMe } from '../../src/handlers/users';
+
+// Minimal Express res double that captures the status + payload getMe sends.
+const makeRes = () => {
+    const res: any = {};
+    res.statusCode = undefined;
+    res.body = undefined;
+    res.status = (code: number) => {
+        res.statusCode = code;
+        return res;
+    };
+    res.send = (payload: any) => {
+        res.body = payload;
+        return res;
+    };
+    return res;
+};
 
 describe('Users Handler', () => {
     afterEach(() => {
@@ -463,6 +480,57 @@ describe('Users Handler', () => {
 
             expect(result.length).to.equal(2);
             findUsersStub.restore();
+        });
+    });
+
+    describe('getMe device-token brand scoping (cross-app notification mixup)', () => {
+        // Regression coverage for the cross-app push mixup: a user with both Therr and
+        // Habits installed on one device got a Therr "New Spots Unlocked" push delivered
+        // to the Friends with Habits app. Root cause: push-notifications-service's
+        // background-location path (whose BackgroundGeolocation requests never carry the
+        // x-user-device-token header) falls back to GET /users/me, which returned the
+        // legacy users.deviceMobileFirebaseToken column — a value clobbered by whichever
+        // branded app registered last on the device. getMe must instead resolve the token
+        // from main.userDeviceTokens keyed on the request's x-brand-variation.
+        it('returns the brand-scoped token for the requesting brand, not the clobbered legacy column', async () => {
+            sinon.stub(Store.users, 'getUserByConditions').resolves([{
+                id: 'user-1',
+                userName: 'dualappuser',
+                // Legacy column was last written by the Habits app install on this device.
+                deviceMobileFirebaseToken: 'habits-device-token',
+            }] as any);
+            // The user has re-registered a Therr row against the new table.
+            sinon.stub(Store.userDeviceTokens, 'getTokensForUser')
+                .withArgs('therr', 'user-1')
+                .resolves([{ token: 'therr-device-token' } as any]);
+
+            const req: any = { headers: { 'x-userid': 'user-1', 'x-brand-variation': 'therr' } };
+            const res = makeRes();
+
+            await getMe(req, res);
+
+            expect(res.statusCode).to.equal(200);
+            // The Therr-brand request must NOT get the Habits token — that's the leak that
+            // routed a Therr push to the Friends with Habits app.
+            expect(res.body.deviceMobileFirebaseToken).to.equal('therr-device-token');
+        });
+
+        it('falls back to the legacy column when no brand-scoped row exists yet', async () => {
+            sinon.stub(Store.users, 'getUserByConditions').resolves([{
+                id: 'user-1',
+                userName: 'notyetreregistered',
+                deviceMobileFirebaseToken: 'legacy-token',
+            }] as any);
+            // Device hasn't re-registered against the new endpoint during the rollout window.
+            sinon.stub(Store.userDeviceTokens, 'getTokensForUser').resolves([]);
+
+            const req: any = { headers: { 'x-userid': 'user-1', 'x-brand-variation': 'habits' } };
+            const res = makeRes();
+
+            await getMe(req, res);
+
+            expect(res.statusCode).to.equal(200);
+            expect(res.body.deviceMobileFirebaseToken).to.equal('legacy-token');
         });
     });
 
