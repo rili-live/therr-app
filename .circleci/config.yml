@@ -212,6 +212,25 @@ jobs:
               --profile therr-internal \
               --non-interactive \
               --auto-submit
+      - run:
+          name: Populate Google Play release notes
+          # EAS Submit uploads the AAB but does NOT set the user-facing "What's
+          # new" release notes. This step pushes them to the same internal-track
+          # release via the Google Play Developer API, reading the text from
+          # TherrMobile/fastlane/metadata/android/<locale>/changelogs/. The
+          # script is zero-dependency (Node built-ins only), polls until the
+          # EAS submission lands the versionCode on the track, and exits 0
+          # (skips) if GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not configured.
+          #
+          # GOOGLE_PLAY_SERVICE_ACCOUNT_JSON must be set as a CircleCI
+          # project-level env var: the full Play service-account key JSON with
+          # the "Release manager" permission (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
+          command: |
+            if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
+              echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not set — skipping release-notes population."
+            else
+              node TherrMobile/_scripts/populate-play-release-notes.mjs
+            fi
 
   deploy:
     docker:

@@ -32,6 +32,8 @@
 - **Group chat** — real-time forum messaging within groups
 - **Group events** — events associated with a group
 - **Invite friends** — referral system with TherrCoin rewards
+- **Magic invite links** — per-invite tokenized links (`/invite/link/:token`) that pre-fill the invitee's known email/phone, trust the invited channel (emailed token → email verified, SMS token → phone verified), auto-accept the invite, and auto-connect the two users on signup
+- **Deferred phone verification** — users reach the app with just a username; phone is optional at onboarding and enforced only on phone-sensitive actions (bulk invites require `MOBILE_VERIFIED`)
 
 ### Location-Based Content
 - **Moments** — geo-tagged ephemeral photo posts; proximity-gated visibility, max view limits
@@ -101,6 +103,7 @@
 - **Nearby content carousels** — swipeable tabs for discoveries, events, thoughts, news
 - **Draft management** — save and resume content drafts
 - **Animated onboarding** — landing page with background carousel
+- **Android app shortcuts** — long-press the launcher icon for quick links straight into Create Moment / Create Thought
 
 ---
 

@@ -58,7 +58,7 @@
         "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!"
     },
     "invites": {
-        "phone": "{name} invited you to Therr — the local community and rewards app. Sign up here to connect: https://therr.com",
+        "phone": "{name} invited you to Therr — the local community and rewards app. Sign up here to connect: {inviteUrl}",
         "pact": {
             "sms": "{fromName} invited you to a {brandName} pact: {habitName}. Install and tap {claimUrl} — or use code {claimCode} at sign-up.",
             "smsTokenOnly": "{fromName} invited you to a {brandName} pact: {habitName}. Install and tap {claimUrl} to accept."

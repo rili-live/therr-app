@@ -25,6 +25,9 @@ interface IRegisterCredentials {
     userName: string;
     password: string;
     inviteCode?: string;
+    // Magic invite-link token: trusts the invited contact channel and
+    // auto-connects the user to the inviter on signup.
+    inviteToken?: string;
 }
 
 export interface ISearchUsersArgs {
@@ -139,6 +142,13 @@ class UsersService {
     getByUserName = (userName: string) => axios({
         method: 'get',
         url: `/users-service/users/by-username/${userName}`,
+    });
+
+    // Resolves a magic invite-link token to pre-fill data (email/phone/inviter).
+    // Public/pre-auth — used by the invite-landing page before the user has an account.
+    getInviteByToken = (token: string) => axios({
+        method: 'get',
+        url: `/users-service/users/invites/${token}`,
     });
 
     getMe = () => axios({

@@ -197,13 +197,17 @@ describe('Users Handler', () => {
             expect(result).to.be.eq(true);
         });
 
-        it('returns true when missing phoneNumber', () => {
+        it('returns false when missing phoneNumber (phone verification is deferred)', () => {
+            // Deferred-phone-verification (2026-07): a profile is "complete" with just
+            // a userName. Phone is prompted contextually and enforced only on
+            // phone-sensitive actions (bulk invites), gated on MOBILE_VERIFIED at the
+            // gateway rather than folded into EMAIL_VERIFIED.
             const result = isUserProfileIncomplete({
                 userName: 'test',
                 firstName: 'Test',
                 lastName: 'User',
             });
-            expect(result).to.be.eq(true);
+            expect(result).to.be.eq(false);
         });
 
         it('returns true when missing userName', () => {
@@ -267,11 +271,21 @@ describe('Users Handler', () => {
             expect(result).to.be.eq(false);
         });
 
-        it('returns true when existing user and update combined still missing required fields', () => {
-            // Still incomplete because neither the update nor the existing record
-            // supplies a phoneNumber (one of the two remaining required fields).
+        it('returns false when the update supplies the userName an existing user lacks', () => {
+            // userName is the sole completeness requirement post deferred-phone-verification.
             const mockUpdate = {
                 userName: 'test',
+            };
+            const mockExistingUser = {
+                firstName: 'Test',
+            };
+            const result = isUserProfileIncomplete(mockUpdate, mockExistingUser);
+            expect(result).to.be.eq(false);
+        });
+
+        it('returns true when neither the update nor the existing record supplies a userName', () => {
+            const mockUpdate = {
+                phoneNumber: '+1234567890',
             };
             const mockExistingUser = {
                 firstName: 'Test',
