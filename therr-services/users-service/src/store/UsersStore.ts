@@ -14,6 +14,16 @@ import {
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+// Shared brand-membership predicate. main.users is identity-shared (no brand column);
+// enrollment lives in the brandVariations JSONB array, e.g. [{ brand: 'habits', ... }].
+// The @> containment check is backed by the GIN index added in brandVariations_v2.
+// Legacy rows carry the column's default 'therr' entry, so Therr discovery still returns
+// pre-existing accounts without a separate backfill.
+const brandContainment = (brand: string) => knexBuilder.raw(
+    '"brandVariations" @> ?::jsonb',
+    [JSON.stringify([{ brand }])],
+);
+
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
     brandVariations?: string | undefined;
@@ -43,6 +53,10 @@ export interface IFindUserArgs {
 
 interface IFindUsersArgs {
     ids?: string[];
+    // When set, restrict results to users enrolled in this brand (same identity-shared
+    // pattern as searchUsers). Used by discovery / People-You-May-Know so niche apps do
+    // not surface cross-brand accounts. Omit for brand-agnostic lookups (e.g. thought authors).
+    brandVariation?: string;
 }
 
 interface ISearchUsersArgs {
@@ -168,9 +182,16 @@ export default class UsersStore {
 
     findUsers({
         ids,
+        brandVariation,
     }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
         let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .whereIn('id', ids || []);
+
+        if (brandVariation) {
+            // Brand-scope discovery lookups so niche apps do not surface cross-brand users
+            // (e.g. Habits showing pre-existing Therr accounts via People-You-May-Know).
+            queryString = queryString.andWhere(brandContainment(brandVariation));
+        }
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
@@ -226,16 +247,8 @@ export default class UsersStore {
             .andWhereNot('id', requestingUserId);
 
         if (brandVariation) {
-            // Scope discovery to users enrolled in the requesting brand. main.users is
-            // identity-shared (no brand column); brand membership is an entry in the
-            // brandVariations JSONB array, e.g. [{ brand: 'habits', ... }]. The @>
-            // containment check is backed by the GIN index added in brandVariations_v2.
-            // Legacy rows carry the column's default 'therr' entry, so Therr discovery
-            // still returns pre-existing accounts without a separate backfill.
-            queryString = queryString.andWhere(knexBuilder.raw(
-                '"brandVariations" @> ?::jsonb',
-                [JSON.stringify([{ brand: brandVariation }])],
-            ));
+            // Scope discovery to users enrolled in the requesting brand (see brandContainment).
+            queryString = queryString.andWhere(brandContainment(brandVariation));
         }
 
         if (onlyVerified) {
@@ -367,6 +380,7 @@ export default class UsersStore {
     findUsersByContactInfo(
         contacts: IFindUsersByContactInfo[],
         returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken', 'isUnclaimed', 'settingsEmailInvites', 'isSuperUser'],
+        brandVariation?: string,
     ) {
         const emails: string[] = [];
         const phoneNumbers: string[] = [];
@@ -383,9 +397,19 @@ export default class UsersStore {
                 }
             }
         });
+        // Group the email/phone OR so a brand filter ANDs against the whole match set
+        // (avoids `email IN (...) OR (phone IN (...) AND brand)` precedence bugs).
         let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
-            .whereIn('email', emails || [])
-            .orWhereIn('phoneNumber', phoneNumbers);
+            .where((builder) => {
+                builder.whereIn('email', emails || [])
+                    .orWhereIn('phoneNumber', phoneNumbers);
+            });
+
+        if (brandVariation) {
+            // Brand-scope contact matching so we neither suggest nor seed MIGHT_KNOW edges
+            // to cross-brand accounts (e.g. a Therr-only contact surfacing inside Habits).
+            queryString = queryString.andWhere(brandContainment(brandVariation));
+        }
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
