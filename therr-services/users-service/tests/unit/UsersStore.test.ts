@@ -42,7 +42,13 @@ describe('UsersStore', () => {
             }, false, true);
 
             const generatedSql = mockStore.read.query.args[0][0];
-            expect(generatedSql).to.contain(`"accessLevels" ?| ARRAY['user.verified.email', 'user.verified.mobile']::text[]`);
+            // `?|` is an any-of match, so the order of the array literal is not significant —
+            // assert on membership rather than the exact rendering.
+            expect(generatedSql).to.contain('"accessLevels" ?| ARRAY[');
+            expect(generatedSql).to.contain(`'user.verified.email'`);
+            expect(generatedSql).to.contain(`'user.verified.mobile'`);
+            // Must NOT fall back to the mobile-only single-key form that emptied the list.
+            expect(generatedSql).to.not.contain(`"accessLevels" ? 'user.verified.mobile'`);
         });
 
         // Regression: discovery must be brand-scoped. main.users is identity-shared (no brand

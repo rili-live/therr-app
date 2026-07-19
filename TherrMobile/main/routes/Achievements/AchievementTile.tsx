@@ -20,6 +20,8 @@ const cardImagesLottie: { [key: string]: any } = {
     resilience: require('../../assets/thinker-card.json'),
     socialEnergizer: require('../../assets/socialite-card.json'),
     treasureBuilder: require('../../assets/local-patron-card.json'),
+    // Leaderboard rank milestones — reuse an existing Lottie until a trophy asset ships
+    weeklyChampion: require('../../assets/influencer-card.json'),
 };
 
 const AchievementTile = ({ claimText, completedText, handleClaim, isClaiming, onPressAchievement, userAchievement, themeAchievements }) => {

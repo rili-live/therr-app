@@ -1141,6 +1141,9 @@
     "achievements": {
       "headerTitle": "Achievements",
       "pageHeader": "Achievements",
+      "buttons": {
+        "viewLeaderboard": "View Leaderboard"
+      },
       "labels": {
         "coinValue": "Coin Value",
         "xpValue": "Experience Value"
@@ -1298,6 +1301,25 @@
     },
     "invite": {
       "headerTitle": "Invite"
+    },
+    "leaderboard": {
+      "headerTitle": "Leaderboard",
+      "tabs": {
+        "thisWeek": "This Week",
+        "allTime": "All Time",
+        "everyone": "Everyone",
+        "friends": "Friends"
+      },
+      "labels": {
+        "you": "You",
+        "xpPoints": "{points} XP",
+        "resetsIn": "Resets in {days} day(s)",
+        "yourRank": "Your rank: #{rank}"
+      },
+      "info": {
+        "noScores": "No scores yet this week. Use the app to earn XP and claim your spot!",
+        "noFriendScores": "None of your connections have earned XP yet. Invite friends to join the competition!"
+      }
     },
     "manageNotifications": {
       "headerTitle": "Email & Alert Settings",
@@ -2355,6 +2377,30 @@
       "pactPioneer_1_2_1": {
         "title": "Network Effect",
         "description": "Invite 10 unique partners across pacts"
+      },
+      "weeklyChampion_1_1": {
+        "title": "Contender",
+        "description": "Reach the top 10 on the weekly leaderboard"
+      },
+      "weeklyChampion_1_1_1": {
+        "title": "Regular Contender",
+        "description": "Reach the weekly top 10 five more times"
+      },
+      "weeklyChampion_1_2": {
+        "title": "Podium Finish",
+        "description": "Reach the top 3 on the weekly leaderboard"
+      },
+      "weeklyChampion_1_2_1": {
+        "title": "Podium Regular",
+        "description": "Reach the weekly top 3 five more times"
+      },
+      "weeklyChampion_1_3": {
+        "title": "Number One",
+        "description": "Reach #1 on the weekly leaderboard"
+      },
+      "weeklyChampion_1_3_1": {
+        "title": "Serial Champion",
+        "description": "Reach #1 on the weekly leaderboard five more times"
       }
     },
     "profile": {

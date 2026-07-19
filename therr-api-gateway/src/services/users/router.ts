@@ -125,6 +125,12 @@ usersServiceRouter.post('/users/achievements/:id/claim', handleServiceRequest({
     method: 'post',
 }));
 
+// Leaderboards
+usersServiceRouter.get('/users/leaderboards', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 // Auth
 // Optional auth when already logged in and using oauth2 providers
 usersServiceRouter.post('/auth', authenticateOptional, loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({

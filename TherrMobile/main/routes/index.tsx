@@ -22,6 +22,7 @@ import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
 import AchievementClaim from './Achievements/AchievementClaim';
+import Leaderboard from './Leaderboard';
 import ActivatedAreas from './Areas/ActivatedAreas';
 import Areas from './Areas';
 import Connect from './Connect';
@@ -136,6 +137,15 @@ const routes: RouteConfig<
         component: AchievementClaim,
         options: () => ({
             title: 'AchievementClaim',
+            requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'Leaderboard',
+        component: Leaderboard,
+        options: () => ({
+            title: 'Leaderboard',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
