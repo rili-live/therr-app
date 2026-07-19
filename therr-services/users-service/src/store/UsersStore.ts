@@ -239,13 +239,15 @@ export default class UsersStore {
         }
 
         if (onlyVerified) {
-            // "Verified for discovery" means the current onboarding baseline: an email-verified
-            // account with a completed profile (username), OR a phone-verified account. Phone
-            // verification is deferred under the frictionless-onboarding flow, so gating this
-            // list on MOBILE_VERIFIED alone hid nearly every user. Match either access level.
+            // Discovery surfaces any verified account — email OR mobile. Requiring
+            // MOBILE_VERIFIED alone silently emptied the People list once onboarding
+            // stopped forcing phone verification (feat(users): reduce onboarding
+            // friction): most users now carry EMAIL_VERIFIED but never complete mobile
+            // verification, so the single-level `?` filter matched nobody. The jsonb
+            // `?|` operator matches when accessLevels contains ANY of the listed levels.
+            // AccessLevels values are trusted enum constants, so inlining them is safe.
             queryString = queryString.andWhere(knexBuilder.raw(
-                '"accessLevels" \\?| ARRAY[?, ?]::text[]',
-                [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+                `"accessLevels" \\?| ARRAY['${AccessLevels.MOBILE_VERIFIED}', '${AccessLevels.EMAIL_VERIFIED}']::text[]`,
             ));
         }
 

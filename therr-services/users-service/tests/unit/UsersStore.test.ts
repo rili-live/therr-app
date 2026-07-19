@@ -192,6 +192,49 @@ describe('UsersStore', () => {
         });
     });
 
+    describe('searchUsers', () => {
+        // Regression: the People discovery list (Connect route) went empty ("no users
+        // found") because onlyVerified filtered candidates by MOBILE_VERIFIED alone. After
+        // onboarding stopped forcing phone verification, most users carry EMAIL_VERIFIED but
+        // not MOBILE_VERIFIED, so the single-level jsonb `?` filter matched nobody. The fix
+        // widens it to match EITHER verified level via the jsonb `?|` any-of operator.
+        it('surfaces email- OR mobile-verified accounts when onlyVerified is set', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.searchUsers('user-1', {
+                query: '',
+                limit: 50,
+                offset: 0,
+            }, false, true);
+
+            const sql = mockStore.read.query.args[0][0];
+            expect(sql).to.contain(`"accessLevels" ?| ARRAY['user.verified.mobile', 'user.verified.email']::text[]`);
+            // Must NOT fall back to the mobile-only single-key form that emptied the list.
+            expect(sql).to.not.contain(`"accessLevels" ? 'user.verified.mobile'`);
+        });
+
+        it('omits the verified filter entirely when onlyVerified is false', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.searchUsers('user-1', {
+                query: '',
+                limit: 50,
+                offset: 0,
+            }, false, false);
+
+            const sql = mockStore.read.query.args[0][0];
+            expect(sql).to.not.contain('accessLevels');
+        });
+    });
+
     // Should not allow updating email (for security purposes)
     describe('deleteUsers', () => {
         it('requires email or id', () => {
