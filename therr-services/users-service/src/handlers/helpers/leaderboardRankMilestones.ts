@@ -43,9 +43,14 @@ const detectAndCelebrateRankMilestones = async (
 
     try {
         const periodStart = getLeaderboardPeriodStart();
+        // Both ranks exclude the user's own row so they mean the same thing: "how many
+        // OTHERS are ahead of this score". The award has already been written by the time
+        // this runs, so counting self would make prevRank one worse than it really was —
+        // enough to make a user sitting exactly at rank 1/3/10 re-cross that threshold on
+        // every single XP award.
         const [prevRank, newRank] = await Promise.all([
-            Store.userLeaderboardScores.getRankForScore(brandVariation, prevPoints, { periodStart }),
-            Store.userLeaderboardScores.getRankForScore(brandVariation, newPoints, { periodStart }),
+            Store.userLeaderboardScores.getRankForScore(brandVariation, prevPoints, { periodStart, excludeUserId: userId }),
+            Store.userLeaderboardScores.getRankForScore(brandVariation, newPoints, { periodStart, excludeUserId: userId }),
         ]);
         const crossedMilestones = getCrossedRankMilestones(prevRank, newRank);
         if (!crossedMilestones.length) {

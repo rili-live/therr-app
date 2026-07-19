@@ -303,4 +303,60 @@ describe('detectAndCelebrateRankMilestones', () => {
         const result = await detectAndCelebrateRankMilestones(therrHeaders as any, { prevPoints: 0, newPoints: 100 });
         expect(result).to.equal(null);
     });
+
+    // Regression: the XP award is written BEFORE this detector runs, so a rank query for the
+    // user's PREVIOUS score counted the user's own (already-incremented) row as being ahead
+    // of it — inflating prevRank by exactly one. A user sitting at rank 1 saw prevRank=2 /
+    // newRank=1 on every award and re-crossed the "#1" threshold each time, spamming a push
+    // and re-awarding weeklyChampion progress. Both rank queries must exclude the user.
+    it('excludes the requesting user from both rank queries so a steady rank never re-triggers', async () => {
+        const rankStub = sinon.stub(Store.userLeaderboardScores, 'getRankForScore').resolves(1);
+        sinon.stub(Store.users, 'getUserById').resolves([eligibleUser]);
+        const findUserStub = sinon.stub(Store.users, 'findUser');
+
+        await detectAndCelebrateRankMilestones(therrHeaders as any, { prevPoints: 100, newPoints: 105 });
+
+        expect(rankStub.callCount).to.equal(2);
+        rankStub.getCalls().forEach((call) => {
+            expect(call.args[2]).to.include({ excludeUserId: 'user-1' });
+        });
+        // Rank was 1 before and after — nothing was crossed, so no celebration fires.
+        expect(findUserStub.called, 'a user already at #1 must not be re-notified').to.equal(false);
+    });
+});
+
+describe('UserLeaderboardScoresStore.getRankForScore — excludeUserId', () => {
+    const buildStore = () => {
+        const query = sinon.stub().resolves({ rows: [{ count: '0' }] });
+        // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+        const StoreClass = require('../../src/store/UserLeaderboardScoresStore').default;
+        return { query, store: new StoreClass({ read: { query }, write: { query } }) };
+    };
+
+    it('filters out the excluded user in the weekly (periodStart) query', async () => {
+        const { query, store } = buildStore();
+
+        await store.getRankForScore(BrandVariations.THERR, 100, {
+            periodStart: '2026-07-13',
+            excludeUserId: 'user-1',
+        });
+
+        expect(query.firstCall.args[0]).to.contain('not "main"."userLeaderboardScores"."userId" = \'user-1\'');
+    });
+
+    it('filters out the excluded user in the all-time query', async () => {
+        const { query, store } = buildStore();
+
+        await store.getRankForScore(BrandVariations.THERR, 100, { excludeUserId: 'user-1' });
+
+        expect(query.firstCall.args[0]).to.contain('not "main"."userLeaderboardScores"."userId" = \'user-1\'');
+    });
+
+    it('omits the exclusion when no excludeUserId is given (public board ranking)', async () => {
+        const { query, store } = buildStore();
+
+        await store.getRankForScore(BrandVariations.THERR, 100, { periodStart: '2026-07-13' });
+
+        expect(query.firstCall.args[0]).to.not.contain('not "main"."userLeaderboardScores"."userId" =');
+    });
 });

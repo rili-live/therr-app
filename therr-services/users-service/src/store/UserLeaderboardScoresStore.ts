@@ -164,11 +164,17 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
     /**
      * 1-based rank of a score within a brand's eligible pool: 1 + count of eligible
      * users strictly ahead. Pass userIds to rank within a connections pool.
+     *
+     * Pass excludeUserId to omit a user's own row from the count. Rank-milestone
+     * detection needs this: it asks for the rank of a *historical* score after the
+     * user's row has already been incremented, so without the exclusion the user's
+     * own new points count as "ahead of" their old score and inflate the rank by one.
      */
     getRankForScore(brand: BrandValue, score: number, {
         periodStart,
         userIds,
-    }: { periodStart?: string, userIds?: string[] }): Promise<number> {
+        excludeUserId,
+    }: { periodStart?: string, userIds?: string[], excludeUserId?: string }): Promise<number> {
         if (userIds && !userIds.length) {
             return Promise.resolve(1);
         }
@@ -183,6 +189,9 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
             if (userIds) {
                 queryBuilder = queryBuilder.whereIn(`${this.tableName}.userId`, userIds);
             }
+            if (excludeUserId) {
+                queryBuilder = queryBuilder.whereNot(`${this.tableName}.userId`, excludeUserId);
+            }
         } else {
             // All-time: count users whose summed points exceed the score
             let innerBuilder = this.scopedQuery(brand)
@@ -192,6 +201,9 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
             innerBuilder = this.applyEligibilityFilters(innerBuilder);
             if (userIds) {
                 innerBuilder = innerBuilder.whereIn(`${this.tableName}.userId`, userIds);
+            }
+            if (excludeUserId) {
+                innerBuilder = innerBuilder.whereNot(`${this.tableName}.userId`, excludeUserId);
             }
             queryBuilder = knexBuilder
                 .count('sub.userId as count')
