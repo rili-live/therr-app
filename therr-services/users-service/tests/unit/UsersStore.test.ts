@@ -104,6 +104,74 @@ describe('UsersStore', () => {
         });
     });
 
+    // Regression: People-You-May-Know reads through findUsers. It must be brand-scopable,
+    // otherwise the mightKnow list leaks cross-brand accounts (contact-matched Therr users
+    // surfacing inside Habits) even though searchUsers results are already scoped.
+    describe('findUsers', () => {
+        it('scopes to the requesting brand when brandVariation is provided', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.findUsers({
+                ids: ['user-1', 'user-2'],
+                brandVariation: 'habits',
+            });
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`"brandVariations" @> '[{"brand":"habits"}]'::jsonb`);
+        });
+
+        it('omits the brand filter when brandVariation is not provided (brand-agnostic lookups)', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.findUsers({ ids: ['user-1', 'user-2'] });
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.not.contain('brandVariations');
+        });
+    });
+
+    describe('findUsersByContactInfo', () => {
+        it('scopes contact matches to the requesting brand when provided', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.findUsersByContactInfo(
+                [{ email: 'test@email.com' }, { phoneNumber: '+13176665849' }],
+                ['id'],
+                'habits',
+            );
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            // The email/phone OR must be grouped so the brand filter ANDs against the whole set.
+            expect(generatedSql).to.contain(`"brandVariations" @> '[{"brand":"habits"}]'::jsonb`);
+            expect(generatedSql).to.match(/where \(.*"email" in.*or "phoneNumber" in.*\) and/i);
+        });
+
+        it('omits the brand filter when brandVariation is not provided (e.g. invites)', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.findUsersByContactInfo([{ email: 'test@email.com' }], ['id']);
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.not.contain('brandVariations');
+        });
+    });
+
     describe('findUser', () => {
         it('finds user with variable username', () => {
             const expected = `select * from "main"."users" where ("email" = 'test@email.com') or ("userName" = 'tests') or ("phoneNumber" = '+3176665849')`;

@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import {
     CurrentSocialValuations, ErrorCodes, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
-import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
@@ -601,6 +601,9 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const requestingUserId = userId;
     const locale = req.headers['x-localecode'] || 'en-us';
+    // Brand-scope contact matching (see getBrandContext — defaults to THERR for legacy tokens)
+    // so niche apps do not suggest or seed MIGHT_KNOW edges to cross-brand accounts.
+    const { brandVariation } = getBrandContext(req.headers);
 
     const { contacts } = req.body;
     const contactEmails: IFindUsersByContactInfo[] = [];
@@ -627,6 +630,7 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
     return Store.users.findUsersByContactInfo(
         contactsLimitedForPerformance,
         ['id', 'email', 'phoneNumber', 'firstName', 'lastName', 'userName'],
+        brandVariation,
     ).then((users: { id: string; email?: string; phoneNumber?: string; firstName?: string; lastName?: string; userName?: string }[]) => {
         // TODO: Add db constraint to prevent requestingUserId equal to acceptingUserId
         const filteredUsers = users.filter((u) => u.id !== requestingUserId);
