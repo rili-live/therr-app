@@ -263,6 +263,61 @@ is a privacy-policy violation and an Apple/Google review risk.
 - `therr-services/users-service/src/handlers/payments.ts:53` — Only update
   user if subscription has started free trial or paid
 
+### 1.6 Unscoped user / connection endpoints (cross-brand leakage)
+
+`searchUsers` and `findPeopleYouMayKnow` were brand-scoped during the Phase 5
+brand-isolation work, but their siblings on the same identity-shared
+`main.users` / `main.userConnections` tables were not. Because `main.users` has
+no brand column (membership lives in the `brandVariations` JSONB array), an
+endpoint that omits `brandContainment` silently returns **every** brand's
+accounts — a Habits or Teem user sees Therr profiles, which undermines the
+premise of the niche apps. These fail open and produce no error, so they will
+not surface until a user reports it.
+
+Audited 2026-07-20 (handler-level, users-service). Each needs a judgment call
+on whether brand scoping is correct — direct-link profile views may legitimately
+be brand-agnostic, but discovery and contact-matching paths are not.
+
+- `therr-services/users-service/src/handlers/users.ts:393` —
+  `getUserByPhoneNumber` has no brand filter. Highest risk of the set: this is
+  the contact-matching path, so it can surface cross-brand accounts from a
+  phone-book sync, which is exactly the leak `findPeopleYouMayKnow` was fixed
+  to prevent
+- `therr-services/users-service/src/handlers/users.ts:556` —
+  `searchUserPairings` has no brand filter, while its direct sibling
+  `searchUsers` (same file, same store call) does. Clear inconsistency; used by
+  the dashboard influencer-pairing feature
+- `therr-services/users-service/src/handlers/users.ts:456` —
+  `getUserByUserName` has no brand filter (public profile lookup)
+- `therr-services/users-service/src/handlers/users.ts:369` — `getUser` has no
+  brand filter (profile by id)
+- `therr-services/users-service/src/handlers/users.ts:1321` —
+  `clearUserDeviceToken` is not brand-aware, so it may clear the token for the
+  wrong app on a device with two brands installed. Related to the
+  `main.userDeviceTokens` / `resolveDeviceTokenForBrand` work in § Manual
+  Operational Follow-ups
+- `therr-services/users-service/src/handlers/userConnections.ts:661` —
+  `getUserConnection` has no brand filter
+- `therr-services/users-service/src/handlers/userConnections.ts:992` —
+  `getInviteByToken` has no brand check, so an invite minted in one brand can
+  be redeemed in another
+- `therr-services/users-service/src/handlers/users.ts:841` —
+  `updateLastKnownLocation` is not brand-aware (lower risk — a mutation on the
+  caller's own row, listed for completeness)
+
+Related routing hygiene, found while fixing the `POST /users/search` 400 on
+2026-07-20 (gateway `/users/:id` was registered before the literal routes and
+shadowed `/users/search`, `/users/search-pairings`, `/users/forgot-password`,
+and `/users/notifications`): the other gateway routers have not been audited
+for the same param-before-literal ordering bug. A shadowed route fails with a
+validation 400 that looks like a client payload bug, so these are expensive to
+diagnose.
+
+- `therr-api-gateway/src/services/*/router.ts` — Audit every router for
+  `:param` routes registered before literal sibling routes on the same method
+  and path prefix. Prefer a startup assertion or lint rule over a one-time
+  sweep, since new routes reintroduce the bug
+
 ---
 
 ## Tier 2 — Consumer Growth Engine (Habits, Push, Engagement)

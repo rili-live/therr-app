@@ -375,10 +375,11 @@ usersServiceRouter.post('/users', registerAttemptLimiter, createUserValidation, 
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'post',
-}));
+// NOTE: `POST /users/:id` is deliberately registered at the BOTTOM of this file,
+// after every literal `POST /users/<name>` route. Express matches in registration
+// order, so registering it here would shadow /users/search, /users/forgot-password,
+// etc. -- the param route matches first, `id` fails isUUID(4), and `validate`
+// returns a 400 that looks like a client bug rather than a routing bug.
 
 usersServiceRouter.get('/users/me', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
@@ -764,6 +765,13 @@ usersServiceRouter.get('/habits/streaks', handleServiceRequest({
 usersServiceRouter.put('/habits/streaks/:id/grace', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
+}));
+
+// Catch-all param route -- MUST stay last. Any literal `POST /users/<name>` route
+// registered below this line will be shadowed by it and rejected with a 400.
+usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 export default usersServiceRouter;
