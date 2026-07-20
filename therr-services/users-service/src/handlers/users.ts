@@ -9,6 +9,7 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import syncDeviceTokenForBrand from '../utilities/syncDeviceTokenForBrand';
+import { resolveDeviceTokenForBrand } from '../utilities/sendEmailAndOrPushNotification';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import {
@@ -324,9 +325,10 @@ const createUser: RequestHandler = (req: any, res: any) => {
 // READ
 const getMe = (req, res) => {
     const userId = req.headers['x-userid'];
+    const { brandVariation } = getBrandContext(req.headers);
 
     return Store.users.getUserByConditions({ id: userId, settingsIsAccountSoftDeleted: false })
-        .then((results) => {
+        .then(async (results) => {
             if (!results.length) {
                 return handleHttpError({
                     res,
@@ -339,9 +341,23 @@ const getMe = (req, res) => {
             // Remove credentials from object
             redactUserCreds(userResult);
 
-            return userResult;
+            // Multi-app isolation (Phase 2): the legacy users.deviceMobileFirebaseToken column
+            // is overwritten whenever a second branded app (e.g. Habits) registers on the same
+            // device, so it can point at another brand's app install. Consumers that read this
+            // endpoint for push routing — notably background-location processing in
+            // push-notifications-service, whose BackgroundGeolocation requests never carry the
+            // x-user-device-token header — would then deliver this brand's notification to the
+            // wrong app. Override with the brand-scoped token from main.userDeviceTokens (keyed
+            // on the request's x-brand-variation), falling back to the legacy column when the
+            // device hasn't re-registered against the new table yet.
+            userResult.deviceMobileFirebaseToken = await resolveDeviceTokenForBrand(
+                brandVariation,
+                userId,
+                userResult.deviceMobileFirebaseToken,
+            );
+
+            return res.status(200).send(userResult);
         })
-        .then((user) => res.status(200).send(user))
         .catch((err) => handleHttpError({
             err,
             res,
