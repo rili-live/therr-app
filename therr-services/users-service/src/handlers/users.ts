@@ -366,6 +366,12 @@ const getMe = (req, res) => {
 };
 
 // READ
+/**
+ * Deliberately NOT brand-scoped. This is a profile-by-id lookup, which is reached from a
+ * shared link rather than from discovery, so a Habits user opening a link to a Therr
+ * profile should still see it. Brand scoping belongs on discovery and contact-matching
+ * paths (searchUsers, searchUserPairings, findUsersByContactInfo), not here.
+ */
 const getUser = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
     const userId = req.headers['x-userid'];
@@ -452,6 +458,10 @@ const getUserByPhoneNumber = (req, res) => {
 /**
  * IMPORTANT - This is a public endpoint without optional authorization
  * Consider any and all implications of data that is returned
+ *
+ * Deliberately NOT brand-scoped, for the same reason as getUser above: this backs public,
+ * SEO-indexed profile pages reached by direct link. Scoping it would 404 valid cross-brand
+ * profile links. See getUser for where brand scoping does belong.
  */
 const getUserByUserName = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
@@ -555,6 +565,10 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
  */
 const searchUserPairings: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid']; // undefined if user is not logged in
+    // Brand-scoped for the same reason as its sibling searchUsers above: this is a
+    // discovery surface, so without the filter a niche dashboard pairs its users with
+    // accounts from another brand. getBrandContext defaults to THERR for legacy tokens.
+    const { brandVariation } = getBrandContext(req.headers);
 
     // TODO: Implement prediction algorithm to find users relevant to the requesting user
 
@@ -575,6 +589,7 @@ const searchUserPairings: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
+        brandVariation,
     })
         .then((results) => {
             res.status(200).send({

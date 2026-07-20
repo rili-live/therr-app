@@ -172,6 +172,46 @@ describe('UsersStore', () => {
         });
     });
 
+    describe('searchUserSocials', () => {
+        // Regression: influencer-pairing discovery leaked cross-brand accounts. Its sibling
+        // searchUsers was brand-scoped during the Phase 5 isolation work but this one was
+        // missed, so a niche dashboard paired its users against every brand's accounts.
+        it('scopes results to the requesting brand when brandVariation is provided', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.searchUserSocials('req-user-1', {
+                limit: 50,
+                offset: 0,
+                brandVariation: 'habits',
+            });
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            // Must be table-qualified: this query joins socialSyncs, so a bare
+            // "brandVariations" would be ambiguous if that table ever grows the column.
+            expect(generatedSql).to.contain(`"main"."users"."brandVariations" @> '[{"brand":"habits"}]'::jsonb`);
+        });
+
+        it('omits the brand filter when brandVariation is not provided', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.searchUserSocials('req-user-1', {
+                limit: 50,
+                offset: 0,
+            });
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.not.contain('brandVariations');
+        });
+    });
+
     describe('findUser', () => {
         it('finds user with variable username', () => {
             const expected = `select * from "main"."users" where ("email" = 'test@email.com') or ("userName" = 'tests') or ("phoneNumber" = '+3176665849')`;
