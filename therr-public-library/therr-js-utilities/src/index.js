@@ -32,6 +32,7 @@ const utilities = [
 
     // Utilities
     'calculate-pages',
+    'content-ranking',
     'email-validator',
     'format-sql-join-as-json',
     'http-response',
