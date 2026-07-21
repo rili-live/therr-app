@@ -50,6 +50,9 @@
 - **Check-ins** — check in at spaces (with valuation tiers for rewards)
 - **Content reporting** — flag content for moderation
 - **Content sharing** — share URLs to external platforms
+- **Relevance-ranked social feed** — Discoveries/Thoughts feeds order posts by a shared recency × engagement × interest-match score instead of strict chronology
+- **Thread auto-expansion** — the highest-ranked thought threads on each feed page surface their top reply inline (Twitter/X-style) with a "View full thread" affordance
+- **Connection fan-out activation** — new public thoughts are automatically activated into accepted connections' feeds; feed-seeding activation prefers active threads over dead-end posts
 
 ### Gamification & Rewards
 - **Achievements** — 12 classes (explorer, influencer, socialite, communityLeader, eventPlanner, activist, journalist, tourist, tourGuide, thinker, humanitarian, critic) with tiered progression

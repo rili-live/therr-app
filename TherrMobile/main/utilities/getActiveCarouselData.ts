@@ -1,3 +1,4 @@
+import { getContentRankingScore } from 'therr-js-utilities/content-ranking';
 import { CAROUSEL_TABS } from '../constants';
 import { SELECT_ALL } from './categories';
 
@@ -10,6 +11,21 @@ interface IPost {
 interface IArea extends IPost {
     distance: number | string;
 }
+
+/**
+ * Relevance ordering: sorts by the server-provided rankingScore when present (thoughts),
+ * falling back to the same shared formula computed client-side from likeCount/replies/
+ * createdAt for posts the server hasn't scored (moments, spaces, events). Scores are
+ * precomputed once so sorting stays O(n log n) with no repeated date math.
+ */
+const mergeSortByRankingScore = (leftPosts: IPost[], rightPosts: IPost[]) => {
+    const nowMs = Date.now();
+
+    return [...leftPosts, ...rightPosts]
+        .map((post) => ({ post, score: getContentRankingScore(post, undefined, nowMs) }))
+        .sort((a, b) => b.score - a.score)
+        .map((scored) => scored.post);
+};
 
 const mergeSortByCreatedAt = (leftPosts: IPost[], rightPosts: IPost[], shouldSortByReaction = false) => {
     return [...leftPosts, ...rightPosts].sort((a, b) => {
@@ -33,6 +49,9 @@ const mergeAreas = (moments: IArea[], spaces: IArea[], sortBy = 'createdAt', sho
     // TODO: This is groooosssss....sorting should happen on the server side
     const filteredMoments = shouldIncludeDrafts ? moments : moments.filter((a) => !a.isDraft);
     const filteredSpaces = shouldIncludeDrafts ? spaces : spaces.filter((a) => !a.isDraft);
+    if (sortBy === 'rankingScore') {
+        return mergeSortByRankingScore(filteredMoments, filteredSpaces);
+    }
     if (sortBy === 'distance') {
         return [...filteredMoments, ...filteredSpaces].sort((a, b) => {
             let aDist = a.distance;
@@ -120,7 +139,9 @@ export default ({
     );
 
     if (shouldIncludeThoughts) {
-        sortedData = mergeSortByCreatedAt(sortedData, content.activeThoughts, sortBy === 'reaction.createdAt');
+        sortedData = sortBy === 'rankingScore'
+            ? mergeSortByRankingScore(sortedData, content.activeThoughts)
+            : mergeSortByCreatedAt(sortedData, content.activeThoughts, sortBy === 'reaction.createdAt');
     } else if (shouldIncludeEvents) {
         sortedData = mergeAreas(sortedData as any, content.activeEvents, sortBy);
     }

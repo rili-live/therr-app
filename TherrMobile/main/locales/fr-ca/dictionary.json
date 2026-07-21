@@ -308,6 +308,10 @@
       "noUsersFound": "Aucun utilisateur trouvé",
       "title": "Tous les contacts"
     },
+    "thoughtDisplay": {
+      "topReply": "Meilleure réponse",
+      "viewThread": "Voir le fil complet ({count})"
+    },
     "referralStats": {
       "title": "Vos parrainages",
       "friendsJoined": "{count} ami(s) inscrit(s) avec votre code d'invitation",

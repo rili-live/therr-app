@@ -308,6 +308,10 @@
       "noUsersFound": "No users found",
       "title": "All Contacts"
     },
+    "thoughtDisplay": {
+      "topReply": "Top reply",
+      "viewThread": "View full thread ({count})"
+    },
     "referralStats": {
       "title": "Your Referrals",
       "friendsJoined": "{count} friend(s) joined with your invite code",

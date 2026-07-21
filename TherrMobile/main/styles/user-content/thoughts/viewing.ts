@@ -156,6 +156,48 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             fontFamily: therrFontFamily,
             textAlign: 'left',
         },
+        threadPreviewContainer: {
+            marginLeft: thoughtUserAvatarImgWidth + 4,
+            marginRight: 8,
+            marginBottom: 8,
+            paddingHorizontal: 8,
+            paddingVertical: 6,
+            borderLeftWidth: 2,
+            borderLeftColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colors.tertiary,
+        },
+        threadPreviewAuthorRow: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingBottom: 2,
+        },
+        threadPreviewAvatarImgContainer: {
+            width: 26,
+            marginRight: 6,
+            padding: 0,
+        },
+        threadPreviewAvatarImg: {
+            height: 26,
+            width: 26,
+            borderRadius: 13,
+        },
+        threadPreviewUserName: {
+            fontSize: 13,
+            fontWeight: '600',
+            flexShrink: 1,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+        },
+        threadPreviewMessage: {
+            fontSize: 14,
+            paddingVertical: 2,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+        },
+        threadPreviewViewMore: {
+            fontSize: 13,
+            fontWeight: '600',
+            paddingTop: 4,
+            color: therrTheme.colors.brandingBlueGreen,
+        },
         footer: {
             flexDirection: 'row',
             justifyContent: 'space-between',

@@ -144,6 +144,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             theme,
             themeForms,
             themeViewContent,
+            translate,
         } = this.props;
         const { isLiked, isBookmarked, likeCount } = this.state;
 
@@ -260,10 +261,67 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                             />
                         </View>
                 }
+                {
+                    !isExpanded && thought.shouldAutoExpand && thought.topReply &&
+                        <ThreadPreview
+                            translate={translate}
+                            goToViewUser={goToViewUser}
+                            inspectThought={inspectThought}
+                            theme={theme}
+                            themeViewContent={themeViewContent}
+                            thought={thought}
+                        />
+                }
             </View>
         );
     }
 }
+
+/**
+ * Inline preview of a thread's top reply, shown in list views when the backend marks a
+ * high-engagement thought with shouldAutoExpand (Twitter/X-style thread surfacing).
+ */
+const ThreadPreview = ({
+    translate,
+    goToViewUser,
+    inspectThought,
+    theme,
+    themeViewContent,
+    thought,
+}) => {
+    const { topReply } = thought;
+    const replyCount = thought.replies?.length || 1;
+
+    return (
+        <Pressable
+            style={themeViewContent.styles.threadPreviewContainer}
+            onPress={() => inspectThought(thought)}
+        >
+            <View style={themeViewContent.styles.threadPreviewAuthorRow}>
+                <Pressable onPress={() => goToViewUser(topReply.fromUserId)}>
+                    <Image
+                        source={{ uri: getUserImageUri({
+                            details: { media: topReply.fromUserMedia, id: topReply.fromUserId },
+                        }, 26) }}
+                        style={themeViewContent.styles.threadPreviewAvatarImg}
+                        containerStyle={themeViewContent.styles.threadPreviewAvatarImgContainer}
+                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen}/>}
+                        transition={false}
+                    />
+                </Pressable>
+                <Text style={themeViewContent.styles.threadPreviewUserName} numberOfLines={1}>
+                    {topReply.fromUserName || translate('alertTitles.nameUnknown')}
+                </Text>
+            </View>
+            <Text style={themeViewContent.styles.threadPreviewMessage} numberOfLines={3}>
+                {topReply.message}
+            </Text>
+            <Text style={themeViewContent.styles.threadPreviewViewMore}>
+                {translate('components.thoughtDisplay.viewThread', { count: replyCount })}
+            </Text>
+        </Pressable>
+    );
+};
 
 const ThoughtContent = ({
     hashtags,

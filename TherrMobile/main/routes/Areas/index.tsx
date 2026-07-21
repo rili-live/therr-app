@@ -686,7 +686,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: false,
                     translate: this.translate,
-                }, 'reaction.createdAt', categoriesFilter);
+                }, 'rankingScore', categoriesFilter);
 
                 return (
                     <AreaCarousel
@@ -726,7 +726,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     isForBookmarks: false,
                     shouldIncludeThoughts: true,
                     translate: this.translate,
-                }, 'createdAt', thoughtCategoriesFilter);
+                }, 'rankingScore', thoughtCategoriesFilter);
 
                 return (
                     <AreaCarousel
