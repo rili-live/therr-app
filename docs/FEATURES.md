@@ -40,6 +40,8 @@
 - **Spaces** — persistent location/business pages; claim storefronts, menu/reservation/order URLs, ratings, check-ins
 - **Events** — time-bound location happenings; start/stop scheduling, group/space association
 - **Thoughts** — micro-posts with categories, reply threads, mentions, hashtags
+- **Ranked social feed (mobile)** — Discoveries/Thoughts tabs ordered by engagement score (recency decay × likes/replies/views × category affinity from the user's own reactions); backend stream activation ranks candidates by reply-count hot score
+- **Auto-expanded thread previews (mobile)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style)
 - **Content categories** — 20+ categories (food, music, nature, art, gaming, etc.)
 - **Media uploads** — image upload with CDN (ImageKit), YouTube video embedding
 
