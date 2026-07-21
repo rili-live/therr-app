@@ -76,28 +76,42 @@ export default class ThoughtsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id']) {
+    /**
+     * Selects candidate thoughts to activate for a user's stream, ranked by a "hot" score:
+     * reply count (the strongest engagement signal available in this DB) dampened by age
+     * (Hacker-News-style gravity). The score can't use an index, so candidates are first
+     * bounded to the most recent pool via an index-friendly inner query, then re-ranked.
+     */
+    getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id'], candidatePoolSize = 200) {
         const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
 
-        let query = knexBuilder.select(returning)
+        let innerQuery = knexBuilder.select([...returning, 'createdAt'])
+            .select(knexBuilder.raw(
+                `(SELECT COUNT(*) FROM ${THOUGHTS_TABLE_NAME} AS c WHERE c."parentId" = ${THOUGHTS_TABLE_NAME}.id) AS "replyCount"`,
+            ))
             .from(THOUGHTS_TABLE_NAME)
-            // .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24 * 5)) // 5 days
+            .whereNull('parentId') // only parent thoughts get stream slots; replies activate with their parent
             .andWhere({
                 isPublic: true,
                 isMatureContent: false,
             })
-            .limit(limit)
-            .orderBy('createdAt', 'desc');
+            .orderBy('createdAt', 'desc')
+            .limit(candidatePoolSize);
 
         const readable = getReadableBrands(brand);
         if (readable !== 'all') {
-            query = query.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+            innerQuery = innerQuery.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
         }
 
         if (relatedInterestsKeys?.length) {
             // TODO: Test this with various interests lists
-            query = query.whereRaw(`"interestsKeys" \\?| ARRAY[${interestsPlaceholders}]::text[]`, relatedInterestsKeys);
+            innerQuery = innerQuery.whereRaw(`"interestsKeys" \\?| ARRAY[${interestsPlaceholders}]::text[]`, relatedInterestsKeys);
         }
+
+        const query = knexBuilder.select(returning)
+            .from(innerQuery.as('candidates'))
+            .orderByRaw('("replyCount" + 1) / POWER((EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600) + 2, 1.5) DESC')
+            .limit(limit);
 
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
@@ -353,21 +367,44 @@ export default class ThoughtsStore {
         }
 
         if (options.withReplies) {
-            // Mirror the brand restriction onto the reply self-join so reply counts in list
-            // view never include cross-brand replies.
-            const repliesJoinClause = readable === 'all'
-                ? undefined
-                : `replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
+            // Lateral join caps the payload to the few most recent replies per parent (enough
+            // for an inline thread preview) while COUNT(*) OVER () — computed before LIMIT —
+            // still reports the true total as replyCount. The brand restriction is mirrored
+            // onto the reply subquery so reply previews/counts never include cross-brand replies.
+            const repliesBrandClause = readable === 'all'
+                ? ''
+                : `AND replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
+            const repliesMatureClause = options?.shouldHideMatureContent
+                ? 'AND replies."isMatureContent" = false'
+                : '';
             query = query
-                .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, function joinReplies() {
-                    this.on('replies.parentId', '=', `${THOUGHTS_TABLE_NAME}.id`);
-                    if (repliesJoinClause) {
-                        this.andOn(knexBuilder.raw(repliesJoinClause));
-                    }
-                })
+                .joinRaw(`LEFT JOIN LATERAL (
+                    SELECT
+                        replies.id,
+                        replies."fromUserId",
+                        replies.message,
+                        replies.category,
+                        replies."hashTags",
+                        replies."isPublic",
+                        replies."createdAt",
+                        COUNT(*) OVER () AS "totalReplies"
+                    FROM ${THOUGHTS_TABLE_NAME} AS replies
+                    WHERE replies."parentId" = ${THOUGHTS_TABLE_NAME}.id
+                    ${repliesBrandClause}
+                    ${repliesMatureClause}
+                    ORDER BY replies."createdAt" DESC
+                    LIMIT 3
+                ) AS replies ON TRUE`)
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
-                    'replies.id as replies[].id', // Just the id so we can count replies in list view
+                    'replies.totalReplies as replyCount',
+                    'replies.id as replies[].id',
+                    'replies.fromUserId as replies[].fromUserId',
+                    'replies.message as replies[].message',
+                    'replies.category as replies[].category',
+                    'replies.hashTags as replies[].hashTags',
+                    'replies.isPublic as replies[].isPublic',
+                    'replies.createdAt as replies[].createdAt',
                 ]);
         }
 
@@ -379,39 +416,66 @@ export default class ThoughtsStore {
             // Use raw rows to determine count and isLastPage
             const isLastPage = rows.length < restrictedLimit;
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
+
+            if (options.withReplies) {
+                thoughts.forEach((thought) => {
+                    const modifiedThought = thought;
+                    // Lateral join yields no row (NULL count) for parents with no replies
+                    modifiedThought.replyCount = parseInt(modifiedThought.replyCount || 0, 10);
+                });
+            }
+
             if (options.withUser) {
                 const userIds: string[] = [];
                 const thoughtDetailsPromises: Promise<any>[] = [];
                 const matchingUsers: any = {};
 
                 thoughts.forEach((thought) => {
-                    if (options.withUser) {
-                        userIds.push(thought.fromUserId);
+                    userIds.push(thought.fromUserId);
+
+                    if (options.withReplies) {
+                        (thought.replies || []).forEach((reply) => {
+                            userIds.push(reply.fromUserId);
+                        });
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                thoughtDetailsPromises.push(options.withUser
-                    ? this.usersStore.findUsers({ ids: userIds })
-                    : Promise.resolve(null));
+                thoughtDetailsPromises.push(this.usersStore.findUsers({ ids: userIds }));
 
                 const [users] = await Promise.all(thoughtDetailsPromises);
+                const usersMap = (users || []).reduce((acc, user) => {
+                    acc[user.id] = user;
+                    return acc;
+                }, {});
 
-                // TODO: Optimize
                 const mappedThoughts = thoughts.map((thought) => {
                     const modifiedThought = thought;
                     modifiedThought.user = {};
 
                     // USER
-                    if (options.withUser) {
-                        const matchingUser = users.find((user) => user.id === modifiedThought.fromUserId);
-                        if (matchingUser) {
-                            matchingUsers[matchingUser.id] = matchingUser;
-                            modifiedThought.fromUserName = matchingUser.userName;
-                            modifiedThought.fromUserFirstName = matchingUser.firstName;
-                            modifiedThought.fromUserLastName = matchingUser.lastName;
-                            modifiedThought.fromUserMedia = matchingUser.media;
-                            modifiedThought.fromUserIsSuperUser = matchingUser.isSuperUser;
-                        }
+                    const matchingUser = usersMap[modifiedThought.fromUserId];
+                    if (matchingUser) {
+                        matchingUsers[matchingUser.id] = matchingUser;
+                        modifiedThought.fromUserName = matchingUser.userName;
+                        modifiedThought.fromUserFirstName = matchingUser.firstName;
+                        modifiedThought.fromUserLastName = matchingUser.lastName;
+                        modifiedThought.fromUserMedia = matchingUser.media;
+                        modifiedThought.fromUserIsSuperUser = matchingUser.isSuperUser;
+                    }
+
+                    // Reply preview authors (for inline thread display in list views)
+                    if (options.withReplies) {
+                        modifiedThought.replies = (modifiedThought.replies || []).map((reply) => {
+                            const modifiedReply = reply;
+                            const matchingReplyUser = usersMap[modifiedReply.fromUserId];
+                            if (matchingReplyUser) {
+                                modifiedReply.fromUserName = matchingReplyUser.userName;
+                                modifiedReply.fromUserMedia = matchingReplyUser.media;
+                                modifiedReply.fromUserIsSuperUser = matchingReplyUser.isSuperUser;
+                            }
+
+                            return modifiedReply;
+                        });
                     }
 
                     return modifiedThought;
