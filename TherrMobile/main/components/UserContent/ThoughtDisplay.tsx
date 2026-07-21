@@ -43,6 +43,8 @@ interface IThoughtDisplayProps {
     isExpanded?: boolean;
     isRepliable?: boolean;
     thought: any;
+    topReply?: any;
+    replyCount?: number;
     goToViewUser: Function;
     updateThoughtReaction: Function;
     user: IUserState;
@@ -132,6 +134,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
 
     render() {
         const {
+            translate,
             toggleThoughtOptions,
             hashtags,
             isDarkMode,
@@ -139,6 +142,8 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             isExpanded,
             isRepliable,
             thought,
+            topReply,
+            replyCount,
             goToViewUser,
             contentUserDetails,
             theme,
@@ -228,6 +233,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                     onCommentPress={this.onCommentPress}
                                     onLikePress={this.onLikePress}
                                     goToViewUser={goToViewUser}
+                                    replyCount={replyCount}
                                     theme={theme}
                                     themeForms={themeForms}
                                     themeViewContent={themeViewContent}
@@ -236,6 +242,19 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                         }
                     </View>
                 </View>
+                {
+                    !isExpanded && !!topReply &&
+                        <ThreadPreview
+                            goToViewUser={goToViewUser}
+                            inspectThought={inspectThought}
+                            replyCount={replyCount ?? thought.replies?.length ?? 0}
+                            theme={theme}
+                            themeViewContent={themeViewContent}
+                            thought={thought}
+                            topReply={topReply}
+                            translate={translate}
+                        />
+                }
                 {
                     isExpanded &&
                         <View>
@@ -253,6 +272,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 onCommentPress={this.onCommentPress}
                                 onLikePress={this.onLikePress}
                                 goToViewUser={goToViewUser}
+                                replyCount={replyCount}
                                 theme={theme}
                                 themeForms={themeForms}
                                 themeViewContent={themeViewContent}
@@ -264,6 +284,57 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         );
     }
 }
+
+const ThreadPreview = ({
+    goToViewUser,
+    inspectThought,
+    replyCount,
+    theme,
+    themeViewContent,
+    thought,
+    topReply,
+    translate,
+}) => {
+    const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
+
+    return (
+        <Pressable style={themeViewContent.styles.threadPreviewContainer} onPress={() => inspectThought(thought)}>
+            <Pressable
+                style={themeViewContent.styles.threadPreviewAvatarImgContainer}
+                onPress={() => goToViewUser(topReply.fromUserId)}
+            >
+                <Image
+                    source={{ uri: getUserImageUri({
+                        details: { media: topReply.fromUserMedia, id: topReply.fromUserId },
+                    }, 32) }}
+                    style={themeViewContent.styles.threadPreviewAvatarImg}
+                    transition={false}
+                />
+            </Pressable>
+            <View style={themeViewContent.styles.threadPreviewContentContainer}>
+                {
+                    !!topReply.fromUserName &&
+                    <Text style={themeViewContent.styles.threadPreviewUserName} numberOfLines={1}>
+                        {topReply.fromUserName}
+                    </Text>
+                }
+                <RichText
+                    style={themeViewContent.styles.threadPreviewMessage}
+                    text={topReply.message}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={onMentionPress}
+                    numberOfLines={3}
+                />
+                {
+                    replyCount > 1 &&
+                    <Text style={themeViewContent.styles.threadPreviewViewAllText}>
+                        {translate('components.thoughtDisplay.viewAllReplies', { count: replyCount })}
+                    </Text>
+                }
+            </View>
+        </Pressable>
+    );
+};
 
 const ThoughtContent = ({
     hashtags,
@@ -279,11 +350,13 @@ const ThoughtContent = ({
     onCommentPress,
     onLikePress,
     goToViewUser,
+    replyCount,
     theme,
     themeForms,
     themeViewContent,
     thought,
 }) => {
+    const totalReplies = replyCount ?? thought.replies?.length;
     const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
 
     return (
@@ -322,7 +395,7 @@ const ThoughtContent = ({
                                 }
                                 onPress={() => onCommentPress(thought)}
                                 type="clear"
-                                title={thought.replies?.length ? thought.replies.length : ''}
+                                title={totalReplies ? `${totalReplies}` : ''}
                                 titleStyle={[
                                     themeViewContent.styles.thoughtReactionButtonTitle,
                                     { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
