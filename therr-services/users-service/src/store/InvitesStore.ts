@@ -13,6 +13,8 @@ export interface ICreateInviteParams {
     phoneNumber?: string;
     isAccepted: boolean;
     token?: string;
+    // The brand the invite was minted in. Omit to accept the column default ('therr').
+    brandVariation?: string;
 }
 
 export interface IInviteWithInviter {
@@ -21,6 +23,9 @@ export interface IInviteWithInviter {
     email?: string;
     phoneNumber?: string;
     isAccepted: boolean;
+    // Origin brand of the invite. The landing page uses this to deep-link the invitee to
+    // the app the invite came from, rather than whichever brand happened to open the link.
+    brandVariation: string;
     inviterFirstName?: string;
     inviterLastName?: string;
     inviterUserName?: string;
@@ -72,6 +77,7 @@ export default class InvitesStore {
                 `${INVITES_TABLE_NAME}.email`,
                 `${INVITES_TABLE_NAME}.phoneNumber`,
                 `${INVITES_TABLE_NAME}.isAccepted`,
+                `${INVITES_TABLE_NAME}.brandVariation`,
                 'main.users.firstName as inviterFirstName',
                 'main.users.lastName as inviterLastName',
                 'main.users.userName as inviterUserName',
@@ -141,7 +147,11 @@ export default class InvitesStore {
         const queryString = knexBuilder.insert(invites)
             .into(INVITES_TABLE_NAME)
             .onConflict(channel)
-            .merge(['token', 'requestingUserId', 'updatedAt'])
+            // brandVariation is merged alongside the token: re-inviting a contact mints a
+            // fresh token and invalidates the old link, so the row's origin brand must move
+            // with it. Without this, a Habits re-invite of a contact first invited from Therr
+            // would hand the invitee a live Habits link on a row still marked 'therr'.
+            .merge(['token', 'requestingUserId', 'brandVariation', 'updatedAt'])
             .returning(['email', 'phoneNumber', 'token'])
             .toString();
 

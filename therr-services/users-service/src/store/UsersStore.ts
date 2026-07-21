@@ -19,10 +19,19 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 // The @> containment check is backed by the GIN index added in brandVariations_v2.
 // Legacy rows carry the column's default 'therr' entry, so Therr discovery still returns
 // pre-existing accounts without a separate backfill.
-const brandContainment = (brand: string) => knexBuilder.raw(
-    '"brandVariations" @> ?::jsonb',
-    [JSON.stringify([{ brand }])],
-);
+// `qualifier` must be a trusted, code-supplied table name (never user input) — it is
+// interpolated via knex's ?? identifier binding. Pass it whenever the query joins another
+// table, so "brandVariations" cannot become ambiguous if a joined table ever grows a
+// column of the same name.
+const brandContainment = (brand: string, qualifier?: string) => (qualifier
+    ? knexBuilder.raw(
+        '??."brandVariations" @> ?::jsonb',
+        [qualifier, JSON.stringify([{ brand }])],
+    )
+    : knexBuilder.raw(
+        '"brandVariations" @> ?::jsonb',
+        [JSON.stringify([{ brand }])],
+    ));
 
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
@@ -334,6 +343,7 @@ export default class UsersStore {
         queryColumnName,
         limit,
         offset,
+        brandVariation,
     }: ISearchUsersArgs, returning: any = [`${USERS_TABLE_NAME}.id`, 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
@@ -355,6 +365,13 @@ export default class UsersStore {
             .orderBy(`${USERS_TABLE_NAME}.createdAt`, 'desc')
             .limit(throttledLimit)
             .offset(offset || 0);
+
+        if (brandVariation) {
+            // Influencer-pairing discovery is brand-scoped for the same reason searchUsers is:
+            // main.users is identity-shared, so without this a Habits/Teem dashboard surfaces
+            // Therr accounts. Qualified because this query joins socialSyncs.
+            queryString = queryString.andWhere(brandContainment(brandVariation, USERS_TABLE_NAME));
+        }
 
         if (ids) {
             queryString = queryString.whereIn(`${USERS_TABLE_NAME}.id`, ids || []);

@@ -421,12 +421,14 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             email: contact.email,
             isAccepted: false,
             token: randomUUID(),
+            brandVariation,
         }));
         const phoneInvitesToPersist = sendablePhoneContacts.map((contact) => ({
             requestingUserId: userId,
             phoneNumber: contact.phoneNumber,
             isAccepted: false,
             token: randomUUID(),
+            brandVariation,
         }));
 
         const [persistedEmailInvites, persistedPhoneInvites] = await Promise.all([
@@ -475,6 +477,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 email: invite.email,
                 phoneNumber: invite.phoneNumber,
                 isAccepted: false,
+                brandVariation,
             })))
             .then((createdIds) => {
                 createOrUpdateAchievement(req.headers, {
@@ -989,6 +992,10 @@ const incrementUserConnection = (req, res) => {
 // needs to pre-fill the signup form and show who invited the user. Public
 // (pre-signup) but keyed on an unguessable UUID token, so exposure is
 // limited to whoever holds the token (the invited contact themselves).
+//
+// Deliberately brand-agnostic on lookup: an invite minted in one brand still resolves
+// when opened from another, and the response carries the invite's own brandVariation so
+// the landing page can route the invitee to the correct app install.
 const getInviteByToken: RequestHandler = async (req: any, res: any) => {
     const { token } = req.params;
 
@@ -1019,6 +1026,10 @@ const getInviteByToken: RequestHandler = async (req: any, res: any) => {
                 phoneNumber: invite.phoneNumber || null,
                 inviterName,
                 isAccepted: invite.isAccepted,
+                // Origin brand of the invite. Intentionally resolved cross-brand rather than
+                // 404'd: the landing page uses this to deep-link the invitee into the app the
+                // invite was actually sent from, instead of dead-ending whoever opened the link.
+                brandVariation: invite.brandVariation,
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));

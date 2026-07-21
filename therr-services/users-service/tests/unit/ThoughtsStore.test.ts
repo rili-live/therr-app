@@ -96,6 +96,64 @@ describe('ThoughtsStore brand filtering', () => {
             // Self-join brand filter (closing leak: HABITS reader must not see therr replies on a habits parent)
             expect(sql).to.include(`replies."brandVariation" IN ('habits')`);
         });
+
+        it('caps reply previews via LATERAL and reports the true total as replyCount', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.find(BrandVariations.THERR, ['t1'], {
+                limit: 21,
+                before: '2026-04-27T00:00:00.000Z',
+            }, { withReplies: true });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include('LEFT JOIN LATERAL');
+            expect(sql).to.include('LIMIT 3');
+            // Window count runs before LIMIT, so it reflects the full reply total
+            expect(sql).to.include(`COUNT(*) OVER () AS "totalReplies"`);
+            expect(sql).to.include(`"replies"."totalReplies" as "replyCount"`);
+            // Preview fields needed to render an inline reply
+            expect(sql).to.include(`"replies"."message" as "replies[].message"`);
+            expect(sql).to.include(`"replies"."fromUserId" as "replies[].fromUserId"`);
+        });
+
+        it('excludes mature replies from previews when shouldHideMatureContent is set', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.find(BrandVariations.THERR, ['t1'], {
+                limit: 21,
+                before: '2026-04-27T00:00:00.000Z',
+            }, { withReplies: true, shouldHideMatureContent: true });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include(`replies."isMatureContent" = false`);
+        });
+    });
+
+    describe('getRecentThoughts (activation candidates)', () => {
+        it('ranks a bounded recent pool by reply-count hot score', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            // Inner query bounds the scan to an index-friendly recent pool
+            expect(sql).to.include('limit 200');
+            // Only parent thoughts compete for stream slots
+            expect(sql).to.include(`"parentId" is null`);
+            // Gravity-style hot score: engagement dampened by age
+            expect(sql).to.include('("replyCount" + 1) / POWER');
+            expect(sql).to.include('limit 10');
+        });
+
+        it('applies brand and interests filters to the candidate pool', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.HABITS, 5, ['interests.hiking']);
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include(`"brandVariation" in ('habits')`);
+            expect(sql).to.include('interests.hiking');
+        });
     });
 
     describe('getById', () => {
