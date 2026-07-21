@@ -76,17 +76,26 @@ export default class ThoughtsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
+    /**
+     * Selects thoughts to activate for users' feeds. Rather than strictly the newest N,
+     * this pulls a bounded pool of recent parent thoughts, then prefers the ones with the
+     * most replies (active threads) so activated feeds surface conversations, not dead ends.
+     * Two bounded queries; page-sized work regardless of table growth.
+     */
     getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id']) {
         const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
+        const candidatePoolSize = Math.max(limit * 5, 100);
+        const internalColumns = returning.includes('createdAt') ? returning : [...returning, 'createdAt'];
 
-        let query = knexBuilder.select(returning)
+        let query = knexBuilder.select(internalColumns)
             .from(THOUGHTS_TABLE_NAME)
             // .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24 * 5)) // 5 days
             .andWhere({
                 isPublic: true,
                 isMatureContent: false,
             })
-            .limit(limit)
+            .whereNull('parentId') // Activate parent thoughts (threads), not stray replies
+            .limit(candidatePoolSize)
             .orderBy('createdAt', 'desc');
 
         const readable = getReadableBrands(brand);
@@ -99,7 +108,31 @@ export default class ThoughtsStore {
             query = query.whereRaw(`"interestsKeys" \\?| ARRAY[${interestsPlaceholders}]::text[]`, relatedInterestsKeys);
         }
 
-        return this.db.read.query(query.toString()).then((response) => response.rows);
+        return this.db.read.query(query.toString()).then((response) => {
+            const candidates = response.rows;
+            if (!candidates.length) {
+                return candidates;
+            }
+
+            const replyCountQuery = knexBuilder.select('parentId')
+                .count('* as replyCount')
+                .from(THOUGHTS_TABLE_NAME)
+                .whereIn('parentId', candidates.map((thought) => thought.id))
+                .groupBy('parentId')
+                .toString();
+
+            return this.db.read.query(replyCountQuery).then((replyCountsResponse) => {
+                const replyCountsById = replyCountsResponse.rows.reduce((acc, row) => {
+                    acc[row.parentId] = parseInt(row.replyCount, 10) || 0;
+                    return acc;
+                }, {});
+
+                return candidates
+                    .sort((a, b) => (replyCountsById[b.id] || 0) - (replyCountsById[a.id] || 0)
+                        || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .slice(0, limit);
+            });
+        });
     }
 
     // eslint-disable-next-line default-param-last
@@ -367,7 +400,13 @@ export default class ThoughtsStore {
                 })
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
-                    'replies.id as replies[].id', // Just the id so we can count replies in list view
+                    // Preview fields power reply counts AND inline thread expansion in list views
+                    'replies.id as replies[].id',
+                    'replies.fromUserId as replies[].fromUserId',
+                    'replies.message as replies[].message',
+                    'replies.isPublic as replies[].isPublic',
+                    'replies.isMatureContent as replies[].isMatureContent',
+                    'replies.createdAt as replies[].createdAt',
                 ]);
         }
 
@@ -387,6 +426,12 @@ export default class ThoughtsStore {
                 thoughts.forEach((thought) => {
                     if (options.withUser) {
                         userIds.push(thought.fromUserId);
+
+                        if (options.withReplies) {
+                            (thought.replies || []).forEach((reply) => {
+                                userIds.push(reply.fromUserId);
+                            });
+                        }
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
@@ -395,15 +440,18 @@ export default class ThoughtsStore {
                     : Promise.resolve(null));
 
                 const [users] = await Promise.all(thoughtDetailsPromises);
+                const usersById = (users || []).reduce((acc, user) => {
+                    acc[user.id] = user;
+                    return acc;
+                }, {});
 
-                // TODO: Optimize
                 const mappedThoughts = thoughts.map((thought) => {
                     const modifiedThought = thought;
                     modifiedThought.user = {};
 
                     // USER
                     if (options.withUser) {
-                        const matchingUser = users.find((user) => user.id === modifiedThought.fromUserId);
+                        const matchingUser = usersById[modifiedThought.fromUserId];
                         if (matchingUser) {
                             matchingUsers[matchingUser.id] = matchingUser;
                             modifiedThought.fromUserName = matchingUser.userName;
@@ -411,6 +459,20 @@ export default class ThoughtsStore {
                             modifiedThought.fromUserLastName = matchingUser.lastName;
                             modifiedThought.fromUserMedia = matchingUser.media;
                             modifiedThought.fromUserIsSuperUser = matchingUser.isSuperUser;
+                        }
+
+                        if (options.withReplies) {
+                            modifiedThought.replies = (modifiedThought.replies || []).map((reply) => {
+                                const modifiedReply = reply;
+                                const matchingReplyUser = usersById[modifiedReply.fromUserId];
+                                if (matchingReplyUser) {
+                                    modifiedReply.fromUserName = matchingReplyUser.userName;
+                                    modifiedReply.fromUserMedia = matchingReplyUser.media;
+                                    modifiedReply.fromUserIsSuperUser = matchingReplyUser.isSuperUser;
+                                }
+
+                                return modifiedReply;
+                            });
                         }
                     }
 

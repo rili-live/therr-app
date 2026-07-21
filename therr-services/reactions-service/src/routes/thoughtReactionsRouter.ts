@@ -2,6 +2,7 @@ import * as express from 'express';
 import {
     createOrUpdateThoughtReaction,
     createOrUpdateMultiThoughtReactions,
+    createThoughtReactionsForUsers,
     getThoughtReactions,
     getReactionsByThoughtId,
     countThoughtReactions,
@@ -14,6 +15,9 @@ const router = express.Router();
 router.post('/:thoughtId', createOrUpdateThoughtReaction);
 
 router.post('/create-update/multiple', createOrUpdateMultiThoughtReactions);
+
+// Internal-only (not exposed via api-gateway): activate one thought for many users
+router.post('/create-update/multiple-users', createThoughtReactionsForUsers);
 
 // GET
 router.get('/', getThoughtReactions);

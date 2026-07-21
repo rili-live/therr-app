@@ -108,6 +108,26 @@ export default class ThoughtReactionsStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
+    /**
+     * Bulk insert that never clobbers existing reactions (likes, bookmarks, view counts).
+     * Used to activate one thought for many users, e.g. fanning a new thought out to the
+     * author's connections.
+     */
+    createIfNotExists(params: ICreateThoughtReactionParams[]) {
+        if (!params?.length) {
+            return Promise.resolve([]);
+        }
+
+        const queryString = knexBuilder(THOUGHT_REACTIONS_TABLE_NAME)
+            .insert(params)
+            .onConflict(['thoughtId', 'userId'])
+            .ignore()
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
     update(conditions: IUpdateThoughtReactionConditions, params: IUpdateThoughtReactionParams, whereIn?: IUpdateWhereInConfig) {
         let queryString = knexBuilder.update({
             ...params,

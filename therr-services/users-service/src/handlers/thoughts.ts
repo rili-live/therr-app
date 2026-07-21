@@ -9,6 +9,7 @@ import {
     ErrorCodes, MetricNames, MetricValueTypes, Notifications,
     UserConnectionTypes,
 } from 'therr-js-utilities/constants';
+import { getInterestMatchScore } from 'therr-js-utilities/content-ranking';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { RequestHandler } from 'express';
 import userMetricsService from '../api/userMetricsService';
@@ -184,8 +185,45 @@ const createThought = async (req, res) => {
                         return Promise.resolve();
                     }).catch((err) => console.log(err));
                 } else {
-                    // TODO: Create reactions for (some of) user's connections
-                    // requires new endpoint createReactionsForUsers
+                    // Fan the new thought out to the author's accepted connections so it
+                    // appears in their feeds (activation), bounded and fire-and-forget
+                    if (thought.isPublic && !thought.isMatureContent) {
+                        Store.userConnections.getAcceptedConnectionUserIds(userId)
+                            .then(async (connectionUserIds) => {
+                                if (!connectionUserIds?.length) {
+                                    return;
+                                }
+
+                                await internalRestRequest({
+                                    headers: req.headers,
+                                }, {
+                                    method: 'post',
+                                    url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/thought-reactions/create-update/multiple-users`,
+                                    headers: {
+                                        authorization,
+                                        'x-localecode': locale,
+                                        'x-userid': userId,
+                                        'x-therr-origin-host': whiteLabelOrigin,
+                                    },
+                                    data: {
+                                        thoughtId: thought.id,
+                                        userIds: connectionUserIds.slice(0, 100),
+                                    },
+                                });
+                            })
+                            .catch((err) => {
+                                logSpan({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: ['Error while activating thought for user connections'],
+                                    traceArgs: {
+                                        'error.message': err?.message,
+                                        'thought.id': thought.id,
+                                    },
+                                });
+                            });
+                    }
+
                     createOrUpdateAchievement({
                         authorization,
                         ...req.headers,
@@ -464,8 +502,13 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
             requestingUserId: userId,
             acceptingUserId: authorId,
         }, true);
+    // Personalization signal: one indexed query for the requesting user's enabled interests
+    const userInterestsPromise = userId
+        ? Store.userInterests.getByUserIds([userId], { isEnabled: true }, 'engagementCount')
+            .catch(() => [])
+        : Promise.resolve([]);
 
-    return isFriendPromise.then((connections) => Store.thoughts.find(brand, thoughtIds, {
+    return Promise.all([isFriendPromise, userInterestsPromise]).then(([connections, userInterests]) => Store.thoughts.find(brand, thoughtIds, {
         authorId,
         limit: limit || 21,
         order,
@@ -479,7 +522,17 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         isMe: userId === authorId,
         isFriend: connections?.[0]?.requestStatus === UserConnectionTypes.COMPLETE,
     })
-        .then(({ thoughts, isLastPage }) => res.status(200).send({ thoughts, isLastPage })))
+        .then(({ thoughts, isLastPage }) => {
+            const userInterestKeys = (userInterests || [])
+                .map((userInterest) => userInterest.displayNameKey)
+                .filter((key) => !!key);
+            const personalizedThoughts = !userInterestKeys.length ? thoughts : thoughts.map((thought) => ({
+                ...thought,
+                interestMatchScore: getInterestMatchScore(thought.interestsKeys, userInterestKeys),
+            }));
+
+            return res.status(200).send({ thoughts: personalizedThoughts, isLastPage });
+        }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
 };
 

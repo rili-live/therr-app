@@ -116,6 +116,35 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
+// CREATE (multi-user activation)
+// NOTE: Internal-only — this route is intentionally NOT exposed through the api-gateway.
+// Activates a single thought for many users (e.g. a new thought fanned out to the
+// author's connections) without overwriting any pre-existing reactions.
+const createThoughtReactionsForUsers: RequestHandler = (req, res) => {
+    const {
+        locale,
+        userId,
+    } = parseHeaders(req.headers);
+
+    const { thoughtId, userIds } = req.body;
+
+    if (!thoughtId || !userIds?.length) {
+        return handleHttpError({ res, message: 'thoughtId and userIds are required', statusCode: 400 });
+    }
+
+    // Bound the fan-out so a single request stays cheap and predictable
+    const targetUserIds: string[] = [...new Set<string>(userIds.filter((id) => !!id && id !== userId))].slice(0, 100);
+
+    return Store.thoughtReactions.createIfNotExists(targetUserIds.map((targetUserId) => ({
+        userId: targetUserId,
+        thoughtId,
+        userHasActivated: true,
+        userLocale: locale,
+    })))
+        .then((createdReactions) => res.status(200).send({ createdCount: createdReactions.length }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
+};
+
 // READ
 const getThoughtReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
@@ -228,6 +257,7 @@ export {
     getReactionsByThoughtId,
     createOrUpdateThoughtReaction,
     createOrUpdateMultiThoughtReactions,
+    createThoughtReactionsForUsers,
     findThoughtReactions,
     countThoughtReactions,
 };

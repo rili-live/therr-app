@@ -1,9 +1,70 @@
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
+import {
+    getContentRankingScore,
+    selectAutoExpandedThoughtIds,
+} from 'therr-js-utilities/content-ranking';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
+
+// Cap how many replies per auto-expanded thread are considered for the "top reply" so
+// the like-count lookup stays bounded no matter how large a thread grows
+const MAX_TOP_REPLY_CANDIDATES_PER_THREAD = 10;
+
+/**
+ * Twitter/X-style thread expansion: for the highest-ranked threads on the page, pick the
+ * most-liked (tie-break: earliest) visible reply and attach it as `topReply` alongside
+ * `shouldAutoExpand`. One additional bounded count query per feed page.
+ */
+const attachThreadExpansions = async (rankedThoughts: any[], nowMs: number) => {
+    const autoExpandIds = new Set(selectAutoExpandedThoughtIds(rankedThoughts, { nowMs }));
+    if (!autoExpandIds.size) {
+        return rankedThoughts;
+    }
+
+    const replyCandidatesByThoughtId: Record<string, any[]> = {};
+    const allCandidateReplyIds: string[] = [];
+    rankedThoughts.forEach((thought) => {
+        if (!autoExpandIds.has(thought.id)) {
+            return;
+        }
+        const candidates = (thought.replies || [])
+            .filter((reply) => reply.isPublic && !reply.isMatureContent && reply.message)
+            .slice(0, MAX_TOP_REPLY_CANDIDATES_PER_THREAD);
+        if (candidates.length) {
+            replyCandidatesByThoughtId[thought.id] = candidates;
+            candidates.forEach((reply) => allCandidateReplyIds.push(reply.id));
+        }
+    });
+
+    const replyLikeCounts = await Store.thoughtReactions.getCounts(allCandidateReplyIds, {}, 'userHasLiked')
+        .catch(() => []);
+    const likeCountByReplyId = replyLikeCounts.reduce((acc, cur) => ({
+        ...acc,
+        [cur.thoughtId]: parseInt(cur.count, 10) || 0,
+    }), {});
+
+    return rankedThoughts.map((thought) => {
+        const candidates = replyCandidatesByThoughtId[thought.id];
+        if (!candidates?.length) {
+            return thought;
+        }
+
+        const topReply = [...candidates].sort((a, b) => (likeCountByReplyId[b.id] || 0) - (likeCountByReplyId[a.id] || 0)
+            || new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0];
+
+        return {
+            ...thought,
+            shouldAutoExpand: true,
+            topReply: {
+                ...topReply,
+                likeCount: likeCountByReplyId[topReply.id] || 0,
+            },
+        };
+    });
+};
 
 const searchActiveThoughts = async (req: any, res: any) => {
     const {
@@ -87,14 +148,23 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     ...acc,
                     [cur.thoughtId]: cur.count,
                 }), {});
+                const nowMs = Date.now();
                 thoughts = thoughts.map((thought) => {
-                    const alteredThought = thought; // TODO: personalized for user performing the search?
-                    return {
-                        ...alteredThought,
+                    const alteredThought = {
+                        ...thought,
                         reaction: thoughtIdToReaction[thought.id] || {},
                         likeCount: parseInt(likeCountByThoughtId[thought.id] || 0, 10),
                     };
+                    return {
+                        ...alteredThought,
+                        // Personalized relevance: recency decay x engagement x interest match
+                        // (interestMatchScore is attached by users-service per requesting user)
+                        rankingScore: getContentRankingScore(alteredThought, undefined, nowMs),
+                    };
                 }).filter((thought) => !blockedUsers.includes(thought.fromUserId));
+
+                thoughts = await attachThreadExpansions(thoughts, nowMs);
+
                 return res.status(200).send({
                     thoughts,
                     media: response?.data?.media,
