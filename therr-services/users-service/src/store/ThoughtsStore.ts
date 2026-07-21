@@ -81,6 +81,13 @@ export default class ThoughtsStore {
      * reply count (the strongest engagement signal available in this DB) dampened by age
      * (Hacker-News-style gravity). The score can't use an index, so candidates are first
      * bounded to the most recent pool via an index-friendly inner query, then re-ranked.
+     *
+     * The correlated reply-count subquery is deliberate — do NOT rewrite it as a join
+     * against a GROUP BY "parentId" aggregate. Benchmarked on pg15 with 100k parents /
+     * 500k replies (2026-07-21): correlated = 200 index-only probes on the parentId
+     * index, ~14ms; grouped join = full aggregate over every reply row, ~74ms, and it
+     * degrades with total reply volume while the correlated shape scales only with
+     * candidatePoolSize.
      */
     getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id'], candidatePoolSize = 200) {
         const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
@@ -209,6 +216,10 @@ export default class ThoughtsStore {
         if (options.withReplies) {
             // Restrict the self-join: a HABITS reader must not see therr-brand replies under
             // a habits parent (and vice versa). 'all'-readers (Therr by default) see every reply.
+            //
+            // Replies deliberately carry NO isPublic filter: clients mint every reply with
+            // isPublic=false (see TherrMobile ViewThought handleSubmitReply), so the flag is
+            // not a privacy signal on replies — visibility follows the parent thought.
             const repliesJoinClause = readable === 'all'
                 ? undefined
                 : `replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
@@ -366,18 +377,32 @@ export default class ThoughtsStore {
             });
         }
 
+        if (options?.shouldHideMatureContent) {
+            query = query.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
+        }
+
         if (options.withReplies) {
             // Lateral join caps the payload to the few most recent replies per parent (enough
             // for an inline thread preview) while COUNT(*) OVER () — computed before LIMIT —
             // still reports the true total as replyCount. The brand restriction is mirrored
             // onto the reply subquery so reply previews/counts never include cross-brand replies.
+            //
+            // Replies deliberately carry NO isPublic filter: clients mint every reply with
+            // isPublic=false (see TherrMobile ViewThought handleSubmitReply), so the flag is
+            // not a privacy signal on replies — visibility follows the parent thought.
+            //
+            // The parents are paged in an inner query BEFORE the lateral join. Joining first
+            // would count reply rows (up to 3 per parent) against LIMIT, collapsing a
+            // 21-parent page to as few as 7 parents.
             const repliesBrandClause = readable === 'all'
                 ? ''
                 : `AND replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
             const repliesMatureClause = options?.shouldHideMatureContent
                 ? 'AND replies."isMatureContent" = false'
                 : '';
-            query = query
+            const orderColumn = orderBy.split('.').pop();
+            query = knexBuilder
+                .from(query.as('parents'))
                 .joinRaw(`LEFT JOIN LATERAL (
                     SELECT
                         replies.id,
@@ -389,14 +414,15 @@ export default class ThoughtsStore {
                         replies."createdAt",
                         COUNT(*) OVER () AS "totalReplies"
                     FROM ${THOUGHTS_TABLE_NAME} AS replies
-                    WHERE replies."parentId" = ${THOUGHTS_TABLE_NAME}.id
+                    WHERE replies."parentId" = parents.id
                     ${repliesBrandClause}
                     ${repliesMatureClause}
                     ORDER BY replies."createdAt" DESC
                     LIMIT 3
                 ) AS replies ON TRUE`)
+                .orderBy(`parents.${orderColumn}`, order)
                 .columns([
-                    `${THOUGHTS_TABLE_NAME}.*`,
+                    'parents.*',
                     'replies.totalReplies as replyCount',
                     'replies.id as replies[].id',
                     'replies.fromUserId as replies[].fromUserId',
@@ -408,14 +434,11 @@ export default class ThoughtsStore {
                 ]);
         }
 
-        if (options?.shouldHideMatureContent) {
-            query = query.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
-        }
-
         return this.db.read.query(query.toString()).then(async ({ rows }) => {
-            // Use raw rows to determine count and isLastPage
-            const isLastPage = rows.length < restrictedLimit;
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
+            // Page-size checks must count parents (post-join-format), not raw rows — with
+            // reply previews attached, raw rows are a multiple of the parent count.
+            const isLastPage = thoughts.length < restrictedLimit;
 
             if (options.withReplies) {
                 thoughts.forEach((thought) => {

@@ -116,6 +116,68 @@ describe('ThoughtsStore brand filtering', () => {
             expect(sql).to.include(`"replies"."fromUserId" as "replies[].fromUserId"`);
         });
 
+        it('pages parents before attaching reply previews (LIMIT applies to parents, not joined rows)', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.find(BrandVariations.THERR, ['t1'], {
+                limit: 21,
+                before: '2026-04-27T00:00:00.000Z',
+            }, { withReplies: true });
+
+            const sql = readStub.args[0][0] as string;
+            // The parent page closes inside the subquery...
+            expect(sql).to.include(`limit 21) as "parents"`);
+            // ...and the lateral join hangs off the already-paged set
+            expect(sql).to.include(`replies."parentId" = parents.id`);
+            // No outer LIMIT that joined reply rows could consume
+            const afterJoin = sql.slice(sql.indexOf('ON TRUE'));
+            expect(afterJoin).to.not.include('limit');
+        });
+
+        it('computes isLastPage from parent count, not raw joined rows', async () => {
+            // 2 parents x 3 reply-preview rows = 6 raw rows; with limit 5 the old
+            // rows-based check (6 < 5) wrongly claimed another page exists
+            const rows = ['p1', 'p2'].flatMap((id) => [1, 2, 3].map((n) => ({
+                id,
+                fromUserId: 'author-1',
+                replyCount: '3',
+                'replies[].id': `${id}-r${n}`,
+                'replies[].fromUserId': 'replier-1',
+                'replies[].message': 'a reply',
+                'replies[].createdAt': '2026-04-26T00:00:00.000Z',
+            })));
+            const readStub = sinon.stub().callsFake(() => Promise.resolve({ rows }));
+            const store = new ThoughtsStore({
+                read: { query: readStub } as any,
+                write: { query: sinon.stub() } as any,
+            }, stubUsersStore);
+
+            const result = await store.find(BrandVariations.THERR, ['p1', 'p2'], {
+                limit: 5,
+                before: '2026-04-27T00:00:00.000Z',
+            }, { withReplies: true });
+
+            expect(result.thoughts).to.have.length(2);
+            expect(result.isLastPage).to.equal(true);
+            expect(result.thoughts[0].replyCount).to.equal(3);
+            expect(result.thoughts[0].replies).to.have.length(3);
+        });
+
+        it('does NOT filter reply previews on isPublic (visibility follows the parent)', () => {
+            // Deliberate policy, not an oversight: clients mint every reply with
+            // isPublic=false (TherrMobile ViewThought handleSubmitReply), so an isPublic
+            // filter here would blank out every thread preview in the app.
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.find(BrandVariations.THERR, ['t1'], {
+                limit: 21,
+                before: '2026-04-27T00:00:00.000Z',
+            }, { withReplies: true, shouldHideMatureContent: true });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.not.include(`replies."isPublic" =`);
+        });
+
         it('excludes mature replies from previews when shouldHideMatureContent is set', () => {
             const { connection, readStub } = buildMockConnection();
             const store = new ThoughtsStore(connection, stubUsersStore);
