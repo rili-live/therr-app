@@ -87,6 +87,13 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
+  digest: an internal cron (k8s CronJob or equivalent) must POST once daily —
+  ideally early evening US time (~23:00 UTC) — to
+  `users-service:7771/habits/pacts/digest/run-daily` with headers
+  `x-brand-variation: habits` and `x-localecode: en-us`. The route is
+  deliberately not exposed through the API gateway. Running it more than once
+  a day duplicates streakAtRisk/partnerMissedDay/pactExpiring pushes.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
 - [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
   migration on production messages-service (`npm run migrations:run`). Without it

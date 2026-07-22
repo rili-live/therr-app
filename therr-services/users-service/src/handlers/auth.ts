@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {
-    AccessLevels, BrandVariations, OAuthIntegrationProviders, hasValidStandardClaims,
+    AccessLevels, BrandVariations, MetricNames, OAuthIntegrationProviders, hasValidStandardClaims,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
@@ -15,6 +15,7 @@ import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
 import { acceptInvitesOnFirstLogin } from './helpers/inviteAcceptance';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import {
@@ -229,6 +230,11 @@ const login: RequestHandler = (req: any, res: any) => {
                     // new user (the viral-loop contract: the friend you invited is
                     // in your connections the moment they first sign in).
                     if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
+                        recordFunnelMetric(MetricNames.FUNNEL_USER_FIRST_LOGIN, userDetails.id, {
+                            brandVariation: brandVariation || '',
+                            platform: platform || '',
+                        });
+
                         acceptInvitesOnFirstLogin(req.headers, {
                             id: userDetails.id,
                             email: userEmail ? normalizeEmail(userEmail.trim()) : undefined,

@@ -1,10 +1,11 @@
 import {
-    CurrentSocialValuations, Notifications, PushNotifications, UserConnectionTypes,
+    CurrentSocialValuations, MetricNames, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import sendEmailAndOrPushNotification from '../../utilities/sendEmailAndOrPushNotification';
+import recordFunnelMetric from '../../utilities/recordFunnelMetric';
 
 export interface IFirstLoginUser {
     id: string;
@@ -222,6 +223,12 @@ export const acceptInvitesOnFirstLogin = async (
             });
         });
     }));
+
+    if (result.connectedUserIds.length) {
+        recordFunnelMetric(MetricNames.FUNNEL_INVITE_ACCEPTED, user.id, {
+            brandVariation: brandVariation || '',
+        }, String(result.connectedUserIds.length));
+    }
 
     return result;
 };

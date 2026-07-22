@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    CurrentSocialValuations, ErrorCodes, Notifications, PushNotifications, UserConnectionTypes,
+    CurrentSocialValuations, ErrorCodes, MetricNames, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -19,6 +19,7 @@ import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 import { IFindUsersByContactInfo } from '../store/UsersStore';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 
 /**
  * Used for sorting interests by a singular value. Set defaults to ensure no zero values.
@@ -389,6 +390,14 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         // NOTE: Current set to 0 coin reward while we debug spammers
         coinRewardsTotal += (sendableEmailContacts.length * CurrentSocialValuations.inviteSent)
             + (sendablePhoneContacts.length * CurrentSocialValuations.inviteSent);
+
+        // Funnel: outbound invites (email + SMS + in-app requests to existing users)
+        const totalInvitesSent = sendableEmailContacts.length + sendablePhoneContacts.length + existingUsers.length;
+        if (totalInvitesSent > 0) {
+            recordFunnelMetric(MetricNames.FUNNEL_INVITE_SENT, userId, {
+                brandVariation: brandVariation || '',
+            }, String(totalInvitesSent));
+        }
 
         // 2. Send email invites if user does not exist (dedupe-filtered)
         const emailSendPromises: any[] = [];

@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { HabitGoalType, PushNotifications } from 'therr-js-utilities/constants';
+import { HabitGoalType, MetricNames, PushNotifications } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
@@ -9,10 +9,14 @@ import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotif
 import {
     getTodayDateString,
     checkMilestoneReached,
+    countMissedDaysForStreak,
     isComebackStart,
     isPhoenixMoment,
+    normalizeDateString,
+    MAX_GRACE_PERIOD_DAYS,
 } from '../utilities/streakHelpers';
 import { getPartnerUserId } from '../utilities/pactHelpers';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import {
     awardStreakAchievement,
     awardConsistencyAchievement,
@@ -123,11 +127,57 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
             // If completed, update streak
             if (checkin.status === 'completed') {
-                const streak = await Store.streaks.getOrCreate(userId, habitGoalId, pactId);
+                let streak = await Store.streaks.getOrCreate(userId, habitGoalId, pactId);
+                const lastCompletedStr = streak.lastCompletedDate
+                    ? normalizeDateString(streak.lastCompletedDate)
+                    : null;
+
+                // Same-day duplicate submission (createOrUpdate updated the
+                // existing checkin row): the streak was already credited for
+                // this date — incrementing again would double-count it, and
+                // history/achievements/partner pushes already fired. Proofs
+                // and notes were still updated above.
+                if (lastCompletedStr === checkinDate) {
+                    return res.status(201).send(checkin);
+                }
+
+                // Gap handling — streak freezes. When required days were
+                // missed since the last completion, consume available grace
+                // days ("streak freezes") to preserve the streak; otherwise
+                // record the miss and reset before crediting today.
+                if (lastCompletedStr && streak.currentStreak > 0) {
+                    const missedDays = countMissedDaysForStreak(
+                        lastCompletedStr,
+                        checkinDate,
+                        habitGoal.frequencyType || 'daily',
+                        habitGoal.targetDaysOfWeek,
+                    );
+                    if (missedDays > 0) {
+                        const graceAvailable = (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0);
+                        if (missedDays <= graceAvailable) {
+                            // eslint-disable-next-line no-plusplus
+                            for (let i = 0; i < missedDays; i++) {
+                                // eslint-disable-next-line no-await-in-loop
+                                await Store.streaks.useGraceDay(streak.id);
+                            }
+                            await Store.streaks.recordGraceUsed(streak.id, userId, checkinDate, streak.currentStreak);
+                        } else {
+                            await Store.streaks.recordMissed(streak.id, userId, checkinDate, streak.currentStreak);
+                            await Store.streaks.resetStreak(streak.id);
+                        }
+                        streak = await Store.streaks.getById(streak.id);
+                    }
+                }
+
                 const streakBefore = streak.currentStreak;
                 const longestBefore = streak.longestStreak;
                 await Store.streaks.incrementStreak(streak.id, checkinDate);
                 const updatedStreak = await Store.streaks.getById(streak.id);
+
+                recordFunnelMetric(MetricNames.FUNNEL_HABIT_CHECKIN, userId, {
+                    brandVariation: brandVariation || '',
+                    streak: String(updatedStreak.currentStreak),
+                });
 
                 // Record history and check for milestone
                 await Store.streaks.recordCompletion(
@@ -158,6 +208,23 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
                 const milestone = checkMilestoneReached(updatedStreak.currentStreak);
                 if (milestone) {
+                    // Earn a streak freeze at every 7+ day milestone (capped).
+                    // This is the Duolingo-style loss-aversion loop: freezes
+                    // are earned by consistency and spent automatically when
+                    // a day slips, softening the all-or-nothing cliff.
+                    if (milestone >= 7 && (updatedStreak.gracePeriodDays || 0) < MAX_GRACE_PERIOD_DAYS) {
+                        await Store.streaks.update(streak.id, {
+                            gracePeriodDays: (updatedStreak.gracePeriodDays || 0) + 1,
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Failed to award streak freeze at milestone'],
+                                traceArgs: { 'error.message': err?.message, streakId: streak.id },
+                            });
+                        });
+                    }
+
                     await Store.streaks.recordMilestone(
                         streak.id,
                         userId,
