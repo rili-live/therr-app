@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {
-    AccessLevels, BrandVariations, CurrentSocialValuations, MetricNames, OAuthIntegrationProviders, hasValidStandardClaims,
+    AccessLevels, BrandVariations, MetricNames, OAuthIntegrationProviders, hasValidStandardClaims,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
@@ -15,6 +15,7 @@ import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { acceptInvitesOnFirstLogin } from './helpers/inviteAcceptance';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import {
@@ -223,53 +224,30 @@ const login: RequestHandler = (req: any, res: any) => {
                         },
                     });
 
-                    // Fire and forget
-                    // Reward inviting user for first time login
+                    // Fire and forget — first-login invite redemption. Marks every
+                    // matching pending invite accepted, rewards each inviter, and
+                    // guarantees a COMPLETE userConnection between inviter and this
+                    // new user (the viral-loop contract: the friend you invited is
+                    // in your connections the moment they first sign in).
                     if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
                         recordFunnelMetric(MetricNames.FUNNEL_USER_FIRST_LOGIN, userDetails.id, {
                             brandVariation: brandVariation || '',
                             platform: platform || '',
                         });
 
-                        let invitesPromise: any;
-                        if (userPhone) {
-                            invitesPromise = Store.invites.getInvitesForPhoneNumber({
-                                phoneNumber: userPhone,
-                                isAccepted: false,
-                            });
-                        } else if (userEmail) {
-                            invitesPromise = Store.invites.getInvitesForEmail({ email: normalizeEmail(userEmail.trim()), isAccepted: false });
-                        } else {
-                            invitesPromise = Promise.resolve([]);
-                        }
-
-                        invitesPromise.then((invites) => {
-                            if (invites.length) {
-                                recordFunnelMetric(MetricNames.FUNNEL_INVITE_ACCEPTED, userDetails.id, {
-                                    brandVariation: brandVariation || '',
-                                }, String(invites.length));
-                                // TODO: Log response
-                                return Store.invites.updateInvite({ id: invites[0].id }, { isAccepted: true });
-                            }
-
-                            return Promise.resolve();
-                        }).then((response) => {
-                            if (response?.length) {
-                                return Store.users.updateUser({
-                                    settingsTherrCoinTotal: CurrentSocialValuations.invite,
-                                }, {
-                                    id: response[0]?.requestingUserId,
-                                });
-                            }
-
-                            return Promise.resolve();
+                        acceptInvitesOnFirstLogin(req.headers, {
+                            id: userDetails.id,
+                            email: userEmail ? normalizeEmail(userEmail.trim()) : undefined,
+                            phoneNumber: userPhone || undefined,
+                            firstName: userDetails.firstName,
+                            lastName: userDetails.lastName,
                         }).catch((err) => {
                             logSpan({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
-                                messages: [err?.message],
+                                messages: [err?.message, 'Failed to process first-login invite acceptance'],
                                 traceArgs: {
-                                    issue: '',
+                                    'user.id': userDetails.id,
                                     port: process.env.USERS_SERVICE_API_PORT,
                                     'process.id': process.pid,
                                 },
