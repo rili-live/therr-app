@@ -87,11 +87,9 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
-- [ ] (2026-07-19, /quality-peer-review) Confirm `20260425000003_main.userDeviceTokens` has actually run on production before rolling the users-service image for the cross-app-push fix. `getMe` (GET /users/me — hit on nearly every app launch) now calls `resolveDeviceTokenForBrand`, which reads `main.userDeviceTokens`. It fails soft (`.catch(() => [])` → legacy column), so a missing table degrades rather than breaks — but it turns the hottest endpoint in the app into a guaranteed failing query per request. Verify the table exists, then watch for the cross-app mixup resolving as clients re-register.
 - [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits). Existing installs self-heal on next launch — mobile compares its FCM token against `/users/me` and re-registers via `updateUser`, which dual-writes the brand-scoped row — so expect one launch of latency per app before routing is correct.
-- [ ] (2026-07-18, leaderboards) Run the new users-service migrations on production (`npm run migrations:run` in `therr-services/users-service`): `20260718000001_main.userLeaderboardScores` (weekly XP aggregates table) and `20260718000002_main.users.settingsIsLeaderboardEnabled` (participation opt-out, default true). The leaderboard API 500s until the table exists; XP awards fail soft (logged warnings only).
-- [ ] (2026-07-19, /quality-peer-review) Deploy ordering for the leaderboards release: run both `20260718*` migrations **before** rolling the users-service image. `updateUser` writes `settingsIsLeaderboardEnabled` and the rank-milestone detector selects it, so a service-first deploy makes profile-settings updates fail hard (the detector itself fails soft — it logs and returns).
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
+- [ ] (2026-07-20, /work-plan) Run `20260720000001_main.invites.brandVariation` on production users-service (`npm run migrations:run`). Adds a NOT NULL `brandVariation` column (default `'therr'`) to `main.invites`, stamped at invite-creation and returned by `getInviteByToken`. Additive and defaulted, so applying it early is safe for the currently-deployed release; if the image ships first, invite creation fails on the unknown column.
 - [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
 - [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
   project env var (full Play service-account key JSON with the "Release manager"
@@ -177,13 +175,6 @@ append new items here rather than only printing them once.
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
-- [ ] (2026-07-09, /quality-peer-review) Run the
-  `20260709000001_main.users.lastLoginAt` migration on production users-service
-  (`npm run migrations:run`) **before** the image carrying the new login handler
-  goes live. The column is nullable and additive, so applying it early is safe for
-  the currently-deployed release. If the code ships first, `updateUser` in the login
-  path fails with `column "lastLoginAt" of relation "users" does not exist` and
-  **every login 500s** — this is on the critical auth path, not a degraded feature.
 <!-- skill-followups:end -->
 
 ---
@@ -278,32 +269,50 @@ Audited 2026-07-20 (handler-level, users-service). Each needs a judgment call
 on whether brand scoping is correct — direct-link profile views may legitimately
 be brand-agnostic, but discovery and contact-matching paths are not.
 
-- `therr-services/users-service/src/handlers/users.ts:393` —
-  `getUserByPhoneNumber` has no brand filter. Highest risk of the set: this is
-  the contact-matching path, so it can surface cross-brand accounts from a
-  phone-book sync, which is exactly the leak `findPeopleYouMayKnow` was fixed
-  to prevent
-- `therr-services/users-service/src/handlers/users.ts:556` —
-  `searchUserPairings` has no brand filter, while its direct sibling
-  `searchUsers` (same file, same store call) does. Clear inconsistency; used by
-  the dashboard influencer-pairing feature
-- `therr-services/users-service/src/handlers/users.ts:456` —
-  `getUserByUserName` has no brand filter (public profile lookup)
-- `therr-services/users-service/src/handlers/users.ts:369` — `getUser` has no
-  brand filter (profile by id)
-- `therr-services/users-service/src/handlers/users.ts:1321` —
-  `clearUserDeviceToken` is not brand-aware, so it may clear the token for the
-  wrong app on a device with two brands installed. Related to the
-  `main.userDeviceTokens` / `resolveDeviceTokenForBrand` work in § Manual
-  Operational Follow-ups
 - `therr-services/users-service/src/handlers/userConnections.ts:661` —
-  `getUserConnection` has no brand filter
-- `therr-services/users-service/src/handlers/userConnections.ts:992` —
-  `getInviteByToken` has no brand check, so an invite minted in one brand can
-  be redeemed in another
+  `getUserConnection` has no brand filter. Needs a judgment call first: it reads a
+  single connection by `(requestingUserId, acceptingUserId)`, so it is a targeted
+  lookup rather than discovery. Separately, `requestingUserId` comes from the route
+  param and is never checked against the caller's token — the IDOR question is
+  probably the more valuable one here
 - `therr-services/users-service/src/handlers/users.ts:841` —
   `updateLastKnownLocation` is not brand-aware (lower risk — a mutation on the
   caller's own row, listed for completeness)
+
+Re-audited 2026-07-20 (/work-plan) — three entries in the original audit were
+misdiagnosed and are **not** bugs. Recording the findings so they are not
+re-flagged:
+
+- `getUserByPhoneNumber` (users.ts:393) is **not** the contact-matching path. Its
+  only caller is the api-gateway phone-verification route
+  (`therr-api-gateway/src/services/phone/router.ts:60`), which uses it to enforce
+  "one personal + one creator + one business account per phone number". Brand
+  scoping it would *break* that anti-abuse rule by letting the same phone register
+  again under each brand. Phone-book contact matching is `findUsersByContactInfo`,
+  which is already brand-scoped
+- `getUser` (users.ts:369) and `getUserByUserName` (users.ts:456) are deliberately
+  brand-agnostic: both back direct-link and SEO-indexed profile views, so scoping
+  them would 404 valid cross-brand profile links. Decision is now recorded in a
+  comment on each handler
+- `clearUserDeviceToken` (users.ts:1321) looks correct as written — it deletes via
+  `deleteByToken`, and FCM token strings are unique per device *install*, so each
+  brand's app holds a distinct token and deletion by token cannot hit the wrong
+  app. Worth a confirming read of `UserDeviceTokensStore.deleteByToken` before
+  deleting this note outright
+
+Closed 2026-07-20 (/work-plan): `searchUserPairings` is now brand-scoped via a new
+`brandVariation` arg on `UsersStore.searchUserSocials` (regression tests added).
+`getInviteByToken` now resolves cross-brand *by design* and returns the invite's
+origin `brandVariation` (new `20260720000001_main.invites.brandVariation` migration)
+so the landing page can route the invitee to the right app.
+
+Frontend follow-up for the invite change (therr-client-web, separate commit — the
+backend half only makes the field available):
+
+- Invite-landing page — consume the new `brandVariation` field from
+  `GET /users/invites/:token` and deep-link the invitee to the app the invite was
+  minted in. Until this lands, a Habits invite opened on a Therr-branded landing
+  page still points the user at the Therr install
 
 Related routing hygiene, found while fixing the `POST /users/search` 400 on
 2026-07-20 (gateway `/users/:id` was registered before the literal routes and

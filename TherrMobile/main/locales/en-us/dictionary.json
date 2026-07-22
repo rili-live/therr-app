@@ -391,6 +391,9 @@
         "view": "View"
       }
     },
+    "thoughtDisplay": {
+      "viewAllReplies": "View all {count} replies"
+    },
     "userMenu": {
       "buttons": {
         "viewProfile": "View Profile",
