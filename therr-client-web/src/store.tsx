@@ -1,6 +1,15 @@
 import logger from 'redux-logger';
 import { configureStore, Middleware } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import {
+    persistStore,
+    persistReducer,
+    FLUSH,
+    REHYDRATE,
+    PAUSE,
+    PERSIST,
+    PURGE,
+    REGISTER,
+} from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // localStorage
 import basePersistConfig from 'therr-react/redux/persistConfig';
 import rootReducer from './redux/reducers';
@@ -86,8 +95,9 @@ if (isClient) {
 const getMiddleware = (getDefaultMiddleware: any) => {
     const middleware = getDefaultMiddleware({
         serializableCheck: {
-            // redux-persist actions contain non-serializable values
-            ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+            // redux-persist actions carry non-serializable callbacks (e.g. the
+            // `result` fn on PURGE/REGISTER). Ignore the full set of persist actions.
+            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
     });
 
