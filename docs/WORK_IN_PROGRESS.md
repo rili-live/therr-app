@@ -653,8 +653,6 @@ English-formatted timestamps.
 - `therr-services/users-service/src/handlers/users.ts:879` — Reward
   increment/decrement on blockchain for auditability (long-term, but is the
   legal record once paid tier exists)
-- `therr-services/users-service/src/store/InvitesStore.ts:49` — Filter out
-  invites with neither phone nor email
 - `therr-services/users-service/src/handlers/auth.ts:181, 182` — Encrypt
   stored OAuth `access_token`s in DB
 - `therr-services/users-service/src/handlers/auth.ts:315` — Same
