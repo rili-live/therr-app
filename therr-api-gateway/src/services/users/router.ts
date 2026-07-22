@@ -125,6 +125,12 @@ usersServiceRouter.post('/users/achievements/:id/claim', handleServiceRequest({
     method: 'post',
 }));
 
+// Leaderboards
+usersServiceRouter.get('/users/leaderboards', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 // Auth
 // Optional auth when already logged in and using oauth2 providers
 usersServiceRouter.post('/auth', authenticateOptional, loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
@@ -320,7 +326,17 @@ usersServiceRouter.post('/users/connections', userConnectionLimiter, createUserC
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, inviteConnectionsValidation, handleServiceRequest({
+// Bulk invite sends email/SMS to arbitrary external contacts — the clearest
+// spam vector. With phone verification now deferred (users can reach
+// EMAIL_VERIFIED with just a username), gate bulk invites on MOBILE_VERIFIED so
+// only phone-verified accounts can fan out invitations. Single connection
+// requests (/users/connections) remain ungated as a core social action.
+usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [AccessLevels.MOBILE_VERIFIED],
+    },
+), inviteConnectionsValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -359,10 +375,11 @@ usersServiceRouter.post('/users', registerAttemptLimiter, createUserValidation, 
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'post',
-}));
+// NOTE: `POST /users/:id` is deliberately registered at the BOTTOM of this file,
+// after every literal `POST /users/<name>` route. Express matches in registration
+// order, so registering it here would shadow /users/search, /users/forgot-password,
+// etc. -- the param route matches first, `id` fails isUUID(4), and `validate`
+// returns a 400 that looks like a client bug rather than a routing bug.
 
 usersServiceRouter.get('/users/me', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
@@ -380,6 +397,12 @@ usersServiceRouter.get('/users/by-phone/:phoneNumber', handleServiceRequest({
 }));
 
 usersServiceRouter.get('/users/by-username/:userName', authenticateOptional, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+// PUBLIC: resolve a magic invite-link token to pre-fill signup data (pre-auth)
+usersServiceRouter.get('/users/invites/:token', emailPrecheckLimiter, [param('token').exists().isUUID(4)], validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
@@ -742,6 +765,13 @@ usersServiceRouter.get('/habits/streaks', handleServiceRequest({
 usersServiceRouter.put('/habits/streaks/:id/grace', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
+}));
+
+// Catch-all param route -- MUST stay last. Any literal `POST /users/<name>` route
+// registered below this line will be shadowed by it and rejected with a 400.
+usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 export default usersServiceRouter;

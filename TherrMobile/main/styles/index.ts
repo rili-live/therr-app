@@ -50,8 +50,6 @@ const loaderStyles = StyleSheet.create({
 
 export const logoStyles = {
     elevation: 1,
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 5,
 };
 
 const getBodyStyles = (theme) => ({

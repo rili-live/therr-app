@@ -14,8 +14,8 @@ import Store from '../store';
 import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
-import { acceptInvitesOnFirstLogin } from './helpers/inviteAcceptance';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { acceptInvitesOnFirstLogin } from './helpers/inviteAcceptance';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import {
@@ -258,6 +258,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     const updateArgs: any = {
                         accessLevels: JSON.stringify([...new Set(user.accessLevels)]),
                         loginCount: user.loginCount + 1,
+                        lastLoginAt: new Date(),
                         integrationsAccess: user.integrations,
                     };
 

@@ -12,6 +12,23 @@ export interface ICreateInviteParams {
     email?: string;
     phoneNumber?: string;
     isAccepted: boolean;
+    token?: string;
+    // The brand the invite was minted in. Omit to accept the column default ('therr').
+    brandVariation?: string;
+}
+
+export interface IInviteWithInviter {
+    id: string;
+    requestingUserId: string;
+    email?: string;
+    phoneNumber?: string;
+    isAccepted: boolean;
+    // Origin brand of the invite. The landing page uses this to deep-link the invitee to
+    // the app the invite came from, rather than whichever brand happened to open the link.
+    brandVariation: string;
+    inviterFirstName?: string;
+    inviterLastName?: string;
+    inviterUserName?: string;
 }
 
 export interface IUpdateInviteConditions {
@@ -46,6 +63,33 @@ export default class InvitesStore {
     }
 
     /**
+     * Resolves a magic invite-link token to the invite plus the inviter's
+     * display fields. Used (a) by the public invite-landing endpoint to
+     * pre-fill the invitee's known email/phone and show who invited them,
+     * and (b) during token-aware registration to trust the contact channel
+     * the token was delivered on. Returns undefined for an unknown token.
+     */
+    getInviteByToken(token: string): Promise<IInviteWithInviter | undefined> {
+        const queryString = knexBuilder
+            .select([
+                `${INVITES_TABLE_NAME}.id`,
+                `${INVITES_TABLE_NAME}.requestingUserId`,
+                `${INVITES_TABLE_NAME}.email`,
+                `${INVITES_TABLE_NAME}.phoneNumber`,
+                `${INVITES_TABLE_NAME}.isAccepted`,
+                `${INVITES_TABLE_NAME}.brandVariation`,
+                'main.users.firstName as inviterFirstName',
+                'main.users.lastName as inviterLastName',
+                'main.users.userName as inviterUserName',
+            ])
+            .from(INVITES_TABLE_NAME)
+            .leftJoin('main.users', 'main.users.id', `${INVITES_TABLE_NAME}.requestingUserId`)
+            .where(`${INVITES_TABLE_NAME}.token`, token)
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows[0]);
+    }
+
+    /**
      * Returns prior invites this user has sent within the given window. Used
      * by the bulk-invite handler to dedupe email/SMS sends so a user can't
      * spam the same recipient. Returns empty for empty input arrays — guards
@@ -77,12 +121,55 @@ export default class InvitesStore {
             .then((response) => response.rows as Array<{ email?: string; phoneNumber?: string }>);
     }
 
+    /**
+     * Upserts invites for a single contact channel and returns each row's
+     * token. Used by the bulk-invite flow so the magic link embedded in the
+     * outbound email/SMS matches the persisted row — including when a row
+     * already existed from a prior invite (its token is refreshed so a stale
+     * link can't be reused after a fresh invite). `channel` is the unique
+     * column to conflict on ('email' or 'phoneNumber').
+     *
+     * `requestingUserId` is merged alongside the token: email/phoneNumber are
+     * globally unique in this table, so a contact previously invited by someone
+     * else already owns the row. Refreshing only the token would hand the new
+     * inviter's magic link to the *original* inviter's row — the invitee would
+     * be auto-connected to, and the coins credited to, the wrong user. Since
+     * the refreshed token invalidates the older link, the latest inviter is the
+     * only one who can convert this invite, so they own it.
+     *
+     * Callers must de-duplicate by `channel` first: Postgres rejects an
+     * ON CONFLICT DO UPDATE that touches the same row twice in one statement.
+     */
+    upsertInvitesWithTokens(channel: 'email' | 'phoneNumber', invites: ICreateInviteParams[]) {
+        if (!invites.length) {
+            return Promise.resolve([] as Array<{ email?: string; phoneNumber?: string; token: string }>);
+        }
+        const queryString = knexBuilder.insert(invites)
+            .into(INVITES_TABLE_NAME)
+            .onConflict(channel)
+            // brandVariation is merged alongside the token: re-inviting a contact mints a
+            // fresh token and invalidates the old link, so the row's origin brand must move
+            // with it. Without this, a Habits re-invite of a contact first invited from Therr
+            // would hand the invitee a live Habits link on a row still marked 'therr'.
+            .merge(['token', 'requestingUserId', 'brandVariation', 'updatedAt'])
+            .returning(['email', 'phoneNumber', 'token'])
+            .toString();
+
+        return this.db.write.query(queryString)
+            .then((response) => response.rows as Array<{ email?: string; phoneNumber?: string; token: string }>);
+    }
+
     createIfNotExist(invites: ICreateInviteParams[]) {
         // Rows with neither contact channel can never be matched back to a
-        // registering user, so they'd sit as unredeemable junk forever.
+        // registering user, so they'd sit as unredeemable junk forever — filter
+        // them out. This also guards the empty-input case: knex emits an empty
+        // string for `.insert([])` and pg rejects an empty query, which would
+        // otherwise short-circuit the caller's promise chain (the bulk-invite
+        // flow passes only the existing-user subset here, empty whenever every
+        // invited contact is new to the platform — the common case).
         const contactableInvites = invites.filter((invite) => invite.email || invite.phoneNumber);
         if (!contactableInvites.length) {
-            return Promise.resolve([]);
+            return Promise.resolve([] as Array<{ id: string }>);
         }
         const queryString = knexBuilder.insert(contactableInvites)
             .into(INVITES_TABLE_NAME)

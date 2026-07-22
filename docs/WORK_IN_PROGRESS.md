@@ -95,6 +95,18 @@ append new items here rather than only printing them once.
   users-service route (`/habits/pacts/digest/run-daily`) is deliberately not
   exposed through the API gateway; more than one run per day duplicates
   streakAtRisk/partnerMissedDay/pactExpiring pushes.
+- [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits). Existing installs self-heal on next launch — mobile compares its FCM token against `/users/me` and re-registers via `updateUser`, which dual-writes the brand-scoped row — so expect one launch of latency per app before routing is correct.
+- [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
+- [ ] (2026-07-20, /work-plan) Run `20260720000001_main.invites.brandVariation` on production users-service (`npm run migrations:run`). Adds a NOT NULL `brandVariation` column (default `'therr'`) to `main.invites`, stamped at invite-creation and returned by `getInviteByToken`. Additive and defaulted, so applying it early is safe for the currently-deployed release; if the image ships first, invite creation fails on the unknown column.
+- [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
+- [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
+  project env var (full Play service-account key JSON with the "Release manager"
+  permission) so the `eas_build_therr_android` job can auto-populate Google Play
+  release notes. Until it is set, the release-notes step logs a skip and the
+  pipeline still succeeds — notes just won't update. See
+  `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`.
+- [ ] (2026-07-03, magic-invite-links) Run the new users-service migrations on production (`npm run migrations:run` in `therr-services/users-service`): `20260703000001_main.invites.token`, `20260703000002_main.invites.reminders`, `20260703000003_main.userStatsAggregations.onboarding`. The invite-token migration backfills a unique token per existing invite row; the onboarding-stat columns are read by the messaging-automator's completion-nudge pass.
+- [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Corrected 2026-07-14 (/quality-peer-review): the user does not get a generic error — they get nothing at all.** `TherrMobile/main/routes/Invite/PhoneContacts.tsx` ends its invite call with `.catch(() => { /* Error handled silently */ })`, so the 403 is swallowed and the "Invite" button is a silent no-op. This hits the *already-deployed* app (which cannot be force-updated), and now hits **every** new signup, since phone is no longer required to reach `EMAIL_VERIFIED`. Treat as higher priority than originally logged: at minimum surface the 403 as a toast, ideally a "verify your phone to invite" prompt that deep-links to phone verification. Also audit any other action that assumes phone presence.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
 - [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
   migration on production messages-service (`npm run migrations:run`). Without it
@@ -249,6 +261,79 @@ is a privacy-policy violation and an Apple/Google review risk.
 - `therr-services/users-service/src/handlers/auth.ts:67` — Same path on auth
 - `therr-services/users-service/src/handlers/payments.ts:53` — Only update
   user if subscription has started free trial or paid
+
+### 1.6 Unscoped user / connection endpoints (cross-brand leakage)
+
+`searchUsers` and `findPeopleYouMayKnow` were brand-scoped during the Phase 5
+brand-isolation work, but their siblings on the same identity-shared
+`main.users` / `main.userConnections` tables were not. Because `main.users` has
+no brand column (membership lives in the `brandVariations` JSONB array), an
+endpoint that omits `brandContainment` silently returns **every** brand's
+accounts — a Habits or Teem user sees Therr profiles, which undermines the
+premise of the niche apps. These fail open and produce no error, so they will
+not surface until a user reports it.
+
+Audited 2026-07-20 (handler-level, users-service). Each needs a judgment call
+on whether brand scoping is correct — direct-link profile views may legitimately
+be brand-agnostic, but discovery and contact-matching paths are not.
+
+- `therr-services/users-service/src/handlers/userConnections.ts:661` —
+  `getUserConnection` has no brand filter. Needs a judgment call first: it reads a
+  single connection by `(requestingUserId, acceptingUserId)`, so it is a targeted
+  lookup rather than discovery. Separately, `requestingUserId` comes from the route
+  param and is never checked against the caller's token — the IDOR question is
+  probably the more valuable one here
+- `therr-services/users-service/src/handlers/users.ts:841` —
+  `updateLastKnownLocation` is not brand-aware (lower risk — a mutation on the
+  caller's own row, listed for completeness)
+
+Re-audited 2026-07-20 (/work-plan) — three entries in the original audit were
+misdiagnosed and are **not** bugs. Recording the findings so they are not
+re-flagged:
+
+- `getUserByPhoneNumber` (users.ts:393) is **not** the contact-matching path. Its
+  only caller is the api-gateway phone-verification route
+  (`therr-api-gateway/src/services/phone/router.ts:60`), which uses it to enforce
+  "one personal + one creator + one business account per phone number". Brand
+  scoping it would *break* that anti-abuse rule by letting the same phone register
+  again under each brand. Phone-book contact matching is `findUsersByContactInfo`,
+  which is already brand-scoped
+- `getUser` (users.ts:369) and `getUserByUserName` (users.ts:456) are deliberately
+  brand-agnostic: both back direct-link and SEO-indexed profile views, so scoping
+  them would 404 valid cross-brand profile links. Decision is now recorded in a
+  comment on each handler
+- `clearUserDeviceToken` (users.ts:1321) looks correct as written — it deletes via
+  `deleteByToken`, and FCM token strings are unique per device *install*, so each
+  brand's app holds a distinct token and deletion by token cannot hit the wrong
+  app. Worth a confirming read of `UserDeviceTokensStore.deleteByToken` before
+  deleting this note outright
+
+Closed 2026-07-20 (/work-plan): `searchUserPairings` is now brand-scoped via a new
+`brandVariation` arg on `UsersStore.searchUserSocials` (regression tests added).
+`getInviteByToken` now resolves cross-brand *by design* and returns the invite's
+origin `brandVariation` (new `20260720000001_main.invites.brandVariation` migration)
+so the landing page can route the invitee to the right app.
+
+Frontend follow-up for the invite change (therr-client-web, separate commit — the
+backend half only makes the field available):
+
+- Invite-landing page — consume the new `brandVariation` field from
+  `GET /users/invites/:token` and deep-link the invitee to the app the invite was
+  minted in. Until this lands, a Habits invite opened on a Therr-branded landing
+  page still points the user at the Therr install
+
+Related routing hygiene, found while fixing the `POST /users/search` 400 on
+2026-07-20 (gateway `/users/:id` was registered before the literal routes and
+shadowed `/users/search`, `/users/search-pairings`, `/users/forgot-password`,
+and `/users/notifications`): the other gateway routers have not been audited
+for the same param-before-literal ordering bug. A shadowed route fails with a
+validation 400 that looks like a client payload bug, so these are expensive to
+diagnose.
+
+- `therr-api-gateway/src/services/*/router.ts` — Audit every router for
+  `:param` routes registered before literal sibling routes on the same method
+  and path prefix. Prefer a startup assertion or lint rule over a one-time
+  sweep, since new routes reintroduce the bug
 
 ---
 

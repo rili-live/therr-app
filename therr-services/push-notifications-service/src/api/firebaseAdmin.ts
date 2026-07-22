@@ -134,6 +134,8 @@ interface ICreateMessageConfig {
     habitId?: string;
     habitName?: string;
     daysRemaining?: number;
+    // Leaderboards: new weekly rank for rank-milestone copy
+    rank?: number;
 }
 
 interface INotificationMetrics {
@@ -733,6 +735,19 @@ const createMessage = (
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'STREAK_BROKEN');
             return baseMessage;
+        case PushNotifications.Types.leaderboardRankMilestone:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.leaderboardRankMilestone.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.leaderboardRankMilestone.body', {
+                        rank: Number(config.rank || 0),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.leaderboardView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'));
+            return baseMessage;
         case PushNotifications.Types.streakMilestone:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -997,6 +1012,10 @@ const predictAndSendNotification = (
 
             // Event Driven
             if (type === PushNotifications.Types.achievementCompleted) {
+                return messaging.send(message);
+            }
+
+            if (type === PushNotifications.Types.leaderboardRankMilestone) {
                 return messaging.send(message);
             }
 

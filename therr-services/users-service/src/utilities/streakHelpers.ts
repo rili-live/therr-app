@@ -45,6 +45,29 @@ export const getMilestoneProgress = (currentStreak: number): { nextMilestone: nu
 };
 
 /**
+ * Parse any accepted date value to local midnight of the calendar date it
+ * represents. Date-only strings (YYYY-MM-DD) are treated as that calendar
+ * date rather than UTC midnight: `new Date('2026-07-22')` parses as UTC
+ * midnight, so in any timezone west of UTC it lands on the evening of Jul 21
+ * local, and `.setHours(0,0,0,0)` then snaps it to Jul 21 — every date-only
+ * value silently shifts back a day and streak-gap math is off by one. Date
+ * objects and full datetime strings keep their local calendar date, matching
+ * the convention in normalizeDateString.
+ */
+const toLocalMidnight = (value: string | Date): Date => {
+    if (typeof value === 'string') {
+        const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        if (dateOnlyMatch) {
+            const [, year, month, day] = dateOnlyMatch;
+            return new Date(Number(year), Number(month) - 1, Number(day));
+        }
+    }
+    const d = new Date(value);
+    d.setHours(0, 0, 0, 0);
+    return d;
+};
+
+/**
  * Calculate if a day was missed based on last completed date
  * Takes into account that habits might not be daily (e.g., 3x per week)
  */
@@ -60,8 +83,7 @@ export const wasDayMissed = (
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const lastCompleted = new Date(lastCompletedDate);
-    lastCompleted.setHours(0, 0, 0, 0);
+    const lastCompleted = toLocalMidnight(lastCompletedDate);
 
     const daysDiff = Math.floor((today.getTime() - lastCompleted.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -107,10 +129,8 @@ export const canUseGracePeriod = (
  * is after `earlier`). Accepts date strings or Date objects.
  */
 export const getDaysBetweenDates = (earlier: string | Date, later: string | Date): number => {
-    const a = new Date(earlier);
-    a.setHours(0, 0, 0, 0);
-    const b = new Date(later);
-    b.setHours(0, 0, 0, 0);
+    const a = toLocalMidnight(earlier);
+    const b = toLocalMidnight(later);
     return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
 };
 
@@ -119,7 +139,7 @@ export const getDaysBetweenDates = (earlier: string | Date, later: string | Date
  * comparison against checkin scheduledDate strings.
  */
 export const normalizeDateString = (date: string | Date): string => {
-    const d = new Date(date);
+    const d = toLocalMidnight(date);
     const month = `${d.getMonth() + 1}`.padStart(2, '0');
     const day = `${d.getDate()}`.padStart(2, '0');
     return `${d.getFullYear()}-${month}-${day}`;
@@ -148,8 +168,7 @@ export const countMissedDaysForStreak = (
         // Count target days strictly between last completion and this check-in
         let missed = 0;
         for (let i = 1; i < daysDiff; i += 1) {
-            const d = new Date(lastCompletedDate);
-            d.setHours(0, 0, 0, 0);
+            const d = toLocalMidnight(lastCompletedDate);
             d.setDate(d.getDate() + i);
             if (targetDaysOfWeek.includes(d.getDay())) {
                 missed += 1;

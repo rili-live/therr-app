@@ -391,6 +391,9 @@
         "view": "Ver"
       }
     },
+    "thoughtDisplay": {
+      "viewAllReplies": "Ver las {count} respuestas"
+    },
     "userMenu": {
       "buttons": {
         "viewProfile": "Ver perfil",
@@ -772,6 +775,7 @@
         "disclaimer": "Al crear una cuenta, aceptas nuestros ",
         "and": " y ",
         "inviteCodeHint": "Ingresa el nombre de usuario de un amigo para ganar monedas, o pega un código PACT-XXXX de tu invitación.",
+        "invitedBy": "{inviterName} te invitó a Friends with Habits — ¡termina de registrarte para conectar!",
         "birthdateHint": "Debes tener al menos {minAge} años para usar Friends with Habits"
       },
       "validationErrors": {
@@ -1155,6 +1159,9 @@
     "achievements": {
       "headerTitle": "Logros",
       "pageHeader": "Logros",
+      "buttons": {
+        "viewLeaderboard": "Ver tabla de clasificación"
+      },
       "labels": {
         "coinValue": "Valor en monedas",
         "xpValue": "Valor de experiencia"
@@ -1313,6 +1320,25 @@
     },
     "invite": {
       "headerTitle": "Invitar"
+    },
+    "leaderboard": {
+      "headerTitle": "Tabla de clasificación",
+      "tabs": {
+        "thisWeek": "Esta semana",
+        "allTime": "Histórico",
+        "everyone": "Todos",
+        "friends": "Amigos"
+      },
+      "labels": {
+        "you": "Tú",
+        "xpPoints": "{points} XP",
+        "resetsIn": "Se reinicia en {days} día(s)",
+        "yourRank": "Tu puesto: #{rank}"
+      },
+      "info": {
+        "noScores": "Aún no hay puntuaciones esta semana. ¡Usa la aplicación para ganar XP y reclamar tu lugar!",
+        "noFriendScores": "Ninguna de tus conexiones ha ganado XP todavía. ¡Invita a tus amigos a unirse a la competencia!"
+      }
     },
     "manageNotifications": {
       "headerTitle": "Configuración de correo y alertas",
@@ -2594,6 +2620,30 @@
       "pactPioneer_1_2_1": {
         "title": "Efecto de red",
         "description": "Invita a 10 amigos únicos en distintos pactos"
+      },
+      "weeklyChampion_1_1": {
+        "title": "Contendiente",
+        "description": "Alcanza el top 10 de la tabla semanal"
+      },
+      "weeklyChampion_1_1_1": {
+        "title": "Contendiente habitual",
+        "description": "Alcanza el top 10 semanal cinco veces más"
+      },
+      "weeklyChampion_1_2": {
+        "title": "Podio",
+        "description": "Alcanza el top 3 de la tabla semanal"
+      },
+      "weeklyChampion_1_2_1": {
+        "title": "Habitual del podio",
+        "description": "Alcanza el top 3 semanal cinco veces más"
+      },
+      "weeklyChampion_1_3": {
+        "title": "Número uno",
+        "description": "Alcanza el puesto #1 de la tabla semanal"
+      },
+      "weeklyChampion_1_3_1": {
+        "title": "Campeón en serie",
+        "description": "Alcanza el puesto #1 de la tabla semanal cinco veces más"
       }
     },
     "profile": {

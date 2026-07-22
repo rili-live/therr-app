@@ -85,12 +85,25 @@ for PKG in "${PACKAGES[@]}"; do
   PKG_FILE_COUNT=$(echo "$PKG_FILES" | wc -l | tr -d ' ')
   printMessageNeutral "=== Linting ${PKG_FILE_COUNT} file(s) in ${PKG} ==="
 
+  # TherrMobile keeps its React Native toolchain in an isolated package.json that the
+  # root `npm ci` above does not install. Its .eslintrc.js does `extends: ['@react-native']`,
+  # which resolves @react-native/eslint-config from TherrMobile/node_modules — so without
+  # this install eslint fails with "couldn't find the config @react-native to extend from".
+  # Install (deps only; --ignore-scripts skips native postinstall) before linting it.
+  # Other packages resolve their eslint config/plugins from the hoisted root install.
+  if [ "${PKG}" = "TherrMobile" ]; then
+    printMessageNeutral "Installing TherrMobile isolated dependencies for linting..."
+    (cd TherrMobile && npm ci --legacy-peer-deps --ignore-scripts)
+    printMessageSuccess "TherrMobile dependencies installed"
+  fi
+
   # Convert package-relative paths for eslint (strip package prefix)
   # Use newline-safe conversion to space-separated args
   ESLINT_ARGS=$(echo "$PKG_FILES" | sed "s|^${PKG}/||")
 
-  # Run eslint from the package directory so .eslintrc.js resolves correctly
-  # node_modules are in the repo root (hoisted), eslint plugins resolve from there
+  # Run eslint from the package directory so .eslintrc.js resolves correctly.
+  # For most packages node_modules are in the repo root (hoisted) and eslint plugins
+  # resolve from there; TherrMobile additionally uses its own install (see above).
   (cd "${PKG}" && npx eslint $ESLINT_ARGS) || {
     printMessageError "Lint errors found in ${PKG}"
     LINT_ERRORS=$((LINT_ERRORS + 1))

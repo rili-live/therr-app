@@ -32,12 +32,16 @@
 - **Group chat** — real-time forum messaging within groups
 - **Group events** — events associated with a group
 - **Invite friends** — referral system with TherrCoin rewards
+- **Magic invite links** — per-invite tokenized links (`/invite/link/:token`) that pre-fill the invitee's known email/phone, trust the invited channel (emailed token → email verified, SMS token → phone verified), auto-accept the invite, and auto-connect the two users on signup
+- **Deferred phone verification** — users reach the app with just a username; phone is optional at onboarding and enforced only on phone-sensitive actions (bulk invites require `MOBILE_VERIFIED`)
 
 ### Location-Based Content
 - **Moments** — geo-tagged ephemeral photo posts; proximity-gated visibility, max view limits
 - **Spaces** — persistent location/business pages; claim storefronts, menu/reservation/order URLs, ratings, check-ins
 - **Events** — time-bound location happenings; start/stop scheduling, group/space association
 - **Thoughts** — micro-posts with categories, reply threads, mentions, hashtags
+- **Ranked social feed (mobile)** — Discoveries/Thoughts tabs ordered by engagement score (recency decay × likes/replies/views × category affinity from the user's own reactions); backend stream activation ranks candidates by reply-count hot score
+- **Auto-expanded thread previews (mobile)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style)
 - **Content categories** — 20+ categories (food, music, nature, art, gaming, etc.)
 - **Media uploads** — image upload with CDN (ImageKit), YouTube video embedding
 
@@ -54,6 +58,7 @@
 - **TherrCoin currency** — earned through social actions, check-ins, referrals
 - **XP system** — experience points from achievements
 - **Points exchange** — redeem accumulated rewards
+- **Leaderboards** — Duolingo-style weekly (Monday UTC reset) + all-time XP rankings with Everyone/Friends scopes, per-brand (works for Therr and Friends with Habits). XP accrues from achievement progress and habit check-ins/streak milestones; separate from the spendable TherrCoin balance. Opt-out via `settingsIsLeaderboardEnabled`. Climbing into the weekly top 10 / top 3 / #1 triggers a rank-milestone push notification and `weeklyChampion` achievement progress
 
 ### Notifications
 - **Push notifications** — Firebase Cloud Messaging; location-triggered, brand-specific templates
@@ -101,6 +106,7 @@
 - **Nearby content carousels** — swipeable tabs for discoveries, events, thoughts, news
 - **Draft management** — save and resume content drafts
 - **Animated onboarding** — landing page with background carousel
+- **Android app shortcuts** — long-press the launcher icon for quick links straight into Create Moment / Create Thought
 
 ---
 

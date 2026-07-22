@@ -14,6 +14,25 @@ import {
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+// Shared brand-membership predicate. main.users is identity-shared (no brand column);
+// enrollment lives in the brandVariations JSONB array, e.g. [{ brand: 'habits', ... }].
+// The @> containment check is backed by the GIN index added in brandVariations_v2.
+// Legacy rows carry the column's default 'therr' entry, so Therr discovery still returns
+// pre-existing accounts without a separate backfill.
+// `qualifier` must be a trusted, code-supplied table name (never user input) — it is
+// interpolated via knex's ?? identifier binding. Pass it whenever the query joins another
+// table, so "brandVariations" cannot become ambiguous if a joined table ever grows a
+// column of the same name.
+const brandContainment = (brand: string, qualifier?: string) => (qualifier
+    ? knexBuilder.raw(
+        '??."brandVariations" @> ?::jsonb',
+        [qualifier, JSON.stringify([{ brand }])],
+    )
+    : knexBuilder.raw(
+        '"brandVariations" @> ?::jsonb',
+        [JSON.stringify([{ brand }])],
+    ));
+
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
     brandVariations?: string | undefined;
@@ -43,6 +62,10 @@ export interface IFindUserArgs {
 
 interface IFindUsersArgs {
     ids?: string[];
+    // When set, restrict results to users enrolled in this brand (same identity-shared
+    // pattern as searchUsers). Used by discovery / People-You-May-Know so niche apps do
+    // not surface cross-brand accounts. Omit for brand-agnostic lookups (e.g. thought authors).
+    brandVariation?: string;
 }
 
 interface ISearchUsersArgs {
@@ -51,6 +74,10 @@ interface ISearchUsersArgs {
     queryColumnName?: string;
     limit?: number;
     offset?: number;
+    // When set, discovery is scoped to users enrolled in this brand (identity-shared
+    // pattern: main.users has no brand column, membership lives in the brandVariations
+    // JSONB array). See docs/NICHE_APP_DATABASE_GUIDELINES.md.
+    brandVariation?: string;
 }
 
 export interface IFindUsersByContactInfo {
@@ -164,9 +191,16 @@ export default class UsersStore {
 
     findUsers({
         ids,
+        brandVariation,
     }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
         let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .whereIn('id', ids || []);
+
+        if (brandVariation) {
+            // Brand-scope discovery lookups so niche apps do not surface cross-brand users
+            // (e.g. Habits showing pre-existing Therr accounts via People-You-May-Know).
+            queryString = queryString.andWhere(brandContainment(brandVariation));
+        }
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
@@ -207,6 +241,7 @@ export default class UsersStore {
             queryColumnName,
             limit,
             offset,
+            brandVariation,
         }: ISearchUsersArgs,
         withConnections = false,
         onlyVerified = false,
@@ -220,8 +255,22 @@ export default class UsersStore {
             .andWhere('settingsIsProfilePublic', true)
             .andWhereNot('id', requestingUserId);
 
+        if (brandVariation) {
+            // Scope discovery to users enrolled in the requesting brand (see brandContainment).
+            queryString = queryString.andWhere(brandContainment(brandVariation));
+        }
+
         if (onlyVerified) {
-            queryString = queryString.andWhere(knexBuilder.raw(`"accessLevels" \\? '${AccessLevels.MOBILE_VERIFIED}'`));
+            // Discovery surfaces any verified account — email OR mobile. Requiring
+            // MOBILE_VERIFIED alone silently emptied the People list once onboarding
+            // stopped forcing phone verification (feat(users): reduce onboarding
+            // friction): most users now carry EMAIL_VERIFIED but never complete mobile
+            // verification, so the single-level `?` filter matched nobody. The jsonb
+            // `?|` operator matches when accessLevels contains ANY of the listed levels.
+            // AccessLevels values are trusted enum constants, so inlining them is safe.
+            queryString = queryString.andWhere(knexBuilder.raw(
+                `"accessLevels" \\?| ARRAY['${AccessLevels.MOBILE_VERIFIED}', '${AccessLevels.EMAIL_VERIFIED}']::text[]`,
+            ));
         }
 
         queryString = queryString
@@ -294,6 +343,7 @@ export default class UsersStore {
         queryColumnName,
         limit,
         offset,
+        brandVariation,
     }: ISearchUsersArgs, returning: any = [`${USERS_TABLE_NAME}.id`, 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
@@ -315,6 +365,13 @@ export default class UsersStore {
             .orderBy(`${USERS_TABLE_NAME}.createdAt`, 'desc')
             .limit(throttledLimit)
             .offset(offset || 0);
+
+        if (brandVariation) {
+            // Influencer-pairing discovery is brand-scoped for the same reason searchUsers is:
+            // main.users is identity-shared, so without this a Habits/Teem dashboard surfaces
+            // Therr accounts. Qualified because this query joins socialSyncs.
+            queryString = queryString.andWhere(brandContainment(brandVariation, USERS_TABLE_NAME));
+        }
 
         if (ids) {
             queryString = queryString.whereIn(`${USERS_TABLE_NAME}.id`, ids || []);
@@ -340,6 +397,7 @@ export default class UsersStore {
     findUsersByContactInfo(
         contacts: IFindUsersByContactInfo[],
         returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken', 'isUnclaimed', 'settingsEmailInvites', 'isSuperUser'],
+        brandVariation: string | undefined = undefined,
     ) {
         const emails: string[] = [];
         const phoneNumbers: string[] = [];
@@ -356,9 +414,19 @@ export default class UsersStore {
                 }
             }
         });
+        // Group the email/phone OR so a brand filter ANDs against the whole match set
+        // (avoids `email IN (...) OR (phone IN (...) AND brand)` precedence bugs).
         let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
-            .whereIn('email', emails || [])
-            .orWhereIn('phoneNumber', phoneNumbers);
+            .where((builder) => {
+                builder.whereIn('email', emails || [])
+                    .orWhereIn('phoneNumber', phoneNumbers);
+            });
+
+        if (brandVariation) {
+            // Brand-scope contact matching so we neither suggest nor seed MIGHT_KNOW edges
+            // to cross-brand accounts (e.g. a Therr-only contact surfacing inside Habits).
+            queryString = queryString.andWhere(brandContainment(brandVariation));
+        }
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
@@ -432,6 +500,14 @@ export default class UsersStore {
             modifiedParams.loginCount = params.loginCount;
         }
 
+        if (params.lastLoginAt) {
+            // This query is serialized with knex's `.toString()`, which renders a JS Date
+            // into the Node process's local timezone with no offset. Postgres then parses
+            // that naive literal in the DB session's timezone, shifting the stored value on
+            // any non-UTC host. An explicit UTC ISO-8601 string is unambiguous to both.
+            modifiedParams.lastLoginAt = new Date(params.lastLoginAt).toISOString();
+        }
+
         if (params.deviceMobileFirebaseToken) {
             modifiedParams.deviceMobileFirebaseToken = params.deviceMobileFirebaseToken;
         }
@@ -470,6 +546,10 @@ export default class UsersStore {
 
         if (params.settingsIsProfilePublic != null) {
             modifiedParams.settingsIsProfilePublic = params.settingsIsProfilePublic;
+        }
+
+        if (params.settingsIsLeaderboardEnabled != null) {
+            modifiedParams.settingsIsLeaderboardEnabled = params.settingsIsLeaderboardEnabled;
         }
 
         if (params.settingsLocale != null) {

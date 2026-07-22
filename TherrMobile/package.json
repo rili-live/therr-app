@@ -46,7 +46,9 @@
     "troubleshoot:android:stopGradle": "pushd android; ./gradlew --stop; popd",
     "troubleshoot:android:clean": "npm run android:clean",
     "perf:reset": "./_scripts/perf-capture.sh reset",
-    "perf:snapshot": "./_scripts/perf-capture.sh snapshot"
+    "perf:snapshot": "./_scripts/perf-capture.sh snapshot",
+    "play:release-notes": "node _scripts/populate-play-release-notes.mjs",
+    "play:release-notes:dry": "node _scripts/populate-play-release-notes.mjs --dry-run"
   },
   "dependencies": {
     "@callstack/react-theme-provider": "^3.0.9",

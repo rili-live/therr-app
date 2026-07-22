@@ -4,6 +4,10 @@
       "title": "You Earned a Reward!",
       "body": "Nice work! You just completed an achievement. Tap to claim your coins before they expire."
     },
+    "leaderboardRankMilestone": {
+      "title": "Leaderboard Milestone!",
+      "body": "You just climbed to #{rank} on this week's leaderboard. Keep earning XP to defend your spot!"
+    },
     "connectionRequestAccepted": {
       "title": "You're Connected!",
       "body": "{userName} accepted your request — say hello and start a conversation!",

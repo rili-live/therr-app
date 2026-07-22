@@ -391,6 +391,9 @@
         "view": "Voir"
       }
     },
+    "thoughtDisplay": {
+      "viewAllReplies": "Voir les {count} réponses"
+    },
     "userMenu": {
       "buttons": {
         "viewProfile": "Voir le profil",
@@ -772,6 +775,7 @@
         "disclaimer": "En créant un compte, vous acceptez nos ",
         "and": " et ",
         "inviteCodeHint": "Entrez le nom d'un ami pour gagner des pièces, ou collez un code PACT-XXXX de votre invitation.",
+        "invitedBy": "{inviterName} t'a invité sur Friends with Habits — termine ton inscription pour te connecter!",
         "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser Friends with Habits"
       },
       "validationErrors": {
@@ -1155,6 +1159,9 @@
     "achievements": {
       "headerTitle": "Réalisations",
       "pageHeader": "Réalisations",
+      "buttons": {
+        "viewLeaderboard": "Voir le classement"
+      },
       "labels": {
         "coinValue": "Valeur en pièces",
         "xpValue": "Valeur d'expérience"
@@ -1313,6 +1320,25 @@
     },
     "invite": {
       "headerTitle": "Inviter"
+    },
+    "leaderboard": {
+      "headerTitle": "Classement",
+      "tabs": {
+        "thisWeek": "Cette semaine",
+        "allTime": "Historique",
+        "everyone": "Tout le monde",
+        "friends": "Ami(e)s"
+      },
+      "labels": {
+        "you": "Vous",
+        "xpPoints": "{points} XP",
+        "resetsIn": "Réinitialisation dans {days} jour(s)",
+        "yourRank": "Votre rang : #{rank}"
+      },
+      "info": {
+        "noScores": "Aucun score cette semaine. Utilisez l'application pour gagner des XP et réclamer votre place!",
+        "noFriendScores": "Aucune de vos connexions n'a encore gagné de XP. Invitez vos ami(e)s à se joindre à la compétition!"
+      }
     },
     "manageNotifications": {
       "headerTitle": "Paramètres de courriel et alertes",
@@ -2594,6 +2620,30 @@
       "pactPioneer_1_2_1": {
         "title": "Effet de réseau",
         "description": "Invitez 10 amis uniques dans différents pactes"
+      },
+      "weeklyChampion_1_1": {
+        "title": "Prétendant",
+        "description": "Atteins le top 10 du classement hebdomadaire"
+      },
+      "weeklyChampion_1_1_1": {
+        "title": "Prétendant régulier",
+        "description": "Atteins le top 10 hebdomadaire cinq fois de plus"
+      },
+      "weeklyChampion_1_2": {
+        "title": "Podium",
+        "description": "Atteins le top 3 du classement hebdomadaire"
+      },
+      "weeklyChampion_1_2_1": {
+        "title": "Habitué du podium",
+        "description": "Atteins le top 3 hebdomadaire cinq fois de plus"
+      },
+      "weeklyChampion_1_3": {
+        "title": "Numéro un",
+        "description": "Atteins le rang #1 du classement hebdomadaire"
+      },
+      "weeklyChampion_1_3_1": {
+        "title": "Champion en série",
+        "description": "Atteins le rang #1 du classement hebdomadaire cinq fois de plus"
       }
     },
     "profile": {

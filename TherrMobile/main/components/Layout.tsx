@@ -4,6 +4,7 @@ import qs from 'qs';
 import {
     Image,
     Linking,
+    NativeModules,
     PermissionsAndroid,
     Platform,
 } from 'react-native';
@@ -79,6 +80,15 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
 
 const preLoadImageList = [background1, background2, background3];
+
+// Android app-shortcut intent-action suffixes (long-press launcher icon).
+// Matched by suffix so the same JS handles every brand binary regardless of
+// its package prefix (app.therrmobile.* / com.therr.mobile.* / ...). See
+// android/app/src/main/res/xml/shortcuts.xml.
+const QUICK_ACTION_SUFFIXES = {
+    CREATE_MOMENT: '.QUICK_CREATE_MOMENT',
+    CREATE_THOUGHT: '.QUICK_CREATE_THOUGHT',
+};
 
 const Stack = createNativeStackNavigator<ParamListBase, undefined>();
 
@@ -221,6 +231,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (Platform.OS === 'android') {
             Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+            // App-shortcut cold-start: a shortcut tapped while the app is killed
+            // launches via onCreate (not onNewIntent), so read the launch intent's
+            // action once and route it through the same handler as the warm path.
+            NativeModules.InitialIntent?.getInitialAction?.()
+                .then((action: string | null) => {
+                    if (action) {
+                        this.handleFirebasePushNotificationEvent({ action });
+                    }
+                })
+                .catch((err) => console.log('INITIAL_INTENT_ACTION_ERROR', err));
         }
         // (Firebase) Push Notifications Click Handler (Android intent-filter path)
         this.nativeEventListener = PlatformNativeEventEmitter?.addListener('new-intent-action', this.handleFirebasePushNotificationEvent);
@@ -847,6 +867,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'BookMarked';
             } else if (data.action === brandIntents.REPORT_CONFIRMED) {
                 targetRouteView = 'Notifications';
+            } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_MOMENT)) {
+                // App-shortcut: jump straight into moment creation. EditMoment
+                // destructures route.params (and calls nearbySpaces.find), so we
+                // must pass a non-empty param object. Seed the location from the
+                // user's last-known coords, matching the in-app create button.
+                targetRouteView = 'EditMoment';
+                targetRouteParams = {
+                    imageDetails: {},
+                    nearbySpaces: [],
+                    latitude: user?.details?.lastKnownLatitude,
+                    longitude: user?.details?.lastKnownLongitude,
+                };
+            } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_THOUGHT)) {
+                // App-shortcut: jump straight into thought creation (no location).
+                targetRouteView = 'EditThought';
             }
         }
 
@@ -1280,6 +1315,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.leaderboardView) {
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'Leaderboard',
+                        targetRouteParams: {},
+                    });
+
+                    return Promise.resolve();
+                }
+
+                RootNavigation.navigate('Leaderboard');
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.userView) {
                 let fromUserDetails: any = {};
                 if (typeof notification?.data?.fromUser === 'string') {
@@ -1472,6 +1521,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewEventRegex = RegExp('events/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewGroupRegex = RegExp('groups/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewPublicListRegex = RegExp('lists/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/([a-z0-9-]+)', 'i');
+        const inviteLinkRegex = RegExp('invite/link/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const isUserLoggedIn = isUserAuthenticated(user);
         const isUserMissingProps = UsersService.isAuthorized(
             {
@@ -1560,6 +1610,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 this.setState({
                     targetRouteView: 'Home',
                 });
+            }
+        } else if (url?.match(inviteLinkRegex)) {
+            // Magic invite link: send unauthenticated users to a pre-filled
+            // signup (Register fetches the invite details from the token).
+            // Already-authenticated users have an account, so ignore.
+            const inviteToken = url.match(inviteLinkRegex)[1];
+            if (!isUserLoggedIn) {
+                RootNavigation.navigate('Register', { inviteToken });
             }
         } else if (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex)) {
             const momentId = (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex))[1];
@@ -2024,7 +2082,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         ? hOpts.headerTitle
                                         : (hOpts?.title ?? hRoute.name);
                                     middleNode = (
-                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                        <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 8 }}>
                                             <Text
                                                 numberOfLines={1}
                                                 style={[

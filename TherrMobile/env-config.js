@@ -4,9 +4,16 @@ const { BrandVariations } = require('therr-js-utilities/constants');
 
 const apiGatewayPort = 7770;
 const websocketPort = 7743;
-// const hostDev = '192.168.1.148'; // Must use computer's ip address for dev (physical device) to connect socket.io
-// 10.0.2.2 is Android emulator alias for host localhost; iOS simulator uses localhost directly
-const hostDev = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+// Physical device only: set to your computer's LAN IP so the device can reach the
+// dev API + socket.io (`ipconfig getifaddr en0` on macOS). Leave null otherwise --
+// a hardcoded IP here silently breaks whenever DHCP reassigns your address, which
+// surfaces as a hung login and (via the offline-first axios interceptor, which
+// resolves failed GETs with empty data) as empty lists rather than a visible error.
+const devLanHost = null;
+
+// Default is DHCP-proof: 10.0.2.2 is the Android emulator's alias for host
+// localhost; the iOS simulator shares the host's network and uses localhost.
+const hostDev = devLanHost || (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 const hostProd = 'therr.com';
 const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 

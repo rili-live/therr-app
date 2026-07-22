@@ -3,12 +3,13 @@ import {
     AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, MetricNames, PushNotifications, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import { parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import syncDeviceTokenForBrand from '../utilities/syncDeviceTokenForBrand';
+import sendEmailAndOrPushNotification, { resolveDeviceTokenForBrand } from '../utilities/sendEmailAndOrPushNotification';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import {
@@ -16,7 +17,6 @@ import {
 } from './helpers/user';
 import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
-import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
@@ -243,6 +243,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     false,
                     undefined,
                     !!inviteCode,
+                    req.body.inviteToken,
                     isPreVerifiedByPactClaim,
                 );
             }).then(async (user) => {
@@ -421,9 +422,10 @@ const createUser: RequestHandler = (req: any, res: any) => {
 // READ
 const getMe = (req, res) => {
     const userId = req.headers['x-userid'];
+    const { brandVariation } = getBrandContext(req.headers);
 
     return Store.users.getUserByConditions({ id: userId, settingsIsAccountSoftDeleted: false })
-        .then((results) => {
+        .then(async (results) => {
             if (!results.length) {
                 return handleHttpError({
                     res,
@@ -436,9 +438,23 @@ const getMe = (req, res) => {
             // Remove credentials from object
             redactUserCreds(userResult);
 
-            return userResult;
+            // Multi-app isolation (Phase 2): the legacy users.deviceMobileFirebaseToken column
+            // is overwritten whenever a second branded app (e.g. Habits) registers on the same
+            // device, so it can point at another brand's app install. Consumers that read this
+            // endpoint for push routing — notably background-location processing in
+            // push-notifications-service, whose BackgroundGeolocation requests never carry the
+            // x-user-device-token header — would then deliver this brand's notification to the
+            // wrong app. Override with the brand-scoped token from main.userDeviceTokens (keyed
+            // on the request's x-brand-variation), falling back to the legacy column when the
+            // device hasn't re-registered against the new table yet.
+            userResult.deviceMobileFirebaseToken = await resolveDeviceTokenForBrand(
+                brandVariation,
+                userId,
+                userResult.deviceMobileFirebaseToken,
+            );
+
+            return res.status(200).send(userResult);
         })
-        .then((user) => res.status(200).send(user))
         .catch((err) => handleHttpError({
             err,
             res,
@@ -447,6 +463,12 @@ const getMe = (req, res) => {
 };
 
 // READ
+/**
+ * Deliberately NOT brand-scoped. This is a profile-by-id lookup, which is reached from a
+ * shared link rather than from discovery, so a Habits user opening a link to a Therr
+ * profile should still see it. Brand scoping belongs on discovery and contact-matching
+ * paths (searchUsers, searchUserPairings, findUsersByContactInfo), not here.
+ */
 const getUser = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
     const userId = req.headers['x-userid'];
@@ -533,6 +555,10 @@ const getUserByPhoneNumber = (req, res) => {
 /**
  * IMPORTANT - This is a public endpoint without optional authorization
  * Consider any and all implications of data that is returned
+ *
+ * Deliberately NOT brand-scoped, for the same reason as getUser above: this backs public,
+ * SEO-indexed profile pages reached by direct link. Scoping it would 404 valid cross-brand
+ * profile links. See getUser for where brand scoping does belong.
  */
 const getUserByUserName = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
@@ -573,6 +599,10 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
 
 const searchUsers: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid']; // undefined if user is not logged in
+    // Discovery is brand-scoped: identity-shared main.users has no brand column, so we
+    // filter on brandVariations enrollment. getBrandContext defaults to THERR for legacy
+    // tokens with no x-brand-variation header, matching the column's default membership.
+    const { brandVariation } = getBrandContext(req.headers);
 
     const {
         ids,
@@ -590,6 +620,10 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
             .then((connections) => Store.users.findUsers({
                 ids: connections
                     .map((con) => (con.requestingUserId === userId ? con.acceptingUserId : con.requestingUserId)),
+                // Brand-scope People-You-May-Know too. Without this, the mightKnow list leaks
+                // cross-brand accounts (contact-matched Therr users showing inside Habits) even
+                // though the primary searchUsers results are already brand-scoped.
+                brandVariation,
             }))
         : Promise.resolve([]);
 
@@ -600,6 +634,7 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
+        brandVariation,
     }, true, true);
 
     return Promise.all([mightKnowPromise, searchPromise])
@@ -627,6 +662,10 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
  */
 const searchUserPairings: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid']; // undefined if user is not logged in
+    // Brand-scoped for the same reason as its sibling searchUsers above: this is a
+    // discovery surface, so without the filter a niche dashboard pairs its users with
+    // accounts from another brand. getBrandContext defaults to THERR for legacy tokens.
+    const { brandVariation } = getBrandContext(req.headers);
 
     // TODO: Implement prediction algorithm to find users relevant to the requesting user
 
@@ -647,6 +686,7 @@ const searchUserPairings: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
+        brandVariation,
     })
         .then((results) => {
             res.status(200).send({
@@ -815,6 +855,7 @@ const updateUser = (req, res) => {
                 settingsEmailBackground: req.body.settingsEmailBackground,
                 settingsThemeName: req.body.settingsThemeName,
                 settingsIsProfilePublic: req.body.settingsIsProfilePublic,
+                settingsIsLeaderboardEnabled: req.body.settingsIsLeaderboardEnabled,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
                 settingsLocale: req.body.settingsLocale,
@@ -1262,16 +1303,25 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
 
             redactUserCreds(users[0]);
 
-            return Promise.all([
+            const user = users[0];
+
+            // Fire-and-forget the claim-request notification emails. These are
+            // best-effort admin/business notifications and must NOT gate the HTTP
+            // response. Previously they were awaited via Promise.all before the
+            // 200 was sent, so any AWS SES latency (slow/unreachable endpoint, SDK
+            // retry backoff) blocked the response. With no client-side request
+            // timeout on mobile, that surfaced as the "request a space" submit
+            // hanging indefinitely. Respond immediately; log email failures.
+            Promise.all([
                 sendClaimPendingReviewEmail({
                     subject: 'Business Space Request in Review',
                     locale,
-                    toAddresses: [users[0].email],
+                    toAddresses: [user.email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
                     recipientIdentifiers: {
-                        id: users[0].id,
-                        accountEmail: users[0].email,
+                        id: user.id,
+                        accountEmail: user.email,
                     },
                 }, {
                     spaceName: title || notificationMsg,
@@ -1289,16 +1339,27 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                     description,
                     userId,
                 }),
-            ]).then(() => users[0]);
+            ]).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to send space claim request emails'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'user.id': userId,
+                    },
+                });
+            });
+
+            return res.status(200).send({
+                message: 'Request sent to admin',
+                user: {
+                    accessLevels: user.accessLevels,
+                    isBusinessAccount: user.isBusinessAccount,
+                    email: user.email,
+                },
+            });
         })
-        .then((user) => res.status(200).send({
-            message: 'Request sent to admin',
-            user: {
-                accessLevels: user.accessLevels,
-                isBusinessAccount: user.isBusinessAccount,
-                email: user.email,
-            },
-        }))
         .catch((err) => handleHttpError({
             err,
             res,

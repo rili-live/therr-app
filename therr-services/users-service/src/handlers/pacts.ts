@@ -13,8 +13,8 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import { dispatchPactInvitation } from '../utilities/dispatchPactInvitation';
-import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import {
     validatePactParams,
     isUserInPact,

@@ -168,8 +168,6 @@ This requires Play Console support intervention and can take 1–2 weeks.
 
 ---
 
----
-
 ## EAS (Expo Application Services) — HABITS Android CI/CD
 
 The `niche/HABITS-main` branch triggers an EAS cloud build + Google Play submit
@@ -243,6 +241,41 @@ only needs `eas-cli` installed — no local Android SDK required.
    Do **not** push `niche/HABITS-main` until steps 1–6 are complete — the
    pushed build/submit will fail at auth without `EXPO_TOKEN` and the EAS
    secrets in place.
+
+---
+
+### CircleCI env var: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
+
+**What it is:** The full JSON key for a Google Play service account, used by
+`TherrMobile/_scripts/populate-play-release-notes.mjs` (run in the
+`eas_build_therr_android` CircleCI job) to push the user-facing "What's new"
+release notes to the Play internal track after `eas build --auto-submit`.
+EAS Submit uploads the AAB but does not manage release notes, so this closes
+that gap.
+
+**Required scope:** The service account must have the **Release manager**
+permission on the Therr Play listing (Play Console → Users & permissions).
+This is the *same* service account already configured on EAS for
+`--auto-submit`; you are reusing its key JSON, just also storing it in
+CircleCI.
+
+**Why gitignored / secret:** The key can publish releases and edit the store
+listing. Treat as high-sensitivity. It is stored as a CircleCI project-level
+environment variable (paste the entire JSON as the value), **not** committed.
+
+**Setup:**
+1. CircleCI → Project Settings → Environment Variables → Add Variable.
+2. Name: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`; Value: the full service-account
+   JSON (single line is fine).
+3. If unset, the CI step logs a skip and the pipeline still succeeds — release
+   notes simply won't be updated until the var is added.
+
+**Regenerate from upstream if lost:**
+Google Cloud Console → project `therr-app` → IAM & Admin → Service Accounts →
+the Play publisher account → Keys → Add key → JSON. Then re-grant it access in
+Play Console if needed.
+
+---
 
 ### `TherrMobile/android/app/habits-upload.keystore` (planned, not yet created)
 

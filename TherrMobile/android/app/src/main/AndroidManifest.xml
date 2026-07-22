@@ -142,6 +142,20 @@
         <action android:name="app.therrmobile.INVITE_FRIENDS_REMINDER" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
+
+      <!-- App shortcuts (long-press launcher icon). See res/xml/shortcuts.xml -->
+      <intent-filter>
+        <action android:name="app.therrmobile.QUICK_CREATE_MOMENT" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.QUICK_CREATE_THOUGHT" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+
+      <meta-data
+        android:name="android.app.shortcuts"
+        android:resource="@xml/shortcuts" />
     </activity>
 
     <meta-data

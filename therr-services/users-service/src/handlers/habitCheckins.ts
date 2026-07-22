@@ -25,6 +25,8 @@ import {
     scanMultiHabitConsistency,
     headersForOtherUser,
 } from './helpers/awardHabitAchievements';
+import { awardLeaderboardPoints } from './helpers/leaderboards';
+import { LeaderboardXpValues } from '../utilities/leaderboardHelpers';
 
 // CREATE
 const createCheckin: RequestHandler = async (req: any, res: any) => {
@@ -141,6 +143,18 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     return res.status(201).send(checkin);
                 }
 
+                // First completion for this habit+date: the upsert only returns
+                // contributedToStreak=false before this block has ever run for the row, so
+                // re-submitted check-ins (edits, added proofs) never double-award XP.
+                const isFirstCompletionForDate = !checkin.contributedToStreak;
+                if (isFirstCompletionForDate) {
+                    // Direct XP hook — base XP for every completed check-in, independent of the
+                    // achievement ladder. Streak/consistency achievements below add their own
+                    // XP on top when they progress (bonus stacking is intentional, and their
+                    // milestone-rung gating means they don't fire on every check-in).
+                    awardLeaderboardPoints(req.headers, LeaderboardXpValues.habitCheckin, 'habit-checkin');
+                }
+
                 // Gap handling — streak freezes. When required days were
                 // missed since the last completion, consume available grace
                 // days ("streak freezes") to preserve the streak; otherwise
@@ -208,6 +222,14 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
                 const milestone = checkMilestoneReached(updatedStreak.currentStreak);
                 if (milestone) {
+                    if (isFirstCompletionForDate) {
+                        awardLeaderboardPoints(
+                            req.headers,
+                            milestone * LeaderboardXpValues.streakMilestoneMultiplier,
+                            `streak-milestone:${milestone}`,
+                        );
+                    }
+
                     // Earn a streak freeze at every 7+ day milestone (capped).
                     // This is the Duolingo-style loss-aversion loop: freezes
                     // are earned by consistency and spent automatically when

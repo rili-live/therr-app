@@ -65,6 +65,10 @@ describe('RegisterForm', () => {
                     email: 'test@test.com',
                     password: 'TestPass123!',
                     repeatPassword: 'TestPass123!',
+                    // isFormDisabled() also requires a birthdate that passes
+                    // isValidSignupAge — omitting it left the button disabled and
+                    // this assertion silently inverted.
+                    settingsBirthdate: '1990-01-01',
                     hasAgreedToTerms: true,
                     settingsEmailMarketing: true,
                 },
@@ -131,6 +135,8 @@ describe('RegisterForm', () => {
                     email: 'test@test.com',
                     password: 'TestPass123!',
                     repeatPassword: 'TestPass123!',
+                    // Required by isFormDisabled(); without it onSubmit is a no-op.
+                    settingsBirthdate: '1990-01-01',
                     hasAgreedToTerms: true,
                     settingsEmailMarketing: true,
                 },
@@ -144,11 +150,58 @@ describe('RegisterForm', () => {
         expect(registerFn).toHaveBeenCalledWith({
             email: 'test@test.com',
             password: 'TestPass123!',
+            settingsBirthdate: '1990-01-01',
             hasAgreedToTerms: true,
             settingsEmailMarketing: true,
         });
         // repeatPassword should be removed
         expect(registerFn.mock.calls[0][0]).not.toHaveProperty('repeatPassword');
+    });
+
+    // Magic invite-link flow: the landing page passes the token down so registration
+    // can trust the invited channel and auto-connect the two users. If the token is
+    // dropped here the invite silently degrades to an ordinary signup — no connection,
+    // no inviter reward — with nothing surfaced to either user.
+    it('forwards the invite token to register when signing up from a magic link', () => {
+        const registerFn = jest.fn();
+        const wrapper = mountWithProviders(
+            <RegisterFormComponent
+                {...defaultProps}
+                register={registerFn}
+                prefillEmail="invited@test.com"
+                inviteToken="a-token"
+            />,
+        );
+        const instance = getInstance(wrapper);
+
+        act(() => {
+            instance.setState({
+                inputs: {
+                    email: 'invited@test.com',
+                    password: 'TestPass123!',
+                    repeatPassword: 'TestPass123!',
+                    settingsBirthdate: '1990-01-01',
+                    hasAgreedToTerms: true,
+                },
+            });
+        });
+
+        act(() => {
+            instance.onSubmit();
+        });
+
+        expect(registerFn.mock.calls[0][0]).toMatchObject({
+            email: 'invited@test.com',
+            inviteToken: 'a-token',
+        });
+    });
+
+    it('seeds the email field from the invite so the invitee does not retype it', () => {
+        const wrapper = mountWithProviders(
+            <RegisterFormComponent {...defaultProps} prefillEmail="invited@test.com" />,
+        );
+
+        expect(getInstance(wrapper).state.inputs.email).toBe('invited@test.com');
     });
 
     it('does not call register when form is disabled', () => {
