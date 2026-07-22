@@ -78,8 +78,13 @@ export default class InvitesStore {
     }
 
     createIfNotExist(invites: ICreateInviteParams[]) {
-        // TODO: Filter out invites that have neither a phone number or email
-        const queryString = knexBuilder.insert(invites)
+        // Rows with neither contact channel can never be matched back to a
+        // registering user, so they'd sit as unredeemable junk forever.
+        const contactableInvites = invites.filter((invite) => invite.email || invite.phoneNumber);
+        if (!contactableInvites.length) {
+            return Promise.resolve([]);
+        }
+        const queryString = knexBuilder.insert(contactableInvites)
             .into(INVITES_TABLE_NAME)
             .onConflict()
             .ignore()
