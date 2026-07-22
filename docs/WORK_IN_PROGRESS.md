@@ -99,6 +99,13 @@ append new items here rather than only printing them once.
   `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`.
 - [ ] (2026-07-03, magic-invite-links) Run the new users-service migrations on production (`npm run migrations:run` in `therr-services/users-service`): `20260703000001_main.invites.token`, `20260703000002_main.invites.reminders`, `20260703000003_main.userStatsAggregations.onboarding`. The invite-token migration backfills a unique token per existing invite row; the onboarding-stat columns are read by the messaging-automator's completion-nudge pass.
 - [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Corrected 2026-07-14 (/quality-peer-review): the user does not get a generic error — they get nothing at all.** `TherrMobile/main/routes/Invite/PhoneContacts.tsx` ends its invite call with `.catch(() => { /* Error handled silently */ })`, so the 403 is swallowed and the "Invite" button is a silent no-op. This hits the *already-deployed* app (which cannot be force-updated), and now hits **every** new signup, since phone is no longer required to reach `EMAIL_VERIFIED`. Treat as higher priority than originally logged: at minimum surface the 403 as a toast, ideally a "verify your phone to invite" prompt that deep-links to phone verification. Also audit any other action that assumes phone presence.
+- [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
+  digest: an internal cron (k8s CronJob or equivalent) must POST once daily —
+  ideally early evening US time (~23:00 UTC) — to
+  `users-service:7771/habits/pacts/digest/run-daily` with headers
+  `x-brand-variation: habits` and `x-localecode: en-us`. The route is
+  deliberately not exposed through the API gateway. Running it more than once
+  a day duplicates streakAtRisk/partnerMissedDay/pactExpiring pushes.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
 - [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
   migration on production messages-service (`npm run migrations:run`). Without it
@@ -646,8 +653,6 @@ English-formatted timestamps.
 - `therr-services/users-service/src/handlers/users.ts:879` — Reward
   increment/decrement on blockchain for auditability (long-term, but is the
   legal record once paid tier exists)
-- `therr-services/users-service/src/store/InvitesStore.ts:49` — Filter out
-  invites with neither phone nor email
 - `therr-services/users-service/src/handlers/auth.ts:181, 182` — Encrypt
   stored OAuth `access_token`s in DB
 - `therr-services/users-service/src/handlers/auth.ts:315` — Same

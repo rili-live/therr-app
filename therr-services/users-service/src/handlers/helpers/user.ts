@@ -285,6 +285,11 @@ const createUserHelper = (
     // eslint-disable-next-line default-param-last
     hasInviteCode = false,
     inviteToken?: string,
+    // Registration arrived with proof of contact-channel ownership (e.g. a
+    // pact claim token/code that was delivered to this exact email/phone).
+    // Treated like SSO for verification purposes: access levels are granted
+    // up-front and no verification email is sent.
+    isPreVerified = false,
 ) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -344,7 +349,7 @@ const createUserHelper = (
             if (userDetails.isDashboardRegistration) {
                 userAccessLevels.add(AccessLevels.DASHBOARD_SIGNUP);
             }
-            if (isSSO) {
+            if (isSSO || isPreVerified) {
                 if (isMissingUserProps) {
                     userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 } else {
@@ -623,10 +628,15 @@ const createUserHelper = (
                 isDashboardRegistration: userDetails.isDashboardRegistration,
             });
 
-            // Magic invite-link (email channel): the emailed token already
-            // proved control of this address, so the account is marked email
-            // verified above. Skip the verification round-trip entirely.
-            if (emailChannelVerified) {
+            // Skip the verification round-trip when contact-channel ownership
+            // is already proven:
+            //  - emailChannelVerified: a magic invite-link token was emailed to
+            //    this address and the account is marked email verified above.
+            //  - isPreVerified: a pact claim secret was delivered to this exact
+            //    email/phone — the same ownership proof a verification link
+            //    provides. Skipping removes the leave-the-app-verify-return wall
+            //    between an invitee and their friend's pact.
+            if (emailChannelVerified || isPreVerified) {
                 return user;
             }
 
