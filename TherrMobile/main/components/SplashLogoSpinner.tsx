@@ -7,6 +7,8 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 
 // Matches the HABITS native bootsplash background (white) so the JS overlay
 // hands off from the native splash with no visible color flash.
@@ -14,6 +16,12 @@ const BOOTSPLASH_BACKGROUND = '#ffffff';
 const LOGO_SIZE = 100;
 const SPIN_DURATION_MS = 700;
 const FADE_OUT_DURATION_MS = 250;
+
+// Some brands (e.g. HABITS) use a combined splash logo that bundles the icon
+// and the wordmark into a single image. Spinning that image rotates the text
+// too, which reads poorly — so we only spin brands whose splash logo is an
+// icon on its own, and fade the rest out without rotating.
+const SHOULD_SPIN_LOGO = CURRENT_BRAND_VARIATION !== BrandVariations.HABITS;
 
 interface ISplashLogoSpinnerProps {
     start: boolean;
@@ -35,22 +43,30 @@ const SplashLogoSpinner = ({ start, onAnimationComplete }: ISplashLogoSpinnerPro
             onAnimationComplete();
         };
 
+        const fadeOut = () => {
+            opacity.value = withTiming(
+                0,
+                { duration: FADE_OUT_DURATION_MS, easing: Easing.out(Easing.quad) },
+                (fadeFinished) => {
+                    if (fadeFinished) {
+                        runOnJS(finish)();
+                    }
+                },
+            );
+        };
+
+        if (!SHOULD_SPIN_LOGO) {
+            fadeOut();
+            return;
+        }
+
         rotation.value = withTiming(
             360,
             { duration: SPIN_DURATION_MS, easing: Easing.inOut(Easing.quad) },
             (spinFinished) => {
-                if (!spinFinished) {
-                    return;
+                if (spinFinished) {
+                    runOnJS(fadeOut)();
                 }
-                opacity.value = withTiming(
-                    0,
-                    { duration: FADE_OUT_DURATION_MS, easing: Easing.out(Easing.quad) },
-                    (fadeFinished) => {
-                        if (fadeFinished) {
-                            runOnJS(finish)();
-                        }
-                    },
-                );
             },
         );
     }, [start, rotation, opacity, onAnimationComplete]);
