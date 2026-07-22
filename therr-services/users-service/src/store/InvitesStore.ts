@@ -160,16 +160,18 @@ export default class InvitesStore {
     }
 
     createIfNotExist(invites: ICreateInviteParams[]) {
-        // knex emits an empty string for `.insert([])`, and pg rejects an empty
-        // query. The bulk-invite flow now passes only the existing-user subset
-        // here, which is empty whenever every invited contact is new to the
-        // platform — the common case. Without this guard that rejection
-        // short-circuits the caller's promise chain.
-        if (!invites.length) {
+        // Rows with neither contact channel can never be matched back to a
+        // registering user, so they'd sit as unredeemable junk forever — filter
+        // them out. This also guards the empty-input case: knex emits an empty
+        // string for `.insert([])` and pg rejects an empty query, which would
+        // otherwise short-circuit the caller's promise chain (the bulk-invite
+        // flow passes only the existing-user subset here, empty whenever every
+        // invited contact is new to the platform — the common case).
+        const contactableInvites = invites.filter((invite) => invite.email || invite.phoneNumber);
+        if (!contactableInvites.length) {
             return Promise.resolve([] as Array<{ id: string }>);
         }
-        // TODO: Filter out invites that have neither a phone number or email
-        const queryString = knexBuilder.insert(invites)
+        const queryString = knexBuilder.insert(contactableInvites)
             .into(INVITES_TABLE_NAME)
             .onConflict()
             .ignore()
