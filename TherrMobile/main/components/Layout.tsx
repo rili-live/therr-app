@@ -28,7 +28,7 @@ import notifee, { Event, EventType } from '@notifee/react-native';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { IUIState } from '../types/redux/ui';
-import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, HabitActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
@@ -87,6 +87,7 @@ const isLocationServicesEnabled = () => getConfig()?.featureFlags?.[FeatureFlags
 interface ILayoutDispatchProps {
     createUserGroup: Function;
     deleteUserGroup: Function;
+    getActivePacts: Function;
     getMyAchievements: Function;
     getUserGroups: Function;
     logout: Function;
@@ -149,6 +150,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             createUserGroup: UsersActions.createUserGroup,
             deleteUserGroup: UsersActions.deleteUserGroup,
+            getActivePacts: HabitActions.getActivePacts,
             getMyAchievements: UsersActions.getMyAchievements,
             getUserGroups: UsersActions.getUserGroups,
             logout: UsersActions.logout,
@@ -303,6 +305,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     .then((pendingToken) => {
                         if (!pendingToken) return undefined;
                         return axios.post('/users-service/habits/pacts/claim', { token: pendingToken })
+                            .then(() => {
+                                // Refresh active pacts so PactOnboardingGuard lifts
+                                // immediately — without this the invitee's first
+                                // screen is an empty gate until manual refresh.
+                                this.props.getActivePacts();
+                            })
                             .finally(() => AsyncStorage.removeItem('pendingPactClaimToken'));
                     })
                     .catch((err) => {
@@ -1489,6 +1497,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 if (isUserLoggedIn && !isUserMissingProps) {
                     axios.post('/users-service/habits/pacts/claim', { token: claimToken })
                         .then(() => {
+                            this.props.getActivePacts();
                             RootNavigation.navigate('Notifications');
                         })
                         .catch((err) => {
