@@ -12,6 +12,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import { dispatchPactInvitation } from '../utilities/dispatchPactInvitation';
+import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import {
     validatePactParams,
     isUserInPact,
@@ -519,6 +520,19 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
                 streakPromises.push(Store.streaks.getOrCreate(pact.creatorUserId, pact.habitGoalId, id));
             }
             await Promise.all(streakPromises);
+
+            // Accountability partners are connections by definition — guarantee
+            // the userConnection exists so each partner appears in the other's
+            // connections list (invited-user-is-connected-to-inviter contract).
+            // Fire-and-forget: a connection failure must not block acceptance.
+            ensureCompletedUserConnection(pact.creatorUserId, userId).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to ensure connection between pact partners on accept'],
+                    traceArgs: { 'error.message': err?.message, pactId: id },
+                });
+            });
 
             // Award accepting partner for joining their first pact
             awardAccountabilitySelfAchievement(req.headers, 1);

@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, ReferralRewards, UserConnectionTypes,
+    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, PushNotifications, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { parseHeaders } from 'therr-js-utilities/http';
@@ -15,6 +15,8 @@ import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
 import { isMatchingInvitee } from './helpers/pactRedemption';
+import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
+import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -230,6 +232,28 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 undefined,
                 !!inviteCode,
             ).then(async (user) => {
+                // Username-referral path (share link / "invite code" field):
+                // the registrant explicitly entered the inviter's code, so
+                // connect them immediately. Fire-and-forget — registration
+                // must succeed even if the referral linkage fails.
+                if (inviteCode && !pactClaimCode && user?.id) {
+                    Store.users.findUser({ userName: inviteCode })
+                        .then((inviterRows) => {
+                            if (inviterRows?.length) {
+                                return ensureCompletedUserConnection(inviterRows[0].id, user.id);
+                            }
+                            return null;
+                        })
+                        .catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Failed to connect referral inviter to new user'],
+                                traceArgs: { 'error.message': err?.message, 'user.id': user.id },
+                            });
+                        });
+                }
+
                 if (pactClaimCode && user?.id) {
                     // Best-effort: link the new user to the pending pact_members
                     // row keyed by claimCode and activate it. Done out-of-band
@@ -281,6 +305,49 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             }
                             if (pact && (pact.status === 'pending' || pact.status === 'active')) {
                                 await Store.pactMembers.activate(member.pactId, user.id);
+
+                                // Mirror acceptPact's post-activation effects — without
+                                // these, a signup-time redemption left the pact with no
+                                // streak rows (check-ins would start from a broken state)
+                                // and the inviter never learned their invitee joined.
+                                const streakPromises: Promise<any>[] = [
+                                    Store.streaks.getOrCreate(user.id, pact.habitGoalId, member.pactId),
+                                ];
+                                if (pact.status === 'pending') {
+                                    streakPromises.push(Store.streaks.getOrCreate(pact.creatorUserId, pact.habitGoalId, member.pactId));
+                                }
+                                await Promise.all(streakPromises);
+
+                                // Invited-user-is-connected-to-inviter contract: the
+                                // pact creator and the newly registered invitee become
+                                // connections immediately.
+                                ensureCompletedUserConnection(pact.creatorUserId, user.id).catch((connErr) => {
+                                    logSpan({
+                                        level: 'error',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['Failed to connect pact creator and claimed invitee on signup'],
+                                        traceArgs: { 'error.message': connErr?.message, pactId: member.pactId },
+                                    });
+                                });
+
+                                // Re-engage the inviter: their friend just joined and
+                                // the pact is live. Fire-and-forget.
+                                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                                    authorization: req.headers?.authorization,
+                                    fromUser: { id: user.id, userName: user.userName || user.firstName || '' },
+                                    locale,
+                                    toUserId: pact.creatorUserId,
+                                    type: PushNotifications.Types.pactAccepted,
+                                    whiteLabelOrigin,
+                                    brandVariation,
+                                }).catch((notifyErr) => {
+                                    logSpan({
+                                        level: 'error',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['Failed to notify pact creator of signup-time claim'],
+                                        traceArgs: { 'error.message': notifyErr?.message, pactId: member.pactId },
+                                    });
+                                });
                             }
                         } else if (memberIsRedeemable && !identityMatches) {
                             logSpan({
