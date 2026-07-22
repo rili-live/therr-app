@@ -18,6 +18,7 @@ export interface IUpdateStreakParams {
     longestStreak?: number;
     longestStreakStartDate?: string;
     longestStreakEndDate?: string;
+    gracePeriodDays?: number;
     graceDaysUsed?: number;
     isActive?: boolean;
 }
@@ -104,7 +105,10 @@ export default class StreaksStore {
                 ...params,
                 currentStreak: 0,
                 longestStreak: 0,
-                gracePeriodDays: params.gracePeriodDays || 0,
+                // Every new streak starts with 1 streak freeze (grace day);
+                // more are earned at 7+ day milestones, capped at
+                // MAX_GRACE_PERIOD_DAYS (see streakHelpers).
+                gracePeriodDays: params.gracePeriodDays ?? 1,
                 graceDaysUsed: 0,
                 isActive: true,
             })

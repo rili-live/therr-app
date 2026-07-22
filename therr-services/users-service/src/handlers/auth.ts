@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {
-    AccessLevels, BrandVariations, CurrentSocialValuations, OAuthIntegrationProviders, hasValidStandardClaims,
+    AccessLevels, BrandVariations, CurrentSocialValuations, MetricNames, OAuthIntegrationProviders, hasValidStandardClaims,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
@@ -14,6 +14,7 @@ import Store from '../store';
 import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import {
@@ -225,6 +226,11 @@ const login: RequestHandler = (req: any, res: any) => {
                     // Fire and forget
                     // Reward inviting user for first time login
                     if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
+                        recordFunnelMetric(MetricNames.FUNNEL_USER_FIRST_LOGIN, userDetails.id, {
+                            brandVariation: brandVariation || '',
+                            platform: platform || '',
+                        });
+
                         let invitesPromise: any;
                         if (userPhone) {
                             invitesPromise = Store.invites.getInvitesForPhoneNumber({
@@ -239,6 +245,9 @@ const login: RequestHandler = (req: any, res: any) => {
 
                         invitesPromise.then((invites) => {
                             if (invites.length) {
+                                recordFunnelMetric(MetricNames.FUNNEL_INVITE_ACCEPTED, userDetails.id, {
+                                    brandVariation: brandVariation || '',
+                                }, String(invites.length));
                                 // TODO: Log response
                                 return Store.invites.updateInvite({ id: invites[0].id }, { isAccepted: true });
                             }

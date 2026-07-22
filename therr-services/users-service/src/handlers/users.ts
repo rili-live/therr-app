@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, ReferralRewards, UserConnectionTypes,
+    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, MetricNames, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
@@ -15,7 +15,8 @@ import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequest
 import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
-import { isMatchingInvitee } from './helpers/pactRedemption';
+import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -210,28 +211,53 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            return getSubsAccessLvlsPromise.then((levels) => createUserHelper(
-                req.headers,
-                {
+            return getSubsAccessLvlsPromise.then(async (levels) => {
+                // A registration carrying a valid PACT-XXXX claim whose
+                // contact info matches the original invitee has already proven
+                // channel ownership — grant verified access up-front and skip
+                // the verification-email wall (the biggest drop-off point
+                // between an invitee and their friend's pact).
+                const isPreVerifiedByPactClaim = await isClaimCodePreVerified(pactClaimCode, {
                     email: req.body.email,
-                    password: req.body.password,
-                    firstName: req.body.firstName,
-                    isBusinessAccount: req.body.isBusinessAccount,
-                    isCreatorAccount: req.body.isCreatorAccount,
-                    isDashboardRegistration: req.body.isDashboardRegistration,
-                    settingsEmailMarketing: req.body.settingsEmailMarketing,
-                    settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
-                    settingsLocale: req.body.settingsLocale || locale,
-                    lastName: req.body.lastName,
                     phoneNumber: req.body.phoneNumber,
-                    userName: req.body.userName,
-                    accessLevels: levels,
-                },
-                false,
-                undefined,
-                !!inviteCode,
-                req.body.inviteToken,
-            ).then(async (user) => {
+                });
+
+                return createUserHelper(
+                    req.headers,
+                    {
+                        email: req.body.email,
+                        password: req.body.password,
+                        firstName: req.body.firstName,
+                        isBusinessAccount: req.body.isBusinessAccount,
+                        isCreatorAccount: req.body.isCreatorAccount,
+                        isDashboardRegistration: req.body.isDashboardRegistration,
+                        settingsEmailMarketing: req.body.settingsEmailMarketing,
+                        settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
+                        settingsLocale: req.body.settingsLocale || locale,
+                        lastName: req.body.lastName,
+                        phoneNumber: req.body.phoneNumber,
+                        userName: req.body.userName,
+                        accessLevels: levels,
+                    },
+                    false,
+                    undefined,
+                    !!inviteCode,
+                    req.body.inviteToken,
+                    isPreVerifiedByPactClaim,
+                );
+            }).then(async (user) => {
+                let registrationSource = 'organic';
+                if (pactClaimCode) {
+                    registrationSource = 'pact-claim';
+                } else if (inviteCode) {
+                    registrationSource = 'referral-code';
+                }
+                recordFunnelMetric(MetricNames.FUNNEL_USER_REGISTERED, user?.id, {
+                    brandVariation: brandVariation || '',
+                    platform: platform || '',
+                    source: registrationSource,
+                });
+
                 if (pactClaimCode && user?.id) {
                     // Best-effort: link the new user to the pending pact_members
                     // row keyed by claimCode and activate it. Done out-of-band
@@ -283,6 +309,11 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             }
                             if (pact && (pact.status === 'pending' || pact.status === 'active')) {
                                 await Store.pactMembers.activate(member.pactId, user.id);
+
+                                recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_ACCEPTED, user.id, {
+                                    brandVariation: brandVariation || '',
+                                    via: 'signup-claim',
+                                });
                             }
                         } else if (memberIsRedeemable && !identityMatches) {
                             logSpan({
@@ -302,7 +333,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     }
                 }
                 return res.status(201).send(user);
-            }));
+            });
         })
         .catch((err) => {
             if (err?.message === 'invalid-password') {

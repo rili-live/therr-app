@@ -1,4 +1,5 @@
 import normalizeEmail from 'normalize-email';
+import Store from '../../store';
 
 export interface IInviteeIdentity {
     email?: string | null;
@@ -46,6 +47,52 @@ export const isMatchingInvitee = (
     }
 
     return false;
+};
+
+/**
+ * Decides whether a registration that carries a PACT-XXXX claim code proves
+ * ownership of the contact channel the invite was sent to. Possession of the
+ * claim secret (delivered by email/SMS) plus a matching address is the same
+ * ownership proof a verification link provides, so a positive result lets
+ * registration skip the email-verification wall entirely.
+ *
+ * Brute-force is impractical by construction: a wrong guess still creates the
+ * (unverified) account, and the duplicate-email check then blocks any retry
+ * for the same address — one code guess per email, against a ~1M keyspace
+ * with a 14-day TTL.
+ *
+ * Fails closed (false) on any lookup error — worst case the user verifies by
+ * email like before.
+ */
+export const isClaimCodePreVerified = async (
+    pactClaimCode: string | null,
+    registrant: IInviteeIdentity,
+): Promise<boolean> => {
+    if (!pactClaimCode) {
+        return false;
+    }
+    try {
+        const member = await Store.pactMembers.findByClaim({ code: pactClaimCode });
+        const memberIsRedeemable = !!member
+            && member.status === 'pending'
+            && (!member.claimTokenExpiresAt
+                || new Date(member.claimTokenExpiresAt).getTime() >= Date.now());
+        if (!memberIsRedeemable) {
+            return false;
+        }
+
+        const originalInviteeRows = await Store.users.findUser(
+            { id: member.userId },
+            ['email', 'phoneNumber'],
+        );
+        const originalInvitee = originalInviteeRows?.[0];
+        return !!originalInvitee && isMatchingInvitee(registrant, {
+            email: originalInvitee.email,
+            phoneNumber: originalInvitee.phoneNumber,
+        });
+    } catch (err) {
+        return false;
+    }
 };
 
 export default isMatchingInvitee;
