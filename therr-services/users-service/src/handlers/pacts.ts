@@ -3,6 +3,7 @@ import {
     AccessLevels,
     BrandVariations,
     HABITS_FREE_PACT_LIMIT,
+    MetricNames,
     PushNotifications,
 } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
@@ -12,6 +13,8 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import { dispatchPactInvitation } from '../utilities/dispatchPactInvitation';
+import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import {
     validatePactParams,
     isUserInPact,
@@ -156,6 +159,15 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                 role: 'creator',
                 status: 'active',
             });
+
+            recordFunnelMetric(MetricNames.FUNNEL_PACT_CREATED, userId, {
+                brandVariation: brandVariation || '',
+            });
+            if (partnerUserId) {
+                recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_SENT, userId, {
+                    brandVariation: brandVariation || '',
+                });
+            }
 
             // Award creator achievements for creating a pact (HABITS brand only — allow-list filters)
             awardPactPioneerCreatedAchievement(req.headers, 1);
@@ -317,6 +329,13 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
                 role: 'partner' as const,
                 status: 'pending',
             })));
+
+            recordFunnelMetric(MetricNames.FUNNEL_PACT_CREATED, userId, {
+                brandVariation: brandVariation || '',
+            });
+            recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_SENT, userId, {
+                brandVariation: brandVariation || '',
+            }, String(invitees.length));
 
             partnerMembers.forEach((member: any) => {
                 const toUserId = member.userId;
@@ -519,6 +538,24 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
                 streakPromises.push(Store.streaks.getOrCreate(pact.creatorUserId, pact.habitGoalId, id));
             }
             await Promise.all(streakPromises);
+
+            recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_ACCEPTED, userId, {
+                brandVariation: brandVariation || '',
+                via: 'in-app',
+            });
+
+            // Accountability partners are connections by definition — guarantee
+            // the userConnection exists so each partner appears in the other's
+            // connections list (invited-user-is-connected-to-inviter contract).
+            // Fire-and-forget: a connection failure must not block acceptance.
+            ensureCompletedUserConnection(pact.creatorUserId, userId).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to ensure connection between pact partners on accept'],
+                    traceArgs: { 'error.message': err?.message, pactId: id },
+                });
+            });
 
             // Award accepting partner for joining their first pact
             awardAccountabilitySelfAchievement(req.headers, 1);

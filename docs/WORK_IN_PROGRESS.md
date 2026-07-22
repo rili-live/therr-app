@@ -87,6 +87,14 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
+  digest via therr-messaging-automator — implementation plan in
+  `docs/niche-sub-apps/habits/AUTOMATOR_HABITS_PLAN.md` (Phase 1: task-dispatch
+  trigger in the Cloud Function + a new daily 23:00 UTC Cloud Scheduler job in
+  therr-infra-terraform with body `{"task":"habits-daily-digest"}`). The
+  users-service route (`/habits/pacts/digest/run-daily`) is deliberately not
+  exposed through the API gateway; more than one run per day duplicates
+  streakAtRisk/partnerMissedDay/pactExpiring pushes.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
 - [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
   migration on production messages-service (`npm run migrations:run`). Without it
@@ -561,8 +569,6 @@ English-formatted timestamps.
 - `therr-services/users-service/src/handlers/users.ts:879` — Reward
   increment/decrement on blockchain for auditability (long-term, but is the
   legal record once paid tier exists)
-- `therr-services/users-service/src/store/InvitesStore.ts:49` — Filter out
-  invites with neither phone nor email
 - `therr-services/users-service/src/handlers/auth.ts:181, 182` — Encrypt
   stored OAuth `access_token`s in DB
 - `therr-services/users-service/src/handlers/auth.ts:315` — Same

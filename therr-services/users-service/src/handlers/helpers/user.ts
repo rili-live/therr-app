@@ -285,6 +285,11 @@ const createUserHelper = (
     isSSO = false,
     userByInviteDetails?: IUserByInviteDetails,
     hasInviteCode = false,
+    // Registration arrived with proof of contact-channel ownership (e.g. a
+    // pact claim token/code that was delivered to this exact email/phone).
+    // Treated like SSO for verification purposes: access levels are granted
+    // up-front and no verification email is sent.
+    isPreVerified = false,
 ) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -316,7 +321,7 @@ const createUserHelper = (
             if (userDetails.isDashboardRegistration) {
                 userAccessLevels.add(AccessLevels.DASHBOARD_SIGNUP);
             }
-            if (isSSO) {
+            if (isSSO || isPreVerified) {
                 if (isMissingUserProps) {
                     userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 } else {
@@ -540,6 +545,15 @@ const createUserHelper = (
                 isCreatorAccount: userDetails.isCreatorAccount,
                 isDashboardRegistration: userDetails.isDashboardRegistration,
             });
+
+            // Pre-verified standard registration (pact claim): the claim
+            // secret was delivered to this exact contact channel, which is the
+            // same ownership proof a verification link provides. Skipping the
+            // email removes the leave-the-app-verify-return wall between an
+            // invitee and their friend's pact.
+            if (isPreVerified) {
+                return user;
+            }
 
             // STANDARD USER REGISTRATION
             // TODO: If this bounces, update user email preferences and notify admin
