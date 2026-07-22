@@ -37,26 +37,29 @@ Pinned by 14 regression tests in `tests/unit/handlers-helpers-inviteAcceptance.t
 
 > ⚠️ Backend commit — must be cherry-picked to `general` to deploy.
 
-### 1.2 [HIGH] Invite emails/SMS deep-link to `/claim-pact/<token>` but a
-brand-new user has no app installed
-The web route exists (`therr-client-web` `/claim-pact/:token`) and mobile
-handles the universal link + post-login drain. Verify the web landing page for
-an uninstalled user prominently routes to the Play Store listing with the claim
-token preserved (deferred deep link). Without install attribution, a user who
-installs from the store loses the token and the pact never auto-claims — they
-must manually type the PACT-XXXX code. Consider Firebase Dynamic Links
-replacement (Play Install Referrer API) since Dynamic Links is sunset.
+### 1.2 [HIGH → partially FIXED 2026-07-22] Invite emails/SMS deep-link to
+`/claim-pact/<token>` but a brand-new user has no app installed
+✅ FIXED: the web landing page's Play Store button linked to `app.therrmobile`
+(the **Therr** app) — invitees installed the wrong app. Now points to
+`com.therr.habits` and shows on all form factors; the App-Store badge was
+removed until a HABITS iOS app exists. The PACT-XXXX manual-entry
+instructions were already present in all 3 locales.
+⏳ REMAINS: install attribution (Play Install Referrer API) so the token
+survives the store hop without manual code entry; on-device QA of the full
+email → install → register → land-in-pact path.
 
-### 1.3 [HIGH] Email verification is a hard wall between invite and first pact
-`login` rejects unverified users (401). An invitee who taps "join your friend's
-pact" must: install → register → leave the app for their inbox → verify → return
-→ log in. Every step bleeds users. Options (in order of impact/effort):
-- Auto-verify when registration arrived via a pact claim token/code — the
-  invite email itself proves inbox ownership when the claim identity check
-  (`isMatchingInvitee`) passes.
-- OTP-based verify-in-app (code entry) instead of link-out.
-- Allow first session in a `EMAIL_VERIFIED_MISSING_PROPERTIES`-style grace
-  state with a verification banner.
+### 1.3 ✅ FIXED (2026-07-22) Email verification wall removed for pact-claim signups
+Registrations carrying a valid PACT-XXXX claim whose contact info matches the
+original invitee are now pre-verified (`isClaimCodePreVerified` in
+`handlers/helpers/pactRedemption.ts`): the claim secret was delivered to that
+exact email/phone, which is the same ownership proof a verification link
+provides. `createUserHelper` grants `EMAIL_VERIFIED[_MISSING_PROPERTIES]`
+up-front and skips the verification email. Brute-force is structurally
+impossible: a wrong code guess still creates the (unverified) account, and the
+duplicate-email check blocks retries — one guess per address. Regression
+tests in `tests/unit/streak-gap-handling.test.ts`.
+Organic (non-claim) registrations still verify by email; OTP-in-app remains a
+future option for them.
 
 ### 1.4 [POLISH] Nudge + resend loops exist and are rate-limited (good)
 `nudgePact` (7-day cooldown per partner) and the 30-day invite resend cooldown
@@ -99,13 +102,15 @@ analytics (viral coefficient!) can't be computed from this table. Add a
 (3-step stepper, pre-staged template, outgoing-invite awareness) rather than a
 dead-end wall. This matches the brief's "mandatory but not hostile" intent.
 
-### 3.2 [HIGH] Measure and instrument the funnel before launch
-There is no event instrumentation on the register → verify → first pact →
-first invite → partner accepted funnel. Without it the team can't see where
-the viral loop leaks. LogRocket is wired for sessions; add explicit funnel
-events (users-service `userMetrics` exists as a sink) for: registration source
-(claim code vs organic), verification completion, pact creation, invite sent,
-invite accepted, first check-in, D1/D7 return.
+### 3.2 ✅ FIXED (2026-07-22) Funnel instrumentation
+Nine `funnel.*` metric names added to `MetricNames` (therr-js-utilities) and
+recorded via `utilities/recordFunnelMetric.ts` into `main.userMetrics`:
+registration (with source: pact-claim / referral-code / organic, platform,
+brand), verification, first login, invite sent (with count), invite accepted,
+pact created, pact invite sent/accepted (with via: in-app / signup-claim),
+and habit check-in (with streak count). All fire-and-forget. D1/D7 retention
+derives from `funnel.user.firstLogin` + `funnel.habit.checkin` timestamps at
+analysis time.
 
 ### 3.3 [HIGH] Time-to-value: pre-staged template + claim flow should land the
 new invitee inside their friend's pact in ≤ 2 screens
@@ -116,13 +121,18 @@ fire-and-forget on auth transition; the Habits landing reset may race it.
 Consider awaiting the drain (with a 2-3s cap) before `resetToHabitsLanding`,
 or re-fetching active pacts when the drain resolves.
 
-### 3.4 [POLISH] Streak-loss empathy
-Modern habit apps (Duolingo being the benchmark) soften streak loss (freeze
-tokens, repair windows). `streaks`/`streak_history` already log resets, and the
-resilience achievement rewards comebacks — good foundation. A "streak freeze"
-(1 free skip per week, or earnable with coins) is the single highest-leverage
-gamification addition for D30 retention. Schema-ready: add `freezesAvailable`
-to `habits.streaks`.
+### 3.4 ✅ FIXED (2026-07-22) Streak freezes — and two latent streak bugs
+Audit of the check-in flow found the schema already had
+`gracePeriodDays`/`graceDaysUsed` but the mechanic was dead, plus two real
+correctness bugs: (a) `incrementStreak` ran unconditionally, so **streaks
+never reset after missed days**; (b) re-submitting a same-day check-in
+double-incremented the streak and re-fired achievements/partner pushes.
+Now wired in `createCheckin`: same-day duplicates are detected and skipped;
+gap days are computed per habit cadence (`countMissedDaysForStreak`); missed
+days consume available freezes (preserving the streak, recorded as
+`grace_used` history) or reset the streak (recorded as `missed`). New streaks
+start with 1 freeze; each 7+ day milestone earns one more, capped at 3.
+Regression tests in `tests/unit/streak-gap-handling.test.ts`.
 
 ---
 
@@ -132,18 +142,23 @@ to `habits.streaks`.
 Pact pioneer / accountability / socialite / resilience achievement families are
 wired through brand-scoped `userAchievements`. Streak milestones recorded.
 
-### 4.2 [HIGH] Partner-activity pushes are the retention engine — confirm
-end-to-end delivery on HABITS Firebase
-Types exist (`pactInvitation`, `pactAccepted`, `pactNudge`, streak types). The
-known-open TODOs in push-notifications-service (per-brand bundle identifier at
-`firebaseAdmin.ts:200,222`) are exactly where a misroute would silently kill
-every one of these. This is pre-launch QA, not new code: send each type to a
-physical device on the HABITS build.
+### 4.2 [HIGH → code FIXED 2026-07-22, QA remains] Partner-activity push routing
+✅ FIXED: all 20 `createDataOnlyMessage` call sites in `firebaseAdmin.ts` now
+pass `brandVariation`, so the iOS `apns-topic` header carries the correct
+per-brand bundle id (previously every data-only push defaulted to the Therr
+bundle). Android notification icon color is now brand-tinted
+(`getBrandAccentColor`). ⏳ REMAINS: on-device QA — send each HABITS push type
+to a physical device on the HABITS build with
+`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS` set.
 
-### 4.3 [HIGH] Missed-checkin / partner-completed daily loop
-The brief's core loop ("push when partner completes/misses") needs a scheduled
-evaluator (cron) — event-driven pushes only fire on user action. If not yet
-running, this is the top new-code retention item after launch instrumentation.
+### 4.3 ✅ FIXED (2026-07-22) Daily partner-activity digest
+`POST /habits/pacts/digest/run-daily` (users-service, `handlers/habitsDigest.ts`)
+evaluates all active pacts once per run and sends: `streakAtRisk` (active
+streak, no check-in yet today), `partnerMissedDay` (partner failed yesterday's
+check-in; new members grace-period exempt), and `pactExpiring` (ends within 3
+days). The route is intentionally NOT registered in the API gateway —
+internal-only. Operational step: schedule a daily internal cron (see
+WORK_IN_PROGRESS.md § Manual Operational Follow-ups).
 
 ### 4.4 [POLISH] Weekly summary email (brief MVP item) — not found in
 users-service email templates; `sendPendingInviteEmail` retention plumbing
@@ -165,13 +180,22 @@ exists to build on.
 
 ---
 
-## 6. Launch-readiness order of operations (recommendation)
+## 6. Launch-readiness order of operations (updated 2026-07-22)
 
-1. Cherry-pick the §1.1 backend commit to `general` and deploy (it also fixes
-   the signup-claim streak bug).
-2. Funnel instrumentation (§3.2) — you cannot tune a loop you cannot see.
+Second-pass session completed §3.2 (funnel metrics), §1.3 (claim
+auto-verify), §3.4 (streak freezes + two latent streak bugs), §4.3 (daily
+digest), §4.2 code fixes (apns-topic/icon color), and the §1.2 store-link
+fix. Remaining, in order:
+
+1. Cherry-pick all backend commits (users-service, push-notifications-service,
+   therr-js-utilities, therr-client-web) to `general` and deploy.
+2. Operational: schedule the daily digest cron; confirm
+   `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS` in prod (both in
+   WORK_IN_PROGRESS.md § Manual Operational Follow-ups).
 3. On-device QA: claim-link → install → register → land-in-pact (§1.2, §3.3)
-   and push delivery per type (§4.2).
-4. Email-verification friction fix (§1.3) — biggest conversion lever.
-5. Daily partner-activity scheduler (§4.3), then streak freeze (§3.4).
+   and push delivery per type on the HABITS build (§4.2).
+4. Play Install Referrer attribution so the claim token survives the store
+   install hop (§1.2).
+5. Surface streak freezes in mobile UI (StreakWidget already receives
+   gracePeriodDays/graceDaysUsed in the streak payload — show "🧊 2 freezes").
 6. Payment workflow (Tier 2.5 in WORK_IN_PROGRESS.md) once retention holds.
