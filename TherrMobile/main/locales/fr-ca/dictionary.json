@@ -391,6 +391,9 @@
         "view": "Voir"
       }
     },
+    "thoughtDisplay": {
+      "viewAllReplies": "Voir les {count} réponses"
+    },
     "userMenu": {
       "buttons": {
         "viewProfile": "Voir le profil",

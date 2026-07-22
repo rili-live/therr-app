@@ -15,6 +15,7 @@ import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
 import { getUserContentUri } from '../../utilities/content';
+import { getReplyCount, getTopReply, shouldAutoExpandThread } from '../../utilities/feedRanking';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -84,6 +85,9 @@ const renderItem = ({ item: post }, {
 
 
     if (!post.areaType) {
+        // Auto-expand engaging threads: surface the top reply inline (like other social feeds)
+        const topReply = shouldAutoExpandThread(post) ? getTopReply(post) : undefined;
+
         return (
             <Pressable
                 key={post.id}
@@ -96,6 +100,8 @@ const renderItem = ({ item: post }, {
                     toggleThoughtOptions={toggleContentOptions}
                     hashtags={post.hashTags ? post.hashTags.split(',') : []}
                     thought={post}
+                    topReply={topReply}
+                    replyCount={getReplyCount(post)}
                     inspectThought={inspectContent} // TODO
                     // TODO: Get username from response
                     user={user}

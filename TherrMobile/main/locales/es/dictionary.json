@@ -391,6 +391,9 @@
         "view": "Ver"
       }
     },
+    "thoughtDisplay": {
+      "viewAllReplies": "Ver las {count} respuestas"
+    },
     "userMenu": {
       "buttons": {
         "viewProfile": "Ver perfil",
