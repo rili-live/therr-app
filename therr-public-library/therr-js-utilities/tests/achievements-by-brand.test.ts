@@ -1,13 +1,18 @@
 /**
  * Brand-scoped achievement classes — niche apps must not silently surface
- * Therr-themed achievements (`socialite`, `explorer`, `influencer`, `thinker`,
- * etc.) just because the SQL row was stamped with their brandVariation. The
- * BrandScopedStore filter prevents cross-brand reads at the row level, but the
- * classes themselves are content-coupled to Therr — niche brands like HABITS
- * will ship their own (streak-based) classes per HABITS_PROJECT_BRIEF.md.
+ * Therr-themed achievements (`explorer`, `influencer`, `thinker`, etc.) just
+ * because the SQL row was stamped with their brandVariation. The
+ * BrandScopedStore filter prevents cross-brand reads at the row level; this
+ * allow-list decides which classes a brand may EARN.
  *
- * Until those niche classes exist, every current class must be locked to THERR
- * so registration seeds and activity-driven creates skip on niche brands.
+ * Policy as of the 2026-07 leaderboards release:
+ *   - THERR / DASHBOARD_THERR earn every class.
+ *   - HABITS earns the streak/pact-themed ladder (accountability, cleanBreak,
+ *     consistency, habitBuilder, pactPioneer, resilience, socialEnergizer,
+ *     treasureBuilder) plus `socialite` (invite virality) and `weeklyChampion`
+ *     (leaderboard rank milestones). This ends the interim "HABITS earns
+ *     nothing" policy from a55bce90d.
+ *   - TEEM and other brands still earn nothing until they get their own list.
  */
 import { expect } from 'chai';
 import { BrandVariations } from '../src/constants/enums/Branding';
@@ -17,10 +22,23 @@ import {
     isAchievementClassEnabledForBrand,
 } from '../src/config/achievements';
 
+const HABITS_ENABLED_CLASSES = [
+    'accountability',
+    'cleanBreak',
+    'consistency',
+    'habitBuilder',
+    'pactPioneer',
+    'resilience',
+    'socialEnergizer',
+    'socialite',
+    'treasureBuilder',
+    'weeklyChampion',
+];
+
 describe('isAchievementClassEnabledForBrand', () => {
     const allClasses = Object.keys(achievementsByClass);
 
-    it('allows every Therr-themed class for the THERR brand', () => {
+    it('allows every class for the THERR brand', () => {
         allClasses.forEach((cls) => {
             expect(
                 isAchievementClassEnabledForBrand(cls, BrandVariations.THERR),
@@ -29,16 +47,23 @@ describe('isAchievementClassEnabledForBrand', () => {
         });
     });
 
-    it('blocks every Therr-themed class for the HABITS brand', () => {
+    it('allows exactly the habit ladder + socialite + weeklyChampion for HABITS', () => {
         allClasses.forEach((cls) => {
+            const expected = HABITS_ENABLED_CLASSES.includes(cls);
             expect(
                 isAchievementClassEnabledForBrand(cls, BrandVariations.HABITS),
-                `expected ${cls} to be blocked for HABITS`,
-            ).to.equal(false);
+                `expected ${cls} enablement for HABITS to be ${expected}`,
+            ).to.equal(expected);
         });
     });
 
-    it('blocks every Therr-themed class for the TEEM brand', () => {
+    it('blocks Therr-only classes (e.g. explorer, influencer) for HABITS', () => {
+        ['explorer', 'influencer', 'thinker', 'localScout', 'tourGuide'].forEach((cls) => {
+            expect(isAchievementClassEnabledForBrand(cls, BrandVariations.HABITS)).to.equal(false);
+        });
+    });
+
+    it('blocks every class for the TEEM brand', () => {
         allClasses.forEach((cls) => {
             expect(
                 isAchievementClassEnabledForBrand(cls, BrandVariations.TEEM),
@@ -61,12 +86,18 @@ describe('isAchievementClassEnabledForBrand', () => {
         expect(isAchievementClassEnabledForBrand('madeUpClass', BrandVariations.THERR)).to.equal(false);
     });
 
-    it('exposes the brand → classes map only for Therr brands today', () => {
-        // Sanity check the data shape — adding HABITS-specific classes in the future
-        // should land an entry here AND in this test.
+    it('exposes the brand → classes map for Therr brands and HABITS', () => {
         expect(achievementClassesByBrand).to.have.property(BrandVariations.THERR);
         expect(achievementClassesByBrand).to.have.property(BrandVariations.DASHBOARD_THERR);
-        expect(achievementClassesByBrand).to.not.have.property(BrandVariations.HABITS);
+        expect(achievementClassesByBrand).to.have.property(BrandVariations.HABITS);
         expect(achievementClassesByBrand).to.not.have.property(BrandVariations.TEEM);
+    });
+
+    it('every allow-listed class name resolves to a real class', () => {
+        Object.values(achievementClassesByBrand).forEach((classSet) => {
+            classSet.forEach((cls) => {
+                expect(achievementsByClass, `unknown class in allow-list: ${cls}`).to.have.property(cls);
+            });
+        });
     });
 });

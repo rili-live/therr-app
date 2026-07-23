@@ -4,4 +4,8 @@
     <string name="appCenterCrashes_whenToSendCrashes" moduleConfig="true" translatable="false">DO_NOT_ASK_JAVASCRIPT</string>
     <string name="appCenterAnalytics_whenToEnableAnalytics" moduleConfig="true" translatable="false">ALWAYS_SEND</string>
     <string name="default_notification_channel_id">reminders</string>
+    <string name="shortcut_create_moment_short">Moment</string>
+    <string name="shortcut_create_moment_long">Create a Moment</string>
+    <string name="shortcut_create_thought_short">Thought</string>
+    <string name="shortcut_create_thought_long">Create a Thought</string>
 </resources>

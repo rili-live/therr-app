@@ -2,11 +2,12 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import {
-    AccessLevels, BrandVariations, ReferralRewards, UserConnectionTypes,
+    AccessLevels, BrandVariations, CurrentSocialValuations, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import { isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import isValidSignupAge from 'therr-js-utilities/is-valid-signup-age';
+import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import { getBrandContext } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
@@ -46,6 +47,7 @@ interface IRequiredUserDetails {
     settingsEmailMarketing?: boolean;
     settingsEmailBusMarketing?: boolean;
     settingsBirthdate?: string;
+    settingsLocale?: string;
     accessLevels?: string[];
 }
 
@@ -258,22 +260,19 @@ const computeAccessLevelsAfterProfileUpdate = (
 };
 
 // A profile is considered "complete" (eligible for EMAIL_VERIFIED) once it has a
-// phone number and username. First/last name are intentionally NOT required here
-// so new users can reach the app immediately; we prompt them to add their name
-// contextually later. See onboarding friction review (2026-06).
+// username. Phone number and first/last name are intentionally NOT required here
+// so new users — especially invited users — can reach the app immediately with
+// minimal friction. Phone verification is deferred: it is prompted contextually
+// and enforced only on phone-sensitive actions (e.g. sending invites), which are
+// gated on MOBILE_VERIFIED at the API gateway rather than on EMAIL_VERIFIED.
+// See onboarding friction review (2026-06) and deferred-phone-verification (2026-07).
 const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     if (!existingUser) {
-        const requestIsMissingProperties = !updateArgs?.phoneNumber
-            || !updateArgs?.userName;
-
-        return requestIsMissingProperties;
+        return !updateArgs?.userName;
     }
 
     // NOTE: The user update query does not nullify missing properties when the respective property already exists in the DB
-    const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
-        || !(updateArgs.userName || existingUser.userName);
-
-    return requestDoesNotCompleteProfile;
+    return !(updateArgs.userName || existingUser.userName);
 };
 
 // eslint-disable-next-line default-param-last
@@ -283,7 +282,14 @@ const createUserHelper = (
     // eslint-disable-next-line default-param-last
     isSSO = false,
     userByInviteDetails?: IUserByInviteDetails,
+    // eslint-disable-next-line default-param-last
     hasInviteCode = false,
+    inviteToken?: string,
+    // Registration arrived with proof of contact-channel ownership (e.g. a
+    // pact claim token/code that was delivered to this exact email/phone).
+    // Treated like SSO for verification purposes: access levels are granted
+    // up-front and no verification email is sent.
+    isPreVerified = false,
 ) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -293,6 +299,15 @@ const createUserHelper = (
     const password = shouldGeneratePassword ? generateOneTimePassword(8) : (userDetails.password || '');
     const hasAgreedToTerms = !userByInviteDetails;
     let user;
+
+    // Magic invite-link state, populated below once the token resolves.
+    // matchedInvite is the pending invite this signup fulfills; the two
+    // *ChannelVerified flags implement the "skip on the invited channel"
+    // policy — the token proves control only of the contact point it was
+    // delivered to.
+    let matchedInvite: any;
+    let emailChannelVerified = false;
+    let phoneChannelVerified = false;
 
     if (!shouldGeneratePassword && !isValidPassword(password)) {
         throw new Error('invalid-password');
@@ -304,7 +319,26 @@ const createUserHelper = (
         throw new Error('invalid-birthdate');
     }
 
-    return Store.verificationCodes.createCode(verificationCode)
+    const resolveInvitePromise = inviteToken
+        ? Store.invites.getInviteByToken(inviteToken).catch(() => undefined)
+        : Promise.resolve(undefined);
+
+    return resolveInvitePromise
+        .then((inviteRow: any) => {
+            if (inviteRow && !inviteRow.isAccepted) {
+                matchedInvite = inviteRow;
+                const inviteEmail = inviteRow.email ? normalizeEmail(inviteRow.email) : '';
+                if (inviteEmail && inviteEmail === normalizeEmail(userDetails.email)) {
+                    emailChannelVerified = true;
+                }
+                if (inviteRow.phoneNumber && userDetails.phoneNumber
+                    && normalizePhoneNumber(inviteRow.phoneNumber) === normalizePhoneNumber(userDetails.phoneNumber)) {
+                    phoneChannelVerified = true;
+                }
+            }
+
+            return Store.verificationCodes.createCode(verificationCode);
+        })
         .then(() => hashPassword(password))
         .then((hash) => {
             const isMissingUserProps = isUserProfileIncomplete(userDetails);
@@ -315,12 +349,23 @@ const createUserHelper = (
             if (userDetails.isDashboardRegistration) {
                 userAccessLevels.add(AccessLevels.DASHBOARD_SIGNUP);
             }
-            if (isSSO) {
+            if (isSSO || isPreVerified) {
                 if (isMissingUserProps) {
                     userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 } else {
                     userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
                 }
+            }
+            // Trust the invited channel: an emailed token proves the email, an
+            // SMS token proves the phone. We never grant a level for a channel
+            // the token did not reach.
+            if (emailChannelVerified) {
+                userAccessLevels.add(isMissingUserProps
+                    ? AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES
+                    : AccessLevels.EMAIL_VERIFIED);
+            }
+            if (phoneChannelVerified) {
+                userAccessLevels.add(AccessLevels.MOBILE_VERIFIED);
             }
             const nowIso = new Date().toISOString();
             return Store.users.createUser({
@@ -341,6 +386,7 @@ const createUserHelper = (
                 settingsEmailMarketing: userDetails.settingsEmailMarketing,
                 settingsEmailBusMarketing: userDetails.settingsEmailBusMarketing,
                 settingsBirthdate: userDetails.settingsBirthdate || undefined,
+                settingsLocale: userDetails.settingsLocale || undefined,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,
@@ -357,6 +403,49 @@ const createUserHelper = (
             user = results[0];
             // Remove credentials from object
             redactUserCreds(user);
+
+            // Magic invite-link acceptance: mark the invite accepted, connect
+            // the two users so the invitee lands in-app already connected, and
+            // reward the inviter. Fire-and-forget — a failure here must not
+            // break the registration response. This sets isAccepted=true up
+            // front, so the auth.ts first-login reward block (which only acts
+            // on isAccepted=false invites) is skipped: no double reward.
+            if (matchedInvite) {
+                Store.invites.updateInvite({ id: matchedInvite.id }, { isAccepted: true }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while accepting invite on token signup'],
+                        traceArgs: { 'error.message': err?.message, inviteId: matchedInvite.id },
+                    });
+                });
+
+                Store.userConnections.createIfNotExist([{
+                    requestingUserId: matchedInvite.requestingUserId,
+                    acceptingUserId: user.id,
+                    requestStatus: UserConnectionTypes.COMPLETE,
+                }]).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while auto-connecting invited user'],
+                        traceArgs: { 'error.message': err?.message, inviteId: matchedInvite.id },
+                    });
+                });
+
+                Store.users.updateUser({
+                    settingsTherrCoinTotal: CurrentSocialValuations.invite,
+                }, {
+                    id: matchedInvite.requestingUserId,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while rewarding inviter on token signup'],
+                        traceArgs: { 'error.message': err?.message, inviteId: matchedInvite.id },
+                    });
+                });
+            }
 
             if (hasInviteCode) {
                 createOrUpdateAchievement({
@@ -538,6 +627,18 @@ const createUserHelper = (
                 isCreatorAccount: userDetails.isCreatorAccount,
                 isDashboardRegistration: userDetails.isDashboardRegistration,
             });
+
+            // Skip the verification round-trip when contact-channel ownership
+            // is already proven:
+            //  - emailChannelVerified: a magic invite-link token was emailed to
+            //    this address and the account is marked email verified above.
+            //  - isPreVerified: a pact claim secret was delivered to this exact
+            //    email/phone — the same ownership proof a verification link
+            //    provides. Skipping removes the leave-the-app-verify-return wall
+            //    between an invitee and their friend's pact.
+            if (emailChannelVerified || isPreVerified) {
+                return user;
+            }
 
             // STANDARD USER REGISTRATION
             // TODO: If this bounces, update user email preferences and notify admin

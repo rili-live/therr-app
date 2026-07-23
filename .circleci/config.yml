@@ -202,17 +202,35 @@ jobs:
           # GOOGLE_APIS_ANDROID_KEY must be stored as an EAS env var attached to the
           # build's environment (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
           #
-          # --auto-submit is intentionally NOT used yet: EAS Submit needs a Google
-          # Play service-account key, which must be configured interactively once
-          # (`eas credentials`) before non-interactive submit works. Until then, the
-          # AAB must be uploaded to the Play Internal track manually. Re-add
-          # `--auto-submit` here after the service account is set up on EAS.
+          # --auto-submit submits the built AAB to the Play Internal track using
+          # the `therr-internal` submit profile in eas.json. Requires the Google
+          # Play service-account key to be configured on EAS (already done).
           command: |
             cd TherrMobile
             eas build \
               --platform android \
               --profile therr-internal \
-              --non-interactive
+              --non-interactive \
+              --auto-submit
+      - run:
+          name: Populate Google Play release notes
+          # EAS Submit uploads the AAB but does NOT set the user-facing "What's
+          # new" release notes. This step pushes them to the same internal-track
+          # release via the Google Play Developer API, reading the text from
+          # TherrMobile/fastlane/metadata/android/<locale>/changelogs/. The
+          # script is zero-dependency (Node built-ins only), polls until the
+          # EAS submission lands the versionCode on the track, and exits 0
+          # (skips) if GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not configured.
+          #
+          # GOOGLE_PLAY_SERVICE_ACCOUNT_JSON must be set as a CircleCI
+          # project-level env var: the full Play service-account key JSON with
+          # the "Release manager" permission (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
+          command: |
+            if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
+              echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not set — skipping release-notes population."
+            else
+              node TherrMobile/_scripts/populate-play-release-notes.mjs
+            fi
 
   deploy:
     docker:

@@ -52,6 +52,7 @@
     "momentCreatedSuccess": "Momento creado  🎉",
     "momentDraftSuccess": "Momento guardado como borrador",
     "spaceCreatedSuccess": "Reclamaste un espacio",
+    "establishmentSpaceCreated": "Nuevo espacio agregado  📍",
     "spaceRequestSuccess": "Solicitud enviada",
     "ssoLoginError": "Error con inicio de sesión único",
     "startDateAfterEndDate": "Fechas de inicio/fin inválidas",
@@ -96,6 +97,7 @@
     "momentCreatedSuccess": "¡Tu momento se publicó exitosamente!",
     "momentDraftSuccess": "Tu momento se guardó como borrador exitosamente. ¿Continuar editando?",
     "spaceCreatedSuccess": "¡Has reclamado este espacio exitosamente!",
+    "establishmentSpaceCreated": "¡Gracias! Este lugar ya está en el mapa para que otros lo descubran.",
     "spaceUpdatedSuccess": "¡Tu espacio se actualizó exitosamente!",
     "spaceRequestSuccess": "¡Has solicitado agregar un nuevo espacio de negocio exitosamente!",
     "pleaseTryAgain": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
@@ -389,6 +391,9 @@
         "view": "Ver"
       }
     },
+    "thoughtDisplay": {
+      "viewAllReplies": "Ver las {count} respuestas"
+    },
     "userMenu": {
       "buttons": {
         "viewProfile": "Ver perfil",
@@ -407,6 +412,9 @@
   },
   "forms": {
     "dividerOr": "o",
+    "languageSelector": {
+      "label": "Selecciona tu idioma"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Enviar",
@@ -764,6 +772,7 @@
         "disclaimer": "Al crear una cuenta, aceptas nuestros ",
         "and": " y ",
         "inviteCodeHint": "Ingresa el código de invitación de un amigo: ¡ellos ganan 10 monedas y tú ganas 5!",
+        "invitedBy": "{inviterName} te invitó a Therr — ¡termina de registrarte para conectar!",
         "birthdateHint": "Debes tener al menos {minAge} años para usar Therr"
       },
       "validationErrors": {
@@ -1135,6 +1144,9 @@
     "achievements": {
       "headerTitle": "Logros",
       "pageHeader": "Logros",
+      "buttons": {
+        "viewLeaderboard": "Ver tabla de clasificación"
+      },
       "labels": {
         "coinValue": "Valor en monedas",
         "xpValue": "Valor de experiencia"
@@ -1255,7 +1267,7 @@
     },
     "directMessage": {
       "inputPlaceholder": "Escribe un mensaje...",
-      "noMessagesFound": "Este es el inicio de tus conversaciones con {userName}"
+      "noMessagesFound": "Sin mensajes recientes con {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Crear un grupo",
@@ -1292,6 +1304,25 @@
     },
     "invite": {
       "headerTitle": "Invitar"
+    },
+    "leaderboard": {
+      "headerTitle": "Tabla de clasificación",
+      "tabs": {
+        "thisWeek": "Esta semana",
+        "allTime": "Histórico",
+        "everyone": "Todos",
+        "friends": "Amigos"
+      },
+      "labels": {
+        "you": "Tú",
+        "xpPoints": "{points} XP",
+        "resetsIn": "Se reinicia en {days} día(s)",
+        "yourRank": "Tu puesto: #{rank}"
+      },
+      "info": {
+        "noScores": "Aún no hay puntuaciones esta semana. ¡Usa la aplicación para ganar XP y reclamar tu lugar!",
+        "noFriendScores": "Ninguna de tus conexiones ha ganado XP todavía. ¡Invita a tus amigos a unirse a la competencia!"
+      }
     },
     "manageNotifications": {
       "headerTitle": "Configuración de correo y alertas",
@@ -1821,6 +1852,12 @@
         "requestSpace": "¡Solicita un espacio de negocio público y gana puntos por solicitud! Nos comunicaremos con el propietario para agregarlo al mapa para que puedan comenzar a ofrecer recompensas de lealtad."
       }
     },
+    "nearbyEstablishment": {
+      "header": "¿Estuviste en alguno de estos?",
+      "description": "Agrega el lugar que visitaste para que otros puedan descubrirlo en el mapa.",
+      "none": "Ninguno de estos",
+      "distanceAway": "a {distance} m"
+    },
     "contentOptions": {
       "buttons": {
         "getDirections": "Obtener direcciones",
@@ -2343,6 +2380,30 @@
       "pactPioneer_1_2_1": {
         "title": "Efecto de red",
         "description": "Invita a 10 compañeros únicos en distintos pactos"
+      },
+      "weeklyChampion_1_1": {
+        "title": "Contendiente",
+        "description": "Alcanza el top 10 de la tabla semanal"
+      },
+      "weeklyChampion_1_1_1": {
+        "title": "Contendiente habitual",
+        "description": "Alcanza el top 10 semanal cinco veces más"
+      },
+      "weeklyChampion_1_2": {
+        "title": "Podio",
+        "description": "Alcanza el top 3 de la tabla semanal"
+      },
+      "weeklyChampion_1_2_1": {
+        "title": "Habitual del podio",
+        "description": "Alcanza el top 3 semanal cinco veces más"
+      },
+      "weeklyChampion_1_3": {
+        "title": "Número uno",
+        "description": "Alcanza el puesto #1 de la tabla semanal"
+      },
+      "weeklyChampion_1_3_1": {
+        "title": "Campeón en serie",
+        "description": "Alcanza el puesto #1 de la tabla semanal cinco veces más"
       }
     },
     "profile": {

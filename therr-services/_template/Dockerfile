@@ -7,7 +7,7 @@ ENV NODE_ENV development
 ARG BUILD_MODE=production
 ENV BUILD_MODE $BUILD_MODE
 
-RUN npm i npm@latest -g
+RUN npm i npm@11 -g
 
 # Create app directory
 RUN mkdir /usr/src/app && mkdir /usr/src/app/therr-services && mkdir /usr/src/app/therr-services/new-service && chown -R node:node /usr/src/app

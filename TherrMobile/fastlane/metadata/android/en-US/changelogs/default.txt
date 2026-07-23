@@ -1,0 +1,7 @@
+What's new in this update:
+• A smoother, faster map and feed
+• More reliable when you're offline or on a weak connection
+• Fixes for messaging and notifications
+• General performance and stability improvements
+
+Thanks for using Therr! Have feedback? Reach us from the in-app settings.

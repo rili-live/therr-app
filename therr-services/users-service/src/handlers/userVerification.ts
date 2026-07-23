@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, MetricNames } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
@@ -11,6 +11,7 @@ import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import { sendVerificationEmail } from '../api/email';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import { isUserProfileIncomplete, redactUserCreds } from './helpers/user';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 
 const createOneTimePassword = (req, res) => {
     const {
@@ -154,6 +155,10 @@ const verifyUserAccount = (req, res) => {
                         const refreshTokenData = createRefreshToken(verifiedUser.id);
 
                         redactUserCreds(verifiedUser);
+
+                        recordFunnelMetric(MetricNames.FUNNEL_USER_VERIFIED, verifiedUser.id, {
+                            brandVariation: (req.headers['x-brand-variation'] as string) || '',
+                        });
 
                         return res.status(200).send({
                             message: 'Account successfully verified',

@@ -73,8 +73,9 @@ export class LoginFormComponent extends React.Component<
             prevLoginError: '',
         };
 
+        // Read from `this.props` so labels re-translate when the pre-login locale changes.
         this.translate = (key: string, params: any) =>
-            translator(props.userSettings?.locale || 'en-us', key, params);
+            translator(this.props.userSettings?.locale || 'en-us', key, params);
     }
 
     isLoginFormDisabled = () => {

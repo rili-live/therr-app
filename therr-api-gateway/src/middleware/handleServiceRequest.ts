@@ -88,10 +88,15 @@ const handleServiceRequest = ({
                 console.log(error);
             }
 
+            // Structured upstream service errors are already sanitized and safe to forward.
+            // Unstructured Node.js errors (network failures, etc.) may contain stack traces or
+            // schema details — suppress them in production; log the raw error server-side above.
+            const clientMessage = error?.response?.data?.message
+                || (process.env.NODE_ENV !== 'production' ? (error?.message || 'Unknown error') : 'An unexpected error occurred');
             return handleHttpError({
                 err: error,
                 res,
-                message: error?.response?.data?.message || error,
+                message: clientMessage,
                 statusCode: error?.response?.data?.statusCode || 500,
                 errorCode: error?.response?.data?.errorCode || 500,
             });

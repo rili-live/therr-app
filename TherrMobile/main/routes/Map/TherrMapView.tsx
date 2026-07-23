@@ -62,6 +62,12 @@ const MARKER_ANCHOR = Object.freeze({ x: 0.5, y: 0.5 });
 const EMPTY_MARKER_VIEW_STYLE = Object.freeze({});
 
 interface IMapAreaMarkerProps {
+    // ClusteredMapView identifies which children to cluster by the presence of a
+    // top-level `coordinate` prop (see isMarkerElement in ClusteredMapView.tsx).
+    // The `area` object already carries `latitude`/`longitude`, so it doubles as
+    // the coordinate — passing the stable area reference (rather than a fresh
+    // `{ latitude, longitude }` literal) keeps React.memo from reconciling.
+    coordinate: { latitude: number; longitude: number };
     area: any;
     areaType: 'events' | 'moments' | 'spaces';
     onPress: (event: MarkerPressEvent) => void;
@@ -71,13 +77,13 @@ interface IMapAreaMarkerProps {
 // Memoized so unrelated parent re-renders (theme reload aside, region change,
 // preview sheet toggle) skip reconciling the ~250-400 markers when the area
 // reference and its sibling props haven't changed.
-const MapAreaMarker = React.memo(function MapAreaMarker({ area, areaType, onPress, theme }: IMapAreaMarkerProps) {
+const MapAreaMarker = React.memo(function MapAreaMarker({ coordinate, area, areaType, onPress, theme }: IMapAreaMarkerProps) {
     return (
         <Marker
             anchor={MARKER_ANCHOR}
             coordinate={{
-                longitude: area.longitude,
-                latitude: area.latitude,
+                longitude: coordinate.longitude,
+                latitude: coordinate.latitude,
             }}
             onPress={onPress}
             stopPropagation={true}
@@ -1017,6 +1023,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         isMapReady && filteredEvents.map((event: any) => (
                             <MapAreaMarker
                                 key={event.id}
+                                coordinate={event}
                                 area={event}
                                 areaType="events"
                                 onPress={this.handleMapPress}
@@ -1028,6 +1035,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         isMapReady && filteredMoments.map((moment: any) => (
                             <MapAreaMarker
                                 key={moment.id}
+                                coordinate={moment}
                                 area={moment}
                                 areaType="moments"
                                 onPress={this.handleMapPress}
@@ -1040,6 +1048,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         isMapReady && filteredSpaces.map((space: any) => (
                             <MapAreaMarker
                                 key={space.id}
+                                coordinate={space}
                                 area={space}
                                 areaType="spaces"
                                 onPress={this.handleMapPress}

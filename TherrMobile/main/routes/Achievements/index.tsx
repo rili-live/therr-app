@@ -147,6 +147,51 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         });
     };
 
+    goToLeaderboard = () => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Leaderboard');
+    };
+
+    renderLeaderboardLink = () => (
+        <Pressable
+            onPress={this.goToLeaderboard}
+            style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginHorizontal: 10,
+                marginTop: 10,
+                marginBottom: 4,
+                paddingVertical: 12,
+                paddingHorizontal: 14,
+                borderRadius: 10,
+                backgroundColor: this.theme.colors.primary3,
+            }}
+        >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <FontAwesome5Icon
+                    name="trophy"
+                    size={16}
+                    color={this.theme.colors.brandingWhite}
+                />
+                <Text style={{
+                    marginLeft: 10,
+                    fontSize: 15,
+                    fontWeight: '700',
+                    color: this.theme.colors.brandingWhite,
+                }}>
+                    {this.translate('pages.achievements.buttons.viewLeaderboard')}
+                </Text>
+            </View>
+            <FontAwesome5Icon
+                name="chevron-right"
+                size={14}
+                color={this.theme.colors.brandingWhite}
+            />
+        </Pressable>
+    );
+
     toggleSection = (sectionTitle: string) => {
         this.setState((prevState) => ({
             collapsedSections: {
@@ -296,6 +341,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                 userAchievement={item}
                             />}
                             renderSectionHeader={this.renderSectionHeader}
+                            ListHeaderComponent={this.renderLeaderboardLink()}
                             refreshControl={<RefreshControl
                                 refreshing={isRefreshing}
                                 onRefresh={this.handleRefresh}

@@ -1,5 +1,6 @@
 import { CAROUSEL_TABS } from '../constants';
 import { SELECT_ALL } from './categories';
+import { rankFeedPosts } from './feedRanking';
 
 interface IPost {
     createdAt: any;
@@ -132,6 +133,10 @@ export default ({
         sortedData.filter(areaOrThought => categories.includes(areaOrThought.category)
             || categories.map((cat) => translate(cat)).includes(areaOrThought.category)
             || categories.map((cat) => cat.replace('categories.', '')).includes(areaOrThought.category));
+
+    if (sortBy === 'ranked') {
+        return rankFeedPosts(filteredData);
+    }
 
     return filteredData;
 };

@@ -58,7 +58,7 @@
         "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!"
     },
     "invites": {
-        "phone": "{name} t'a invité sur Therr — l'appli de communauté locale et de récompenses. Inscris-toi ici pour te connecter : https://therr.com",
+        "phone": "{name} t'a invité sur Therr — l'appli de communauté locale et de récompenses. Inscris-toi ici pour te connecter : {inviteUrl}",
         "pact": {
             "sms": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} — ou utilise le code {claimCode} à l'inscription.",
             "smsTokenOnly": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} pour accepter."

@@ -21,6 +21,7 @@ import socialite from './socialite';
 import thinker from './thinker';
 import tourGuide from './tourGuide';
 import treasureBuilder from './treasureBuilder';
+import weeklyChampion from './weeklyChampion';
 
 export interface IAchievement {
     title: string;
@@ -58,6 +59,7 @@ const achievements: { [key: string]: IAchievement } = {
     ...thinker,
     ...tourGuide,
     ...treasureBuilder,
+    ...weeklyChampion,
 };
 
 export const achievementsByClass: { [key: string]: { [key: string]: IAchievement } } = {
@@ -83,12 +85,12 @@ export const achievementsByClass: { [key: string]: { [key: string]: IAchievement
     thinker,
     tourGuide,
     treasureBuilder,
+    weeklyChampion,
 };
 
-// Every class currently shipped is Therr-themed (location/social/content). Niche brands
-// like HABITS will land their own streak/pact-themed classes per HABITS_PROJECT_BRIEF.md;
-// until those exist, niche brands earn nothing — registration seeds and activity-driven
-// creates skip on a niche brand because no class is allow-listed for it.
+// Therr-themed classes (location/social/content) — locked to the Therr apps so
+// registration seeds and connection/thought activity never surface Therr-shaped
+// achievements inside a niche app.
 const therrClassNames = [
     'accountability',
     'activist',
@@ -112,6 +114,26 @@ const therrClassNames = [
     'thinker',
     'tourGuide',
     'treasureBuilder',
+    'weeklyChampion',
+];
+
+// HABITS ladder (2026-07, leaderboards release): the streak/pact-themed classes plus
+// `socialite` (invite virality) are now allow-listed for Friends with Habits, ending the
+// interim "HABITS earns nothing" policy from a55bce90d. The awarding side has been wired
+// since the streaks release (users-service handlers/helpers/awardHabitAchievements.ts);
+// this list is what lets those calls write rows instead of silently no-oping.
+// `weeklyChampion` is brand-agnostic — every brand with a leaderboard earns it.
+const habitsClassNames = [
+    'accountability',
+    'cleanBreak',
+    'consistency',
+    'habitBuilder',
+    'pactPioneer',
+    'resilience',
+    'socialEnergizer',
+    'socialite',
+    'treasureBuilder',
+    'weeklyChampion',
 ];
 
 // Maps an achievement class to the brands that may earn it. Without this gate,
@@ -121,6 +143,7 @@ const therrClassNames = [
 export const achievementClassesByBrand: { [brand: string]: ReadonlySet<string> } = {
     [BrandVariations.THERR]: new Set(therrClassNames),
     [BrandVariations.DASHBOARD_THERR]: new Set(therrClassNames),
+    [BrandVariations.HABITS]: new Set(habitsClassNames),
 };
 
 export const getAchievementsForBrand = (

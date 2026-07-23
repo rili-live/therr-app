@@ -28,6 +28,7 @@ import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
 import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
+import InviteLinkLanding from './InviteLinkLanding';
 import ClaimPactLanding from './ClaimPactLanding';
 import Guide from './Guide';
 import GuidesIndex from './Guide/GuidesIndex';
@@ -178,6 +179,12 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/register',
         element: <Register />,
+    },
+    {
+        // Magic invite-link landing — pre-filled signup from a per-invite token.
+        // More specific than /invite/:username so it takes precedence.
+        path: '/invite/link/:token',
+        element: <InviteLinkLanding />,
     },
     {
         path: '/invite/:username',

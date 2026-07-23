@@ -15,12 +15,15 @@ import mixins from '../../styles/mixins';
 import LoginForm from './LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
+import setPreLoginLocale from '../../redux/actions/setPreLoginLocale';
 import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import LanguageSelector from '../../components/LanguageSelector';
 import { getUserImageUri } from '../../utilities/content';
 
 interface ILoginDispatchProps {
     login: Function;
+    setPreLoginLocale: Function;
 }
 
 interface IStoreProps extends ILoginDispatchProps {
@@ -45,6 +48,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             login: UsersActions.login,
+            setPreLoginLocale,
         },
         dispatch
     );
@@ -66,8 +70,10 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.themeAuthForm = buildAuthFormStyles(props.user.settings?.mobileThemeName);
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        // Read from `this.props` (not the captured constructor `props`) so the translation
+        // re-renders live when the pre-login locale changes via the LanguageSelector.
         this.translate = (key: string, params: any): string =>
-            translator(props.user.settings?.locale || 'en-us', key, params);
+            translator(this.props.user.settings?.locale || 'en-us', key, params);
         this.cachedUserDetails = props.user?.details;
     }
 
@@ -82,6 +88,19 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             });
         }
     }
+
+    componentDidUpdate(prevProps: ILoginProps) {
+        const { navigation, route, user } = this.props;
+        if (prevProps.user.settings?.locale !== user.settings?.locale && !route.params?.isVerifySuccess) {
+            navigation.setOptions({
+                title: this.translate('pages.login.headerTitle'),
+            });
+        }
+    }
+
+    onChangeLocale = (locale: string) => {
+        this.props.setPreLoginLocale(locale);
+    };
 
     render() {
         const { route, user } = this.props;
@@ -127,6 +146,13 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                 themeForms={this.themeForms}
                                 userMessage={userMessage}
                                 userSettings={user?.settings || {}} />
+                            <LanguageSelector
+                                locale={user?.settings?.locale || 'en-us'}
+                                onChangeLocale={this.onChangeLocale}
+                                translate={this.translate}
+                                theme={this.theme}
+                                containerStyle={this.theme.styles.sectionContainerWide}
+                            />
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>

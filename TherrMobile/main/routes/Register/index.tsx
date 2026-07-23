@@ -6,6 +6,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler';
 import { showToast } from '../../utilities/toasts';
 import { IUserState } from 'therr-react/types';
+import { UsersService } from 'therr-react/services';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
@@ -16,14 +17,17 @@ import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
 import RegisterForm from './RegisterForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
+import setPreLoginLocale from '../../redux/actions/setPreLoginLocale';
 import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import LanguageSelector from '../../components/LanguageSelector';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from '../Map/EULA';
 
 interface IRegisterDispatchProps {
     login: Function;
     register: Function;
+    setPreLoginLocale: Function;
 }
 
 interface IStoreProps extends IRegisterDispatchProps {
@@ -33,10 +37,13 @@ interface IStoreProps extends IRegisterDispatchProps {
 // Regular component props
 export interface IRegisterProps extends IStoreProps {
     navigation: any;
+    route?: any;
 }
 
 interface IRegisterState {
     isEULAVisible: boolean;
+    prefillEmail: string;
+    inviterName: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -48,6 +55,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             login: UsersActions.login,
             register: UsersActions.register,
+            setPreLoginLocale,
         },
         dispatch
     );
@@ -67,6 +75,8 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
 
         this.state = {
             isEULAVisible: false,
+            prefillEmail: '',
+            inviterName: '',
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -76,15 +86,45 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
+        // Read from `this.props` (not the captured constructor `props`) so the translation
+        // re-renders live when the pre-login locale changes via the LanguageSelector.
         this.translate = (key: string, params: any): string =>
-            translator(props.user.settings?.locale || 'en-us', key, params);
+            translator(this.props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
         this.props.navigation.setOptions({
             title: this.translate('pages.register.headerTitle'),
         });
+
+        // Magic invite link: resolve the token to pre-fill the invitee's known
+        // email and show who invited them. Best-effort — signup still works if
+        // the token can't be resolved.
+        const inviteToken = this.props.route?.params?.inviteToken;
+        if (inviteToken) {
+            UsersService.getInviteByToken(inviteToken)
+                .then((response: any) => {
+                    const invite = response?.data || {};
+                    this.setState({
+                        prefillEmail: invite.email || '',
+                        inviterName: invite.inviterName || '',
+                    });
+                })
+                .catch(() => { /* ignore unknown/expired token */ });
+        }
     }
+
+    componentDidUpdate(prevProps: IRegisterProps) {
+        if (prevProps.user.settings?.locale !== this.props.user.settings?.locale) {
+            this.props.navigation.setOptions({
+                title: this.translate('pages.register.headerTitle'),
+            });
+        }
+    }
+
+    onChangeLocale = (locale: string) => {
+        this.props.setPreLoginLocale(locale);
+    };
 
     onSuccess = () => {
         showToast.success({
@@ -130,6 +170,13 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                     {pageSubtitle} <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>{pageSubtitleMapPreviewLink}</Text>
                                 </Text>
                             </View>
+                            <LanguageSelector
+                                locale={this.props.user?.settings?.locale || 'en-us'}
+                                onChangeLocale={this.onChangeLocale}
+                                translate={this.translate}
+                                theme={this.theme}
+                                containerStyle={this.theme.styles.sectionContainerWide}
+                            />
                             <RegisterForm
                                 login={this.props.login}
                                 register={this.props.register}
@@ -140,6 +187,9 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                 themeForms={this.themeForms}
                                 toggleEULA={this.toggleEULA}
                                 userSettings={this.props.user?.settings || {}}
+                                inviteToken={this.props.route?.params?.inviteToken}
+                                prefillEmail={this.state.prefillEmail}
+                                inviterName={this.state.inviterName}
                             />
                         </View>
                     </KeyboardAwareScrollView>

@@ -108,6 +108,26 @@ export default class UserConnectionsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    /**
+     * IDs of every user with an accepted (COMPLETE) connection to `userId`, regardless of
+     * which side initiated. Used to scope the friends leaderboard pool.
+     */
+    getAcceptedConnectionUserIds(userId: string): Promise<string[]> {
+        const queryString = knexBuilder.select(['requestingUserId', 'acceptingUserId'])
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .where({ requestStatus: UserConnectionTypes.COMPLETE })
+            .andWhere((builder) => builder.where({
+                requestingUserId: userId,
+            }).orWhere({
+                acceptingUserId: userId,
+            }))
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows
+            .map((row) => (row.requestingUserId === userId ? row.acceptingUserId : row.requestingUserId))
+            .filter((id) => !!id && id !== userId));
+    }
+
     getMightKnowUserConnections(userId: string, conditions = {}, limit = 100) {
         const queryString = knexBuilder.select('*')
             .from(USER_CONNECTIONS_TABLE_NAME)

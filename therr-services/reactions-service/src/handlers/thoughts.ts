@@ -82,7 +82,9 @@ const searchActiveThoughts = async (req: any, res: any) => {
                 },
             }).then(async (response) => {
                 let thoughts = response?.data?.thoughts;
-                const results = await Store.thoughtReactions.getCounts(thoughts.map((m) => m.id), {}, 'userHasLiked');
+                // Include reply preview ids so inline thread previews can surface the top reply by likes
+                const replyIds = thoughts.reduce((acc, m) => acc.concat((m.replies || []).map((reply) => reply.id)), []);
+                const results = await Store.thoughtReactions.getCounts([...thoughts.map((m) => m.id), ...replyIds], {}, 'userHasLiked');
                 const likeCountByThoughtId = results.reduce((acc, cur) => ({
                     ...acc,
                     [cur.thoughtId]: cur.count,
@@ -93,6 +95,12 @@ const searchActiveThoughts = async (req: any, res: any) => {
                         ...alteredThought,
                         reaction: thoughtIdToReaction[thought.id] || {},
                         likeCount: parseInt(likeCountByThoughtId[thought.id] || 0, 10),
+                        replies: thought.replies
+                            ?.filter((reply) => !blockedUsers.includes(reply.fromUserId))
+                            .map((reply) => ({
+                                ...reply,
+                                likeCount: parseInt(likeCountByThoughtId[reply.id] || 0, 10),
+                            })),
                     };
                 }).filter((thought) => !blockedUsers.includes(thought.fromUserId));
                 return res.status(200).send({

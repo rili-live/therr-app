@@ -1,20 +1,23 @@
 import { RequestHandler } from 'express';
 import {
-    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, ReferralRewards, UserConnectionTypes,
+    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, MetricNames, PushNotifications, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import { parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import syncDeviceTokenForBrand from '../utilities/syncDeviceTokenForBrand';
+import sendEmailAndOrPushNotification, { resolveDeviceTokenForBrand } from '../utilities/sendEmailAndOrPushNotification';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
-import { isMatchingInvitee } from './helpers/pactRedemption';
+import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
+import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -209,26 +212,75 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            return getSubsAccessLvlsPromise.then((levels) => createUserHelper(
-                req.headers,
-                {
+            return getSubsAccessLvlsPromise.then(async (levels) => {
+                // A registration carrying a valid PACT-XXXX claim whose
+                // contact info matches the original invitee has already proven
+                // channel ownership — grant verified access up-front and skip
+                // the verification-email wall (the biggest drop-off point
+                // between an invitee and their friend's pact).
+                const isPreVerifiedByPactClaim = await isClaimCodePreVerified(pactClaimCode, {
                     email: req.body.email,
-                    password: req.body.password,
-                    firstName: req.body.firstName,
-                    isBusinessAccount: req.body.isBusinessAccount,
-                    isCreatorAccount: req.body.isCreatorAccount,
-                    isDashboardRegistration: req.body.isDashboardRegistration,
-                    settingsEmailMarketing: req.body.settingsEmailMarketing,
-                    settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
-                    lastName: req.body.lastName,
                     phoneNumber: req.body.phoneNumber,
-                    userName: req.body.userName,
-                    accessLevels: levels,
-                },
-                false,
-                undefined,
-                !!inviteCode,
-            ).then(async (user) => {
+                });
+
+                return createUserHelper(
+                    req.headers,
+                    {
+                        email: req.body.email,
+                        password: req.body.password,
+                        firstName: req.body.firstName,
+                        isBusinessAccount: req.body.isBusinessAccount,
+                        isCreatorAccount: req.body.isCreatorAccount,
+                        isDashboardRegistration: req.body.isDashboardRegistration,
+                        settingsEmailMarketing: req.body.settingsEmailMarketing,
+                        settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
+                        settingsLocale: req.body.settingsLocale || locale,
+                        lastName: req.body.lastName,
+                        phoneNumber: req.body.phoneNumber,
+                        userName: req.body.userName,
+                        accessLevels: levels,
+                    },
+                    false,
+                    undefined,
+                    !!inviteCode,
+                    req.body.inviteToken,
+                    isPreVerifiedByPactClaim,
+                );
+            }).then(async (user) => {
+                let registrationSource = 'organic';
+                if (pactClaimCode) {
+                    registrationSource = 'pact-claim';
+                } else if (inviteCode) {
+                    registrationSource = 'referral-code';
+                }
+                recordFunnelMetric(MetricNames.FUNNEL_USER_REGISTERED, user?.id, {
+                    brandVariation: brandVariation || '',
+                    platform: platform || '',
+                    source: registrationSource,
+                });
+
+                // Username-referral path (share link / "invite code" field):
+                // the registrant explicitly entered the inviter's code, so
+                // connect them immediately. Fire-and-forget — registration
+                // must succeed even if the referral linkage fails.
+                if (inviteCode && !pactClaimCode && user?.id) {
+                    Store.users.findUser({ userName: inviteCode })
+                        .then((inviterRows) => {
+                            if (inviterRows?.length) {
+                                return ensureCompletedUserConnection(inviterRows[0].id, user.id);
+                            }
+                            return null;
+                        })
+                        .catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Failed to connect referral inviter to new user'],
+                                traceArgs: { 'error.message': err?.message, 'user.id': user.id },
+                            });
+                        });
+                }
+
                 if (pactClaimCode && user?.id) {
                     // Best-effort: link the new user to the pending pact_members
                     // row keyed by claimCode and activate it. Done out-of-band
@@ -280,6 +332,54 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             }
                             if (pact && (pact.status === 'pending' || pact.status === 'active')) {
                                 await Store.pactMembers.activate(member.pactId, user.id);
+
+                                recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_ACCEPTED, user.id, {
+                                    brandVariation: brandVariation || '',
+                                    via: 'signup-claim',
+                                });
+
+                                // Mirror acceptPact's post-activation effects — without
+                                // these, a signup-time redemption left the pact with no
+                                // streak rows (check-ins would start from a broken state)
+                                // and the inviter never learned their invitee joined.
+                                const streakPromises: Promise<any>[] = [
+                                    Store.streaks.getOrCreate(user.id, pact.habitGoalId, member.pactId),
+                                ];
+                                if (pact.status === 'pending') {
+                                    streakPromises.push(Store.streaks.getOrCreate(pact.creatorUserId, pact.habitGoalId, member.pactId));
+                                }
+                                await Promise.all(streakPromises);
+
+                                // Invited-user-is-connected-to-inviter contract: the
+                                // pact creator and the newly registered invitee become
+                                // connections immediately.
+                                ensureCompletedUserConnection(pact.creatorUserId, user.id).catch((connErr) => {
+                                    logSpan({
+                                        level: 'error',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['Failed to connect pact creator and claimed invitee on signup'],
+                                        traceArgs: { 'error.message': connErr?.message, pactId: member.pactId },
+                                    });
+                                });
+
+                                // Re-engage the inviter: their friend just joined and
+                                // the pact is live. Fire-and-forget.
+                                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                                    authorization: req.headers?.authorization,
+                                    fromUser: { id: user.id, userName: user.userName || user.firstName || '' },
+                                    locale,
+                                    toUserId: pact.creatorUserId,
+                                    type: PushNotifications.Types.pactAccepted,
+                                    whiteLabelOrigin,
+                                    brandVariation,
+                                }).catch((notifyErr) => {
+                                    logSpan({
+                                        level: 'error',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['Failed to notify pact creator of signup-time claim'],
+                                        traceArgs: { 'error.message': notifyErr?.message, pactId: member.pactId },
+                                    });
+                                });
                             }
                         } else if (memberIsRedeemable && !identityMatches) {
                             logSpan({
@@ -299,7 +399,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     }
                 }
                 return res.status(201).send(user);
-            }));
+            });
         })
         .catch((err) => {
             if (err?.message === 'invalid-password') {
@@ -322,9 +422,10 @@ const createUser: RequestHandler = (req: any, res: any) => {
 // READ
 const getMe = (req, res) => {
     const userId = req.headers['x-userid'];
+    const { brandVariation } = getBrandContext(req.headers);
 
     return Store.users.getUserByConditions({ id: userId, settingsIsAccountSoftDeleted: false })
-        .then((results) => {
+        .then(async (results) => {
             if (!results.length) {
                 return handleHttpError({
                     res,
@@ -337,9 +438,23 @@ const getMe = (req, res) => {
             // Remove credentials from object
             redactUserCreds(userResult);
 
-            return userResult;
+            // Multi-app isolation (Phase 2): the legacy users.deviceMobileFirebaseToken column
+            // is overwritten whenever a second branded app (e.g. Habits) registers on the same
+            // device, so it can point at another brand's app install. Consumers that read this
+            // endpoint for push routing — notably background-location processing in
+            // push-notifications-service, whose BackgroundGeolocation requests never carry the
+            // x-user-device-token header — would then deliver this brand's notification to the
+            // wrong app. Override with the brand-scoped token from main.userDeviceTokens (keyed
+            // on the request's x-brand-variation), falling back to the legacy column when the
+            // device hasn't re-registered against the new table yet.
+            userResult.deviceMobileFirebaseToken = await resolveDeviceTokenForBrand(
+                brandVariation,
+                userId,
+                userResult.deviceMobileFirebaseToken,
+            );
+
+            return res.status(200).send(userResult);
         })
-        .then((user) => res.status(200).send(user))
         .catch((err) => handleHttpError({
             err,
             res,
@@ -348,6 +463,12 @@ const getMe = (req, res) => {
 };
 
 // READ
+/**
+ * Deliberately NOT brand-scoped. This is a profile-by-id lookup, which is reached from a
+ * shared link rather than from discovery, so a Habits user opening a link to a Therr
+ * profile should still see it. Brand scoping belongs on discovery and contact-matching
+ * paths (searchUsers, searchUserPairings, findUsersByContactInfo), not here.
+ */
 const getUser = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
     const userId = req.headers['x-userid'];
@@ -434,6 +555,10 @@ const getUserByPhoneNumber = (req, res) => {
 /**
  * IMPORTANT - This is a public endpoint without optional authorization
  * Consider any and all implications of data that is returned
+ *
+ * Deliberately NOT brand-scoped, for the same reason as getUser above: this backs public,
+ * SEO-indexed profile pages reached by direct link. Scoping it would 404 valid cross-brand
+ * profile links. See getUser for where brand scoping does belong.
  */
 const getUserByUserName = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
@@ -474,6 +599,10 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
 
 const searchUsers: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid']; // undefined if user is not logged in
+    // Discovery is brand-scoped: identity-shared main.users has no brand column, so we
+    // filter on brandVariations enrollment. getBrandContext defaults to THERR for legacy
+    // tokens with no x-brand-variation header, matching the column's default membership.
+    const { brandVariation } = getBrandContext(req.headers);
 
     const {
         ids,
@@ -491,6 +620,10 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
             .then((connections) => Store.users.findUsers({
                 ids: connections
                     .map((con) => (con.requestingUserId === userId ? con.acceptingUserId : con.requestingUserId)),
+                // Brand-scope People-You-May-Know too. Without this, the mightKnow list leaks
+                // cross-brand accounts (contact-matched Therr users showing inside Habits) even
+                // though the primary searchUsers results are already brand-scoped.
+                brandVariation,
             }))
         : Promise.resolve([]);
 
@@ -501,6 +634,7 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
+        brandVariation,
     }, true, true);
 
     return Promise.all([mightKnowPromise, searchPromise])
@@ -528,6 +662,10 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
  */
 const searchUserPairings: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid']; // undefined if user is not logged in
+    // Brand-scoped for the same reason as its sibling searchUsers above: this is a
+    // discovery surface, so without the filter a niche dashboard pairs its users with
+    // accounts from another brand. getBrandContext defaults to THERR for legacy tokens.
+    const { brandVariation } = getBrandContext(req.headers);
 
     // TODO: Implement prediction algorithm to find users relevant to the requesting user
 
@@ -548,6 +686,7 @@ const searchUserPairings: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
+        brandVariation,
     })
         .then((results) => {
             res.status(200).send({
@@ -716,6 +855,7 @@ const updateUser = (req, res) => {
                 settingsEmailBackground: req.body.settingsEmailBackground,
                 settingsThemeName: req.body.settingsThemeName,
                 settingsIsProfilePublic: req.body.settingsIsProfilePublic,
+                settingsIsLeaderboardEnabled: req.body.settingsIsLeaderboardEnabled,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
                 settingsLocale: req.body.settingsLocale,
@@ -1163,16 +1303,25 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
 
             redactUserCreds(users[0]);
 
-            return Promise.all([
+            const user = users[0];
+
+            // Fire-and-forget the claim-request notification emails. These are
+            // best-effort admin/business notifications and must NOT gate the HTTP
+            // response. Previously they were awaited via Promise.all before the
+            // 200 was sent, so any AWS SES latency (slow/unreachable endpoint, SDK
+            // retry backoff) blocked the response. With no client-side request
+            // timeout on mobile, that surfaced as the "request a space" submit
+            // hanging indefinitely. Respond immediately; log email failures.
+            Promise.all([
                 sendClaimPendingReviewEmail({
                     subject: 'Business Space Request in Review',
                     locale,
-                    toAddresses: [users[0].email],
+                    toAddresses: [user.email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
                     recipientIdentifiers: {
-                        id: users[0].id,
-                        accountEmail: users[0].email,
+                        id: user.id,
+                        accountEmail: user.email,
                     },
                 }, {
                     spaceName: title || notificationMsg,
@@ -1190,16 +1339,27 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                     description,
                     userId,
                 }),
-            ]).then(() => users[0]);
+            ]).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to send space claim request emails'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'user.id': userId,
+                    },
+                });
+            });
+
+            return res.status(200).send({
+                message: 'Request sent to admin',
+                user: {
+                    accessLevels: user.accessLevels,
+                    isBusinessAccount: user.isBusinessAccount,
+                    email: user.email,
+                },
+            });
         })
-        .then((user) => res.status(200).send({
-            message: 'Request sent to admin',
-            user: {
-                accessLevels: user.accessLevels,
-                isBusinessAccount: user.isBusinessAccount,
-                email: user.email,
-            },
-        }))
         .catch((err) => handleHttpError({
             err,
             res,

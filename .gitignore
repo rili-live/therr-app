@@ -1,3 +1,6 @@
+context/transcripts/
+.memsearch/
+
 # Logs
 logs
 *.log
@@ -94,3 +97,7 @@ _bin/firebase/**/GoogleService-Info.plist
 # android
 bugreport-sdk*
 .aider*
+
+# memsearch vector DB and transcript captures (machine-local, not shared)
+context/transcripts/
+.memsearch/

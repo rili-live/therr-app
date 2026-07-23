@@ -4,6 +4,10 @@
       "title": "Tu as gagné une récompense!",
       "body": "Beau travail! Tu viens de compléter une réalisation. Appuie pour réclamer tes pièces avant qu'elles expirent."
     },
+    "leaderboardRankMilestone": {
+      "title": "Jalon du classement!",
+      "body": "Tu viens de grimper au rang #{rank} du classement de cette semaine. Continue de gagner des XP pour défendre ta place!"
+    },
     "connectionRequestAccepted": {
       "title": "Vous êtes connectés!",
       "body": "{userName} a accepté ta demande — dis bonjour et commence une conversation!",

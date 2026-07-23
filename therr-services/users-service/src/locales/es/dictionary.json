@@ -58,7 +58,7 @@
         "discoveredUniqueSpace": "Alerta de joya oculta — ¡estás cerca de un espacio único!"
     },
     "invites": {
-        "phone": "{name} te invitó a Therr — la app de comunidad local y recompensas. Regístrate aquí para conectar: https://therr.com",
+        "phone": "{name} te invitó a Therr — la app de comunidad local y recompensas. Regístrate aquí para conectar: {inviteUrl}",
         "pact": {
             "sms": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala y abre {claimUrl} — o usa el código {claimCode} al registrarte.",
             "smsTokenOnly": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala la app y abre {claimUrl} para aceptar."

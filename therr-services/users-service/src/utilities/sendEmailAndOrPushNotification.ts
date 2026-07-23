@@ -69,6 +69,8 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     habitId?: string;
     habitName?: string;
     daysRemaining?: number;
+    // Leaderboards: the user's new weekly rank, for rank-milestone copy
+    rank?: number;
 }
 
 interface ISendPushNotificationAndOrEmailConfig {
@@ -107,6 +109,7 @@ export default (
         habitId,
         habitName,
         daysRemaining,
+        rank,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
         shouldSendPushNotification: true,
@@ -237,6 +240,7 @@ export default (
                     habitId,
                     habitName,
                     daysRemaining,
+                    rank,
                     // achievementsCount,
                     // likeCount,
                     // notificationsCount,

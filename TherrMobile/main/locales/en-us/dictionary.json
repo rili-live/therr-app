@@ -52,6 +52,7 @@
     "momentCreatedSuccess": "Moment Created  🎉",
     "momentDraftSuccess": "Moment Saved as Draft",
     "spaceCreatedSuccess": "You Claimed a Space",
+    "establishmentSpaceCreated": "New Space Added  📍",
     "spaceRequestSuccess": "Request Sent",
     "ssoLoginError": "Error With Single Sign-On",
     "startDateAfterEndDate": "Invalid Start/End Dates",
@@ -96,6 +97,7 @@
     "momentCreatedSuccess": "Your moment was successfully posted!",
     "momentDraftSuccess": "Your moment was successfully saved as a draft. Continue editing?",
     "spaceCreatedSuccess": "You have successfully claimed this space!",
+    "establishmentSpaceCreated": "Thanks! This place is now on the map for others to discover.",
     "spaceUpdatedSuccess": "Your space was successfully updated!",
     "spaceRequestSuccess": "You have successfully requested to add a new business space!",
     "pleaseTryAgain": "Connection error. Please try again later.",
@@ -389,6 +391,9 @@
         "view": "View"
       }
     },
+    "thoughtDisplay": {
+      "viewAllReplies": "View all {count} replies"
+    },
     "userMenu": {
       "buttons": {
         "viewProfile": "View Profile",
@@ -407,6 +412,9 @@
   },
   "forms": {
     "dividerOr": "or",
+    "languageSelector": {
+      "label": "Select your language"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Send",
@@ -764,6 +772,7 @@
         "disclaimer": "By creating an account, you agree to our ",
         "and": " and ",
         "inviteCodeHint": "Enter a friend's invite code - they earn 10 coins and you earn 5!",
+        "invitedBy": "{inviterName} invited you to Therr — finish signing up to connect!",
         "birthdateHint": "You must be at least {minAge} years old to use Therr"
       },
       "validationErrors": {
@@ -1135,6 +1144,9 @@
     "achievements": {
       "headerTitle": "Achievements",
       "pageHeader": "Achievements",
+      "buttons": {
+        "viewLeaderboard": "View Leaderboard"
+      },
       "labels": {
         "coinValue": "Coin Value",
         "xpValue": "Experience Value"
@@ -1255,7 +1267,7 @@
     },
     "directMessage": {
       "inputPlaceholder": "Enter a message...",
-      "noMessagesFound": "This is the start of your conversations with {userName}"
+      "noMessagesFound": "No recent messages with {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Create a Group",
@@ -1292,6 +1304,25 @@
     },
     "invite": {
       "headerTitle": "Invite"
+    },
+    "leaderboard": {
+      "headerTitle": "Leaderboard",
+      "tabs": {
+        "thisWeek": "This Week",
+        "allTime": "All Time",
+        "everyone": "Everyone",
+        "friends": "Friends"
+      },
+      "labels": {
+        "you": "You",
+        "xpPoints": "{points} XP",
+        "resetsIn": "Resets in {days} day(s)",
+        "yourRank": "Your rank: #{rank}"
+      },
+      "info": {
+        "noScores": "No scores yet this week. Use the app to earn XP and claim your spot!",
+        "noFriendScores": "None of your connections have earned XP yet. Invite friends to join the competition!"
+      }
     },
     "manageNotifications": {
       "headerTitle": "Email & Alert Settings",
@@ -1821,6 +1852,12 @@
         "requestSpace": "Request a public business space and earn points per request! We'll connect with the owner to add it to the map so they can start offering loyalty rewards."
       }
     },
+    "nearbyEstablishment": {
+      "header": "Were you at one of these?",
+      "description": "Add the place you visited so others can discover it on the map.",
+      "none": "None of these",
+      "distanceAway": "{distance}m away"
+    },
     "contentOptions": {
       "buttons": {
         "getDirections": "Get Directions",
@@ -2343,6 +2380,30 @@
       "pactPioneer_1_2_1": {
         "title": "Network Effect",
         "description": "Invite 10 unique partners across pacts"
+      },
+      "weeklyChampion_1_1": {
+        "title": "Contender",
+        "description": "Reach the top 10 on the weekly leaderboard"
+      },
+      "weeklyChampion_1_1_1": {
+        "title": "Regular Contender",
+        "description": "Reach the weekly top 10 five more times"
+      },
+      "weeklyChampion_1_2": {
+        "title": "Podium Finish",
+        "description": "Reach the top 3 on the weekly leaderboard"
+      },
+      "weeklyChampion_1_2_1": {
+        "title": "Podium Regular",
+        "description": "Reach the weekly top 3 five more times"
+      },
+      "weeklyChampion_1_3": {
+        "title": "Number One",
+        "description": "Reach #1 on the weekly leaderboard"
+      },
+      "weeklyChampion_1_3_1": {
+        "title": "Serial Champion",
+        "description": "Reach #1 on the weekly leaderboard five more times"
       }
     },
     "profile": {

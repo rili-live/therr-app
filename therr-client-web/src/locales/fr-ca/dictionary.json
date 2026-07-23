@@ -177,6 +177,7 @@
         "phoneNumber": "Numéro de téléphone invalide"
       },
       "text": {
+        "invitedBy": "{inviterName} t'a invité sur Therr — termine ton inscription pour te connecter!",
         "signupForRewards": "Inscrivez-vous avec le code d'invitation de {userName} — il gagne 10 pièces et vous en gagnez 5!",
         "inviteCodeHint": "Entrez le code d'invitation d'un ami pour gagner des pièces bonus",
         "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser Therr",
