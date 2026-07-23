@@ -1751,7 +1751,8 @@
         "packages": {
           "coinsLabel": "{count} pièces",
           "bonusLabel": "+{count} bonus",
-          "buyButton": "Acheter"
+          "buyButton": "Acheter",
+          "buyOnWebButton": "Acheter sur le web"
         },
         "autoRecharge": {
           "title": "Recharge Automatique",

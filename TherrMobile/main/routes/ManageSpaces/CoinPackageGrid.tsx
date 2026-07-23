@@ -1,7 +1,13 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { showToast } from '../../utilities/toasts';
 import { COIN_PACKAGES, ICoinPackage } from '../../constants/coinPackages';
+
+// TherrCoins are a digital good purchased via the web dashboard (Stripe), not
+// Apple In-App Purchase. To stay compliant with App Store review, iOS routes
+// buyers to the web instead of offering an in-app purchase button.
+const WEB_APP_RECHARGE_URL = 'https://business.therr.com/spaces';
+const isIos = Platform.OS === 'ios';
 
 interface ICoinPackageGridProps {
     theme: any;
@@ -54,6 +60,14 @@ const formatUsd = (usdCents: number): string => `$${(usdCents / 100).toFixed(0)}
 
 const renderTile = (pkg: ICoinPackage, theme: any, translate: ICoinPackageGridProps['translate']) => {
     const onPress = () => {
+        if (isIos) {
+            Linking.openURL(WEB_APP_RECHARGE_URL).catch(() => {
+                showToast.error({
+                    text1: translate('alertTitles.backendErrorMessage'),
+                });
+            });
+            return;
+        }
         showToast.info({
             text1: translate('pages.manageSpaces.recharge.comingSoon'),
         });
@@ -89,7 +103,9 @@ const renderTile = (pkg: ICoinPackage, theme: any, translate: ICoinPackageGridPr
                 ]}
             >
                 <Text style={staticStyles.buyButtonText}>
-                    {translate('pages.manageSpaces.recharge.packages.buyButton')}
+                    {translate(isIos
+                        ? 'pages.manageSpaces.recharge.packages.buyOnWebButton'
+                        : 'pages.manageSpaces.recharge.packages.buyButton')}
                 </Text>
             </TouchableOpacity>
         </View>
