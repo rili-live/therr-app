@@ -68,6 +68,83 @@ The trust boundary is the key design choice:
 
 ---
 
+## Setup (one time)
+
+### 1. Prerequisites
+
+You need **one** of `gcloud` or `kubectl` on your PATH, authenticated to the
+prod cluster. `gcloud` is strongly preferred because it reads Cloud Logging
+history (which survives pod restarts). Installing the Google Cloud SDK gives
+you both `gcloud` **and** `kubectl`.
+
+**Install the Google Cloud SDK** (bundles `gcloud` + `kubectl`):
+- macOS: `brew install --cask google-cloud-sdk`
+- Debian/Ubuntu: `sudo apt-get install google-cloud-cli google-cloud-cli-gke-gcloud-auth-plugin kubectl`
+- Other: https://cloud.google.com/sdk/docs/install
+
+**Authenticate to the prod cluster** (matches what CI does in `.circleci/config.yml`):
+```bash
+gcloud auth login                                   # opens a browser once
+gcloud config set project therr-app
+gcloud config set compute/zone us-central1-a
+export USE_GKE_GCLOUD_AUTH_PLUGIN=True               # required for GKE auth
+gcloud container clusters get-credentials cluster-1 --zone us-central1-a
+```
+That last command writes cluster access into your `~/.kube/config`, so
+`kubectl` now points at prod too. Verify: `kubectl get pods` should list the
+service pods.
+
+> `jq` is **optional** (nicer Cloud Logging parsing). Install with
+> `brew install jq` / `apt-get install jq` if you like; the script works
+> without it.
+
+### 2. Environment variables
+
+**None are required.** Every value is baked in with a sensible default
+(`therr-app` project, `default` namespace). The env vars in the table
+[below](#config-env-overrides) are optional overrides only — you can ignore
+them entirely.
+
+### 3. Make it a command you can run from anywhere
+
+Pick whichever fits your setup. The digest is written to
+**`$PWD/.prod-debug/`** (the directory you run it from), so if you want Claude
+to read it inside this repo, either run it from the repo root, or use
+**Option C** which always writes into the repo.
+
+**Option A — symlink onto your PATH** (run it from the repo root):
+```bash
+mkdir -p ~/bin
+ln -sf "$(git -C /path/to/therr-app rev-parse --show-toplevel)/_bin/prod-debug/collect-incident.sh" ~/bin/prod-debug
+# ensure ~/bin is on PATH — add to ~/.bashrc or ~/.zshrc if needed:
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+
+# then, from the repo root:
+prod-debug 30m --deploy
+```
+
+**Option B — a shell alias** (add to `~/.bashrc` / `~/.zshrc`):
+```bash
+alias prod-debug='/path/to/therr-app/_bin/prod-debug/collect-incident.sh'
+```
+
+**Option C — a shell function that always writes into the repo** so you can run
+it from *any* directory and Claude still finds the file (add to
+`~/.bashrc` / `~/.zshrc`):
+```bash
+prod-debug() {
+  local repo="$HOME/code/therr-app"        # <-- set this to your clone path once
+  THERR_PROD_DEBUG_DIR="$repo/.prod-debug" \
+    "$repo/_bin/prod-debug/collect-incident.sh" "$@"
+}
+```
+Then, from anywhere: `prod-debug 1h --live`. Reload your shell (or
+`source ~/.bashrc`) after editing.
+
+Run `prod-debug --help` any time for the full flag list.
+
+---
+
 ## Usage
 
 ```bash
@@ -108,12 +185,12 @@ relevant service source in this monorepo.
 7. **Live tails** (`--live` mode) — current + `--previous` logs for unhealthy pods.
 
 ### Requirements
-- `gcloud` authenticated to the `therr-app` project **and/or** `kubectl`
-  pointed at the prod cluster. The script auto-detects both and degrades
-  gracefully if only one is present. `jq` is optional (richer Cloud Logging
-  parsing) but not required.
+See [Setup](#setup-one-time) above. In short: `gcloud` and/or `kubectl`
+authenticated to the prod cluster (the script auto-detects both and degrades
+gracefully if only one is present); `jq` optional.
 
-### Config (env overrides)
+<a id="config-env-overrides"></a>
+### Config (env overrides — all optional)
 | Env var | Default | Meaning |
 |---------|---------|---------|
 | `THERR_GCP_PROJECT` | `therr-app` | GCP project for Cloud Logging |

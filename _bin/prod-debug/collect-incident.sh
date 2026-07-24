@@ -43,12 +43,46 @@ OUT_DIR="${THERR_PROD_DEBUG_DIR:-.prod-debug}"
 WINDOW="30m"
 MODE="incident"   # incident | live | deploy
 
+usage() {
+  cat <<'USAGE'
+collect-incident.sh — concise, redacted production incident digest for Claude.
+
+USAGE:
+  collect-incident.sh [WINDOW] [--live | --deploy]
+
+ARGS:
+  WINDOW      Time window to look back (default 30m). Anything gcloud
+              --freshness / kubectl --since accept: 15m, 2h, 1d, ...
+  --live      Also tail current + previous logs of unhealthy pods (crashloops).
+  --deploy    Also show per-deployment rollout status + history.
+  -h, --help  Show this help.
+
+EXAMPLES:
+  collect-incident.sh                 # last 30m
+  collect-incident.sh 2h              # last 2 hours
+  collect-incident.sh 15m --live      # crashloop investigation
+  collect-incident.sh 1h --deploy     # right after a deploy
+
+PREREQUISITES:
+  gcloud and/or kubectl on PATH, authenticated to the prod cluster.
+  One-time setup and how to add this as a shell command:
+  see docs/PROD_DEBUG_CLAUDE.md.
+
+ENV OVERRIDES:
+  THERR_GCP_PROJECT   (default: therr-app)
+  THERR_K8S_NAMESPACE (default: default)
+  THERR_MAX_LOG_LINES (default: 120)
+  THERR_PROD_DEBUG_DIR(default: .prod-debug)
+USAGE
+}
+
 for arg in "$@"; do
   case "$arg" in
-    --live)   MODE="live" ;;
-    --deploy) MODE="deploy" ;;
-    --*)      echo "Unknown flag: $arg" >&2; exit 2 ;;
-    *)        WINDOW="$arg" ;;   # first bare arg is the time window (e.g. 30m, 2h)
+    -h|--help) usage; exit 0 ;;
+    --live)    MODE="live" ;;
+    --deploy)  MODE="deploy" ;;
+    --*)       echo "Unknown flag: $arg" >&2; usage >&2; exit 2 ;;
+    *)         WINDOW="$arg" ;;   # first bare arg is the time window (e.g. 30m, 2h)
   esac
 done
 
@@ -57,7 +91,23 @@ HAS_KUBECTL=false; command -v kubectl >/dev/null 2>&1 && HAS_KUBECTL=true
 HAS_JQ=false;      command -v jq      >/dev/null 2>&1 && HAS_JQ=true
 
 if ! $HAS_GCLOUD && ! $HAS_KUBECTL; then
-  echo "ERROR: neither gcloud nor kubectl found on PATH. Install/authenticate one." >&2
+  cat >&2 <<'PREREQ'
+ERROR: neither `gcloud` nor `kubectl` was found on your PATH.
+You need at least one, authenticated to the prod cluster.
+
+Quick setup (macOS/Linux):
+  # Google Cloud SDK (bundles gcloud + kubectl):  https://cloud.google.com/sdk/docs/install
+  #   macOS:  brew install --cask google-cloud-sdk
+  #   Debian: sudo apt-get install google-cloud-cli google-cloud-cli-gke-gcloud-auth-plugin kubectl
+
+  gcloud auth login
+  gcloud config set project therr-app
+  gcloud config set compute/zone us-central1-a
+  export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+  gcloud container clusters get-credentials cluster-1 --zone us-central1-a
+
+Full instructions: docs/PROD_DEBUG_CLAUDE.md
+PREREQ
   exit 1
 fi
 
