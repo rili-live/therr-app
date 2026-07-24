@@ -62,9 +62,14 @@ append new items here rather than only printing them once.
   Per-brand Firebase apps are loaded by env var; a stale value will silently
   send pushes from the wrong project.
 - [ ] **Run unconsumed migrations** on each service after any change under
-  `therr-services/<service>/src/migrations/**` lands on `main`. There is no
-  auto-migrate step in the deploy pipeline.
-  Command per service: `npm run migrations:run` (verify per-service `package.json`).
+  `therr-services/<service>/src/migrations/**` lands on `main`.
+  **Now automated for `main` deploys** via `_bin/cicd/run-migrations.sh`
+  (invoked from `_bin/cicd/deploy.sh`): it runs `npm run migrations:run` inside
+  the freshly rolled-out pod for each of the five migration-owning services
+  whose `src/store/migrations` changed. Still run manually when the opt-out
+  (`RUN_MIGRATIONS_ON_DEPLOY=false`) is set, for stage/non-`main` DBs, or to
+  apply a migration ahead of its image. Command per service:
+  `npm run migrations:run` (verify per-service `package.json`).
 - [ ] **Invalidate CDN cache for assets** (`docs/CLOUDFLARE_CDN.md`) after any
   change to global CSS, brand assets, or favicons.
 
@@ -572,6 +577,45 @@ these after items in 3.3 are merged and a perf baseline is captured.
 - `therr-client-web-dashboard/src/routes/OAuth2Landing.tsx:75` —
   React Router v6 navigation flicker after new-user login (also at
   `routes/Login/index.tsx:76`, `routes/Register/index.tsx:69`)
+
+### 3.5 CI/CD & deploy automation (dev → deploy → debug)
+
+Automation of the build/deploy/debug pipeline so a small team spends less time
+babysitting releases. See `docs/AUTOMATION_ROADMAP.md` for the full,
+cost-weighted roadmap (including observability, auto-filed bug issues,
+dependency automation, and marketing automation that live outside this
+backlog).
+
+- ✅ **Automated DB migrations on deploy** (roadmap #2) — **DONE.**
+  `_bin/cicd/run-migrations.sh` runs `npm run migrations:run` in the
+  freshly rolled-out pod for each migration-owning service whose
+  `src/store/migrations` changed on a `main` deploy. Removes the recurring
+  "run unconsumed migrations" manual follow-up. Additive/expand-contract
+  migrations only; opt out with `RUN_MIGRATIONS_ON_DEPLOY=false`.
+
+- [ ] **Post-deploy staging smoke tests + auto-rollback** (roadmap #3) —
+  replace the stubbed `test-e2e-staging` job in `.circleci/config.yml`
+  (currently `echo "Hello, Integration Tests"`) with a real synthetic suite
+  hitting critical paths (auth, map/space read, post create, push send).
+  Gate `stage → main` promotion on it and auto-revert the `kubectl set image`
+  (or `kubectl rollout undo`) if post-deploy healthchecks/smoke checks fail.
+  Turns a bad deploy into a ~minutes auto-rollback instead of a manual
+  scramble. Effort: medium. Depends on a reachable staging cluster (the job
+  scaffold and GKE auth already exist).
+
+- [ ] **Unify CI/CD across all repos + CD for the cloud functions & infra**
+  (roadmap #4) — standardize on one CI convention and add the missing
+  continuous-deploy legs:
+  - `therr-ai-automator` has Vitest tests but **no CI workflow** — add one
+    (lint / tsc / test / build), mirroring `therr-messaging-automator/.github/workflows/ci.yml`.
+  - Both automators deploy via a manual `npm run package:zip` + Terraform —
+    add build→zip→deploy CD (GitHub Actions → Terraform apply) so a merge to
+    the default branch ships the function.
+  - `therr-infra-terraform` has **no CI** — add `terraform plan` on PR and
+    `terraform apply` on merge so infra changes are reviewable and applied
+    automatically instead of by hand.
+  Effort: medium, mostly YAML + service-account wiring. Removes the
+  manual-zip/manual-apply toil and makes infra diffs auditable.
 
 ---
 
