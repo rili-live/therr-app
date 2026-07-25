@@ -392,7 +392,8 @@
       }
     },
     "thoughtDisplay": {
-      "viewAllReplies": "View all {count} replies"
+      "viewAllReplies": "View all {count} replies",
+      "viewReplies": "View {count} replies"
     },
     "userMenu": {
       "buttons": {
