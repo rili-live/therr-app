@@ -377,7 +377,12 @@ phoneRouter.post('/auth/start', phoneAuthStartLimiter, phoneAuthStartValidation,
         expiresInSeconds: AUTH_CODE_EXPIRE_SECONDS,
     });
 
-    return dispatchLoginCode(internalHeaders, userLocale, normalizedPhoneNumber);
+    // `.catch` is belt-and-braces: `dispatchLoginCode` already swallows its own failures, but
+    // it now runs detached from the request. Express 4 ignores a handler's return value, so
+    // any rejection escaping it would be an unhandled rejection — which Node surfaces as an
+    // uncaught exception, and this service's `uncaughtException` handler answers by exiting.
+    // One SMS failing must never be able to take the gateway down.
+    return dispatchLoginCode(internalHeaders, userLocale, normalizedPhoneNumber).catch(() => undefined);
 });
 
 /**

@@ -32,7 +32,7 @@ export const AUTH_SMS_SEND_WINDOW_SECONDS = 60 * 60;
 /** The slice of the Redis client this module needs. */
 export interface ISmsBudgetStore {
     incr: (key: string) => Promise<number>;
-    expire: (key: string, seconds: number) => Promise<any>;
+    expire: (key: string, seconds: number, mode: 'NX') => Promise<any>;
 }
 
 /**
@@ -40,16 +40,21 @@ export interface ISmsBudgetStore {
  * has already had its allowance (in which case the caller must not send).
  *
  * Over-budget attempts are still counted, so sustained pumping keeps the window pinned rather
- * than letting it lapse. The TTL is set only alongside the first increment, which makes this a
- * fixed window starting at the first send — deliberately simpler than a sliding window, since
- * the cost of an extra allowed send at a window boundary is one SMS.
+ * than letting it lapse. This is a fixed window starting at the first send — deliberately
+ * simpler than a sliding window, since the cost of an extra allowed send at a window boundary
+ * is one SMS.
+ *
+ * `EXPIRE .. NX` (set a TTL only where none exists) rather than "set it when the counter reads
+ * 1". The counter-based version leaves a window: if the process dies between the INCR and the
+ * EXPIRE, the key survives with no TTL and never expires — and because a spent budget makes
+ * `/auth/start` go quiet rather than error, that number would be permanently, silently unable
+ * to receive a sign-in code. NX is idempotent, so a later call repairs the missing TTL while
+ * still refusing to re-arm a live one.
  */
 export const chargeSmsSendBudget = async (store: ISmsBudgetStore, key: string): Promise<boolean> => {
     const sends = await store.incr(key);
 
-    if (sends === 1) {
-        await store.expire(key, AUTH_SMS_SEND_WINDOW_SECONDS);
-    }
+    await store.expire(key, AUTH_SMS_SEND_WINDOW_SECONDS, 'NX');
 
     return sends <= AUTH_SMS_MAX_SENDS_PER_NUMBER;
 };

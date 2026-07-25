@@ -25,7 +25,11 @@ const fakeStore = () => {
             counters[key] = (counters[key] || 0) + 1;
             return Promise.resolve(counters[key]);
         },
-        expire: (key: string, seconds: number) => {
+        // Mirrors Redis `EXPIRE key seconds NX`: sets a TTL only where none exists.
+        expire: (key: string, seconds: number, mode: 'NX') => {
+            if (mode === 'NX' && expiries[key] !== undefined) {
+                return Promise.resolve(0);
+            }
             expiries[key] = seconds;
             return Promise.resolve(1);
         },
@@ -89,18 +93,40 @@ describe('chargeSmsSendBudget', () => {
         expect(results.slice(AUTH_SMS_MAX_SENDS_PER_NUMBER)).to.deep.equal([false, false]);
     });
 
-    it('sets the window TTL once, on the first send only', async () => {
+    it('sets the window TTL on the first send', async () => {
         const store = fakeStore();
         const key = 'phone-login-sends:+13175551234';
 
         await chargeSmsSendBudget(store, key);
-        expect(store.expiries[key]).to.equal(AUTH_SMS_SEND_WINDOW_SECONDS);
 
-        // Re-arming the TTL on every send would let a steady trickle hold the window open
-        // forever, so the key must not be touched again.
-        delete store.expiries[key];
+        expect(store.expiries[key]).to.equal(AUTH_SMS_SEND_WINDOW_SECONDS);
+    });
+
+    it('never re-arms a TTL that is already running', async () => {
+        // Re-arming on every send would let a steady trickle hold the window open forever,
+        // turning a rate limit into a permanent block.
+        const store = fakeStore();
+        const key = 'phone-login-sends:+13175551234';
+
         await chargeSmsSendBudget(store, key);
-        expect(store.expiries[key]).to.equal(undefined);
+        store.expiries[key] = 42; // stand in for a TTL partway through its countdown
+        await chargeSmsSendBudget(store, key);
+
+        expect(store.expiries[key]).to.equal(42);
+    });
+
+    it('repairs a missing TTL rather than leaving the key immortal', async () => {
+        // A crash between INCR and EXPIRE would otherwise strand the counter with no TTL, and
+        // since a spent budget makes /auth/start go silent, that number could never receive a
+        // sign-in code again.
+        const store = fakeStore();
+        const key = 'phone-login-sends:+13175551234';
+
+        await chargeSmsSendBudget(store, key);
+        delete store.expiries[key]; // the TTL that the crash never got to set
+        await chargeSmsSendBudget(store, key);
+
+        expect(store.expiries[key]).to.equal(AUTH_SMS_SEND_WINDOW_SECONDS);
     });
 
     it('keeps counting once over budget, so pumping does not let the window lapse', async () => {
