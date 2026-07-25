@@ -23,6 +23,8 @@ import spacingStyles from '../../styles/layouts/spacing';
 interface IRegisterFormProps {
     alert?: string;
     onSuccess: Function;
+    /** Omitted when the phone path isn't offered (e.g. arriving via a magic invite link). */
+    onSwitchToPhoneSignup?: () => void;
     register: Function;
     login: Function;
     title?: string;
@@ -558,6 +560,20 @@ export class RegisterFormComponent extends React.Component<
                         themeForms={themeForms}
                         containerStyle={spacingStyles.marginVertXLg}
                     />
+                    {
+                        this.props.onSwitchToPhoneSignup
+                            ? (
+                                <View style={themeForms.styles.moreLinksContainer}>
+                                    <Button
+                                        type="clear"
+                                        titleStyle={themeForms.styles.buttonLink}
+                                        title={this.translate('forms.phoneSignupForm.buttons.usePhoneInstead')}
+                                        onPress={this.props.onSwitchToPhoneSignup}
+                                    />
+                                </View>
+                            )
+                            : null
+                    }
                     <View style={themeAuthForm.styles.submitButtonContainer}>
                         <GoogleSignInButton
                             disabled={this.state.isSubmitting}
