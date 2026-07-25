@@ -18,16 +18,24 @@ interface ILogoutCredentials {
 }
 
 interface IRegisterCredentials {
-    firstName: string;
-    lastName: string;
+    // Email is the only universally required field. Names and username are collected during
+    // profile creation, and password is optional on the phone-first path below — the shape
+    // used to over-declare these as required, which no caller actually satisfied.
     email: string;
-    phoneNumber: string;
-    userName: string;
-    password: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    userName?: string;
+    password?: string;
+    settingsBirthdate?: string;
+    settingsLocale?: string;
     inviteCode?: string;
     // Magic invite-link token: trusts the invited contact channel and
     // auto-connects the user to the inviter on signup.
     inviteToken?: string;
+    // Short-lived proof of phone ownership from POST /v1/phone/register/verify. When present,
+    // the account is created already phone-verified and `password` may be omitted.
+    phoneVerificationToken?: string;
 }
 
 export interface ISearchUsersArgs {
