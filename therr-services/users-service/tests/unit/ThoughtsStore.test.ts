@@ -237,6 +237,47 @@ describe('ThoughtsStore brand filtering', () => {
             const sql = readStub.args[0][0] as string;
             expect(sql).to.not.include('brandVariation');
         });
+
+        it('selects a nested reply count per reply, brand-restricted to match the reply join', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getById(BrandVariations.HABITS, 'thought-1', {}, { withReplies: true });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include('SELECT COUNT(*) FROM main.thoughts AS nested WHERE nested."parentId" = replies.id');
+            expect(sql).to.include(`nested."brandVariation" IN ('habits')`);
+            expect(sql).to.include('"replies[].replyCount"');
+        });
+
+        it('does not select a nested reply count when replies are not requested', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getById(BrandVariations.THERR, 'thought-1', {}, {});
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.not.include('replyCount');
+        });
+
+        it('coerces the nested reply count from a pg bigint string to a number', async () => {
+            const { connection, readStub } = buildMockConnection();
+            readStub.callsFake(() => Promise.resolve({
+                rows: [{
+                    id: 'thought-1',
+                    'replies[].id': 'reply-1',
+                    'replies[].replyCount': '3',
+                }, {
+                    id: 'thought-1',
+                    'replies[].id': 'reply-2',
+                    'replies[].replyCount': '0',
+                }],
+            }));
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.THERR, 'thought-1', {}, { withReplies: true });
+
+            expect(thoughts[0].replies[0].replyCount).to.equal(3);
+            expect(thoughts[0].replies[1].replyCount).to.equal(0);
+        });
     });
 
     describe('create', () => {

@@ -223,6 +223,16 @@ export default class ThoughtsStore {
             const repliesJoinClause = readable === 'all'
                 ? undefined
                 : `replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
+
+            // Nested reply count powers the reply-count icon in the thought details view (mobile + web).
+            // The brand restriction is mirrored from the reply join so the count can never advertise
+            // replies the caller would not be allowed to open. It is deliberately a correlated
+            // subquery rather than a second join: the details view loads one parent, so this is a
+            // handful of index probes on the parentId index, and a GROUP BY join would aggregate
+            // every reply row in the table.
+            const nestedRepliesBrandClause = readable === 'all'
+                ? ''
+                : ` AND nested."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
             query = query
                 .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, function joinReplies() {
                     this.on('replies.parentId', '=', `${THOUGHTS_TABLE_NAME}.id`);
@@ -232,6 +242,10 @@ export default class ThoughtsStore {
                 })
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
+                    knexBuilder.raw(
+                        `(SELECT COUNT(*) FROM ${THOUGHTS_TABLE_NAME} AS nested `
+                        + `WHERE nested."parentId" = replies.id${nestedRepliesBrandClause}) AS "replies[].replyCount"`,
+                    ),
                     'replies.id as replies[].id',
                     'replies.fromUserId as replies[].fromUserId',
                     'replies.parentId as replies[].parentId',
@@ -261,6 +275,17 @@ export default class ThoughtsStore {
 
         return this.db.read.query(query.toString()).then(async ({ rows }) => {
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
+
+            if (options.withReplies) {
+                // pg returns COUNT(*) as a bigint string; clients render/compare it as a number
+                thoughts.forEach((thought) => {
+                    (thought.replies || []).forEach((reply) => {
+                        const modifiedReply = reply;
+                        modifiedReply.replyCount = parseInt(modifiedReply.replyCount || 0, 10);
+                    });
+                });
+            }
+
             if (options.withUser) {
                 const userIds: string[] = [];
                 const thoughtDetailsPromises: Promise<any>[] = [];
