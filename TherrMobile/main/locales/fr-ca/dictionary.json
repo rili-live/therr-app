@@ -392,7 +392,8 @@
       }
     },
     "thoughtDisplay": {
-      "viewAllReplies": "Voir les {count} réponses"
+      "viewAllReplies": "Voir les {count} réponses",
+      "viewReplies": "Voir {count} réponses"
     },
     "userMenu": {
       "buttons": {
