@@ -46,6 +46,7 @@ const utilities = [
     'scroll-to',
     'normalize-phone-number',
     'normalize-correction-value',
+    'phone-verification-token',
     'print-logs',
     'log-or-update-span',
     'slugify',
