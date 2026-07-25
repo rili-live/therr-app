@@ -2,12 +2,28 @@
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
 import UsersService, { ISearchUsersArgs, ISocialSyncs } from '../../services/UsersService';
+import ApiService, {
+    IPhoneAuthAccount,
+    IPhoneAuthSelectArgs,
+    IPhoneAuthVerifyArgs,
+} from '../../services/ApiService';
 import { ContentActionTypes } from '../../types/redux/content';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchThoughtsArgs {}
 interface ILoginSSOTokens {
     google?: string;
+}
+
+/**
+ * Outcome of submitting a texted sign-in code. When `requiresAccountSelection` is true no
+ * session has been established yet — the number matched several accounts and the caller must
+ * present `accounts` and follow up with `selectPhoneLoginAccount`.
+ */
+export interface IPhoneLoginResult {
+    requiresAccountSelection: boolean;
+    accounts: IPhoneAuthAccount[];
+    phoneVerificationToken?: string;
 }
 
 interface IUpdateTourArgs {
@@ -233,89 +249,141 @@ class UsersActions {
         });
     };
 
-    login = (data: any, idTokens?: ILoginSSOTokens) => async (dispatch: any) => {
-        await UsersService.authenticate(data).then(async (response) => {
-            const storedUserDetails = JSON.parse(
-                await (this.NativeStorage || sessionStorage).getItem('therrUser')
-                || await (this.NativeStorage || localStorage).getItem('therrUser')
-                || null,
-            );
-            const storedUserSettings = JSON.parse(
-                await (this.NativeStorage || sessionStorage).getItem('therrUserSettings')
-                || await (this.NativeStorage || localStorage).getItem('therrUserSettings')
-                || null,
-            );
-            const {
-                id,
-                idToken,
-                refreshToken,
-            } = response.data;
-            const responseData = {
-                ...response.data,
-            };
+    /**
+     * Turns a successful auth response into a live session: persists tokens to storage,
+     * opens the websocket, and dispatches the LOGIN actions.
+     *
+     * Shared by every way in — password, SSO, and the passwordless phone flows below — so a
+     * user who signs in with a texted code ends up in exactly the same state as one who typed
+     * a password. Callers must not duplicate any of this.
+     */
+    private establishSession = async (
+        authResponseData: any,
+        options: { rememberMe?: boolean },
+        idTokens: ILoginSSOTokens | undefined,
+        dispatch: any,
+    ) => {
+        const storedUserDetails = JSON.parse(
+            await (this.NativeStorage || sessionStorage).getItem('therrUser')
+            || await (this.NativeStorage || localStorage).getItem('therrUser')
+            || null,
+        );
+        const storedUserSettings = JSON.parse(
+            await (this.NativeStorage || sessionStorage).getItem('therrUserSettings')
+            || await (this.NativeStorage || localStorage).getItem('therrUserSettings')
+            || null,
+        );
+        const {
+            id,
+            idToken,
+            refreshToken,
+        } = authResponseData;
+        const responseData = {
+            ...authResponseData,
+        };
 
-            // Same user logging in again; maintain client stored settings that are not stored in the database
-            if (storedUserDetails?.id === id) {
-                responseData.navigationTourCount = storedUserSettings?.navigationTourCount || 0;
+        // Same user logging in again; maintain client stored settings that are not stored in the database
+        if (storedUserDetails?.id === id) {
+            responseData.navigationTourCount = storedUserSettings?.navigationTourCount || 0;
+        }
+
+        const { userData, userSettingsData } = this.extractUserData(responseData);
+        this.socketIO.io.opts.query = {
+            token: idToken,
+        };
+        const afterIOConnectAttempt = () => {
+            // These two dispatches were moved here to fix a bug when one dispatch happened before the callback
+            // For some reason it caused the websocket server to NOT receive the message in the callback.
+            // We should also call these regardless when failing to connect to the socket server
+            dispatch({
+                type: SocketClientActionTypes.LOGIN,
+                data: userData,
+            });
+            dispatch({
+                type: UserActionTypes.LOGIN,
+                data: userData,
+            });
+            dispatch({
+                type: SocketClientActionTypes.RESET_USER_SETTINGS,
+                data: {
+                    settings: userSettingsData,
+                },
+            });
+        };
+        // Connect and get socketIO.id
+        const onIOConnectListener = async () => {
+            const sessionData = { id: this.socketIO.id, idTokens: idTokens || {} };
+            // NOTE: Native Storage methods return a promise, but in this case we don't need to await
+            await (this.NativeStorage || sessionStorage)
+                .setItem('therrSession', JSON.stringify(sessionData));
+            if (options.rememberMe && !this.NativeStorage) {
+                localStorage.setItem('therrSession', JSON.stringify(sessionData));
             }
 
-            const { userData, userSettingsData } = this.extractUserData(responseData);
-            this.socketIO.io.opts.query = {
-                token: idToken,
-            };
-            const afterIOConnectAttempt = () => {
-                // These two dispatches were moved here to fix a bug when one dispatch happened before the callback
-                // For some reason it caused the websocket server to NOT receive the message in the callback.
-                // We should also call these regardless when failing to connect to the socket server
-                dispatch({
-                    type: SocketClientActionTypes.LOGIN,
-                    data: userData,
-                });
-                dispatch({
-                    type: UserActionTypes.LOGIN,
-                    data: userData,
-                });
-                dispatch({
-                    type: SocketClientActionTypes.RESET_USER_SETTINGS,
-                    data: {
-                        settings: userSettingsData,
-                    },
-                });
-            };
-            // Connect and get socketIO.id
-            const onIOConnectListener = async () => {
-                const sessionData = { id: this.socketIO.id, idTokens: idTokens || {} };
-                // NOTE: Native Storage methods return a promise, but in this case we don't need to await
-                await (this.NativeStorage || sessionStorage)
-                    .setItem('therrSession', JSON.stringify(sessionData));
-                if (data.rememberMe && !this.NativeStorage) {
-                    localStorage.setItem('therrSession', JSON.stringify(sessionData));
-                }
-
-                afterIOConnectAttempt();
-            };
-            // TODO: Send event to Google Analytics and/or Datadog
-            const onIOConnectErrorListener = (error: any) => {
-                // We still need to let the user login when websocket service is down or not available
-                console.warn(error);
-                afterIOConnectAttempt();
-            };
-            this.socketIO.on('connect', onIOConnectListener);
-            this.socketIO.on('connect_error', onIOConnectErrorListener);
-            this.socketIO.connect();
-            (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
-            (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
+            afterIOConnectAttempt();
+        };
+        // TODO: Send event to Google Analytics and/or Datadog
+        const onIOConnectErrorListener = (error: any) => {
+            // We still need to let the user login when websocket service is down or not available
+            console.warn(error);
+            afterIOConnectAttempt();
+        };
+        this.socketIO.on('connect', onIOConnectListener);
+        this.socketIO.on('connect_error', onIOConnectErrorListener);
+        this.socketIO.connect();
+        (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
+        (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
+        if (refreshToken) {
+            (this.NativeStorage || sessionStorage).setItem('therrRefreshToken', refreshToken);
+        }
+        if (options.rememberMe && !this.NativeStorage) {
+            localStorage.setItem('therrUser', JSON.stringify(userData));
+            localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
             if (refreshToken) {
-                (this.NativeStorage || sessionStorage).setItem('therrRefreshToken', refreshToken);
+                localStorage.setItem('therrRefreshToken', refreshToken);
             }
-            if (data.rememberMe && !this.NativeStorage) {
-                localStorage.setItem('therrUser', JSON.stringify(userData));
-                localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
-                if (refreshToken) {
-                    localStorage.setItem('therrRefreshToken', refreshToken);
-                }
-            }
-        });
+        }
+
+        return userData;
+    };
+
+    login = (data: any, idTokens?: ILoginSSOTokens) => async (dispatch: any) => {
+        await UsersService.authenticate(data)
+            .then((response) => this.establishSession(response.data, data, idTokens, dispatch));
+    };
+
+    /**
+     * Passwordless sign-in, step 2: submit the code that was texted by `ApiService.startPhoneLogin`.
+     *
+     * Resolves with `{ requiresAccountSelection: true, accounts, phoneVerificationToken }` when
+     * the number is attached to more than one account — no session is established in that case;
+     * present the accounts and call `selectPhoneLoginAccount` with the user's choice. Otherwise
+     * the user is signed in and `requiresAccountSelection` is false.
+     */
+    loginWithPhone = (data: IPhoneAuthVerifyArgs) => async (dispatch: any): Promise<IPhoneLoginResult> => {
+        const response: any = await ApiService.verifyPhoneLogin(data);
+
+        if (response?.data?.requiresAccountSelection) {
+            return {
+                requiresAccountSelection: true,
+                accounts: response.data.accounts || [],
+                phoneVerificationToken: response.data.phoneVerificationToken,
+            };
+        }
+
+        await this.establishSession(response.data, data, undefined, dispatch);
+
+        return { requiresAccountSelection: false, accounts: [] };
+    };
+
+    /**
+     * Passwordless sign-in, step 2b: complete sign-in for the account the user picked out of
+     * `loginWithPhone`'s `accounts` list.
+     */
+    selectPhoneLoginAccount = (data: IPhoneAuthSelectArgs) => async (dispatch: any) => {
+        const response: any = await ApiService.selectPhoneLoginAccount(data);
+
+        await this.establishSession(response.data, data, undefined, dispatch);
     };
 
     getMe = () => async (dispatch: any) => {

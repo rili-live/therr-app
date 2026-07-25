@@ -12,7 +12,22 @@ export const createUserValidation = [
     // same fix on updateUserValidation below.
     body('phoneNumber').optional({ checkFalsy: true }).isMobilePhone('any'),
     body('email').exists().isEmail().normalizeEmail(),
-    body('password').exists().isString().isLength({ min: 8 }), // TODO: RMOBILE-26: Centralize password requirements
+    // TODO: RMOBILE-26: Centralize password requirements
+    // Optional only for the passwordless phone signup, which arrives with a signed
+    // `phoneVerificationToken` and lets the user keep signing in with a texted code. Every
+    // other path still requires a password; the users-service re-checks strength via
+    // `isValidPassword` regardless of what gets through here.
+    body('password')
+        .if(body('phoneVerificationToken').not().exists({ checkFalsy: true }))
+        .exists()
+        .isString()
+        .isLength({ min: 8 }),
+    body('password')
+        .optional({ checkFalsy: true })
+        .isString()
+        .isLength({ min: 8 }),
+    // Short-lived proof of phone ownership minted by POST /v1/phone/register/verify.
+    body('phoneVerificationToken').optional().isString(),
     // Birthdate is optional at the API boundary because SSO providers do not return it
     // (those users are prompted later). When supplied it must meet the minimum signup age.
     body('settingsBirthdate')

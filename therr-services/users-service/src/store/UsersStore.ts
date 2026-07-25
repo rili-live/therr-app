@@ -165,6 +165,28 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     };
 
+    /**
+     * Full rows for every non-deleted account attached to a phone number, newest last.
+     *
+     * Distinct from `getByPhoneNumber` above, which returns a deliberately narrow projection
+     * for the "is this number already taken?" check and omits `id`. Passwordless sign-in
+     * needs the whole row (it mints a session from it) and needs to see *all* matches, since
+     * Therr permits a personal + creator + business account per number.
+     */
+    getAllByPhoneNumber = (phoneNumber: string, returning: any = '*') => {
+        const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
+        const queryString = knexBuilder.select(returning)
+            .from(USERS_TABLE_NAME)
+            .where({
+                phoneNumber: normalizedPhone,
+                settingsIsAccountSoftDeleted: false,
+            })
+            .orderBy('createdAt', 'asc')
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    };
+
     findUser = ({
         id,
         email,
