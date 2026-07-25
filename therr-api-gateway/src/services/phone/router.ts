@@ -1,6 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import {
     createPhoneVerificationToken,
@@ -25,6 +26,7 @@ import {
     phoneAuthSelectValidation,
 } from './validation/phone';
 import resolvePhoneLoginError from './resolvePhoneLoginError';
+import { chargeSmsSendBudget, generateVerificationCode } from './verificationCodes';
 import * as globalConfig from '../../../../global-config';
 import restRequest from '../../utilities/restRequest';
 import { hostRegex } from '../../utilities/patterns';
@@ -37,13 +39,6 @@ const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     return process.env.TWILIO_SENDER_PHONE_NUMBER;
 };
 
-const generateVerificationCode = () => {
-    const minm = 100000;
-    const maxm = 999999;
-    return Math.floor(Math
-        .random() * (maxm - minm + 1)) + minm;
-};
-
 // Codes for the passwordless flows live 5 minutes and allow 5 wrong guesses. A 6-digit code
 // has 900k possibilities, so 5 guesses inside a 5 minute window is not brute-forceable even
 // before the per-IP rate limiters are considered.
@@ -54,6 +49,13 @@ type PhoneAuthPurpose = 'login' | 'register';
 
 const authCodeKey = (purpose: PhoneAuthPurpose, phoneNumber: string) => `phone-${purpose}-codes:${phoneNumber}`;
 const authAttemptsKey = (purpose: PhoneAuthPurpose, phoneNumber: string) => `phone-${purpose}-attempts:${phoneNumber}`;
+const authSendsKey = (purpose: PhoneAuthPurpose, phoneNumber: string) => `phone-${purpose}-sends:${phoneNumber}`;
+
+/** Charges one SMS against this number's hourly budget. See `./verificationCodes`. */
+const chargeSmsSendBudgetFor = (purpose: PhoneAuthPurpose, phoneNumber: string) => chargeSmsSendBudget(
+    redisClient,
+    authSendsKey(purpose, phoneNumber),
+);
 
 /**
  * Internal headers forwarded on every gateway -> users-service hop. The `x-userid` /
@@ -99,9 +101,13 @@ const toE164 = (rawPhoneNumber: any): string | undefined => {
  * Asks the users-service which accounts are attached to a phone number. Used by both
  * passwordless flows: sign-in only sends an SMS when an account exists, and sign-up refuses
  * to start when one already does.
+ *
+ * Takes pre-built headers rather than `req` because `/auth/start` calls this *after* it has
+ * already answered the client, at which point reaching back into the request object would be
+ * reading state whose lifetime is no longer guaranteed.
  */
-const lookupAccountsByPhone = (req: any, phoneNumber: string): Promise<{ accountCount: number, accounts: any[] }> => restRequest({
-    headers: buildInternalHeaders(req),
+const lookupAccountsByPhone = (headers: any, phoneNumber: string): Promise<{ accountCount: number, accounts: any[] }> => restRequest({
+    headers,
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/auth/phone/lookup`,
     data: { phoneNumber },
@@ -295,6 +301,46 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
 });
 
 /**
+ * Texts a sign-in code, if the number has earned one.
+ *
+ * Runs *after* `/auth/start` has already responded, so it reports nothing back to the caller
+ * and must swallow every failure it can produce. That includes an unroutable region: on this
+ * route an SMS is only ever attempted for a number that has an account, so answering "region
+ * not enabled" would confirm the account's existence — the one thing this flow withholds.
+ */
+const dispatchLoginCode = async (headers: any, locale: string, phoneNumber: string) => {
+    try {
+        const { accountCount } = await lookupAccountsByPhone(headers, phoneNumber);
+
+        if (!accountCount) {
+            return;
+        }
+
+        if (!(await chargeSmsSendBudgetFor('login', phoneNumber))) {
+            return;
+        }
+
+        const verificationCode = generateVerificationCode();
+        await redisClient.setex(authCodeKey('login', phoneNumber), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
+        await redisClient.del(authAttemptsKey('login', phoneNumber));
+        await sendVerificationSms(locale, phoneNumber, verificationCode);
+    } catch (err: any) {
+        // The caller is already gone, so logging is the only channel left. Without this a
+        // misconfigured Twilio sender would look, from the outside, exactly like a user
+        // mistyping their number.
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [err?.message, 'Failed to dispatch passwordless sign-in code'],
+            traceArgs: {
+                'phone.region': phoneNumber.slice(0, 3),
+                'process.id': process.pid,
+            },
+        });
+    }
+};
+
+/**
  * PASSWORDLESS SIGN-IN — step 1.
  *
  * Texts a one-time code to a phone number that already has an account.
@@ -316,38 +362,22 @@ phoneRouter.post('/auth/start', phoneAuthStartLimiter, phoneAuthStartValidation,
         });
     }
 
-    // Uniform response, declared once so every exit path below is provably identical.
-    const neutralResponse = () => res.status(200).send({
+    // Snapshot the forwarding headers while the request is unambiguously in scope: the work
+    // below outlives the response.
+    const internalHeaders = buildInternalHeaders(req);
+
+    // Answer first, unconditionally, and only then decide whether to send anything. Every
+    // check that governs the decision — does this number have an account, has it had its
+    // hourly allowance, will Twilio accept the region — costs a round trip, and running any
+    // of them before responding makes the "account exists" case measurably slower than the
+    // "no account" case. That latency difference hands back, to anyone with a stopwatch,
+    // exactly the answer the uniform response body exists to withhold.
+    res.status(200).send({
         status: 'sent',
         expiresInSeconds: AUTH_CODE_EXPIRE_SECONDS,
     });
 
-    try {
-        const { accountCount } = await lookupAccountsByPhone(req, normalizedPhoneNumber);
-
-        if (!accountCount) {
-            return neutralResponse();
-        }
-
-        const verificationCode = generateVerificationCode();
-        await redisClient.setex(authCodeKey('login', normalizedPhoneNumber), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
-        await redisClient.del(authAttemptsKey('login', normalizedPhoneNumber));
-        await sendVerificationSms(userLocale, normalizedPhoneNumber, verificationCode);
-
-        return neutralResponse();
-    } catch (err: any) {
-        if (err?.message?.includes('SMS has not been enabled for the region')) {
-            return handleHttpError({
-                err,
-                errorCode: ErrorCodes.INVALID_REGION,
-                res,
-                message: 'Region not enabled for phone number',
-                statusCode: 405,
-            });
-        }
-
-        return handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' });
-    }
+    return dispatchLoginCode(internalHeaders, userLocale, normalizedPhoneNumber);
 });
 
 /**
@@ -405,7 +435,7 @@ phoneRouter.post('/auth/verify', phoneAuthVerifyLimiter, phoneAuthVerifyValidati
             });
         }
 
-        const { accountCount, accounts } = await lookupAccountsByPhone(req, normalizedPhoneNumber);
+        const { accountCount, accounts } = await lookupAccountsByPhone(buildInternalHeaders(req), normalizedPhoneNumber);
 
         // Code is correct — spend it either way. From here ownership is carried by the signed
         // token, so the account-picker round-trip doesn't need the SMS code again.
@@ -486,7 +516,7 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
     }
 
     try {
-        const { accountCount } = await lookupAccountsByPhone(req, normalizedPhoneNumber);
+        const { accountCount } = await lookupAccountsByPhone(buildInternalHeaders(req), normalizedPhoneNumber);
 
         if (accountCount) {
             return handleHttpError({
@@ -495,6 +525,16 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
                 res,
                 message: 'An account already exists for this phone number',
                 statusCode: 400,
+            });
+        }
+
+        // Sign-up has no enumeration constraint to protect (it reports USER_EXISTS outright),
+        // so unlike the sign-in flow this one can tell the caller it has hit the cap.
+        if (!(await chargeSmsSendBudgetFor('register', normalizedPhoneNumber))) {
+            return handleHttpError({
+                res,
+                message: 'Too many verification codes requested for this number. Please try again later.',
+                statusCode: 429,
             });
         }
 
