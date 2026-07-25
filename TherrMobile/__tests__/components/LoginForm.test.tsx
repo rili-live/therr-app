@@ -85,6 +85,35 @@ describe('LoginForm', () => {
         expect(component.root.findAllByProps({ testID: 'login-password' }).length).toEqual(0);
     });
 
+    it('pre-fills the identifier when it arrives after mount', async () => {
+        // Login is never unmounted while Register sits above it in the stack, so the number a
+        // phone-first sign-up hands back arrives as a prop change, not a fresh constructor.
+        // Reading it only in the constructor silently dropped it.
+        const component = await renderLoginForm();
+        const instance: any = component.getInstance();
+
+        expect(instance.state.inputs.userName).toEqual(undefined);
+
+        await act(async () => {
+            component.update(
+                <LoginForm navigation={{ navigate: jest.fn() }}
+                    login={jest.fn()}
+                    loginWithPhone={jest.fn()}
+                    selectPhoneLoginAccount={jest.fn()}
+                    userSettings={{ mobileThemeName: 'retro' }}
+                    themeAuthForm={{ styles: mockStyles }}
+                    themeAlerts={{ styles: mockStyles, colors: {} as any }}
+                    themeForms={{ styles: mockStyles, colors: {} as any }}
+                    prefillIdentifier="+13175551234"
+                />
+            );
+        });
+
+        expect(instance.state.inputs.userName).toEqual('+13175551234');
+        // A verified number should land straight in SMS mode, one tap from a code.
+        expect(instance.isPhoneModeActive()).toEqual(true);
+    });
+
     it('drops back to the password step when the identifier stops looking like a phone number', async () => {
         const component = await renderLoginForm({ prefillIdentifier: '+13175551234' });
         const instance: any = component.getInstance();

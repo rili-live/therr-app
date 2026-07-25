@@ -141,6 +141,28 @@ export class LoginFormComponent extends React.Component<
     }
 
     /**
+     * Login sits below Register in the native stack and is never unmounted, so a phone-first
+     * sign-up that navigates back here with a number to pre-fill arrives as a prop change —
+     * the constructor does not run a second time. Without this the number is silently dropped
+     * and the user has to retype the one they just verified.
+     */
+    componentDidUpdate(prevProps: ILoginFormProps) {
+        const { prefillIdentifier } = this.props;
+
+        if (prefillIdentifier && prefillIdentifier !== prevProps.prefillIdentifier) {
+            this.setState((prevState) => ({
+                // `mode` back to the identifier step: `isPhoneModeActive` derives the SMS
+                // affordance from the identifier itself, so a phone number lands one tap
+                // from a code without any extra state.
+                inputs: { ...prevState.inputs, userName: prefillIdentifier, password: '' },
+                activeProfileId: '',
+                mode: 'password',
+                prevLoginError: '',
+            }));
+        }
+    }
+
+    /**
      * Pre-fills the identifier with the account last used on this device. Only seeds the field
      * when it is still empty so a returning render never clobbers typing in progress.
      */
