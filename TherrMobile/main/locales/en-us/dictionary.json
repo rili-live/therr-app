@@ -70,7 +70,9 @@
     "waitlistSuccess": "Registration Success!",
     "reactionSent": "Reaction Sent!",
     "reactionFailed": "Reaction Failed",
-    "mediaUploadFailed": "Image Upload Failed"
+    "mediaUploadFailed": "Image Upload Failed",
+    "tooManyAttempts": "Too Many Attempts",
+    "registerSuccess": "Account Created"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -107,7 +109,9 @@
     "draftReminder": "Did you remember to finish your drafted post?",
     "requestClaimSent": "Check your e-mail for confirmation and next steps",
     "waitlistSuccess": "Check your e-mail to verify your account",
-    "mediaUploadFailed": "Your image could not be uploaded. Please try again."
+    "mediaUploadFailed": "Your image could not be uploaded. Please try again.",
+    "tooManyAttempts": "Please wait a few minutes before trying again.",
+    "phoneRegisterSuccess": "Your phone is verified. Check your e-mail to confirm your address."
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -478,12 +482,18 @@
       "buttons": {
         "login": "Sign In",
         "signUp": "Create an Account?",
-        "forgotPassword": "Forgot Password?"
+        "forgotPassword": "Forgot Password?",
+        "sendCode": "Text Me a Code",
+        "verifyAndSignIn": "Verify & Sign In",
+        "resendCode": "Resend Code?",
+        "usePasswordInstead": "Use a password instead"
       },
       "defaultTitle": "Login",
       "labels": {
         "password": "Password",
-        "userName": "Email/Phone/Username"
+        "userName": "Email/Phone/Username",
+        "enterCode": "Enter your code",
+        "switchAccount": "Switch account"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",
@@ -493,7 +503,13 @@
         "appleButtonTitle": "Sign in with Apple",
         "googleButtonTitleContinue": "Continue with Google",
         "googleButtonTitleSignIn": "Sign in with Google"
-      }
+      },
+      "subtitles": {
+        "codeSentTo": "We sent a 6-digit code to {phoneNumber}",
+        "phoneSignInHint": "We'll text you a 6-digit code — no password needed."
+      },
+      "invalidCode": "That code is invalid or expired.",
+      "invalidPhoneNumber": "Please enter a valid phone number."
     },
     "nearbyForm": {
       "buttons": {
@@ -887,6 +903,29 @@
     "myQRCodeDetail": {
       "share": "Share Link",
       "copy": "Copy Link"
+    },
+    "phoneSignupForm": {
+      "labels": {
+        "enterPhone": "What's your number?",
+        "enterCode": "Enter your code",
+        "enterEmail": "Add your e-mail",
+        "optionalPassword": "Password (optional)"
+      },
+      "subtitles": {
+        "enterPhone": "We'll text you a code to verify it's you.",
+        "enterEmail": "We use it for receipts, password resets, and account recovery.",
+        "optionalPassword": "Skip it — you can always sign in with a texted code."
+      },
+      "buttons": {
+        "sendCode": "Send Code",
+        "verify": "Verify",
+        "changeNumber": "Use a different number",
+        "useEmailInstead": "Sign up with e-mail instead",
+        "usePhoneInstead": "Sign up with your phone instead"
+      },
+      "errorMessages": {
+        "accountExists": "An account already uses this number. Try signing in."
+      }
     }
   },
   "interests": {
@@ -1516,7 +1555,8 @@
       "pageTitle": "Welcome",
       "pageSubtitle": "Sign in to Therr to see what you missed",
       "userAlerts": {
-        "registerSuccess": "Registration success! Check your e-mail for verification."
+        "registerSuccess": "Registration success! Check your e-mail for verification.",
+        "phoneRegisterSuccess": "Account created! Sign in with a code sent to your phone."
       }
     },
     "map": {
@@ -1958,6 +1998,12 @@
         "header": "Achievement Earned!",
         "message": "Share your achievement with friends!"
       }
+    },
+    "accountPicker": {
+      "switchHeader": "Switch account",
+      "chooseHeader": "Choose an account",
+      "useAnotherAccount": "Use another account",
+      "removeAccount": "Remove saved account"
     }
   },
   "permissions": {

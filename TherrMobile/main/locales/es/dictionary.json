@@ -70,7 +70,9 @@
     "waitlistSuccess": "¡Registro exitoso!",
     "reactionSent": "¡Reacción enviada!",
     "reactionFailed": "Reacción fallida",
-    "mediaUploadFailed": "Error al cargar imagen"
+    "mediaUploadFailed": "Error al cargar imagen",
+    "tooManyAttempts": "Demasiados intentos",
+    "registerSuccess": "Cuenta creada"
   },
   "alertMessages": {
     "activityCreated": "Se creó un nuevo grupo y evento. Se enviaron invitaciones a cada miembro del grupo.",
@@ -107,7 +109,9 @@
     "draftReminder": "¿Recordaste terminar tu publicación en borrador?",
     "requestClaimSent": "Revisa tu correo electrónico para confirmación y próximos pasos",
     "waitlistSuccess": "Revisa tu correo electrónico para verificar tu cuenta",
-    "mediaUploadFailed": "No se pudo cargar tu imagen. Por favor, inténtalo de nuevo."
+    "mediaUploadFailed": "No se pudo cargar tu imagen. Por favor, inténtalo de nuevo.",
+    "tooManyAttempts": "Espera unos minutos antes de volver a intentarlo.",
+    "phoneRegisterSuccess": "Tu teléfono está verificado. Revisa tu correo para confirmar tu dirección."
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -478,12 +482,18 @@
       "buttons": {
         "login": "Iniciar sesión",
         "signUp": "¿Crear una cuenta?",
-        "forgotPassword": "¿Olvidaste tu contraseña?"
+        "forgotPassword": "¿Olvidaste tu contraseña?",
+        "sendCode": "Enviarme un código",
+        "verifyAndSignIn": "Verificar e iniciar sesión",
+        "resendCode": "¿Reenviar código?",
+        "usePasswordInstead": "Usar una contraseña"
       },
       "defaultTitle": "Iniciar sesión",
       "labels": {
         "password": "Contraseña",
-        "userName": "Correo/Teléfono/Usuario"
+        "userName": "Correo/Teléfono/Usuario",
+        "enterCode": "Ingresa tu código",
+        "switchAccount": "Cambiar de cuenta"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "invalidUsernamePassword": "Combinación de usuario/contraseña inválida.",
@@ -493,7 +503,13 @@
         "appleButtonTitle": "Iniciar sesión con Apple",
         "googleButtonTitleContinue": "Continuar con Google",
         "googleButtonTitleSignIn": "Iniciar sesión con Google"
-      }
+      },
+      "subtitles": {
+        "codeSentTo": "Enviamos un código de 6 dígitos a {phoneNumber}",
+        "phoneSignInHint": "Te enviaremos un código de 6 dígitos: no necesitas contraseña."
+      },
+      "invalidCode": "Ese código no es válido o ha expirado.",
+      "invalidPhoneNumber": "Ingresa un número de teléfono válido."
     },
     "nearbyForm": {
       "buttons": {
@@ -887,6 +903,29 @@
     "myQRCodeDetail": {
       "share": "Compartir enlace",
       "copy": "Copiar enlace"
+    },
+    "phoneSignupForm": {
+      "labels": {
+        "enterPhone": "¿Cuál es tu número?",
+        "enterCode": "Ingresa tu código",
+        "enterEmail": "Agrega tu correo",
+        "optionalPassword": "Contraseña (opcional)"
+      },
+      "subtitles": {
+        "enterPhone": "Te enviaremos un código para verificar que eres tú.",
+        "enterEmail": "Lo usamos para recibos, restablecer contraseñas y recuperar tu cuenta.",
+        "optionalPassword": "Puedes omitirla: siempre puedes iniciar sesión con un código."
+      },
+      "buttons": {
+        "sendCode": "Enviar código",
+        "verify": "Verificar",
+        "changeNumber": "Usar otro número",
+        "useEmailInstead": "Registrarse con correo",
+        "usePhoneInstead": "Registrarse con tu teléfono"
+      },
+      "errorMessages": {
+        "accountExists": "Ya existe una cuenta con este número. Intenta iniciar sesión."
+      }
     }
   },
   "interests": {
@@ -1516,7 +1555,8 @@
       "pageTitle": "Bienvenido",
       "pageSubtitle": "Inicia sesión en Therr para ver lo que te perdiste",
       "userAlerts": {
-        "registerSuccess": "¡Registro exitoso! Revisa tu correo electrónico para la verificación."
+        "registerSuccess": "¡Registro exitoso! Revisa tu correo electrónico para la verificación.",
+        "phoneRegisterSuccess": "¡Cuenta creada! Inicia sesión con un código enviado a tu teléfono."
       }
     },
     "map": {
@@ -1958,6 +1998,12 @@
         "header": "¡Logro obtenido!",
         "message": "¡Comparte tu logro con amigos!"
       }
+    },
+    "accountPicker": {
+      "switchHeader": "Cambiar de cuenta",
+      "chooseHeader": "Elige una cuenta",
+      "useAnotherAccount": "Usar otra cuenta",
+      "removeAccount": "Quitar cuenta guardada"
     }
   },
   "permissions": {
