@@ -131,7 +131,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UserAchievementsStore(mockUserAchievementsStoreConnection as any));
             const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
-            createUserHelper(mockHeaders, mockUserDetails, false, undefined, true).then((result) => {
+            createUserHelper(mockHeaders, mockUserDetails, { hasInviteCode: true }).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
@@ -204,7 +204,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UserAchievementsStore(mockUserAchievementsStoreConnection as any));
             const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
-            createUserHelper(mockHeaders, mockUserDetails, true).then((result) => {
+            createUserHelper(mockHeaders, mockUserDetails, { isSSO: true }).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
@@ -290,7 +290,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UserAchievementsStore(mockUserAchievementsStoreConnection as any));
             const awsStub = sinon.stub(awsSES, 'sendEmail').resolves({});
 
-            createUserHelper(mockHeaders, mockUserDetails, false, mockUserByInviteDetails).then((result) => {
+            createUserHelper(mockHeaders, mockUserDetails, { userByInviteDetails: mockUserByInviteDetails }).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
