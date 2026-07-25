@@ -1,4 +1,8 @@
-import ApiService from './ApiService';
+import ApiService, {
+    IPhoneAuthAccount,
+    IPhoneAuthSelectArgs,
+    IPhoneAuthVerifyArgs,
+} from './ApiService';
 import CampaignsService from './CampaignsService';
 import ForumsService from './ForumsService';
 import MapsService,
@@ -24,6 +28,9 @@ import StreaksService from './StreaksService';
 
 export {
     ApiService,
+    IPhoneAuthAccount,
+    IPhoneAuthSelectArgs,
+    IPhoneAuthVerifyArgs,
     CampaignsService,
     ForumsService,
     MapsService,
