@@ -148,6 +148,12 @@ export class LoginFormComponent extends React.Component<
         .then((rememberedProfiles) => {
             const mostRecent = rememberedProfiles[0];
 
+            // First run on a device: nothing to pre-fill and nothing to switch between, so
+            // skip the re-render entirely rather than storing an empty list over an empty one.
+            if (!mostRecent) {
+                return;
+            }
+
             this.setState((prevState) => ({
                 rememberedProfiles,
                 activeProfileId: mostRecent && !prevState.inputs.userName ? mostRecent.id : prevState.activeProfileId,
@@ -160,9 +166,23 @@ export class LoginFormComponent extends React.Component<
 
     isPhoneModeActive = () => isLikelyPhoneNumber(this.state.inputs.userName);
 
-    isLoginButtonLoading() {
-        return this.state.isSubmitting;
-    }
+    /**
+     * Whether the primary action is unavailable. Mode-aware: in SMS mode there is no password
+     * to check, so an identifier alone is enough to request a code.
+     */
+    isLoginFormDisabled = () => {
+        const { inputs, isSubmitting } = this.state;
+
+        if (isSubmitting) {
+            return true;
+        }
+
+        if (this.isPhoneModeActive()) {
+            return !inputs.userName;
+        }
+
+        return !inputs.userName || !inputs.password;
+    };
 
     onSSOLoginError = (err) => {
         this.setState({
@@ -620,7 +640,7 @@ export class LoginFormComponent extends React.Component<
                                         disabledStyle={themeForms.styles.buttonDisabled}
                                         title={this.translate('forms.loginForm.buttons.sendCode')}
                                         onPress={this.onRequestVerificationCode}
-                                        disabled={isSubmitting}
+                                        disabled={this.isLoginFormDisabled()}
                                         loading={isSubmitting}
                                         icon={
                                             <MaterialIcon
@@ -671,7 +691,7 @@ export class LoginFormComponent extends React.Component<
                                             'forms.loginForm.buttons.login'
                                         )}
                                         onPress={() => this.onSubmit()}
-                                        disabled={this.isLoginButtonLoading()}
+                                        disabled={this.isLoginFormDisabled()}
                                         loading={isSubmitting}
                                         icon={
                                             <FontAwesomeIcon
@@ -770,25 +790,41 @@ export class LoginFormComponent extends React.Component<
                             </>
                         )
                 }
-                <AccountPickerModal
-                    isVisible={this.state.isProfileSwitcherVisible}
-                    accounts={rememberedProfiles}
-                    selectedAccountId={this.state.activeProfileId}
-                    headerText={this.translate('modals.accountPicker.switchHeader')}
-                    onSelect={this.onSelectRememberedProfile}
-                    onClose={this.toggleProfileSwitcher}
-                    onForget={this.onForgetRememberedProfile}
-                    onUseAnotherAccount={this.onUseAnotherAccount}
-                    translate={this.translate}
-                />
-                <AccountPickerModal
-                    isVisible={mode === 'selectingAccount'}
-                    accounts={selectableAccounts}
-                    headerText={this.translate('modals.accountPicker.chooseHeader')}
-                    onSelect={this.onSelectPhoneAccount}
-                    onClose={this.onUsePasswordInstead}
-                    translate={this.translate}
-                />
+                {
+                    // Mounted only while open. BaseModal renders through a react-native-paper
+                    // `Portal`, which attaches to the Provider as soon as it mounts — keeping
+                    // two of them permanently mounted costs teardown work on every render and
+                    // makes the form unrenderable outside a PaperProvider.
+                    this.state.isProfileSwitcherVisible
+                        ? (
+                            <AccountPickerModal
+                                isVisible
+                                accounts={rememberedProfiles}
+                                selectedAccountId={this.state.activeProfileId}
+                                headerText={this.translate('modals.accountPicker.switchHeader')}
+                                onSelect={this.onSelectRememberedProfile}
+                                onClose={this.toggleProfileSwitcher}
+                                onForget={this.onForgetRememberedProfile}
+                                onUseAnotherAccount={this.onUseAnotherAccount}
+                                translate={this.translate}
+                            />
+                        )
+                        : null
+                }
+                {
+                    mode === 'selectingAccount'
+                        ? (
+                            <AccountPickerModal
+                                isVisible
+                                accounts={selectableAccounts}
+                                headerText={this.translate('modals.accountPicker.chooseHeader')}
+                                onSelect={this.onSelectPhoneAccount}
+                                onClose={this.onUsePasswordInstead}
+                                translate={this.translate}
+                            />
+                        )
+                        : null
+                }
             </>
         );
     }
