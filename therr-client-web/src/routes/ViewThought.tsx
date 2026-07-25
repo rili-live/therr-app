@@ -187,6 +187,11 @@ const ViewThought: React.FC = () => {
         navigate(`/users/${userId}`);
     }, [navigate]);
 
+    // Drills into a reply's own details view, where its nested replies become the thread
+    const handleInspectReply = useCallback((replyId: string) => {
+        navigate(`/thoughts/${replyId}`);
+    }, [navigate]);
+
     const breadcrumbs = [
         <Anchor component={Link} to="/" key="home" size="sm">{translate('pages.navigation.home')}</Anchor>,
         <Anchor component={Link} to="/posts/thoughts" key="thoughts" size="sm">{translate('pages.navigation.thoughts')}</Anchor>,
@@ -315,6 +320,8 @@ const ViewThought: React.FC = () => {
                             {replies.map((reply) => {
                                 const replyHashtags = reply.hashTags ? reply.hashTags.split(',').filter(Boolean) : [];
                                 const replyIsLiked = reply.reaction?.userHasLiked;
+                                const replyReplyCount = reply.replyCount || 0;
+                                const viewRepliesLabel = translate('pages.viewThought.viewReplies', { count: replyReplyCount });
                                 return (
                                     <div key={reply.id} className="thought-card">
                                         <div className="thought-card-content">
@@ -346,8 +353,8 @@ const ViewThought: React.FC = () => {
                                                 </Group>
                                             )}
 
-                                            {user?.isAuthenticated && (
-                                                <Group gap="md" className="thought-card-reactions">
+                                            <Group gap="md" className="thought-card-reactions">
+                                                {user?.isAuthenticated && (
                                                     <Tooltip label={replyIsLiked ? 'Unlike' : 'Like'}>
                                                         <ActionIcon
                                                             variant="subtle"
@@ -361,8 +368,23 @@ const ViewThought: React.FC = () => {
                                                             />
                                                         </ActionIcon>
                                                     </Tooltip>
-                                                </Group>
-                                            )}
+                                                )}
+                                                <Tooltip label={viewRepliesLabel}>
+                                                    <Button
+                                                        variant="subtle"
+                                                        size="compact-xs"
+                                                        color="gray"
+                                                        aria-label={viewRepliesLabel}
+                                                        onClick={() => handleInspectReply(reply.id)}
+                                                        leftSection={(
+                                                            <InlineSvg name="forum" className="discovered-tile-icon" />
+                                                        )}
+                                                        className="thought-card-reply-count"
+                                                    >
+                                                        {replyReplyCount}
+                                                    </Button>
+                                                </Tooltip>
+                                            </Group>
                                         </div>
                                     </div>
                                 );
