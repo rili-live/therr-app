@@ -3,6 +3,7 @@ import {
     AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, MetricNames, PushNotifications, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { verifyPhoneVerificationToken } from 'therr-js-utilities/phone-verification-token';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -59,7 +60,16 @@ const createUser: RequestHandler = (req: any, res: any) => {
         inviteCode,
     } = req.body;
 
-    return Store.users.findUser(req.body)
+    // Passwordless sign-up: the API gateway texted a one-time code to this number and, on a
+    // correct answer, minted a short-lived signed token naming it. An absent/expired/forged
+    // token simply yields `undefined` here and registration proceeds as an ordinary
+    // email+password signup — there is no path where a bad token grants anything.
+    const verifiedPhoneNumber = verifyPhoneVerificationToken(req.body.phoneVerificationToken, 'register')?.phoneNumber;
+
+    return Store.users.findUser({
+        ...req.body,
+        phoneNumber: verifiedPhoneNumber || req.body.phoneNumber,
+    })
         .then((findResults) => {
             if (findResults.length) {
                 return handleHttpError({
@@ -236,15 +246,18 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
                         settingsLocale: req.body.settingsLocale || locale,
                         lastName: req.body.lastName,
-                        phoneNumber: req.body.phoneNumber,
+                        // Prefer the number inside the signed token over anything the client
+                        // typed: the token is the only version we have actually texted.
+                        phoneNumber: verifiedPhoneNumber || req.body.phoneNumber,
                         userName: req.body.userName,
                         accessLevels: levels,
                     },
-                    false,
-                    undefined,
-                    !!inviteCode,
-                    req.body.inviteToken,
-                    isPreVerifiedByPactClaim,
+                    {
+                        hasInviteCode: !!inviteCode,
+                        inviteToken: req.body.inviteToken,
+                        isPreVerified: isPreVerifiedByPactClaim,
+                        isPhoneVerified: !!verifiedPhoneNumber,
+                    },
                 );
             }).then(async (user) => {
                 let registrationSource = 'organic';

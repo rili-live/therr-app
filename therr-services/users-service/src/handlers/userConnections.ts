@@ -118,11 +118,13 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     // This is disabled until we can find a better way to handle this.
                     unverifiedUser = await createUserHelper(req.headers, {
                         email: acceptingUserEmail,
-                    }, false, {
-                        fromName: fromUserFullName,
-                        fromEmail: requestingUserEmail,
-                        toEmail: acceptingUserEmail,
-                    }, false);
+                    }, {
+                        userByInviteDetails: {
+                            fromName: fromUserFullName,
+                            fromEmail: requestingUserEmail,
+                            toEmail: acceptingUserEmail,
+                        },
+                    });
                 } else {
                     return handleHttpError({
                         res,

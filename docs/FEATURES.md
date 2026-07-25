@@ -15,6 +15,9 @@
 - **Google OAuth** — social sign-in on both platforms
 - **Apple OAuth** — social sign-in (mobile)
 - **Phone verification** — optional during profile creation
+- **Passwordless phone sign-in** (mobile) — entering a phone number in the sign-in field swaps the password step for a texted 6-digit code (`POST /v1/phone/auth/start` → `/auth/verify`). Enumeration-safe: the "code sent" response is identical whether or not an account exists. When a number is attached to several accounts, an account picker completes sign-in via `/auth/select`
+- **Phone-first sign-up** (mobile) — verify a phone number by SMS, then add an e-mail; the account is created already `MOBILE_VERIFIED` and a password is optional. The e-mail still receives its normal verification message
+- **Remembered profiles** (mobile) — the sign-in field pre-fills the account last used on the device, with a chevron that opens a switcher to change accounts, remove a saved one, or start fresh. Stored locally through `SecureStorage`; holds no credentials or tokens
 - **Password reset** — forgot-password email flow
 - **Account types** — personal, business, and creator accounts
 - **Organization management** — business account grouping
@@ -42,6 +45,7 @@
 - **Thoughts** — micro-posts with categories, reply threads, mentions, hashtags
 - **Ranked social feed (mobile)** — Discoveries/Thoughts tabs ordered by engagement score (recency decay × likes/replies/views × category affinity from the user's own reactions); backend stream activation ranks candidates by reply-count hot score
 - **Auto-expanded thread previews (mobile)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style)
+- **Nested reply counts (mobile & web)** — in the thought details view only, each reply renders a reply icon with its own nested reply count; tapping it opens that reply's details view so threads can be walked one level at a time
 - **Content categories** — 20+ categories (food, music, nature, art, gaming, etc.)
 - **Media uploads** — image upload with CDN (ImageKit), YouTube video embedding
 

@@ -113,6 +113,14 @@ app.use(authenticate.unless({
         { url: '/v1/users-service/auth/email-precheck', methods: ['POST'] }, // multi-app email lookup (enumeration-safe)
         { url: '/v1/users-service/auth/handoff/redeem', methods: ['POST'] }, // cross-app handoff: code IS the credential
         { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password
+        // Passwordless phone auth. These are pre-session by definition: the SMS code IS the
+        // credential, so requiring a JWT would make them unreachable. Each is rate limited
+        // per IP and per phone number in services/phone/router.ts.
+        { url: '/v1/phone/auth/start', methods: ['POST'] }, // SMS sign-in: request code
+        { url: '/v1/phone/auth/verify', methods: ['POST'] }, // SMS sign-in: submit code
+        { url: '/v1/phone/auth/select', methods: ['POST'] }, // SMS sign-in: pick account when a number has several
+        { url: '/v1/phone/register/start', methods: ['POST'] }, // SMS sign-up: request code
+        { url: '/v1/phone/register/verify', methods: ['POST'] }, // SMS sign-up: submit code
         { url: '/v1/users-service/social-sync/oauth2-tiktok', methods: ['GET'] }, // TikTok OAuth
         { url: '/v1/users-service/social-sync/oauth2-facebook', methods: ['GET'] }, // Facebook OAuth
         { url: '/v1/users-service/social-sync/oauth2-dashboard-facebook', methods: ['GET'] }, // Facebook OAuth
