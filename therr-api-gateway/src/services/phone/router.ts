@@ -24,6 +24,7 @@ import {
     phoneAuthVerifyValidation,
     phoneAuthSelectValidation,
 } from './validation/phone';
+import resolvePhoneLoginError from './resolvePhoneLoginError';
 import * as globalConfig from '../../../../global-config';
 import restRequest from '../../utilities/restRequest';
 import { hostRegex } from '../../utilities/patterns';
@@ -90,7 +91,8 @@ const sendVerificationSms = (locale: string, toPhoneNumber: string, verification
 const toE164 = (rawPhoneNumber: any): string | undefined => {
     const normalized = normalizePhoneNumber(`${rawPhoneNumber || ''}`.trim().replace(/\s/g, ''));
 
-    return /^\+[1-9]\d{6,15}$/.test(normalized) ? normalized : undefined;
+    // E.164 caps the whole number at 15 digits, so it is 1 leading digit + 6..14 more.
+    return /^\+[1-9]\d{6,14}$/.test(normalized) ? normalized : undefined;
 };
 
 /**
@@ -370,18 +372,7 @@ const completePhoneLogin = (req: any, res: any, args: {
     trackRefreshToken(response?.data);
 
     return res.status(201).send(response?.data);
-}).catch((err: any) => {
-    const statusCode = err?.response?.data?.statusCode || err?.response?.status;
-    if (statusCode === 403 || statusCode === 404) {
-        return handleHttpError({
-            res,
-            message: 'No account found for this phone number',
-            statusCode: 404,
-        });
-    }
-
-    return handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' });
-});
+}).catch((err: any) => handleHttpError({ res, ...resolvePhoneLoginError(err) }));
 
 /**
  * PASSWORDLESS SIGN-IN — step 2.
