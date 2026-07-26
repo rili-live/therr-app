@@ -214,7 +214,11 @@ describe('UsersStore', () => {
 
     describe('findUser', () => {
         it('finds user with variable username', () => {
-            const expected = `select * from "main"."users" where ("email" = 'test@email.com') or ("userName" = 'tests') or ("phoneNumber" = '+3176665849')`;
+            // The phone clause matches a candidate set rather than one exact string — see
+            // `phoneNumberMatchCandidates`. '+3176665849' is not a parseable number, so
+            // `normalizePhoneNumber` hands it back untouched and the set is just the two
+            // compact spellings.
+            const expected = `select * from "main"."users" where ("email" = 'test@email.com') or ("userName" = 'tests') or "phoneNumber" in ('+3176665849', '3176665849')`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
@@ -303,6 +307,140 @@ describe('UsersStore', () => {
             }, {});
 
             expect(update).to.throw('User ID or email is required to call updateUser');
+        });
+    });
+
+    // Regression: `main.users.phoneNumber` holds mixed dialects because nothing normalizes on
+    // write — `createUser`/`updateUser` store `req.body.phoneNumber` verbatim (compact E.164,
+    // "+13175551234") while `updatePhoneVerification` stores the gateway's normalized display
+    // format ("+1 317-555-1234"). These lookups previously normalized only the query side, so
+    // they matched one dialect and silently missed the other. For passwordless sign-in — which
+    // is enumeration-safe and therefore reports nothing when it finds nothing — that meant the
+    // user simply never received an SMS.
+    describe('phone number lookups', () => {
+        const buildStore = () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+
+            return { mockStore, store: new UsersStore(mockStore) };
+        };
+
+        it('getAllByPhoneNumber matches a number stored as compact E.164', () => {
+            const { mockStore, store } = buildStore();
+            // What the gateway sends after canonicalization.
+            store.getAllByPhoneNumber('+1 317-555-1234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`'+13175551234'`);
+        });
+
+        it('getAllByPhoneNumber still matches a number stored in display format', () => {
+            const { mockStore, store } = buildStore();
+            store.getAllByPhoneNumber('+13175551234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`'+1 317-555-1234'`);
+        });
+
+        it('getAllByPhoneNumber keeps excluding soft-deleted accounts', () => {
+            const { mockStore, store } = buildStore();
+            store.getAllByPhoneNumber('+13175551234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain('"settingsIsAccountSoftDeleted" = false');
+        });
+
+        // The registration duplicate check. A miss here lets a second account onto a number
+        // that already has one, so it has to see legacy compact-E.164 rows as well as the
+        // canonical rows this store now writes.
+        it('findUser matches both dialects when checking for a duplicate phone', () => {
+            const { mockStore, store } = buildStore();
+            store.findUser({ phoneNumber: '+13175551234' });
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`'+1 317-555-1234'`);
+            expect(generatedSql).to.contain(`'+13175551234'`);
+        });
+
+        it('resolves an un-prefixed submission to both stored dialects', () => {
+            const { mockStore, store } = buildStore();
+            // `normalizePhoneNumber` returns "1 (317) 555-1234" for this input — no leading
+            // `+` — so the compact candidate has to be derived rather than assumed.
+            store.getAllByPhoneNumber('3175551234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`'+13175551234'`);
+        });
+
+        it('does not widen the match to a different handset', () => {
+            const { mockStore, store } = buildStore();
+            store.getAllByPhoneNumber('+13175551234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.not.contain('3175551235');
+        });
+    });
+
+    // Writes are normalized so new rows stop diverging from the dialect the phone-verification
+    // flow has always stored. The candidate matching above still has to cover legacy rows.
+    describe('phone number normalization on write', () => {
+        const buildWriteStore = () => {
+            const mockStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+
+            return { mockStore, store: new UsersStore(mockStore) };
+        };
+
+        it('createUser stores a compact E.164 submission in the canonical dialect', () => {
+            const { mockStore, store } = buildWriteStore();
+            store.createUser({
+                accessLevels: '[]',
+                email: 'test@email.com',
+                hasAgreedToTerms: true,
+                password: 'hashed',
+                verificationCodes: '{}',
+                phoneNumber: '+13175551234',
+                userName: 'tester',
+            });
+
+            expect(mockStore.write.query.args[0][0]).to.contain(`'+1 317-555-1234'`);
+        });
+
+        it('updateUser stores a compact E.164 submission in the canonical dialect', () => {
+            const { mockStore, store } = buildWriteStore();
+            store.updateUser({ phoneNumber: '+13175551234' }, { id: 'user-1' });
+
+            expect(mockStore.write.query.args[0][0]).to.contain(`'+1 317-555-1234'`);
+        });
+
+        // Apple SSO signups write this sentinel into `phoneNumber` (see createUserHelper).
+        // `normalizePhoneNumber` returns unparseable input verbatim, which is what preserves it.
+        it('passes the apple-sso sentinel through untouched', () => {
+            const { mockStore, store } = buildWriteStore();
+            store.createUser({
+                accessLevels: '[]',
+                email: 'test@email.com',
+                hasAgreedToTerms: true,
+                password: 'hashed',
+                verificationCodes: '{}',
+                phoneNumber: 'apple-sso',
+                userName: 'tester',
+            });
+
+            expect(mockStore.write.query.args[0][0]).to.contain(`'apple-sso'`);
+        });
+
+        it('leaves an absent phone number absent rather than writing an empty string', () => {
+            const { mockStore, store } = buildWriteStore();
+            store.updateUser({ firstName: 'Test' }, { id: 'user-1' });
+
+            expect(mockStore.write.query.args[0][0]).to.not.contain('phoneNumber');
         });
     });
 

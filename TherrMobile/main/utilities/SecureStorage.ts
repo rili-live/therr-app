@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MMKV } from 'react-native-mmkv';
 
-// Keys that contain sensitive data and should use secure storage when available
-const SECURE_KEYS = ['therrRefreshToken', 'therrUser'];
+// Keys that contain sensitive data and should use secure storage when available.
+// `therrKnownProfiles` holds no credentials, but it does hold contact info for every account
+// that has signed in on this device, so it gets the same protection.
+const SECURE_KEYS = ['therrRefreshToken', 'therrUser', 'therrKnownProfiles'];
 
 let Keychain: any = null;
 

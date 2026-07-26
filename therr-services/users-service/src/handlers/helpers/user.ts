@@ -57,6 +57,36 @@ export interface IUserByInviteDetails {
     toEmail: string;
 }
 
+/**
+ * Everything about *how* a registration arrived, as opposed to *what* the user submitted.
+ * Collected into one bag because the flags are mutually informative (each one relaxes some
+ * part of the verification ceremony) and because a seven-argument positional signature had
+ * become impossible to read at the call sites.
+ */
+export interface ICreateUserOptions {
+    /** Registration came from an OAuth provider that already vouched for the email. */
+    isSSO?: boolean;
+    /** Account is being stubbed out on someone else's behalf (email invite). */
+    userByInviteDetails?: IUserByInviteDetails;
+    /** Registrant typed a friend's referral code. */
+    hasInviteCode?: boolean;
+    /** Magic invite-link token; proves control of whichever channel it was delivered on. */
+    inviteToken?: string;
+    /**
+     * Registration arrived with proof of contact-channel ownership (e.g. a pact claim
+     * token/code delivered to this exact email/phone). Treated like SSO for verification
+     * purposes: access levels are granted up-front and no verification email is sent.
+     */
+    isPreVerified?: boolean;
+    /**
+     * The API gateway validated a texted one-time code for `userDetails.phoneNumber` before
+     * this call (passwordless sign-up). Grants MOBILE_VERIFIED and admits the user to the
+     * app immediately — but, unlike `isPreVerified`, the email is still unproven, so the
+     * verification email is sent as usual.
+     */
+    isPhoneVerified?: boolean;
+}
+
 interface IGetUserHelperArgs {
     isAuthorized: boolean;
     requestingUserId?: string;
@@ -275,27 +305,27 @@ const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     return !(updateArgs.userName || existingUser.userName);
 };
 
-// eslint-disable-next-line default-param-last
 const createUserHelper = (
     headers: InternalConfigHeaders,
     userDetails: IRequiredUserDetails,
-    // eslint-disable-next-line default-param-last
-    isSSO = false,
-    userByInviteDetails?: IUserByInviteDetails,
-    // eslint-disable-next-line default-param-last
-    hasInviteCode = false,
-    inviteToken?: string,
-    // Registration arrived with proof of contact-channel ownership (e.g. a
-    // pact claim token/code that was delivered to this exact email/phone).
-    // Treated like SSO for verification purposes: access levels are granted
-    // up-front and no verification email is sent.
-    isPreVerified = false,
+    options: ICreateUserOptions = {},
 ) => {
+    const {
+        isSSO = false,
+        userByInviteDetails,
+        hasInviteCode = false,
+        inviteToken,
+        isPreVerified = false,
+        isPhoneVerified = false,
+    } = options;
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
-    // Create a different/random permanent password as a placeholder
-    const shouldGeneratePassword = (isSSO || !!userByInviteDetails);
+    // Create a different/random permanent password as a placeholder.
+    // Phone-first signups are passwordless by design — the user proved the handset and will
+    // keep signing in with a texted code — so they get a placeholder too unless they chose
+    // to set one during the email step.
+    const shouldGeneratePassword = (isSSO || !!userByInviteDetails || (isPhoneVerified && !userDetails.password));
     const password = shouldGeneratePassword ? generateOneTimePassword(8) : (userDetails.password || '');
     const hasAgreedToTerms = !userByInviteDetails;
     let user;
@@ -349,7 +379,13 @@ const createUserHelper = (
             if (userDetails.isDashboardRegistration) {
                 userAccessLevels.add(AccessLevels.DASHBOARD_SIGNUP);
             }
-            if (isSSO || isPreVerified) {
+            // Phone-first signup: the texted code proved the handset, which is what admits
+            // the user to the app. EMAIL_VERIFIED* is the gate `login` checks, so it is
+            // granted here on the strength of the phone rather than the email — the email
+            // itself is still unproven and still gets its verification message below.
+            // Squatting a *registered* address remains impossible: the unique constraint on
+            // main.users.email rejects the insert, exactly as on the password signup path.
+            if (isSSO || isPreVerified || isPhoneVerified) {
                 if (isMissingUserProps) {
                     userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 } else {
@@ -364,7 +400,7 @@ const createUserHelper = (
                     ? AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES
                     : AccessLevels.EMAIL_VERIFIED);
             }
-            if (phoneChannelVerified) {
+            if (phoneChannelVerified || isPhoneVerified) {
                 userAccessLevels.add(AccessLevels.MOBILE_VERIFIED);
             }
             const nowIso = new Date().toISOString();
@@ -636,6 +672,10 @@ const createUserHelper = (
             //    email/phone — the same ownership proof a verification link
             //    provides. Skipping removes the leave-the-app-verify-return wall
             //    between an invitee and their friend's pact.
+            //
+            // Deliberately NOT including isPhoneVerified: a phone-first signup proved the
+            // handset, not the address it typed afterwards. That user is let into the app
+            // right away, but the email still has to earn its own confirmation.
             if (emailChannelVerified || isPreVerified) {
                 return user;
             }
@@ -752,7 +792,7 @@ const validateCredentials = (headers: InternalConfigHeaders, userSearchResults, 
                         firstName: reqBody.userFirstName || fbUserFirstName,
                         lastName: reqBody.userLastName || fbUserLastName,
                         phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                    }, true, undefined, false).then((user) => [true, user, response]);
+                    }, { isSSO: true }).then((user) => [true, user, response]);
                 }
             }
 

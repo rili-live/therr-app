@@ -23,6 +23,8 @@ import { getUserImageUri } from '../../utilities/content';
 
 interface ILoginDispatchProps {
     login: Function;
+    loginWithPhone: Function;
+    selectPhoneLoginAccount: Function;
     setPreLoginLocale: Function;
 }
 
@@ -48,6 +50,8 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             login: UsersActions.login,
+            loginWithPhone: UsersActions.loginWithPhone,
+            selectPhoneLoginAccount: UsersActions.selectPhoneLoginAccount,
             setPreLoginLocale,
         },
         dispatch
@@ -140,10 +144,13 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                             }
                             <LoginForm
                                 login={this.props.login}
+                                loginWithPhone={this.props.loginWithPhone}
+                                selectPhoneLoginAccount={this.props.selectPhoneLoginAccount}
                                 navigation={this.props.navigation}
                                 themeAlerts={this.themeAlerts}
                                 themeAuthForm={this.themeAuthForm}
                                 themeForms={this.themeForms}
+                                prefillIdentifier={route?.params?.prefillIdentifier}
                                 userMessage={userMessage}
                                 userSettings={user?.settings || {}} />
                             <LanguageSelector

@@ -216,6 +216,48 @@ describe('ThoughtsStore brand filtering', () => {
             expect(sql).to.include(`"brandVariation" in ('habits')`);
             expect(sql).to.include('interests.hiking');
         });
+
+        // The hot score used to exist only in the ORDER BY, so the ranking was thrown away
+        // once candidates were chosen. It is now also selected, and the caller persists it
+        // onto the reaction row as relevanceScore.
+        it('returns the hot score so the ranking can outlive candidate selection', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include('AS "hotScore"');
+        });
+
+        it('scores and orders by the identical expression', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            const scoreExpression = '("replyCount" + 1) / POWER((EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600) + 2, 1.5)';
+            // Selected value and sort key must be the same number, or the persisted score
+            // would not explain the order the rows came back in.
+            expect(sql).to.include(`${scoreExpression} AS "hotScore"`);
+            expect(sql).to.include(`order by ${scoreExpression} DESC`);
+        });
+    });
+
+    describe('search (deterministic ordering)', () => {
+        // This query previously had no ORDER BY at all, which makes LIMIT/OFFSET paging
+        // unsound: Postgres may return rows in any order, so pages can repeat and skip.
+        it('orders by an indexed column with an id tiebreak', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.search(BrandVariations.THERR, {
+                pagination: { itemsPerPage: 20, pageNumber: 1 },
+            }, ['id']);
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include('order by "main"."thoughts"."createdAt" desc, "main"."thoughts"."id" desc');
+            // updatedAt is unindexed and was measured as slow — it must stay out of the sort.
+            expect(sql).to.not.include('"updatedAt" desc');
+        });
     });
 
     describe('getById', () => {
@@ -236,6 +278,47 @@ describe('ThoughtsStore brand filtering', () => {
 
             const sql = readStub.args[0][0] as string;
             expect(sql).to.not.include('brandVariation');
+        });
+
+        it('selects a nested reply count per reply, brand-restricted to match the reply join', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getById(BrandVariations.HABITS, 'thought-1', {}, { withReplies: true });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include('SELECT COUNT(*) FROM main.thoughts AS nested WHERE nested."parentId" = replies.id');
+            expect(sql).to.include(`nested."brandVariation" IN ('habits')`);
+            expect(sql).to.include('"replies[].replyCount"');
+        });
+
+        it('does not select a nested reply count when replies are not requested', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getById(BrandVariations.THERR, 'thought-1', {}, {});
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.not.include('replyCount');
+        });
+
+        it('coerces the nested reply count from a pg bigint string to a number', async () => {
+            const { connection, readStub } = buildMockConnection();
+            readStub.callsFake(() => Promise.resolve({
+                rows: [{
+                    id: 'thought-1',
+                    'replies[].id': 'reply-1',
+                    'replies[].replyCount': '3',
+                }, {
+                    id: 'thought-1',
+                    'replies[].id': 'reply-2',
+                    'replies[].replyCount': '0',
+                }],
+            }));
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.THERR, 'thought-1', {}, { withReplies: true });
+
+            expect(thoughts[0].replies[0].replyCount).to.equal(3);
+            expect(thoughts[0].replies[1].replyCount).to.equal(0);
         });
     });
 

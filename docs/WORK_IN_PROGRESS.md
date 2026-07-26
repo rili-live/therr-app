@@ -87,6 +87,11 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-07-25, /quality-peer-review) Before the passwordless phone auth release goes live, confirm the Twilio A2P 10DLC campaign and messaging throughput cover the two **new unauthenticated** SMS-dispatching routes (`POST /v1/phone/auth/start`, `POST /v1/phone/register/start`) — previously only the authenticated `/phone/verify` sent SMS. Set a Twilio spend alert at the same time. Sends are now capped per destination number (5/hour, `chargeSmsSendBudget` in `therr-api-gateway/src/services/phone/verificationCodes.ts`) on top of the per-IP limiter, so the exposure is bounded — but the bound is `5 × distinct numbers/hour`, which is still worth a billing alarm.
+- [ ] (2026-07-25, /quality-peer-review) Product decision to confirm on the passwordless sign-in flow: `POST /v1/phone/auth/start` no longer returns `INVALID_REGION`. It cannot — an SMS is only attempted for a number that *has* an account, so surfacing a region error would confirm the account exists, which is the one fact the uniform response withholds. Consequence: a user in a Twilio-unroutable region who has an account gets "code sent" and never receives one. Twilio failures are logged (`Failed to dispatch passwordless sign-in code`); watch that log after launch and consider a static country-code allow-list on the client if it shows real volume. Sign-*up* (`/register/start`) is unaffected and still reports the region error.
+- [ ] (2026-07-25, /quality-peer-review) Bump the iOS app version for the passwordless-phone-auth release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.9.0` / `versionCode 436`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still at `MARKETING_VERSION = 1.70.0` (iOS uses a separate scheme, so this is a bump-and-submit step, not a value to copy).
+- [ ] (2026-07-25, /quality-peer-review) Post-deploy smoke test of passwordless phone sign-in against a **real production account whose phone was set via profile edit** (not via the `/phone/verify` flow). Those two paths store different dialects in `main.users.phoneNumber` — `createUser`/`updateUser` write `req.body.phoneNumber` verbatim (compact E.164, `+13175551234`) while `updatePhoneVerification` writes the gateway's normalized display format (`+1 317-555-1234`). `UsersStore.getByPhoneNumber` / `getAllByPhoneNumber` now match the full candidate set, so both resolve; before that fix the compact-E.164 rows resolved to zero accounts and, because `/phone/auth/start` is enumeration-safe, the user got a "code sent" response and no SMS. Verify by checking that the SMS actually arrives, not by the API response.
+- [ ] (2026-07-25, /quality-peer-review) (Optional, no longer required for correctness) One-off backfill to normalize legacy `main.users.phoneNumber` rows onto the canonical display dialect. `UsersStore` now normalizes on write, so *new* rows no longer diverge, and `getByPhoneNumber` / `getAllByPhoneNumber` / `findUser` match a candidate set covering both dialects — so the mixed column works as-is. This is cleanup: until it happens, every future phone lookup has to keep replicating the candidate set. Do **not** add a phone-format CHECK constraint to the column as part of this — Apple SSO signups deliberately write the non-phone sentinel `'apple-sso'` there (`createUserHelper`, `handlers/helpers/user.ts`).
 - [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits). Existing installs self-heal on next launch — mobile compares its FCM token against `/users/me` and re-registers via `updateUser`, which dual-writes the brand-scoped row — so expect one launch of latency per app before routing is correct.
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
 - [ ] (2026-07-20, /work-plan) Run `20260720000001_main.invites.brandVariation` on production users-service (`npm run migrations:run`). Adds a NOT NULL `brandVariation` column (default `'therr'`) to `main.invites`, stamped at invite-creation and returned by `getInviteByToken`. Additive and defaulted, so applying it early is safe for the currently-deployed release; if the image ships first, invite creation fails on the unknown column.
@@ -182,6 +187,32 @@ append new items here rather than only printing them once.
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
+- [ ] (2026-07-26, /quality-peer-review) Run the
+  `20260726000000_main.thoughtReactions.relevanceScore` migration on production
+  (reactions-service: `npm run migrations:run`) **before** the reactions-service
+  image rolls out. The new activation path inserts `relevanceScore` / `scoredAt`
+  on every `thoughtReactions` row and the activated-feed read orders by
+  `relevanceScore`; if the columns are missing, both thought activation and the
+  stream 500 outright. This is a hard ordering dependency, not a soft one.
+- [ ] (2026-07-26, /quality-peer-review) That same migration creates
+  `idx_thought_reactions_user_relevance` with a plain (non-`CONCURRENTLY`)
+  `CREATE INDEX`, which takes an ACCESS EXCLUSIVE lock on
+  `main."thoughtReactions"` for the duration of the build. Knex runs migrations
+  inside a transaction so `CONCURRENTLY` is not available here — schedule the run
+  during a low-traffic window, or build the index by hand with `CONCURRENTLY`
+  first so the migration's `IF NOT EXISTS` becomes a no-op.
+- [ ] (2026-07-26, /quality-peer-review) First feed load after the relevance
+  rollout reshuffles for every existing user: rows activated before the migration
+  have `relevanceScore IS NULL` and sort last (`NULLS LAST`). Expected and in the
+  intended direction, but it is user-visible — worth knowing before support
+  tickets arrive.
+- [ ] (2026-07-26, /quality-peer-review) Optional env tuning introduced this
+  cycle, all with working defaults — set only if the defaults misbehave under
+  real traffic: `THOUGHT_DISTRIBUTOR_MIN_INTERVAL_SECONDS` (users-service, default
+  900s; `0` disables the per-user distributor gate),
+  `INTEREST_ENGAGEMENT_FLUSH_INTERVAL_MS` and
+  `INTEREST_ENGAGEMENT_MAX_BUFFERED_USERS` (maps-service and reactions-service,
+  defaults 10000ms / 1000 users).
 <!-- skill-followups:end -->
 
 ---
