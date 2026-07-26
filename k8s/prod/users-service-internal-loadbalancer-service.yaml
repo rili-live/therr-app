@@ -11,7 +11,7 @@ spec:
   # Terraform must be applied first; paste its `users_service_ilb_ip` output here.
   # NOTE: spec.loadBalancerIP is deprecated upstream but is still the supported way
   # to pin a GKE internal LB to a reserved address.
-  loadBalancerIP: "REPLACE_WITH_TERRAFORM_users_service_ilb_ip"
+  loadBalancerIP: "10.128.15.235"
   selector:
     component: server-users
   ports:
