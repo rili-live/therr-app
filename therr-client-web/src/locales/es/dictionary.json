@@ -431,7 +431,8 @@
       "replyError": "No se pudo publicar la respuesta. Por favor, inténtalo de nuevo.",
       "loginToReply": "Inicia sesión para responder",
       "loginToView": "Inicia sesión para ver esta publicación y unirte a la conversación",
-      "backToThoughts": "Volver a Pensamientos"
+      "backToThoughts": "Volver a Pensamientos",
+      "viewReplies": "Ver {count} respuestas"
     },
     "explorePeople": {
       "pageTitle": "Buscar personas",

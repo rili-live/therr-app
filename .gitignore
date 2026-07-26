@@ -4,6 +4,9 @@ context/transcripts/
 # Logs
 logs
 *.log
+
+# Production incident digests (redacted, but may contain residual context — never commit)
+.prod-debug/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

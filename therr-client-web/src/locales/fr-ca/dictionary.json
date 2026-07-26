@@ -438,7 +438,8 @@
       "replyError": "Échec de la publication de la réponse. Veuillez réessayer.",
       "loginToReply": "Connectez-vous pour répondre",
       "loginToView": "Connectez-vous pour voir cette publication et rejoindre la conversation",
-      "backToThoughts": "Retour aux pensées"
+      "backToThoughts": "Retour aux pensées",
+      "viewReplies": "Voir {count} réponses"
     },
     "chatForum": {
       "pageTitle": "Clavardage hébergé",

@@ -393,6 +393,7 @@ const ViewThought = ({
                                     isDarkMode={isDarkMode}
                                     isExpanded={false}
                                     inspectThought={handleGoToContent}
+                                    showReplyCount={true}
                                     thought={reply}
                                     goToViewUser={handleGoToViewUser}
                                     updateThoughtReaction={handleUpdateThoughtReaction}

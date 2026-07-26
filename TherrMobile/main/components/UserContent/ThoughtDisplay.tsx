@@ -45,6 +45,12 @@ interface IThoughtDisplayProps {
     thought: any;
     topReply?: any;
     replyCount?: number;
+    /**
+     * Renders a standalone reply-count icon/count for content that is not itself repliable
+     * (ie. replies rendered within the thought details view). Pressing it inspects the nested
+     * thought. Off by default so feed/carousel displays are unaffected.
+     */
+    showReplyCount?: boolean;
     goToViewUser: Function;
     updateThoughtReaction: Function;
     user: IUserState;
@@ -144,6 +150,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             thought,
             topReply,
             replyCount,
+            showReplyCount,
             goToViewUser,
             contentUserDetails,
             theme,
@@ -234,10 +241,12 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                     onLikePress={this.onLikePress}
                                     goToViewUser={goToViewUser}
                                     replyCount={replyCount}
+                                    showReplyCount={showReplyCount}
                                     theme={theme}
                                     themeForms={themeForms}
                                     themeViewContent={themeViewContent}
                                     thought={thought}
+                                    translate={translate}
                                 />
                         }
                     </View>
@@ -273,10 +282,12 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 onLikePress={this.onLikePress}
                                 goToViewUser={goToViewUser}
                                 replyCount={replyCount}
+                                showReplyCount={showReplyCount}
                                 theme={theme}
                                 themeForms={themeForms}
                                 themeViewContent={themeViewContent}
                                 thought={thought}
+                                translate={translate}
                             />
                         </View>
                 }
@@ -351,13 +362,19 @@ const ThoughtContent = ({
     onLikePress,
     goToViewUser,
     replyCount,
+    showReplyCount,
     theme,
     themeForms,
     themeViewContent,
     thought,
+    translate,
 }) => {
-    const totalReplies = replyCount ?? thought.replies?.length;
+    const totalReplies = replyCount ?? thought.replyCount ?? thought.replies?.length;
     const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
+    const hasRepliableActions = !thought.isDraft && isRepliable;
+    // The repliable action row already renders a reply icon/count, so this only fills the gap
+    // for non-repliable content (replies within the thought details view).
+    const shouldShowStandaloneReplyCount = !hasRepliableActions && !thought.isDraft && showReplyCount;
 
     return (
         <Pressable style={themeViewContent.styles.thoughtContentContainer} onPress={() => inspectThought(thought)}>
@@ -381,7 +398,30 @@ const ThoughtContent = ({
                 </View>
                 <View style={isExpanded ? themeViewContent.styles.thoughtReactionsContainerExpanded : themeViewContent.styles.thoughtReactionsContainer}>
                     {
-                        !thought.isDraft && isRepliable &&
+                        shouldShowStandaloneReplyCount &&
+                        <Button
+                            containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                            buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                            icon={
+                                <TherrIcon
+                                    name="chat"
+                                    size={22}
+                                    color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                />
+                            }
+                            onPress={() => inspectThought(thought)}
+                            type="clear"
+                            title={`${totalReplies || 0}`}
+                            titleStyle={[
+                                themeViewContent.styles.thoughtReactionButtonTitle,
+                                { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                            ]}
+                            accessibilityLabel={translate('components.thoughtDisplay.viewReplies', { count: totalReplies || 0 })}
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                    }
+                    {
+                        hasRepliableActions &&
                         <>
                             <Button
                                 containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}

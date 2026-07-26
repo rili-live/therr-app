@@ -33,6 +33,52 @@ const brandContainment = (brand: string, qualifier?: string) => (qualifier
         [JSON.stringify([{ brand }])],
     ));
 
+/**
+ * The single dialect this store writes: display format, e.g. `"+1 317-555-1234"`.
+ *
+ * Chosen because it is what the phone-verification flow already stored (the gateway normalizes
+ * before calling `updatePhoneVerification`) and what the passwordless register token carries,
+ * so making `createUser` / `updateUser` agree costs nothing and stops new rows from diverging.
+ *
+ * Non-phone values pass through untouched: `normalizePhoneNumber` returns its input verbatim
+ * when it cannot parse it, which is what keeps the `'apple-sso'` sentinel that Apple SSO
+ * signups write into this column intact. That sentinel is also why the column can never carry
+ * a phone-format CHECK constraint.
+ */
+const normalizePhoneNumberForStorage = <T extends string | undefined>(phoneNumber: T): T => (
+    phoneNumber ? normalizePhoneNumber(phoneNumber) as T : phoneNumber
+);
+
+/**
+ * Every spelling of `phoneNumber` that could plausibly be sitting in `main.users.phoneNumber`.
+ *
+ * Writes are normalized (see above), but rows written *before* that was true hold whichever
+ * dialect their caller happened to pass: `createUser` / `updateUser` stored
+ * `req.body.phoneNumber` verbatim, so a profile save left compact E.164 (`"+13175551234"`)
+ * where `updatePhoneVerification` left display format (`"+1 317-555-1234"`). Normalizing only
+ * the query side therefore matched one dialect and silently missed the other — and because
+ * passwordless sign-in is deliberately enumeration-safe, that miss surfaced as "no SMS ever
+ * arrives" rather than as an error. Matching the whole candidate set is the only lookup that
+ * works against both, and it must stay until the legacy rows are backfilled.
+ *
+ * Widening a WHERE clause can only ever find *more* rows for the same handset, so this is safe
+ * for the "is this number already taken?" callers too — it makes that check more correct, not
+ * less.
+ */
+const phoneNumberMatchCandidates = (phoneNumber: string): string[] => {
+    const normalized = normalizePhoneNumber(phoneNumber);
+    const digits = normalized.replace(/[^\d]/g, '');
+
+    return [...new Set([
+        normalized,
+        phoneNumber,
+        // `normalizePhoneNumber` keeps the leading `+` only when its input had one, so derive
+        // both compact forms rather than assuming which side of that branch we came out on.
+        digits && `+${digits}`,
+        digits,
+    ].filter(Boolean))];
+};
+
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
     brandVariations?: string | undefined;
@@ -157,11 +203,31 @@ export default class UsersStore {
     };
 
     getByPhoneNumber = (phoneNumber: string) => {
-        const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
         let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount', 'isSuperUser']).from(USERS_TABLE_NAME)
-            .where({ phoneNumber: normalizedPhone });
+            .whereIn('phoneNumber', phoneNumberMatchCandidates(phoneNumber as string));
 
         queryString = queryString.toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    };
+
+    /**
+     * Full rows for every non-deleted account attached to a phone number, newest last.
+     *
+     * Distinct from `getByPhoneNumber` above, which returns a deliberately narrow projection
+     * for the "is this number already taken?" check and omits `id`. Passwordless sign-in
+     * needs the whole row (it mints a session from it) and needs to see *all* matches, since
+     * Therr permits a personal + creator + business account per number.
+     */
+    getAllByPhoneNumber = (phoneNumber: string, returning: any = '*') => {
+        const queryString = knexBuilder.select(returning)
+            .from(USERS_TABLE_NAME)
+            .where({
+                settingsIsAccountSoftDeleted: false,
+            })
+            .whereIn('phoneNumber', phoneNumberMatchCandidates(phoneNumber as string))
+            .orderBy('createdAt', 'asc')
+            .toString();
+
         return this.db.read.query(queryString).then((response) => response.rows);
     };
 
@@ -182,7 +248,14 @@ export default class UsersStore {
             queryString = queryString.orWhere({ userName });
         }
         if (phoneNumber) {
-            queryString = queryString.orWhere({ phoneNumber });
+            // Candidate-matched for the same reason as the lookups above, and additionally
+            // because writes are now normalized: an exact match would miss a row this store
+            // itself reformatted on the way in. This is the registration duplicate check, so
+            // missing a row means letting a second account onto a number that already has one.
+            // Widening does not loosen the accounts-per-number policy — registration has always
+            // rejected *any* phone match here; the personal/creator/business allowance is
+            // granted by `getByPhoneNumber` via the authenticated /phone/verify flow.
+            queryString = queryString.orWhereIn('phoneNumber', phoneNumberMatchCandidates(phoneNumber));
         }
 
         queryString = queryString.toString();
@@ -437,6 +510,7 @@ export default class UsersStore {
             ...params,
             userName: params?.userName?.trim()?.toLowerCase(),
             email: normalizeEmail(params.email),
+            phoneNumber: normalizePhoneNumberForStorage(params.phoneNumber),
         };
         const queryString = knexBuilder.insert(sanitizedParams)
             .into(USERS_TABLE_NAME)
@@ -525,7 +599,7 @@ export default class UsersStore {
         }
 
         if (params.phoneNumber) {
-            modifiedParams.phoneNumber = params.phoneNumber;
+            modifiedParams.phoneNumber = normalizePhoneNumberForStorage(params.phoneNumber);
         }
 
         if (params.verificationCodes) {

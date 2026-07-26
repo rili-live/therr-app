@@ -70,7 +70,9 @@
     "waitlistSuccess": "Inscription réussie!",
     "reactionSent": "Réaction envoyée!",
     "reactionFailed": "Échec de la réaction",
-    "mediaUploadFailed": "Échec du téléversement de l'image"
+    "mediaUploadFailed": "Échec du téléversement de l'image",
+    "tooManyAttempts": "Trop de tentatives",
+    "registerSuccess": "Compte créé"
   },
   "alertMessages": {
     "activityCreated": "Un nouveau groupe et événement ont été créés. Des invitations ont été envoyées à chaque membre du groupe.",
@@ -107,7 +109,9 @@
     "draftReminder": "Avez-vous pensé à terminer votre brouillon?",
     "requestClaimSent": "Vérifiez votre courriel pour la confirmation et les prochaines étapes",
     "waitlistSuccess": "Vérifiez votre courriel pour confirmer votre compte",
-    "mediaUploadFailed": "Votre image n'a pas pu être téléversée. Veuillez réessayer."
+    "mediaUploadFailed": "Votre image n'a pas pu être téléversée. Veuillez réessayer.",
+    "tooManyAttempts": "Veuillez patienter quelques minutes avant de réessayer.",
+    "phoneRegisterSuccess": "Votre téléphone est vérifié. Consultez vos courriels pour confirmer votre adresse."
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -392,7 +396,8 @@
       }
     },
     "thoughtDisplay": {
-      "viewAllReplies": "Voir les {count} réponses"
+      "viewAllReplies": "Voir les {count} réponses",
+      "viewReplies": "Voir {count} réponses"
     },
     "userMenu": {
       "buttons": {
@@ -478,12 +483,18 @@
       "buttons": {
         "login": "Se connecter",
         "signUp": "Créer un compte?",
-        "forgotPassword": "Mot de passe oublié?"
+        "forgotPassword": "Mot de passe oublié?",
+        "sendCode": "M’envoyer un code",
+        "verifyAndSignIn": "Vérifier et se connecter",
+        "resendCode": "Renvoyer le code?",
+        "usePasswordInstead": "Utiliser un mot de passe"
       },
       "defaultTitle": "Connexion",
       "labels": {
         "password": "Mot de passe",
-        "userName": "Courriel/Téléphone/Nom d'utilisateur"
+        "userName": "Courriel/Téléphone/Nom d'utilisateur",
+        "enterCode": "Entrez votre code",
+        "switchAccount": "Changer de compte"
       },
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
       "invalidUsernamePassword": "Combinaison nom d'utilisateur/mot de passe invalide.",
@@ -493,7 +504,13 @@
         "appleButtonTitle": "Se connecter avec Apple",
         "googleButtonTitleContinue": "Continuer avec Google",
         "googleButtonTitleSignIn": "Se connecter avec Google"
-      }
+      },
+      "subtitles": {
+        "codeSentTo": "Nous avons envoyé un code à 6 chiffres au {phoneNumber}",
+        "phoneSignInHint": "Nous vous enverrons un code à 6 chiffres — aucun mot de passe requis."
+      },
+      "invalidCode": "Ce code est invalide ou expiré.",
+      "invalidPhoneNumber": "Veuillez entrer un numéro de téléphone valide."
     },
     "nearbyForm": {
       "buttons": {
@@ -890,6 +907,29 @@
     "myQRCodeDetail": {
       "share": "Partager le lien",
       "copy": "Copier le lien"
+    },
+    "phoneSignupForm": {
+      "labels": {
+        "enterPhone": "Quel est votre numéro?",
+        "enterCode": "Entrez votre code",
+        "enterEmail": "Ajoutez votre courriel",
+        "optionalPassword": "Mot de passe (facultatif)"
+      },
+      "subtitles": {
+        "enterPhone": "Nous vous enverrons un code pour vérifier que c’est bien vous.",
+        "enterEmail": "Il sert aux reçus, à la réinitialisation du mot de passe et à la récupération du compte.",
+        "optionalPassword": "Vous pouvez l’ignorer : un code texte suffit pour vous connecter."
+      },
+      "buttons": {
+        "sendCode": "Envoyer le code",
+        "verify": "Vérifier",
+        "changeNumber": "Utiliser un autre numéro",
+        "useEmailInstead": "S’inscrire avec un courriel",
+        "usePhoneInstead": "S’inscrire avec votre téléphone"
+      },
+      "errorMessages": {
+        "accountExists": "Un compte utilise déjà ce numéro. Essayez de vous connecter."
+      }
     }
   },
   "interests": {
@@ -1533,7 +1573,8 @@
       "pageTitle": "Bienvenue",
       "pageSubtitle": "Connectez-vous pour faire votre check-in avec vos amis",
       "userAlerts": {
-        "registerSuccess": "Inscription réussie! Vérifiez votre courriel pour la confirmation."
+        "registerSuccess": "Inscription réussie! Vérifiez votre courriel pour la confirmation.",
+        "phoneRegisterSuccess": "Compte créé! Connectez-vous avec un code envoyé à votre téléphone."
       }
     },
     "map": {
@@ -2198,6 +2239,12 @@
         "header": "Réalisation obtenue!",
         "message": "Partagez votre réalisation avec des amis!"
       }
+    },
+    "accountPicker": {
+      "switchHeader": "Changer de compte",
+      "chooseHeader": "Choisissez un compte",
+      "useAnotherAccount": "Utiliser un autre compte",
+      "removeAccount": "Retirer le compte enregistré"
     }
   },
   "permissions": {
