@@ -60,17 +60,23 @@ describe('canonicalizePhoneNumber', () => {
     });
 
     describe('international numbers', () => {
+        // An allocated GB *mobile* range. Two ranges to avoid: a landline such as
+        // +44 20 7946 0958, which this helper accepts but `phoneAuthStartValidation`'s
+        // `isMobilePhone` rejects before the router ever runs; and Ofcom's fictional-drama
+        // range (+44 7700 900xxx), which is the reverse — `isMobilePhone` waves it through
+        // but libphonenumber marks it invalid. Either would describe a path production
+        // cannot reach.
         it('honours an explicit country code over the default region', () => {
-            const result = canonicalizePhoneNumber('+44 20 7946 0958');
+            const result = canonicalizePhoneNumber('+44 7911 123456');
 
-            expect(result?.e164).to.equal('+442079460958');
+            expect(result?.e164).to.equal('+447911123456');
             // Twilio's sender selection keys off this prefix.
             expect(result?.e164.startsWith('+44')).to.equal(true);
         });
 
         it('rejects a non-default-region number given without a country code', () => {
             // Better to refuse than to silently reinterpret a GB number as American.
-            expect(canonicalizePhoneNumber('442079460958')).to.equal(undefined);
+            expect(canonicalizePhoneNumber('447911123456')).to.equal(undefined);
         });
     });
 
