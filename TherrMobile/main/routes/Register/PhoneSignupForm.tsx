@@ -7,9 +7,17 @@ import {
     View,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
+import { SegmentedButtons } from 'react-native-paper';
 import { ApiService } from 'therr-react/services';
-import { ErrorCodes, PasswordRegex } from 'therr-js-utilities/constants';
+import {
+    ErrorCodes,
+    PasswordRegex,
+    PHONE_ACCOUNT_TYPES,
+    PhoneAccountType,
+    getMaxAccountsPerPhone,
+} from 'therr-js-utilities/constants';
 import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { Button } from '../../components/BaseButton';
 import { showToast } from '../../utilities/toasts';
 import translator from '../../utilities/translator';
@@ -29,6 +37,13 @@ import { ITherrThemeColors, ITherrThemeColorVariations, isDarkTheme } from '../.
  * abandoned sign-up leaves nothing behind — only a spent SMS code and an expired token.
  */
 type PhoneSignupStep = 'phone' | 'code' | 'details';
+
+/** Reuses the labels the CreateProfile account-type picker already ships in every locale. */
+const ACCOUNT_TYPE_LABEL_KEYS: { [key in PhoneAccountType]: string } = {
+    personal: 'forms.settings.labels.personalAccount',
+    creator: 'forms.settings.labels.creatorAccount',
+    business: 'forms.settings.labels.businessAccount',
+};
 
 interface IPhoneSignupFormProps {
     register: Function;
@@ -63,7 +78,16 @@ interface IPhoneSignupFormState {
     hasCodeError: boolean;
     /** Signed proof of phone ownership; expires ~20 minutes after the code is accepted. */
     phoneVerificationToken: string;
+    /**
+     * How many accounts the verified number already holds, and which types are still free.
+     * Both arrive with the verified code. A number with no accounts skips the type picker
+     * entirely — that user still chooses their type on the CreateProfile screen, as before.
+     */
+    existingAccountCount: number;
+    availableAccountTypes: PhoneAccountType[];
+    accountType: PhoneAccountType | '';
     email: string;
+    inviteCode: string;
     password: string;
     settingsBirthdate: string;
     isBirthdatePickerOpen: boolean;
@@ -97,7 +121,11 @@ export class PhoneSignupFormComponent extends React.Component<
             verificationCode: '',
             hasCodeError: false,
             phoneVerificationToken: '',
+            existingAccountCount: 0,
+            availableAccountTypes: [],
+            accountType: '',
             email: '',
+            inviteCode: '',
             password: '',
             settingsBirthdate: '',
             isBirthdatePickerOpen: false,
@@ -146,8 +174,12 @@ export class PhoneSignupFormComponent extends React.Component<
                 // Unlike sign-in, this endpoint does tell us the number is taken — surface it
                 // and point at sign-in rather than leaving the user stuck on a dead form.
                 if (error?.errorCode === ErrorCodes.USER_EXISTS) {
+                    // On a brand that allows several accounts per number, "an account already
+                    // uses this number" is not why we refused — the number is full.
                     this.setState({
-                        errorMessage: this.translate('forms.phoneSignupForm.errorMessages.accountExists'),
+                        errorMessage: getMaxAccountsPerPhone(CURRENT_BRAND_VARIATION) > 1
+                            ? this.translate('forms.phoneSignupForm.errorMessages.accountLimitReached')
+                            : this.translate('forms.phoneSignupForm.errorMessages.accountExists'),
                     });
                     showToast.error({
                         text1: this.translate('alertTitles.phoneNumberAlreadyInUse'),
@@ -184,9 +216,17 @@ export class PhoneSignupFormComponent extends React.Component<
 
         ApiService.verifyPhoneRegistration({ phoneNumber, verificationCode })
             .then((response: any) => {
+                const availableAccountTypes: PhoneAccountType[] = response?.data?.availableAccountTypes
+                    || [...PHONE_ACCOUNT_TYPES];
+
                 this.setState({
                     step: 'details',
                     phoneVerificationToken: response?.data?.phoneVerificationToken || '',
+                    existingAccountCount: response?.data?.existingAccountCount || 0,
+                    availableAccountTypes,
+                    // Pre-select when only one type is left, so the picker is a confirmation
+                    // rather than a decision the user has no room to get wrong.
+                    accountType: availableAccountTypes.length === 1 ? availableAccountTypes[0] : '',
                 });
             })
             .catch((error: any) => {
@@ -220,15 +260,25 @@ export class PhoneSignupFormComponent extends React.Component<
         this.setState({ settingsBirthdate: date.toISOString() });
     };
 
-    isDetailsStepDisabled = () => {
-        const { email, isSubmitting, settingsBirthdate } = this.state;
+    /** The type picker only appears for a number that already has an account. */
+    shouldSelectAccountType = () => this.state.existingAccountCount > 0
+        && this.state.availableAccountTypes.length > 0;
 
-        return !email || !settingsBirthdate || !isValidSignupAge(settingsBirthdate) || isSubmitting;
+    isDetailsStepDisabled = () => {
+        const { accountType, email, isSubmitting, settingsBirthdate } = this.state;
+
+        return !email
+            || !settingsBirthdate
+            || !isValidSignupAge(settingsBirthdate)
+            || (this.shouldSelectAccountType() && !accountType)
+            || isSubmitting;
     };
 
     onSubmitDetails = () => {
         const {
+            accountType,
             email,
+            inviteCode,
             password,
             phoneNumber,
             phoneVerificationToken,
@@ -262,14 +312,33 @@ export class PhoneSignupFormComponent extends React.Component<
         this.props
             .register({
                 email: email.trim(),
+                // Referral code from the inviter's share link. Sending it is what auto-connects
+                // the two accounts once the new one exists, so it has to survive this path too.
+                inviteCode: inviteCode.trim() || undefined,
                 password: password || undefined,
                 phoneNumber,
                 phoneVerificationToken,
                 settingsBirthdate,
                 settingsLocale: this.props.userSettings?.locale || 'en-us',
+                // Omitted unless the picker was shown; a first account on a number keeps
+                // choosing its type on the CreateProfile screen.
+                ...(this.shouldSelectAccountType()
+                    ? {
+                        isBusinessAccount: accountType === 'business',
+                        isCreatorAccount: accountType === 'creator',
+                    }
+                    : {}),
             })
             .then(() => this.props.onSuccess({ email: email.trim(), phoneNumber }))
             .catch((error: any) => {
+                if (error?.errorCode === ErrorCodes.TOO_MANY_ACCOUNTS) {
+                    // The number filled its last slot between verification and submit.
+                    this.setState({
+                        isSubmitting: false,
+                        errorMessage: this.translate('forms.phoneSignupForm.errorMessages.accountTypeTaken'),
+                    });
+                    return;
+                }
                 this.setState({
                     isSubmitting: false,
                     errorMessage: error?.statusCode === 400
@@ -380,10 +449,41 @@ export class PhoneSignupFormComponent extends React.Component<
         );
     }
 
+    renderAccountTypeSelector() {
+        const { theme, themeForms } = this.props;
+        const { accountType, availableAccountTypes } = this.state;
+
+        return (
+            <View style={localStyles.accountTypeContainer}>
+                <Text style={[localStyles.sectionHeading, { color: themeForms.colors.onSurface }]}>
+                    {this.translate('forms.phoneSignupForm.labels.accountType')}
+                </Text>
+                <Text style={[localStyles.sectionSubheading, { color: themeForms.colors.onSurfaceMuted }]}>
+                    {this.translate('forms.phoneSignupForm.subtitles.accountType')}
+                </Text>
+                <SegmentedButtons
+                    value={accountType}
+                    onValueChange={(value) => this.setState({
+                        accountType: value as PhoneAccountType,
+                        errorMessage: '',
+                    })}
+                    buttons={availableAccountTypes.map((type) => ({
+                        value: type,
+                        label: this.translate(ACCOUNT_TYPE_LABEL_KEYS[type]),
+                    }))}
+                />
+                <Text style={[theme.styles.sectionDescription, localStyles.hint]}>
+                    {this.translate('forms.phoneSignupForm.subtitles.accountTypeHint')}
+                </Text>
+            </View>
+        );
+    }
+
     renderDetailsStep() {
         const { theme, themeAlerts, themeAuthForm, themeForms, toggleEULA } = this.props;
         const {
             email,
+            inviteCode,
             isBirthdatePickerOpen,
             isPasswordEntryDirty,
             isSubmitting,
@@ -418,6 +518,27 @@ export class PhoneSignupFormComponent extends React.Component<
                     containerStyle={{ marginBottom: 14 }}
                     testID="phone-signup-email"
                 />
+                <RoundInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholder={this.translate('forms.registerForm.labels.inviteCode')}
+                    value={inviteCode}
+                    onChangeText={(text) => this.setState({ inviteCode: text, errorMessage: '' })}
+                    rightIcon={
+                        <TherrIcon
+                            name="gift"
+                            size={26}
+                            color={themeAlerts.colors.placeholderTextColorAlt}
+                        />
+                    }
+                    themeForms={themeForms}
+                    containerStyle={{ marginBottom: 6 }}
+                    testID="phone-signup-invite-code"
+                />
+                <Text style={[theme.styles.sectionDescription, localStyles.hint]}>
+                    {this.translate('forms.registerForm.subtitles.inviteCodeHint')}
+                </Text>
+                {this.shouldSelectAccountType() ? this.renderAccountTypeSelector() : null}
                 <Pressable onPress={() => this.setState({ isBirthdatePickerOpen: true })}>
                     <View pointerEvents="none">
                         <RoundInput
@@ -573,6 +694,20 @@ const localStyles = StyleSheet.create({
         textAlign: 'center',
         marginTop: space.xs,
         marginBottom: space.lg,
+    },
+    accountTypeContainer: {
+        marginBottom: space.sm,
+    },
+    sectionHeading: {
+        fontSize: fontSizes.md,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginBottom: space.xs,
+    },
+    sectionSubheading: {
+        fontSize: fontSizes.xs,
+        textAlign: 'center',
+        marginBottom: space.sm,
     },
     disclaimer: {
         marginBottom: space.xl,

@@ -77,6 +77,15 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
 
     const params = { ...req.body };
     delete params.thoughtIds;
+    // Per-thought, so it can't ride along in the shared param set that gets spread into
+    // every inserted/updated row — it is applied separately below.
+    delete params.relevanceScores;
+
+    const relevanceScores = req.body.relevanceScores || {};
+    const scoreFor = (thoughtId: string) => {
+        const score = Number(relevanceScores[thoughtId]);
+        return Number.isFinite(score) ? score : null;
+    };
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -90,6 +99,13 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
         });
         let updatedReactions: any[] = [];
         if (existing?.length) {
+            // Scores first, so the bulk update's RETURNING * below reports the fresh values.
+            const scoresForExisting = existing.reduce((acc, reaction) => {
+                const score = scoreFor(reaction.thoughtId);
+                return score == null ? acc : { ...acc, [reaction.thoughtId]: score };
+            }, {});
+            await Store.thoughtReactions.updateRelevanceScores(userId, scoresForExisting);
+
             await Store.thoughtReactions.update({}, {
                 ...params,
                 userLocale: locale,
@@ -107,6 +123,10 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
                 thoughtId,
                 ...params,
                 userLocale: locale,
+                // Always present (null when unscored) so every row in the multi-row insert
+                // carries the same column set.
+                relevanceScore: scoreFor(thoughtId),
+                scoredAt: scoreFor(thoughtId) == null ? null : new Date(),
             }));
 
         return Store.thoughtReactions.create(createArray).then((createdReactions) => res.status(200).send({

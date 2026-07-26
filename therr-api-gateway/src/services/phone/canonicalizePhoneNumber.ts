@@ -17,8 +17,8 @@ import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
  * Do not assume the column holds only that dialect, though. Rows predating the write-side
  * normalization hold whatever their caller passed — `createUser` / `updateUser` stored
  * `req.body.phoneNumber` verbatim, so a profile save left compact E.164 behind. Account
- * lookups are safe regardless because `UsersStore.getByPhoneNumber` /
- * `getAllByPhoneNumber` match a candidate set covering both, which is what makes the
+ * lookups are safe regardless because `UsersStore.getAllByPhoneNumber` matches a candidate
+ * set covering both, which is what makes the
  * canonical-vs-e164 choice here a matter of consistency rather than correctness. Sending
  * either would resolve; sending `canonical` keeps the register token's payload identical to
  * what gets stored.

@@ -12,6 +12,11 @@ source ./_bin/lib/colorize.sh
 printMessageNeutral "=== Locale dictionary parity check ==="
 node scripts/locale-check/index.js
 
+# Mirrored-file drift check — same rationale as above: zero-dep Node script, runs before
+# `npm ci`. Catches a fix applied to only one copy of a deliberately duplicated module.
+printMessageNeutral "=== Mirrored file drift check ==="
+node scripts/mirrored-files/index.js
+
 # Fetch general branch for comparison
 git fetch origin general
 

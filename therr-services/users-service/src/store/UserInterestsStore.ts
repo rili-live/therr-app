@@ -89,6 +89,50 @@ export default class UserInterestsStore {
         return this.db.write.query(queryString).then((updateResponse) => updateResponse.rows);
     }
 
+    /**
+     * Applies a different increment per interest key in one statement.
+     *
+     * Engagement used to arrive one content view at a time, each becoming its own
+     * cross-service request and its own multi-row UPDATE. Callers now coalesce a user's
+     * views in-process and flush them as a single map, so the write volume tracks flush
+     * intervals instead of impressions.
+     *
+     * Like `incrementUserInterests`, this only touches rows that already exist — behavior
+     * cannot yet discover an interest the user never declared. That is a known gap
+     * (docs/ALGORITHM_AUDIT.md E2) and is deliberately not addressed here.
+     */
+    incrementUserInterestsByKey(userId: string, incrementsByKey: { [displayNameKey: string]: number }) {
+        const entries = Object.entries(incrementsByKey || {})
+            .map(([key, incrBy]) => [key, Math.floor(Number(incrBy))] as [string, number])
+            .filter(([key, incrBy]) => !!key && Number.isFinite(incrBy) && incrBy > 0);
+
+        if (!userId || !entries.length) {
+            return Promise.resolve([]);
+        }
+
+        const bindings: any[] = [];
+        entries.forEach(([key, incrBy]) => {
+            bindings.push(key, incrBy);
+        });
+        bindings.push(userId);
+
+        // Table names are written out rather than interpolated from the tableNames
+        // constants: knex quotes identifiers for builder calls, but raw SQL does not, and
+        // unquoted main.userInterests would fold to "userinterests" and fail.
+        const valuesPlaceholders = entries.map(() => '(?, ?::integer)').join(', ');
+        const queryString = knexBuilder.raw(
+            `UPDATE main."userInterests" AS ui
+                SET "engagementCount" = ui."engagementCount" + v.incr, "updatedAt" = NOW()
+                FROM (VALUES ${valuesPlaceholders}) AS v(key, incr)
+                JOIN main."interests" AS i ON i."displayNameKey" = v.key
+                WHERE ui."userId" = ?::uuid AND ui."interestId" = i.id
+                RETURNING ui.*`,
+            bindings,
+        ).toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
     incrementUserInterests(userId, interestDisplayNameKeys: string[], incrBy = 1) {
         const queryString = knexBuilder
             .into(USER_INTERESTS_TABLE_NAME)
