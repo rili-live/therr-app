@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Content, getPhoneAccountType } from 'therr-js-utilities/constants';
+import { Content, ErrorCodes, getPhoneAccountType } from 'therr-js-utilities/constants';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
@@ -295,7 +295,13 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                     }
                 })
                 .catch((error: any) => {
-                    if (
+                    // The account type or phone number collides with another account on the
+                    // same number. The service's message is English-only, so translate here.
+                    if (error?.errorCode === ErrorCodes.TOO_MANY_ACCOUNTS) {
+                        this.setState({
+                            errorMsg: this.translate('alertMessages.phoneNumberAlreadyInUse'),
+                        });
+                    } else if (
                         error.statusCode === 400 ||
                         error.statusCode === 401 ||
                         error.statusCode === 404

@@ -120,7 +120,11 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                 }
             });
         }).catch((error: any) => {
-            if (error.statusCode === 400) {
+            // Switching account type onto a number that already has one of that type. The
+            // service's message is English-only, so translate rather than passing it through.
+            if (error?.errorCode === ErrorCodes.TOO_MANY_ACCOUNTS) {
+                this.setError(this.props.translate('pages.createProfile.phoneNumberAlreadyInUseError'));
+            } else if (error.statusCode === 400) {
                 this.setError(error.message);
             } else if (error.statusCode === 403) {
                 this.setError(this.props.translate('pages.createProfile.authError'));
