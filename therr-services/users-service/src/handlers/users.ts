@@ -41,6 +41,18 @@ import {
     resendVerification,
 } from './userVerification';
 
+/**
+ * Whether a `phoneNumber` value is an actual handset.
+ *
+ * Apple SSO signups deliberately write the sentinel `'apple-sso'` into that column
+ * (`createUserHelper`), and every one of those rows carries the same value — so counting "the
+ * accounts on this number" for it would return the entire Apple SSO cohort and refuse them all.
+ */
+const isPhoneNumberLike = (value?: string) => /^\+?[\d\s\-().]{7,}$/.test(`${value || ''}`);
+
+/** Digits only, for comparing two spellings of the same number. See `phoneNumberMatchCandidates`. */
+const toPhoneNumberDigits = (value?: string) => `${value || ''}`.replace(/[^\d]/g, '');
+
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
     const {
@@ -76,10 +88,6 @@ const createUser: RequestHandler = (req: any, res: any) => {
     const verifiedPhoneNumber = verifyPhoneVerificationToken(req.body.phoneVerificationToken, 'register')?.phoneNumber;
 
     const registrationPhoneNumber = verifiedPhoneNumber || req.body.phoneNumber;
-    // Guard against non-phone values reaching the by-number lookup. The `'apple-sso'` sentinel
-    // is shared by every Apple SSO row, so counting "accounts on this number" for it would
-    // return the entire cohort and lock those signups out.
-    const isPhoneLike = /^\+?[\d\s\-().]{7,}$/.test(`${registrationPhoneNumber || ''}`);
 
     return Promise.all([
         // E-mail and username uniqueness is absolute. Phone number is not: one number may hold
@@ -89,7 +97,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
             ...req.body,
             phoneNumber: undefined,
         }),
-        isPhoneLike
+        isPhoneNumberLike(registrationPhoneNumber)
             ? Store.users.getAllByPhoneNumber(registrationPhoneNumber, ['id', 'isBusinessAccount', 'isCreatorAccount'])
             : Promise.resolve([]),
     ])
@@ -898,6 +906,31 @@ const updateUser = (req, res) => {
                 autoRechargePackageId: rawAutoRechargePackageId,
             };
 
+            // A phone number holds at most one account of each type. `createUser` enforces that
+            // at sign-up, but both halves of the pair stay editable afterwards — without this,
+            // two accounts sharing a number could each edit their way to `business`, or an
+            // account could move onto a number whose slot for its type is already filled.
+            //
+            // Deliberately only checked when the type or the number actually changes. Rows that
+            // predate the cap (or were seeded around it) would otherwise fail every unrelated
+            // profile save, locking their owners out of editing a bio.
+            const currentUser = userSearchResults[0];
+            // `undefined` means "leave as-is" here for the same reason it does in
+            // `UsersStore.updateUser`, which only writes these when explicitly true or false.
+            const nextAccountType = getPhoneAccountType({
+                isBusinessAccount: req.body.isBusinessAccount ?? currentUser.isBusinessAccount,
+                isCreatorAccount: req.body.isCreatorAccount ?? currentUser.isCreatorAccount,
+            });
+            const nextPhoneNumber = req.body.phoneNumber || currentUser.phoneNumber;
+            const isChangingAccountType = nextAccountType !== getPhoneAccountType(currentUser);
+            const isChangingPhoneNumber = toPhoneNumberDigits(nextPhoneNumber)
+                !== toPhoneNumberDigits(currentUser.phoneNumber);
+
+            const phoneAccountsPromise: Promise<any[]> = (isChangingAccountType || isChangingPhoneNumber)
+                && isPhoneNumberLike(nextPhoneNumber)
+                ? Store.users.getAllByPhoneNumber(nextPhoneNumber, ['id', 'isBusinessAccount', 'isCreatorAccount'])
+                : Promise.resolve([]);
+
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
             const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
                 userSearchResults[0].accessLevels,
@@ -907,8 +940,8 @@ const updateUser = (req, res) => {
                 updateArgs.accessLevels = nextAccessLevels;
             }
 
-            return Promise.all([passwordPromise, orgsPromise, mediaPromise])
-                .then(([passwordResult, orgsResult, isMediaSafeForWork]) => {
+            return Promise.all([passwordPromise, orgsPromise, mediaPromise, phoneAccountsPromise])
+                .then(([passwordResult, orgsResult, isMediaSafeForWork, phoneAccounts]) => {
                     if (!isMediaSafeForWork) {
                         return handleHttpError({
                             res,
@@ -916,6 +949,22 @@ const updateUser = (req, res) => {
                             statusCode: 400,
                         });
                     }
+
+                    // Empty unless the check above was warranted. Your own row never counts
+                    // against you — it is the one being updated.
+                    const otherPhoneAccounts = phoneAccounts.filter((account) => account.id !== userId);
+                    if (otherPhoneAccounts.length
+                        && !getAvailablePhoneAccountTypes(otherPhoneAccounts, brandVariation).includes(nextAccountType)) {
+                        return handleHttpError({
+                            res,
+                            message: getMaxAccountsPerPhone(brandVariation) > 1
+                                ? `This phone number already has a ${nextAccountType} account.`
+                                : 'Another account already uses this phone number.',
+                            statusCode: 400,
+                            errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
+                        });
+                    }
+
                     return Store.users
                         .updateUser(updateArgs, {
                             id: userId,
