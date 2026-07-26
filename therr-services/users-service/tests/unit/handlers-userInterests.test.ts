@@ -80,6 +80,37 @@ describe('User Interests Handler', () => {
             expect(legacyStub.args[0][2]).to.eq(3);
         });
 
+        // An array passes `typeof === 'object'`, so without an explicit guard it would take
+        // the coalesced branch and key increments by numeric index — matching no interest at
+        // all, so the request would 200 having recorded nothing.
+        it('does not treat an array payload as the coalesced shape', async () => {
+            const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([]);
+            const legacyStub = sinon.stub(Store.userInterests, 'incrementUserInterests').resolves([{ id: 'ui-1' }]);
+
+            await incrementUserInterests(buildReq({
+                interestIncrements: ['interests.foodDrink.coffee'],
+                interestDisplayNameKeys: ['interests.foodDrink.coffee'],
+                incrBy: 2,
+            }), buildRes());
+
+            expect(byKeyStub.called).to.be.eq(false);
+            expect(legacyStub.calledOnce).to.be.eq(true);
+        });
+
+        // The store only updates interests the user already declared, so a flush can
+        // legitimately match zero rows. `res.send(undefined)` would answer 200 with no body.
+        it('answers with a body when the flush matched no declared interest', async () => {
+            sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([]);
+            const res = buildRes();
+
+            await incrementUserInterests(buildReq({
+                interestIncrements: { 'interests.notDeclared': 3 },
+            }), res);
+
+            expect(res.statusCode).to.eq(200);
+            expect(res.body).to.deep.equal({});
+        });
+
         it('returns early without touching the store when there is no user', async () => {
             const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([]);
             const legacyStub = sinon.stub(Store.userInterests, 'incrementUserInterests').resolves([]);

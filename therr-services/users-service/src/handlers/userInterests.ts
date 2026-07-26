@@ -94,7 +94,10 @@ const incrementUserInterests = (req, res) => {
     // callers that buffer a user's engagement before flushing. `interestDisplayNameKeys` +
     // `incrBy` is the original one-event-at-a-time shape, still accepted so a rolling
     // deploy where an older maps/reactions pod is still running keeps working.
-    if (interestIncrements && typeof interestIncrements === 'object') {
+    // `Array.isArray` guard because an array also passes `typeof === 'object'`. An array
+    // body would take this branch and key the increments by numeric index, which then joins
+    // against no interest at all — a silent no-op rather than an obvious rejection.
+    if (interestIncrements && typeof interestIncrements === 'object' && !Array.isArray(interestIncrements)) {
         const cappedIncrements = Object.keys(interestIncrements).reduce((acc, key) => ({
             ...acc,
             // Per-key ceiling on a single flush. The old per-event cap was 5; a flush
@@ -104,7 +107,9 @@ const incrementUserInterests = (req, res) => {
 
         return Store.userInterests
             .incrementUserInterestsByKey(userId, cappedIncrements)
-            .then((results) => res.status(200).send(results[0]))
+            // `|| {}` because a flush whose keys match no declared interest updates no rows,
+            // and `res.send(undefined)` sends a bodiless 200 the caller cannot parse.
+            .then((results) => res.status(200).send(results[0] || {}))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_INTERESTS_ROUTES:ERROR' }));
     }
 
@@ -112,7 +117,7 @@ const incrementUserInterests = (req, res) => {
 
     return Store.userInterests
         .incrementUserInterests(userId, interestDisplayNameKeys, ceilIncrBy)
-        .then((results) => res.status(200).send(results[0]))
+        .then((results) => res.status(200).send(results[0] || {}))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_INTERESTS_ROUTES:ERROR' }));
 };
 

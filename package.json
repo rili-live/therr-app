@@ -45,6 +45,7 @@
     "prep": "_bin/prep.sh",
     "prepare": "husky",
     "locales:check": "node scripts/locale-check/index.js",
+    "mirrors:check": "node scripts/mirrored-files/index.js",
     "test:all": "_bin/apply-to-all.sh 'npm test'",
     "test:unit:all": "_bin/apply-to-all.sh 'npm run test:unit'",
     "test:integration:all": "_bin/apply-to-all.sh 'npm test:unit'",

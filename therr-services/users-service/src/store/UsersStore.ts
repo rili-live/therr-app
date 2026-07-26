@@ -202,21 +202,13 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     };
 
-    getByPhoneNumber = (phoneNumber: string) => {
-        let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount', 'isSuperUser']).from(USERS_TABLE_NAME)
-            .whereIn('phoneNumber', phoneNumberMatchCandidates(phoneNumber as string));
-
-        queryString = queryString.toString();
-        return this.db.read.query(queryString).then((response) => response.rows);
-    };
-
     /**
      * Full rows for every non-deleted account attached to a phone number, newest last.
      *
-     * Distinct from `getByPhoneNumber` above, which returns a deliberately narrow projection
-     * for the "is this number already taken?" check and omits `id`. Passwordless sign-in
-     * needs the whole row (it mints a session from it) and needs to see *all* matches, since
-     * Therr permits a personal + creator + business account per number.
+     * The single entry point for "which accounts hold this number?". Both the accounts-per-
+     * phone cap (`createUser` / `updateUser` / `getUserByPhoneNumber`) and passwordless
+     * sign-in (which mints a session from the row) need to see *all* matches, since a number
+     * may hold one personal + one creator + one business account.
      */
     getAllByPhoneNumber = (phoneNumber: string, returning: any = '*') => {
         const queryString = knexBuilder.select(returning)
