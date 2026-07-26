@@ -306,6 +306,76 @@ describe('UsersStore', () => {
         });
     });
 
+    // Regression: `main.users.phoneNumber` holds mixed dialects because nothing normalizes on
+    // write — `createUser`/`updateUser` store `req.body.phoneNumber` verbatim (compact E.164,
+    // "+13175551234") while `updatePhoneVerification` stores the gateway's normalized display
+    // format ("+1 317-555-1234"). These lookups previously normalized only the query side, so
+    // they matched one dialect and silently missed the other. For passwordless sign-in — which
+    // is enumeration-safe and therefore reports nothing when it finds nothing — that meant the
+    // user simply never received an SMS.
+    describe('phone number lookups', () => {
+        const buildStore = () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+
+            return { mockStore, store: new UsersStore(mockStore) };
+        };
+
+        it('getAllByPhoneNumber matches a number stored as compact E.164', () => {
+            const { mockStore, store } = buildStore();
+            // What the gateway sends after canonicalization.
+            store.getAllByPhoneNumber('+1 317-555-1234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`'+13175551234'`);
+        });
+
+        it('getAllByPhoneNumber still matches a number stored in display format', () => {
+            const { mockStore, store } = buildStore();
+            store.getAllByPhoneNumber('+13175551234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`'+1 317-555-1234'`);
+        });
+
+        it('getAllByPhoneNumber keeps excluding soft-deleted accounts', () => {
+            const { mockStore, store } = buildStore();
+            store.getAllByPhoneNumber('+13175551234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain('"settingsIsAccountSoftDeleted" = false');
+        });
+
+        it('getByPhoneNumber matches a number stored as compact E.164', () => {
+            const { mockStore, store } = buildStore();
+            store.getByPhoneNumber('+1 317-555-1234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`'+13175551234'`);
+        });
+
+        it('resolves an un-prefixed submission to both stored dialects', () => {
+            const { mockStore, store } = buildStore();
+            // `normalizePhoneNumber` returns "1 (317) 555-1234" for this input — no leading
+            // `+` — so the compact candidate has to be derived rather than assumed.
+            store.getAllByPhoneNumber('3175551234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.contain(`'+13175551234'`);
+        });
+
+        it('does not widen the match to a different handset', () => {
+            const { mockStore, store } = buildStore();
+            store.getAllByPhoneNumber('+13175551234');
+
+            const generatedSql = mockStore.read.query.args[0][0];
+            expect(generatedSql).to.not.contain('3175551235');
+        });
+    });
+
     // Should not allow updating email (for security purposes)
     describe('deleteUsers', () => {
         it('requires email or id', () => {

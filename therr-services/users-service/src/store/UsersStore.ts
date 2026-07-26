@@ -33,6 +33,35 @@ const brandContainment = (brand: string, qualifier?: string) => (qualifier
         [JSON.stringify([{ brand }])],
     ));
 
+/**
+ * Every spelling of `phoneNumber` that could plausibly be sitting in `main.users.phoneNumber`.
+ *
+ * The column holds mixed dialects because nothing normalizes on the way *in*: `createUser` and
+ * `updateUser` both write `req.body.phoneNumber` verbatim (so a profile save stores compact
+ * E.164, `"+13175551234"`), while `updatePhoneVerification` stores the gateway's normalized
+ * value (display format, `"+1 317-555-1234"`). Normalizing only the query side therefore
+ * matched one dialect and silently missed the other — and because passwordless sign-in is
+ * deliberately enumeration-safe, that miss surfaced as "no SMS ever arrives" rather than as an
+ * error. Matching the whole candidate set is the only lookup that works against both.
+ *
+ * Widening a WHERE clause can only ever find *more* rows for the same handset, so this is safe
+ * for the "is this number already taken?" callers too — it makes that check more correct, not
+ * less.
+ */
+const phoneNumberMatchCandidates = (phoneNumber: string): string[] => {
+    const normalized = normalizePhoneNumber(phoneNumber);
+    const digits = normalized.replace(/[^\d]/g, '');
+
+    return [...new Set([
+        normalized,
+        phoneNumber,
+        // `normalizePhoneNumber` keeps the leading `+` only when its input had one, so derive
+        // both compact forms rather than assuming which side of that branch we came out on.
+        digits && `+${digits}`,
+        digits,
+    ].filter(Boolean))];
+};
+
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
     brandVariations?: string | undefined;
@@ -157,9 +186,8 @@ export default class UsersStore {
     };
 
     getByPhoneNumber = (phoneNumber: string) => {
-        const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
         let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount', 'isSuperUser']).from(USERS_TABLE_NAME)
-            .where({ phoneNumber: normalizedPhone });
+            .whereIn('phoneNumber', phoneNumberMatchCandidates(phoneNumber as string));
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
@@ -174,13 +202,12 @@ export default class UsersStore {
      * Therr permits a personal + creator + business account per number.
      */
     getAllByPhoneNumber = (phoneNumber: string, returning: any = '*') => {
-        const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
         const queryString = knexBuilder.select(returning)
             .from(USERS_TABLE_NAME)
             .where({
-                phoneNumber: normalizedPhone,
                 settingsIsAccountSoftDeleted: false,
             })
+            .whereIn('phoneNumber', phoneNumberMatchCandidates(phoneNumber as string))
             .orderBy('createdAt', 'asc')
             .toString();
 

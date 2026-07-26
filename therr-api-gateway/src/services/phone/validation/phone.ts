@@ -2,9 +2,14 @@ import { body } from 'express-validator';
 
 /**
  * `isMobilePhone('any')` is intentionally the only shape check here — the router
- * re-normalizes to E.164 with `normalizePhoneNumber` and rejects anything that
- * doesn't come back as a valid international number, which is the authoritative
- * gate. This layer just keeps obvious junk from reaching Redis/Twilio.
+ * runs `canonicalizePhoneNumber` and rejects anything that doesn't parse as a valid
+ * number, which is the authoritative gate. This layer just keeps obvious junk from
+ * reaching Redis/Twilio.
+ *
+ * Note this check is strictly *narrower* than the router's: `isMobilePhone` rejects
+ * landlines and is whitespace-sensitive for some locales (`+44 7700 900123` fails
+ * where `+447700900123` passes), so a number can satisfy `canonicalizePhoneNumber`
+ * and still be refused here. Clients should submit compact E.164.
  */
 export const phoneAuthStartValidation = [
     body('phoneNumber').exists().isString().isMobilePhone('any'),
