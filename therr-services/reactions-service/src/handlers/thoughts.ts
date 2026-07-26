@@ -49,6 +49,10 @@ const searchActiveThoughts = async (req: any, res: any) => {
         limit,
         offset,
         order: order || 'DESC',
+        // Order the stream by the score the distributor assigned at activation time.
+        // Without this the feed is ordered by activation timestamp, and since a distributor
+        // run activates 7-20 thoughts at once, intra-batch order was arbitrary.
+        orderBy: 'relevance',
     }, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
@@ -57,6 +61,10 @@ const searchActiveThoughts = async (req: any, res: any) => {
                 [cur.thoughtId]: cur,
             }), {});
             const thoughtIds = reactions?.map((reaction) => reaction.thoughtId) || [];
+            // The reaction query above is what ranks this page; the thoughts lookup below
+            // re-sorts by content createdAt, so keep the ranked positions to restore after.
+            const rankByThoughtId = new Map<string, number>();
+            thoughtIds.forEach((id, index) => rankByThoughtId.set(id, index));
 
             return internalRestRequest({
                 headers: req.headers,
@@ -76,7 +84,14 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     withMedia,
                     withUser,
                     withReplies,
-                    lastContentCreatedAt,
+                    // `lastContentCreatedAt` becomes a `createdAt <` filter in users-service.
+                    // That is a valid cursor only while the page is ordered by content
+                    // recency. On the activated feed the page is now ordered by relevance and
+                    // already scoped to this page's thoughtIds, so forwarding the cursor would
+                    // silently drop any high-scoring thought newer than the last item of the
+                    // previous page. The author-profile path (authorId set) bypasses the
+                    // thoughtIds restriction and still paginates by createdAt, so it keeps it.
+                    lastContentCreatedAt: authorId ? lastContentCreatedAt : undefined,
                     authorId,
                     isDraft: false,
                 },
@@ -103,6 +118,13 @@ const searchActiveThoughts = async (req: any, res: any) => {
                             })),
                     };
                 }).filter((thought) => !blockedUsers.includes(thought.fromUserId));
+
+                // Restore the relevance ordering the thoughts lookup discarded. Anything not
+                // in the rank map (shouldn't happen — every thought here came from a reaction)
+                // sinks to the bottom rather than jumping to the top.
+                thoughts.sort((a, b) => (rankByThoughtId.get(a.id) ?? Number.MAX_SAFE_INTEGER)
+                    - (rankByThoughtId.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+
                 return res.status(200).send({
                     thoughts,
                     media: response?.data?.media,

@@ -17,6 +17,12 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const THOUGHTS_TABLE_NAME = 'main.thoughts';
 
+// Hacker-News-style gravity: reply count (the strongest engagement signal in this DB)
+// dampened by age. Declared once so the SELECT and the ORDER BY in getRecentThoughts can
+// never drift apart — the returned score has to be the same number the ranking used.
+// Only valid against the `candidates` subquery, which exposes "replyCount" and "createdAt".
+const HOT_SCORE_EXPRESSION = '("replyCount" + 1) / POWER((EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600) + 2, 1.5)';
+
 export interface ICreateThoughtParams {
     parentId?: string;
     areaType?: string;
@@ -88,6 +94,10 @@ export default class ThoughtsStore {
      * index, ~14ms; grouped join = full aggregate over every reply row, ~74ms, and it
      * degrades with total reply volume while the correlated shape scales only with
      * candidatePoolSize.
+     *
+     * Rows come back as { ...returning, hotScore }. `hotScore` is persisted onto the
+     * reaction row at activation (thoughtReactions.relevanceScore) and is what the stream
+     * is ordered by on read.
      */
     getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id'], candidatePoolSize = 200) {
         const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
@@ -116,8 +126,12 @@ export default class ThoughtsStore {
         }
 
         const query = knexBuilder.select(returning)
+            // Returned alongside the id so the caller can persist it onto the reaction row.
+            // Without this the ranking below only decides which thoughts activate and is then
+            // lost — the feed reads reactions back in activation order, not score order.
+            .select(knexBuilder.raw(`${HOT_SCORE_EXPRESSION} AS "hotScore"`))
             .from(innerQuery.as('candidates'))
-            .orderByRaw('("replyCount" + 1) / POWER((EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600) + 2, 1.5) DESC')
+            .orderByRaw(`${HOT_SCORE_EXPRESSION} DESC`)
             .limit(limit);
 
         return this.db.read.query(query.toString()).then((response) => response.rows);
@@ -130,8 +144,14 @@ export default class ThoughtsStore {
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(THOUGHTS_TABLE_NAME)
+            // This query had no ORDER BY at all, which made its LIMIT/OFFSET pagination
+            // unsound — Postgres is free to return rows in any order, so paging could repeat
+            // and skip rows. createdAt is indexed (idx from 20221222143544_main.thoughts);
+            // id breaks ties so a page boundary can't land mid-tie. updatedAt is deliberately
+            // still avoided here — it is unindexed and was measured as slow.
             // TODO: Determine a better way to select thoughts that are most relevant to the user
-            // .orderBy(`${THOUGHTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
+            .orderBy(`${THOUGHTS_TABLE_NAME}.createdAt`, 'desc')
+            .orderBy(`${THOUGHTS_TABLE_NAME}.id`, 'desc')
             .where({
                 isMatureContent: false, // content that has been blocked
             });
@@ -368,6 +388,9 @@ export default class ThoughtsStore {
         let query = knexBuilder
             .from(THOUGHTS_TABLE_NAME)
             .orderBy(orderBy, order)
+            // Tiebreak so the author-profile path (which pages with a `before` cursor on
+            // createdAt) can't skip a thought that shares a timestamp with the page boundary.
+            .orderBy(`${THOUGHTS_TABLE_NAME}.id`, order)
             .offset(filters.offset || 0)
             .where(`${THOUGHTS_TABLE_NAME}.createdAt`, '<', filters.before || new Date(Date.now() + 24 * 60 * 60 * 1000))
             .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null)

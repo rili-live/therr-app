@@ -6,6 +6,11 @@ import { createReactions } from './reactions';
 
 const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
+// Multiplier applied to an interest-matched thought's hot score before it is persisted as
+// the reaction's relevanceScore. Keeps interest matches above equally-hot general fill
+// without hard-partitioning the stream into two blocks.
+const INTEREST_MATCH_BOOST = 1.5;
+
 class TherrEventEmitter {
     /**
      * Activates a batch of candidate thoughts for the requesting user's stream.
@@ -35,11 +40,35 @@ class TherrEventEmitter {
                 Store.thoughts.getRecentThoughts(brand, numThoughts),
             ]);
         }).then(([thoughtsForContext, thoughtsForRecent]) => {
-            // If no new thoughts match user interests, fallback to the hottest general thought
-            const contextReactionThoughts = thoughtsForContext?.length ? thoughtsForContext : thoughtsForRecent.slice(0, 1);
-            const thoughtIds = new Set<string>(contextReactionThoughts.map((thought) => thought.id));
+            const interestMatches = thoughtsForContext || [];
+            const generalMatches = thoughtsForRecent || [];
+            const thoughtIds = new Set<string>();
+            // Scores ride along to the reaction rows so the stream can be ordered by relevance
+            // on read. Highest score wins when a thought appears in both candidate sets.
+            const relevanceScores: { [thoughtId: string]: number } = {};
+            const recordScore = (thought: any, boost: number) => {
+                if (!thought?.id) {
+                    return;
+                }
+                const score = (Number(thought.hotScore) || 0) * boost;
+                if (relevanceScores[thought.id] == null || score > relevanceScores[thought.id]) {
+                    relevanceScores[thought.id] = score;
+                }
+                thoughtIds.add(thought.id);
+            };
+
+            if (interestMatches.length) {
+                // "Interest matches lead" is the documented intent of this algorithm but was
+                // previously unenforceable, since ordering was lost at activation. The boost
+                // keeps an interest match ahead of a general candidate of equal hotness.
+                interestMatches.forEach((thought) => recordScore(thought, INTEREST_MATCH_BOOST));
+            } else {
+                // If no new thoughts match user interests, fallback to the hottest general thought
+                generalMatches.slice(0, 1).forEach((thought) => recordScore(thought, 1));
+            }
+
             if (shouldIncludeGeneralCandidates) {
-                thoughtsForRecent.forEach((thought) => thoughtIds.add(thought.id));
+                generalMatches.forEach((thought) => recordScore(thought, 1));
             }
 
             if (!thoughtIds.size) {
@@ -48,7 +77,7 @@ class TherrEventEmitter {
 
             // Reactions are stamped with the requesting user's id (from headers), so one
             // deduplicated call activates the whole batch
-            return createReactions(Array.from(thoughtIds), headers);
+            return createReactions(Array.from(thoughtIds), headers, relevanceScores);
         })
             .catch((err) => {
                 logSpan({
