@@ -10,11 +10,18 @@ import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
  * ## Why two forms
  *
  * `normalizePhoneNumber` does NOT return E.164 despite the name — it returns a *display*
- * format: `+13175551234` becomes `"+1 317-555-1234"`. That formatted string is nonetheless
- * the de-facto canonical value across this codebase: it is what the existing phone-verification
- * flow writes to `main.users.phoneNumber`, and `UsersStore.getByPhoneNumber` /
- * `getAllByPhoneNumber` re-derive it from their input before the equality match. Any lookup
- * that wants to find an existing account has to speak that dialect.
+ * format: `+13175551234` becomes `"+1 317-555-1234"`. That formatted string is the dialect
+ * `main.users.phoneNumber` is written in: the phone-verification flow has always stored it,
+ * and `UsersStore` now normalizes every write to it.
+ *
+ * Do not assume the column holds only that dialect, though. Rows predating the write-side
+ * normalization hold whatever their caller passed — `createUser` / `updateUser` stored
+ * `req.body.phoneNumber` verbatim, so a profile save left compact E.164 behind. Account
+ * lookups are safe regardless because `UsersStore.getByPhoneNumber` /
+ * `getAllByPhoneNumber` match a candidate set covering both, which is what makes the
+ * canonical-vs-e164 choice here a matter of consistency rather than correctness. Sending
+ * either would resolve; sending `canonical` keeps the register token's payload identical to
+ * what gets stored.
  *
  * Twilio, meanwhile, wants real E.164 for its `to` field.
  *

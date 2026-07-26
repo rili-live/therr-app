@@ -34,15 +34,32 @@ const brandContainment = (brand: string, qualifier?: string) => (qualifier
     ));
 
 /**
+ * The single dialect this store writes: display format, e.g. `"+1 317-555-1234"`.
+ *
+ * Chosen because it is what the phone-verification flow already stored (the gateway normalizes
+ * before calling `updatePhoneVerification`) and what the passwordless register token carries,
+ * so making `createUser` / `updateUser` agree costs nothing and stops new rows from diverging.
+ *
+ * Non-phone values pass through untouched: `normalizePhoneNumber` returns its input verbatim
+ * when it cannot parse it, which is what keeps the `'apple-sso'` sentinel that Apple SSO
+ * signups write into this column intact. That sentinel is also why the column can never carry
+ * a phone-format CHECK constraint.
+ */
+const normalizePhoneNumberForStorage = <T extends string | undefined>(phoneNumber: T): T => (
+    phoneNumber ? normalizePhoneNumber(phoneNumber) as T : phoneNumber
+);
+
+/**
  * Every spelling of `phoneNumber` that could plausibly be sitting in `main.users.phoneNumber`.
  *
- * The column holds mixed dialects because nothing normalizes on the way *in*: `createUser` and
- * `updateUser` both write `req.body.phoneNumber` verbatim (so a profile save stores compact
- * E.164, `"+13175551234"`), while `updatePhoneVerification` stores the gateway's normalized
- * value (display format, `"+1 317-555-1234"`). Normalizing only the query side therefore
- * matched one dialect and silently missed the other — and because passwordless sign-in is
- * deliberately enumeration-safe, that miss surfaced as "no SMS ever arrives" rather than as an
- * error. Matching the whole candidate set is the only lookup that works against both.
+ * Writes are normalized (see above), but rows written *before* that was true hold whichever
+ * dialect their caller happened to pass: `createUser` / `updateUser` stored
+ * `req.body.phoneNumber` verbatim, so a profile save left compact E.164 (`"+13175551234"`)
+ * where `updatePhoneVerification` left display format (`"+1 317-555-1234"`). Normalizing only
+ * the query side therefore matched one dialect and silently missed the other — and because
+ * passwordless sign-in is deliberately enumeration-safe, that miss surfaced as "no SMS ever
+ * arrives" rather than as an error. Matching the whole candidate set is the only lookup that
+ * works against both, and it must stay until the legacy rows are backfilled.
  *
  * Widening a WHERE clause can only ever find *more* rows for the same handset, so this is safe
  * for the "is this number already taken?" callers too — it makes that check more correct, not
@@ -231,7 +248,14 @@ export default class UsersStore {
             queryString = queryString.orWhere({ userName });
         }
         if (phoneNumber) {
-            queryString = queryString.orWhere({ phoneNumber });
+            // Candidate-matched for the same reason as the lookups above, and additionally
+            // because writes are now normalized: an exact match would miss a row this store
+            // itself reformatted on the way in. This is the registration duplicate check, so
+            // missing a row means letting a second account onto a number that already has one.
+            // Widening does not loosen the accounts-per-number policy — registration has always
+            // rejected *any* phone match here; the personal/creator/business allowance is
+            // granted by `getByPhoneNumber` via the authenticated /phone/verify flow.
+            queryString = queryString.orWhereIn('phoneNumber', phoneNumberMatchCandidates(phoneNumber));
         }
 
         queryString = queryString.toString();
@@ -486,6 +510,7 @@ export default class UsersStore {
             ...params,
             userName: params?.userName?.trim()?.toLowerCase(),
             email: normalizeEmail(params.email),
+            phoneNumber: normalizePhoneNumberForStorage(params.phoneNumber),
         };
         const queryString = knexBuilder.insert(sanitizedParams)
             .into(USERS_TABLE_NAME)
@@ -574,7 +599,7 @@ export default class UsersStore {
         }
 
         if (params.phoneNumber) {
-            modifiedParams.phoneNumber = params.phoneNumber;
+            modifiedParams.phoneNumber = normalizePhoneNumberForStorage(params.phoneNumber);
         }
 
         if (params.verificationCodes) {

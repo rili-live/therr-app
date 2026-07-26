@@ -201,7 +201,10 @@ describe('Integration Tests - User Flows', () => {
             const foundUsers = await usersStore.findUser({ phoneNumber: testPhone });
 
             expect(foundUsers.length).to.equal(1);
-            expect(foundUsers[0].phoneNumber).to.equal(testPhone);
+            // `createUser` normalizes on write, so the stored value is the canonical display
+            // dialect rather than the compact E.164 that was submitted. The lookup still finds
+            // it because `findUser` matches the whole candidate set.
+            expect(foundUsers[0].phoneNumber).to.equal('+1 317-555-9999');
         });
     });
 

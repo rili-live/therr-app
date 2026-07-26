@@ -6,10 +6,15 @@ import { body } from 'express-validator';
  * number, which is the authoritative gate. This layer just keeps obvious junk from
  * reaching Redis/Twilio.
  *
- * Note this check is strictly *narrower* than the router's: `isMobilePhone` rejects
- * landlines and is whitespace-sensitive for some locales (`+44 7700 900123` fails
- * where `+447700900123` passes), so a number can satisfy `canonicalizePhoneNumber`
- * and still be refused here. Clients should submit compact E.164.
+ * The two gates are not nested — they disagree in both directions, so a number must
+ * satisfy both to get through:
+ *   - `isMobilePhone` rejects landlines and is whitespace-sensitive for some locales
+ *     (`+44 20 7946 0958` and `+44 7911 123456` both fail here, `+447911123456` passes),
+ *     where `canonicalizePhoneNumber` accepts all three.
+ *   - `isMobilePhone` accepts Ofcom's fictional-drama range (`+44 7700 900123`), which
+ *     libphonenumber — and therefore `canonicalizePhoneNumber` — marks invalid.
+ *
+ * Clients should submit compact E.164 to stay inside the intersection.
  */
 export const phoneAuthStartValidation = [
     body('phoneNumber').exists().isString().isMobilePhone('any'),
