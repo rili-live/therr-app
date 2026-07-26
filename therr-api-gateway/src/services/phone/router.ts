@@ -26,6 +26,7 @@ import {
     phoneAuthSelectValidation,
 } from './validation/phone';
 import resolvePhoneLoginError from './resolvePhoneLoginError';
+import canonicalizePhoneNumber, { ICanonicalPhoneNumber } from './canonicalizePhoneNumber';
 import { chargeSmsSendBudget, generateVerificationCode } from './verificationCodes';
 import * as globalConfig from '../../../../global-config';
 import restRequest from '../../utilities/restRequest';
@@ -47,14 +48,17 @@ const AUTH_CODE_MAX_ATTEMPTS = 5;
 
 type PhoneAuthPurpose = 'login' | 'register';
 
-const authCodeKey = (purpose: PhoneAuthPurpose, phoneNumber: string) => `phone-${purpose}-codes:${phoneNumber}`;
-const authAttemptsKey = (purpose: PhoneAuthPurpose, phoneNumber: string) => `phone-${purpose}-attempts:${phoneNumber}`;
-const authSendsKey = (purpose: PhoneAuthPurpose, phoneNumber: string) => `phone-${purpose}-sends:${phoneNumber}`;
+// Cache keys are always keyed on the E.164 form, never on what the caller typed: `+1 (317)
+// 555-1234` and `3175551234` are the same handset and must charge the same budget, share the
+// same code, and share the same attempt counter.
+const authCodeKey = (purpose: PhoneAuthPurpose, e164: string) => `phone-${purpose}-codes:${e164}`;
+const authAttemptsKey = (purpose: PhoneAuthPurpose, e164: string) => `phone-${purpose}-attempts:${e164}`;
+const authSendsKey = (purpose: PhoneAuthPurpose, e164: string) => `phone-${purpose}-sends:${e164}`;
 
 /** Charges one SMS against this number's hourly budget. See `./verificationCodes`. */
-const chargeSmsSendBudgetFor = (purpose: PhoneAuthPurpose, phoneNumber: string) => chargeSmsSendBudget(
+const chargeSmsSendBudgetFor = (purpose: PhoneAuthPurpose, e164: string) => chargeSmsSendBudget(
     redisClient,
-    authSendsKey(purpose, phoneNumber),
+    authSendsKey(purpose, e164),
 );
 
 /**
@@ -85,17 +89,6 @@ const sendVerificationSms = (locale: string, toPhoneNumber: string, verification
         to: toPhoneNumber, // Text this number
         from: getTherrFromPhoneNumber(toPhoneNumber), // From a valid Twilio number
     });
-
-/**
- * Normalizes and sanity-checks a submitted phone number. `normalizePhoneNumber` returns its
- * input unchanged when it cannot parse it, so a result that still isn't E.164 means invalid.
- */
-const toE164 = (rawPhoneNumber: any): string | undefined => {
-    const normalized = normalizePhoneNumber(`${rawPhoneNumber || ''}`.trim().replace(/\s/g, ''));
-
-    // E.164 caps the whole number at 15 digits, so it is 1 leading digit + 6..14 more.
-    return /^\+[1-9]\d{6,14}$/.test(normalized) ? normalized : undefined;
-};
 
 /**
  * Asks the users-service which accounts are attached to a phone number. Used by both
@@ -143,22 +136,22 @@ const trackRefreshToken = (responseData: any) => {
  */
 const isSubmittedCodeValid = async (
     purpose: PhoneAuthPurpose,
-    phoneNumber: string,
+    e164: string,
     submittedCode: string,
 ): Promise<boolean> => {
-    const cachedCode = await redisClient.get(authCodeKey(purpose, phoneNumber));
+    const cachedCode = await redisClient.get(authCodeKey(purpose, e164));
 
     if (!cachedCode) {
         return false;
     }
 
     if (cachedCode !== submittedCode) {
-        const attempts = await redisClient.incr(authAttemptsKey(purpose, phoneNumber));
+        const attempts = await redisClient.incr(authAttemptsKey(purpose, e164));
         // Keep the attempt counter alive exactly as long as the code it guards.
-        await redisClient.expire(authAttemptsKey(purpose, phoneNumber), AUTH_CODE_EXPIRE_SECONDS);
+        await redisClient.expire(authAttemptsKey(purpose, e164), AUTH_CODE_EXPIRE_SECONDS);
         if (attempts >= AUTH_CODE_MAX_ATTEMPTS) {
             // Burn the code so an attacker has to trigger a fresh SMS (and a fresh rate limit).
-            await redisClient.del(authCodeKey(purpose, phoneNumber));
+            await redisClient.del(authCodeKey(purpose, e164));
         }
         return false;
     }
@@ -166,9 +159,9 @@ const isSubmittedCodeValid = async (
     return true;
 };
 
-const clearSubmittedCode = (purpose: PhoneAuthPurpose, phoneNumber: string) => Promise.all([
-    redisClient.del(authCodeKey(purpose, phoneNumber)),
-    redisClient.del(authAttemptsKey(purpose, phoneNumber)),
+const clearSubmittedCode = (purpose: PhoneAuthPurpose, e164: string) => Promise.all([
+    redisClient.del(authCodeKey(purpose, e164)),
+    redisClient.del(authAttemptsKey(purpose, e164)),
 ]);
 
 const phoneRouter = express.Router();
@@ -308,22 +301,22 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
  * route an SMS is only ever attempted for a number that has an account, so answering "region
  * not enabled" would confirm the account's existence — the one thing this flow withholds.
  */
-const dispatchLoginCode = async (headers: any, locale: string, phoneNumber: string) => {
+const dispatchLoginCode = async (headers: any, locale: string, phone: ICanonicalPhoneNumber) => {
     try {
-        const { accountCount } = await lookupAccountsByPhone(headers, phoneNumber);
+        const { accountCount } = await lookupAccountsByPhone(headers, phone.canonical);
 
         if (!accountCount) {
             return;
         }
 
-        if (!(await chargeSmsSendBudgetFor('login', phoneNumber))) {
+        if (!(await chargeSmsSendBudgetFor('login', phone.e164))) {
             return;
         }
 
         const verificationCode = generateVerificationCode();
-        await redisClient.setex(authCodeKey('login', phoneNumber), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
-        await redisClient.del(authAttemptsKey('login', phoneNumber));
-        await sendVerificationSms(locale, phoneNumber, verificationCode);
+        await redisClient.setex(authCodeKey('login', phone.e164), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
+        await redisClient.del(authAttemptsKey('login', phone.e164));
+        await sendVerificationSms(locale, phone.e164, verificationCode);
     } catch (err: any) {
         // The caller is already gone, so logging is the only channel left. Without this a
         // misconfigured Twilio sender would look, from the outside, exactly like a user
@@ -333,7 +326,7 @@ const dispatchLoginCode = async (headers: any, locale: string, phoneNumber: stri
             messageOrigin: 'API_SERVER',
             messages: [err?.message, 'Failed to dispatch passwordless sign-in code'],
             traceArgs: {
-                'phone.region': phoneNumber.slice(0, 3),
+                'phone.region': phone.e164.slice(0, 3),
                 'process.id': process.pid,
             },
         });
@@ -352,9 +345,9 @@ const dispatchLoginCode = async (headers: any, locale: string, phoneNumber: stri
  */
 phoneRouter.post('/auth/start', phoneAuthStartLimiter, phoneAuthStartValidation, validate, async (req, res) => {
     const userLocale = (req.headers['x-localecode'] || 'en-us') as string;
-    const normalizedPhoneNumber = toE164(req.body?.phoneNumber);
+    const phone = canonicalizePhoneNumber(req.body?.phoneNumber);
 
-    if (!normalizedPhoneNumber) {
+    if (!phone) {
         return handleHttpError({
             res,
             message: 'Invalid phone number',
@@ -382,7 +375,7 @@ phoneRouter.post('/auth/start', phoneAuthStartLimiter, phoneAuthStartValidation,
     // any rejection escaping it would be an unhandled rejection — which Node surfaces as an
     // uncaught exception, and this service's `uncaughtException` handler answers by exiting.
     // One SMS failing must never be able to take the gateway down.
-    return dispatchLoginCode(internalHeaders, userLocale, normalizedPhoneNumber).catch(() => undefined);
+    return dispatchLoginCode(internalHeaders, userLocale, phone).catch(() => undefined);
 });
 
 /**
@@ -418,10 +411,10 @@ const completePhoneLogin = (req: any, res: any, args: {
  * client render an account picker, which posts back to `/auth/select`.
  */
 phoneRouter.post('/auth/verify', phoneAuthVerifyLimiter, phoneAuthVerifyValidation, validate, async (req, res) => {
-    const normalizedPhoneNumber = toE164(req.body?.phoneNumber);
+    const phone = canonicalizePhoneNumber(req.body?.phoneNumber);
     const submittedCode = `${req.body?.verificationCode || ''}`.trim();
 
-    if (!normalizedPhoneNumber) {
+    if (!phone) {
         return handleHttpError({
             res,
             message: 'Invalid phone number',
@@ -430,7 +423,7 @@ phoneRouter.post('/auth/verify', phoneAuthVerifyLimiter, phoneAuthVerifyValidati
     }
 
     try {
-        const isValid = await isSubmittedCodeValid('login', normalizedPhoneNumber, submittedCode);
+        const isValid = await isSubmittedCodeValid('login', phone.e164, submittedCode);
 
         if (!isValid) {
             return handleHttpError({
@@ -440,11 +433,11 @@ phoneRouter.post('/auth/verify', phoneAuthVerifyLimiter, phoneAuthVerifyValidati
             });
         }
 
-        const { accountCount, accounts } = await lookupAccountsByPhone(buildInternalHeaders(req), normalizedPhoneNumber);
+        const { accountCount, accounts } = await lookupAccountsByPhone(buildInternalHeaders(req), phone.canonical);
 
         // Code is correct — spend it either way. From here ownership is carried by the signed
         // token, so the account-picker round-trip doesn't need the SMS code again.
-        await clearSubmittedCode('login', normalizedPhoneNumber);
+        await clearSubmittedCode('login', phone.e164);
 
         if (!accountCount) {
             return handleHttpError({
@@ -458,14 +451,14 @@ phoneRouter.post('/auth/verify', phoneAuthVerifyLimiter, phoneAuthVerifyValidati
             return res.status(200).send({
                 requiresAccountSelection: true,
                 accounts,
-                phoneNumber: normalizedPhoneNumber,
-                phoneVerificationToken: createPhoneVerificationToken(normalizedPhoneNumber, 'login'),
+                phoneNumber: phone.canonical,
+                phoneVerificationToken: createPhoneVerificationToken(phone.canonical, 'login'),
                 expiresInSeconds: PHONE_VERIFICATION_TOKEN_TTL_SECONDS,
             });
         }
 
         return completePhoneLogin(req, res, {
-            phoneNumber: normalizedPhoneNumber,
+            phoneNumber: phone.canonical,
             userId: accounts[0]?.id,
             rememberMe: req.body?.rememberMe,
         });
@@ -510,9 +503,9 @@ phoneRouter.post('/auth/select', phoneAuthVerifyLimiter, phoneAuthSelectValidati
  */
 phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidation, validate, async (req, res) => {
     const userLocale = (req.headers['x-localecode'] || 'en-us') as string;
-    const normalizedPhoneNumber = toE164(req.body?.phoneNumber);
+    const phone = canonicalizePhoneNumber(req.body?.phoneNumber);
 
-    if (!normalizedPhoneNumber) {
+    if (!phone) {
         return handleHttpError({
             res,
             message: 'Invalid phone number',
@@ -521,7 +514,7 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
     }
 
     try {
-        const { accountCount } = await lookupAccountsByPhone(buildInternalHeaders(req), normalizedPhoneNumber);
+        const { accountCount } = await lookupAccountsByPhone(buildInternalHeaders(req), phone.canonical);
 
         if (accountCount) {
             return handleHttpError({
@@ -535,7 +528,7 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
 
         // Sign-up has no enumeration constraint to protect (it reports USER_EXISTS outright),
         // so unlike the sign-in flow this one can tell the caller it has hit the cap.
-        if (!(await chargeSmsSendBudgetFor('register', normalizedPhoneNumber))) {
+        if (!(await chargeSmsSendBudgetFor('register', phone.e164))) {
             return handleHttpError({
                 res,
                 message: 'Too many verification codes requested for this number. Please try again later.',
@@ -544,13 +537,13 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
         }
 
         const verificationCode = generateVerificationCode();
-        await redisClient.setex(authCodeKey('register', normalizedPhoneNumber), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
-        await redisClient.del(authAttemptsKey('register', normalizedPhoneNumber));
-        await sendVerificationSms(userLocale, normalizedPhoneNumber, verificationCode);
+        await redisClient.setex(authCodeKey('register', phone.e164), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
+        await redisClient.del(authAttemptsKey('register', phone.e164));
+        await sendVerificationSms(userLocale, phone.e164, verificationCode);
 
         return res.status(200).send({
             status: 'sent',
-            phoneNumber: normalizedPhoneNumber,
+            phoneNumber: phone.canonical,
             expiresInSeconds: AUTH_CODE_EXPIRE_SECONDS,
         });
     } catch (err: any) {
@@ -576,10 +569,10 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
  * the users-service verifies the signature and creates the account already MOBILE_VERIFIED.
  */
 phoneRouter.post('/register/verify', phoneAuthVerifyLimiter, phoneAuthVerifyValidation, validate, async (req, res) => {
-    const normalizedPhoneNumber = toE164(req.body?.phoneNumber);
+    const phone = canonicalizePhoneNumber(req.body?.phoneNumber);
     const submittedCode = `${req.body?.verificationCode || ''}`.trim();
 
-    if (!normalizedPhoneNumber) {
+    if (!phone) {
         return handleHttpError({
             res,
             message: 'Invalid phone number',
@@ -588,7 +581,7 @@ phoneRouter.post('/register/verify', phoneAuthVerifyLimiter, phoneAuthVerifyVali
     }
 
     try {
-        const isValid = await isSubmittedCodeValid('register', normalizedPhoneNumber, submittedCode);
+        const isValid = await isSubmittedCodeValid('register', phone.e164, submittedCode);
 
         if (!isValid) {
             return handleHttpError({
@@ -598,11 +591,14 @@ phoneRouter.post('/register/verify', phoneAuthVerifyLimiter, phoneAuthVerifyVali
             });
         }
 
-        await clearSubmittedCode('register', normalizedPhoneNumber);
+        await clearSubmittedCode('register', phone.e164);
 
         return res.status(200).send({
-            phoneNumber: normalizedPhoneNumber,
-            phoneVerificationToken: createPhoneVerificationToken(normalizedPhoneNumber, 'register'),
+            phoneNumber: phone.canonical,
+            // The token carries the canonical form because `createUserHelper` writes it
+            // straight into main.users.phoneNumber, and that column has to hold the same
+            // dialect every phone lookup re-derives.
+            phoneVerificationToken: createPhoneVerificationToken(phone.canonical, 'register'),
             expiresInSeconds: PHONE_VERIFICATION_TOKEN_TTL_SECONDS,
         });
     } catch (err: any) {
