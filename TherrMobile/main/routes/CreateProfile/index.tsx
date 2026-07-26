@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Content } from 'therr-js-utilities/constants';
+import { Content, getPhoneAccountType } from 'therr-js-utilities/constants';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
@@ -85,6 +85,11 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             croppedImageDetails: {},
             errorMsg: '',
             inputs: {
+                // Seeded from the account rather than defaulted, because sign-up now sets the
+                // type up-front when the phone number already has an account. Leaving this
+                // blank would submit `personal` on the next Save and quietly demote a creator
+                // or business account into a duplicate type on that number.
+                accountType: getPhoneAccountType(props.user.details),
                 email: props.user.details.email,
                 firstName: Platform.OS === 'ios' ? (props.user.details.firstName || DEFAULT_FIRSTNAME) : props.user.details.firstName,
                 lastName: Platform.OS === 'ios' ? (props.user.details.lastName || DEFAULT_LASTNAME) : props.user.details.lastName,

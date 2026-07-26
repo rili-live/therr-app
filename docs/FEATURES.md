@@ -16,7 +16,8 @@
 - **Apple OAuth** — social sign-in (mobile)
 - **Phone verification** — optional during profile creation
 - **Passwordless phone sign-in** (mobile) — entering a phone number in the sign-in field swaps the password step for a texted 6-digit code (`POST /v1/phone/auth/start` → `/auth/verify`). Enumeration-safe: the "code sent" response is identical whether or not an account exists. When a number is attached to several accounts, an account picker completes sign-in via `/auth/select`
-- **Phone-first sign-up** (mobile) — verify a phone number by SMS, then add an e-mail; the account is created already `MOBILE_VERIFIED` and a password is optional. The e-mail still receives its normal verification message
+- **Phone-first sign-up** (mobile) — verify a phone number by SMS, then add an e-mail and (optionally) an invite code; the account is created already `MOBILE_VERIFIED` and a password is optional. The e-mail still receives its normal verification message
+- **Accounts per phone number** — brand-configurable cap (`getMaxAccountsPerPhone`): Therr allows one personal + one creator + one business account per number, Friends with Habits allows exactly one. When a number already holds an account, sign-up asks which type the new one is and offers only the free types; a first account still picks its type on the profile-creation screen
 - **Remembered profiles** (mobile) — the sign-in field pre-fills the account last used on the device, with a chevron that opens a switcher to change accounts, remove a saved one, or start fresh. Stored locally through `SecureStorage`; holds no credentials or tokens
 - **Password reset** — forgot-password email flow
 - **Account types** — personal, business, and creator accounts

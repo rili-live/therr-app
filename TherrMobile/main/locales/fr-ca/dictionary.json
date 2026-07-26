@@ -910,12 +910,15 @@
         "enterPhone": "Quel est votre numéro?",
         "enterCode": "Entrez votre code",
         "enterEmail": "Ajoutez votre courriel",
-        "optionalPassword": "Mot de passe (facultatif)"
+        "optionalPassword": "Mot de passe (facultatif)",
+        "accountType": "Quel type de compte?"
       },
       "subtitles": {
         "enterPhone": "Nous vous enverrons un code pour vérifier que c’est bien vous.",
         "enterEmail": "Il sert aux reçus, à la réinitialisation du mot de passe et à la récupération du compte.",
-        "optionalPassword": "Vous pouvez l’ignorer : un code texte suffit pour vous connecter."
+        "optionalPassword": "Vous pouvez l’ignorer : un code texte suffit pour vous connecter.",
+        "accountType": "Ce numéro a déjà un compte, alors choisissez un type différent pour celui-ci.",
+        "accountTypeHint": "Chaque numéro de téléphone peut avoir un compte personnel, un compte créateur et un compte entreprise."
       },
       "buttons": {
         "sendCode": "Envoyer le code",
@@ -925,7 +928,9 @@
         "usePhoneInstead": "S’inscrire avec votre téléphone"
       },
       "errorMessages": {
-        "accountExists": "Un compte utilise déjà ce numéro. Essayez de vous connecter."
+        "accountExists": "Un compte utilise déjà ce numéro. Essayez de vous connecter.",
+        "accountTypeTaken": "Ce numéro a déjà un compte de ce type. Choisissez un autre type ou connectez-vous.",
+        "accountLimitReached": "Ce numéro a déjà le nombre maximal de comptes. Essayez de vous connecter."
       }
     }
   },
