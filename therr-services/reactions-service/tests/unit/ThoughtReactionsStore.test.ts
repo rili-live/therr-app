@@ -118,6 +118,97 @@ describe('ThoughtReactionsStore', () => {
             expect(query).to.include('offset 10');
             expect(query).to.include('ASC');
         });
+
+        // The activated stream is ordered by the score the distributor assigned at activation.
+        // Ordering by reaction createdAt left intra-batch order arbitrary, because a
+        // distributor run activates 7-20 rows with effectively identical timestamps.
+        it('orders by relevance score when requested, sinking unscored rows', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            store.get({ userId: 'user-1' }, undefined, {
+                limit: 21, offset: 0, order: 'DESC', orderBy: 'relevance',
+            });
+
+            const query = mockStore.read.query.args[0][0];
+            // NULLS LAST: rows activated before scoring existed must not lead the feed.
+            expect(query).to.include('order by "relevanceScore" DESC NULLS LAST');
+            // thoughtId tiebreak keeps offset pagination stable across equal scores.
+            expect(query).to.include('"createdAt" DESC, "thoughtId" DESC');
+        });
+
+        it('defaults to createdAt ordering so non-feed callers are unaffected', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            store.get({ userId: 'user-1' }, undefined, { limit: 21, offset: 0, order: 'DESC' });
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.not.include('relevanceScore');
+            expect(query).to.include('order by "createdAt"');
+        });
+
+        // `order` arrives straight from a request body and is interpolated into raw SQL on
+        // the relevance branch.
+        it('rejects an injected sort direction', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            store.get({ userId: 'user-1' }, undefined, {
+                limit: 21,
+                offset: 0,
+                order: 'DESC; DROP TABLE main."thoughtReactions"; --',
+                orderBy: 'relevance',
+            });
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.not.include('DROP TABLE');
+            expect(query).to.include('"createdAt" DESC, "thoughtId" DESC');
+        });
+    });
+
+    describe('updateRelevanceScores', () => {
+        it('sets a different score per thought in a single statement', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            await store.updateRelevanceScores('11111111-1111-1111-1111-111111111111', {
+                '22222222-2222-2222-2222-222222222222': 3.5,
+                '33333333-3333-3333-3333-333333333333': 1.25,
+            });
+
+            expect(mockStore.write.query.callCount).to.eq(1);
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include('UPDATE main."thoughtReactions"');
+            expect(query).to.include("'22222222-2222-2222-2222-222222222222'::uuid, 3.5::double precision");
+            expect(query).to.include("'33333333-3333-3333-3333-333333333333'::uuid, 1.25::double precision");
+            // Scoped to the one user — a score is per (user, thought), not global.
+            expect(query).to.include(`tr."userId" = '11111111-1111-1111-1111-111111111111'::uuid`);
+        });
+
+        it('does not query when there is nothing to score', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            const result = await store.updateRelevanceScores('user-1', {});
+
+            expect(result).to.deep.equal([]);
+            expect(mockStore.write.query.called).to.be.eq(false);
+        });
+
+        it('drops non-numeric scores rather than emitting invalid SQL', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            await store.updateRelevanceScores('11111111-1111-1111-1111-111111111111', {
+                '22222222-2222-2222-2222-222222222222': 2,
+                '33333333-3333-3333-3333-333333333333': (undefined as any),
+            });
+
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include('22222222-2222-2222-2222-222222222222');
+            expect(query).to.not.include('33333333-3333-3333-3333-333333333333');
+        });
     });
 
     describe('getByThoughtId', () => {
@@ -187,6 +278,19 @@ describe('ThoughtReactionsStore', () => {
             expect(query).to.include("'thought-1'");
             expect(query).to.include("'thought-2'");
             expect(query).to.include('returning *');
+        });
+
+        // knex renders `.insert([])` as an empty string. The multi-create path reaches this
+        // whenever every requested thought already has a reaction row, which is routine when
+        // the distributor re-selects the same hot thoughts.
+        it('does not issue an empty query for an empty batch', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            const result = await store.create([]);
+
+            expect(result).to.deep.equal([]);
+            expect(mockStore.write.query.called).to.be.eq(false);
         });
     });
 
