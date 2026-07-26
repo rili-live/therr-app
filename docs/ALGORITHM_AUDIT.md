@@ -333,14 +333,35 @@ Ordered by leverage-to-effort. Each is independently shippable, and (1) → (2) 
 
 | Phase | Work | Branch | Risk |
 |-------|------|--------|------|
-| 1 | O2.1 persist `relevanceScore` + reorder feed; O2.2 deterministic `search` order | `general` | Low — additive column, one `ORDER BY` |
-| 2 | O3.1 cache-gate the distributor; O3.2 batch preference writes + real logging | `general` | Low — behavior-preserving, immediately relieves S1/S2 |
+| 1 ✅ | O2.1 persist `relevanceScore` + reorder feed; O2.2 deterministic `search` order | `general` | Low — additive column, one `ORDER BY` |
+| 2 ✅ | O3.1 cache-gate the distributor; O3.2 batch preference writes + real logging | `general` | Low — behavior-preserving, immediately relieves S1/S2 |
 | 3 | O1.1–O1.3 affinity column, decay-on-write, upsert (shadow mode) | `general` | Medium — validate against `engagementCount` for one release |
 | 4 | O1.4 `score` collection (gateway validator + store) then mobile UI | `general`, then `niche/*` | Medium — must sequence backend first |
 | 5 | O1.5–O1.7 weighted ranking + SQL overlap scoring; O2.3 shared scoring module | `general` | Medium — flag-gated, A/B on weights |
 | 6 | O2.4 geo/interest unification; O2.5 diversity; O3.3–O3.5 materialization | `general` | Higher — largest UX change, do last with measurement in place |
 
 Phases 1 and 2 are worth doing regardless of whether the rest proceeds: phase 1 makes existing ranking work visible to users for the first time, and phase 2 removes the dominant scaling liability. Both are small, low-risk, and independently valuable.
+
+### Phases 1 and 2 — shipped
+
+Both are implemented. What landed, and what it changes:
+
+**Phase 1** — `main.thoughtReactions` gains `relevanceScore` / `scoredAt` plus a partial index on `(userId, relevanceScore DESC NULLS LAST, createdAt DESC) WHERE userHasActivated`. `getRecentThoughts` now returns the hot score it was already computing (the expression is hoisted into one constant so `SELECT` and `ORDER BY` cannot drift), the distributor carries per-thought scores through `createReactions` onto the reaction rows with a 1.5× boost for interest matches, and `searchActiveThoughts` orders by relevance and restores that order after the thoughts lookup re-sorts by `createdAt`. `ThoughtsStore.search` gained the `ORDER BY` it never had.
+
+Two consequences to watch on rollout:
+
+- Pre-existing reaction rows have a NULL score and sort last, so existing users see a **one-time feed reshuffle** on first load after deploy — in the intended direction, but visible.
+- `lastContentCreatedAt` is no longer forwarded on the feed path (it is a `createdAt` cursor, wrong axis for a relevance-ordered page, and would silently drop high-scoring recent thoughts). The author-profile path still uses it. Offset pagination over a relevance-ordered list can still repeat an item when a new activation lands mid-scroll; that was already true of the createdAt ordering and is properly fixed only by keyset pagination.
+
+**Phase 2** — the distributor is gated to one run per user per window (`THOUGHT_DISTRIBUTOR_MIN_INTERVAL_SECONDS`, default 900s) via an atomic `SET NX EX` on the existing ephemeral Redis client. Login stays ungated so a new session always seeds the stream. The gate **fails open**: if Redis is unreachable the distributor runs, exactly as before. The general-candidate query now requests 1 row instead of a full page when only a fallback is needed.
+
+Redis footprint is intentionally negligible: one key per *recently active* user holding the literal `'1'`, ~90 bytes with overhead, self-expiring. 100k users active inside one window is under 10 MB, and idle users hold nothing. It is not a cache that needs to stay warm — losing the entire keyspace only means each user's next poll runs the distributor once more than it strictly needed to.
+
+Interest engagement writes are coalesced per user in an **in-process** buffer (`INTEREST_ENGAGEMENT_FLUSH_INTERVAL_MS`, default 10s) and flushed as one request with merged counts, so a user scrolling twenty moments produces one write instead of twenty. This deliberately uses no Redis at all — engagement counts are best-effort telemetry and a per-replica buffer costs no shared infrastructure. The trade-off is that increments buffered when a pod is hard-killed are lost; a SIGTERM flush covers graceful shutdown. The `.catch(console.log)` that made a broken preference loop invisible is now a `logSpan` error.
+
+The users-service increment endpoint accepts both the new coalesced (`interestIncrements`) and legacy (`interestDisplayNameKeys` + `incrBy`) payloads, and senders emit both, so a rolling deploy in either order keeps recording.
+
+Still open from Optimization 3 and explicitly **not** done: materialized user interest vectors and precomputed candidate pools (O3.3, O3.4). Those are the Redis-memory-heavy parts.
 
 ## 6. Instrumentation to add before phase 6
 

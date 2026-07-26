@@ -2,6 +2,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { getBrandContext } from 'therr-js-utilities/http';
 import Store from '../store';
+import { tryAcquireDistributorRun } from '../store/redisClient';
 import { createReactions } from './reactions';
 
 const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
@@ -19,9 +20,27 @@ class TherrEventEmitter {
      * `shouldIncludeGeneralCandidates` (recentUsersCount > 0) widens the batch beyond
      * interest matches — used at login; the lighter notifications-poll path activates
      * interest matches only (with a single-thought fallback).
+     *
+     * `minSecondsBetweenRuns` gates repeat runs for the same user (see
+     * tryAcquireDistributorRun). The notifications-poll caller sets it because it fires on
+     * every poll; login leaves it at 0 so a fresh session always seeds the stream.
      */
     // eslint-disable-next-line class-methods-use-this
-    public runThoughtDistributorAlgorithm(headers: InternalConfigHeaders, contextUserIds?: string[], createdAtOrUpdatedAt = 'createdAt', recentUsersCount = 1) {
+    public async runThoughtDistributorAlgorithm(
+        headers: InternalConfigHeaders,
+        contextUserIds?: string[],
+        createdAtOrUpdatedAt = 'createdAt',
+        recentUsersCount = 1,
+        minSecondsBetweenRuns = 0,
+    ) {
+        const gateUserId = contextUserIds?.length === 1 ? contextUserIds[0] : undefined;
+        if (minSecondsBetweenRuns > 0 && gateUserId) {
+            const acquired = await tryAcquireDistributorRun(gateUserId, minSecondsBetweenRuns);
+            if (!acquired) {
+                return {};
+            }
+        }
+
         const numThoughts = randomIntFromInterval(7, 20);
         const { brandVariation: brand } = getBrandContext(headers as any);
         const shouldIncludeGeneralCandidates = recentUsersCount > 0;
@@ -37,7 +56,10 @@ class TherrEventEmitter {
                 interestsKeys.length
                     ? Store.thoughts.getRecentThoughts(brand, numThoughts, interestsKeys)
                     : Promise.resolve([]),
-                Store.thoughts.getRecentThoughts(brand, numThoughts),
+                // When general candidates aren't being added to the batch, this result is
+                // only consulted for a single fallback thought — ranking a full page of
+                // candidates just to discard all but one was wasted work on every poll.
+                Store.thoughts.getRecentThoughts(brand, shouldIncludeGeneralCandidates ? numThoughts : 1),
             ]);
         }).then(([thoughtsForContext, thoughtsForRecent]) => {
             const interestMatches = thoughtsForContext || [];
