@@ -250,11 +250,11 @@ export default class UsersStore {
         if (phoneNumber) {
             // Candidate-matched for the same reason as the lookups above, and additionally
             // because writes are now normalized: an exact match would miss a row this store
-            // itself reformatted on the way in. This is the registration duplicate check, so
-            // missing a row means letting a second account onto a number that already has one.
-            // Widening does not loosen the accounts-per-number policy — registration has always
-            // rejected *any* phone match here; the personal/creator/business allowance is
-            // granted by `getByPhoneNumber` via the authenticated /phone/verify flow.
+            // itself reformatted on the way in.
+            // NOTE: this OR is a *find*, not a uniqueness check — it backs contact matching
+            // (see `userConnections`). Registration deliberately does not pass `phoneNumber`
+            // here, because a number may legitimately hold one account per type; that cap is
+            // enforced against `getAllByPhoneNumber` in the `createUser` handler.
             queryString = queryString.orWhereIn('phoneNumber', phoneNumberMatchCandidates(phoneNumber));
         }
 

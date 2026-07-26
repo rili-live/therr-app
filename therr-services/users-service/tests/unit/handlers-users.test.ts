@@ -9,7 +9,7 @@ import {
     isUserProfileIncomplete,
     redactUserCreds,
 } from '../../src/handlers/helpers/user';
-import { getMe } from '../../src/handlers/users';
+import { getMe, updateUser } from '../../src/handlers/users';
 
 // Minimal Express res double that captures the status + payload getMe sends.
 const makeRes = () => {
@@ -555,6 +555,134 @@ describe('Users Handler', () => {
             expect(res.sendCount).to.equal(1);
             // Short-circuit should happen before any device-token lookup.
             expect(getTokensStub.called).to.equal(false);
+        });
+    });
+
+    describe('updateUser accounts-per-phone cap', () => {
+        // A phone number holds at most one account of each type. createUser enforces that at
+        // sign-up, but both accounts on a shared number stay editable afterwards — without a
+        // guard here, two of them could each edit their way to `business`, or an account could
+        // move onto a number whose slot for its type is already filled.
+        const PHONE = '+1 317-555-1234';
+
+        const stubUpdateChain = () => {
+            const updateStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-1' }] as any);
+            sinon.stub(Store.userOrganizations, 'get').resolves([] as any);
+            return updateStub;
+        };
+
+        const makeReq = (body: any, brandVariation = 'therr') => ({
+            headers: { 'x-userid': 'user-1', 'x-brand-variation': brandVariation },
+            body,
+        });
+
+        it('rejects switching to an account type another account on the number already holds', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', phoneNumber: PHONE, isBusinessAccount: false, isCreatorAccount: true, accessLevels: [],
+            }] as any);
+            sinon.stub(Store.users, 'getAllByPhoneNumber').resolves([
+                { id: 'user-1', isBusinessAccount: false, isCreatorAccount: true },
+                { id: 'user-2', isBusinessAccount: true, isCreatorAccount: false },
+            ] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ isBusinessAccount: true, isCreatorAccount: false }), res);
+
+            expect(res.statusCode).to.equal(400);
+            expect(res.body.errorCode).to.equal('OnlyThreeAccountsPerPhoneNumber');
+            expect(updateStub.called).to.equal(false);
+        });
+
+        it('allows switching to an account type that is still free on the number', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', phoneNumber: PHONE, isBusinessAccount: false, isCreatorAccount: false, accessLevels: [],
+            }] as any);
+            sinon.stub(Store.users, 'getAllByPhoneNumber').resolves([
+                { id: 'user-1', isBusinessAccount: false, isCreatorAccount: false },
+                { id: 'user-2', isBusinessAccount: true, isCreatorAccount: false },
+            ] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ isCreatorAccount: true }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.calledOnce).to.equal(true);
+        });
+
+        it('skips the check when neither the account type nor the number changes', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', phoneNumber: PHONE, isBusinessAccount: false, isCreatorAccount: false, accessLevels: [],
+            }] as any);
+            // Two personal accounts already share this number (seeded before the cap existed).
+            // An unrelated save must not fail — otherwise these users can never edit a bio.
+            const lookupStub = sinon.stub(Store.users, 'getAllByPhoneNumber').resolves([
+                { id: 'user-1', isBusinessAccount: false, isCreatorAccount: false },
+                { id: 'user-2', isBusinessAccount: false, isCreatorAccount: false },
+            ] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ settingsBio: 'a new bio' }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.calledOnce).to.equal(true);
+            expect(lookupStub.called).to.equal(false);
+        });
+
+        it('rejects moving onto a number whose slot for this account type is taken', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', phoneNumber: '', isBusinessAccount: false, isCreatorAccount: false, accessLevels: [],
+            }] as any);
+            sinon.stub(Store.users, 'getAllByPhoneNumber').resolves([
+                { id: 'user-2', isBusinessAccount: false, isCreatorAccount: false },
+            ] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ phoneNumber: PHONE }), res);
+
+            expect(res.statusCode).to.equal(400);
+            expect(res.body.errorCode).to.equal('OnlyThreeAccountsPerPhoneNumber');
+            expect(updateStub.called).to.equal(false);
+        });
+
+        it('rejects a second account on the same number for Habits, whatever the type', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', phoneNumber: '', isBusinessAccount: false, isCreatorAccount: false, accessLevels: [],
+            }] as any);
+            sinon.stub(Store.users, 'getAllByPhoneNumber').resolves([
+                { id: 'user-2', isBusinessAccount: true, isCreatorAccount: false },
+            ] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ phoneNumber: PHONE }, 'habits'), res);
+
+            expect(res.statusCode).to.equal(400);
+            expect(res.body.errorCode).to.equal('OnlyThreeAccountsPerPhoneNumber');
+            expect(updateStub.called).to.equal(false);
+        });
+
+        it('does not treat the apple-sso sentinel as a phone number', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', phoneNumber: 'apple-sso', isBusinessAccount: false, isCreatorAccount: false, accessLevels: [],
+            }] as any);
+            // Every Apple SSO row carries this same value; counting "accounts on this number"
+            // would return the whole cohort and refuse them all.
+            const lookupStub = sinon.stub(Store.users, 'getAllByPhoneNumber').resolves([
+                { id: 'user-2', isBusinessAccount: false, isCreatorAccount: false },
+                { id: 'user-3', isBusinessAccount: false, isCreatorAccount: false },
+            ] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ isCreatorAccount: true }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.calledOnce).to.equal(true);
+            expect(lookupStub.called).to.equal(false);
         });
     });
 

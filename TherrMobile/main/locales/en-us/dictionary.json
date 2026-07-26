@@ -910,12 +910,15 @@
         "enterPhone": "What's your number?",
         "enterCode": "Enter your code",
         "enterEmail": "Add your e-mail",
-        "optionalPassword": "Password (optional)"
+        "optionalPassword": "Password (optional)",
+        "accountType": "Which kind of account?"
       },
       "subtitles": {
         "enterPhone": "We'll text you a code to verify it's you.",
         "enterEmail": "We use it for receipts, password resets, and account recovery.",
-        "optionalPassword": "Skip it — you can always sign in with a texted code."
+        "optionalPassword": "Skip it — you can always sign in with a texted code.",
+        "accountType": "This number already has an account, so pick a different type for this one.",
+        "accountTypeHint": "Each phone number can have one personal, one creator, and one business account."
       },
       "buttons": {
         "sendCode": "Send Code",
@@ -925,7 +928,9 @@
         "usePhoneInstead": "Sign up with your phone instead"
       },
       "errorMessages": {
-        "accountExists": "An account already uses this number. Try signing in."
+        "accountExists": "An account already uses this number. Try signing in.",
+        "accountTypeTaken": "This number already has an account of that type. Pick another type or sign in instead.",
+        "accountLimitReached": "This number already has the maximum number of accounts. Try signing in."
       }
     }
   },
