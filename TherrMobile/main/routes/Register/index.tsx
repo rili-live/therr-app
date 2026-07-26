@@ -20,6 +20,7 @@ import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import setPreLoginLocale from '../../redux/actions/setPreLoginLocale';
 import translator from '../../utilities/translator';
+import spacingStyles from '../../styles/layouts/spacing';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import LanguageSelector from '../../components/LanguageSelector';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
@@ -213,7 +214,10 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                 onChangeLocale={this.onChangeLocale}
                                 translate={this.translate}
                                 theme={this.theme}
-                                containerStyle={this.theme.styles.sectionContainerWide}
+                                // Unlike Login, the selector sits *above* the form here, so it
+                                // needs real separation from the first step's heading —
+                                // otherwise "What's your number?" reads as its caption.
+                                containerStyle={[this.theme.styles.sectionContainerWide, spacingStyles.marginBotXl]}
                             />
                             {
                                 signupMethod === 'phone'

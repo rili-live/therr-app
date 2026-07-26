@@ -33,6 +33,12 @@ interface IRegisterCredentials {
     // Magic invite-link token: trusts the invited contact channel and
     // auto-connects the user to the inviter on signup.
     inviteToken?: string;
+    // Account type, when the sign-up flow collects it up-front. Only the phone-first path does
+    // today, and only for a number that already holds an account — the cap is one account per
+    // type, so the type can no longer be deferred to profile creation. Everyone else omits
+    // these and picks their type on the CreateProfile screen as before.
+    isBusinessAccount?: boolean;
+    isCreatorAccount?: boolean;
     // Short-lived proof of phone ownership from POST /v1/phone/register/verify. When present,
     // the account is created already phone-verified and `password` may be omitted.
     phoneVerificationToken?: string;

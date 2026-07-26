@@ -37,7 +37,18 @@ const hasUserReacted = (thoughtId: string, headers) => getReactions(thoughtId, h
         throw err;
     });
 
-const createReactions = (thoughtIds: string[], headers: InternalConfigHeaders) => internalRestRequest({
+interface IRelevanceScoresByThoughtId {
+    [thoughtId: string]: number;
+}
+
+// `relevanceScores` is optional: callers that activate thoughts without ranking them
+// (e.g. activating a thought's replies alongside their parent) simply omit it, and those
+// rows keep a NULL relevanceScore.
+const createReactions = (
+    thoughtIds: string[],
+    headers: InternalConfigHeaders,
+    relevanceScores?: IRelevanceScoresByThoughtId,
+) => internalRestRequest({
     headers,
 }, {
     method: 'post',
@@ -45,6 +56,7 @@ const createReactions = (thoughtIds: string[], headers: InternalConfigHeaders) =
     data: {
         thoughtIds,
         userHasActivated: true,
+        ...(relevanceScores ? { relevanceScores } : {}),
     },
 })
     // eslint-disable-next-line arrow-body-style

@@ -8,7 +8,11 @@ import {
     verifyPhoneVerificationToken,
     PHONE_VERIFICATION_TOKEN_TTL_SECONDS,
 } from 'therr-js-utilities/phone-verification-token';
-import { ErrorCodes } from 'therr-js-utilities/constants';
+import {
+    ErrorCodes,
+    getAvailablePhoneAccountTypes,
+    getMaxAccountsPerPhone,
+} from 'therr-js-utilities/constants';
 import handleHttpError from '../../utilities/handleHttpError';
 import { validate } from '../../validation';
 import redisClient, { storeRefreshToken } from '../../store/redisClient';
@@ -495,11 +499,15 @@ phoneRouter.post('/auth/select', phoneAuthVerifyLimiter, phoneAuthSelectValidati
 /**
  * PASSWORDLESS SIGN-UP — step 1.
  *
- * Texts a one-time code to a phone number that has no account yet. Unlike `/auth/start` this
- * one deliberately DOES report `USER_EXISTS`: a sign-up form that silently did nothing for an
- * already-registered number would be a dead end, and the client uses the error to offer
- * "sign in instead". The number is already known to whoever holds the handset, and the same
- * disclosure exists today on the authenticated `/phone/verify` route.
+ * Texts a one-time code to a phone number that has room for another account. Unlike
+ * `/auth/start` this one deliberately DOES report `USER_EXISTS`: a sign-up form that silently
+ * did nothing for a number at its cap would be a dead end, and the client uses the error to
+ * offer "sign in instead". The number is already known to whoever holds the handset, and the
+ * same disclosure exists today on the authenticated `/phone/verify` route.
+ *
+ * "Has room" is per-brand: Therr allows a personal + creator + business account per number
+ * (the same allowance `/auth/verify` and `getUserByPhoneNumber` already grant), Habits allows
+ * exactly one. See `getMaxAccountsPerPhone`.
  */
 phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidation, validate, async (req, res) => {
     const userLocale = (req.headers['x-localecode'] || 'en-us') as string;
@@ -514,14 +522,17 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
     }
 
     try {
-        const { accountCount } = await lookupAccountsByPhone(buildInternalHeaders(req), phone.canonical);
+        const { accounts } = await lookupAccountsByPhone(buildInternalHeaders(req), phone.canonical);
+        const brandVariation = `${req.headers['x-brand-variation'] || ''}`;
 
-        if (accountCount) {
+        if (!getAvailablePhoneAccountTypes(accounts, brandVariation).length) {
             return handleHttpError({
-                err: new Error('Phone number already exists'),
+                err: new Error('Phone number has reached its account limit'),
                 errorCode: ErrorCodes.USER_EXISTS,
                 res,
-                message: 'An account already exists for this phone number',
+                message: getMaxAccountsPerPhone(brandVariation) > 1
+                    ? 'This phone number already has the maximum number of accounts'
+                    : 'An account already exists for this phone number',
                 statusCode: 400,
             });
         }
@@ -567,6 +578,10 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
  * Validates the texted code and hands back a short-lived, signed proof of phone ownership.
  * The client passes it to `POST /users-service/users` alongside the email it collects next;
  * the users-service verifies the signature and creates the account already MOBILE_VERIFIED.
+ *
+ * Also reports which account types the number may still register. That is only meaningful once
+ * the number already holds an account, and it is only disclosed *after* the code is verified —
+ * before that point the caller has proven nothing about the handset.
  */
 phoneRouter.post('/register/verify', phoneAuthVerifyLimiter, phoneAuthVerifyValidation, validate, async (req, res) => {
     const phone = canonicalizePhoneNumber(req.body?.phoneNumber);
@@ -593,6 +608,9 @@ phoneRouter.post('/register/verify', phoneAuthVerifyLimiter, phoneAuthVerifyVali
 
         await clearSubmittedCode('register', phone.e164);
 
+        const { accountCount, accounts } = await lookupAccountsByPhone(buildInternalHeaders(req), phone.canonical);
+        const brandVariation = `${req.headers['x-brand-variation'] || ''}`;
+
         return res.status(200).send({
             phoneNumber: phone.canonical,
             // The token carries the canonical form because `createUserHelper` writes it
@@ -600,6 +618,8 @@ phoneRouter.post('/register/verify', phoneAuthVerifyLimiter, phoneAuthVerifyVali
             // dialect every phone lookup re-derives.
             phoneVerificationToken: createPhoneVerificationToken(phone.canonical, 'register'),
             expiresInSeconds: PHONE_VERIFICATION_TOKEN_TTL_SECONDS,
+            existingAccountCount: accountCount,
+            availableAccountTypes: getAvailablePhoneAccountTypes(accounts, brandVariation),
         });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' });

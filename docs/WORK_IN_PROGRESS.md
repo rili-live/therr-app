@@ -187,6 +187,32 @@ append new items here rather than only printing them once.
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
+- [ ] (2026-07-26, /quality-peer-review) Run the
+  `20260726000000_main.thoughtReactions.relevanceScore` migration on production
+  (reactions-service: `npm run migrations:run`) **before** the reactions-service
+  image rolls out. The new activation path inserts `relevanceScore` / `scoredAt`
+  on every `thoughtReactions` row and the activated-feed read orders by
+  `relevanceScore`; if the columns are missing, both thought activation and the
+  stream 500 outright. This is a hard ordering dependency, not a soft one.
+- [ ] (2026-07-26, /quality-peer-review) That same migration creates
+  `idx_thought_reactions_user_relevance` with a plain (non-`CONCURRENTLY`)
+  `CREATE INDEX`, which takes an ACCESS EXCLUSIVE lock on
+  `main."thoughtReactions"` for the duration of the build. Knex runs migrations
+  inside a transaction so `CONCURRENTLY` is not available here — schedule the run
+  during a low-traffic window, or build the index by hand with `CONCURRENTLY`
+  first so the migration's `IF NOT EXISTS` becomes a no-op.
+- [ ] (2026-07-26, /quality-peer-review) First feed load after the relevance
+  rollout reshuffles for every existing user: rows activated before the migration
+  have `relevanceScore IS NULL` and sort last (`NULLS LAST`). Expected and in the
+  intended direction, but it is user-visible — worth knowing before support
+  tickets arrive.
+- [ ] (2026-07-26, /quality-peer-review) Optional env tuning introduced this
+  cycle, all with working defaults — set only if the defaults misbehave under
+  real traffic: `THOUGHT_DISTRIBUTOR_MIN_INTERVAL_SECONDS` (users-service, default
+  900s; `0` disables the per-user distributor gate),
+  `INTEREST_ENGAGEMENT_FLUSH_INTERVAL_MS` and
+  `INTEREST_ENGAGEMENT_MAX_BUFFERED_USERS` (maps-service and reactions-service,
+  defaults 10000ms / 1000 users).
 <!-- skill-followups:end -->
 
 ---
