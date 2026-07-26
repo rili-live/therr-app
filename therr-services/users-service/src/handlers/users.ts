@@ -1,6 +1,15 @@
 import { RequestHandler } from 'express';
 import {
-    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, MetricNames, PushNotifications, ReferralRewards, UserConnectionTypes,
+    AccessLevels,
+    COIN_PACKAGE_IDS,
+    ErrorCodes,
+    MetricNames,
+    PushNotifications,
+    ReferralRewards,
+    UserConnectionTypes,
+    getAvailablePhoneAccountTypes,
+    getMaxAccountsPerPhone,
+    getPhoneAccountType,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { verifyPhoneVerificationToken } from 'therr-js-utilities/phone-verification-token';
@@ -66,18 +75,48 @@ const createUser: RequestHandler = (req: any, res: any) => {
     // email+password signup — there is no path where a bad token grants anything.
     const verifiedPhoneNumber = verifyPhoneVerificationToken(req.body.phoneVerificationToken, 'register')?.phoneNumber;
 
-    return Store.users.findUser({
-        ...req.body,
-        phoneNumber: verifiedPhoneNumber || req.body.phoneNumber,
-    })
-        .then((findResults) => {
+    const registrationPhoneNumber = verifiedPhoneNumber || req.body.phoneNumber;
+    // Guard against non-phone values reaching the by-number lookup. The `'apple-sso'` sentinel
+    // is shared by every Apple SSO row, so counting "accounts on this number" for it would
+    // return the entire cohort and lock those signups out.
+    const isPhoneLike = /^\+?[\d\s\-().]{7,}$/.test(`${registrationPhoneNumber || ''}`);
+
+    return Promise.all([
+        // E-mail and username uniqueness is absolute. Phone number is not: one number may hold
+        // up to one account per type (personal/creator/business), capped per brand, so it gets
+        // the dedicated check below instead of being OR'd into this lookup.
+        Store.users.findUser({
+            ...req.body,
+            phoneNumber: undefined,
+        }),
+        isPhoneLike
+            ? Store.users.getAllByPhoneNumber(registrationPhoneNumber, ['id', 'isBusinessAccount', 'isCreatorAccount'])
+            : Promise.resolve([]),
+    ])
+        .then(([findResults, existingPhoneAccounts]) => {
             if (findResults.length) {
                 return handleHttpError({
                     res,
-                    message: 'Username, e-mail, and phone number must be unique. A user already exists.',
+                    message: 'Username and e-mail must be unique. A user already exists.',
                     statusCode: 400,
                     errorCode: ErrorCodes.USER_EXISTS,
                 });
+            }
+
+            if (existingPhoneAccounts.length) {
+                const availableAccountTypes = getAvailablePhoneAccountTypes(existingPhoneAccounts, brandVariation);
+                const requestedAccountType = getPhoneAccountType(req.body);
+
+                if (!availableAccountTypes.includes(requestedAccountType)) {
+                    return handleHttpError({
+                        res,
+                        message: getMaxAccountsPerPhone(brandVariation) > 1
+                            ? `This phone number already has a ${requestedAccountType} account.`
+                            : 'An account already exists for this phone number.',
+                        statusCode: 400,
+                        errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
+                    });
+                }
             }
 
             let getSubsAccessLvlsPromise: Promise<AccessLevels[]> = Promise.resolve([]);
@@ -509,6 +548,7 @@ const getUser = (req, res) => {
 const getUserByPhoneNumber = (req, res) => {
     const userId = req.headers['x-userid'];
     const { phoneNumber } = req.params;
+    const { brandVariation } = parseHeaders(req.headers);
 
     return Store.users.getUserById(userId, ['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount']).then((userSearchResults) => {
         if (!userSearchResults.length) {
@@ -519,46 +559,25 @@ const getUserByPhoneNumber = (req, res) => {
             });
         }
 
-        return Store.users.getByPhoneNumber(phoneNumber).then((results) => {
+        return Store.users.getAllByPhoneNumber(phoneNumber, ['id', 'isBusinessAccount', 'isCreatorAccount']).then((results) => {
             const requestingUser = userSearchResults[0];
-            if (!results.length) {
-                // 1st account with this phone number
-                return res.status(200).send({
-                    isSecondAccount: false,
-                    isThirdAccount: false,
-                    existingUsers: results,
+            // Re-verifying the number already on your own profile is not competing with
+            // yourself for a slot, so your own row never counts against the cap.
+            const otherAccounts = results.filter((result) => result.id !== userId);
+            const availableAccountTypes = getAvailablePhoneAccountTypes(otherAccounts, brandVariation);
+
+            if (!availableAccountTypes.includes(getPhoneAccountType(requestingUser))) {
+                return res.status(400).send({
+                    existingUsers: otherAccounts,
+                    errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
+                    statusCode: 400,
                 });
-            }
-            if (results.length === 1 && (
-                results[0].isBusinessAccount !== requestingUser.isBusinessAccount
-                || results[0].isCreatorAccount !== requestingUser.isCreatorAccount)
-            ) {
-                // 2nd account with this phone number
-                return res.status(200).send({
-                    isSecondAccount: true,
-                    isThirdAccount: false,
-                    existingUsers: results,
-                });
-            }
-            // TODO: Unit test
-            if (results.length > 1) {
-                const hasExistingBusAccount = results.find((result) => result.isBusinessAccount);
-                const hasExistingCreatorAccount = results.find((result) => result.isCreatorAccount);
-                if ((requestingUser.isBusinessAccount && !hasExistingBusAccount)
-                    || (requestingUser.isCreatorAccount && !hasExistingCreatorAccount)) {
-                    // 3rd account with this phone number
-                    return res.status(200).send({
-                        isSecondAccount: false,
-                        isThirdAccount: true,
-                        existingUsers: results,
-                    });
-                }
             }
 
-            return res.status(400).send({
-                existingUsers: results,
-                errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
-                statusCode: 400,
+            return res.status(200).send({
+                isSecondAccount: otherAccounts.length === 1,
+                isThirdAccount: otherAccounts.length === 2,
+                existingUsers: otherAccounts,
             });
         });
     });

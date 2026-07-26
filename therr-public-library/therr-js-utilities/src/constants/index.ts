@@ -39,6 +39,15 @@ import {
     getReadableBrands,
 } from './brandThoughtsVisibility';
 import {
+    PhoneAccountType,
+    PHONE_ACCOUNT_TYPES,
+    MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
+    DEFAULT_MAX_ACCOUNTS_PER_PHONE,
+    getMaxAccountsPerPhone,
+    getPhoneAccountType,
+    getAvailablePhoneAccountTypes,
+} from './phoneAccounts';
+import {
     FeatureFlags,
     HABITS_FREE_PACT_LIMIT,
     DEFAULT_HABITS_FREE_PACT_LIMIT,
@@ -105,6 +114,13 @@ export {
     OAuthIntegrationProviders,
     PushNotifications,
     PasswordRegex,
+    PhoneAccountType,
+    PHONE_ACCOUNT_TYPES,
+    MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
+    DEFAULT_MAX_ACCOUNTS_PER_PHONE,
+    getMaxAccountsPerPhone,
+    getPhoneAccountType,
+    getAvailablePhoneAccountTypes,
     CurrentSocialValuations,
     CurrentMomentValuations,
     CurrentCheckInValuations,
