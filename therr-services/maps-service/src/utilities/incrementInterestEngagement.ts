@@ -127,6 +127,13 @@ const incrementInterestEngagement = (interestsKeys: string[], incrBy: number, he
         entry.incrementsByKey[key] = (entry.incrementsByKey[key] || 0) + amount;
     });
 
+    // Every key was falsy, so there is nothing to flush. Buffering the empty entry anyway
+    // would send a request whose legacy `incrBy` is `Math.max()` of nothing — i.e. -Infinity,
+    // which serializes to null.
+    if (!Object.keys(entry.incrementsByKey).length) {
+        return Promise.resolve({});
+    }
+
     buffer.set(userId, entry);
 
     if (buffer.size >= MAX_BUFFERED_USERS) {

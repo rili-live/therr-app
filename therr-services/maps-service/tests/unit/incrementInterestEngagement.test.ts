@@ -91,6 +91,17 @@ describe('incrementInterestEngagement (coalescing buffer)', () => {
         expect(requestStub.called).to.be.eq(false);
     });
 
+    // Blank keys are skipped individually, so an event made up entirely of them buffers an
+    // empty map. Flushing that sends a legacy `incrBy` of `Math.max()` over nothing —
+    // -Infinity, which JSON-serializes to null — for no increments at all.
+    it('ignores an event whose interest keys are all blank', async () => {
+        incrementInterestEngagement(['', ''], 2, headersFor('user-1'));
+
+        await flushInterestEngagement();
+
+        expect(requestStub.called).to.be.eq(false);
+    });
+
     it('flushing twice does not resend the same increments', async () => {
         incrementInterestEngagement(['interests.foodDrink.coffee'], 2, headersFor('user-1'));
 

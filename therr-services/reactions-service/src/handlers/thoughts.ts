@@ -1,4 +1,4 @@
-import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -43,6 +43,11 @@ const searchActiveThoughts = async (req: any, res: any) => {
 
     let reactions;
 
+    // Relevance ranking belongs to the stream only. With `authorId` set this endpoint serves
+    // an author's profile, which is reverse-chronological and (for your own or a friend's
+    // profile) is not even restricted to activated thoughts — see `ThoughtsStore.find`.
+    const isRelevanceRanked = !authorId;
+
     // TODO: Debug limit where public thoughts exceed reactions causing reactions to be missing during pagination
     // Get reactions should use a lastContentCreatedAt that excludes public thoughts with no reactions
     return Store.thoughtReactions.get(conditions, undefined, {
@@ -52,7 +57,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
         // Order the stream by the score the distributor assigned at activation time.
         // Without this the feed is ordered by activation timestamp, and since a distributor
         // run activates 7-20 thoughts at once, intra-batch order was arbitrary.
-        orderBy: 'relevance',
+        orderBy: isRelevanceRanked ? 'relevance' : 'createdAt',
     }, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
@@ -91,7 +96,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     // silently drop any high-scoring thought newer than the last item of the
                     // previous page. The author-profile path (authorId set) bypasses the
                     // thoughtIds restriction and still paginates by createdAt, so it keeps it.
-                    lastContentCreatedAt: authorId ? lastContentCreatedAt : undefined,
+                    lastContentCreatedAt: isRelevanceRanked ? undefined : lastContentCreatedAt,
                     authorId,
                     isDraft: false,
                 },
@@ -122,8 +127,15 @@ const searchActiveThoughts = async (req: any, res: any) => {
                 // Restore the relevance ordering the thoughts lookup discarded. Anything not
                 // in the rank map (shouldn't happen — every thought here came from a reaction)
                 // sinks to the bottom rather than jumping to the top.
-                thoughts.sort((a, b) => (rankByThoughtId.get(a.id) ?? Number.MAX_SAFE_INTEGER)
-                    - (rankByThoughtId.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+                //
+                // Skipped on the author-profile path: there the lookup legitimately returns
+                // thoughts that were never activated for the viewer, so ranking would hoist
+                // whichever ones happen to be in the viewer's stream above the rest and
+                // scramble the profile's reverse-chronological order.
+                if (isRelevanceRanked) {
+                    thoughts.sort((a, b) => (rankByThoughtId.get(a.id) ?? Number.MAX_SAFE_INTEGER)
+                        - (rankByThoughtId.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+                }
 
                 return res.status(200).send({
                     thoughts,
