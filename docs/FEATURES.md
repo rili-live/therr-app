@@ -63,6 +63,7 @@
 - **TherrCoin currency** — earned through social actions, check-ins, referrals
 - **XP system** — experience points from achievements
 - **Points exchange** — redeem accumulated rewards
+- **Reward claim celebration (mobile)** — claiming an achievement reward plays a synthesized coin "ka-ching" on grant and a full fanfare synced to the confetti animation on the claim screen, each paired with an escalating haptic ramp. Sounds are generated at runtime via `react-native-audio-api` (no bundled audio files) using an `ambient`/`mixWithOthers` session, so they honor the iOS ringer switch and never interrupt the user's music; haptics honor the Android system haptics setting
 - **Leaderboards** — Duolingo-style weekly (Monday UTC reset) + all-time XP rankings with Everyone/Friends scopes, per-brand (works for Therr and Friends with Habits). XP accrues from achievement progress and habit check-ins/streak milestones; separate from the spendable TherrCoin balance. Opt-out via `settingsIsLeaderboardEnabled`. Climbing into the weekly top 10 / top 3 / #1 triggers a rank-milestone push notification and `weeklyChampion` achievement progress
 
 ### Notifications
@@ -105,7 +106,7 @@
 - **Phone contacts integration** — sync contacts for friend invitations
 - **Camera & image picker** — capture/select photos with crop and compression
 - **Get directions** — open native maps for navigation to locations
-- **Haptic feedback** — vibration feedback on key interactions
+- **Haptic feedback** — vibration feedback on key interactions, including the achievement reward-claim celebration ramp
 - **Secure storage** — encrypted local storage for sensitive data
 - **Location disclosure modal** — privacy explanation for location permissions
 - **Nearby content carousels** — swipeable tabs for discoveries, events, thoughts, news

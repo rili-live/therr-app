@@ -76,6 +76,7 @@
     "react-dom": "19.2.0",
     "react-native": "0.83.6",
     "react-native-actions-sheet": "^0.9.8",
+    "react-native-audio-api": "^0.13.2",
     "react-native-autolink": "^3.0.0",
     "react-native-background-fetch": "^4.2.8",
     "react-native-background-geolocation": "^4.19.3",
