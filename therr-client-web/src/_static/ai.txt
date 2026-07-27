@@ -105,9 +105,24 @@ Allow: /
 
 # === Fallback ===
 # For any AI crawler not explicitly listed above, follow robots.txt directives.
-# Listings data that is user-generated content is licensed only for display on
-# Therr surfaces + attributed citation with a link back to the canonical page.
+
+# === User-generated content: not licensed for training ===
+# The Allow directives above permit crawling for retrieval and citation. They
+# are NOT a license to train on user-generated content.
+#
+# Therr does not hold the rights needed to sublicense user content for machine
+# learning training. Our Terms of Service grant Therr a license to host and
+# display user content in order to operate the Service; that license expressly
+# excludes licensing user content to third parties for AI or ML training.
+# See https://www.therr.app/terms-and-conditions.html (section 6).
+#
+# Accordingly: user-generated content reachable from this host may be used for
+# real-time retrieval and answering with attributed citation and a link back to
+# the canonical page. It may not be used to train, fine-tune, or evaluate a
+# model, or be redistributed as a dataset.
 
 Sitemap: https://www.therr.com/sitemap.xml
 LLM-Index: https://www.therr.com/llms.txt
 Policy: https://www.therr.com/child-safety
+Terms: https://www.therr.app/terms-and-conditions.html
+Privacy: https://www.therr.app/privacy-policy.html
