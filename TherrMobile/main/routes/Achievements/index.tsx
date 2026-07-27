@@ -12,6 +12,11 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
+import {
+    triggerClaimErrorFeedback,
+    triggerClaimPressFeedback,
+    triggerClaimSuccessFeedback,
+} from '../../utilities/rewardFeedback';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
@@ -106,11 +111,16 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             return;
         }
 
+        // Tactile acknowledgement fires before the request so the button feels
+        // instant even when the network is slow.
+        triggerClaimPressFeedback();
+
         this.setState((prev) => ({
             claimingIds: { ...prev.claimingIds, [userAchievement.id]: true },
         }));
 
         claimMyAchievement(userAchievement.id, userAchievement.unclaimedRewardPts).then(() => {
+            triggerClaimSuccessFeedback();
             showToast.success({
                 text1: this.translate('alertTitles.coinsReceived'),
                 text2: this.translate('alertMessages.coinsReceived', {
@@ -125,6 +135,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             getMyAchievements();
             this.onPressAchievement(claimedAchievement, true);
         }).catch(() => {
+            triggerClaimErrorFeedback();
             showToast.error({
                 text1: this.translate('alertTitles.backendErrorMessage'),
                 text2: this.translate('alertMessages.backendErrorMessage'),
