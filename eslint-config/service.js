@@ -6,6 +6,7 @@
 const path = require('path');
 const baseConfig = require('./base');
 const { BRAND_SCOPED_TABLES } = require('./brand-scoped-tables');
+const { NO_ASYNC_TABLE_BUILDER_CALLBACK } = require('./migration-rules');
 
 // Build a no-restricted-syntax selector that flags string literals matching brand-scoped table names.
 // Catches `.from('main.notifications')`, `into('main.notifications')`, raw SQL `FROM main.notifications`,
@@ -67,11 +68,14 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
             },
             // Migration files legitimately reference brand-scoped tables when creating, altering,
             // or dropping them. The brand-scoping enforcement is at runtime via BrandScopedStore;
-            // schema-level operations are safe by definition.
+            // schema-level operations are safe by definition. So the brand-scoped-table selectors
+            // are dropped here — but no-restricted-syntax is re-pointed rather than turned off,
+            // because migrations have their own footgun to guard against (async table-builder
+            // callbacks). See eslint-config/migration-rules.js.
             {
                 files: ['src/store/migrations/**/*.js', 'src/store/seeds/**/*.js'],
                 rules: {
-                    'no-restricted-syntax': 'off',
+                    'no-restricted-syntax': ['error', ...NO_ASYNC_TABLE_BUILDER_CALLBACK],
                 },
             },
             ...(overrides.overrides || []),

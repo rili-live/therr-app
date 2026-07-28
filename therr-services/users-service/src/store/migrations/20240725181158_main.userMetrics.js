@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async (knex) => knex.schema.withSchema('main').alterTable('userMetrics', async (table) => {
+exports.up = async (knex) => knex.schema.withSchema('main').alterTable('userMetrics', (table) => {
     table.index('dimensions', 'dimensions_index', {
         indexType: 'GIN',
     });

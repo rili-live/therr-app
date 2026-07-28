@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async (knex) => knex.schema.withSchema('main').alterTable('users', async (table) => {
+exports.up = async (knex) => knex.schema.withSchema('main').alterTable('users', (table) => {
     table.string('userName').nullable().unique().alter();
 });
 
