@@ -70,6 +70,7 @@
 - **Push notifications** — Firebase Cloud Messaging; location-triggered, brand-specific templates
 - **In-app notifications** — real-time via WebSocket; mark read, notification history
 - **Notification channels** — default, content discovery, reward updates, reminders (Android)
+- **Dwelling-aware notification muting** — nearby-search push notifications are suppressed while the user is at a place they live or are staying (home, apartment, hotel, extended stay). A `main.userLocations` row becomes a "dwelling" once observed across multiple distinct calendar days, or when explicitly declared home; stale dwellings decay after 30 days without a visit. Areas are still discovered, activated, and recorded in the in-app notification list — only the interruptive push is muted
 
 ### Campaigns & Business Tools
 - **Campaigns** — create/manage marketing campaigns with status tracking and ad goals
