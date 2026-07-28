@@ -36,8 +36,10 @@ spec:
         env:
         - name: API_GATEWAY_PORT
           value: "7770"
+        # Every browser origin that calls the gateway must be listed here (exact
+        # scheme + host, no trailing slash). Anything missing fails CORS preflight.
         - name: URI_WHITELIST
-          value: "https://therr.com,https://www.therr.com,https://therr.app,https://www.therr.app"
+          value: "https://therr.com,https://www.therr.com,https://therr.app,https://www.therr.app,https://dashboard.therr.com,https://www.dashboard.therr.com,https://habits.therr.com,https://www.habits.therr.com,https://stage.therr.com,https://www.stage.therr.com,https://stage.dashboard.therr.com"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:

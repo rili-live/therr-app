@@ -44,9 +44,24 @@ const corsOptions = {
     origin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
         if (!origin || originWhitelist.includes(origin)) {
             callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
+            return;
         }
+
+        // Resolve to `false` rather than an Error. Passing an Error routes through the
+        // express error handler and returns an opaque 500 with no indication of the cause;
+        // `false` simply omits the Access-Control-Allow-Origin header, which is what the
+        // browser is actually checking. Log the rejected origin so a missing whitelist
+        // entry is diagnosable from traces instead of only from the browser console.
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: [`CORS rejected origin: ${origin}`],
+            traceArgs: {
+                'cors.rejectedOrigin': origin,
+                'cors.whitelistSize': originWhitelist.length,
+            },
+        });
+        callback(null, false);
     },
 };
 

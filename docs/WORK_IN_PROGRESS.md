@@ -170,16 +170,17 @@ append new items here rather than only printing them once.
   (users-service: `npm run migrations:run`) after deploying — adds the nullable
   `habits.pact_members.nudgedAt` column the new pact-nudge endpoint writes to via
   `markNudged`. Without it, every nudge call 500s on the `markNudged` update.
-- [ ] (2026-06-20, /quality-peer-review) Production CORS is now enforced.
-  `therr-api-gateway/src/index.ts` switched prod from `cors()` (allow-all) to
-  `cors(corsOptions)` gated on `URI_WHITELIST`. Before deploying to prod, confirm
-  `URI_WHITELIST` (comma-separated, exact scheme+host, no trailing slash) on the
-  api-gateway includes EVERY production web origin: `https://www.therr.com`,
-  `https://therr.com`, the dashboard origin, and any niche web domains
-  (`https://habits.therr.com`, `https://teem.therr.com`, …). Any browser origin
-  not listed will be rejected at CORS preflight and the web/dashboard apps break.
-  Mobile is unaffected (sends no Origin header). Verify the env block is actually
-  applied to the running pod, not just the image.
+- [ ] (2026-06-20, /quality-peer-review; hit in prod 2026-07-28) Production CORS is
+  enforced — `therr-api-gateway/src/index.ts` uses `cors(corsOptions)` gated on
+  `URI_WHITELIST`. This **did** break `dashboard.therr.com` login: the prod manifest
+  whitelist only listed the therr.com/therr.app origins, so the dashboard's preflight
+  to `/v1/users-service/auth` came back with no `Access-Control-Allow-Origin`.
+  `k8s/prod/api-gateway-service-deployment.yaml` now lists the dashboard, www-dashboard,
+  and habits origins. **Remaining manual step:** apply the manifest and confirm the env
+  is live on the running pod, not just in the image:
+  `kubectl set env deployment/api-gateway-service --list | grep URI_WHITELIST`.
+  Mobile is unaffected (sends no Origin header). When a new web origin is added to
+  `k8s/prod/ingress-service.yaml`, add it here in the same change.
 - [ ] (2026-06-20, /quality-peer-review) `JWT_SECRET` and `JWT_EMAIL_SECRET` are
   now hard-required at boot — api-gateway middleware (`authenticate`,
   `authenticateOptional`, `authenticateUnsubscribe`) throws at import if missing,
