@@ -16,6 +16,8 @@ export interface ICreateThoughtReactionParams {
     userHasReported?: boolean;
     userHasSuperDisliked?: boolean;
     userLocale?: string;
+    relevanceScore?: number | null;
+    scoredAt?: Date | null;
 }
 
 export interface IUpdateThoughtReactionConditions {
@@ -37,6 +39,19 @@ export interface IUpdateThoughtReactionParams {
 interface IUpdateWhereInConfig {
     columns: string[];
     whereInArray: any[][];
+}
+
+export interface IGetThoughtReactionFilters {
+    limit?: number;
+    offset?: number;
+    order?: string;
+    // 'relevance' orders by the distributor-assigned score (see updateRelevanceScores).
+    // Defaults to 'createdAt' so non-feed callers keep their existing ordering.
+    orderBy?: 'createdAt' | 'relevance';
+}
+
+export interface IRelevanceScoresByThoughtId {
+    [thoughtId: string]: number;
 }
 
 export default class ThoughtReactionsStore {
@@ -66,15 +81,28 @@ export default class ThoughtReactionsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    get(conditions: any, thoughtIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
+    get(conditions: any, thoughtIds?, filters: IGetThoughtReactionFilters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
         const restrictedLimit = Math.min(filters.limit || 100, 1000);
+        // `order` reaches this method straight from a request body, and the relevance branch
+        // below interpolates it into raw SQL — whitelist rather than pass it through.
+        const direction = String(filters.order || 'DESC').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
         let queryString = knexBuilder.select('*')
             .from(THOUGHT_REACTIONS_TABLE_NAME)
             .where(conditions)
             .limit(restrictedLimit)
-            .orderBy('createdAt', filters.order)
-            .offset(filters.offset);
+            .offset(filters.offset || 0);
+
+        if (filters.orderBy === 'relevance') {
+            // Relevance always leads regardless of `direction` — `direction` only decides how
+            // ties (and unscored, pre-rollout rows) fall back to recency. `thoughtId` is the
+            // final tiebreak so offset pagination can't repeat or skip rows when two reactions
+            // share a score and a timestamp, which is the common case inside one activation batch.
+            queryString = queryString
+                .orderByRaw(`"relevanceScore" DESC NULLS LAST, "createdAt" ${direction}, "thoughtId" ${direction}`);
+        } else {
+            queryString = queryString.orderBy('createdAt', direction);
+        }
 
         if (customs.withBookmark) {
             queryString = queryString.whereNotNull('userBookmarkCategory');
@@ -100,10 +128,56 @@ export default class ThoughtReactionsStore {
     }
 
     create(params: ICreateThoughtReactionParams | ICreateThoughtReactionParams[]) {
+        // knex renders `.insert([])` as an empty string, which would reach pg as an empty
+        // query and return no `rows`. The multi-create path hits this whenever every
+        // requested thought already has a reaction row, which is common for a re-run of the
+        // distributor over the same hot thoughts.
+        if (Array.isArray(params) && !params.length) {
+            return Promise.resolve([]);
+        }
+
         const queryString = knexBuilder(THOUGHT_REACTIONS_TABLE_NAME)
             .insert(params)
             .returning('*')
             .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Applies a per-thought relevance score to one user's existing reaction rows.
+     *
+     * The bulk `update` below sets one identical param set across every matched row via
+     * `whereIn`, which can't express "a different score per thought". A single
+     * `UPDATE ... FROM (VALUES ...)` handles the whole batch in one statement instead of one
+     * UPDATE per thought — the distributor re-scores 7-20 thoughts on every run.
+     *
+     * Rows that don't exist yet are not created here; the caller inserts those with their
+     * score already set.
+     */
+    updateRelevanceScores(userId: string, scoresByThoughtId: IRelevanceScoresByThoughtId) {
+        const entries = Object.entries(scoresByThoughtId || {})
+            .filter(([thoughtId, score]) => !!thoughtId && Number.isFinite(Number(score)));
+
+        if (!userId || !entries.length) {
+            return Promise.resolve([]);
+        }
+
+        const bindings: any[] = [];
+        entries.forEach(([thoughtId, score]) => {
+            bindings.push(thoughtId, Number(score));
+        });
+        bindings.push(userId);
+
+        const valuesPlaceholders = entries.map(() => '(?::uuid, ?::double precision)').join(', ');
+        const queryString = knexBuilder.raw(
+            `UPDATE main."thoughtReactions" AS tr
+                SET "relevanceScore" = v.score, "scoredAt" = NOW(), "updatedAt" = NOW()
+                FROM (VALUES ${valuesPlaceholders}) AS v("thoughtId", score)
+                WHERE tr."thoughtId" = v."thoughtId" AND tr."userId" = ?::uuid
+                RETURNING tr.*`,
+            bindings,
+        ).toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
     }

@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaceMetrics', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaceMetrics', (table) => {
     table.dropIndex('name');
     table.index(['spaceId', 'createdAt']);
     table.index(['spaceId', 'name']);

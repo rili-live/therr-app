@@ -16,7 +16,8 @@
 - **Apple OAuth** — social sign-in (mobile)
 - **Phone verification** — optional during profile creation
 - **Passwordless phone sign-in** (mobile) — entering a phone number in the sign-in field swaps the password step for a texted 6-digit code (`POST /v1/phone/auth/start` → `/auth/verify`). Enumeration-safe: the "code sent" response is identical whether or not an account exists. When a number is attached to several accounts, an account picker completes sign-in via `/auth/select`
-- **Phone-first sign-up** (mobile) — verify a phone number by SMS, then add an e-mail; the account is created already `MOBILE_VERIFIED` and a password is optional. The e-mail still receives its normal verification message
+- **Phone-first sign-up** (mobile) — verify a phone number by SMS, then add an e-mail and (optionally) an invite code; the account is created already `MOBILE_VERIFIED` and a password is optional. The e-mail still receives its normal verification message
+- **Accounts per phone number** — brand-configurable cap (`getMaxAccountsPerPhone`): Therr allows one personal + one creator + one business account per number, Friends with Habits allows exactly one. When a number already holds an account, sign-up asks which type the new one is and offers only the free types; a first account still picks its type on the profile-creation screen
 - **Remembered profiles** (mobile) — the sign-in field pre-fills the account last used on the device, with a chevron that opens a switcher to change accounts, remove a saved one, or start fresh. Stored locally through `SecureStorage`; holds no credentials or tokens
 - **Password reset** — forgot-password email flow
 - **Account types** — personal, business, and creator accounts
@@ -62,6 +63,7 @@
 - **TherrCoin currency** — earned through social actions, check-ins, referrals
 - **XP system** — experience points from achievements
 - **Points exchange** — redeem accumulated rewards
+- **Reward claim celebration (mobile)** — claiming an achievement reward plays a synthesized coin "ka-ching" on grant and a full fanfare synced to the confetti animation on the claim screen, each paired with an escalating haptic ramp. Sounds are generated at runtime via `react-native-audio-api` (no bundled audio files) using an `ambient`/`mixWithOthers` session, so they honor the iOS ringer switch and never interrupt the user's music; haptics honor the Android system haptics setting
 - **Leaderboards** — Duolingo-style weekly (Monday UTC reset) + all-time XP rankings with Everyone/Friends scopes, per-brand (works for Therr and Friends with Habits). XP accrues from achievement progress and habit check-ins/streak milestones; separate from the spendable TherrCoin balance. Opt-out via `settingsIsLeaderboardEnabled`. Climbing into the weekly top 10 / top 3 / #1 triggers a rank-milestone push notification and `weeklyChampion` achievement progress
 
 ### Notifications
@@ -104,7 +106,7 @@
 - **Phone contacts integration** — sync contacts for friend invitations
 - **Camera & image picker** — capture/select photos with crop and compression
 - **Get directions** — open native maps for navigation to locations
-- **Haptic feedback** — vibration feedback on key interactions
+- **Haptic feedback** — vibration feedback on key interactions, including the achievement reward-claim celebration ramp
 - **Secure storage** — encrypted local storage for sensitive data
 - **Location disclosure modal** — privacy explanation for location permissions
 - **Nearby content carousels** — swipeable tabs for discoveries, events, thoughts, news

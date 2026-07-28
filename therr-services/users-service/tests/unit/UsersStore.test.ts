@@ -365,14 +365,6 @@ describe('UsersStore', () => {
             expect(generatedSql).to.contain(`'+13175551234'`);
         });
 
-        it('getByPhoneNumber matches a number stored as compact E.164', () => {
-            const { mockStore, store } = buildStore();
-            store.getByPhoneNumber('+1 317-555-1234');
-
-            const generatedSql = mockStore.read.query.args[0][0];
-            expect(generatedSql).to.contain(`'+13175551234'`);
-        });
-
         it('resolves an un-prefixed submission to both stored dialects', () => {
             const { mockStore, store } = buildStore();
             // `normalizePhoneNumber` returns "1 (317) 555-1234" for this input — no leading

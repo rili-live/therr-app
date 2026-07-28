@@ -196,6 +196,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private unsubscribePushNotifications;
     private urlEventListener;
     private routeNameRef: any = {};
+    // Latest navigation state, mirrored on every state change so it survives the
+    // locale-keyed remount of the NavigationContainer (see `render`).
+    private lastNavigationState: any = undefined;
     private theme = buildStyles();
     private themeBottomSheet = buildBottomSheetStyles();
     private themeButtons = buildButtonStyles();
@@ -1897,10 +1900,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // Keyed on locale only so theme toggles do not remount the entire nav tree.
                 // Locale change still requires a remount because route translators close over locale at construction.
                     key={this.props.user?.settings?.locale || 'en-us'}
+                    // Restore the stack the user was already on across that remount. Without this the
+                    // navigator falls back to its first screen, so switching languages from, say, the
+                    // sign-up screen would bounce the user out to the landing/sign-in screen. Route
+                    // names are locale-independent (`translate` returns the key when it is not a
+                    // dictionary path), so a state captured under one locale is valid under any other.
+                    // Undefined on first mount, which is the normal "start at the initial route" case.
+                    initialState={this.lastNavigationState}
                     theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                     ref={navigationRef}
                     onReady={() => {
                         this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
+                        this.lastNavigationState = navigationRef?.getRootState();
                         Promise.allSettled(preLoadImageList.map((image) => {
                             const img = Image.resolveAssetSource(image).uri;
                             return Image.prefetch(img);
@@ -1913,6 +1924,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         });
                     }}
                     onStateChange={async () => {
+                        // Capture synchronously, before any await, so a locale change dispatched
+                        // during this tick still remounts with the up-to-date stack.
+                        this.lastNavigationState = navigationRef?.getRootState();
                         const previousRouteName = this.routeNameRef.current;
                         const currentRouteName = navigationRef?.getCurrentRoute()?.name;
                         if (currentRouteName !== 'Map') {

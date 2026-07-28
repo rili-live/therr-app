@@ -4,7 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { BrandVariations, Content } from 'therr-js-utilities/constants';
+import {
+    BrandVariations, Content, ErrorCodes, getPhoneAccountType,
+} from 'therr-js-utilities/constants';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
@@ -86,6 +88,11 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             croppedImageDetails: {},
             errorMsg: '',
             inputs: {
+                // Seeded from the account rather than defaulted, because sign-up now sets the
+                // type up-front when the phone number already has an account. Leaving this
+                // blank would submit `personal` on the next Save and quietly demote a creator
+                // or business account into a duplicate type on that number.
+                accountType: getPhoneAccountType(props.user.details),
                 email: props.user.details.email,
                 firstName: Platform.OS === 'ios' ? (props.user.details.firstName || DEFAULT_FIRSTNAME) : props.user.details.firstName,
                 lastName: Platform.OS === 'ios' ? (props.user.details.lastName || DEFAULT_LASTNAME) : props.user.details.lastName,
@@ -294,7 +301,13 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                     }
                 })
                 .catch((error: any) => {
-                    if (
+                    // The account type or phone number collides with another account on the
+                    // same number. The service's message is English-only, so translate here.
+                    if (error?.errorCode === ErrorCodes.TOO_MANY_ACCOUNTS) {
+                        this.setState({
+                            errorMsg: this.translate('alertMessages.phoneNumberAlreadyInUse'),
+                        });
+                    } else if (
                         error.statusCode === 400 ||
                         error.statusCode === 401 ||
                         error.statusCode === 404

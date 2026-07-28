@@ -62,9 +62,14 @@ append new items here rather than only printing them once.
   Per-brand Firebase apps are loaded by env var; a stale value will silently
   send pushes from the wrong project.
 - [ ] **Run unconsumed migrations** on each service after any change under
-  `therr-services/<service>/src/migrations/**` lands on `main`. There is no
-  auto-migrate step in the deploy pipeline.
-  Command per service: `npm run migrations:run` (verify per-service `package.json`).
+  `therr-services/<service>/src/migrations/**` lands on `main`.
+  **Now automated for `main` deploys** via `_bin/cicd/run-migrations.sh`
+  (invoked from `_bin/cicd/deploy.sh`): it runs `npm run migrations:run` inside
+  the freshly rolled-out pod for each of the five migration-owning services
+  whose `src/store/migrations` changed. Still run manually when the opt-out
+  (`RUN_MIGRATIONS_ON_DEPLOY=false`) is set, for stage/non-`main` DBs, or to
+  apply a migration ahead of its image. Command per service:
+  `npm run migrations:run` (verify per-service `package.json`).
 - [ ] **Invalidate CDN cache for assets** (`docs/CLOUDFLARE_CDN.md`) after any
   change to global CSS, brand assets, or favicons.
 
@@ -95,6 +100,7 @@ append new items here rather than only printing them once.
   users-service route (`/habits/pacts/digest/run-daily`) is deliberately not
   exposed through the API gateway; more than one run per day duplicates
   streakAtRisk/partnerMissedDay/pactExpiring pushes.
+- [ ] (2026-07-27, reward-claim-feedback) Rebuild the mobile native projects for the new `react-native-audio-api` dependency — `cd TherrMobile && npm install --legacy-peer-deps && npm run ios:pod:install`, then a clean Android build (`npm run android:clean` before `npm run android`). This is a JSI/native module: an over-the-air JS-only update cannot pick it up. Until the rebuild lands, `main/utilities/rewardFeedback.ts` catches the missing module and reward claims stay silent (haptics still fire), so nothing breaks — the sound just doesn't play. Verify on a physical device: haptics are simulator no-ops, and the iOS ringer-switch behavior (session is `ambient` + `mixWithOthers`) can only be checked on hardware.
 - [ ] (2026-07-25, /quality-peer-review) Before the passwordless phone auth release goes live, confirm the Twilio A2P 10DLC campaign and messaging throughput cover the two **new unauthenticated** SMS-dispatching routes (`POST /v1/phone/auth/start`, `POST /v1/phone/register/start`) — previously only the authenticated `/phone/verify` sent SMS. Set a Twilio spend alert at the same time. Sends are now capped per destination number (5/hour, `chargeSmsSendBudget` in `therr-api-gateway/src/services/phone/verificationCodes.ts`) on top of the per-IP limiter, so the exposure is bounded — but the bound is `5 × distinct numbers/hour`, which is still worth a billing alarm.
 - [ ] (2026-07-25, /quality-peer-review) Product decision to confirm on the passwordless sign-in flow: `POST /v1/phone/auth/start` no longer returns `INVALID_REGION`. It cannot — an SMS is only attempted for a number that *has* an account, so surfacing a region error would confirm the account exists, which is the one fact the uniform response withholds. Consequence: a user in a Twilio-unroutable region who has an account gets "code sent" and never receives one. Twilio failures are logged (`Failed to dispatch passwordless sign-in code`); watch that log after launch and consider a static country-code allow-list on the client if it shows real volume. Sign-*up* (`/register/start`) is unaffected and still reports the region error.
 - [ ] (2026-07-25, /quality-peer-review) Bump the iOS app version for the passwordless-phone-auth release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.9.0` / `versionCode 436`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still at `MARKETING_VERSION = 1.70.0` (iOS uses a separate scheme, so this is a bump-and-submit step, not a value to copy).
@@ -165,16 +171,17 @@ append new items here rather than only printing them once.
   (users-service: `npm run migrations:run`) after deploying — adds the nullable
   `habits.pact_members.nudgedAt` column the new pact-nudge endpoint writes to via
   `markNudged`. Without it, every nudge call 500s on the `markNudged` update.
-- [ ] (2026-06-20, /quality-peer-review) Production CORS is now enforced.
-  `therr-api-gateway/src/index.ts` switched prod from `cors()` (allow-all) to
-  `cors(corsOptions)` gated on `URI_WHITELIST`. Before deploying to prod, confirm
-  `URI_WHITELIST` (comma-separated, exact scheme+host, no trailing slash) on the
-  api-gateway includes EVERY production web origin: `https://www.therr.com`,
-  `https://therr.com`, the dashboard origin, and any niche web domains
-  (`https://habits.therr.com`, `https://teem.therr.com`, …). Any browser origin
-  not listed will be rejected at CORS preflight and the web/dashboard apps break.
-  Mobile is unaffected (sends no Origin header). Verify the env block is actually
-  applied to the running pod, not just the image.
+- [ ] (2026-06-20, /quality-peer-review; hit in prod 2026-07-28) Production CORS is
+  enforced — `therr-api-gateway/src/index.ts` uses `cors(corsOptions)` gated on
+  `URI_WHITELIST`. This **did** break `dashboard.therr.com` login: the prod manifest
+  whitelist only listed the therr.com/therr.app origins, so the dashboard's preflight
+  to `/v1/users-service/auth` came back with no `Access-Control-Allow-Origin`.
+  `k8s/prod/api-gateway-service-deployment.yaml` now lists the dashboard, www-dashboard,
+  and habits origins. **Remaining manual step:** apply the manifest and confirm the env
+  is live on the running pod, not just in the image:
+  `kubectl set env deployment/api-gateway-service --list | grep URI_WHITELIST`.
+  Mobile is unaffected (sends no Origin header). When a new web origin is added to
+  `k8s/prod/ingress-service.yaml`, add it here in the same change.
 - [ ] (2026-06-20, /quality-peer-review) `JWT_SECRET` and `JWT_EMAIL_SECRET` are
   now hard-required at boot — api-gateway middleware (`authenticate`,
   `authenticateOptional`, `authenticateUnsubscribe`) throws at import if missing,
@@ -188,6 +195,59 @@ append new items here rather than only printing them once.
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
+- [ ] (2026-07-26, /quality-peer-review) Run the
+  `20260726000000_main.thoughtReactions.relevanceScore` migration on production
+  (reactions-service: `npm run migrations:run`) **before** the reactions-service
+  image rolls out. The new activation path inserts `relevanceScore` / `scoredAt`
+  on every `thoughtReactions` row and the activated-feed read orders by
+  `relevanceScore`; if the columns are missing, both thought activation and the
+  stream 500 outright. This is a hard ordering dependency, not a soft one.
+- [ ] (2026-07-26, /quality-peer-review) That same migration creates
+  `idx_thought_reactions_user_relevance` with a plain (non-`CONCURRENTLY`)
+  `CREATE INDEX`, which takes an ACCESS EXCLUSIVE lock on
+  `main."thoughtReactions"` for the duration of the build. Knex runs migrations
+  inside a transaction so `CONCURRENTLY` is not available here — schedule the run
+  during a low-traffic window, or build the index by hand with `CONCURRENTLY`
+  first so the migration's `IF NOT EXISTS` becomes a no-op.
+- [ ] (2026-07-26, /quality-peer-review) First feed load after the relevance
+  rollout reshuffles for every existing user: rows activated before the migration
+  have `relevanceScore IS NULL` and sort last (`NULLS LAST`). Expected and in the
+  intended direction, but it is user-visible — worth knowing before support
+  tickets arrive.
+- [ ] (2026-07-26, /quality-peer-review) Optional env tuning introduced this
+  cycle, all with working defaults — set only if the defaults misbehave under
+  real traffic: `THOUGHT_DISTRIBUTOR_MIN_INTERVAL_SECONDS` (users-service, default
+  900s; `0` disables the per-user distributor gate),
+  `INTEREST_ENGAGEMENT_FLUSH_INTERVAL_MS` and
+  `INTEREST_ENGAGEMENT_MAX_BUFFERED_USERS` (maps-service and reactions-service,
+  defaults 10000ms / 1000 users).
+- [ ] (2026-07-28, /quality-peer-review) Apply the
+  `20260727000000_main.userInterests.affinityScore` columns on production
+  **before** the users-service image rolls out. `run-migrations.sh` runs
+  migrations *after* `kubectl set image` and after `kubectl rollout status`
+  returns, but the new `incrementUserInterestsByKey` names `affinityScore` /
+  `lastEngagedAt` / `source` in its INSERT column list, so against the
+  pre-migration schema every interest-engagement flush raises
+  `column "affinityScore" ... does not exist` for the whole rollout window.
+  Failures are caught and logged by the maps/reactions flush buffers (dropped
+  increments + `Failed to flush interest engagement` error spans), so this is
+  lost preference-learning data and alert noise rather than user-facing 500s —
+  but it is avoidable. The migration is written `IF NOT EXISTS` specifically so
+  the columns can be added by hand ahead of the deploy and the automated run
+  becomes a no-op. Reads are unaffected (`getByUserIds` selects `*`).
+- [ ] (2026-07-28, /quality-peer-review) Before flipping the interest read path
+  (ALGORITHM_AUDIT phase 5), review the sampled `INTEREST_RANKING_SHADOW` spans
+  emitted by `getTopRankedConnections` — `interest.shadowFootrule` and
+  `interest.shadowTopOverlap`. Shipping this write-only is only worthwhile if
+  those distributions are actually read before the flip.
+- [ ] (2026-07-28, /quality-peer-review) Optional env tuning added this cycle,
+  all with working defaults: `INTEREST_AFFINITY_HALF_LIFE_DAYS` (default 45 —
+  must be changed in users-service only, where both the write-side decay in
+  `UserInterestsStore` and the read-side decay in `interestWeights` read the
+  same variable; setting them to different values silently describes two
+  different curves), `INTEREST_IMPLICIT_DISCOUNT` (default 0.6; note `0` falls
+  back to the default rather than disabling the discount), and
+  `INTEREST_SHADOW_LOG_SAMPLE_RATE` (default 0.02; `0` does disable logging).
 <!-- skill-followups:end -->
 
 ---
@@ -579,6 +639,45 @@ these after items in 3.3 are merged and a perf baseline is captured.
   React Router v6 navigation flicker after new-user login (also at
   `routes/Login/index.tsx:76`, `routes/Register/index.tsx:69`)
 
+### 3.5 CI/CD & deploy automation (dev → deploy → debug)
+
+Automation of the build/deploy/debug pipeline so a small team spends less time
+babysitting releases. See `docs/AUTOMATION_ROADMAP.md` for the full,
+cost-weighted roadmap (including observability, auto-filed bug issues,
+dependency automation, and marketing automation that live outside this
+backlog).
+
+- ✅ **Automated DB migrations on deploy** (roadmap #2) — **DONE.**
+  `_bin/cicd/run-migrations.sh` runs `npm run migrations:run` in the
+  freshly rolled-out pod for each migration-owning service whose
+  `src/store/migrations` changed on a `main` deploy. Removes the recurring
+  "run unconsumed migrations" manual follow-up. Additive/expand-contract
+  migrations only; opt out with `RUN_MIGRATIONS_ON_DEPLOY=false`.
+
+- [ ] **Post-deploy staging smoke tests + auto-rollback** (roadmap #3) —
+  replace the stubbed `test-e2e-staging` job in `.circleci/config.yml`
+  (currently `echo "Hello, Integration Tests"`) with a real synthetic suite
+  hitting critical paths (auth, map/space read, post create, push send).
+  Gate `stage → main` promotion on it and auto-revert the `kubectl set image`
+  (or `kubectl rollout undo`) if post-deploy healthchecks/smoke checks fail.
+  Turns a bad deploy into a ~minutes auto-rollback instead of a manual
+  scramble. Effort: medium. Depends on a reachable staging cluster (the job
+  scaffold and GKE auth already exist).
+
+- [ ] **Unify CI/CD across all repos + CD for the cloud functions & infra**
+  (roadmap #4) — standardize on one CI convention and add the missing
+  continuous-deploy legs:
+  - `therr-ai-automator` has Vitest tests but **no CI workflow** — add one
+    (lint / tsc / test / build), mirroring `therr-messaging-automator/.github/workflows/ci.yml`.
+  - Both automators deploy via a manual `npm run package:zip` + Terraform —
+    add build→zip→deploy CD (GitHub Actions → Terraform apply) so a merge to
+    the default branch ships the function.
+  - `therr-infra-terraform` has **no CI** — add `terraform plan` on PR and
+    `terraform apply` on merge so infra changes are reviewable and applied
+    automatically instead of by hand.
+  Effort: medium, mostly YAML + service-account wiring. Removes the
+  manual-zip/manual-apply toil and makes infra diffs auditable.
+
 ---
 
 ## Tier 4 — Content Safety, Data Quality, Observability
@@ -675,6 +774,16 @@ English-formatted timestamps.
   join (avoids stale "discovery radius" once cities densify)
 - `therr-api-gateway/src/services/users/router.ts:569` — Validate AWS SNS
   signatures on bounce webhook
+- `main.moments` has **no foreign key on `spaceId`**, in every environment.
+  `20230316132958_main.moments.js` intended to drop and re-add it with
+  `onDelete('SET NULL')`, but it was written as an `async` alterTable callback,
+  so knex emitted only the `dropForeign` and silently discarded the re-add (see
+  the comment in that migration). Verified against a from-scratch replay: zero
+  FK constraints on the table. If the constraint is wanted, it needs a **new
+  forward migration** — do not edit the historical one, which would diverge
+  fresh databases from production. That migration must first find and clear
+  orphaned `moments.spaceId` values accumulated since 2023, or the
+  `ADD CONSTRAINT` will fail.
 
 ### 4.5 Observability gaps
 
