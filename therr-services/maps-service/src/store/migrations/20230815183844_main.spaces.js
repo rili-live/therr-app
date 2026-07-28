@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', (table) => {
     table.bool('isPointOfInterest').notNullable().defaultTo(true);
     table.string('businessTransactionId').nullable();
     table.string('businessTransactionName').nullable();

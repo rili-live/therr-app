@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('userStatsAggregations', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('userStatsAggregations', (table) => {
     table.primary('userId');
 });
 

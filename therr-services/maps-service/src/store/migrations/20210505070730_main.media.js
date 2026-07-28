@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').createTable('media', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').createTable('media', (table) => {
     table.uuid('id').notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('fromUserId').notNullable();
     table.string('altText').notNullable().defaultsTo('');
