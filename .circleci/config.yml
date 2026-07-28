@@ -205,6 +205,21 @@ jobs:
           # --auto-submit submits the built AAB to the Play Internal track using
           # the `therr-internal` submit profile in eas.json. Requires the Google
           # Play service-account key to be configured on EAS (already done).
+          #
+          # no_output_timeout: EAS builds queue before they run, and the CLI
+          # prints nothing while waiting in the queue. CircleCI's default
+          # no-output timeout is 10 minutes, which kills this step on any
+          # non-trivial queue wait even though the build itself succeeds. 40m
+          # covers a long queue plus the ~15-20m Android build. Note the
+          # submission is registered with EAS server-side at build-creation
+          # time, so a killed CLI does not cancel the Play upload — but it does
+          # abort the job before the release-notes step below can run, which is
+          # why raising this matters rather than just letting it fail.
+          #
+          # Deliberately NOT using --no-wait: the release-notes step needs the
+          # build to have landed on the track before it polls, and would burn
+          # its 15m poll window against an empty track if this returned early.
+          no_output_timeout: 40m
           command: |
             cd TherrMobile
             eas build \
