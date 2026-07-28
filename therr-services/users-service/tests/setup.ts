@@ -6,6 +6,10 @@
 // Real values from .env are used when present (set by the run script or the
 // developer's shell). These defaults only fill in when unset.
 
+// Safe to hoist above the env seeding below: installing the stubs only
+// patches SDK prototypes and reads no configuration.
+import { installOutboundTransportStubs } from './helpers/outboundStubs';
+
 // Load the root .env first so config.ts (read at import time) picks up the real
 // DB host/port. The unit `test:` scripts don't load dotenv themselves, so without
 // this any test that exercises an unstubbed store falls back to localhost:5432 and
@@ -33,3 +37,9 @@ if (!process.env.JWT_SECRET) {
 if (!process.env.JWT_EMAIL_SECRET) {
     process.env.JWT_EMAIL_SECRET = 'test-email-secret-key';
 }
+
+// Neuter the outbound transports (AWS SES, Twilio) for the whole run. The
+// dotenv load above pulls in real credentials on a developer machine, so
+// without this any test that reaches a dispatch path sends a real SMS and a
+// real email — see tests/helpers/outboundStubs.ts.
+installOutboundTransportStubs();
