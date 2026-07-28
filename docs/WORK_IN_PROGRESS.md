@@ -233,11 +233,6 @@ append new items here rather than only printing them once.
   but it is avoidable. The migration is written `IF NOT EXISTS` specifically so
   the columns can be added by hand ahead of the deploy and the automated run
   becomes a no-op. Reads are unaffected (`getByUserIds` selects `*`).
-- [ ] (2026-07-28, /quality-peer-review) The same migration builds
-  `idx_user_interests_user_affinity` with a plain (non-`CONCURRENTLY`)
-  `CREATE INDEX`, taking an ACCESS EXCLUSIVE lock on `main."userInterests"` for
-  the build. Same remedy as the `thoughtReactions` item above — build it by hand
-  with `CONCURRENTLY` first, or run in a low-traffic window.
 - [ ] (2026-07-28, /quality-peer-review) Before flipping the interest read path
   (ALGORITHM_AUDIT phase 5), review the sampled `INTEREST_RANKING_SHADOW` spans
   emitted by `getTopRankedConnections` — `interest.shadowFootrule` and
