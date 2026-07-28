@@ -735,16 +735,15 @@ const getTopRankedConnections = (req, res) => {
             }).then((results) => {
                 const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], [requestingUserDetails.id]);
 
-                // affinityScore / negativeCount / lastEngagedAt are selected for the shadow
-                // comparison only — the live ranking below still uses engagementCount.
-                const interestColumns = [
-                    'userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt',
-                    'affinityScore', 'negativeCount', 'lastEngagedAt',
-                ];
-
+                // No column list: getByUserIds selects `userInterests.*` and ignores its
+                // `returning` argument, so affinityScore / negativeCount / lastEngagedAt
+                // already arrive for the shadow comparison below. Passing a list here would
+                // read as though it were filtering the projection when it does nothing —
+                // and naming the new columns explicitly would break this read against a
+                // pre-migration schema, which selecting `*` tolerates.
                 return Store.userInterests.getByUserIds(userIds, {
                     isEnabled: true,
-                }, 'engagementCount', interestColumns)
+                }, 'engagementCount')
                     .then((userInterests) => {
                         // Shadow only — the ordering below is still the live engagementCount
                         // ranking. This measures how far the affinity-based weight would move

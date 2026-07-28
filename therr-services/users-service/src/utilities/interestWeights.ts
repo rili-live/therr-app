@@ -7,7 +7,14 @@ const AFFINITY_HALF_LIFE_MS = AFFINITY_HALF_LIFE_DAYS * 24 * 60 * 60 * 1000;
 
 // Fraction of shadow evaluations that get logged. Comparing rankings is cheap (it runs over
 // rows already in memory) but the log line is not, and this fires on a hot path.
-const SHADOW_LOG_SAMPLE_RATE = Number(process.env.INTEREST_SHADOW_LOG_SAMPLE_RATE) || 0.02;
+//
+// Parsed rather than `|| 0.02` because 0 is the meaningful value here — it is how an
+// operator kills shadow logging without a deploy, and `||` would silently restore the 2%
+// default at exactly the moment someone is trying to turn the noise off.
+const parsedShadowSampleRate = Number(process.env.INTEREST_SHADOW_LOG_SAMPLE_RATE);
+const SHADOW_LOG_SAMPLE_RATE = Number.isFinite(parsedShadowSampleRate) && process.env.INTEREST_SHADOW_LOG_SAMPLE_RATE
+    ? parsedShadowSampleRate
+    : 0.02;
 
 export interface IInterestWeightRow {
     interestId: string;

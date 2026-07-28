@@ -219,6 +219,38 @@ append new items here rather than only printing them once.
   `INTEREST_ENGAGEMENT_FLUSH_INTERVAL_MS` and
   `INTEREST_ENGAGEMENT_MAX_BUFFERED_USERS` (maps-service and reactions-service,
   defaults 10000ms / 1000 users).
+- [ ] (2026-07-28, /quality-peer-review) Apply the
+  `20260727000000_main.userInterests.affinityScore` columns on production
+  **before** the users-service image rolls out. `run-migrations.sh` runs
+  migrations *after* `kubectl set image` and after `kubectl rollout status`
+  returns, but the new `incrementUserInterestsByKey` names `affinityScore` /
+  `lastEngagedAt` / `source` in its INSERT column list, so against the
+  pre-migration schema every interest-engagement flush raises
+  `column "affinityScore" ... does not exist` for the whole rollout window.
+  Failures are caught and logged by the maps/reactions flush buffers (dropped
+  increments + `Failed to flush interest engagement` error spans), so this is
+  lost preference-learning data and alert noise rather than user-facing 500s —
+  but it is avoidable. The migration is written `IF NOT EXISTS` specifically so
+  the columns can be added by hand ahead of the deploy and the automated run
+  becomes a no-op. Reads are unaffected (`getByUserIds` selects `*`).
+- [ ] (2026-07-28, /quality-peer-review) The same migration builds
+  `idx_user_interests_user_affinity` with a plain (non-`CONCURRENTLY`)
+  `CREATE INDEX`, taking an ACCESS EXCLUSIVE lock on `main."userInterests"` for
+  the build. Same remedy as the `thoughtReactions` item above — build it by hand
+  with `CONCURRENTLY` first, or run in a low-traffic window.
+- [ ] (2026-07-28, /quality-peer-review) Before flipping the interest read path
+  (ALGORITHM_AUDIT phase 5), review the sampled `INTEREST_RANKING_SHADOW` spans
+  emitted by `getTopRankedConnections` — `interest.shadowFootrule` and
+  `interest.shadowTopOverlap`. Shipping this write-only is only worthwhile if
+  those distributions are actually read before the flip.
+- [ ] (2026-07-28, /quality-peer-review) Optional env tuning added this cycle,
+  all with working defaults: `INTEREST_AFFINITY_HALF_LIFE_DAYS` (default 45 —
+  must be changed in users-service only, where both the write-side decay in
+  `UserInterestsStore` and the read-side decay in `interestWeights` read the
+  same variable; setting them to different values silently describes two
+  different curves), `INTEREST_IMPLICIT_DISCOUNT` (default 0.6; note `0` falls
+  back to the default rather than disabling the discount), and
+  `INTEREST_SHADOW_LOG_SAMPLE_RATE` (default 0.02; `0` does disable logging).
 <!-- skill-followups:end -->
 
 ---

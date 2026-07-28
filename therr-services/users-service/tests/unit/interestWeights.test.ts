@@ -155,5 +155,101 @@ describe('interestWeights', () => {
             expect(() => logShadowInterestRanking('user-1', [{ interestId: 'a' }, { interestId: 'b' }])).to.not.throw();
             expect(() => logShadowInterestRanking(undefined as any, [null, undefined] as any)).to.not.throw();
         });
+
+        // The sample rate is read once at module load, so exercising it means reloading the
+        // module under a different env. Swapping the log module in require.cache first is
+        // what makes "did it log?" observable at all.
+        const loadWithSampleRate = (rate: string | undefined) => {
+            const weightsPath = require.resolve('../../src/utilities/interestWeights');
+            const logSpanPath = require.resolve('therr-js-utilities/log-or-update-span');
+            const previousRate = process.env.INTEREST_SHADOW_LOG_SAMPLE_RATE;
+            const originalLogModule = require.cache[logSpanPath];
+            const calls: any[] = [];
+
+            if (rate === undefined) {
+                delete process.env.INTEREST_SHADOW_LOG_SAMPLE_RATE;
+            } else {
+                process.env.INTEREST_SHADOW_LOG_SAMPLE_RATE = rate;
+            }
+
+            delete require.cache[weightsPath];
+            require.cache[logSpanPath] = {
+                ...(originalLogModule as any),
+                exports: Object.assign((...args: any[]) => { calls.push(args); }, { default: (...args: any[]) => { calls.push(args); } }),
+            } as any;
+
+            // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
+            const reloaded = require(weightsPath);
+
+            const restore = () => {
+                if (originalLogModule) {
+                    require.cache[logSpanPath] = originalLogModule;
+                } else {
+                    delete require.cache[logSpanPath];
+                }
+                delete require.cache[weightsPath];
+                if (previousRate === undefined) {
+                    delete process.env.INTEREST_SHADOW_LOG_SAMPLE_RATE;
+                } else {
+                    process.env.INTEREST_SHADOW_LOG_SAMPLE_RATE = previousRate;
+                }
+            };
+
+            return { reloaded, calls, restore };
+        };
+
+        const twoRows = [
+            {
+                interestId: 'a', score: 5, engagementCount: 50, affinityScore: 50, lastEngagedAt: new Date(NOW),
+            },
+            {
+                interestId: 'b', score: 5, engagementCount: 2, affinityScore: 2, lastEngagedAt: new Date(NOW - (200 * DAY_MS)),
+            },
+        ];
+
+        it('logs when the sample roll falls under the configured rate', () => {
+            const { reloaded, calls, restore } = loadWithSampleRate('1');
+            try {
+                reloaded.logShadowInterestRanking('user-1', twoRows);
+                expect(calls.length).to.eq(1);
+            } finally {
+                restore();
+            }
+        });
+
+        // `Number(x) || 0.02` would silently restore the 2% default here, so an operator
+        // turning shadow logging off in production would keep paying for 2% of it.
+        it('logs nothing when the sample rate is explicitly set to zero', () => {
+            const { reloaded, calls, restore } = loadWithSampleRate('0');
+            try {
+                for (let i = 0; i < 200; i += 1) {
+                    reloaded.logShadowInterestRanking('user-1', twoRows);
+                }
+                expect(calls.length).to.eq(0);
+            } finally {
+                restore();
+            }
+        });
+
+        it('falls back to the 2% default when the rate is unset or unparseable', () => {
+            const unset = loadWithSampleRate(undefined);
+            try {
+                expect(unset.reloaded.logShadowInterestRanking('user-1', twoRows)).to.eq(undefined);
+            } finally {
+                unset.restore();
+            }
+
+            const garbage = loadWithSampleRate('not-a-number');
+            try {
+                // 200 rolls against a 2% rate essentially never yields zero logs; a NaN rate
+                // would make `Math.random() >= NaN` false and log every single time.
+                for (let i = 0; i < 200; i += 1) {
+                    garbage.reloaded.logShadowInterestRanking('user-1', twoRows);
+                }
+                expect(garbage.calls.length).to.be.lessThan(200);
+            } finally {
+                garbage.restore();
+            }
+        });
     });
 });
