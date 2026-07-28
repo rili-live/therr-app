@@ -773,6 +773,16 @@ English-formatted timestamps.
   join (avoids stale "discovery radius" once cities densify)
 - `therr-api-gateway/src/services/users/router.ts:569` — Validate AWS SNS
   signatures on bounce webhook
+- `main.moments` has **no foreign key on `spaceId`**, in every environment.
+  `20230316132958_main.moments.js` intended to drop and re-add it with
+  `onDelete('SET NULL')`, but it was written as an `async` alterTable callback,
+  so knex emitted only the `dropForeign` and silently discarded the re-add (see
+  the comment in that migration). Verified against a from-scratch replay: zero
+  FK constraints on the table. If the constraint is wanted, it needs a **new
+  forward migration** — do not edit the historical one, which would diverge
+  fresh databases from production. That migration must first find and clear
+  orphaned `moments.spaceId` values accumulated since 2023, or the
+  `ADD CONSTRAINT` will fail.
 
 ### 4.5 Observability gaps
 
