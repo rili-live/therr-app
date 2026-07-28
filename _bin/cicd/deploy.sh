@@ -170,6 +170,12 @@ fi
 
 echo "Kubectl apply complete for all services with changes"
 
+# Run any pending database migrations for services whose migration files
+# changed in this deploy. Reuses the freshly rolled-out pods (which already
+# have the Cloud SQL proxy + DB secrets). Additive/expand-contract migrations
+# only. Set RUN_MIGRATIONS_ON_DEPLOY=false to skip. See run-migrations.sh.
+./_bin/cicd/run-migrations.sh
+
 echo "Resetting VERSIONS.txt"
 cat > VERSIONS.txt <<EOF
 EOF
