@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('events', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('events', (table) => {
     table.jsonb('medias');
 });
 

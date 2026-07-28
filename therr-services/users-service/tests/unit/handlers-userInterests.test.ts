@@ -35,7 +35,6 @@ describe('User Interests Handler', () => {
     describe('incrementUserInterests', () => {
         it('routes the coalesced payload to the per-key increment', async () => {
             const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([{ id: 'ui-1' }]);
-            const legacyStub = sinon.stub(Store.userInterests, 'incrementUserInterests').resolves([]);
 
             await incrementUserInterests(buildReq({
                 interestIncrements: {
@@ -44,7 +43,6 @@ describe('User Interests Handler', () => {
                 },
             }), buildRes());
 
-            expect(legacyStub.called).to.be.eq(false);
             expect(byKeyStub.calledOnce).to.be.eq(true);
             expect(byKeyStub.args[0][0]).to.eq('11111111-1111-1111-1111-111111111111');
             expect(byKeyStub.args[0][1]).to.deep.equal({
@@ -66,26 +64,48 @@ describe('User Interests Handler', () => {
         // A rolling deploy leaves older maps/reactions pods sending the one-event-at-a-time
         // shape for a while. Dropping it would silently stop preference learning mid-deploy.
         it('still accepts the legacy single-increment payload', async () => {
-            const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([]);
-            const legacyStub = sinon.stub(Store.userInterests, 'incrementUserInterests').resolves([{ id: 'ui-1' }]);
+            const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([{ id: 'ui-1' }]);
 
             await incrementUserInterests(buildReq({
-                interestDisplayNameKeys: ['interests.foodDrink.coffee'],
+                interestDisplayNameKeys: ['interests.foodDrink.coffee', 'interests.sports.soccer'],
                 incrBy: 3,
             }), buildRes());
 
-            expect(byKeyStub.called).to.be.eq(false);
-            expect(legacyStub.calledOnce).to.be.eq(true);
-            expect(legacyStub.args[0][1]).to.deep.equal(['interests.foodDrink.coffee']);
-            expect(legacyStub.args[0][2]).to.eq(3);
+            // Normalized onto the same write path rather than a second store method, so
+            // decay and discovery cannot apply to one shape and not the other.
+            expect(byKeyStub.calledOnce).to.be.eq(true);
+            expect(byKeyStub.args[0][1]).to.deep.equal({
+                'interests.foodDrink.coffee': 3,
+                'interests.sports.soccer': 3,
+            });
+        });
+
+        it('caps the legacy per-event increment', async () => {
+            const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([]);
+
+            await incrementUserInterests(buildReq({
+                interestDisplayNameKeys: ['interests.foodDrink.coffee'],
+                incrBy: 999,
+            }), buildRes());
+
+            expect(byKeyStub.args[0][1]).to.deep.equal({ 'interests.foodDrink.coffee': 5 });
+        });
+
+        it('tolerates a legacy payload with no keys', async () => {
+            const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([]);
+            const res = buildRes();
+
+            await incrementUserInterests(buildReq({ incrBy: 2 }), res);
+
+            expect(byKeyStub.args[0][1]).to.deep.equal({});
+            expect(res.statusCode).to.eq(200);
         });
 
         // An array passes `typeof === 'object'`, so without an explicit guard it would take
         // the coalesced branch and key increments by numeric index — matching no interest at
         // all, so the request would 200 having recorded nothing.
         it('does not treat an array payload as the coalesced shape', async () => {
-            const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([]);
-            const legacyStub = sinon.stub(Store.userInterests, 'incrementUserInterests').resolves([{ id: 'ui-1' }]);
+            const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([{ id: 'ui-1' }]);
 
             await incrementUserInterests(buildReq({
                 interestIncrements: ['interests.foodDrink.coffee'],
@@ -93,8 +113,9 @@ describe('User Interests Handler', () => {
                 incrBy: 2,
             }), buildRes());
 
-            expect(byKeyStub.called).to.be.eq(false);
-            expect(legacyStub.calledOnce).to.be.eq(true);
+            // Falls through to the legacy branch, which keys by displayNameKey rather than
+            // by array index (which would have matched no interest at all).
+            expect(byKeyStub.args[0][1]).to.deep.equal({ 'interests.foodDrink.coffee': 2 });
         });
 
         // The store only updates interests the user already declared, so a flush can
@@ -113,7 +134,6 @@ describe('User Interests Handler', () => {
 
         it('returns early without touching the store when there is no user', async () => {
             const byKeyStub = sinon.stub(Store.userInterests, 'incrementUserInterestsByKey').resolves([]);
-            const legacyStub = sinon.stub(Store.userInterests, 'incrementUserInterests').resolves([]);
             const res = buildRes();
 
             await incrementUserInterests({
@@ -123,7 +143,6 @@ describe('User Interests Handler', () => {
 
             expect(res.statusCode).to.eq(200);
             expect(byKeyStub.called).to.be.eq(false);
-            expect(legacyStub.called).to.be.eq(false);
         });
     });
 });

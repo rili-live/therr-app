@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async (knex) => knex.schema.withSchema('main').alterTable('userConnections', async (table) => {
+exports.up = async (knex) => knex.schema.withSchema('main').alterTable('userConnections', (table) => {
     table.index('requestStatus');
 });
 

@@ -94,7 +94,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 436
-        versionName "3.9.0"
+        versionName "3.10.0"
         manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}"]
         vectorDrawables.useSupportLibrary = true
     }
