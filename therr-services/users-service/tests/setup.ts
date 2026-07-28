@@ -8,7 +8,7 @@
 
 // Safe to hoist above the env seeding below: installing the stubs only
 // patches SDK prototypes and reads no configuration.
-import { installOutboundTransportStubs } from './helpers/outboundStubs';
+import { installOutboundTransportStubs, resetOutboxes } from './helpers/outboundStubs';
 
 // Load the root .env first so config.ts (read at import time) picks up the real
 // DB host/port. The unit `test:` scripts don't load dotenv themselves, so without
@@ -38,8 +38,19 @@ if (!process.env.JWT_EMAIL_SECRET) {
     process.env.JWT_EMAIL_SECRET = 'test-email-secret-key';
 }
 
-// Neuter the outbound transports (AWS SES, Twilio) for the whole run. The
-// dotenv load above pulls in real credentials on a developer machine, so
-// without this any test that reaches a dispatch path sends a real SMS and a
-// real email — see tests/helpers/outboundStubs.ts.
+// Neuter the outbound transports (AWS SES, Twilio, Stripe) for the whole run.
+// The dotenv load above pulls in real credentials on a developer machine, so
+// without this any test that reaches a dispatch path sends a real SMS, mails a
+// real address, or hits the live Stripe API — see tests/helpers/outboundStubs.ts.
 installOutboundTransportStubs();
+
+// Root hook plugin: mocha applies these around every test in the run,
+// regardless of file. Resetting here makes outbox assertions independent of
+// which specs ran first — without it, a spec that asserts `lengthOf(1)` passes
+// or fails based on file ordering alone. Individual suites may still call
+// resetOutboxes() themselves; running twice is harmless.
+export const mochaHooks = {
+    beforeEach() {
+        resetOutboxes();
+    },
+};

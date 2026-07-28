@@ -10,7 +10,17 @@
  * constructing its own client.
  *
  * Captured sends land in `smsOutbox` so tests can assert what would have gone
- * out. Call `resetSmsOutbox()` in a `beforeEach` when asserting.
+ * out. `tests/setup.ts` registers a root hook that resets before every test,
+ * so ordering between spec files is not a correctness concern; a suite may
+ * still call `resetSmsOutbox()` itself.
+ *
+ * NOTE: users-service has a near-identical Twilio double. That duplication is
+ * intentional and should not be "fixed" by hoisting it into a shared package —
+ * per the root CLAUDE.md abstraction rules, there is no shared test library to
+ * host it, the two are free to diverge (this one covers SMS only; the
+ * users-service copy also doubles SES and Stripe), and coupling two services'
+ * test infrastructure to one module would make an SDK upgrade in either
+ * service a cross-service change.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
