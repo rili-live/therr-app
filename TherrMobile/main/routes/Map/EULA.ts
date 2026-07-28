@@ -9,7 +9,7 @@
  */
 const eula = `Effective date: July 27, 2026
 
-This End User License Agreement ("EULA") is a legal agreement between you and Therr LLC, 5900 Balcones Drive STE 100, Austin, TX 78731, United States ("Therr"), governing your installation and use of the Therr mobile and web applications (the "Software").
+This End User License Agreement ("EULA") is a legal agreement between you and Therr, Inc., 8 The Green STE B, Dover, DE, 19901, United States ("Therr"), governing your installation and use of the Therr mobile and web applications (the "Software").
 
 This EULA covers the software license only. Your use of the Therr service as a whole is governed by our Terms of Service at https://www.therr.app/terms-and-conditions.html, which include important provisions on dispute resolution, liability, and your content. Our Privacy Policy at https://www.therr.app/privacy-policy.html explains how we handle your personal information.
 
@@ -70,7 +70,7 @@ This EULA is governed by the laws of the State of Texas, without regard to its c
 We may update this EULA. If a change is material, we will give you at least 30 days' advance notice by email or a prominent in-app notice before it takes effect and update the "Effective date" above. Continuing to use the Software after the effective date means you accept the change. Changes are not retroactive.
 
 13. Contact
-Therr LLC, 5900 Balcones Drive STE 100, Austin, TX 78731, United States
+Therr, Inc., 8 The Green STE B, Dover, DE, 19901, United States
 Email: info@therr.com`;
 
 export default eula;
