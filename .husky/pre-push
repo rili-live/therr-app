@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+# Pre-push gate: run the test suites for packages that changed.
+#
+# This was previously wired through .huskyrc.js (husky v4 format), which husky 9
+# never reads — so there had been no pre-push gate at all since the migration.
+#
+# Tests belong here rather than in pre-commit: they are slow enough that running
+# them on every commit trains you to pass --no-verify, and a push is the point
+# where the work becomes visible to CI and to other branches.
+#
+# To bypass for a legitimate exception: git push --no-verify
+
+printf '\033[36m→ Running tests for changed packages...\033[0m\n'
+
+if ! npm run test:changed; then
+  printf '\n\033[31m⛔ Tests failed.\033[0m\n'
+  printf '   Fix them before pushing, or bypass with: git push --no-verify\n\n'
+  exit 1
+fi
+
+exit 0
