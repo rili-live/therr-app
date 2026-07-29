@@ -1,6 +1,10 @@
 import { distanceTo } from 'geolocation-utils';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { Location } from 'therr-js-utilities/constants';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
+import UserLocationCache from '../../store/UserLocationCache';
+import { getUserDwellingLocations } from './userLocations';
 
 /**
  * A "dwelling" is a general location where the user lives or is temporarily staying —
@@ -109,8 +113,46 @@ const isAtDwellingLocation = (
     nowMs: number = Date.now(),
 ): boolean => !!findCurrentDwellingLocation(locations, userLocation, nowMs);
 
+/**
+ * Reads the user's dwellings, preferring the redis cache.
+ *
+ * Every location ping — foreground and background — needs this set, but it is derived from
+ * multi-day presence and so barely changes between pings. Going to users-service each time
+ * would add an internal round trip to the hottest path in the service for data that is
+ * effectively static. See DWELLING_CACHE_TTL_SEC for why a long window is safe here.
+ *
+ * A failed fetch is NOT cached: `getUserDwellingLocations` swallows its own errors and
+ * resolves undefined, and writing `[]` for that would pin "no dwellings" in place for the
+ * full TTL and silently disable suppression. A successful fetch that returns no rows is
+ * cached, because that is a real answer and the common one for new accounts.
+ */
+const getDwellingLocationsCached = (
+    userId: string,
+    headers: InternalConfigHeaders,
+    userLocationCache: UserLocationCache,
+): Promise<IUserDwellingLocation[]> => userLocationCache.getDwellings()
+    .then((cached) => {
+        if (cached) {
+            return cached;
+        }
+
+        return getUserDwellingLocations(userId, headers)
+            .then((response) => {
+                const locations = response?.data?.userLocations;
+
+                if (!Array.isArray(locations)) {
+                    return [];
+                }
+
+                userLocationCache.setDwellings(locations); // fire and forget
+
+                return locations;
+            });
+    });
+
 export {
     isDwellingLocation,
     findCurrentDwellingLocation,
     isAtDwellingLocation,
+    getDwellingLocationsCached,
 };

@@ -12,8 +12,8 @@ import {
     hasSentNotificationRecently,
     selectAreasAndActivate,
 } from './helpers/areaLocationHelpers';
-import { createUserLocation, getUserDwellingLocations, updateUserLocation } from './helpers/userLocations';
-import { isAtDwellingLocation } from './helpers/dwellingLocations';
+import { createUserLocation, updateUserLocation } from './helpers/userLocations';
+import { getDwellingLocationsCached, isAtDwellingLocation } from './helpers/dwellingLocations';
 import { getCurrentUser } from './helpers/user';
 import { predictAndSendNotification } from '../api/firebaseAdmin';
 import * as globalConfig from '../../../../global-config';
@@ -35,8 +35,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
 
     const userLocationCache = new UserLocationCache(userId);
 
-    const dwellingLocationsPromise = getUserDwellingLocations(userId, req.headers as any)
-        .then((response) => response?.data?.userLocations || []);
+    const dwellingLocationsPromise = getDwellingLocationsCached(userId, req.headers as any, userLocationCache);
 
     return Promise.all([
         userLocationCache.getOrigin(),
@@ -161,9 +160,9 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                 deviceMobileFirebaseToken: userDeviceToken,
             });
 
-        // Home, hotel, apartment, or any other place the user has stayed across multiple days
-        const dwellingLocationsPromise = getUserDwellingLocations(userId, req.headers as any)
-            .then((response) => response?.data?.userLocations || []);
+        // Home, hotel, apartment, or any other place the user has stayed across multiple days.
+        // Cached in redis — this handler runs on every background ping.
+        const dwellingLocationsPromise = getDwellingLocationsCached(userId, req.headers as any, userLocationCache);
 
         Promise.all([userPromise, dwellingLocationsPromise]).then(([user, dwellingLocations]) => {
             const { deviceMobileFirebaseToken } = user || ({} as any);

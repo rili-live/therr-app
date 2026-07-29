@@ -7,6 +7,16 @@ import redisClient from './redisClient';
 
 export const USER_CACHE_TTL_SEC = 60 * 20; // 20 minutes
 
+// Dwellings are derived from presence across multiple *calendar days*, so the set a user
+// qualifies for changes on the order of days — never within a single location session.
+// The area caches above expire in 20 minutes because the user physically moves; that
+// reasoning does not apply here, and re-deriving dwellings on every background ping would
+// mean one internal HTTP round trip per ping for data that is effectively static.
+// The cost of the longer window is bounded: a newly-qualifying dwelling starts suppressing
+// notifications up to 6 hours late, which is immaterial for a feature whose whole purpose
+// is to quiet a place the user has already been for three days.
+export const DWELLING_CACHE_TTL_SEC = 60 * 60 * 6; // 6 hours
+
 interface IOrigin {
     longitude: number;
     latitude: number;
@@ -17,6 +27,7 @@ export default class UserLocationCache {
     private momentsGeoKeyPrefix;
     private spacesKeyPrefix;
     private spacesGeoKeyPrefix;
+    private dwellingsKey;
     public client = redisClient;
     private geoKeys: any = {};
     private keys: any = {};
@@ -28,6 +39,10 @@ export default class UserLocationCache {
         this.momentsGeoKeyPrefix = `user:${this.userId}:nearby-moments-geo`;
         this.spacesKeyPrefix = `user:${this.userId}:nearby-spaces`;
         this.spacesGeoKeyPrefix = `user:${this.userId}:nearby-spaces-geo`;
+        // Deliberately a standalone key rather than a field on the moments/spaces hashes:
+        // those are expired and deleted whenever the user travels far enough to invalidate
+        // the area cache, and dwellings must survive that.
+        this.dwellingsKey = `user:${this.userId}:dwelling-locations`;
 
         // Create Keys
         this.geoKeys.unactivated = 'unactivated';
@@ -106,6 +121,60 @@ export default class UserLocationCache {
             source: 'UserLocationCache.setOrigin',
         },
     }));
+
+    /**
+     * Returns the cached dwelling set, or `undefined` on a miss.
+     *
+     * The distinction matters: an empty array is a legitimate cached value (most users have
+     * no qualifying dwelling yet) and must not be retried on every ping, so it is stored and
+     * returned as `[]`. Only `undefined` means "not cached, go ask users-service".
+     * A redis failure is also reported as a miss so the caller falls back to the source of
+     * truth rather than treating the outage as "user has no dwellings".
+     */
+    getDwellings = (): Promise<any[] | undefined> => redisClient.get(this.dwellingsKey)
+        .then((response) => {
+            if (response == null) {
+                return undefined;
+            }
+
+            try {
+                const parsed = JSON.parse(response);
+
+                return Array.isArray(parsed) ? parsed : undefined;
+            } catch (err) {
+                // Corrupt entry (partial write, format change across a deploy). Treat as a
+                // miss; the next successful fetch overwrites it.
+                return undefined;
+            }
+        })
+        .catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['failing to read dwellings from cache falls back to a users-service request'],
+                traceArgs: {
+                    'error.message': err?.message,
+                    'error.stack': err?.stack,
+                    context: 'redis',
+                    source: 'UserLocationCache.getDwellings',
+                },
+            });
+
+            return undefined;
+        });
+
+    setDwellings = (dwellings: any[]) => redisClient.set(this.dwellingsKey, JSON.stringify(dwellings), 'EX', DWELLING_CACHE_TTL_SEC)
+        .catch((err) => logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['failing to cache dwellings causes an extra users-service request per location ping'],
+            traceArgs: {
+                'error.message': err?.message,
+                'error.stack': err?.stack,
+                context: 'redis',
+                source: 'UserLocationCache.setDwellings',
+            },
+        }));
 
     invalidateCache = () => {
         const pipeline = redisClient.pipeline();

@@ -35,8 +35,27 @@ describe('UserLocationsStore', () => {
             expect(queryString).to.contain('on conflict ("userId", "latitudeRounded", "longitudeRounded") do update set');
             expect(queryString).to.contain(`"visitCount" = "main"."userLocations"."visitCount" + 1`);
             // A second ping on the same day must not inflate the day count
-            expect(queryString).to.contain(`"distinctDayCount" = "main"."userLocations"."distinctDayCount" + (CASE WHEN "main"."userLocations"."lastVisitedAt" < date_trunc('day', now()) THEN 1 ELSE 0 END)`);
+            expect(queryString).to.contain(`"distinctDayCount" = "main"."userLocations"."distinctDayCount" + (CASE WHEN ("main"."userLocations"."lastVisitedAt" AT TIME ZONE 'UTC')::date < (now() AT TIME ZONE 'UTC')::date THEN 1 ELSE 0 END)`);
             expect(queryString).to.contain(`"lastVisitedAt" = now()`);
+        });
+
+        it('anchors the day boundary to UTC rather than the database session timezone', () => {
+            const { connection, writeStub } = buildMockConnection();
+            const store = new UserLocationsStore(connection);
+
+            store.create([{
+                userId: 'user-1',
+                latitude: 37.7749,
+                longitude: -122.4194,
+            }]);
+
+            const queryString = writeStub.args[0][0];
+
+            // A bare date_trunc('day', now()) resolves against the session's TimeZone, so the
+            // day boundary would drift between the app pool, psql, and a read replica.
+            expect(queryString).to.not.contain(`date_trunc('day', now())`);
+            expect(queryString).to.contain(`(now() AT TIME ZONE 'UTC')::date`);
+            expect(queryString).to.contain(`("main"."userLocations"."lastVisitedAt" AT TIME ZONE 'UTC')::date`);
         });
 
         it('rounds coordinates to a general location and defaults the counters', () => {

@@ -100,8 +100,15 @@ export default class UserLocationsStore {
                 visitCount: knexBuilder.raw('?? + ?', [`${USER_LOCATIONS_TABLE_NAME}.visitCount`, 1]),
                 // Only counts as a new day when the previous visit landed on an earlier
                 // calendar day. Repeated background pings within one day do not inflate it.
+                //
+                // Both sides are pinned to UTC rather than left to `date_trunc('day', now())`,
+                // which resolves against the database session's TimeZone. That made the
+                // day boundary depend on how the connection happened to be configured —
+                // differing between the app pool, a psql session, and a read replica, and
+                // silently shifting if the server timezone were ever changed. UTC is
+                // arbitrary but fixed, which is what the threshold needs to mean anything.
                 distinctDayCount: knexBuilder.raw(
-                    '?? + (CASE WHEN ?? < date_trunc(\'day\', now()) THEN 1 ELSE 0 END)',
+                    '?? + (CASE WHEN (?? AT TIME ZONE \'UTC\')::date < (now() AT TIME ZONE \'UTC\')::date THEN 1 ELSE 0 END)',
                     [`${USER_LOCATIONS_TABLE_NAME}.distinctDayCount`, `${USER_LOCATIONS_TABLE_NAME}.lastVisitedAt`],
                 ),
                 lastVisitedAt: knexBuilder.raw('now()'),

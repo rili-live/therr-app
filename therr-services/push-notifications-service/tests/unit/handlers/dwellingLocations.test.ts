@@ -1,10 +1,13 @@
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { Location } from 'therr-js-utilities/constants';
 import {
     findCurrentDwellingLocation,
+    getDwellingLocationsCached,
     isAtDwellingLocation,
     isDwellingLocation,
 } from '../../../src/handlers/helpers/dwellingLocations';
+import * as userLocationHelpers from '../../../src/handlers/helpers/userLocations';
 
 const NOW = new Date('2026-07-28T12:00:00.000Z').getTime();
 const DAY_MS = 1000 * 60 * 60 * 24;
@@ -162,5 +165,94 @@ describe('dwellingLocations', () => {
 
             expect(isAtDwellingLocation([buildLocation(), hotel], AWAY, NOW)).to.be.eq(true);
         });
+    });
+});
+
+describe('getDwellingLocationsCached', () => {
+    const USER_ID = 'user-1';
+    const HEADERS = { 'x-userid': USER_ID } as any;
+    const ROWS = [{
+        id: 'loc-1', latitude: 1, longitude: 2, distinctDayCount: 5,
+    }];
+
+    const buildCache = (cached?: any[]) => ({
+        getDwellings: sinon.stub().resolves(cached),
+        setDwellings: sinon.stub().resolves(),
+    });
+
+    let fetchStub: sinon.SinonStub;
+
+    beforeEach(() => {
+        fetchStub = sinon.stub(userLocationHelpers, 'getUserDwellingLocations');
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('serves a cache hit without calling users-service', async () => {
+        const cache = buildCache(ROWS);
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.deep.equal(ROWS);
+        // The whole point of the cache: this handler runs on every background location ping.
+        expect(fetchStub.called).to.be.eq(false);
+        expect(cache.setDwellings.called).to.be.eq(false);
+    });
+
+    it('serves a cached empty result without re-fetching', async () => {
+        const cache = buildCache([]);
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.have.lengthOf(0);
+        expect(fetchStub.called).to.be.eq(false);
+    });
+
+    it('fetches and populates the cache on a miss', async () => {
+        const cache = buildCache(undefined);
+        fetchStub.resolves({ data: { userLocations: ROWS } });
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.deep.equal(ROWS);
+        expect(fetchStub.calledOnceWith(USER_ID, HEADERS)).to.be.eq(true);
+        expect(cache.setDwellings.calledOnceWith(ROWS)).to.be.eq(true);
+    });
+
+    it('caches a successful fetch that returns no dwellings', async () => {
+        const cache = buildCache(undefined);
+        fetchStub.resolves({ data: { userLocations: [] } });
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.have.lengthOf(0);
+        // A real "no dwellings yet" answer — the common case for new accounts — is worth
+        // caching, otherwise every ping pays for the round trip.
+        expect(cache.setDwellings.calledOnce).to.be.eq(true);
+    });
+
+    it('does not cache a failed fetch', async () => {
+        const cache = buildCache(undefined);
+        // getUserDwellingLocations swallows its own errors and resolves undefined.
+        fetchStub.resolves(undefined);
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.have.lengthOf(0);
+        // Caching [] here would pin "no dwellings" for the full 6-hour TTL and silently
+        // disable suppression for the rest of the window.
+        expect(cache.setDwellings.called).to.be.eq(false);
+    });
+
+    it('does not cache a malformed response body', async () => {
+        const cache = buildCache(undefined);
+        fetchStub.resolves({ data: {} });
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.have.lengthOf(0);
+        expect(cache.setDwellings.called).to.be.eq(false);
     });
 });

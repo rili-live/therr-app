@@ -59,6 +59,14 @@ type StageType = 'details' | 'picture' | 'phone' | 'interests' | 'contacts' | 'i
  */
 const STAGE_ORDER: StageType[] = ['details', 'interests', 'picture', 'phone', 'contacts'];
 
+/**
+ * Order the back arrow walks, which is STAGE_ORDER plus `invite`. Kept separate because
+ * STAGE_ORDER defines the progress *denominator* and must not count the invite prompt —
+ * but back from `invite` should still return to `contacts` rather than falling through to
+ * navigation.goBack() and leaving the flow entirely.
+ */
+const STAGE_BACK_ORDER: StageType[] = [...STAGE_ORDER, 'invite'];
+
 interface ICreateProfileState {
     croppedImageDetails: any;
     errorMsg: string;
@@ -411,16 +419,17 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     onGoBackStage = () => {
         const { navigation } = this.props;
         const { stage } = this.state;
-        const currentIndex = STAGE_ORDER.indexOf(stage);
+        const currentIndex = STAGE_BACK_ORDER.indexOf(stage);
 
         if (currentIndex > 0) {
             this.setState({
                 errorMsg: '',
-                stage: STAGE_ORDER[currentIndex - 1],
+                stage: STAGE_BACK_ORDER[currentIndex - 1],
             });
             return;
         }
 
+        // Only the first stage falls out of the flow entirely.
         if (navigation.canGoBack?.()) {
             navigation.goBack();
         }
@@ -533,7 +542,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                         currentStep={this.getStageStepNumber(stage)}
                         totalSteps={STAGE_ORDER.length}
                         onBack={this.onGoBackStage}
-                        canGoBack={stage !== STAGE_ORDER[0]}
+                        canGoBack={stage !== STAGE_BACK_ORDER[0]}
                         translate={this.translate as any}
                         theme={this.theme}
                     />
