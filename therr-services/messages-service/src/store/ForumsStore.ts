@@ -10,7 +10,7 @@ import { FORUM_CATEGORIES_TABLE_NAME } from './ForumCategoriesStore';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
+// eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const FORUMS_TABLE_NAME = 'main.forums';
 
 export interface ICreateForumParams {

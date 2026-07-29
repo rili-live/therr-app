@@ -8,7 +8,7 @@ import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
+// eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const FORUM_MESSAGES_TABLE_NAME = 'main.forumMessages';
 
 export interface ICreateForumMessageParams {

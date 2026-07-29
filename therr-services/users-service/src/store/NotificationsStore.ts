@@ -11,7 +11,7 @@ import { USER_CONNECTIONS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
+// eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const NOTIFICATIONS_TABLE_NAME = 'main.notifications';
 
 export interface ICreateNotificationParams {
