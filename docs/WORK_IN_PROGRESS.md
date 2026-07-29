@@ -72,6 +72,18 @@ append new items here rather than only printing them once.
   `npm run migrations:run` (verify per-service `package.json`).
 - [ ] **Invalidate CDN cache for assets** (`docs/CLOUDFLARE_CDN.md`) after any
   change to global CSS, brand assets, or favicons.
+- [ ] **Confirm node pool headroom for the users-service rollout.** Its CPU
+  request moved 15m → 100m and the strategy moved `Recreate` → `RollingUpdate`
+  with `maxUnavailable: 0`, so a deploy now briefly runs two pods. If the pool
+  is packed the new pod will sit `Pending` and the rollout will fail cleanly
+  (old pod keeps serving) rather than causing an outage — but it still needs
+  capacity to land. Check with `kubectl describe node | grep -A5 Allocated`.
+- [ ] **Verify users-service reaches the ephemeral Redis after deploy.**
+  `REDIS_EPHEMERAL_HOST`/`REDIS_EPHEMERAL_PORT` were missing from
+  `k8s/prod/users-service-deployment.yaml` while `src/store/redisClient.ts`
+  read them, so ioredis silently fell back to `localhost:6379` and cross-app
+  handoff codes never worked in production. Confirm the pod logs
+  `users-service connected to ephemeral Redis` and exercise one handoff.
 
 ## Pending campaign / outreach actions
 

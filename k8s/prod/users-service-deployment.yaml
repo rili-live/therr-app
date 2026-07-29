@@ -5,8 +5,17 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  # Recreate tore down the old pod BEFORE the new one existed, so any slow or
+  # failed start became a hard outage instead of a stalled rollout. maxUnavailable: 0
+  # keeps the running pod serving until the replacement passes its readiness probe.
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  # A pod that answers /healthcheck once and then dies shouldn't retire the old one.
+  minReadySeconds: 15
+  progressDeadlineSeconds: 300
   selector:
     matchLabels:
       component: server-users
@@ -18,6 +27,9 @@ spec:
         layer: services-internal
     spec:
       serviceAccountName: therr-k8s-service-account
+      # Must exceed the preStop sleep (15s) plus the in-flight request drain in
+      # index.ts, otherwise SIGKILL lands mid-request during every deploy.
+      terminationGracePeriodSeconds: 45
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -48,23 +60,33 @@ spec:
           capabilities:
             drop:
               - ALL
+        # Node boot is CPU-bound: parsing the webpack bundle plus OpenTelemetry
+        # patching every auto-instrumented module happens before app.listen binds
+        # 7771. At a 15m request the pod's CFS share was ~1.5% of a core, so on a
+        # busy node that work stretched past the startup probe budget — which is
+        # why the same image started fine some deploys and not others. The limit
+        # is raised alongside it so boot can burst on an idle node.
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "15m"
+            memory: "192Mi"
+            cpu: "100m"
           limits:
-            memory: "384Mi"
-            cpu: "350m"
+            memory: "512Mi"
+            cpu: "600m"
         ports:
         - containerPort: 7771
+        # Failed startup probes are free until the threshold is exhausted (the
+        # container is not restarted), so budget generously: 36 x 5s = 180s.
+        # initialDelaySeconds is 0 because a refused connection just costs one
+        # cheap failure, and dropping the delay lets a fast boot go Ready sooner.
         startupProbe:
           httpGet:
             path: /healthcheck
             port: 7771
-          initialDelaySeconds: 10
+          initialDelaySeconds: 0
           periodSeconds: 5
           timeoutSeconds: 3
-          failureThreshold: 12
+          failureThreshold: 36
         livenessProbe:
           httpGet:
             path: /healthcheck
@@ -81,6 +103,13 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
+        # Endpoint removal and SIGTERM race each other. Sleeping here keeps the
+        # process serving while kube-proxy/ingress finish dropping this pod from
+        # rotation, so the gateway stops seeing connection-refused mid-deploy.
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 15"]
         env:
         - name: AWS_SES_ACCESS_KEY_ID
           valueFrom:
@@ -129,6 +158,13 @@ spec:
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT
           value: "6379"
+        # src/store/redisClient.ts reads these. Without them ioredis fell back to
+        # localhost:6379, reconnect-looped forever (maxRetriesPerRequest: null),
+        # and cross-app handoff codes silently never worked in production.
+        - name: REDIS_EPHEMERAL_HOST
+          value: "redis-ephemeral-cluster-ip-service"
+        - name: REDIS_EPHEMERAL_PORT
+          value: "6380"
         - name: TIKTOK_CLIENT_KEY
           valueFrom:
             secretKeyRef:

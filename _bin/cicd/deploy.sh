@@ -59,6 +59,57 @@ should_deploy_service()
   has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
+# `kubectl set image` returns as soon as the Deployment spec is patched, so a pod
+# that never passes its startup probe used to leave this job green while the
+# rollout sat wedged. Deployments touched by this run are recorded here and
+# verified together at the end, so they still roll out in parallel.
+UPDATED_DEPLOYMENTS=()
+ROLLOUT_TIMEOUT="${DEPLOY_ROLLOUT_TIMEOUT:-300s}"
+
+track_rollout()
+{
+  UPDATED_DEPLOYMENTS+=("$1")
+}
+
+verify_rollouts()
+{
+  if [ ${#UPDATED_DEPLOYMENTS[@]} -eq 0 ]; then
+    echo "No deployments updated — nothing to verify."
+    return 0
+  fi
+
+  local DEPLOYMENT
+  local FAILED=()
+
+  for DEPLOYMENT in "${UPDATED_DEPLOYMENTS[@]}"; do
+    echo "Verifying rollout of $DEPLOYMENT (timeout $ROLLOUT_TIMEOUT)..."
+    if kubectl rollout status "deployment/$DEPLOYMENT" --timeout="$ROLLOUT_TIMEOUT"; then
+      printMessageSuccess "$DEPLOYMENT rolled out successfully."
+    else
+      printMessageError "$DEPLOYMENT failed to roll out."
+      FAILED+=("$DEPLOYMENT")
+
+      # Surface why, so the failure is actionable straight from the CI log
+      # instead of requiring someone to open a shell against the cluster.
+      echo "--- Recent events for $DEPLOYMENT ---"
+      kubectl describe "deployment/$DEPLOYMENT" | tail -n 25 || true
+      kubectl get pods -l "$(kubectl get "deployment/$DEPLOYMENT" \
+        -o jsonpath='{.spec.selector.matchLabels}' \
+        | sed 's/[{}"]//g; s/:/=/g')" || true
+      echo "--- End events for $DEPLOYMENT ---"
+    fi
+  done
+
+  if [ ${#FAILED[@]} -gt 0 ]; then
+    printMessageError "Rollout failed for: ${FAILED[*]}"
+    printMessageError "The previous pods are still serving (maxUnavailable: 0)."
+    printMessageError "Roll back with: kubectl rollout undo deployment/<name>"
+    return 1
+  fi
+
+  return 0
+}
+
 # Kubectl Apply
 kubectl apply -f k8s/prod
 
@@ -80,6 +131,7 @@ if should_deploy_web_app || should_deploy_web_app_dashboard; then
     docker push therrapp/client-web:latest
   fi
   kubectl set image deployments/client-deployment web=therrapp/client-web$SUFFIX:$GIT_SHA
+  track_rollout client-deployment
 else
   echo "Skipping client-web deployment (No Changes)"
 fi
@@ -92,6 +144,7 @@ if should_deploy_service "therr-api-gateway"; then
     docker push therrapp/api-gateway:latest
   fi
   kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway$SUFFIX:$GIT_SHA
+  track_rollout api-gateway-service-deployment
 else
   echo "Skipping api-gateway deployment (No Changes)"
 fi
@@ -104,6 +157,7 @@ if should_deploy_service "therr-services/push-notifications-service"; then
     docker push therrapp/push-notifications-service:latest
   fi
   kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service$SUFFIX:$GIT_SHA
+  track_rollout push-notifications-service-deployment
 else
   echo "Skipping push-notifications-service deployment (No Changes)"
 fi
@@ -116,6 +170,7 @@ if should_deploy_service "therr-services/maps-service"; then
     docker push therrapp/maps-service:latest
   fi
   kubectl set image deployments/maps-service-deployment server-maps=therrapp/maps-service$SUFFIX:$GIT_SHA
+  track_rollout maps-service-deployment
 else
   echo "Skipping maps-service deployment (No Changes)"
 fi
@@ -128,6 +183,7 @@ if should_deploy_service "therr-services/messages-service"; then
     docker push therrapp/messages-service:latest
   fi
   kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service$SUFFIX:$GIT_SHA
+  track_rollout messages-service-deployment
 else
   echo "Skipping messages-service deployment (No Changes)"
 fi
@@ -140,6 +196,7 @@ if should_deploy_service "therr-services/reactions-service"; then
     docker push therrapp/reactions-service:latest
   fi
   kubectl set image deployments/reactions-service-deployment server-reactions=therrapp/reactions-service$SUFFIX:$GIT_SHA
+  track_rollout reactions-service-deployment
 else
   echo "Skipping reactions-service deployment (No Changes)"
 fi
@@ -152,6 +209,7 @@ if should_deploy_service "therr-services/users-service"; then
     docker push therrapp/users-service:latest
   fi
   kubectl set image deployments/users-service-deployment server-users=therrapp/users-service$SUFFIX:$GIT_SHA
+  track_rollout users-service-deployment
 else
   echo "Skipping users-service deployment (No Changes)"
 fi
@@ -164,11 +222,16 @@ if should_deploy_service "therr-services/websocket-service"; then
     docker push therrapp/websocket-service:latest
   fi
   kubectl set image deployments/websocket-service-deployment server-websocket=therrapp/websocket-service$SUFFIX:$GIT_SHA
+  track_rollout websocket-service-deployment
 else
   echo "Skipping websocket-service deployment (No Changes)"
 fi
 
 echo "Kubectl apply complete for all services with changes"
+
+# Fail the deploy if any pod never reached Ready. Runs before migrations so we
+# never migrate the schema underneath a rollout that is already wedged.
+verify_rollouts
 
 # Run any pending database migrations for services whose migration files
 # changed in this deploy. Reuses the freshly rolled-out pods (which already
