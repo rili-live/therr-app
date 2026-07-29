@@ -308,3 +308,85 @@ describe('UserLocationCache dwellings', () => {
         expect(touchedKeys).to.not.include(dwellingsKey);
     });
 });
+
+describe('UserLocationCache notification throttle round trip', () => {
+    const mockUserId = 'user-1';
+
+    // Minimal in-memory hash store standing in for redis, so a set/get pair has to agree
+    // on the key for the round trip to succeed.
+    const buildFakeRedis = () => {
+        const store: Record<string, Record<string, string>> = {};
+
+        (redisClient as any).pipeline = sinon.fake(() => ({
+            hset: sinon.stub(),
+            expire: sinon.stub(),
+            exec: sinon.fake.resolves(null),
+        }));
+        (redisClient as any).hset = sinon.fake((key: any, field: string, value: any) => {
+            // ioredis coerces a nullish key to the empty string rather than throwing, so a
+            // bad key silently "succeeds" — reproduce that instead of blowing up here.
+            const resolvedKey = key == null ? '' : String(key);
+            store[resolvedKey] = store[resolvedKey] || {};
+            store[resolvedKey][field] = String(value);
+            return Promise.resolve(1);
+        });
+        (redisClient as any).hget = sinon.fake((key: any, field: string) => {
+            const resolvedKey = key == null ? '' : String(key);
+            return Promise.resolve(store[resolvedKey]?.[field] ?? null);
+        });
+
+        return store;
+    };
+
+    it('reads back the moment notification date it just wrote', async () => {
+        const store = buildFakeRedis();
+        const cache = new UserLocationCache(mockUserId);
+
+        await cache.setLastMomentNotificationDate();
+        const lastDate = await cache.getLastMomentNotificationDate();
+
+        expect(lastDate).to.be.a('number');
+        expect(lastDate).to.be.closeTo(Date.now(), 5000);
+        // The setter must target the same hash the getter reads, not the empty key that a
+        // nullish argument collapses to.
+        expect(Object.keys(store)).to.contain(`user:${mockUserId}:nearby-moments`);
+        expect(Object.keys(store)).to.not.contain('');
+    });
+
+    it('reads back the space notification date it just wrote', async () => {
+        const store = buildFakeRedis();
+        const cache = new UserLocationCache(mockUserId);
+
+        await cache.setLastSpaceNotificationDate();
+        const lastDate = await cache.getLastSpaceNotificationDate();
+
+        expect(lastDate).to.be.a('number');
+        expect(lastDate).to.be.closeTo(Date.now(), 5000);
+        expect(Object.keys(store)).to.contain(`user:${mockUserId}:nearby-spaces`);
+        expect(Object.keys(store)).to.not.contain('');
+    });
+
+    it('keeps moment and space throttle dates on separate hashes', async () => {
+        buildFakeRedis();
+        const cache = new UserLocationCache(mockUserId);
+
+        await cache.setLastMomentNotificationDate();
+
+        // Writing the moment date must not make the space throttle look recently used.
+        expect(await cache.getLastSpaceNotificationDate()).to.be.eq(null);
+        expect(await cache.getLastMomentNotificationDate()).to.be.a('number');
+    });
+
+    it('stores the throttle date alongside origin on the same hash', async () => {
+        const store = buildFakeRedis();
+        const cache = new UserLocationCache(mockUserId);
+
+        await cache.setOrigin({ latitude: 1, longitude: 2 });
+        await cache.setLastMomentNotificationDate();
+
+        // setOrigin already targets the correct hash; the throttle date belongs there too,
+        // so it inherits the same 20-minute TTL the constructor refreshes on every request.
+        const hash = store[`user:${mockUserId}:nearby-moments`];
+        expect(Object.keys(hash)).to.have.members(['origin', 'lastNotificationDateMs']);
+    });
+});

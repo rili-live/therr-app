@@ -367,7 +367,12 @@ export default class UserLocationCache {
     // Moments
     getLastMomentNotificationDate = () => this.getLastAreaNotificationDate('moments', this.momentsKeyPrefix);
 
-    setLastMomentNotificationDate = () => this.setLastAreaNotificationDate(this.keys.momentsKeyPrefix);
+    // `this.momentsKeyPrefix`, NOT `this.keys.momentsKeyPrefix` — `this.keys` only holds
+    // hash *field* names (origin, lastNotificationDateMs, maxActivationDistance), so the
+    // latter was undefined. ioredis coerces a nullish key to the empty string instead of
+    // throwing, so the write silently succeeded against the bare client keyPrefix while
+    // the getter read the real hash. See the round-trip tests in tests/unit/store.
+    setLastMomentNotificationDate = () => this.setLastAreaNotificationDate(this.momentsKeyPrefix);
 
     getMaxMomentActivationDistance = () => this.getMaxAreaActivationDistance(this.momentsKeyPrefix);
 
@@ -383,7 +388,8 @@ export default class UserLocationCache {
     // Spaces
     getLastSpaceNotificationDate = () => this.getLastAreaNotificationDate('spaces', this.spacesKeyPrefix);
 
-    setLastSpaceNotificationDate = () => this.setLastAreaNotificationDate(this.keys.spacesKeyPrefix);
+    // See the note on setLastMomentNotificationDate — same bug, same fix.
+    setLastSpaceNotificationDate = () => this.setLastAreaNotificationDate(this.spacesKeyPrefix);
 
     getMaxSpaceActivationDistance = () => this.getMaxAreaActivationDistance(this.spacesKeyPrefix);
 
