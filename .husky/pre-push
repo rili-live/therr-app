@@ -10,9 +10,20 @@
 #
 # To bypass for a legitimate exception: git push --no-verify
 
-printf '\033[36m→ Running tests for changed packages...\033[0m\n'
+# `npm run test:changed` defaults to diffing against `stage`, which on a feature branch
+# means "everything in general that has not been promoted yet" — usually most of the repo.
+# A push gate that slow gets bypassed by habit, so compare against the next branch down
+# the promotion chain instead. Mirrors resolve_diff_base() in _bin/lib/has_diff_changes.sh.
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+case "$branch" in
+  general) base="stage" ;;
+  stage)   base="main" ;;
+  *)       base="general" ;;
+esac
 
-if ! npm run test:changed; then
+printf '\033[36m→ Running tests for packages changed vs %s...\033[0m\n' "$base"
+
+if ! ./_bin/apply-to-changed.sh 'npm test' "$base"; then
   printf '\n\033[31m⛔ Tests failed.\033[0m\n'
   printf '   Fix them before pushing, or bypass with: git push --no-verify\n\n'
   exit 1
