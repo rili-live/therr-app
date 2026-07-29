@@ -18,6 +18,15 @@ printMessageNeutral "Installing dependencies for type-checking..."
 npm ci --legacy-peer-deps --ignore-scripts
 printMessageSuccess "Dependencies installed"
 
+# Custom ESLint rule tests live here rather than in their own job purely to reuse this
+# install — they need only `eslint` and a few seconds. They belong in CI at all because
+# the rules encode architectural invariants (brand-scoped table access, Knex migration
+# safety) and were previously untested: a typo in a table name produced a rule that
+# matched nothing and failed open, with lint still reporting success.
+printMessageNeutral "=== Verifying custom ESLint rules ==="
+npm run test:lint-rules
+printMessageSuccess "Custom ESLint rules verified"
+
 # Consumers import from the compiled lib/ output, which is gitignored. Without this the
 # type-check fails on unresolved therr-react/* and therr-js-utilities/* imports rather
 # than on anything real.

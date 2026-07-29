@@ -92,8 +92,38 @@ staged_src=$(printf '%s\n' "$staged" \
   | grep -v '/build/' \
   || true)
 
+# Not every path is covered by an ESLint config — repo-root files like
+# global-config.js and webpack.parts.js have none, and eslintrc-era ESLint aborts
+# the whole run with "couldn't find a configuration file" rather than skipping the
+# file. Without this filter one staged root-level file blocks every commit.
+# Keep only files with a config somewhere between them and the repo root.
+lintable=""
+skipped=""
+for file in $staged_src; do
+  dir=$(dirname "$file")
+  found=""
+  while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+    if [ -f "$dir/.eslintrc.js" ] || [ -f "$dir/.eslintrc.json" ] || [ -f "$dir/.eslintrc" ]; then
+      found=1
+      break
+    fi
+    dir=$(dirname "$dir")
+  done
+  if [ -n "$found" ]; then
+    lintable="$lintable $file"
+  else
+    skipped="$skipped $file"
+  fi
+done
+
+if [ -n "$skipped" ]; then
+  printf '\033[33m→ Skipping (no ESLint config covers these):\033[0m%s\n' "$skipped"
+fi
+
+staged_src="$lintable"
+
 if [ -n "$staged_src" ]; then
-  count=$(printf '%s\n' "$staged_src" | wc -l | tr -d ' ')
+  count=$(printf '%s\n' "$staged_src" | wc -w | tr -d ' ')
   printf '\033[36m→ Linting %s staged file(s)...\033[0m\n' "$count"
   # --no-install: never silently pull eslint from the network mid-commit.
   # shellcheck disable=SC2086

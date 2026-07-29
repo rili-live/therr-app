@@ -19,7 +19,7 @@ const dropFunctions = async (knex) => {
 
 // Sequenced explicitly rather than nested inside an async createTable callback: knex invokes that
 // callback synchronously and discards its promise, so the Postgis raws below would escape the
-// migration and could outlive its transaction. See eslint-config/migration-rules.js.
+// migration and could outlive its transaction. See eslint-config/plugin/rules/no-async-table-builder-callback.js.
 //
 // Ordering matters here beyond the transaction concern: the no_overlaps CHECK references the geom
 // column, so the column has to exist and be backfilled before createFunctions/ALTER TABLE run.

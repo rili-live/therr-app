@@ -25,7 +25,7 @@ const installExtensions = async (knex) => {
 
 // Sequenced explicitly rather than nested inside an async createTable callback: knex invokes that
 // callback synchronously and discards its promise, so the Postgis raws below would escape the
-// migration and could outlive its transaction. See eslint-config/migration-rules.js.
+// migration and could outlive its transaction. See eslint-config/plugin/rules/no-async-table-builder-callback.js.
 exports.up = async (knex) => {
     await knex.schema.withSchema('main').createTable('eventReactions', (table) => {
         table.uuid('id').notNullable().defaultTo(knex.raw('uuid_generate_v4()'));

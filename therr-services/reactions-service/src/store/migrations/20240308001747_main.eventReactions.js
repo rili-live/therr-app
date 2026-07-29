@@ -1,6 +1,6 @@
 // Sequenced explicitly rather than nested inside an async alterTable callback: knex invokes that
 // callback synchronously and discards its promise, so the index raw below would escape the
-// migration and could outlive its transaction. See eslint-config/migration-rules.js.
+// migration and could outlive its transaction. See eslint-config/plugin/rules/no-async-table-builder-callback.js.
 //
 // The ordering also has to be explicit: the partial index reads "attendingCount", so the column
 // must be committed to the DDL before the index is built.
