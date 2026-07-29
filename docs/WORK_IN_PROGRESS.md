@@ -72,6 +72,26 @@ append new items here rather than only printing them once.
   `npm run migrations:run` (verify per-service `package.json`).
 - [ ] **Invalidate CDN cache for assets** (`docs/CLOUDFLARE_CDN.md`) after any
   change to global CSS, brand assets, or favicons.
+- [ ] **Expect users-service to land on a preemptible node after its next
+  deploy.** The strategy moved `Recreate` → `RollingUpdate` with
+  `maxUnavailable: 0`, so a deploy now briefly runs two pods. main-pool has
+  ~103Mi of its 1358Mi allocatable memory uncommitted, and the surge pod
+  requests 144Mi, so it cannot fit alongside the outgoing pod. Node affinity is
+  `preferred`, not `required`, so it will schedule onto a preemptible node
+  instead of sitting `Pending` — the rollout succeeds, but users-service then
+  runs somewhere it can be preempted. Either accept that, or free ~150Mi on
+  main-pool before the deploy. Check with
+  `kubectl describe node <main-pool-node> | grep -A5 'Allocated resources'`.
+- [ ] **Verify users-service reaches the ephemeral Redis after deploy.**
+  `REDIS_EPHEMERAL_HOST`/`REDIS_EPHEMERAL_PORT` were missing from
+  `k8s/prod/users-service-deployment.yaml` while `src/store/redisClient.ts`
+  read them. `Number(undefined)` is `NaN`, so ioredis rejected the socket
+  outright rather than falling back to a default — production logs
+  `RangeError [ERR_SOCKET_BAD_PORT]` on every boot and the client never
+  connects, so cross-app handoff codes and the thought-distributor gate have
+  never worked in production. Confirm the pod logs `users-service connected to
+  ephemeral Redis` (and no `REDIS_EPHEMERAL_CONNECTION_ERROR`), then exercise
+  one handoff.
 
 ## Pending campaign / outreach actions
 
