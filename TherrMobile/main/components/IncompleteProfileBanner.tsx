@@ -4,6 +4,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { IUserState } from 'therr-react/types';
 import { buildStyles } from '../styles/incompleteProfileBanner';
+import {
+    DEFAULT_PROFILE_COMPLETION_FLAGS,
+    IProfileCompletionFlags,
+    getProfileCompletionSummary,
+    syncInterestsFlag,
+} from '../utilities/profileCompletion';
 
 const DISMISSED_AT_KEY = 'incompleteProfileBannerDismissedAt';
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -16,23 +22,28 @@ interface IIncompleteProfileBannerProps {
 }
 
 interface IIncompleteProfileBannerState {
+    flags: IProfileCompletionFlags | null;
     isDismissed: boolean;
     isReady: boolean;
 }
 
 /**
- * Dismissible banner that nudges users who have not provided a first name
- * (now optional during onboarding) to add it later so friends can recognize
- * them. Dismissal is persisted to AsyncStorage with a timestamp and the banner
- * re-appears after 7 days.
+ * Dismissible banner that nudges users with an unfinished profile toward the
+ * guided completion flow. It reads the same step model as the "Finish your
+ * profile" card so the two can never disagree about what is left. Dismissal is
+ * persisted to AsyncStorage with a timestamp and the banner re-appears after
+ * 7 days.
  */
 class IncompleteProfileBanner extends React.Component<IIncompleteProfileBannerProps, IIncompleteProfileBannerState> {
     private theme = buildStyles();
+
+    private isUnmounted = false;
 
     constructor(props: IIncompleteProfileBannerProps) {
         super(props);
 
         this.state = {
+            flags: null,
             isDismissed: false,
             isReady: false,
         };
@@ -41,23 +52,42 @@ class IncompleteProfileBanner extends React.Component<IIncompleteProfileBannerPr
     }
 
     componentDidMount() {
+        const { user } = this.props;
+
         AsyncStorage.getItem(DISMISSED_AT_KEY)
             .then((value) => {
                 const dismissedAt = value ? parseInt(value, 10) : 0;
                 const isStillDismissed = !!dismissedAt && (Date.now() - dismissedAt) < SEVEN_DAYS_MS;
-                this.setState({
+                this.safeSetState({
                     isDismissed: isStillDismissed,
-                    isReady: true,
                 });
             })
-            .catch(() => {
-                this.setState({ isReady: true });
-            });
+            .catch(() => {});
+
+        syncInterestsFlag(user?.details?.id)
+            .then((flags) => this.safeSetState({ flags, isReady: true }))
+            .catch(() => this.safeSetState({ flags: DEFAULT_PROFILE_COMPLETION_FLAGS, isReady: true }));
     }
 
+    componentWillUnmount() {
+        this.isUnmounted = true;
+    }
+
+    safeSetState = (state: Partial<IIncompleteProfileBannerState>) => {
+        if (!this.isUnmounted) {
+            this.setState(state as IIncompleteProfileBannerState);
+        }
+    };
+
     handlePress = () => {
-        const { navigation } = this.props;
-        navigation.navigate('Settings');
+        const { navigation, user } = this.props;
+        const { flags } = this.state;
+        const summary = getProfileCompletionSummary(user, flags || DEFAULT_PROFILE_COMPLETION_FLAGS);
+
+        navigation.navigate('CreateProfile', {
+            stage: summary.nextStep?.stage || 'details',
+            isGuidedStep: true,
+        });
     };
 
     handleDismiss = () => {
@@ -69,20 +99,29 @@ class IncompleteProfileBanner extends React.Component<IIncompleteProfileBannerPr
 
     render() {
         const { translate, user } = this.props;
-        const { isDismissed, isReady } = this.state;
+        const { flags, isDismissed, isReady } = this.state;
 
-        // Only render once we've read the dismissal timestamp, when the user has
-        // no first name, and when not currently dismissed.
-        if (!isReady || isDismissed || user?.details?.firstName) {
+        const summary = getProfileCompletionSummary(user, flags || DEFAULT_PROFILE_COMPLETION_FLAGS);
+
+        // Only render once the persisted state has been read, when steps remain,
+        // and when not currently dismissed.
+        if (!isReady || isDismissed || summary.isComplete) {
             return null;
         }
+
+        const message = translate(
+            summary.remainingCount === 1
+                ? 'components.incompleteProfileBanner.messageSingular'
+                : 'components.incompleteProfileBanner.message',
+            { count: summary.remainingCount },
+        );
 
         return (
             <Pressable
                 style={this.theme.styles.container}
                 onPress={this.handlePress}
                 accessibilityRole="button"
-                accessibilityLabel={translate('components.incompleteProfileBanner.message')}
+                accessibilityLabel={message}
             >
                 <FontAwesomeIcon
                     name="user-edit"
@@ -90,7 +129,7 @@ class IncompleteProfileBanner extends React.Component<IIncompleteProfileBannerPr
                     style={this.theme.styles.leadingIcon}
                 />
                 <Text style={this.theme.styles.message}>
-                    {translate('components.incompleteProfileBanner.message')}
+                    {message}
                 </Text>
                 <Pressable
                     onPress={this.handleDismiss}
