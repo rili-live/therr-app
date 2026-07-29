@@ -18,6 +18,23 @@ const getUserLocations = (userId: string, headers: InternalConfigHeaders) => int
     });
 });
 
+// Locations where the user lives or is temporarily staying (home, hotel, apartment, etc.)
+const getUserDwellingLocations = (userId: string, headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
+    method: 'get',
+    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-locations/${userId}/dwellings`,
+}).catch((err) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Error while fetching userLocation dwellings'],
+        traceArgs: {
+            'error.message': err?.message,
+        },
+    });
+});
+
 const createUserLocation = (userId: string, headers: InternalConfigHeaders, userLocation: {
     latitude: number;
     longitude: number;
@@ -67,6 +84,7 @@ const updateUserLocation = (userLocationId: string, headers: InternalConfigHeade
 
 export {
     getUserLocations,
+    getUserDwellingLocations,
     createUserLocation,
     updateUserLocation,
 };

@@ -6,6 +6,7 @@
 const path = require('path');
 const baseConfig = require('./base');
 const { BRAND_SCOPED_TABLES } = require('./brand-scoped-tables');
+const { SHARED_LIBRARY_MODULES, SHARED_LIBRARY_INTERNAL_REGEX } = require('./shared-library-modules');
 const { NO_ASYNC_TABLE_BUILDER_CALLBACK } = require('./migration-rules');
 
 // Build a no-restricted-syntax selector that flags string literals matching brand-scoped table names.
@@ -81,6 +82,8 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
             ...(overrides.overrides || []),
         ],
         settings: {
+            'import/core-modules': SHARED_LIBRARY_MODULES,
+            'import/internal-regex': SHARED_LIBRARY_INTERNAL_REGEX,
             'import/external-module-folders': ['../../node_modules', '../../node_modules/@types'],
             'import/parsers': {
                 '@typescript-eslint/parser': ['.ts'],
