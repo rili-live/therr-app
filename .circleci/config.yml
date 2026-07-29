@@ -289,9 +289,13 @@ jobs:
             echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
             source ~/.bashrc
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-            gcloud --quiet config set project therr-app
-            gcloud --quiet config set compute/zone us-central1-a
-            gcloud container clusters get-credentials cluster-1
+            # Defaults target the current (blue) cluster, so behavior is unchanged unless
+            # overridden. Cutover to a new cluster is done by setting GKE_CLUSTER / GKE_ZONE
+            # (and optionally GKE_PROJECT) as CircleCI project env vars — no code merge needed.
+            gcloud --quiet config set project "${GKE_PROJECT:-therr-app}"
+            gcloud --quiet config set compute/zone "${GKE_ZONE:-us-central1-a}"
+            gcloud container clusters get-credentials "${GKE_CLUSTER:-cluster-1}" \
+              --zone "${GKE_ZONE:-us-central1-a}"
       - add_ssh_keys:
           fingerprints:
             - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
