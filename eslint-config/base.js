@@ -1,6 +1,8 @@
 // Shared ESLint base configuration for all TypeScript packages.
 // Import and spread this into package-level .eslintrc.js files.
 
+const { SHARED_LIBRARY_MODULES, SHARED_LIBRARY_INTERNAL_REGEX } = require('./shared-library-modules');
+
 module.exports = {
     parser: '@typescript-eslint/parser',
     plugins: [
@@ -32,5 +34,12 @@ module.exports = {
         'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
         'import/no-relative-packages': 'off',
+    },
+    // Packages that define their own `settings` block (service.js, web.js, TherrMobile,
+    // therr-react, therr-js-utilities) replace this wholesale rather than merging, so they
+    // each re-declare both import settings from the same source.
+    settings: {
+        'import/core-modules': SHARED_LIBRARY_MODULES,
+        'import/internal-regex': SHARED_LIBRARY_INTERNAL_REGEX,
     },
 };
