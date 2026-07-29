@@ -411,8 +411,40 @@
       }
     },
     "incompleteProfileBanner": {
-      "message": "Agrega tu nombre para que tus amigos puedan reconocerte",
-      "dismiss": "Descartar"
+      "message": "Termina tu perfil: quedan {count} pasos",
+      "dismiss": "Descartar",
+      "messageSingular": "Termina tu perfil: queda 1 paso"
+    },
+    "profileCompletionCard": {
+      "title": "¡Termina tu perfil!",
+      "stepsLeft": "Quedan {count} pasos",
+      "stepLeft": "Queda 1 paso",
+      "continue": "Continuar",
+      "collapse": "Contraer lista",
+      "expand": "Expandir lista",
+      "skipped": "Omitido: toca para hacerlo ahora",
+      "steps": {
+        "name": {
+          "label": "Agrega tu nombre",
+          "description": "Para que tus amigos puedan reconocerte"
+        },
+        "interests": {
+          "label": "Elige tus intereses",
+          "description": "Los usamos para mostrarte mejor contenido"
+        },
+        "picture": {
+          "label": "Agrega una foto de perfil",
+          "description": "Los perfiles con foto logran más conexiones"
+        },
+        "phone": {
+          "label": "Verifica tu teléfono",
+          "description": "Mantiene tu cuenta segura"
+        },
+        "contacts": {
+          "label": "Sincroniza tus contactos",
+          "description": "Encuentra amigos que ya están aquí"
+        }
+      }
     }
   },
   "forms": {
@@ -1272,7 +1304,8 @@
       "buttons": {
         "syncSuccess": "¡Sincronización exitosa!",
         "syncFailed": "Error al sincronizar",
-        "syncContacts": "¿Sincronizar tus contactos?"
+        "syncContacts": "¿Sincronizar tus contactos?",
+        "resyncContacts": "Sincronizar contactos de nuevo"
       },
       "labels": {
         "allUsers": "Todos los usuarios",
@@ -1305,6 +1338,18 @@
         "shareLink": "Compartir un enlace",
         "syncContacts": "Sincronizar contactos",
         "skip": "Omitir por ahora"
+      },
+      "pageHeaderContacts": "Encuentra a tus amigos",
+      "pageSubHeaderContacts": "Sincroniza tus contactos para ver quién ya está aquí",
+      "progress": {
+        "back": "Volver un paso"
+      },
+      "syncContacts": {
+        "description": "Comparamos tus contactos con las cuentas de Therr para que puedas conectarte de inmediato. Tus contactos nunca se comparten con nadie más.",
+        "continue": "Continuar",
+        "skip": "Ahora no",
+        "errorMessage": "No pudimos sincronizar tus contactos. Inténtalo de nuevo.",
+        "permissionsDenied": "El acceso a los contactos está desactivado. Actívalo en la configuración de tu dispositivo para encontrar amigos."
       }
     },
     "cropImage": {
