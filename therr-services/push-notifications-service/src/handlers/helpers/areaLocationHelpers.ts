@@ -33,6 +33,9 @@ interface IAreaGetSettings {
     headers: InternalConfigHeaders;
     userLocation: IUserlocation;
     limit: number;
+    // True when the user is at a known dwelling (home, hotel, apartment). Areas are still
+    // discovered, cached and activated; only the outbound push notifications are muted.
+    shouldSuppressPushNotifications?: boolean;
 }
 
 interface IActivationArgs {
@@ -108,6 +111,7 @@ const createAppAndPushNotification = (
     pushNotificationType: PushNotifications.Types = (areaType === 'moments'
         ? PushNotifications.Types.proximityRequiredMoment
         : PushNotifications.Types.proximityRequiredSpace),
+    shouldSendPushNotification = true,
 ) => {
     if (areaType === 'moments') {
         userLocationCache.setLastMomentNotificationDate(); // fire and forget
@@ -142,6 +146,12 @@ const createAppAndPushNotification = (
     }).catch((error) => {
         console.log(error);
     }).finally(() => {
+        // The in-app notification is still recorded above so the user can find the area
+        // when they open the app; only the interruptive push is skipped.
+        if (!shouldSendPushNotification) {
+            return Promise.resolve();
+        }
+
         const metrics = (areaType === 'moments' && lastNotificationDate)
             ? {
                 lastMomentNotificationDate: lastNotificationDate,
@@ -172,7 +182,14 @@ const createAppAndPushNotification = (
 };
 
 // Find areas within distance that have not been activated and are close enough to activate
-const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLocationCache, headers: InternalConfigHeaders, userLocation: IUserlocation) => {
+const filterNearbyAreas = (
+    areaType: IAreaType,
+    areas,
+    userLocationCache: UserLocationCache,
+    headers: InternalConfigHeaders,
+    userLocation: IUserlocation,
+    shouldSuppressPushNotifications = false,
+) => {
     if (!areas.length) {
         return Promise.resolve([]);
     }
@@ -243,6 +260,8 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
                             },
                             true,
                             lastNotificationDate,
+                            undefined,
+                            !shouldSuppressPushNotifications,
                         );
                     }
 
@@ -299,6 +318,7 @@ const fetchNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCa
     headers,
     userLocation,
     limit,
+    shouldSuppressPushNotifications,
 }: IAreaGetSettings, distanceOverride = Location.AREA_PROXIMITY_EXPANDED_METERS): Promise<{
     areas: any[],
     newlyDiscoveredAreas: any[],
@@ -329,16 +349,18 @@ const fetchNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCa
         },
     })
         .then((areasResponse) => (areasResponse?.data?.results || [])) // relevant areas within x meters
-        .then((areas) => filterNearbyAreas(areaType, areas, userLocationCache, headers, userLocation).then((newlyDiscoveredAreas) => ({
-            areas,
-            newlyDiscoveredAreas,
-        })));
+        .then((areas) => filterNearbyAreas(areaType, areas, userLocationCache, headers, userLocation, shouldSuppressPushNotifications)
+            .then((newlyDiscoveredAreas) => ({
+                areas,
+                newlyDiscoveredAreas,
+            })));
 };
 
 const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidateCache: boolean, {
     headers,
     userLocation,
     limit,
+    shouldSuppressPushNotifications,
 }: IAreaGetSettings, distanceOverride = Location.AREA_PROXIMITY_EXPANDED_METERS): Promise<[
     {
         areas: any[],
@@ -370,6 +392,7 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
             headers,
             userLocation,
             limit,
+            shouldSuppressPushNotifications,
         }, distanceOverride);
 
         // Use tighter radius for activating spaces to prevent cluttering user timeline
@@ -377,6 +400,7 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
             headers,
             userLocation,
             limit,
+            shouldSuppressPushNotifications,
         }, (distanceOverride || Location.AREA_PROXIMITY_METERS) / 2);
 
         return Promise.all([momentsPromise, spacesPromise]);
@@ -446,6 +470,7 @@ const activateAreasAndNotify = (
         longitude: number,
     },
     isCheckIn = false,
+    shouldSuppressPushNotifications = false,
 ): Promise<void | undefined> => {
     const {
         activatedMomentIds,
@@ -535,6 +560,12 @@ const activateAreasAndNotify = (
                 }).catch((error) => {
                     console.log(error);
                 }).finally(() => {
+                    // Muted while the user is at a dwelling (home/hotel/apartment). The
+                    // in-app notification above still records what was discovered.
+                    if (shouldSuppressPushNotifications) {
+                        return;
+                    }
+
                     const locale = headers['x-localecode'] || 'en-us';
                     const userDeviceToken = headers['x-user-device-token'] || '';
                     const userId = headers['x-userid'] || '';
@@ -585,6 +616,7 @@ const selectAreasAndActivate = (
     filteredMoments: any[],
     filteredSpaces: any[],
     isCheckIn = false,
+    shouldSuppressPushNotifications = false,
 ) => {
     const momentIdsToActivate: string[] = [];
     const momentsToActivate: any[] = [];
@@ -636,6 +668,7 @@ const selectAreasAndActivate = (
             userLocationCache,
             userLocation,
             isCheckIn,
+            shouldSuppressPushNotifications,
         );
 
         updateAchievements(headers, momentIdsToActivate, spaceIdsToActivate);
