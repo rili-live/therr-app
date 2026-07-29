@@ -78,10 +78,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             // left: 20
             paddingRight: 10,
         },
-        notificationsItemContainer: {
+        menuItemContainer: {
             position: 'relative',
         },
-        notificationBadge: {
+        menuItemBadge: {
             position: 'absolute',
             top: 14,
             right: 8,
