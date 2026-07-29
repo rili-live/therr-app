@@ -109,6 +109,24 @@ jobs:
       - run:
           name: Lint changed files
           command: ./_bin/cicd/lint-changed-files.sh
+  typecheck:
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Type-check all packages
+          command: ./_bin/cicd/typecheck.sh
+          no_output_timeout: 20m
+  test_clients:
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Run web, dashboard, and mobile Jest suites
+          command: ./_bin/cicd/test-clients.sh
+          no_output_timeout: 20m
   docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.24.4
@@ -307,16 +325,19 @@ workflows:
           filters:
             branches:
               ignore:
-                - general
                 - stage
                 - main
       - lint_changed_files:
           filters:
             branches:
               ignore:
-                - general
-                - stage
                 - main
+      # Unfiltered: type errors and client-test failures must be caught on every
+      # branch, including `general` and `stage`. Neither job was running anywhere
+      # before — tsc appeared nowhere in this config, and the ~1,314 web/dashboard/
+      # mobile Jest cases had no job at all.
+      - typecheck
+      - test_clients
       - docker_build_test_publish_images:
           requires:
           - docker_build_base_image

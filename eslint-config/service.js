@@ -5,36 +5,33 @@
 
 const path = require('path');
 const baseConfig = require('./base');
-const { BRAND_SCOPED_TABLES } = require('./brand-scoped-tables');
 const { SHARED_LIBRARY_MODULES, SHARED_LIBRARY_INTERNAL_REGEX } = require('./shared-library-modules');
-const { NO_ASYNC_TABLE_BUILDER_CALLBACK } = require('./migration-rules');
 
-// Build a no-restricted-syntax selector that flags string literals matching brand-scoped table names.
-// Catches `.from('main.notifications')`, `into('main.notifications')`, raw SQL `FROM main.notifications`,
-// and the `'main.notifications'` constant in tableNames.ts (intentional — only sanctioned stores should re-export it).
-// Storefiles that legitimately reference the table go in the per-service .eslintrc.js overrides.
-const buildBrandScopedTablesRule = () => {
-    if (!BRAND_SCOPED_TABLES.length) {
-        // No tables onboarded yet (early in the multi-app data isolation rollout). Rule is a no-op.
-        return [];
-    }
-    const selectors = BRAND_SCOPED_TABLES.map((tableName) => ({
-        selector: `Literal[value="${tableName}"]`,
-        message: `Direct reference to brand-scoped table "${tableName}" is forbidden. `
-            + 'Route the query through the BrandScopedStore subclass for this table. '
-            + 'See docs/NICHE_APP_DATABASE_GUIDELINES.md.',
-    }));
-    return [['error', ...selectors]];
-};
+// The brand-scoped-table and async-table-builder invariants used to be expressed as
+// `no-restricted-syntax` selectors. Two problems with that, both now fixed by moving them
+// into eslint-plugin-therr (eslint-config/plugin) as first-class rules:
+//
+//   1. They shared a rule ID with airbnb-base's for..of/for..in/with/label restrictions,
+//      so a single `// eslint-disable-next-line no-restricted-syntax` written to permit a
+//      for..of loop also switched off brand-scoped-table enforcement on that line.
+//   2. Setting `no-restricted-syntax` here *replaced* airbnb's selectors rather than
+//      extending them, silently disabling the for..of/for..in restrictions across every
+//      service. (The four disable comments in service code are evidence: they suppress a
+//      rule that had stopped firing.) Not overriding the rule restores those.
+//
+// The rules are unit-tested with ESLint's RuleTester — see eslint-config/plugin/tests/.
 
 module.exports = function createServiceConfig(serviceDir, overrides = {}) {
-    const brandScopedRule = buildBrandScopedTablesRule();
     return {
         ...baseConfig,
         env: {
             node: true,
             mocha: true,
         },
+        plugins: [
+            ...(baseConfig.plugins || []),
+            'therr',
+        ],
         rules: {
             ...baseConfig.rules,
             'import/extensions': [
@@ -55,7 +52,7 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
                     ],
                 },
             ],
-            ...(brandScopedRule.length ? { 'no-restricted-syntax': brandScopedRule[0] } : {}),
+            'therr/no-direct-brand-scoped-table': 'error',
             ...(overrides.rules || {}),
         },
         overrides: [
@@ -68,15 +65,18 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
                 },
             },
             // Migration files legitimately reference brand-scoped tables when creating, altering,
-            // or dropping them. The brand-scoping enforcement is at runtime via BrandScopedStore;
-            // schema-level operations are safe by definition. So the brand-scoped-table selectors
-            // are dropped here — but no-restricted-syntax is re-pointed rather than turned off,
-            // because migrations have their own footgun to guard against (async table-builder
-            // callbacks). See eslint-config/migration-rules.js.
+            // or dropping them — brand-scoping is enforced at runtime via BrandScopedStore, and
+            // schema-level DDL is safe by definition. So that rule is off here.
+            //
+            // Migrations have their own footgun instead: an `async` callback passed to a Knex
+            // table builder silently drops every `table.*` call after the first `await` from the
+            // emitted DDL. That rule is on only here, where migrations actually live.
+            // See eslint-config/plugin/rules/no-async-table-builder-callback.js.
             {
                 files: ['src/store/migrations/**/*.js', 'src/store/seeds/**/*.js'],
                 rules: {
-                    'no-restricted-syntax': ['error', ...NO_ASYNC_TABLE_BUILDER_CALLBACK],
+                    'therr/no-direct-brand-scoped-table': 'off',
+                    'therr/no-async-table-builder-callback': 'error',
                 },
             },
             ...(overrides.overrides || []),

@@ -4,7 +4,7 @@ import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
+// eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const USER_LEADERBOARD_SCORES_TABLE_NAME = 'main.userLeaderboardScores';
 const USERS_TABLE_NAME = 'main.users';
 

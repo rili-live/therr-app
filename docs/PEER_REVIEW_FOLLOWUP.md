@@ -94,8 +94,14 @@ in each store. No migration needed. Do one store per release; never bundle multi
 **Origin**: RN 0.83 upgrade (2026-04-19)
 
 The mobile app inherits 104 pre-existing TypeScript errors from the RN 0.83 / Reanimated 4 /
-Worklets bump. CI uses `_bin/check-mobile-tsc-baseline.sh` to fail only on errors that are
-not already in the baseline, but the standing 104 errors should be paid down opportunistically.
+Worklets bump. CI runs `_bin/check-mobile-tsc-baseline.sh` in the `typecheck` job
+(`.circleci/config.yml` → `_bin/cicd/typecheck.sh`) to fail only on errors that are not
+already in the baseline; the standing 104 should be paid down opportunistically.
+
+> This doc previously claimed CI used the baseline script while nothing in
+> `.circleci/config.yml` referenced `tsc` at all. It became true on 2026-07-29 when the
+> `typecheck` job was added. Verify with:
+> `grep -n "check-mobile-tsc-baseline" _bin/cicd/typecheck.sh`
 
 `TherrMobile/.tsc-baseline` records one **signature** per error — `<file>\t<TS code>\t<message>` —
 not a count. A count-only baseline could be defeated by fixing one error and introducing

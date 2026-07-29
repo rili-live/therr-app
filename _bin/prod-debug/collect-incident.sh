@@ -167,12 +167,20 @@ fi
 # ----------------------------------------------------------------------------
 ERR_REGEX='error|exception|unhandled|rejection|traceback|ETIMEDOUT|ECONNREFUSED|ECONNRESET|EAI_AGAIN|statusCode":5|" 5[0-9][0-9] |FATAL|panic'
 
+# A Cloud Logging filter embeds this pattern inside a double-quoted literal, so a
+# bare `"` in the pattern terminates that literal and gcloud rejects the whole
+# filter ("Unparseable filter: syntax error"), silently emptying the log section
+# of every digest. The `"` in the two HTTP-status alternatives is matched with
+# `.` instead, which keeps them working without needing to survive two rounds of
+# quoting on the way to gcloud.
+ERR_REGEX_REMOTE="${ERR_REGEX//\"/.}"
+
 section "Top error / warning log lines (deduplicated, newest-first)"
 if $HAS_GCLOUD; then
   echo "_Source: Google Cloud Logging (survives pod restarts)._" >>"$OUT"
   codeblock_start
   # severity>=WARNING OR text matches an error shape; k8s container stdout/stderr.
-  FILTER="resource.type=\"k8s_container\" AND resource.labels.namespace_name=\"$NAMESPACE\" AND (severity>=WARNING OR textPayload=~\"$ERR_REGEX\" OR jsonPayload.message=~\"$ERR_REGEX\")"
+  FILTER="resource.type=\"k8s_container\" AND resource.labels.namespace_name=\"$NAMESPACE\" AND (severity>=WARNING OR textPayload=~\"$ERR_REGEX_REMOTE\" OR jsonPayload.message=~\"$ERR_REGEX_REMOTE\")"
   if $HAS_JQ; then
     gcloud logging read "$FILTER" \
         --project="$GCP_PROJECT" --freshness="$WINDOW" \
