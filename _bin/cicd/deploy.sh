@@ -64,10 +64,24 @@ should_deploy_service()
 # rollout sat wedged. Deployments touched by this run are recorded here and
 # verified together at the end, so they still roll out in parallel.
 UPDATED_DEPLOYMENTS=()
-ROLLOUT_TIMEOUT="${DEPLOY_ROLLOUT_TIMEOUT:-300s}"
+# Deliberately longer than the manifests' progressDeadlineSeconds (300s) so the
+# Deployment controller is the one to give up first. It marks the rollout
+# Failed with a ProgressDeadlineExceeded reason that `rollout status` then
+# prints, which beats the bare "timed out waiting for the condition" we would
+# get from losing that race.
+ROLLOUT_TIMEOUT="${DEPLOY_ROLLOUT_TIMEOUT:-360s}"
 
+# Idempotent: a Deployment can be both reconfigured by `kubectl apply` and
+# re-imaged by `kubectl set image` in the same run, and verifying it twice would
+# just double the timeout budget on a wedged rollout.
 track_rollout()
 {
+  local DEPLOYMENT
+  for DEPLOYMENT in ${UPDATED_DEPLOYMENTS[@]+"${UPDATED_DEPLOYMENTS[@]}"}; do
+    if [ "$DEPLOYMENT" = "$1" ]; then
+      return 0
+    fi
+  done
   UPDATED_DEPLOYMENTS+=("$1")
 }
 
@@ -93,9 +107,9 @@ verify_rollouts()
       # instead of requiring someone to open a shell against the cluster.
       echo "--- Recent events for $DEPLOYMENT ---"
       kubectl describe "deployment/$DEPLOYMENT" | tail -n 25 || true
-      kubectl get pods -l "$(kubectl get "deployment/$DEPLOYMENT" \
-        -o jsonpath='{.spec.selector.matchLabels}' \
-        | sed 's/[{}"]//g; s/:/=/g')" || true
+      # Deployment-owned pods are always named "<deployment>-<rs>-<pod>", which is
+      # a more dependable handle than reconstructing the label selector.
+      kubectl get pods --no-headers | grep "^$DEPLOYMENT-" || true
       echo "--- End events for $DEPLOYMENT ---"
     fi
   done
@@ -111,7 +125,18 @@ verify_rollouts()
 }
 
 # Kubectl Apply
-kubectl apply -f k8s/prod
+#
+# This also rolls pods on its own: a manifest-only change (probes, env, strategy,
+# resources) reconfigures a Deployment with no corresponding `set image` below,
+# so those rollouts have to be tracked here or they go unverified. `apply` prints
+# one "deployment.apps/<name> configured" line per Deployment it actually
+# changed, and "unchanged" for the rest.
+APPLY_OUTPUT="$(kubectl apply -f k8s/prod)"
+echo "$APPLY_OUTPUT"
+
+while read -r RECONFIGURED; do
+  track_rollout "$RECONFIGURED"
+done < <(echo "$APPLY_OUTPUT" | sed -n 's|^deployment\.apps/\(.*\) configured$|\1|p')
 
 # Short circuit if GIT_SHA is empty
 if [ -z "$GIT_SHA" ]; then

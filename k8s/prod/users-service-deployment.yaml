@@ -60,25 +60,27 @@ spec:
           capabilities:
             drop:
               - ALL
-        # Node boot is CPU-bound: parsing the webpack bundle plus OpenTelemetry
-        # patching every auto-instrumented module happens before app.listen binds
-        # 7771. At a 15m request the pod's CFS share was ~1.5% of a core, so on a
-        # busy node that work stretched past the startup probe budget — which is
-        # why the same image started fine some deploys and not others. The limit
-        # is raised alongside it so boot can burst on an idle node.
+        # Deliberately left alone. Observed steady state is 1m CPU / 100Mi against
+        # this 15m request and 384Mi limit, and main-pool is the constrained node
+        # (memory requests at ~92% of a 1358Mi allocatable). Raising the request
+        # here buys nothing and only makes the pod harder to schedule.
         resources:
           requests:
-            memory: "192Mi"
-            cpu: "100m"
+            memory: "128Mi"
+            cpu: "15m"
           limits:
-            memory: "512Mi"
-            cpu: "600m"
+            memory: "384Mi"
+            cpu: "350m"
         ports:
         - containerPort: 7771
-        # Failed startup probes are free until the threshold is exhausted (the
-        # container is not restarted), so budget generously: 36 x 5s = 180s.
-        # initialDelaySeconds is 0 because a refused connection just costs one
-        # cheap failure, and dropping the delay lets a fast boot go Ready sooner.
+        # Boot is CPU-bound (webpack bundle parse + OpenTelemetry patching every
+        # auto-instrumented module, all before app.listen binds 7771), and the
+        # 350m limit is a third of a core, so on a contended node it can overrun
+        # the old 12 x 5s budget. Failed startup probes are free until the
+        # threshold is exhausted — the container is not restarted — so budget
+        # generously: 36 x 5s = 180s. initialDelaySeconds is 0 because a refused
+        # connection just costs one cheap failure, and dropping the delay lets a
+        # fast boot go Ready sooner.
         startupProbe:
           httpGet:
             path: /healthcheck
@@ -158,9 +160,11 @@ spec:
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT
           value: "6379"
-        # src/store/redisClient.ts reads these. Without them ioredis fell back to
-        # localhost:6379, reconnect-looped forever (maxRetriesPerRequest: null),
-        # and cross-app handoff codes silently never worked in production.
+        # src/store/redisClient.ts reads these. Without them the port was
+        # Number(undefined) === NaN, so ioredis rejected the socket outright —
+        # production logs `RangeError [ERR_SOCKET_BAD_PORT]` on every boot and
+        # the client never connects at all. Cross-app handoff codes and the
+        # thought-distributor gate have therefore never worked in production.
         - name: REDIS_EPHEMERAL_HOST
           value: "redis-ephemeral-cluster-ip-service"
         - name: REDIS_EPHEMERAL_PORT
@@ -266,6 +270,18 @@ spec:
 
           # Replace DB_PORT with the port the proxy should listen on
           - "--port=5432"
+
+          # This is a plain container, not a native sidecar, so it receives
+          # SIGTERM at the same instant the app container's preStop hook starts —
+          # and by default the proxy closes its listener immediately, which is the
+          # "accept tcp 127.0.0.1:5432: use of closed network connection" line in
+          # production logs. That would pull the database out from under the
+          # graceful drain in src/index.ts. Outlast the app's whole shutdown
+          # budget (15s preStop + 25s hard timeout = 40s) while staying under
+          # terminationGracePeriodSeconds: 45. The proxy still exits early once
+          # its open connection count reaches zero, so this costs nothing when
+          # the drain finishes quickly.
+          - "--max-sigterm-delay=42s"
           - "therr-app:us-central1:therr-db-main-prod-14"
         securityContext:
           # The default Cloud SQL proxy image runs as the
