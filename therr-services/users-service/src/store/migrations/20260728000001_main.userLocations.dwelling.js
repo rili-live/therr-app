@@ -19,11 +19,19 @@ exports.up = (knex) => knex.schema.withSchema('main').alterTable('userLocations'
 
     table.index(['userId', 'distinctDayCount']);
 })
-    // Backfill: existing rows have no day history, so approximate it as the number of
-    // calendar days spanned between the first and last visit, capped by visitCount
-    // (a location cannot have been observed on more days than it was observed at all).
-    // This keeps long-established homes recognized immediately after deploy instead of
-    // requiring users to re-accumulate DWELL_MIN_DISTINCT_DAYS of history.
+    // Backfill: approximate day history as the calendar days spanned between the first
+    // and last visit, capped by visitCount (a location cannot have been observed on more
+    // days than it was observed at all).
+    //
+    // NOTE: this recovers almost nothing in practice, and that is expected. Before this
+    // migration the create/on-conflict merge only bumped `visitCount` — `updatedAt` was
+    // left at its insert value — so for nearly every existing row updatedAt = createdAt,
+    // the span is 0, and distinctDayCount lands on 1. Legacy dwellings therefore have to
+    // re-accumulate DWELL_MIN_DISTINCT_DAYS of history after deploy (roughly three days
+    // of presence), except where the user explicitly set isDeclaredHome, which bypasses
+    // the day count entirely. The backfill is kept because it is correct for the rows
+    // that did get an updatedAt bump via the update handler, and because seeding
+    // lastVisitedAt from updatedAt makes the first post-deploy ping count as a new day.
     .then(() => knex.raw(`
         UPDATE "main"."userLocations"
         SET "lastVisitedAt" = "updatedAt",

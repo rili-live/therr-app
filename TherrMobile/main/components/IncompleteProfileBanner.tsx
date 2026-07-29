@@ -54,19 +54,25 @@ class IncompleteProfileBanner extends React.Component<IIncompleteProfileBannerPr
     componentDidMount() {
         const { user } = this.props;
 
-        AsyncStorage.getItem(DISMISSED_AT_KEY)
+        // Both reads must land before `isReady` flips. Flipping it on the flags read
+        // alone lets the banner render while `isDismissed` is still its initial
+        // `false`, so a user who dismissed it sees it flash back in.
+        const dismissedAtPromise = AsyncStorage.getItem(DISMISSED_AT_KEY)
             .then((value) => {
                 const dismissedAt = value ? parseInt(value, 10) : 0;
-                const isStillDismissed = !!dismissedAt && (Date.now() - dismissedAt) < SEVEN_DAYS_MS;
-                this.safeSetState({
-                    isDismissed: isStillDismissed,
-                });
-            })
-            .catch(() => {});
 
-        syncInterestsFlag(user?.details?.id)
-            .then((flags) => this.safeSetState({ flags, isReady: true }))
-            .catch(() => this.safeSetState({ flags: DEFAULT_PROFILE_COMPLETION_FLAGS, isReady: true }));
+                return !!dismissedAt && (Date.now() - dismissedAt) < SEVEN_DAYS_MS;
+            })
+            .catch(() => false);
+
+        Promise.all([
+            dismissedAtPromise,
+            syncInterestsFlag(user?.details?.id).catch(() => DEFAULT_PROFILE_COMPLETION_FLAGS),
+        ]).then(([isDismissed, flags]) => this.safeSetState({
+            flags,
+            isDismissed,
+            isReady: true,
+        }));
     }
 
     componentWillUnmount() {

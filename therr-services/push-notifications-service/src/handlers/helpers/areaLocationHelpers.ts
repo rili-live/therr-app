@@ -113,10 +113,17 @@ const createAppAndPushNotification = (
         : PushNotifications.Types.proximityRequiredSpace),
     shouldSendPushNotification = true,
 ) => {
-    if (areaType === 'moments') {
-        userLocationCache.setLastMomentNotificationDate(); // fire and forget
-    } else {
-        userLocationCache.setLastSpaceNotificationDate(); // fire and forget
+    // Only stamp the throttle date when a push actually goes out. Stamping it while
+    // suppressed at a dwelling would keep hasSentNotificationRecently() true, which
+    // gates the in-app NEW_AREAS_ACTIVATED notification too — silencing the very
+    // notifications dwelling suppression is meant to preserve, and continuing to
+    // silence them for MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS after the user leaves.
+    if (shouldSendPushNotification) {
+        if (areaType === 'moments') {
+            userLocationCache.setLastMomentNotificationDate(); // fire and forget
+        } else {
+            userLocationCache.setLastSpaceNotificationDate(); // fire and forget
+        }
     }
     let notificationData = {};
 

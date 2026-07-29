@@ -1,5 +1,7 @@
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { Location } from 'therr-js-utilities/constants';
+import { createAppAndPushNotification } from '../../../../src/handlers/helpers/areaLocationHelpers';
 
 describe('areaLocationHelpers', () => {
     describe('hasSentNotificationRecently', () => {
@@ -357,5 +359,65 @@ describe('Area filtering logic', () => {
             const expectedMax = Math.max(Location.AREA_PROXIMITY_METERS, 300);
             expect(maxActivationDistance).to.equal(expectedMax);
         });
+    });
+});
+
+// Unlike the logic-replication suites above, these drive the real exported
+// function — the bug they guard lives in the ordering of a side effect, which a
+// re-implementation of the logic could not have caught.
+describe('createAppAndPushNotification - dwelling suppression', () => {
+    const buildUserLocationCache = () => ({
+        setLastMomentNotificationDate: sinon.stub().resolves(),
+        setLastSpaceNotificationDate: sinon.stub().resolves(),
+    });
+
+    const invoke = (areaType: 'moments' | 'spaces', cache: any, shouldSendPushNotification: boolean) => createAppAndPushNotification(
+        areaType,
+        cache,
+            {} as any,
+            'area-1',
+            { area: { id: 'area-1' } },
+            // Skip the in-app notification so the call makes no outbound HTTP request.
+            false,
+            null,
+            undefined,
+            shouldSendPushNotification,
+    );
+
+    it('does not stamp the space throttle date when the push is suppressed', async () => {
+        const cache = buildUserLocationCache();
+
+        await invoke('spaces', cache, false);
+
+        // Stamping it here would keep hasSentNotificationRecently() true, which also
+        // gates the in-app NEW_AREAS_ACTIVATED notification that suppression is
+        // explicitly meant to preserve.
+        expect(cache.setLastSpaceNotificationDate.called).to.be.eq(false);
+        expect(cache.setLastMomentNotificationDate.called).to.be.eq(false);
+    });
+
+    it('does not stamp the moment throttle date when the push is suppressed', async () => {
+        const cache = buildUserLocationCache();
+
+        await invoke('moments', cache, false);
+
+        expect(cache.setLastMomentNotificationDate.called).to.be.eq(false);
+        expect(cache.setLastSpaceNotificationDate.called).to.be.eq(false);
+    });
+
+    it('stamps the space throttle date when the push is allowed through', async () => {
+        const cache = buildUserLocationCache();
+
+        await invoke('spaces', cache, true);
+
+        expect(cache.setLastSpaceNotificationDate.calledOnce).to.be.eq(true);
+    });
+
+    it('stamps the moment throttle date when the push is allowed through', async () => {
+        const cache = buildUserLocationCache();
+
+        await invoke('moments', cache, true);
+
+        expect(cache.setLastMomentNotificationDate.calledOnce).to.be.eq(true);
     });
 });
