@@ -392,7 +392,9 @@
       "buttons": {
         "accept": "Aceptar",
         "reject": "Rechazar",
-        "view": "Ver"
+        "view": "Ver",
+        "markRead": "Marcar como leído",
+        "markUnread": "Marcar como no leído"
       }
     },
     "thoughtDisplay": {
@@ -1255,7 +1257,8 @@
         "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
         "alreadyClaimed": "Ya has reclamado las recompensas de este logro",
         "unClaimed": "¡Este logro está completo! Regresa y presiona 'reclamar recompensas' para continuar.",
-        "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!"
+        "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!",
+        "progressOf": "{count} de {total}"
       },
       "sections": {
         "unclaimed": "Reclama tus recompensas",
@@ -1693,7 +1696,9 @@
       "headerTitle": "Notificaciones",
       "pageTitle": "Notificaciones",
       "noNotifications": "No tienes notificaciones en este momento",
-      "markAllRead": "Marcar todo leído"
+      "markAllRead": "Marcar todo leído",
+      "unreadCount": "{count} sin leer",
+      "caughtUp": "Estás al día"
     },
     "pageNotFound": {
       "pageTitle": "Página no encontrada"

@@ -15,9 +15,9 @@ import {
     INotificationsState as IStoreNotificationsState,
 } from 'therr-react/types';
 import { Notifications as NotificationsEmuns, UserConnectionTypes } from 'therr-js-utilities/constants';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { notifications as notificationStyles, buildStyles as buildNotificationStyles } from '../../styles/notifications';
 import translator from '../../utilities/translator';
@@ -70,7 +70,6 @@ class Notifications extends React.Component<
     private flatListRef: FlashList<any> | null = null;
     private translate: Function;
     private theme = buildStyles();
-    private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
     private themeNotification = buildNotificationStyles();
 
@@ -82,7 +81,6 @@ class Notifications extends React.Component<
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeNotification = buildNotificationStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
@@ -276,6 +274,56 @@ class Notifications extends React.Component<
         }).finally(() => this.setState({ isRefreshing: false }));
     };
 
+    /**
+     * Overline + action chip. Replaces the bare "Mark all read" text link that
+     * floated above a full-width rule with no context around it. The overline
+     * doubles as a count so the unread state is legible without scanning rows.
+     */
+    renderListHeader = () => {
+        const { notifications } = this.props;
+        const messages = notifications.messages || [];
+
+        if (!messages.length) {
+            return null;
+        }
+
+        const unreadCount = messages.filter((message: any) => message.isUnread).length;
+
+        return (
+            <View style={this.themeNotification.styles.listHeader}>
+                <Text style={this.themeNotification.styles.listHeaderTitle}>
+                    {unreadCount > 0
+                        ? this.translate('pages.notifications.unreadCount', { count: unreadCount })
+                        : this.translate('pages.notifications.caughtUp')}
+                </Text>
+                {unreadCount > 0 && (
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={this.translate('pages.notifications.markAllRead')}
+                        onPress={this.handleMarkAllRead}
+                        style={({ pressed }) => [
+                            this.themeNotification.styles.markAllReadButton,
+                            pressed && this.themeNotification.styles.markAllReadButtonPressed,
+                        ]}
+                    >
+                        <FontAwesome5Icon
+                            name="check-double"
+                            size={12}
+                            color={this.themeNotification.colors.brand}
+                        />
+                        <Text style={this.themeNotification.styles.markAllReadText}>
+                            {this.translate('pages.notifications.markAllRead')}
+                        </Text>
+                    </Pressable>
+                )}
+            </View>
+        );
+    };
+
+    renderItemSeparator = () => (
+        <View style={this.themeNotification.styles.rowDivider} />
+    );
+
     render() {
         const { navigation, notifications, user } = this.props;
         const { isRefreshing } = this.state;
@@ -283,27 +331,25 @@ class Notifications extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
+                <SafeAreaView
+                    edges={[]}
+                    style={[
+                        this.theme.styles.safeAreaView,
+                        { backgroundColor: this.themeNotification.colors.surface },
+                    ]}
+                >
                     <FlashList<any>
                         data={notifications.messages || []}
                         keyExtractor={(item) => String(item.id)}
-                        ListHeaderComponent={notifications.messages?.length ? (
-                            <View style={notificationStyles.markAllReadContainer}>
-                                <Pressable onPress={this.handleMarkAllRead}>
-                                    <Text style={this.themeForms.styles.buttonLinkHeader}>
-                                        {this.translate('pages.notifications.markAllRead')}
-                                    </Text>
-                                </Pressable>
-                            </View>
-                        ) : null}
-                        renderItem={({ item, index }) => (
+                        ListHeaderComponent={this.renderListHeader()}
+                        ItemSeparatorComponent={this.renderItemSeparator}
+                        renderItem={({ item }) => (
                             <Notification
                                 acknowledgeRequest={this.handleConnectionRequestAction}
                                 handlePressAndNavigate={(e) => this.onNotificationPress(e, item, false, true)}
                                 handlePress={(e) => this.onNotificationPress(e, item, false, false)}
                                 isUnread={item.isUnread}
                                 notification={item}
-                                containerStyles={index === 0 ? notificationStyles.firstChildNotification : notificationStyles.otherChildNotification}
                                 translate={this.translate}
                                 themeNotification={this.themeNotification}
                             />
