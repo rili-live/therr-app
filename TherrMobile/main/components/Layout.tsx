@@ -1070,10 +1070,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
             // HABITS pact / streak / partner / habit-reminder notifications.
             case PushNotifications.Types.pactInvitation:
-                return { targetRouteView: 'MyPacts', targetRouteParams: { activeTab: 'Received' } };
+                return { targetRouteView: 'PactsList', targetRouteParams: { initialTab: 'pending' } };
 
             case PushNotifications.Types.pactNudge:
-                return { targetRouteView: 'MyPacts', targetRouteParams: { activeTab: 'Received' } };
+                return { targetRouteView: 'PactsList', targetRouteParams: { initialTab: 'pending' } };
 
             case PushNotifications.Types.pactAccepted:
             case PushNotifications.Types.pactDeclined:

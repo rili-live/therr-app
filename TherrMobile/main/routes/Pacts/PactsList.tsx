@@ -26,6 +26,7 @@ interface IPactsListDispatchProps {
     getPendingInvites: Function;
     acceptPact: Function;
     declinePact: Function;
+    nudgePact: Function;
 }
 
 interface IStoreProps extends IPactsListDispatchProps {
@@ -42,6 +43,7 @@ interface IPactsListState {
     isRefreshing: boolean;
     activeTab: PactsTab;
     respondingPactId: string | null;
+    nudgingPactId: string | null;
     pactIdPendingDecline: string | null;
 }
 
@@ -56,6 +58,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getPendingInvites: HabitActions.getPendingInvites,
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
+    nudgePact: HabitActions.nudgePact,
 }, dispatch);
 
 const TABS: PactsTab[] = ['active', 'pending', 'outgoing', 'all'];
@@ -75,6 +78,7 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
             isRefreshing: false,
             activeTab: props.route?.params?.initialTab || 'active',
             respondingPactId: null,
+            nudgingPactId: null,
             pactIdPendingDecline: null,
         };
 
@@ -162,6 +166,37 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
             });
     };
 
+    handleNudge = (pact: IPact) => {
+        const { nudgePact } = this.props;
+
+        this.setState({ nudgingPactId: pact.id });
+
+        nudgePact(pact.id)
+            .then(() => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.outgoing.nudgeSuccess'),
+                    visibilityTime: 2000,
+                });
+                this.handleRefresh();
+            })
+            .catch(() => {
+                Toast.show({
+                    type: 'errorToast',
+                    text1: this.translate('pages.pacts.outgoing.nudgeCooldown'),
+                    visibilityTime: 2000,
+                });
+            })
+            .finally(() => {
+                this.setState({ nudgingPactId: null });
+            });
+    };
+
+    handleInviteSomeoneElse = () => {
+        const { navigation } = this.props;
+        navigation.navigate('CreatePactInvite');
+    };
+
     handleDeclineInvitePress = (pact: IPact) => {
         this.setState({ pactIdPendingDecline: pact.id });
     };
@@ -247,14 +282,18 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
 
     renderPactItem = ({ item }: { item: IPact }) => {
         const { user } = this.props;
-        const { activeTab, respondingPactId } = this.state;
+        const { activeTab, respondingPactId, nudgingPactId } = this.state;
 
         if (activeTab === 'outgoing') {
             return (
                 <SentInviteCard
                     pact={item}
                     locale={user.settings?.locale || 'en-us'}
+                    currentUserId={user.details?.id}
                     userName={user.details?.userName || ''}
+                    isNudging={nudgingPactId === item.id}
+                    onNudge={this.handleNudge}
+                    onInviteSomeoneElse={this.handleInviteSomeoneElse}
                     themeHabits={this.themeHabits}
                     themeButtons={this.themeButtons}
                     translate={this.translate}

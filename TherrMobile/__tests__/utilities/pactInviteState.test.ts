@@ -1,6 +1,6 @@
 import { it, describe, expect } from '@jest/globals';
 import { IPact } from 'therr-react/types';
-import isPactInviteAwaitingResponse from '../../main/utilities/pactInviteState';
+import isPactInviteAwaitingResponse, { getSentInviteState } from '../../main/utilities/pactInviteState';
 
 /**
  * Pact invite response-gating regression tests.
@@ -110,5 +110,77 @@ describe('isPactInviteAwaitingResponse', () => {
     it('handles a missing pact or user id', () => {
         expect(isPactInviteAwaitingResponse(undefined, ME)).toBe(false);
         expect(isPactInviteAwaitingResponse(buildPact({ partnerUserId: ME }), undefined)).toBe(false);
+    });
+});
+
+/**
+ * Sent-invite state drives the Sent tab, which absorbed the nudge + recovery
+ * affordances from the retired MyPacts screen. The nudge button must disappear
+ * once a nudge has been sent (the service enforces a 7-day cooldown and would
+ * reject a second one), and the "invite someone else" escape hatch must only
+ * appear after a nudge has gone unanswered for a day.
+ */
+describe('getSentInviteState', () => {
+    const HOUR = 60 * 60 * 1000;
+    const NOW = Date.UTC(2026, 6, 30, 12, 0, 0);
+
+    const buildSentPact = (partnerOverrides: Record<string, any> = {}): IPact => buildPact({
+        creatorUserId: ME,
+        partnerUserId: 'user-partner',
+        members: [
+            { ...buildMember(ME, 'creator', 'accepted') },
+            {
+                ...buildMember('user-partner', 'partner', 'pending'),
+                invitedAt: new Date(NOW - (3 * 24 * HOUR)).toISOString(),
+                ...partnerOverrides,
+            },
+        ],
+    } as Partial<IPact>);
+
+    it('offers a nudge when none has been sent', () => {
+        const state = getSentInviteState(buildSentPact(), ME, NOW);
+
+        expect(state.canNudge).toBe(true);
+        expect(state.nudgeSentRecently).toBe(false);
+        expect(state.showRecoveryPath).toBe(false);
+        expect(state.partnerMember?.userId).toBe('user-partner');
+        expect(state.invitedAt.getTime()).toBe(NOW - (3 * 24 * HOUR));
+    });
+
+    it('acknowledges a recent nudge instead of offering another', () => {
+        const state = getSentInviteState(
+            buildSentPact({ nudgedAt: new Date(NOW - (2 * HOUR)).toISOString() }),
+            ME,
+            NOW,
+        );
+
+        expect(state.canNudge).toBe(false);
+        expect(state.nudgeSentRecently).toBe(true);
+        expect(state.showRecoveryPath).toBe(false);
+    });
+
+    it('offers the recovery path once a nudge is a day old with no answer', () => {
+        const state = getSentInviteState(
+            buildSentPact({ nudgedAt: new Date(NOW - (25 * HOUR)).toISOString() }),
+            ME,
+            NOW,
+        );
+
+        expect(state.canNudge).toBe(false);
+        expect(state.nudgeSentRecently).toBe(false);
+        expect(state.showRecoveryPath).toBe(true);
+    });
+
+    it('falls back to the pact createdAt when the member row has no invitedAt', () => {
+        const pact = buildPact({
+            creatorUserId: ME,
+            createdAt: new Date(NOW - (5 * HOUR)).toISOString(),
+        });
+
+        const state = getSentInviteState(pact, ME, NOW);
+
+        expect(state.partnerMember).toBeUndefined();
+        expect(state.invitedAt.getTime()).toBe(NOW - (5 * HOUR));
+        expect(state.canNudge).toBe(true);
     });
 });

@@ -85,9 +85,9 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
         });
     };
 
-    goToMyPacts = (activeTab = 'Sent') => {
+    goToPacts = (initialTab = 'outgoing') => {
         const { navigation } = this.props;
-        navigation.navigate('MyPacts', { activeTab });
+        navigation.navigate('PactsList', { initialTab });
     };
 
     renderEmptyState = () => (
@@ -178,7 +178,7 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
 
                         <Pressable
                             style={({ pressed }) => [localStyles.viewStatusButton, pressed && localStyles.buttonPressed]}
-                            onPress={() => this.goToMyPacts('Sent')}
+                            onPress={() => this.goToPacts('outgoing')}
                         >
                             <Text style={localStyles.viewStatusText}>
                                 {this.translate('pages.myHabits.buttons.viewPactStatus')}
@@ -214,11 +214,11 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
                             : habitGoals.map(this.renderHabitCard)
                         }
 
-                        {/* Link to My Pacts "Sent" tab */}
+                        {/* Link to the Pacts screen's "Sent" tab */}
                         {habitGoals.length > 0 && (
                             <Pressable
                                 style={({ pressed }) => [localStyles.pactsLinkContainer, pressed && localStyles.buttonPressed]}
-                                onPress={() => this.goToMyPacts('Sent')}
+                                onPress={() => this.goToPacts('outgoing')}
                             >
                                 <Text style={localStyles.pactsLinkText}>
                                     {this.translate('pages.myHabits.buttons.viewPactStatus')}

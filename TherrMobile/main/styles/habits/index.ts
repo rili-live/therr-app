@@ -315,6 +315,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             backgroundColor: therrTheme.colors.primary3,
             marginRight: 8,
         },
+        // Full-width variant for cards that stack actions instead of pairing
+        // them side by side (sent invites: nudge, then invite someone else).
+        pactCardInviteButtonStacked: {
+            marginRight: 0,
+            marginTop: 12,
+        },
+        pactCardNudgeSent: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            fontStyle: 'italic',
+            color: therrTheme.colors.primary3,
+            marginTop: 12,
+        },
         pactCardInviteButtonSecondary: {
             borderWidth: 1.5,
             borderColor: therrTheme.colorVariations.primary3Fade,

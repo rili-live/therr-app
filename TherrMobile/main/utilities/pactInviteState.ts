@@ -1,4 +1,21 @@
-import { IPact } from 'therr-react/types';
+import { IPact, IPactMember } from 'therr-react/types';
+
+// How long an invite may sit unanswered after a nudge before the sender is
+// offered a way out (invite someone else). Independent of the server-side
+// nudge cooldown, which is 7 days — see users-service `handlers/pacts.ts`.
+const NUDGE_RECOVERY_AFTER_MS = 24 * 60 * 60 * 1000;
+
+export interface ISentInviteState {
+    partnerMember?: IPactMember;
+    invitedAt: Date;
+    nudgedAt: Date | null;
+    /** No nudge sent yet, so offer one. */
+    canNudge: boolean;
+    /** A nudge was sent recently — acknowledge it instead of repeating it. */
+    nudgeSentRecently: boolean;
+    /** Nudged and still no answer: offer to invite someone else. */
+    showRecoveryPath: boolean;
+}
 
 /**
  * Whether this user still has an outstanding invite on the given pact — i.e.
@@ -24,8 +41,38 @@ const isPactInviteAwaitingResponse = (pact?: IPact, currentUserId?: string): boo
         || (pact.partnerUserId === currentUserId && pact.status === 'pending');
 };
 
+/**
+ * Derives what the sender should see for an invite they sent: nudge, an
+ * acknowledgement of the nudge they already sent, or — once a nudge has gone
+ * unanswered for a day — a way to invite someone else instead.
+ */
+const getSentInviteState = (
+    pact: IPact,
+    currentUserId?: string,
+    now: number = Date.now(),
+): ISentInviteState => {
+    const partnerMember = pact.members?.find((m) => m.role === 'partner')
+        || pact.members?.find((m) => m.userId !== currentUserId);
+    const invitedAt = partnerMember?.invitedAt
+        ? new Date(partnerMember.invitedAt)
+        : new Date(pact.createdAt);
+    const nudgedAt = partnerMember?.nudgedAt ? new Date(partnerMember.nudgedAt) : null;
+    const nudgeAge = nudgedAt ? now - nudgedAt.getTime() : null;
+
+    return {
+        partnerMember,
+        invitedAt,
+        nudgedAt,
+        canNudge: !nudgedAt,
+        nudgeSentRecently: nudgeAge !== null && nudgeAge < NUDGE_RECOVERY_AFTER_MS,
+        showRecoveryPath: nudgeAge !== null && nudgeAge >= NUDGE_RECOVERY_AFTER_MS,
+    };
+};
+
 export default isPactInviteAwaitingResponse;
 
 export {
     isPactInviteAwaitingResponse,
+    getSentInviteState,
+    NUDGE_RECOVERY_AFTER_MS,
 };
