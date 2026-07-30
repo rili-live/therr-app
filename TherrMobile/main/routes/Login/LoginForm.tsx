@@ -50,7 +50,7 @@ export interface ISSOUserDetails {
  * Which step of the passwordless flow is on screen. `password` is the default and covers
  * email/username sign-in; the two `code` states are only reachable from a phone number.
  */
-type LoginMode = 'password' | 'awaitingCode' | 'selectingAccount';
+export type LoginMode = 'password' | 'awaitingCode' | 'selectingAccount';
 
 // Regular component props
 interface ILoginFormProps {
@@ -65,6 +65,12 @@ interface ILoginFormProps {
      * signed in — doesn't land on an empty form.
      */
     prefillIdentifier?: string;
+    /**
+     * Fires whenever the flow moves between steps. The screen uses it to take down pre-login
+     * chrome that would destroy an in-flight sign-in — see the note on the language selector
+     * in `Login/index.tsx`.
+     */
+    onModeChange?: (mode: LoginMode) => void;
     userMessage?: string;
     userSettings: any;
     themeAlerts: {
@@ -146,15 +152,19 @@ export class LoginFormComponent extends React.Component<
      * the constructor does not run a second time. Without this the number is silently dropped
      * and the user has to retype the one they just verified.
      */
-    componentDidUpdate(prevProps: ILoginFormProps) {
+    componentDidUpdate(prevProps: ILoginFormProps, prevState: ILoginFormState) {
         const { prefillIdentifier } = this.props;
 
+        if (prevState.mode !== this.state.mode) {
+            this.props.onModeChange?.(this.state.mode);
+        }
+
         if (prefillIdentifier && prefillIdentifier !== prevProps.prefillIdentifier) {
-            this.setState((prevState) => ({
+            this.setState((currentState) => ({
                 // `mode` back to the identifier step: `isPhoneModeActive` derives the SMS
                 // affordance from the identifier itself, so a phone number lands one tap
                 // from a code without any extra state.
-                inputs: { ...prevState.inputs, userName: prefillIdentifier, password: '' },
+                inputs: { ...currentState.inputs, userName: prefillIdentifier, password: '' },
                 activeProfileId: '',
                 mode: 'password',
                 prevLoginError: '',
