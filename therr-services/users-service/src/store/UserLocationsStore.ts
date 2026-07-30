@@ -1,4 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { Location } from 'therr-js-utilities/constants';
 // import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 import { USER_LOCATIONS_TABLE_NAME } from './tableNames';
@@ -36,6 +38,40 @@ export default class UserLocationsStore {
             .then((response) => response.rows);
     }
 
+    /**
+     * Returns the locations where the user appears to live or be staying — their home,
+     * plus any temporary living space (hotel, rental, extended stay) they have occupied
+     * across multiple distinct days recently.
+     *
+     * A location qualifies when the user explicitly declared it home, or when it has
+     * been observed on at least DWELL_MIN_DISTINCT_DAYS separate calendar days and was
+     * visited within DWELL_LOCATION_MAX_AGE_MS (so last year's hotel decays out).
+     */
+    getDwellings(userId: string, limit = 20) {
+        // ISO-8601 so the literal carries its UTC offset — a naive timestamp would be
+        // interpreted in the database session's timezone rather than the app server's.
+        const activeSince = new Date(Date.now() - Location.DWELL_LOCATION_MAX_AGE_MS).toISOString();
+
+        const queryString = knexBuilder
+            .select([
+                `${USER_LOCATIONS_TABLE_NAME}.*`,
+            ])
+            .from(USER_LOCATIONS_TABLE_NAME)
+            .where({ userId })
+            .andWhere((builder) => builder
+                .where({ isDeclaredHome: true })
+                .orWhere((dwellBuilder) => dwellBuilder
+                    .where('distinctDayCount', '>=', Location.DWELL_MIN_DISTINCT_DAYS)
+                    .andWhere('lastVisitedAt', '>=', activeSince)))
+            .orderBy('isDeclaredHome', 'desc')
+            .orderBy('distinctDayCount', 'desc')
+            .limit(limit)
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => response.rows);
+    }
+
     getById(id: string) {
         const queryString = knexBuilder.select()
             .from(USER_LOCATIONS_TABLE_NAME)
@@ -62,6 +98,21 @@ export default class UserLocationsStore {
             .onConflict(['userId', 'latitudeRounded', 'longitudeRounded'])
             .merge({
                 visitCount: knexBuilder.raw('?? + ?', [`${USER_LOCATIONS_TABLE_NAME}.visitCount`, 1]),
+                // Only counts as a new day when the previous visit landed on an earlier
+                // calendar day. Repeated background pings within one day do not inflate it.
+                //
+                // Both sides are pinned to UTC rather than left to `date_trunc('day', now())`,
+                // which resolves against the database session's TimeZone. That made the
+                // day boundary depend on how the connection happened to be configured —
+                // differing between the app pool, a psql session, and a read replica, and
+                // silently shifting if the server timezone were ever changed. UTC is
+                // arbitrary but fixed, which is what the threshold needs to mean anything.
+                distinctDayCount: knexBuilder.raw(
+                    '?? + (CASE WHEN (?? AT TIME ZONE \'UTC\')::date < (now() AT TIME ZONE \'UTC\')::date THEN 1 ELSE 0 END)',
+                    [`${USER_LOCATIONS_TABLE_NAME}.distinctDayCount`, `${USER_LOCATIONS_TABLE_NAME}.lastVisitedAt`],
+                ),
+                lastVisitedAt: knexBuilder.raw('now()'),
+                updatedAt: knexBuilder.raw('now()'),
             })
             .returning('*')
             .toString();

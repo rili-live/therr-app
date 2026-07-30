@@ -62,11 +62,46 @@ append new items here rather than only printing them once.
   Per-brand Firebase apps are loaded by env var; a stale value will silently
   send pushes from the wrong project.
 - [ ] **Run unconsumed migrations** on each service after any change under
-  `therr-services/<service>/src/migrations/**` lands on `main`. There is no
-  auto-migrate step in the deploy pipeline.
-  Command per service: `npm run migrations:run` (verify per-service `package.json`).
+  `therr-services/<service>/src/migrations/**` lands on `main`.
+  **Now automated for `main` deploys** via `_bin/cicd/run-migrations.sh`
+  (invoked from `_bin/cicd/deploy.sh`): it runs `npm run migrations:run` inside
+  the freshly rolled-out pod for each of the five migration-owning services
+  whose `src/store/migrations` changed. Still run manually when the opt-out
+  (`RUN_MIGRATIONS_ON_DEPLOY=false`) is set, for stage/non-`main` DBs, or to
+  apply a migration ahead of its image. Command per service:
+  `npm run migrations:run` (verify per-service `package.json`).
 - [ ] **Invalidate CDN cache for assets** (`docs/CLOUDFLARE_CDN.md`) after any
   change to global CSS, brand assets, or favicons.
+- [ ] **Add any new web origin to `URI_WHITELIST`** in
+  `k8s/prod/api-gateway-service-deployment.yaml` in the same change that adds it
+  to `k8s/prod/ingress-service.yaml`. Production CORS is enforced
+  (`therr-api-gateway/src/index.ts` uses `cors(corsOptions)` gated on
+  `URI_WHITELIST`), and a missing origin surfaces only as a preflight with no
+  `Access-Control-Allow-Origin` — which reads like a frontend bug, not a config
+  one. This exact gap broke `dashboard.therr.com` login in July 2026. After
+  applying, confirm the env is live on the running pod rather than just in the
+  image: `kubectl set env deployment/api-gateway-service --list | grep URI_WHITELIST`.
+  Mobile is unaffected (it sends no Origin header).
+- [ ] **Expect users-service to land on a preemptible node after its next
+  deploy.** The strategy moved `Recreate` → `RollingUpdate` with
+  `maxUnavailable: 0`, so a deploy now briefly runs two pods. main-pool has
+  ~103Mi of its 1358Mi allocatable memory uncommitted, and the surge pod
+  requests 144Mi, so it cannot fit alongside the outgoing pod. Node affinity is
+  `preferred`, not `required`, so it will schedule onto a preemptible node
+  instead of sitting `Pending` — the rollout succeeds, but users-service then
+  runs somewhere it can be preempted. Either accept that, or free ~150Mi on
+  main-pool before the deploy. Check with
+  `kubectl describe node <main-pool-node> | grep -A5 'Allocated resources'`.
+- [ ] **Verify users-service reaches the ephemeral Redis after deploy.**
+  `REDIS_EPHEMERAL_HOST`/`REDIS_EPHEMERAL_PORT` were missing from
+  `k8s/prod/users-service-deployment.yaml` while `src/store/redisClient.ts`
+  read them. `Number(undefined)` is `NaN`, so ioredis rejected the socket
+  outright rather than falling back to a default — production logs
+  `RangeError [ERR_SOCKET_BAD_PORT]` on every boot and the client never
+  connects, so cross-app handoff codes and the thought-distributor gate have
+  never worked in production. Confirm the pod logs `users-service connected to
+  ephemeral Redis` (and no `REDIS_EPHEMERAL_CONNECTION_ERROR`), then exercise
+  one handoff.
 
 ## Pending campaign / outreach actions
 
@@ -87,6 +122,14 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-07-21, bot-personas) Run the `005_bot_users.js` seed on production users-service (`npm run seeds:run` from `therr-services/users-service`) — creates 10 persona-matched bot accounts (isBot=true) for therr-ai-automator content generation. Idempotent (fixed UUIDs, ON CONFLICT DO NOTHING). Optionally set `BOT_SEED_PASSWORD` beforehand; bots never log in, so the default hash is only a placeholder.
+- [ ] (2026-07-30, /work-plan) After the reaction-metrics bounds deploy, watch api-gateway for a rise in 400s on `POST /v1/reactions-service/{moment,thought,space,event}-reactions/:id`. Every client today sends `userViewCount: 1` (`TherrMobile/main/routes/Map/TherrMapView.tsx`) and no client sends `userBookmarkPriority`, so legitimate traffic should never trip the new bounds (view count 0–100, bookmark priority 0–100, rating 1–5) — a sustained 400 rate means either a client path nobody mapped or a real abuse attempt, and the two are worth telling apart before widening the range. Note the already-deployed mobile app cannot be force-updated, so a bad assumption here reaches users who cannot upgrade away from it. No migration and no env var; bounds live in `therr-js-utilities/constants` → `Reactions`.
+- [ ] (2026-07-30, /work-plan) One-off data check before trusting space ratings: `rating` was previously unbounded, so any existing `main."spaceReactions"` / `main."eventReactions"` row outside 1–5 is still averaged into the rating shown on public space pages. Query `SELECT COUNT(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND (rating < 1 OR rating > 5);` (and the same for `eventReactions`) — if it returns non-zero, those rows need clearing or clamping, since the new validation only stops *new* bad writes.
+- [ ] (2026-07-28, dwelling-location-notifications) Post-deploy tuning check: watch for the `BackgroundGeolocation - Suppressing nearby push notifications at dwelling location` info span. If it fires for places users clearly do not live (a daily-commute office, a gym), raise `Location.DWELL_MIN_DISTINCT_DAYS` from 3; if users still report notification spam at home after ~a week of data, lower `Location.DWELL_LOCATION_RADIUS_METERS` scrutiny first (both live in `therr-public-library/therr-js-utilities/src/constants/Location.ts`).
+- [ ] (2026-07-29, /quality-peer-review) **Notification volume will drop after this deploy — expected, watch it anyway.** `UserLocationCache.setLastMomentNotificationDate`/`setLastSpaceNotificationDate` passed `this.keys.<x>KeyPrefix`, which was always `undefined` (`this.keys` holds hash *field* names, not key prefixes). ioredis coerces a nullish key to the empty string rather than throwing, so every write silently landed on the bare client keyPrefix while the getters read the real per-user hash — `hasSentNotificationRecently()` therefore always returned falsy and `MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS` (3 min) has never been enforced since the method was written in `165d2a30e`. Now fixed. Two effects: proximity-required area pushes are throttled to one per 3 min, and `activateAreasAndNotify` will skip the `NEW_AREAS_ACTIVATED` in-app notification *and* push for 3 min after any moment/space notification (it gates on both dates being stale — pre-existing logic that was simply never reachable). If engagement metrics dip after deploy, this is the cause and the lever is `MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS` in `therr-public-library/therr-js-utilities/src/constants/Location.ts`. Also worth a one-off cleanup: the stray `push-notifications-service:` hash (empty-suffix key, no TTL) that accumulated these writes in each environment can be deleted.
+- [ ] (2026-07-29, /quality-peer-review) Dwellings are now cached in redis for 6 hours (`DWELLING_CACHE_TTL_SEC`, key `push-notifications-service:user:<id>:dwelling-locations`). Two consequences for the tuning work above: (1) a change to `DWELL_MIN_DISTINCT_DAYS` or `DWELL_LOCATION_RADIUS_METERS` will not take full effect until cached entries expire — flush the `*:dwelling-locations` keys after deploying a constant change if you want an immediate read; (2) when judging whether suppression is working, remember a newly-qualifying dwelling can take up to 6 hours to start suppressing. The key is deliberately excluded from `clearCache()`/`invalidateCache()`, so travelling does not evict it.
+- [ ] (2026-07-28, /quality-peer-review) Expectation-setting for the dwelling rollout: the migration's backfill recovers almost no day history, so dwelling suppression will look like it is doing nothing for the first ~3 days after deploy. Before this change the create/on-conflict merge only bumped `visitCount` and left `updatedAt` at its insert value, so for nearly every existing row `updatedAt = createdAt`, the spanned-day count lands on 1, and `distinctDayCount` backfills to 1. Only rows where the user explicitly set `isDeclaredHome` are recognized immediately. Do **not** read a quiet first day or two as a broken feature or start tuning `DWELL_MIN_DISTINCT_DAYS` off it — wait for the tuning check above to have real data.
+- [ ] (2026-07-27, reward-claim-feedback) Rebuild the mobile native projects for the new `react-native-audio-api` dependency — `cd TherrMobile && npm install --legacy-peer-deps && npm run ios:pod:install`, then a clean Android build (`npm run android:clean` before `npm run android`). This is a JSI/native module: an over-the-air JS-only update cannot pick it up. Until the rebuild lands, `main/utilities/rewardFeedback.ts` catches the missing module and reward claims stay silent (haptics still fire), so nothing breaks — the sound just doesn't play. Verify on a physical device: haptics are simulator no-ops, and the iOS ringer-switch behavior (session is `ambient` + `mixWithOthers`) can only be checked on hardware.
 - [ ] (2026-07-25, /quality-peer-review) Before the passwordless phone auth release goes live, confirm the Twilio A2P 10DLC campaign and messaging throughput cover the two **new unauthenticated** SMS-dispatching routes (`POST /v1/phone/auth/start`, `POST /v1/phone/register/start`) — previously only the authenticated `/phone/verify` sent SMS. Set a Twilio spend alert at the same time. Sends are now capped per destination number (5/hour, `chargeSmsSendBudget` in `therr-api-gateway/src/services/phone/verificationCodes.ts`) on top of the per-IP limiter, so the exposure is bounded — but the bound is `5 × distinct numbers/hour`, which is still worth a billing alarm.
 - [ ] (2026-07-25, /quality-peer-review) Product decision to confirm on the passwordless sign-in flow: `POST /v1/phone/auth/start` no longer returns `INVALID_REGION`. It cannot — an SMS is only attempted for a number that *has* an account, so surfacing a region error would confirm the account exists, which is the one fact the uniform response withholds. Consequence: a user in a Twilio-unroutable region who has an account gets "code sent" and never receives one. Twilio failures are logged (`Failed to dispatch passwordless sign-in code`); watch that log after launch and consider a static country-code allow-list on the client if it shows real volume. Sign-*up* (`/register/start`) is unaffected and still reports the region error.
 - [ ] (2026-07-25, /quality-peer-review) Bump the iOS app version for the passwordless-phone-auth release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.9.0` / `versionCode 436`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still at `MARKETING_VERSION = 1.70.0` (iOS uses a separate scheme, so this is a bump-and-submit step, not a value to copy).
@@ -94,7 +137,6 @@ append new items here rather than only printing them once.
 - [ ] (2026-07-25, /quality-peer-review) (Optional, no longer required for correctness) One-off backfill to normalize legacy `main.users.phoneNumber` rows onto the canonical display dialect. `UsersStore` now normalizes on write, so *new* rows no longer diverge, and `getByPhoneNumber` / `getAllByPhoneNumber` / `findUser` match a candidate set covering both dialects — so the mixed column works as-is. This is cleanup: until it happens, every future phone lookup has to keep replicating the candidate set. Do **not** add a phone-format CHECK constraint to the column as part of this — Apple SSO signups deliberately write the non-phone sentinel `'apple-sso'` there (`createUserHelper`, `handlers/helpers/user.ts`).
 - [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits). Existing installs self-heal on next launch — mobile compares its FCM token against `/users/me` and re-registers via `updateUser`, which dual-writes the brand-scoped row — so expect one launch of latency per app before routing is correct.
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
-- [ ] (2026-07-20, /work-plan) Run `20260720000001_main.invites.brandVariation` on production users-service (`npm run migrations:run`). Adds a NOT NULL `brandVariation` column (default `'therr'`) to `main.invites`, stamped at invite-creation and returned by `getInviteByToken`. Additive and defaulted, so applying it early is safe for the currently-deployed release; if the image ships first, invite creation fails on the unknown column.
 - [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
 - [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
   project env var (full Play service-account key JSON with the "Release manager"
@@ -102,7 +144,6 @@ append new items here rather than only printing them once.
   release notes. Until it is set, the release-notes step logs a skip and the
   pipeline still succeeds — notes just won't update. See
   `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`.
-- [ ] (2026-07-03, magic-invite-links) Run the new users-service migrations on production (`npm run migrations:run` in `therr-services/users-service`): `20260703000001_main.invites.token`, `20260703000002_main.invites.reminders`, `20260703000003_main.userStatsAggregations.onboarding`. The invite-token migration backfills a unique token per existing invite row; the onboarding-stat columns are read by the messaging-automator's completion-nudge pass.
 - [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Corrected 2026-07-14 (/quality-peer-review): the user does not get a generic error — they get nothing at all.** `TherrMobile/main/routes/Invite/PhoneContacts.tsx` ends its invite call with `.catch(() => { /* Error handled silently */ })`, so the 403 is swallowed and the "Invite" button is a silent no-op. This hits the *already-deployed* app (which cannot be force-updated), and now hits **every** new signup, since phone is no longer required to reach `EMAIL_VERIFIED`. Treat as higher priority than originally logged: at minimum surface the 403 as a toast, ideally a "verify your phone to invite" prompt that deep-links to phone verification. Also audit any other action that assumes phone presence.
 - [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
   digest: an internal cron (k8s CronJob or equivalent) must POST once daily —
@@ -112,10 +153,6 @@ append new items here rather than only printing them once.
   deliberately not exposed through the API gateway. Running it more than once
   a day duplicates streakAtRisk/partnerMissedDay/pactExpiring pushes.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
-- [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
-  migration on production messages-service (`npm run migrations:run`). Without it
-  the `brandVariation` column does not exist, `searchDirectMessages` fails with a
-  SQL error, and the DM thread shows empty even when old messages exist.
 - [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
   account env vars on push-notifications-service production
   (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
@@ -159,21 +196,6 @@ append new items here rather than only printing them once.
   the deployment manifest's env block, services silently fall back to the
   `therr-api` default — still internally consistent, so issuer-based cross-env token
   separation would be inactive without any error surfacing. Verify, don't assume.
-- [ ] (2026-06-08, /quality-peer-review) Run the
-  `20260517000001_habits.pact_members.nudgedAt` migration on production
-  (users-service: `npm run migrations:run`) after deploying — adds the nullable
-  `habits.pact_members.nudgedAt` column the new pact-nudge endpoint writes to via
-  `markNudged`. Without it, every nudge call 500s on the `markNudged` update.
-- [ ] (2026-06-20, /quality-peer-review) Production CORS is now enforced.
-  `therr-api-gateway/src/index.ts` switched prod from `cors()` (allow-all) to
-  `cors(corsOptions)` gated on `URI_WHITELIST`. Before deploying to prod, confirm
-  `URI_WHITELIST` (comma-separated, exact scheme+host, no trailing slash) on the
-  api-gateway includes EVERY production web origin: `https://www.therr.com`,
-  `https://therr.com`, the dashboard origin, and any niche web domains
-  (`https://habits.therr.com`, `https://teem.therr.com`, …). Any browser origin
-  not listed will be rejected at CORS preflight and the web/dashboard apps break.
-  Mobile is unaffected (sends no Origin header). Verify the env block is actually
-  applied to the running pod, not just the image.
 - [ ] (2026-06-20, /quality-peer-review) `JWT_SECRET` and `JWT_EMAIL_SECRET` are
   now hard-required at boot — api-gateway middleware (`authenticate`,
   `authenticateOptional`, `authenticateUnsubscribe`) throws at import if missing,
@@ -187,20 +209,6 @@ append new items here rather than only printing them once.
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
-- [ ] (2026-07-26, /quality-peer-review) Run the
-  `20260726000000_main.thoughtReactions.relevanceScore` migration on production
-  (reactions-service: `npm run migrations:run`) **before** the reactions-service
-  image rolls out. The new activation path inserts `relevanceScore` / `scoredAt`
-  on every `thoughtReactions` row and the activated-feed read orders by
-  `relevanceScore`; if the columns are missing, both thought activation and the
-  stream 500 outright. This is a hard ordering dependency, not a soft one.
-- [ ] (2026-07-26, /quality-peer-review) That same migration creates
-  `idx_thought_reactions_user_relevance` with a plain (non-`CONCURRENTLY`)
-  `CREATE INDEX`, which takes an ACCESS EXCLUSIVE lock on
-  `main."thoughtReactions"` for the duration of the build. Knex runs migrations
-  inside a transaction so `CONCURRENTLY` is not available here — schedule the run
-  during a low-traffic window, or build the index by hand with `CONCURRENTLY`
-  first so the migration's `IF NOT EXISTS` becomes a no-op.
 - [ ] (2026-07-26, /quality-peer-review) First feed load after the relevance
   rollout reshuffles for every existing user: rows activated before the migration
   have `relevanceScore IS NULL` and sort last (`NULLS LAST`). Expected and in the
@@ -213,6 +221,45 @@ append new items here rather than only printing them once.
   `INTEREST_ENGAGEMENT_FLUSH_INTERVAL_MS` and
   `INTEREST_ENGAGEMENT_MAX_BUFFERED_USERS` (maps-service and reactions-service,
   defaults 10000ms / 1000 users).
+- [ ] (2026-07-28, /quality-peer-review) Apply the
+  `20260727000000_main.userInterests.affinityScore` columns on production
+  **before** the users-service image rolls out. `run-migrations.sh` runs
+  migrations *after* `kubectl set image` and after `kubectl rollout status`
+  returns, but the new `incrementUserInterestsByKey` names `affinityScore` /
+  `lastEngagedAt` / `source` in its INSERT column list, so against the
+  pre-migration schema every interest-engagement flush raises
+  `column "affinityScore" ... does not exist` for the whole rollout window.
+  Failures are caught and logged by the maps/reactions flush buffers (dropped
+  increments + `Failed to flush interest engagement` error spans), so this is
+  lost preference-learning data and alert noise rather than user-facing 500s —
+  but it is avoidable. The migration is written `IF NOT EXISTS` specifically so
+  the columns can be added by hand ahead of the deploy and the automated run
+  becomes a no-op. Reads are unaffected (`getByUserIds` selects `*`).
+- [ ] (2026-07-28, /quality-peer-review) Before flipping the interest read path
+  (ALGORITHM_AUDIT phase 5), review the sampled `INTEREST_RANKING_SHADOW` spans
+  emitted by `getTopRankedConnections` — `interest.shadowFootrule` and
+  `interest.shadowTopOverlap`. Shipping this write-only is only worthwhile if
+  those distributions are actually read before the flip.
+- [ ] (2026-07-28, /quality-peer-review) Optional env tuning added this cycle,
+  all with working defaults: `INTEREST_AFFINITY_HALF_LIFE_DAYS` (default 45 —
+  must be changed in users-service only, where both the write-side decay in
+  `UserInterestsStore` and the read-side decay in `interestWeights` read the
+  same variable; setting them to different values silently describes two
+  different curves), `INTEREST_IMPLICIT_DISCOUNT` (default 0.6; note `0` falls
+  back to the default rather than disabling the discount), and
+  `INTEREST_SHADOW_LOG_SAMPLE_RATE` (default 0.02; `0` does disable logging).
+- [ ] (2026-07-30, /quality-peer-review) After deploying the reaction-metric
+  bounds (0392f95ce + the follow-up fix), audit and clean the rows the bounds
+  now reject but that were written before them. The new validation only stops
+  new bad data; it does not repair history. Two queries against the reactions
+  DB: `SELECT count(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND
+  (rating < 1 OR rating > 5);` (same for `main."eventReactions"`) — any hit is
+  currently skewing the `avg(rating)` shown on public space pages, so decide
+  whether to clamp or NULL them; and `SELECT count(*) FROM
+  main."thoughtReactions" WHERE "userViewCount" > 100;` (same for
+  `momentReactions`, `spaceReactions`, `eventReactions`) — inflated totals from
+  the string-concatenation bug where `existing + '1'` wrote `'91'` instead of
+  10.
 <!-- skill-followups:end -->
 
 ---
@@ -233,20 +280,38 @@ breaks share previews from claim-emails.
 
 _All open Tier 1.1 items closed (2026-05-11)._
 
-### 1.2 Spoofable / unauthenticated mutation endpoints
+### 1.2 Spoofable mutation endpoints
 
-These reaction/activation endpoints are public and can be triggered by an
-unauthenticated client to mutate engagement metrics on demand. This corrupts
+These endpoints let a client mutate engagement metrics on demand, corrupting
 analytics that the B2B dashboard charges for.
 
-- `therr-services/reactions-service/src/handlers/momentReactions.ts:12, 77` —
-  Endpoint should be secure/non-public
-- `therr-services/reactions-service/src/handlers/thoughtReactions.ts:12, 62` —
-  Same
-- `therr-services/reactions-service/src/handlers/spaceReactions.ts:57, 126` —
-  Same
-- `therr-services/reactions-service/src/handlers/eventReactions.ts:10, 53, 111`
-  — Same
+Corrected 2026-07-30 (/work-plan): this section previously described the
+reaction endpoints as reachable by an **unauthenticated** client. They are not.
+`therr-api-gateway/src/index.ts` applies `authenticate.unless({ path: [...] })`
+and no reaction route appears in that exclusion list. The real exposure was
+narrower — any *authenticated* user could set unbounded values on the numeric
+reaction fields. Recording this so the claim is not re-derived from the old
+wording.
+
+Closed 2026-07-30 (/work-plan): client-supplied reaction metrics are now bounded.
+`userViewCount` and `userBookmarkPriority` (0–100) and `rating` (1–5) are
+rejected with a 400 outside those ranges — at the gateway for the single-reaction
+routes, and in `reactions-service/src/utilities/validateReactionMetrics.ts` for
+the internal `/create-update/multiple` routes, which are not registered in the
+gateway's reactions router and so never saw gateway validation. Bounds are shared
+via `therr-js-utilities/constants` → `Reactions` so the two cannot drift.
+`rating` mattered most: `SpaceReactionsStore` averages it into the rating shown
+on public space pages, so one out-of-range write permanently skewed it.
+
+Still open in this area:
+
+- Reaction handlers force `userHasActivated: true` regardless of the request
+  body, so an authenticated user can still mark any addressable content as
+  activated. Closing this needs proximity/view verification, not a bounds check
+- The reaction handlers spread `...req.body` straight into the store, and
+  express-validator only validates listed fields rather than stripping unlisted
+  ones — so any column on the table is mass-assignable. Prefer an explicit
+  allow-list at the store boundary
 - `therr-api-gateway/src/services/maps/router.ts:144` — Backend logic to
   prevent location spoofing (rapid-change detection)
 
@@ -604,6 +669,45 @@ these after items in 3.3 are merged and a perf baseline is captured.
   React Router v6 navigation flicker after new-user login (also at
   `routes/Login/index.tsx:76`, `routes/Register/index.tsx:69`)
 
+### 3.5 CI/CD & deploy automation (dev → deploy → debug)
+
+Automation of the build/deploy/debug pipeline so a small team spends less time
+babysitting releases. See `docs/AUTOMATION_ROADMAP.md` for the full,
+cost-weighted roadmap (including observability, auto-filed bug issues,
+dependency automation, and marketing automation that live outside this
+backlog).
+
+- ✅ **Automated DB migrations on deploy** (roadmap #2) — **DONE.**
+  `_bin/cicd/run-migrations.sh` runs `npm run migrations:run` in the
+  freshly rolled-out pod for each migration-owning service whose
+  `src/store/migrations` changed on a `main` deploy. Removes the recurring
+  "run unconsumed migrations" manual follow-up. Additive/expand-contract
+  migrations only; opt out with `RUN_MIGRATIONS_ON_DEPLOY=false`.
+
+- [ ] **Post-deploy staging smoke tests + auto-rollback** (roadmap #3) —
+  replace the stubbed `test-e2e-staging` job in `.circleci/config.yml`
+  (currently `echo "Hello, Integration Tests"`) with a real synthetic suite
+  hitting critical paths (auth, map/space read, post create, push send).
+  Gate `stage → main` promotion on it and auto-revert the `kubectl set image`
+  (or `kubectl rollout undo`) if post-deploy healthchecks/smoke checks fail.
+  Turns a bad deploy into a ~minutes auto-rollback instead of a manual
+  scramble. Effort: medium. Depends on a reachable staging cluster (the job
+  scaffold and GKE auth already exist).
+
+- [ ] **Unify CI/CD across all repos + CD for the cloud functions & infra**
+  (roadmap #4) — standardize on one CI convention and add the missing
+  continuous-deploy legs:
+  - `therr-ai-automator` has Vitest tests but **no CI workflow** — add one
+    (lint / tsc / test / build), mirroring `therr-messaging-automator/.github/workflows/ci.yml`.
+  - Both automators deploy via a manual `npm run package:zip` + Terraform —
+    add build→zip→deploy CD (GitHub Actions → Terraform apply) so a merge to
+    the default branch ships the function.
+  - `therr-infra-terraform` has **no CI** — add `terraform plan` on PR and
+    `terraform apply` on merge so infra changes are reviewable and applied
+    automatically instead of by hand.
+  Effort: medium, mostly YAML + service-account wiring. Removes the
+  manual-zip/manual-apply toil and makes infra diffs auditable.
+
 ---
 
 ## Tier 4 — Content Safety, Data Quality, Observability
@@ -700,6 +804,16 @@ English-formatted timestamps.
   join (avoids stale "discovery radius" once cities densify)
 - `therr-api-gateway/src/services/users/router.ts:569` — Validate AWS SNS
   signatures on bounce webhook
+- `main.moments` has **no foreign key on `spaceId`**, in every environment.
+  `20230316132958_main.moments.js` intended to drop and re-add it with
+  `onDelete('SET NULL')`, but it was written as an `async` alterTable callback,
+  so knex emitted only the `dropForeign` and silently discarded the re-add (see
+  the comment in that migration). Verified against a from-scratch replay: zero
+  FK constraints on the table. If the constraint is wanted, it needs a **new
+  forward migration** — do not edit the historical one, which would diverge
+  fresh databases from production. That migration must first find and clear
+  orphaned `moments.spaceId` values accumulated since 2023, or the
+  `ADD CONSTRAINT` will fail.
 
 ### 4.5 Observability gaps
 

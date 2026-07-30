@@ -17,7 +17,8 @@
 #      google-services resource directory so the next build re-derives it.
 #   4. Kills any running Metro bundler process.
 #   5. Clears Metro's temp caches.
-#   6. Prints next commands to run.
+#   6. Reminds to reinstall iOS Pods when the brand actually changed.
+#   7. Prints next commands to run.
 
 set -e
 

@@ -21,7 +21,16 @@ export const THOUGHTS_TABLE_NAME = 'main.thoughts';
 // dampened by age. Declared once so the SELECT and the ORDER BY in getRecentThoughts can
 // never drift apart — the returned score has to be the same number the ranking used.
 // Only valid against the `candidates` subquery, which exposes "replyCount" and "createdAt".
-const HOT_SCORE_EXPRESSION = '("replyCount" + 1) / POWER((EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600) + 2, 1.5)';
+//
+// GREATEST(..., 0) is load-bearing, not cosmetic. A thought dated in the future makes
+// (age + 2) negative, and POWER(<negative>, 1.5) is a hard Postgres ERROR ("a negative
+// number raised to a non-integer power yields a complex result") — not a NULL. That
+// aborts the whole candidate query, so a single future-dated row silently froze the
+// activation feed for every user. therr-ai-automator post-dates generated thoughts by
+// up to numHours, so such rows are routinely present. The candidate pool below also
+// excludes future rows; this clamp is the second line of defense, because the cost of
+// getting it wrong is a total feed outage rather than one mis-ranked post.
+const HOT_SCORE_EXPRESSION = '("replyCount" + 1) / POWER(GREATEST(EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600, 0) + 2, 1.5)';
 
 export interface ICreateThoughtParams {
     parentId?: string;
@@ -112,6 +121,12 @@ export default class ThoughtsStore {
                 isPublic: true,
                 isMatureContent: false,
             })
+            // Future-dated thoughts are a scheduling queue, not feed candidates. therr-ai-automator
+            // post-dates generated thoughts to drip them out over the gap until its next run, and
+            // `ThoughtsStore.find` will not render one until its timestamp arrives. Activating it
+            // early burns a stream slot on a post that comes back as nothing — and, before the
+            // GREATEST clamp above, made the hot score error out and killed the whole query.
+            .andWhereRaw(`${THOUGHTS_TABLE_NAME}."createdAt" <= NOW()`)
             .orderBy('createdAt', 'desc')
             .limit(candidatePoolSize);
 

@@ -129,6 +129,26 @@ Three themes: light (default), dark, retro. Selected via `user.settings.mobileTh
 
 Firebase Cloud Messaging + Notifee. Android channels defined in `main/constants/index.tsx` (default, contentDiscovery, rewardUpdates, reminders). FCM setup in `main/utilities/pushNotifications.ts`.
 
+### Sound Effects & Haptics
+
+Celebratory feedback lives in `main/utilities/rewardFeedback.ts` (used by the
+achievement reward-claim flow). Two rules govern it:
+
+- **Sounds are synthesized, not bundled.** `react-native-audio-api` exposes a
+  Web Audio graph; cues are built from oscillators + gain envelopes rather than
+  shipped as mp3/m4a. Keeps bundle size flat and avoids per-platform codec
+  differences. Add new cues as note/offset tables next to the existing ones.
+- **Audio is required lazily inside a `try`/`catch`.** It is a JSI native module,
+  so an unrebuilt native project (or Jest) must degrade to a silent no-op — never
+  a crash. The `AudioContext` is cached, then closed on an idle timer so a rare
+  cue does not hold an audio session open for the whole app session.
+
+The iOS session is configured `ambient` + `mixWithOthers`, so effects honor the
+ringer switch and never pause the user's music. Haptics go through
+`react-native-haptic-feedback` with `ignoreAndroidSystemSettings: false`, which
+honors the system haptics toggle. Both packages are mocked under
+`__mocks__/` and wired up in `jest.config.js`.
+
 ### Brand Variation
 
 Configured in `main/config/brandConfig.ts`. Consumed by interceptors (HTTP headers), socket middleware, and Layout. Feature flags in `env-config.js` control which tabs/features are visible.

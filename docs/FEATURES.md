@@ -24,6 +24,8 @@
 - **Organization management** — business account grouping
 
 ### User Profiles
+- **Guided profile completion (mobile)** — a "Finish your profile" checklist card on the user's own profile shows the remaining steps (name, interests, photo, phone, contact sync) with a progress bar; each row hands off to the matching stage of the guided `CreateProfile` flow, which carries a Duolingo-style step progress bar and per-stage back navigation. The home-feed nudge banner reads the same step model. The card disappears once every step is resolved
+- **Contact sync step (mobile)** — a first-class onboarding stage that asks to match phone contacts against existing accounts, with an explicit "Not Now". A completed sync is recorded per user, which collapses the sync prompt on the people list to a single "sync again" link
 - **Profile editing** — name, bio, profile picture, privacy settings
 - **View other users** — public profile with content tabs (spaces, events, thoughts)
 - **User search & discovery** — search by username, "people you may know" suggestions
@@ -63,12 +65,14 @@
 - **TherrCoin currency** — earned through social actions, check-ins, referrals
 - **XP system** — experience points from achievements
 - **Points exchange** — redeem accumulated rewards
+- **Reward claim celebration (mobile)** — claiming an achievement reward plays a synthesized coin "ka-ching" on grant and a full fanfare synced to the confetti animation on the claim screen, each paired with an escalating haptic ramp. Sounds are generated at runtime via `react-native-audio-api` (no bundled audio files) using an `ambient`/`mixWithOthers` session, so they honor the iOS ringer switch and never interrupt the user's music; haptics honor the Android system haptics setting
 - **Leaderboards** — Duolingo-style weekly (Monday UTC reset) + all-time XP rankings with Everyone/Friends scopes, per-brand (works for Therr and Friends with Habits). XP accrues from achievement progress and habit check-ins/streak milestones; separate from the spendable TherrCoin balance. Opt-out via `settingsIsLeaderboardEnabled`. Climbing into the weekly top 10 / top 3 / #1 triggers a rank-milestone push notification and `weeklyChampion` achievement progress
 
 ### Notifications
 - **Push notifications** — Firebase Cloud Messaging; location-triggered, brand-specific templates
 - **In-app notifications** — real-time via WebSocket; mark read, notification history
 - **Notification channels** — default, content discovery, reward updates, reminders (Android)
+- **Dwelling-aware notification muting** — nearby-search push notifications are suppressed while the user is at a place they live or are staying (home, apartment, hotel, extended stay). A `main.userLocations` row becomes a "dwelling" once observed across multiple distinct calendar days, or when explicitly declared home; stale dwellings decay after 30 days without a visit. Areas are still discovered, activated, and recorded in the in-app notification list — only the interruptive push is muted
 
 ### Campaigns & Business Tools
 - **Campaigns** — create/manage marketing campaigns with status tracking and ad goals
@@ -105,7 +109,7 @@
 - **Phone contacts integration** — sync contacts for friend invitations
 - **Camera & image picker** — capture/select photos with crop and compression
 - **Get directions** — open native maps for navigation to locations
-- **Haptic feedback** — vibration feedback on key interactions
+- **Haptic feedback** — vibration feedback on key interactions, including the achievement reward-claim celebration ramp
 - **Secure storage** — encrypted local storage for sensitive data
 - **Location disclosure modal** — privacy explanation for location permissions
 - **Nearby content carousels** — swipeable tabs for discoveries, events, thoughts, news

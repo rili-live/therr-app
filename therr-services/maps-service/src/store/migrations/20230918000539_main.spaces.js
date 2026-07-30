@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', (table) => {
     table.string('addressLocality'); // The locality of the address within the region (city)
     table.string('addressRegion'); // The region of the address within the country (state, province)
     table.string('addressStreetAddress');

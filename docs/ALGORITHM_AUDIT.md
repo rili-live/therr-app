@@ -335,7 +335,7 @@ Ordered by leverage-to-effort. Each is independently shippable, and (1) → (2) 
 |-------|------|--------|------|
 | 1 ✅ | O2.1 persist `relevanceScore` + reorder feed; O2.2 deterministic `search` order | `general` | Low — additive column, one `ORDER BY` |
 | 2 ✅ | O3.1 cache-gate the distributor; O3.2 batch preference writes + real logging | `general` | Low — behavior-preserving, immediately relieves S1/S2 |
-| 3 | O1.1–O1.3 affinity column, decay-on-write, upsert (shadow mode) | `general` | Medium — validate against `engagementCount` for one release |
+| 3 ✅ | O1.1–O1.3 affinity column, decay-on-write, upsert (shadow mode) | `general` | Medium — validate against `engagementCount` for one release |
 | 4 | O1.4 `score` collection (gateway validator + store) then mobile UI | `general`, then `niche/*` | Medium — must sequence backend first |
 | 5 | O1.5–O1.7 weighted ranking + SQL overlap scoring; O2.3 shared scoring module | `general` | Medium — flag-gated, A/B on weights |
 | 6 | O2.4 geo/interest unification; O2.5 diversity; O3.3–O3.5 materialization | `general` | Higher — largest UX change, do last with measurement in place |
@@ -362,6 +362,22 @@ Interest engagement writes are coalesced per user in an **in-process** buffer (`
 The users-service increment endpoint accepts both the new coalesced (`interestIncrements`) and legacy (`interestDisplayNameKeys` + `incrBy`) payloads, and senders emit both, so a rolling deploy in either order keeps recording.
 
 Still open from Optimization 3 and explicitly **not** done: materialized user interest vectors and precomputed candidate pools (O3.3, O3.4). Those are the Redis-memory-heavy parts.
+
+### Phase 3 — shipped (shadow mode)
+
+`main.userInterests` gains `affinityScore`, `lastEngagedAt`, `negativeCount`, and `source`, backfilled from `engagementCount` / `updatedAt` so the new signal starts from the evidence already collected rather than cold.
+
+`incrementUserInterestsByKey` became an `INSERT … ON CONFLICT` that does three things the old `UPDATE … FROM` could not:
+
+- **Decays on write.** `affinityScore := affinityScore * 0.5^(secondsSinceLastEngagement / halfLife) + weight`, so scores stay current without a nightly sweep over the table. Half-life defaults to 45 days (`INTEREST_AFFINITY_HALF_LIFE_DAYS`).
+- **Discovers.** Engagement on an interest the user never declared now creates a row instead of being silently dropped (E2). Discovered rows are `source = 'implicit'`, `isEnabled = false`, and discounted 0.6× (`INTEREST_IMPLICIT_DISCOUNT`) — they accumulate evidence for a future "enable this?" prompt without entering any existing read path.
+- **Keeps one write path.** Both the coalesced and legacy payload shapes normalize onto this method, so decay and discovery cannot apply to one and not the other.
+
+**Nothing reads `affinityScore` yet.** `getInterestRanking` still ranks on `engagementCount`, which is maintained in step. `utilities/interestWeights.ts` holds the live formula and the candidate replacement side by side, and `getTopRankedConnections` logs a sampled comparison of the two orderings (normalized Spearman footrule + top-5 overlap, `INTEREST_SHADOW_LOG_SAMPLE_RATE`, default 2%). Flip the read path in phase 5 once those logs show the distributions are sane — that is the whole point of shipping this write-only.
+
+Note for the read flip: the stored score is decayed only as far as its last write, so a row read long after its last engagement is "stale high". Any read path must re-apply the decay factor at read time, as `getShadowInterestWeight` already does.
+
+Row growth is bounded by the interest taxonomy (~50-100 rows/user), and for onboarded users is zero — onboarding already inserts a row per interest, so discovery only creates rows for SSO and onboarding-skip users, which is exactly the population E2 was failing.
 
 ## 6. Instrumentation to add before phase 6
 

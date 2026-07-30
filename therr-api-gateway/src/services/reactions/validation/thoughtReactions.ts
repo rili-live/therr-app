@@ -4,6 +4,7 @@ import {
     query,
     param,
 } from 'express-validator';
+import { Reactions } from 'therr-js-utilities/constants';
 
 export const searchActiveThoughtsValidation = [
     header('authorization').exists(),
@@ -20,8 +21,12 @@ export const searchActiveThoughtsValidation = [
 ];
 
 export const createOrUpdateThoughtReactionValidation = [
+    header('x-userid').exists(),
     param('thoughtId').isString().exists(),
-    body('userViewCount').isNumeric().optional(),
+    body('userViewCount').isInt({
+        min: Reactions.USER_VIEW_COUNT_MIN,
+        max: Reactions.USER_VIEW_COUNT_MAX,
+    }).optional(),
     body('userHasActivated').isBoolean().optional(),
     body('userHasLiked').isBoolean().optional(),
     body('userHasSuperLiked').isBoolean().optional(),
@@ -29,7 +34,10 @@ export const createOrUpdateThoughtReactionValidation = [
     body('userHasReported').isBoolean().optional(),
     body('userHasSuperDisliked').isBoolean().optional(),
     body('userBookmarkCategory').optional(),
-    body('userBookmarkPriority').isNumeric().optional(),
+    body('userBookmarkPriority').isInt({
+        min: Reactions.USER_BOOKMARK_PRIORITY_MIN,
+        max: Reactions.USER_BOOKMARK_PRIORITY_MAX,
+    }).optional(),
 ];
 
 export const getThoughtReactionsValidation = [

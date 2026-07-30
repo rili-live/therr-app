@@ -12,7 +12,8 @@ import {
     hasSentNotificationRecently,
     selectAreasAndActivate,
 } from './helpers/areaLocationHelpers';
-import { createUserLocation, getUserLocations, updateUserLocation } from './helpers/userLocations';
+import { createUserLocation, updateUserLocation } from './helpers/userLocations';
+import { getDwellingLocationsCached, isAtDwellingLocation } from './helpers/dwellingLocations';
 import { getCurrentUser } from './helpers/user';
 import { predictAndSendNotification } from '../api/firebaseAdmin';
 import * as globalConfig from '../../../../global-config';
@@ -34,7 +35,12 @@ const processUserLocationChange: RequestHandler = (req, res) => {
 
     const userLocationCache = new UserLocationCache(userId);
 
-    return userLocationCache.getOrigin().then((origin) => {
+    const dwellingLocationsPromise = getDwellingLocationsCached(userId, req.headers as any, userLocationCache);
+
+    return Promise.all([
+        userLocationCache.getOrigin(),
+        dwellingLocationsPromise,
+    ]).then(([origin, dwellingLocations]) => {
         let isCacheInvalid = !origin;
 
         if (!isCacheInvalid) {
@@ -49,6 +55,9 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             isCacheInvalid = distanceFromOriginMeters > Location.AREA_PROXIMITY_NEARBY_METERS - 1;
         }
 
+        // Areas are still discovered and activated at a dwelling; only the push notifications are muted
+        const isAtDwelling = isAtDwellingLocation(dwellingLocations, { latitude, longitude });
+
         // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
         return getAllNearbyAreas(userLocationCache, isCacheInvalid, {
             headers: req.headers as any,
@@ -57,6 +66,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 latitude,
             },
             limit: 100,
+            shouldSuppressPushNotifications: isAtDwelling,
         })
             .then(([nearbyMoments, nearbySpaces]) => selectAreasAndActivate(
                 req.headers as any,
@@ -67,6 +77,8 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 },
                 nearbyMoments?.newlyDiscoveredAreas,
                 nearbySpaces?.newlyDiscoveredAreas,
+                false,
+                isAtDwelling,
             ))
             .then(([momentsToActivate, spacesToActivate]) => res.status(200).send({
                 activatedAreas: [spacesToActivate, ...momentsToActivate],
@@ -148,13 +160,35 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                 deviceMobileFirebaseToken: userDeviceToken,
             });
 
-        userPromise.then(({
-            deviceMobileFirebaseToken,
-        }) => {
+        // Home, hotel, apartment, or any other place the user has stayed across multiple days.
+        // Cached in redis — this handler runs on every background ping.
+        const dwellingLocationsPromise = getDwellingLocationsCached(userId, req.headers as any, userLocationCache);
+
+        Promise.all([userPromise, dwellingLocationsPromise]).then(([user, dwellingLocations]) => {
+            const { deviceMobileFirebaseToken } = user || ({} as any);
             const headers: InternalConfigHeaders = {
                 ...req.headers as any,
                 'x-user-device-token': deviceMobileFirebaseToken,
             };
+
+            // The user has already discovered whatever is around where they sleep, so nearby-search
+            // push notifications there are noise. Areas are still discovered/activated either way.
+            const isAtDwelling = isAtDwellingLocation(dwellingLocations, { latitude, longitude });
+
+            if (isAtDwelling) {
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['BackgroundGeolocation - Suppressing nearby push notifications at dwelling location'],
+                    traceArgs: {
+                        brandVariation,
+                        userId,
+                        whiteLabelOrigin,
+                        totalDwellingLocations: dwellingLocations.length,
+                    },
+                });
+            }
+
             // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
             // AREA_PROXIMITY_METERS - More sensitive invalidation for background location when use is stationary
             // TODO: Add some dynamic caching that captures all nearby spaces along with cached newly discoverable areas
@@ -165,13 +199,14 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                     latitude,
                 },
                 limit: 100,
+                shouldSuppressPushNotifications: isAtDwelling,
             }, Location.AREA_PROXIMITY_METERS)
                 .then(([nearbyMoments, nearbySpaces]) => {
                     const filteredMoments = nearbyMoments?.newlyDiscoveredAreas;
                     const filteredSpaces = nearbySpaces?.newlyDiscoveredAreas;
 
                     // Determine isCheckIn synchronously from available space data.
-                    // Home detection (async) only gates the nudge notification, not visit recording.
+                    // Dwelling detection only gates push notifications, not visit recording.
                     // A check-in means the user is stationary within 20m of at least one space.
                     const isCheckIn = (nearbySpaces?.areas || []).some((s) => {
                         const dist = distanceTo(
@@ -181,50 +216,19 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                         return dist <= Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
                     });
 
-                    if (filteredSpaces?.length) {
-                        Promise.all([
-                            userLocationPromise,
-                            getUserLocations(userId, headers),
-                        ]).then(([userLocationResponse, allLocationsResponse]) => {
-                            const pastLocations = allLocationsResponse?.data?.userLocations || [];
+                    // Never nudge a user to engage with spaces around where they live or are staying
+                    if (filteredSpaces?.length && !isAtDwelling) {
+                        userLocationPromise.then((userLocationResponse) => {
                             const currentLocation = userLocationResponse?.data?.userLocations?.[0];
-                            const sortedPastLocations = pastLocations
-                                .filter((loc) => !loc.isDeclaredHome)
-                                .sort((a, b) => b.visitCount - a.visitCount);
-                            const possibleHomesCount = 3;
-                            const homeLocations = sortedPastLocations
-                                .slice(0, possibleHomesCount); // Assume top 3 are probably home
-                            const nonHomeLocations = sortedPastLocations
-                                .slice(possibleHomesCount);
 
-                            logSpan({
-                                level: 'info',
-                                messageOrigin: 'API_SERVER',
-                                messages: ['DEBUG non-home locations'],
-                                traceArgs: {
-                                    brandVariation,
-                                    userId,
-                                    whiteLabelOrigin,
-                                    nonHomeLocations: JSON.stringify(nonHomeLocations || []),
-                                },
-                            });
-
-                            const userIsNotAtHome = homeLocations.every((homeLocation) => distanceTo({
-                                lon: latitude,
-                                lat: longitude,
-                            }, {
-                                lon: homeLocation.longitude,
-                                lat: homeLocation.latitude,
-                            }) > Location.MAX_DISTANCE_TO_CHECK_IN_METERS);
-
-                            if (userIsNotAtHome && nonHomeLocations?.length) {
+                            if (currentLocation) {
                                 const possibleSpacesUserIsVisiting: any[] = [];
                                 const spacesOrderedByDistance = nearbySpaces?.areas
                                     .map((s) => ({
                                         ...s,
                                         distanceFromUserMeters: distanceTo({
-                                            lon: latitude,
-                                            lat: longitude,
+                                            lon: longitude,
+                                            lat: latitude,
                                         }, {
                                             lon: s.longitude,
                                             lat: s.latitude,
@@ -384,6 +388,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                         filteredMoments,
                         filteredSpaces,
                         isCheckIn,
+                        isAtDwelling,
                     );
                 })
                 .then(([momentsToActivate, spacesToActivate]) => {

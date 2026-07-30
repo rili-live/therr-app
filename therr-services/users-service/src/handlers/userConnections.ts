@@ -22,11 +22,10 @@ import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 import { IFindUsersByContactInfo } from '../store/UsersStore';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { getInterestRanking, logShadowInterestRanking } from '../utilities/interestWeights';
 
-/**
- * Used for sorting interests by a singular value. Set defaults to ensure no zero values.
- */
-const getInterestRanking = (engagementCount: number, score: number) => Math.ceil((engagementCount || 1) / (score || 5));
+// Moved to utilities/interestWeights so the live formula and the shadow candidate it is
+// being compared against live side by side and can be unit-tested together.
 
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
@@ -736,10 +735,23 @@ const getTopRankedConnections = (req, res) => {
             }).then((results) => {
                 const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], [requestingUserDetails.id]);
 
+                // No column list: getByUserIds selects `userInterests.*` and ignores its
+                // `returning` argument, so affinityScore / negativeCount / lastEngagedAt
+                // already arrive for the shadow comparison below. Passing a list here would
+                // read as though it were filtering the projection when it does nothing —
+                // and naming the new columns explicitly would break this read against a
+                // pre-migration schema, which selecting `*` tolerates.
                 return Store.userInterests.getByUserIds(userIds, {
                     isEnabled: true,
-                }, 'engagementCount', ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
+                }, 'engagementCount')
                     .then((userInterests) => {
+                        // Shadow only — the ordering below is still the live engagementCount
+                        // ranking. This measures how far the affinity-based weight would move
+                        // it, so the read path can be flipped on evidence rather than hope.
+                        // Scoped to the requesting user's own rows: mixing several users'
+                        // interests into one ordering would measure nothing meaningful.
+                        logShadowInterestRanking(userId, userInterests.filter((i) => i.userId === userId && i.isEnabled));
+
                         const interestsIdMap = {};
                         userInterests.forEach((uInterest) => {
                             if (uInterest.isEnabled) {

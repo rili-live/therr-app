@@ -348,7 +348,13 @@ const getThoughtDetails = (req, res) => {
                         Store.userConnections.incrementUserConnection(userId, thought.fromUserId, 1)
                             .catch((err) => console.log(err));
                         if (thought.interestsKeys?.length) {
-                            Store.userInterests.incrementUserInterests(userId, thought.interestsKeys, 1)
+                            // In-service call, so it does not go through the coalescing
+                            // buffer the maps/reactions services use — one thought view is
+                            // one event, and the map shape is just how the store now takes
+                            // per-key weights.
+                            const increments = thought.interestsKeys
+                                .reduce((acc: any, key: string) => ({ ...acc, [key]: 1 }), {});
+                            Store.userInterests.incrementUserInterestsByKey(userId, increments)
                                 .catch((err) => console.log(err));
                         }
                     }

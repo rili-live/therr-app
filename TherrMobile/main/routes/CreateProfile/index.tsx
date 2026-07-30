@@ -24,11 +24,14 @@ import CreateProfilePhoneVerify from '../../components/0_First_Time_UI/onboardin
 import CreateProfilePicture from '../../components/0_First_Time_UI/onboarding-stages/CreateProfilePicture';
 import CreateProfileInterests from '../../components/0_First_Time_UI/onboarding-stages/CreateProfileInterests';
 import InviteFriends from '../../components/0_First_Time_UI/onboarding-stages/InviteFriends';
+import SyncContacts from '../../components/0_First_Time_UI/onboarding-stages/SyncContacts';
+import StageProgressBar from '../../components/0_First_Time_UI/StageProgressBar';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../constants';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { getUserImageUri } from '../../utilities/content';
 import { synceMobileContacts } from '../../utilities/contacts';
+import { markContactsSkipped, markContactsSynced, markInterestsSelected } from '../../utilities/profileCompletion';
 
 const verifyPhoneLoader = require('../../assets/verify-phone-shield.json');
 
@@ -44,9 +47,25 @@ interface IStoreProps extends ICreateProfileDispatchProps {
 // Regular component props
 export interface ICreateProfileProps extends IStoreProps {
     navigation: any;
+    route?: any;
 }
 
-type StageType = 'details' | 'picture' | 'phone' | 'interests' | 'invite';
+type StageType = 'details' | 'picture' | 'phone' | 'interests' | 'contacts' | 'invite';
+
+/**
+ * Order the guided flow walks through. Also drives the progress bar, so the
+ * user always sees how much of the profile is left. `invite` is a closing
+ * flourish rather than a profile field, so it is excluded from the count.
+ */
+const STAGE_ORDER: StageType[] = ['details', 'interests', 'picture', 'phone', 'contacts'];
+
+/**
+ * Order the back arrow walks, which is STAGE_ORDER plus `invite`. Kept separate because
+ * STAGE_ORDER defines the progress *denominator* and must not count the invite prompt —
+ * but back from `invite` should still return to `contacts` rather than falling through to
+ * navigation.goBack() and leaving the flow entirely.
+ */
+const STAGE_BACK_ORDER: StageType[] = [...STAGE_ORDER, 'invite'];
 
 interface ICreateProfileState {
     croppedImageDetails: any;
@@ -55,6 +74,7 @@ interface ICreateProfileState {
     isLoadingInterests: boolean;
     isPhoneNumberValid: boolean;
     isSubmitting: boolean;
+    isSyncingContacts: boolean;
     stage: StageType;
     interests: any;
 }
@@ -100,6 +120,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             isLoadingInterests: true,
             isPhoneNumberValid: false,
             isSubmitting: false,
+            isSyncingContacts: false,
             stage: props.route?.params?.stage || 'details',
         };
 
@@ -197,6 +218,8 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     };
 
     onSubmitInterests = (stage: StageType, interests: any) => {
+        const { user } = this.props;
+
         this.setState({
             isSubmitting: true,
         });
@@ -204,6 +227,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             interests,
         })
             .then(() => {
+                markInterestsSelected(user.details?.id);
                 this.setState({
                     stage: 'picture',
                 });
@@ -289,7 +313,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                             });
                         } else if (stage === 'phone') {
                             this.setState({
-                                stage: 'invite',
+                                stage: 'contacts',
                             });
                         }
                     }
@@ -372,8 +396,69 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     };
 
     onFinishOnboarding = () => {
-        const { navigation } = this.props;
+        const { navigation, route } = this.props;
+
+        // Entered from the "Finish your profile" checklist: return the user to
+        // where they were rather than dumping them on the map mid-session.
+        if (route?.params?.isGuidedStep && navigation.canGoBack?.()) {
+            navigation.goBack();
+            return;
+        }
+
         navigation.navigate('Map');
+    };
+
+    /** Index of the current stage in the guided flow, 1-based for display. */
+    getStageStepNumber = (stage: StageType) => {
+        const index = STAGE_ORDER.indexOf(stage);
+
+        // `invite` sits past the tracked stages — show the bar as full.
+        return index === -1 ? STAGE_ORDER.length : index + 1;
+    };
+
+    onGoBackStage = () => {
+        const { navigation } = this.props;
+        const { stage } = this.state;
+        const currentIndex = STAGE_BACK_ORDER.indexOf(stage);
+
+        if (currentIndex > 0) {
+            this.setState({
+                errorMsg: '',
+                stage: STAGE_BACK_ORDER[currentIndex - 1],
+            });
+            return;
+        }
+
+        // Only the first stage falls out of the flow entirely.
+        if (navigation.canGoBack?.()) {
+            navigation.goBack();
+        }
+    };
+
+    onSkipContactsSync = () => {
+        const { user } = this.props;
+
+        markContactsSkipped(user.details?.id);
+        this.advancePastContacts();
+    };
+
+    /**
+     * The invite stage is a bonus prompt during first-run onboarding. When the
+     * user arrived from the profile checklist, contact sync is the last tracked
+     * step, so finish instead of tacking on another ask.
+     */
+    advancePastContacts = () => {
+        const { route } = this.props;
+
+        if (route?.params?.isGuidedStep) {
+            this.onFinishOnboarding();
+            return;
+        }
+
+        this.setState({
+            errorMsg: '',
+            stage: 'invite',
+        });
     };
 
     onShareInviteLink = () => {
@@ -394,22 +479,50 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         const { navigation, user } = this.props;
         const storePermissions = () => {};
 
-        synceMobileContacts({
+        this.setState({
+            errorMsg: '',
+            isSyncingContacts: true,
+        });
+
+        return synceMobileContacts({
             storePermissions,
             user,
         }).then((result) => {
+            // Recorded before navigating so the profile checklist and the
+            // people list both see the step as done on their next read.
+            markContactsSynced(user.details?.id);
             navigation.navigate('PhoneContacts', {
                 allContacts: result.contacts,
                 matchedUsers: result.matchedUsers,
             });
         }).catch((err) => {
             console.log('Sync contacts error:', err);
+            this.setState({
+                errorMsg: this.translate(
+                    err?.message === 'permissions-denied'
+                        ? 'pages.createProfile.syncContacts.permissionsDenied'
+                        : 'pages.createProfile.syncContacts.errorMessage'
+                ),
+            });
+        }).finally(() => {
+            this.setState({
+                isSyncingContacts: false,
+            });
         });
     };
 
     render() {
         const { user } = this.props;
-        const { isLoadingInterests, interests, croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
+        const {
+            isLoadingInterests,
+            interests,
+            croppedImageDetails,
+            errorMsg,
+            inputs,
+            isSubmitting,
+            isSyncingContacts,
+            stage,
+        } = this.state;
         const pageHeaderDetails = this.translate('pages.createProfile.pageHeaderDetails');
         const pageSubHeaderDetails = this.translate('pages.createProfile.pageSubHeaderDetails');
         const pageHeaderPhone = this.translate('pages.createProfile.pageHeaderPhone');
@@ -425,6 +538,14 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
+                    <StageProgressBar
+                        currentStep={this.getStageStepNumber(stage)}
+                        totalSteps={STAGE_ORDER.length}
+                        onBack={this.onGoBackStage}
+                        canGoBack={stage !== STAGE_BACK_ORDER[0]}
+                        translate={this.translate as any}
+                        theme={this.theme}
+                    />
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
@@ -475,6 +596,17 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                         </Text>
                                         <Text style={this.themeFTUI.styles.subtitleCenter}>
                                             {pageSubHeaderPhone}
+                                        </Text>
+                                    </>
+                                }
+                                {
+                                    stage === 'contacts' &&
+                                    <>
+                                        <Text style={this.themeFTUI.styles.title}>
+                                            {this.translate('pages.createProfile.pageHeaderContacts')}
+                                        </Text>
+                                        <Text style={this.themeFTUI.styles.subtitleCenter}>
+                                            {this.translate('pages.createProfile.pageSubHeaderContacts')}
                                         </Text>
                                     </>
                                 }
@@ -565,6 +697,19 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     translate={this.translate}
                                     theme={this.theme}
                                     themeAlerts={this.themeAlerts}
+                                    themeForms={this.themeForms}
+                                    themeSettingsForm={this.themeSettingsForm}
+                                />
+                            }
+                            {
+                                stage === 'contacts' &&
+                                <SyncContacts
+                                    isSyncing={isSyncingContacts}
+                                    errorMsg={errorMsg}
+                                    onSyncContacts={this.onSyncContacts}
+                                    onSkip={this.onSkipContactsSync}
+                                    translate={this.translate}
+                                    theme={this.theme}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}
                                 />

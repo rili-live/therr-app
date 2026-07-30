@@ -28,6 +28,10 @@ RUN \
   fi
 RUN npm rebuild bcrypt --build-from-source
 
+# The library build scripts invoke this to emit declaration barrels for the
+# bundled subpaths. Copied after the installs so editing it does not bust them.
+COPY ./_bin/generate-declaration-barrels.js ./_bin/
+
 # Install and build styles library
 WORKDIR /app/therr-public-library/therr-styles
 RUN \

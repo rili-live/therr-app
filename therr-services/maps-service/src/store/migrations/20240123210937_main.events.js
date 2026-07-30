@@ -22,9 +22,14 @@ const installExtensions = async (knex) => {
     await knex.schema.raw('CREATE EXTENSION IF NOT EXISTS "postgis_tiger_geocoder";');
 };
 
-exports.up = (knex) => installExtensions(knex)
-    .then(() => knex.schema.raw('CREATE SCHEMA IF NOT EXISTS "main";'))
-    .then(() => knex.schema.withSchema('main').createTable('events', async (table) => {
+// Sequenced explicitly rather than nested inside an async createTable callback: knex invokes that
+// callback synchronously and discards its promise, so the Postgis raws below would escape the
+// migration and could outlive its transaction. See eslint-config/plugin/rules/no-async-table-builder-callback.js.
+exports.up = async (knex) => {
+    await installExtensions(knex);
+    await knex.schema.raw('CREATE SCHEMA IF NOT EXISTS "main";');
+
+    await knex.schema.withSchema('main').createTable('events', (table) => {
         table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
         table.uuid('fromUserId').notNullable();
         table.uuid('groupId').notNullable();
@@ -70,11 +75,12 @@ exports.up = (knex) => installExtensions(knex)
         table.index('spaceId');
         table.index('scheduleStartAt');
         table.index('scheduleStopAt');
+    });
 
-        // Postgis
-        await knex.schema.raw(`SELECT AddGeometryColumn('main', 'events', 'geom', 4326, 'POINT', 2);`); // eslint-disable-line quotes
-        await knex.schema.raw(`UPDATE main.events SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);`); // eslint-disable-line quotes
-        await knex.schema.raw(`CREATE INDEX idx_events_geom ON main.events USING gist(geom);`); // eslint-disable-line quotes
-    }));
+    // Postgis
+    await knex.schema.raw(`SELECT AddGeometryColumn('main', 'events', 'geom', 4326, 'POINT', 2);`); // eslint-disable-line quotes
+    await knex.schema.raw(`UPDATE main.events SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);`); // eslint-disable-line quotes
+    await knex.schema.raw(`CREATE INDEX idx_events_geom ON main.events USING gist(geom);`); // eslint-disable-line quotes
+};
 
 exports.down = (knex) => knex.schema.withSchema('main').dropTable('events');

@@ -1,8 +1,8 @@
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import config from '../config';
 import { JWT_ISSUER, JWT_AUDIENCE } from 'therr-js-utilities/constants';
+import config from '../config';
 
 const saltRounds = 12;
 

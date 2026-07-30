@@ -4,17 +4,22 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
+import validateReactionMetrics from '../utilities/validateReactionMetrics';
 // import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
 // import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
 const createOrUpdateThoughtReaction = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
     const {
         locale,
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
+    }
 
     return Store.thoughtReactions.get({
         userId,
@@ -31,7 +36,10 @@ const createOrUpdateThoughtReaction = (req, res) => {
             }, {
                 ...req.body,
                 userLocale: locale,
-                userViewCount: reactionsResponse[0].userViewCount + (req.body.userViewCount || 0),
+                // Number() is load-bearing: a JSON body may carry "1" as a string, and
+                // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
+                // very total the bounds above exist to cap.
+                userViewCount: reactionsResponse[0].userViewCount + Number(req.body.userViewCount || 0),
                 userHasActivated: true,
             })
                 .then(([thoughtReaction]) => {
@@ -59,12 +67,16 @@ const createOrUpdateThoughtReaction = (req, res) => {
 
 // CREATE/UPDATE
 const createOrUpdateMultiThoughtReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
     if (!userId) {
         return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
     }
 
     const { thoughtIds } = req.body;
