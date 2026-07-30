@@ -93,20 +93,28 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'CreateProfile',
-        component: CreateProfile,
-        options: () => ({
-            title: 'Create Profile',
-            access: AccessPresets.EMAIL_VERIFIED_MISSING_PROPERTIES,
-        }),
-    },
-    {
         name: 'Map',
         component: Map,
         options: () => ({
             title: 'Map',
             requiredFeatures: [FeatureFlags.ENABLE_MAP],
             access: AccessPresets.PUBLIC_PARTIAL,
+        }),
+    },
+    {
+        // ORDER IS LOAD-BEARING: Layout renders these in array order and does not
+        // set `initialRouteName`, so the first route the user is authorized for
+        // becomes the landing screen. `CreateProfile` must sit AFTER `Map`:
+        //   - onboarding users (missing properties) fail Landing/Login/Map, so
+        //     CreateProfile is their first surviving route — first-run onboarding;
+        //   - fully verified users now also match CreateProfile (they re-enter it
+        //     from the "Finish your profile" checklist), and Map keeps its place
+        //     as their landing screen only because it comes first.
+        name: 'CreateProfile',
+        component: CreateProfile,
+        options: () => ({
+            title: 'Create Profile',
+            access: AccessPresets.ANY_AUTHENTICATED,
         }),
     },
     {

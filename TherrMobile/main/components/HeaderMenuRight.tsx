@@ -19,6 +19,7 @@ import translator from '../utilities/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { resetInterestsRedirectBypass } from '../utilities/interestsRedirectGuard';
+import { getUnclaimedAchievementsCount } from '../utilities/achievements';
 import { ITherrThemeColors } from '../styles/themes';
 import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
@@ -448,6 +449,8 @@ class HeaderMenuRight extends React.PureComponent<
         const { isModalVisible, isPointsInfoModalVisible } = this.state;
         const unreadCount: number = notifications?.messages?.filter(m => m.isUnread)?.length || 0;
         const hasNotifications = unreadCount > 0;
+        const unclaimedAchievementsCount: number = getUnclaimedAchievementsCount(user?.achievements);
+        const hasUnclaimedAchievements = unclaimedAchievementsCount > 0;
         // let imageStyle = themeMenu.styles.toggleIcon;
 
         // if (styleName === 'light') {
@@ -663,7 +666,7 @@ class HeaderMenuRight extends React.PureComponent<
                         >
                             <Drawer.Section>
                                 <FeatureGate feature={FeatureFlags.ENABLE_NOTIFICATIONS}>
-                                    <View style={themeMenu.styles.notificationsItemContainer}>
+                                    <View style={themeMenu.styles.menuItemContainer}>
                                         <Drawer.Item
                                             label={this.translate('components.headerMenuRight.menuItems.notifications')}
                                             icon={() => (
@@ -682,7 +685,7 @@ class HeaderMenuRight extends React.PureComponent<
                                         />
                                         {
                                             hasNotifications && (
-                                                <Badge style={themeMenu.styles.notificationBadge} size={20}>
+                                                <Badge style={themeMenu.styles.menuItemBadge} size={20}>
                                                     {unreadCount}
                                                 </Badge>
                                             )
@@ -690,22 +693,31 @@ class HeaderMenuRight extends React.PureComponent<
                                     </View>
                                 </FeatureGate>
                                 <FeatureGate feature={FeatureFlags.ENABLE_ACHIEVEMENTS}>
-                                    <Drawer.Item
-                                        label={this.translate('components.headerMenuRight.menuItems.achievements')}
-                                        icon={() => (
-                                            <TherrIcon
-                                                style={
-                                                    currentScreen === 'Achievements'
-                                                        ? themeMenu.styles.iconStyleActive
-                                                        : themeMenu.styles.iconStyle
-                                                }
-                                                name="achievement"
-                                                size={24}
-                                            />
-                                        )}
-                                        active={currentScreen === 'Achievements'}
-                                        onPress={() => this.navTo('Achievements')}
-                                    />
+                                    <View style={themeMenu.styles.menuItemContainer}>
+                                        <Drawer.Item
+                                            label={this.translate('components.headerMenuRight.menuItems.achievements')}
+                                            icon={() => (
+                                                <TherrIcon
+                                                    style={
+                                                        currentScreen === 'Achievements'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name="achievement"
+                                                    size={24}
+                                                />
+                                            )}
+                                            active={currentScreen === 'Achievements'}
+                                            onPress={() => this.navTo('Achievements')}
+                                        />
+                                        {
+                                            hasUnclaimedAchievements && (
+                                                <Badge style={themeMenu.styles.menuItemBadge} size={20}>
+                                                    {unclaimedAchievementsCount}
+                                                </Badge>
+                                            )
+                                        }
+                                    </View>
                                 </FeatureGate>
                                 <FeatureGate feature={FeatureFlags.ENABLE_CONNECT}>
                                     <Drawer.Item

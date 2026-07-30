@@ -411,8 +411,40 @@
       }
     },
     "incompleteProfileBanner": {
-      "message": "Add your name so friends can recognize you",
-      "dismiss": "Dismiss"
+      "message": "Finish your profile — {count} steps left",
+      "dismiss": "Dismiss",
+      "messageSingular": "Finish your profile — 1 step left"
+    },
+    "profileCompletionCard": {
+      "title": "Finish your profile!",
+      "stepsLeft": "{count} steps left",
+      "stepLeft": "1 step left",
+      "continue": "Continue",
+      "collapse": "Collapse checklist",
+      "expand": "Expand checklist",
+      "skipped": "Skipped — tap to do it now",
+      "steps": {
+        "name": {
+          "label": "Add your name",
+          "description": "So friends can recognize you"
+        },
+        "interests": {
+          "label": "Pick your interests",
+          "description": "We use these to show you better content"
+        },
+        "picture": {
+          "label": "Add a profile photo",
+          "description": "Profiles with photos get more connections"
+        },
+        "phone": {
+          "label": "Verify your phone",
+          "description": "Keeps your account secure"
+        },
+        "contacts": {
+          "label": "Sync your contacts",
+          "description": "Find friends who are already here"
+        }
+      }
     }
   },
   "forms": {
@@ -1287,7 +1319,8 @@
       "buttons": {
         "syncSuccess": "Sync Success!",
         "syncFailed": "Failed to Sync",
-        "syncContacts": "Sync Your Contacts?"
+        "syncContacts": "Sync Your Contacts?",
+        "resyncContacts": "Sync contacts again"
       },
       "labels": {
         "allUsers": "All Users",
@@ -1321,6 +1354,18 @@
         "shareLink": "Share a Link",
         "syncContacts": "Sync Contacts",
         "skip": "Skip for Now"
+      },
+      "pageHeaderContacts": "Find your friends",
+      "pageSubHeaderContacts": "Sync your contacts to see who is already here",
+      "progress": {
+        "back": "Go back a step"
+      },
+      "syncContacts": {
+        "description": "We match your contacts against Therr accounts so you can connect right away. Your contacts are never shared with anyone else.",
+        "continue": "Continue",
+        "skip": "Not Now",
+        "errorMessage": "We could not sync your contacts. Please try again.",
+        "permissionsDenied": "Contact access is off. Enable it in your device settings to find friends."
       }
     },
     "cropImage": {

@@ -109,6 +109,24 @@ jobs:
       - run:
           name: Lint changed files
           command: ./_bin/cicd/lint-changed-files.sh
+  typecheck:
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Type-check all packages
+          command: ./_bin/cicd/typecheck.sh
+          no_output_timeout: 20m
+  test_clients:
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Run web, dashboard, and mobile Jest suites
+          command: ./_bin/cicd/test-clients.sh
+          no_output_timeout: 20m
   docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.24.4
@@ -207,6 +225,21 @@ jobs:
           # the `habits-internal` submit profile in eas.json (track: internal,
           # releaseStatus: draft). Requires the Google Play service-account key to
           # be configured on EAS for the Friends with Habits project.
+          #
+          # no_output_timeout: EAS builds queue before they run, and the CLI
+          # prints nothing while waiting in the queue. CircleCI's default
+          # no-output timeout is 10 minutes, which kills this step on any
+          # non-trivial queue wait even though the build itself succeeds. 40m
+          # covers a long queue plus the ~15-20m Android build. Note the
+          # submission is registered with EAS server-side at build-creation
+          # time, so a killed CLI does not cancel the Play upload — but it does
+          # abort the job before the release-notes step below can run, which is
+          # why raising this matters rather than just letting it fail.
+          #
+          # Deliberately NOT using --no-wait: the release-notes step needs the
+          # build to have landed on the track before it polls, and would burn
+          # its 15m poll window against an empty track if this returned early.
+          no_output_timeout: 40m
           command: |
             cd TherrMobile
             eas build \
@@ -258,9 +291,13 @@ jobs:
             echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
             source ~/.bashrc
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-            gcloud --quiet config set project therr-app
-            gcloud --quiet config set compute/zone us-central1-a
-            gcloud container clusters get-credentials cluster-1
+            # Defaults target the current (blue) cluster, so behavior is unchanged unless
+            # overridden. Cutover to a new cluster is done by setting GKE_CLUSTER / GKE_ZONE
+            # (and optionally GKE_PROJECT) as CircleCI project env vars — no code merge needed.
+            gcloud --quiet config set project "${GKE_PROJECT:-therr-app}"
+            gcloud --quiet config set compute/zone "${GKE_ZONE:-us-central1-a}"
+            gcloud container clusters get-credentials "${GKE_CLUSTER:-cluster-1}" \
+              --zone "${GKE_ZONE:-us-central1-a}"
       - add_ssh_keys:
           fingerprints:
             - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
@@ -294,16 +331,19 @@ workflows:
           filters:
             branches:
               ignore:
-                - general
                 - stage
                 - main
       - lint_changed_files:
           filters:
             branches:
               ignore:
-                - general
-                - stage
                 - main
+      # Unfiltered: type errors and client-test failures must be caught on every
+      # branch, including `general` and `stage`. Neither job was running anywhere
+      # before — tsc appeared nowhere in this config, and the ~1,314 web/dashboard/
+      # mobile Jest cases had no job at all.
+      - typecheck
+      - test_clients
       - docker_build_test_publish_images:
           requires:
           - docker_build_base_image

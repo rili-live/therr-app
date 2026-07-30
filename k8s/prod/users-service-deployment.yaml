@@ -5,8 +5,17 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  # Recreate tore down the old pod BEFORE the new one existed, so any slow or
+  # failed start became a hard outage instead of a stalled rollout. maxUnavailable: 0
+  # keeps the running pod serving until the replacement passes its readiness probe.
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  # A pod that answers /healthcheck once and then dies shouldn't retire the old one.
+  minReadySeconds: 15
+  progressDeadlineSeconds: 300
   selector:
     matchLabels:
       component: server-users
@@ -18,6 +27,9 @@ spec:
         layer: services-internal
     spec:
       serviceAccountName: therr-k8s-service-account
+      # Must exceed the preStop sleep (15s) plus the in-flight request drain in
+      # index.ts, otherwise SIGKILL lands mid-request during every deploy.
+      terminationGracePeriodSeconds: 45
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -48,6 +60,10 @@ spec:
           capabilities:
             drop:
               - ALL
+        # Deliberately left alone. Observed steady state is 1m CPU / 100Mi against
+        # this 15m request and 384Mi limit, and main-pool is the constrained node
+        # (memory requests at ~92% of a 1358Mi allocatable). Raising the request
+        # here buys nothing and only makes the pod harder to schedule.
         resources:
           requests:
             memory: "128Mi"
@@ -57,14 +73,22 @@ spec:
             cpu: "350m"
         ports:
         - containerPort: 7771
+        # Boot is CPU-bound (webpack bundle parse + OpenTelemetry patching every
+        # auto-instrumented module, all before app.listen binds 7771), and the
+        # 350m limit is a third of a core, so on a contended node it can overrun
+        # the old 12 x 5s budget. Failed startup probes are free until the
+        # threshold is exhausted — the container is not restarted — so budget
+        # generously: 36 x 5s = 180s. initialDelaySeconds is 0 because a refused
+        # connection just costs one cheap failure, and dropping the delay lets a
+        # fast boot go Ready sooner.
         startupProbe:
           httpGet:
             path: /healthcheck
             port: 7771
-          initialDelaySeconds: 10
+          initialDelaySeconds: 0
           periodSeconds: 5
           timeoutSeconds: 3
-          failureThreshold: 12
+          failureThreshold: 36
         livenessProbe:
           httpGet:
             path: /healthcheck
@@ -81,6 +105,13 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
+        # Endpoint removal and SIGTERM race each other. Sleeping here keeps the
+        # process serving while kube-proxy/ingress finish dropping this pod from
+        # rotation, so the gateway stops seeing connection-refused mid-deploy.
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 15"]
         env:
         - name: AWS_SES_ACCESS_KEY_ID
           valueFrom:
@@ -129,6 +160,15 @@ spec:
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT
           value: "6379"
+        # src/store/redisClient.ts reads these. Without them the port was
+        # Number(undefined) === NaN, so ioredis rejected the socket outright —
+        # production logs `RangeError [ERR_SOCKET_BAD_PORT]` on every boot and
+        # the client never connects at all. Cross-app handoff codes and the
+        # thought-distributor gate have therefore never worked in production.
+        - name: REDIS_EPHEMERAL_HOST
+          value: "redis-ephemeral-cluster-ip-service"
+        - name: REDIS_EPHEMERAL_PORT
+          value: "6380"
         - name: TIKTOK_CLIENT_KEY
           valueFrom:
             secretKeyRef:
@@ -230,6 +270,18 @@ spec:
 
           # Replace DB_PORT with the port the proxy should listen on
           - "--port=5432"
+
+          # This is a plain container, not a native sidecar, so it receives
+          # SIGTERM at the same instant the app container's preStop hook starts —
+          # and by default the proxy closes its listener immediately, which is the
+          # "accept tcp 127.0.0.1:5432: use of closed network connection" line in
+          # production logs. That would pull the database out from under the
+          # graceful drain in src/index.ts. Outlast the app's whole shutdown
+          # budget (15s preStop + 25s hard timeout = 40s) while staying under
+          # terminationGracePeriodSeconds: 45. The proxy still exits early once
+          # its open connection count reaches zero, so this costs nothing when
+          # the drain finishes quickly.
+          - "--max-sigterm-delay=42s"
           - "therr-app:us-central1:therr-db-main-prod-14"
         securityContext:
           # The default Cloud SQL proxy image runs as the

@@ -45,6 +45,7 @@ import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import UserDisplayHeader from './UserDisplayHeader';
+import ProfileCompletionCard from '../../components/ProfileCompletionCard';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
@@ -996,6 +997,15 @@ class ViewUser extends React.Component<
                                     userInView={user.userInView || {}}
                                     activeStreaks={habits?.activeStreaks || []}
                                 />
+                                {
+                                    user.userInView?.id === user.details.id &&
+                                    <ProfileCompletionCard
+                                        navigation={navigation}
+                                        translate={this.translate as any}
+                                        user={user}
+                                        themeName={user.settings?.mobileThemeName}
+                                    />
+                                }
                                 <View style={this.theme.styles.tabviewContainer} onLayout={this.handleTabContainerLayout}>
                                     <TabView
                                         lazy

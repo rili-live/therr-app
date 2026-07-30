@@ -1,44 +1,138 @@
 #!/usr/bin/env sh
-# Guard: prevent backend / shared-library changes from being committed on niche/* branches.
-# See CLAUDE.md → "Deployment reality". Niche branches have no CI path to main, so any
-# change to the paths below is dead code unless it lands on `general` instead.
+# Pre-commit gates. Ordered cheapest-first so the common failures fail fast.
+#
+#   1. Niche-branch backend guard  (niche/* only)
+#   2. Locale dictionary parity    (only when a dictionary is staged)
+#   3. ESLint on staged files      (staged only, not whole packages)
+#
+# Gates 2 and 3 were previously wired through .huskyrc.js, which is husky-v4
+# format — this repo runs husky 9 and never read that file, so both had been
+# silently dead since the v4->v9 migration. Restored here.
 #
 # To bypass for a legitimate exception: git commit --no-verify
 
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
-case "$branch" in
-  niche/*) ;;
-  *) exit 0 ;;
-esac
-
-# Merge commits legitimately carry backend/shared files from `general` onto the
-# niche branch — that's the documented split-commit workflow. Skip the guard.
-git_dir=$(git rev-parse --git-dir 2>/dev/null)
-if [ -n "$git_dir" ] && [ -f "$git_dir/MERGE_HEAD" ]; then
-  exit 0
-fi
-
 staged=$(git diff --cached --name-only --diff-filter=ACMR)
 [ -z "$staged" ] && exit 0
 
-offenders=$(printf '%s\n' "$staged" | grep -E \
-  -e '^(therr-services|therr-api-gateway|therr-public-library|_bin)/' \
-  -e '^(package\.json|package-lock\.json|docker-compose[^/]*\.ya?ml)$' \
-  -e '(^|/)migrations/' \
-  -e '\.sql$' \
+# Merge commits legitimately carry backend/shared files from `general` onto a
+# niche branch — that's the documented split-commit workflow.
+git_dir=$(git rev-parse --git-dir 2>/dev/null)
+is_merge=0
+if [ -n "$git_dir" ] && [ -f "$git_dir/MERGE_HEAD" ]; then
+  is_merge=1
+fi
+
+# ---------------------------------------------------------------------------
+# 1. Guard: prevent backend / shared-library changes from being committed on
+#    niche/* branches. See CLAUDE.md -> "Deployment reality". Niche branches have
+#    no CI path to main, so any change to the paths below is dead code unless it
+#    lands on `general` instead.
+# ---------------------------------------------------------------------------
+
+case "$branch" in
+  niche/*)
+    if [ "$is_merge" -eq 0 ]; then
+      offenders=$(printf '%s\n' "$staged" | grep -E \
+        -e '^(therr-services|therr-api-gateway|therr-public-library|_bin)/' \
+        -e '^(package\.json|package-lock\.json|docker-compose[^/]*\.ya?ml)$' \
+        -e '(^|/)migrations/' \
+        -e '\.sql$' \
+        || true)
+
+      if [ -n "$offenders" ]; then
+        printf '\n\033[31m⛔ Backend change on niche branch — will not deploy.\033[0m\n\n'
+        printf '   You are on "%s", which has no CI path to production.\n' "$branch"
+        printf '   These staged files must live on "general" to ever ship:\n\n'
+        printf '%s\n' "$offenders" | sed 's/^/     /'
+        printf '\n   Use the split-commit workflow (see CLAUDE.md → "Deployment reality"),\n'
+        printf '   or run /quality-peer-review-niche for guided remediation.\n\n'
+        printf '   To bypass for a legitimate exception:\n'
+        printf '     git commit --no-verify\n\n'
+        exit 1
+      fi
+    fi
+    ;;
+esac
+
+# Merge commits bring in already-reviewed work from another branch. Re-checking it
+# here slows the merge and can fail on pre-existing issues the merge didn't cause.
+[ "$is_merge" -eq 1 ] && exit 0
+
+# ---------------------------------------------------------------------------
+# 2. Locale dictionary parity.
+#    Zero-dependency Node script (built-ins only), so it runs without an install.
+#    Six of the twenty most-churned files in this repo are locale dictionaries —
+#    a half-updated set is the most likely drift in any given commit.
+# ---------------------------------------------------------------------------
+
+if printf '%s\n' "$staged" | grep -qE 'locales/.*\.json$'; then
+  printf '\033[36m→ Checking locale dictionary parity...\033[0m\n'
+  if ! node scripts/locale-check/index.js; then
+    printf '\n\033[31m⛔ Locale dictionaries are out of parity.\033[0m\n'
+    printf '   Every key must exist in all locales for that package (en-us, es, fr-ca).\n'
+    printf '   Run /i18n-sync for guided remediation, or commit with --no-verify.\n\n'
+    exit 1
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 3. ESLint on staged source files.
+#    Staged files only — deliberately NOT `npm run lint:changed`, which lints
+#    whole packages and is slow enough that a pre-commit hook using it gets
+#    bypassed out of habit. ESLint resolves the nearest .eslintrc.js per file,
+#    so running from the repo root still applies each package's own config.
+# ---------------------------------------------------------------------------
+
+staged_src=$(printf '%s\n' "$staged" \
+  | grep -E '\.(ts|tsx|js|jsx)$' \
+  | grep -v node_modules \
+  | grep -v '/lib/' \
+  | grep -v '/build/' \
   || true)
 
-if [ -n "$offenders" ]; then
-  printf '\n\033[31m⛔ Backend change on niche branch — will not deploy.\033[0m\n\n'
-  printf '   You are on "%s", which has no CI path to production.\n' "$branch"
-  printf '   These staged files must live on "general" to ever ship:\n\n'
-  printf '%s\n' "$offenders" | sed 's/^/     /'
-  printf '\n   Use the split-commit workflow (see CLAUDE.md → "Deployment reality"),\n'
-  printf '   or run /quality-peer-review-niche for guided remediation.\n\n'
-  printf '   To bypass for a legitimate exception:\n'
-  printf '     git commit --no-verify\n\n'
-  exit 1
+# Not every path is covered by an ESLint config — repo-root files like
+# global-config.js and webpack.parts.js have none, and eslintrc-era ESLint aborts
+# the whole run with "couldn't find a configuration file" rather than skipping the
+# file. Without this filter one staged root-level file blocks every commit.
+# Keep only files with a config somewhere between them and the repo root.
+lintable=""
+skipped=""
+for file in $staged_src; do
+  dir=$(dirname "$file")
+  found=""
+  while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+    if [ -f "$dir/.eslintrc.js" ] || [ -f "$dir/.eslintrc.json" ] || [ -f "$dir/.eslintrc" ]; then
+      found=1
+      break
+    fi
+    dir=$(dirname "$dir")
+  done
+  if [ -n "$found" ]; then
+    lintable="$lintable $file"
+  else
+    skipped="$skipped $file"
+  fi
+done
+
+if [ -n "$skipped" ]; then
+  printf '\033[33m→ Skipping (no ESLint config covers these):\033[0m%s\n' "$skipped"
+fi
+
+staged_src="$lintable"
+
+if [ -n "$staged_src" ]; then
+  count=$(printf '%s\n' "$staged_src" | wc -w | tr -d ' ')
+  printf '\033[36m→ Linting %s staged file(s)...\033[0m\n' "$count"
+  # --no-install: never silently pull eslint from the network mid-commit.
+  # shellcheck disable=SC2086
+  if ! npx --no-install eslint $staged_src; then
+    printf '\n\033[31m⛔ ESLint errors in staged files.\033[0m\n'
+    printf '   Fix them, or auto-fix with: npx eslint --fix <file>\n'
+    printf '   To bypass for a legitimate exception: git commit --no-verify\n\n'
+    exit 1
+  fi
 fi
 
 exit 0
