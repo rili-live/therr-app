@@ -12,6 +12,11 @@ Therr App is a TypeScript/Node.js monorepo powering a location-based social plat
 **Deployment**: Google Kubernetes Engine via CircleCI pipelines
 **Philosophy**: API Gateway pattern with service isolation, optimized for solo developer efficiency and security.
 
+**Not all clients are in this repo.** Two GCP Cloud Functions (`therr-messaging-automator`,
+`therr-ai-automator`) connect to this platform's Postgres directly, and one of them also calls
+users-service over the VPC through an internal load balancer. They are outside the gateway and
+outside every CI gate here — see [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md).
+
 ---
 
 ## Monorepo Structure
@@ -165,6 +170,12 @@ const write: Pool = new Pool({
 - **Rationale**: Enables read replicas for scaling without code changes
 - **Works Well**: Architecture is ready for scale when needed
 - Uses **Knex.js** for migrations; raw SQL queries (not ORM) for flexibility
+
+> **The services are not the only writers.** Two Cloud Functions in sibling repos open their
+> own Knex pools against this same database — `therr-ai-automator` authors `main.thoughts`
+> and `main.thoughtReactions` (with intentionally future-dated `createdAt`), and
+> `therr-messaging-automator` reads users, notifications, achievements, moments, and spaces.
+> Migrations must be expand/contract. See [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) §2.
 
 ### Redis Strategy
 
