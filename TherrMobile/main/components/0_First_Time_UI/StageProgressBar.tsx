@@ -38,12 +38,17 @@ const StageProgressBar: React.FC<IStageProgressBarProps> = ({
     const progressAnimation = useRef(new Animated.Value(percentComplete)).current;
 
     useEffect(() => {
-        Animated.timing(progressAnimation, {
+        const animation = Animated.timing(progressAnimation, {
             toValue: percentComplete,
             duration: PROGRESS_ANIMATION_DURATION_MS,
             // Width is not supported by the native driver.
             useNativeDriver: false,
-        }).start();
+        });
+        animation.start();
+
+        // Without this the JS-driven animation keeps ticking (and setting state)
+        // after the bar unmounts or the step changes mid-flight.
+        return () => animation.stop();
     }, [progressAnimation, percentComplete]);
 
     const progressWidth = progressAnimation.interpolate({

@@ -67,12 +67,17 @@ const ProfileCompletionCard: React.FC<IProfileCompletionCardProps> = ({
     const summary = getProfileCompletionSummary(user, flags || DEFAULT_PROFILE_COMPLETION_FLAGS);
 
     useEffect(() => {
-        Animated.timing(progressAnimation, {
+        const animation = Animated.timing(progressAnimation, {
             toValue: summary.percentComplete,
             duration: PROGRESS_ANIMATION_DURATION_MS,
             // Width is not supported by the native driver.
             useNativeDriver: false,
-        }).start();
+        });
+        animation.start();
+
+        // Without this the JS-driven animation keeps ticking (and setting state)
+        // after the card unmounts or the target changes mid-flight.
+        return () => animation.stop();
     }, [progressAnimation, summary.percentComplete]);
 
     const goToStage = (step?: IProfileCompletionStep) => {

@@ -57,6 +57,8 @@ const buildNavigation = () => ({
     addListener: jest.fn().mockReturnValue(jest.fn()),
 });
 
+const rendered: renderer.ReactTestRenderer[] = [];
+
 const renderCard = async (props: any) => {
     let component: renderer.ReactTestRenderer;
     await act(async () => {
@@ -67,6 +69,7 @@ const renderCard = async (props: any) => {
         );
         await Promise.resolve();
     });
+    rendered.push(component!);
     return component!;
 };
 
@@ -80,7 +83,13 @@ beforeEach(async () => {
     await AsyncStorage.clear();
 });
 
+// The progress bar runs a JS-driven Animated.timing on mount. Leaving trees
+// mounted lets it keep firing timers past the suite, which trips Jest's
+// "environment has been torn down" error.
 afterEach(() => {
+    act(() => {
+        rendered.splice(0).forEach((component) => component.unmount());
+    });
     jest.clearAllMocks();
 });
 
