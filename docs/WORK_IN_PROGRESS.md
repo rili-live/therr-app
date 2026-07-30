@@ -113,6 +113,8 @@ append new items here rather than only printing them once.
 
 <!-- skill-followups:start -->
 - [ ] (2026-07-28, dwelling-location-notifications) Run `20260728000001_main.userLocations.dwelling` on production users-service (`npm run migrations:run`). Adds `distinctDayCount` (NOT NULL, default 1) and `lastVisitedAt` (NOT NULL, default now()) to `main.userLocations`, plus a `(userId, distinctDayCount)` index, and backfills both from existing `createdAt`/`updatedAt`/`visitCount`. Additive and defaulted, so applying it ahead of the image is safe; if the image ships first, `GET /users-locations/:userId/dwellings` errors on the unknown columns and `POST /users-locations/:userId` fails on the new upsert clause — which would break background location processing. **Run this migration before or with the users-service deploy.**
+- [ ] (2026-07-30, /work-plan) After the reaction-metrics bounds deploy, watch api-gateway for a rise in 400s on `POST /v1/reactions-service/{moment,thought,space,event}-reactions/:id`. Every client today sends `userViewCount: 1` (`TherrMobile/main/routes/Map/TherrMapView.tsx`) and no client sends `userBookmarkPriority`, so legitimate traffic should never trip the new bounds (view count 0–100, bookmark priority 0–100, rating 1–5) — a sustained 400 rate means either a client path nobody mapped or a real abuse attempt, and the two are worth telling apart before widening the range. Note the already-deployed mobile app cannot be force-updated, so a bad assumption here reaches users who cannot upgrade away from it. No migration and no env var; bounds live in `therr-js-utilities/constants` → `Reactions`.
+- [ ] (2026-07-30, /work-plan) One-off data check before trusting space ratings: `rating` was previously unbounded, so any existing `main."spaceReactions"` / `main."eventReactions"` row outside 1–5 is still averaged into the rating shown on public space pages. Query `SELECT COUNT(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND (rating < 1 OR rating > 5);` (and the same for `eventReactions`) — if it returns non-zero, those rows need clearing or clamping, since the new validation only stops *new* bad writes.
 - [ ] (2026-07-28, dwelling-location-notifications) Post-deploy tuning check: watch for the `BackgroundGeolocation - Suppressing nearby push notifications at dwelling location` info span. If it fires for places users clearly do not live (a daily-commute office, a gym), raise `Location.DWELL_MIN_DISTINCT_DAYS` from 3; if users still report notification spam at home after ~a week of data, lower `Location.DWELL_LOCATION_RADIUS_METERS` scrutiny first (both live in `therr-public-library/therr-js-utilities/src/constants/Location.ts`).
 - [ ] (2026-07-29, /quality-peer-review) **Notification volume will drop after this deploy — expected, watch it anyway.** `UserLocationCache.setLastMomentNotificationDate`/`setLastSpaceNotificationDate` passed `this.keys.<x>KeyPrefix`, which was always `undefined` (`this.keys` holds hash *field* names, not key prefixes). ioredis coerces a nullish key to the empty string rather than throwing, so every write silently landed on the bare client keyPrefix while the getters read the real per-user hash — `hasSentNotificationRecently()` therefore always returned falsy and `MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS` (3 min) has never been enforced since the method was written in `165d2a30e`. Now fixed. Two effects: proximity-required area pushes are throttled to one per 3 min, and `activateAreasAndNotify` will skip the `NEW_AREAS_ACTIVATED` in-app notification *and* push for 3 min after any moment/space notification (it gates on both dates being stale — pre-existing logic that was simply never reachable). If engagement metrics dip after deploy, this is the cause and the lever is `MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS` in `therr-public-library/therr-js-utilities/src/constants/Location.ts`. Also worth a one-off cleanup: the stray `push-notifications-service:` hash (empty-suffix key, no TTL) that accumulated these writes in each environment can be deleted.
 - [ ] (2026-07-29, /quality-peer-review) Dwellings are now cached in redis for 6 hours (`DWELLING_CACHE_TTL_SEC`, key `push-notifications-service:user:<id>:dwelling-locations`). Two consequences for the tuning work above: (1) a change to `DWELL_MIN_DISTINCT_DAYS` or `DWELL_LOCATION_RADIUS_METERS` will not take full effect until cached entries expire — flush the `*:dwelling-locations` keys after deploying a constant change if you want an immediate read; (2) when judging whether suppression is working, remember a newly-qualifying dwelling can take up to 6 hours to start suppressing. The key is deliberately excluded from `clearCache()`/`invalidateCache()`, so travelling does not evict it.
@@ -292,20 +294,38 @@ breaks share previews from claim-emails.
 
 _All open Tier 1.1 items closed (2026-05-11)._
 
-### 1.2 Spoofable / unauthenticated mutation endpoints
+### 1.2 Spoofable mutation endpoints
 
-These reaction/activation endpoints are public and can be triggered by an
-unauthenticated client to mutate engagement metrics on demand. This corrupts
+These endpoints let a client mutate engagement metrics on demand, corrupting
 analytics that the B2B dashboard charges for.
 
-- `therr-services/reactions-service/src/handlers/momentReactions.ts:12, 77` —
-  Endpoint should be secure/non-public
-- `therr-services/reactions-service/src/handlers/thoughtReactions.ts:12, 62` —
-  Same
-- `therr-services/reactions-service/src/handlers/spaceReactions.ts:57, 126` —
-  Same
-- `therr-services/reactions-service/src/handlers/eventReactions.ts:10, 53, 111`
-  — Same
+Corrected 2026-07-30 (/work-plan): this section previously described the
+reaction endpoints as reachable by an **unauthenticated** client. They are not.
+`therr-api-gateway/src/index.ts` applies `authenticate.unless({ path: [...] })`
+and no reaction route appears in that exclusion list. The real exposure was
+narrower — any *authenticated* user could set unbounded values on the numeric
+reaction fields. Recording this so the claim is not re-derived from the old
+wording.
+
+Closed 2026-07-30 (/work-plan): client-supplied reaction metrics are now bounded.
+`userViewCount` and `userBookmarkPriority` (0–100) and `rating` (1–5) are
+rejected with a 400 outside those ranges — at the gateway for the single-reaction
+routes, and in `reactions-service/src/utilities/validateReactionMetrics.ts` for
+the internal `/create-update/multiple` routes, which are not registered in the
+gateway's reactions router and so never saw gateway validation. Bounds are shared
+via `therr-js-utilities/constants` → `Reactions` so the two cannot drift.
+`rating` mattered most: `SpaceReactionsStore` averages it into the rating shown
+on public space pages, so one out-of-range write permanently skewed it.
+
+Still open in this area:
+
+- Reaction handlers force `userHasActivated: true` regardless of the request
+  body, so an authenticated user can still mark any addressable content as
+  activated. Closing this needs proximity/view verification, not a bounds check
+- The reaction handlers spread `...req.body` straight into the store, and
+  express-validator only validates listed fields rather than stripping unlisted
+  ones — so any column on the table is mass-assignable. Prefer an explicit
+  allow-list at the store boundary
 - `therr-api-gateway/src/services/maps/router.ts:144` — Backend logic to
   prevent location spoofing (rapid-change detection)
 
