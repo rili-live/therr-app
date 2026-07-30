@@ -235,11 +235,41 @@ describe('ThoughtsStore brand filtering', () => {
             store.getRecentThoughts(BrandVariations.THERR, 10);
 
             const sql = readStub.args[0][0] as string;
-            const scoreExpression = '("replyCount" + 1) / POWER((EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600) + 2, 1.5)';
+            const scoreExpression = '("replyCount" + 1) / POWER(GREATEST(EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600, 0) + 2, 1.5)';
             // Selected value and sort key must be the same number, or the persisted score
             // would not explain the order the rows came back in.
             expect(sql).to.include(`${scoreExpression} AS "hotScore"`);
             expect(sql).to.include(`order by ${scoreExpression} DESC`);
+        });
+
+        // Regression: therr-ai-automator writes thoughts with a future createdAt to drip
+        // content out between its runs. Those rows sort to the very top of a createdAt-DESC
+        // pool, so they were always present. With an unclamped age the hot score computed
+        // POWER(<negative>, 1.5), which Postgres raises as an ERROR rather than returning
+        // NULL — aborting the query, tripping the catch in
+        // TherrEventEmitter.runThoughtDistributorAlgorithm, and activating nothing at all.
+        // Every user's feed then showed no new content until the last post-dated thought
+        // aged into the past.
+        it('excludes future-dated thoughts from the candidate pool', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            // Raw fragment, so the table name is not identifier-quoted the way knex's
+            // builder-generated clauses are.
+            expect(sql).to.include(`main.thoughts."createdAt" <= NOW()`);
+        });
+
+        it('clamps negative age so a future-dated row can never error the score', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            // POWER() must never see a negative base.
+            expect(sql).to.include('POWER(GREATEST(');
+            expect(sql).to.not.include('POWER((EXTRACT');
         });
     });
 
