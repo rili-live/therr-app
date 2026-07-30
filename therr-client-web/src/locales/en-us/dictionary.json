@@ -431,7 +431,8 @@
       "replyError": "Failed to post reply. Please try again.",
       "loginToReply": "Log in to reply",
       "loginToView": "Log in to view this post and join the conversation",
-      "backToThoughts": "Back to Thoughts"
+      "backToThoughts": "Back to Thoughts",
+      "viewReplies": "View {count} replies"
     },
     "explorePeople": {
       "pageTitle": "Search People",

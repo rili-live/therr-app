@@ -93,19 +93,34 @@ in each store. No migration needed. Do one store per release; never bundle multi
 **Status**: Open (ongoing)
 **Origin**: RN 0.83 upgrade (2026-04-19)
 
-The mobile app inherits 107 pre-existing TypeScript errors from the RN 0.83 / Reanimated 4 /
-Worklets bump. CI now uses `_bin/check-mobile-tsc-baseline.sh` to fail only on regressions,
-but the standing 107 errors should be paid down opportunistically.
+The mobile app inherits 104 pre-existing TypeScript errors from the RN 0.83 / Reanimated 4 /
+Worklets bump. CI runs `_bin/check-mobile-tsc-baseline.sh` in the `typecheck` job
+(`.circleci/config.yml` → `_bin/cicd/typecheck.sh`) to fail only on errors that are not
+already in the baseline; the standing 104 should be paid down opportunistically.
+
+> This doc previously claimed CI used the baseline script while nothing in
+> `.circleci/config.yml` referenced `tsc` at all. It became true on 2026-07-29 when the
+> `typecheck` job was added. Verify with:
+> `grep -n "check-mobile-tsc-baseline" _bin/cicd/typecheck.sh`
+
+`TherrMobile/.tsc-baseline` records one **signature** per error — `<file>\t<TS code>\t<message>` —
+not a count. A count-only baseline could be defeated by fixing one error and introducing
+another in the same change; identity matching catches the new error regardless of what
+else was fixed. Line and column are excluded from the signature because they shift with
+any edit above the error, which would make every unrelated change look like a regression.
 
 **How to chip away**:
 
-1. Pick a file with a small error count (`npm run pr:typecheck:mobile 2>&1 | grep TherrMobile | sort | head`).
+1. Pick a file with a small error count (`cut -f1 TherrMobile/.tsc-baseline | sort | uniq -c | sort -n | head`).
 2. Fix the errors in that one file.
-3. Run `./_bin/check-mobile-tsc-baseline.sh --update` to lower the committed baseline.
-4. Commit the file fix and the updated `TherrMobile/.tsc-baseline` together.
+3. Run `./_bin/check-mobile-tsc-baseline.sh` — it lists the signatures that no longer reproduce.
+4. Run `./_bin/check-mobile-tsc-baseline.sh --update` to rewrite the committed baseline.
+5. Commit the file fix and the updated `TherrMobile/.tsc-baseline` together.
 
-The baseline must monotonically decrease — never raise it without explicit justification
-(library upgrade with new typings, framework version bump, etc.).
+The baseline must monotonically shrink — never regenerate it to absorb new errors without
+explicit justification (library upgrade with new typings, framework version bump, etc.).
+When you do, review the diff of `.tsc-baseline`: added lines are new errors you are
+accepting, and each one should be traceable to that upgrade.
 
 ---
 

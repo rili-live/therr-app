@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {
-    AccessLevels, BrandVariations, CurrentSocialValuations, OAuthIntegrationProviders, hasValidStandardClaims,
+    AccessLevels, BrandVariations, MetricNames, OAuthIntegrationProviders, hasValidStandardClaims,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
@@ -14,6 +14,8 @@ import Store from '../store';
 import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { acceptInvitesOnFirstLogin } from './helpers/inviteAcceptance';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import {
@@ -52,6 +54,172 @@ const basicHash = (input: string) => {
     return hash;
 };
 
+/**
+ * Everything that happens *after* a caller has proven who they are: mint the id/refresh
+ * tokens, run the first-login side effects, bump the audit columns, and shape the response.
+ *
+ * Factored out of `login` so the passwordless phone flow (`loginWithVerifiedPhone` below)
+ * produces a byte-identical session payload instead of a near-copy that drifts. Credential
+ * checking stays with the callers — this function assumes it has already happened.
+ *
+ * `userSearchResults` is the pre-auth DB lookup and may be empty (first-time SSO, where the
+ * user row was created during validation); it is used only to reproduce the original
+ * first-login heuristics and logging.
+ */
+const issueUserSession = async (req: any, res: any, {
+    userDetails,
+    userSearchResults,
+    oauthResponseData,
+    brandVariation,
+    platform,
+}: {
+    userDetails: any;
+    userSearchResults: any[];
+    oauthResponseData?: any;
+    brandVariation: string;
+    platform: string;
+}) => {
+    const user = {
+        ...userDetails,
+        isSSO: !!req.body.isSSO,
+        integrations: {
+            ...decryptIntegrationsAccess(userDetails?.integrationsAccess),
+        },
+    };
+    if (oauthResponseData?.access_token) {
+        // TODO: Store access_tokens encrypted in DB (integrationsAccess) for fetching
+        // TODO: Fetch stored access_tokens and return in integrations object
+        const DEFAULT_60_DAYS_AS_SECONDS = 60 * 60 * 24 * 60; // 60 days
+        user.integrations[OAuthIntegrationProviders.FACEBOOK] = {
+            user_access_token: oauthResponseData.access_token,
+            user_access_token_expires_at: Date.now() + ((oauthResponseData?.expires_in || DEFAULT_60_DAYS_AS_SECONDS) * 1000),
+        };
+    }
+    const userNameEmailPhone = userNameOrEmailOrPhone(userDetails);
+
+    const userEmail = userDetails.email?.trim() || ''; // DB response values should already be normalized
+    const userPhone = userDetails.phoneNumber?.trim()?.replace(/\s/g, ''); // DB response values should already be normalized
+    const userOrgs = await Store.userOrganizations.get({
+        userId: user.id,
+    }).catch((err) => {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [err?.message, 'Failed to fetch user organizations for idToken'],
+            traceArgs: {
+                issue: '',
+                port: process.env.USERS_SERVICE_API_PORT,
+                'process.id': process.pid,
+            },
+        });
+        return [];
+    });
+
+    const idToken = createUserToken(user, userOrgs, req.body.rememberMe, brandVariation);
+    const refreshTokenData = createRefreshToken(user.id, req.body.rememberMe, brandVariation);
+    const userHash = basicHash(userNameEmailPhone);
+
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: ['user login success'],
+        traceArgs: {
+            'user.isSSO': req.body.isSSO,
+            'user.loginCount': !userSearchResults?.length ? 1 : userSearchResults[0].loginCount,
+            'user.hash': userHash,
+            'user.id': userDetails.id,
+        },
+    });
+
+    // Fire and forget — first-login invite redemption. Marks every
+    // matching pending invite accepted, rewards each inviter, and
+    // guarantees a COMPLETE userConnection between inviter and this
+    // new user (the viral-loop contract: the friend you invited is
+    // in your connections the moment they first sign in).
+    if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
+        recordFunnelMetric(MetricNames.FUNNEL_USER_FIRST_LOGIN, userDetails.id, {
+            brandVariation: brandVariation || '',
+            platform: platform || '',
+        });
+
+        acceptInvitesOnFirstLogin(req.headers, {
+            id: userDetails.id,
+            email: userEmail ? normalizeEmail(userEmail.trim()) : undefined,
+            phoneNumber: userPhone || undefined,
+            firstName: userDetails.firstName,
+            lastName: userDetails.lastName,
+        }).catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message, 'Failed to process first-login invite acceptance'],
+                traceArgs: {
+                    'user.id': userDetails.id,
+                    port: process.env.USERS_SERVICE_API_PORT,
+                    'process.id': process.pid,
+                },
+            });
+        });
+    }
+
+    const updateArgs: any = {
+        accessLevels: JSON.stringify([...new Set(user.accessLevels)]),
+        loginCount: user.loginCount + 1,
+        lastLoginAt: new Date(),
+        integrationsAccess: user.integrations,
+    };
+
+    if (req.body.billingEmail) {
+        if (req.body.billingEmail !== user.email) {
+            // TODO: Improve security so users cannot claim the same billing email as another user
+            // Send verification e-mail before updating param
+        }
+        updateArgs.billingEmail = req.body.billingEmail;
+    }
+
+    return Store.users.updateUser(updateArgs, {
+        id: user.id,
+    }).then((userResponse) => {
+        const finalUser = userResponse[0];
+        // Remove credentials from object
+        redactUserCreds(finalUser);
+        // Track which apps a user actually uses. Fire-and-forget: a failure here
+        // must not block the login response, but we want to log it for observability.
+        // Skip DASHBOARD_THERR for non-business accounts so dashboard sign-ins don't
+        // pollute consumer brand membership records.
+        // Only track brands we recognize. Without this guard a malicious client could
+        // submit `x-brand-variation: <anything>` to pollute the user's brandVariations
+        // array (no SQL injection — it's parameterized — but it would let an attacker
+        // grow the JSONB array unboundedly via repeated logins under different bogus
+        // values, an integrity / DoS angle).
+        const shouldTrackBrand = isKnownBrand(brandVariation)
+            && !(brandVariation === BrandVariations.DASHBOARD_THERR && !finalUser?.isBusinessAccount);
+        if (shouldTrackBrand) {
+            Store.users.upsertBrandVariation(user.id, brandVariation).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Failed to upsert brandVariations on login'],
+                    traceArgs: {
+                        'user.id': user.id,
+                        'brand.variation': brandVariation,
+                    },
+                });
+            });
+        }
+        // TODO: Save, Encrypt, and return stored user integrations
+        // const storedIntegrations = encryptIntegrationsAccess(access);
+        return res.status(201).send({
+            ...finalUser,
+            idToken,
+            refreshToken: refreshTokenData.token,
+            integrations: user.integrations || {},
+            rememberMe: req.body.rememberMe,
+            userOrganizations: userOrgs,
+        });
+    });
+};
+
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
     const {
@@ -66,18 +234,12 @@ const login: RequestHandler = (req: any, res: any) => {
     // const { paymentSessionId } = req.body;
     // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
 
-    // TODO: Mitigate user with multiple accounts attached to the same phone number.
-    // Logging in by phone number should attach to all accounts with that phone number and allow them to pick one
-    let userNameEmailPhone = userNameOrEmailOrPhone(req.body);
-    let userEmail = normalizeEmail(req.body.userName?.trim() || req.body.userEmail?.trim() || req.body.email?.trim()?.replace(/\s/g, '') || '');
-    let userPhone = normalizePhoneNumber(
-        req.body.userName?.trim()?.replace(/\s/g, '')
-            || req.body.userEmail?.trim()?.replace(/\s/g, '')
-            || req.body.email?.trim()?.replace(/\s/g, '')
-            || req.body.phoneNumber?.trim()?.replace(/\s/g, '') || '',
-    );
+    // NOTE: When a phone number is attached to more than one account, password login still
+    // resolves to whichever row the OR-lookup returns first. The passwordless flow below
+    // (`phoneAccountLookup` + `loginWithVerifiedPhone`) is the path that lets the user pick.
+    const userNameEmailPhone = userNameOrEmailOrPhone(req.body);
 
-    let userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
+    const userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
     let getUsersPromise;
 
     /**
@@ -170,159 +332,12 @@ const login: RequestHandler = (req: any, res: any) => {
                 },
             }, res).then(async ([isValid, userDetails, oauthResponseData]) => {
                 if (isValid) {
-                    const user = {
-                        ...userDetails,
-                        isSSO: !!req.body.isSSO,
-                        integrations: {
-                            ...decryptIntegrationsAccess(userDetails?.integrationsAccess),
-                        },
-                    };
-                    if (oauthResponseData?.access_token) {
-                        // TODO: Store access_tokens encrypted in DB (integrationsAccess) for fetching
-                        // TODO: Fetch stored access_tokens and return in integrations object
-                        const DEFAULT_60_DAYS_AS_SECONDS = 60 * 60 * 24 * 60; // 60 days
-                        user.integrations[OAuthIntegrationProviders.FACEBOOK] = {
-                            user_access_token: oauthResponseData.access_token,
-                            user_access_token_expires_at: Date.now() + ((oauthResponseData?.expires_in || DEFAULT_60_DAYS_AS_SECONDS) * 1000),
-                        };
-                    }
-                    userNameEmailPhone = userNameOrEmailOrPhone(userDetails);
-
-                    userEmail = userDetails.email?.trim() || ''; // DB response values should already be normalized
-                    userPhone = userDetails.phoneNumber?.trim()?.replace(/\s/g, ''); // DB response values should already be normalized
-                    const userOrgs = await Store.userOrganizations.get({
-                        userId: user.id,
-                    }).catch((err) => {
-                        logSpan({
-                            level: 'error',
-                            messageOrigin: 'API_SERVER',
-                            messages: [err?.message, 'Failed to fetch user organizations for idToken'],
-                            traceArgs: {
-                                issue: '',
-                                port: process.env.USERS_SERVICE_API_PORT,
-                                'process.id': process.pid,
-                            },
-                        });
-                        return [];
-                    });
-
-                    const idToken = createUserToken(user, userOrgs, req.body.rememberMe, brandVariation);
-                    const refreshTokenData = createRefreshToken(user.id, req.body.rememberMe, brandVariation);
-                    userHash = basicHash(userNameEmailPhone);
-
-                    logSpan({
-                        level: 'info',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['user login success'],
-                        traceArgs: {
-                            'user.isSSO': req.body.isSSO,
-                            'user.loginCount': !userSearchResults?.length ? 1 : userSearchResults[0].loginCount,
-                            'user.hash': userHash,
-                            'user.id': userDetails.id,
-                        },
-                    });
-
-                    // Fire and forget
-                    // Reward inviting user for first time login
-                    if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
-                        let invitesPromise: any;
-                        if (userPhone) {
-                            invitesPromise = Store.invites.getInvitesForPhoneNumber({
-                                phoneNumber: userPhone,
-                                isAccepted: false,
-                            });
-                        } else if (userEmail) {
-                            invitesPromise = Store.invites.getInvitesForEmail({ email: normalizeEmail(userEmail.trim()), isAccepted: false });
-                        } else {
-                            invitesPromise = Promise.resolve([]);
-                        }
-
-                        invitesPromise.then((invites) => {
-                            if (invites.length) {
-                                // TODO: Log response
-                                return Store.invites.updateInvite({ id: invites[0].id }, { isAccepted: true });
-                            }
-
-                            return Promise.resolve();
-                        }).then((response) => {
-                            if (response?.length) {
-                                return Store.users.updateUser({
-                                    settingsTherrCoinTotal: CurrentSocialValuations.invite,
-                                }, {
-                                    id: response[0]?.requestingUserId,
-                                });
-                            }
-
-                            return Promise.resolve();
-                        }).catch((err) => {
-                            logSpan({
-                                level: 'error',
-                                messageOrigin: 'API_SERVER',
-                                messages: [err?.message],
-                                traceArgs: {
-                                    issue: '',
-                                    port: process.env.USERS_SERVICE_API_PORT,
-                                    'process.id': process.pid,
-                                },
-                            });
-                        });
-                    }
-
-                    const updateArgs: any = {
-                        accessLevels: JSON.stringify([...new Set(user.accessLevels)]),
-                        loginCount: user.loginCount + 1,
-                        lastLoginAt: new Date(),
-                        integrationsAccess: user.integrations,
-                    };
-
-                    if (req.body.billingEmail) {
-                        if (req.body.billingEmail !== user.email) {
-                            // TODO: Improve security so users cannot claim the same billing email as another user
-                            // Send verification e-mail before updating param
-                        }
-                        updateArgs.billingEmail = req.body.billingEmail;
-                    }
-
-                    return Store.users.updateUser(updateArgs, {
-                        id: user.id,
-                    }).then((userResponse) => {
-                        const finalUser = userResponse[0];
-                        // Remove credentials from object
-                        redactUserCreds(finalUser);
-                        // Track which apps a user actually uses. Fire-and-forget: a failure here
-                        // must not block the login response, but we want to log it for observability.
-                        // Skip DASHBOARD_THERR for non-business accounts so dashboard sign-ins don't
-                        // pollute consumer brand membership records.
-                        // Only track brands we recognize. Without this guard a malicious client could
-                        // submit `x-brand-variation: <anything>` to pollute the user's brandVariations
-                        // array (no SQL injection — it's parameterized — but it would let an attacker
-                        // grow the JSONB array unboundedly via repeated logins under different bogus
-                        // values, an integrity / DoS angle).
-                        const shouldTrackBrand = isKnownBrand(brandVariation)
-                            && !(brandVariation === BrandVariations.DASHBOARD_THERR && !finalUser?.isBusinessAccount);
-                        if (shouldTrackBrand) {
-                            Store.users.upsertBrandVariation(user.id, brandVariation).catch((err) => {
-                                logSpan({
-                                    level: 'error',
-                                    messageOrigin: 'API_SERVER',
-                                    messages: [err?.message, 'Failed to upsert brandVariations on login'],
-                                    traceArgs: {
-                                        'user.id': user.id,
-                                        'brand.variation': brandVariation,
-                                    },
-                                });
-                            });
-                        }
-                        // TODO: Save, Encrypt, and return stored user integrations
-                        // const storedIntegrations = encryptIntegrationsAccess(access);
-                        return res.status(201).send({
-                            ...finalUser,
-                            idToken,
-                            refreshToken: refreshTokenData.token,
-                            integrations: user.integrations || {},
-                            rememberMe: req.body.rememberMe,
-                            userOrganizations: userOrgs,
-                        });
+                    return issueUserSession(req, res, {
+                        userDetails,
+                        userSearchResults,
+                        oauthResponseData,
+                        brandVariation,
+                        platform,
                     });
                 }
 
@@ -340,6 +355,163 @@ const login: RequestHandler = (req: any, res: any) => {
                     message: translate(locale, 'errorMessages.auth.incorrectUserPass'),
                     statusCode: 401,
                 });
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
+};
+
+// PASSWORDLESS PHONE AUTH
+//
+// The SMS round-trip itself lives in the API gateway (it owns Twilio and the Redis code
+// cache). By the time either handler below runs, the gateway has already proven the caller
+// controls the phone number — these two are the account-side half of that flow.
+
+/**
+ * Minimal, non-sensitive account list for a phone number.
+ *
+ * The gateway calls this twice: before texting a code (to decide whether a code is worth
+ * sending at all) and after validating one (to build the account picker when a number has
+ * several accounts). It returns only what a picker needs to render — never credentials,
+ * email, or access levels. Blocked and soft-deleted accounts are omitted so they neither
+ * appear in the picker nor make a number look "registered" to the sign-up flow.
+ */
+const phoneAccountLookup: RequestHandler = (req: any, res: any) => {
+    const rawPhoneNumber = `${req.body?.phoneNumber || ''}`.trim().replace(/\s/g, '');
+    const phoneNumber = rawPhoneNumber ? normalizePhoneNumber(rawPhoneNumber) : '';
+
+    if (!phoneNumber) {
+        return res.status(200).send({ accountCount: 0, accounts: [] });
+    }
+
+    return Store.users.getAllByPhoneNumber(phoneNumber, [
+        'id',
+        'userName',
+        'firstName',
+        'lastName',
+        'media',
+        'isBusinessAccount',
+        'isCreatorAccount',
+        'isBlocked',
+    ])
+        .then((results) => {
+            const accounts = (results || [])
+                .filter((account) => !account.isBlocked)
+                .map(({ isBlocked, ...account }) => account); // eslint-disable-line @typescript-eslint/no-unused-vars
+
+            return res.status(200).send({
+                accountCount: accounts.length,
+                accounts,
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
+};
+
+/**
+ * Signs a user in on the strength of a verified phone number — no password involved.
+ *
+ * Trust boundary: this endpoint is internal (users-service is not publicly routable) and is
+ * reachable only via the gateway's `/phone/auth/*` routes, which will not call it until a
+ * texted one-time code has been matched. It therefore performs NO credential check of its
+ * own; it re-validates only that the requested account really is attached to the phone
+ * number, so a compromised or buggy caller still cannot pivot to an arbitrary account.
+ *
+ * `userId` is required whenever the number resolves to more than one account: we refuse to
+ * guess which of a user's personal / creator / business accounts they meant.
+ */
+const loginWithVerifiedPhone: RequestHandler = (req: any, res: any) => {
+    const {
+        locale,
+        brandVariation,
+        platform,
+    } = parseHeaders(req.headers);
+    const rawPhoneNumber = `${req.body?.phoneNumber || ''}`.trim().replace(/\s/g, '');
+    const phoneNumber = rawPhoneNumber ? normalizePhoneNumber(rawPhoneNumber) : '';
+    const requestedUserId = req.body?.userId;
+
+    if (!phoneNumber) {
+        return handleHttpError({
+            res,
+            message: 'A phone number is required',
+            statusCode: 400,
+        });
+    }
+
+    return Store.users.getAllByPhoneNumber(phoneNumber)
+        .then((userSearchResults) => {
+            if (!userSearchResults.length) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['phone auth failed: user not found'],
+                    traceArgs: {
+                        'user.hash': basicHash(phoneNumber),
+                    },
+                });
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.noUserFound'),
+                    statusCode: 404,
+                });
+            }
+
+            // Re-bind the requested account to the proven phone number rather than trusting
+            // the caller's id outright. `find` over the phone-scoped result set means an id
+            // for some other account simply isn't there.
+            const userDetails = requestedUserId
+                ? userSearchResults.find((user) => user.id === requestedUserId)
+                : userSearchResults[0];
+
+            if (!userDetails) {
+                return handleHttpError({
+                    res,
+                    message: 'Requested account is not associated with this phone number',
+                    statusCode: 403,
+                });
+            }
+
+            if (!requestedUserId && userSearchResults.length > 1) {
+                return handleHttpError({
+                    res,
+                    message: 'Multiple accounts are associated with this phone number; a userId is required',
+                    statusCode: 400,
+                });
+            }
+
+            if (userDetails.isBlocked) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.accountNotVerified'),
+                    statusCode: 403,
+                });
+            }
+
+            // Same verification gate password login enforces. An account that has never
+            // confirmed its email cannot slip in through the SMS door — phone-first signups
+            // are granted the missing-properties level at creation precisely so they can.
+            if (!(userDetails.accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)
+                || userDetails.accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.accountNotVerified'),
+                    statusCode: 401,
+                });
+            }
+
+            // The SMS round-trip just proved this number, so persist that fact. `issueUserSession`
+            // writes the merged set back to the row as part of its normal audit update.
+            const accessLevels = new Set([
+                ...(userDetails.accessLevels || []),
+                AccessLevels.MOBILE_VERIFIED,
+            ]);
+
+            return issueUserSession(req, res, {
+                userDetails: {
+                    ...userDetails,
+                    accessLevels: [...accessLevels],
+                },
+                userSearchResults,
+                brandVariation,
+                platform,
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
@@ -699,6 +871,8 @@ export {
     refreshToken,
     verifyToken,
     emailPrecheck,
+    phoneAccountLookup,
+    loginWithVerifiedPhone,
     mintHandoff,
     redeemHandoff,
     cancelHandoff,

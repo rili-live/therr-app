@@ -17,6 +17,21 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const THOUGHTS_TABLE_NAME = 'main.thoughts';
 
+// Hacker-News-style gravity: reply count (the strongest engagement signal in this DB)
+// dampened by age. Declared once so the SELECT and the ORDER BY in getRecentThoughts can
+// never drift apart — the returned score has to be the same number the ranking used.
+// Only valid against the `candidates` subquery, which exposes "replyCount" and "createdAt".
+//
+// GREATEST(..., 0) is load-bearing, not cosmetic. A thought dated in the future makes
+// (age + 2) negative, and POWER(<negative>, 1.5) is a hard Postgres ERROR ("a negative
+// number raised to a non-integer power yields a complex result") — not a NULL. That
+// aborts the whole candidate query, so a single future-dated row silently froze the
+// activation feed for every user. therr-ai-automator post-dates generated thoughts by
+// up to numHours, so such rows are routinely present. The candidate pool below also
+// excludes future rows; this clamp is the second line of defense, because the cost of
+// getting it wrong is a total feed outage rather than one mis-ranked post.
+const HOT_SCORE_EXPRESSION = '("replyCount" + 1) / POWER(GREATEST(EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600, 0) + 2, 1.5)';
+
 export interface ICreateThoughtParams {
     parentId?: string;
     areaType?: string;
@@ -81,6 +96,17 @@ export default class ThoughtsStore {
      * reply count (the strongest engagement signal available in this DB) dampened by age
      * (Hacker-News-style gravity). The score can't use an index, so candidates are first
      * bounded to the most recent pool via an index-friendly inner query, then re-ranked.
+     *
+     * The correlated reply-count subquery is deliberate — do NOT rewrite it as a join
+     * against a GROUP BY "parentId" aggregate. Benchmarked on pg15 with 100k parents /
+     * 500k replies (2026-07-21): correlated = 200 index-only probes on the parentId
+     * index, ~14ms; grouped join = full aggregate over every reply row, ~74ms, and it
+     * degrades with total reply volume while the correlated shape scales only with
+     * candidatePoolSize.
+     *
+     * Rows come back as { ...returning, hotScore }. `hotScore` is persisted onto the
+     * reaction row at activation (thoughtReactions.relevanceScore) and is what the stream
+     * is ordered by on read.
      */
     getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id'], candidatePoolSize = 200) {
         const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
@@ -95,6 +121,12 @@ export default class ThoughtsStore {
                 isPublic: true,
                 isMatureContent: false,
             })
+            // Future-dated thoughts are a scheduling queue, not feed candidates. therr-ai-automator
+            // post-dates generated thoughts to drip them out over the gap until its next run, and
+            // `ThoughtsStore.find` will not render one until its timestamp arrives. Activating it
+            // early burns a stream slot on a post that comes back as nothing — and, before the
+            // GREATEST clamp above, made the hot score error out and killed the whole query.
+            .andWhereRaw(`${THOUGHTS_TABLE_NAME}."createdAt" <= NOW()`)
             .orderBy('createdAt', 'desc')
             .limit(candidatePoolSize);
 
@@ -109,8 +141,12 @@ export default class ThoughtsStore {
         }
 
         const query = knexBuilder.select(returning)
+            // Returned alongside the id so the caller can persist it onto the reaction row.
+            // Without this the ranking below only decides which thoughts activate and is then
+            // lost — the feed reads reactions back in activation order, not score order.
+            .select(knexBuilder.raw(`${HOT_SCORE_EXPRESSION} AS "hotScore"`))
             .from(innerQuery.as('candidates'))
-            .orderByRaw('("replyCount" + 1) / POWER((EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600) + 2, 1.5) DESC')
+            .orderByRaw(`${HOT_SCORE_EXPRESSION} DESC`)
             .limit(limit);
 
         return this.db.read.query(query.toString()).then((response) => response.rows);
@@ -123,8 +159,14 @@ export default class ThoughtsStore {
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(THOUGHTS_TABLE_NAME)
+            // This query had no ORDER BY at all, which made its LIMIT/OFFSET pagination
+            // unsound — Postgres is free to return rows in any order, so paging could repeat
+            // and skip rows. createdAt is indexed (idx from 20221222143544_main.thoughts);
+            // id breaks ties so a page boundary can't land mid-tie. updatedAt is deliberately
+            // still avoided here — it is unindexed and was measured as slow.
             // TODO: Determine a better way to select thoughts that are most relevant to the user
-            // .orderBy(`${THOUGHTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
+            .orderBy(`${THOUGHTS_TABLE_NAME}.createdAt`, 'desc')
+            .orderBy(`${THOUGHTS_TABLE_NAME}.id`, 'desc')
             .where({
                 isMatureContent: false, // content that has been blocked
             });
@@ -209,9 +251,23 @@ export default class ThoughtsStore {
         if (options.withReplies) {
             // Restrict the self-join: a HABITS reader must not see therr-brand replies under
             // a habits parent (and vice versa). 'all'-readers (Therr by default) see every reply.
+            //
+            // Replies deliberately carry NO isPublic filter: clients mint every reply with
+            // isPublic=false (see TherrMobile ViewThought handleSubmitReply), so the flag is
+            // not a privacy signal on replies — visibility follows the parent thought.
             const repliesJoinClause = readable === 'all'
                 ? undefined
                 : `replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
+
+            // Nested reply count powers the reply-count icon in the thought details view (mobile + web).
+            // The brand restriction is mirrored from the reply join so the count can never advertise
+            // replies the caller would not be allowed to open. It is deliberately a correlated
+            // subquery rather than a second join: the details view loads one parent, so this is a
+            // handful of index probes on the parentId index, and a GROUP BY join would aggregate
+            // every reply row in the table.
+            const nestedRepliesBrandClause = readable === 'all'
+                ? ''
+                : ` AND nested."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
             query = query
                 .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, function joinReplies() {
                     this.on('replies.parentId', '=', `${THOUGHTS_TABLE_NAME}.id`);
@@ -221,6 +277,10 @@ export default class ThoughtsStore {
                 })
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
+                    knexBuilder.raw(
+                        `(SELECT COUNT(*) FROM ${THOUGHTS_TABLE_NAME} AS nested `
+                        + `WHERE nested."parentId" = replies.id${nestedRepliesBrandClause}) AS "replies[].replyCount"`,
+                    ),
                     'replies.id as replies[].id',
                     'replies.fromUserId as replies[].fromUserId',
                     'replies.parentId as replies[].parentId',
@@ -250,6 +310,17 @@ export default class ThoughtsStore {
 
         return this.db.read.query(query.toString()).then(async ({ rows }) => {
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
+
+            if (options.withReplies) {
+                // pg returns COUNT(*) as a bigint string; clients render/compare it as a number
+                thoughts.forEach((thought) => {
+                    (thought.replies || []).forEach((reply) => {
+                        const modifiedReply = reply;
+                        modifiedReply.replyCount = parseInt(modifiedReply.replyCount || 0, 10);
+                    });
+                });
+            }
+
             if (options.withUser) {
                 const userIds: string[] = [];
                 const thoughtDetailsPromises: Promise<any>[] = [];
@@ -332,6 +403,9 @@ export default class ThoughtsStore {
         let query = knexBuilder
             .from(THOUGHTS_TABLE_NAME)
             .orderBy(orderBy, order)
+            // Tiebreak so the author-profile path (which pages with a `before` cursor on
+            // createdAt) can't skip a thought that shares a timestamp with the page boundary.
+            .orderBy(`${THOUGHTS_TABLE_NAME}.id`, order)
             .offset(filters.offset || 0)
             .where(`${THOUGHTS_TABLE_NAME}.createdAt`, '<', filters.before || new Date(Date.now() + 24 * 60 * 60 * 1000))
             .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null)
@@ -366,18 +440,32 @@ export default class ThoughtsStore {
             });
         }
 
+        if (options?.shouldHideMatureContent) {
+            query = query.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
+        }
+
         if (options.withReplies) {
             // Lateral join caps the payload to the few most recent replies per parent (enough
             // for an inline thread preview) while COUNT(*) OVER () — computed before LIMIT —
             // still reports the true total as replyCount. The brand restriction is mirrored
             // onto the reply subquery so reply previews/counts never include cross-brand replies.
+            //
+            // Replies deliberately carry NO isPublic filter: clients mint every reply with
+            // isPublic=false (see TherrMobile ViewThought handleSubmitReply), so the flag is
+            // not a privacy signal on replies — visibility follows the parent thought.
+            //
+            // The parents are paged in an inner query BEFORE the lateral join. Joining first
+            // would count reply rows (up to 3 per parent) against LIMIT, collapsing a
+            // 21-parent page to as few as 7 parents.
             const repliesBrandClause = readable === 'all'
                 ? ''
                 : `AND replies."brandVariation" IN (${readable.map((b) => `'${b}'`).join(',')})`;
             const repliesMatureClause = options?.shouldHideMatureContent
                 ? 'AND replies."isMatureContent" = false'
                 : '';
-            query = query
+            const orderColumn = orderBy.split('.').pop();
+            query = knexBuilder
+                .from(query.as('parents'))
                 .joinRaw(`LEFT JOIN LATERAL (
                     SELECT
                         replies.id,
@@ -389,14 +477,15 @@ export default class ThoughtsStore {
                         replies."createdAt",
                         COUNT(*) OVER () AS "totalReplies"
                     FROM ${THOUGHTS_TABLE_NAME} AS replies
-                    WHERE replies."parentId" = ${THOUGHTS_TABLE_NAME}.id
+                    WHERE replies."parentId" = parents.id
                     ${repliesBrandClause}
                     ${repliesMatureClause}
                     ORDER BY replies."createdAt" DESC
                     LIMIT 3
                 ) AS replies ON TRUE`)
+                .orderBy(`parents.${orderColumn}`, order)
                 .columns([
-                    `${THOUGHTS_TABLE_NAME}.*`,
+                    'parents.*',
                     'replies.totalReplies as replyCount',
                     'replies.id as replies[].id',
                     'replies.fromUserId as replies[].fromUserId',
@@ -408,14 +497,11 @@ export default class ThoughtsStore {
                 ]);
         }
 
-        if (options?.shouldHideMatureContent) {
-            query = query.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
-        }
-
         return this.db.read.query(query.toString()).then(async ({ rows }) => {
-            // Use raw rows to determine count and isLastPage
-            const isLastPage = rows.length < restrictedLimit;
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
+            // Page-size checks must count parents (post-join-format), not raw rows — with
+            // reply previews attached, raw rows are a multiple of the parent count.
+            const isLastPage = thoughts.length < restrictedLimit;
 
             if (options.withReplies) {
                 thoughts.forEach((thought) => {

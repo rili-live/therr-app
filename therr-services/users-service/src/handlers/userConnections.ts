@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { RequestHandler } from 'express';
 import {
-    CurrentSocialValuations, ErrorCodes, Notifications, PushNotifications, UserConnectionTypes,
+    CurrentSocialValuations, ErrorCodes, MetricNames, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import { getBrandContext, getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -21,11 +21,11 @@ import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 import { IFindUsersByContactInfo } from '../store/UsersStore';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { getInterestRanking, logShadowInterestRanking } from '../utilities/interestWeights';
 
-/**
- * Used for sorting interests by a singular value. Set defaults to ensure no zero values.
- */
-const getInterestRanking = (engagementCount: number, score: number) => Math.ceil((engagementCount || 1) / (score || 5));
+// Moved to utilities/interestWeights so the live formula and the shadow candidate it is
+// being compared against live side by side and can be unit-tested together.
 
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
@@ -117,11 +117,13 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     // This is disabled until we can find a better way to handle this.
                     unverifiedUser = await createUserHelper(req.headers, {
                         email: acceptingUserEmail,
-                    }, false, {
-                        fromName: fromUserFullName,
-                        fromEmail: requestingUserEmail,
-                        toEmail: acceptingUserEmail,
-                    }, false);
+                    }, {
+                        userByInviteDetails: {
+                            fromName: fromUserFullName,
+                            fromEmail: requestingUserEmail,
+                            toEmail: acceptingUserEmail,
+                        },
+                    });
                 } else {
                     return handleHttpError({
                         res,
@@ -408,6 +410,14 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         // NOTE: Current set to 0 coin reward while we debug spammers
         coinRewardsTotal += (sendableEmailContacts.length * CurrentSocialValuations.inviteSent)
             + (sendablePhoneContacts.length * CurrentSocialValuations.inviteSent);
+
+        // Funnel: outbound invites (email + SMS + in-app requests to existing users)
+        const totalInvitesSent = sendableEmailContacts.length + sendablePhoneContacts.length + existingUsers.length;
+        if (totalInvitesSent > 0) {
+            recordFunnelMetric(MetricNames.FUNNEL_INVITE_SENT, userId, {
+                brandVariation: brandVariation || '',
+            }, String(totalInvitesSent));
+        }
 
         // 2. Persist the sendable invites first (upsert) so the magic link
         // embedded in each email/SMS carries the same token as the stored row.
@@ -725,10 +735,23 @@ const getTopRankedConnections = (req, res) => {
             }).then((results) => {
                 const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], [requestingUserDetails.id]);
 
+                // No column list: getByUserIds selects `userInterests.*` and ignores its
+                // `returning` argument, so affinityScore / negativeCount / lastEngagedAt
+                // already arrive for the shadow comparison below. Passing a list here would
+                // read as though it were filtering the projection when it does nothing —
+                // and naming the new columns explicitly would break this read against a
+                // pre-migration schema, which selecting `*` tolerates.
                 return Store.userInterests.getByUserIds(userIds, {
                     isEnabled: true,
-                }, 'engagementCount', ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
+                }, 'engagementCount')
                     .then((userInterests) => {
+                        // Shadow only — the ordering below is still the live engagementCount
+                        // ranking. This measures how far the affinity-based weight would move
+                        // it, so the read path can be flipped on evidence rather than hope.
+                        // Scoped to the requesting user's own rows: mixing several users'
+                        // interests into one ordering would measure nothing meaningful.
+                        logShadowInterestRanking(userId, userInterests.filter((i) => i.userId === userId && i.isEnabled));
+
                         const interestsIdMap = {};
                         userInterests.forEach((uInterest) => {
                             if (uInterest.isEnabled) {

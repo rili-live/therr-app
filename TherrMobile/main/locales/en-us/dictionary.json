@@ -70,7 +70,9 @@
     "waitlistSuccess": "Registration Success!",
     "reactionSent": "Reaction Sent!",
     "reactionFailed": "Reaction Failed",
-    "mediaUploadFailed": "Image Upload Failed"
+    "mediaUploadFailed": "Image Upload Failed",
+    "tooManyAttempts": "Too Many Attempts",
+    "registerSuccess": "Account Created"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -107,7 +109,9 @@
     "draftReminder": "Did you remember to finish your drafted post?",
     "requestClaimSent": "Check your e-mail for confirmation and next steps",
     "waitlistSuccess": "Check your e-mail to verify your account",
-    "mediaUploadFailed": "Your image could not be uploaded. Please try again."
+    "mediaUploadFailed": "Your image could not be uploaded. Please try again.",
+    "tooManyAttempts": "Please wait a few minutes before trying again.",
+    "phoneRegisterSuccess": "Your phone is verified. Check your e-mail to confirm your address."
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -392,7 +396,8 @@
       }
     },
     "thoughtDisplay": {
-      "viewAllReplies": "View all {count} replies"
+      "viewAllReplies": "View all {count} replies",
+      "viewReplies": "View {count} replies"
     },
     "userMenu": {
       "buttons": {
@@ -406,8 +411,40 @@
       }
     },
     "incompleteProfileBanner": {
-      "message": "Add your name so friends can recognize you",
-      "dismiss": "Dismiss"
+      "message": "Finish your profile — {count} steps left",
+      "dismiss": "Dismiss",
+      "messageSingular": "Finish your profile — 1 step left"
+    },
+    "profileCompletionCard": {
+      "title": "Finish your profile!",
+      "stepsLeft": "{count} steps left",
+      "stepLeft": "1 step left",
+      "continue": "Continue",
+      "collapse": "Collapse checklist",
+      "expand": "Expand checklist",
+      "skipped": "Skipped — tap to do it now",
+      "steps": {
+        "name": {
+          "label": "Add your name",
+          "description": "So friends can recognize you"
+        },
+        "interests": {
+          "label": "Pick your interests",
+          "description": "We use these to show you better content"
+        },
+        "picture": {
+          "label": "Add a profile photo",
+          "description": "Profiles with photos get more connections"
+        },
+        "phone": {
+          "label": "Verify your phone",
+          "description": "Keeps your account secure"
+        },
+        "contacts": {
+          "label": "Sync your contacts",
+          "description": "Find friends who are already here"
+        }
+      }
     }
   },
   "forms": {
@@ -478,12 +515,18 @@
       "buttons": {
         "login": "Sign In",
         "signUp": "Create an Account?",
-        "forgotPassword": "Forgot Password?"
+        "forgotPassword": "Forgot Password?",
+        "sendCode": "Text Me a Code",
+        "verifyAndSignIn": "Verify & Sign In",
+        "resendCode": "Resend Code?",
+        "usePasswordInstead": "Use a password instead"
       },
       "defaultTitle": "Login",
       "labels": {
         "password": "Password",
-        "userName": "Email/Phone/Username"
+        "userName": "Email/Phone/Username",
+        "enterCode": "Enter your code",
+        "switchAccount": "Switch account"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",
@@ -493,7 +536,13 @@
         "appleButtonTitle": "Sign in with Apple",
         "googleButtonTitleContinue": "Continue with Google",
         "googleButtonTitleSignIn": "Sign in with Google"
-      }
+      },
+      "subtitles": {
+        "codeSentTo": "We sent a 6-digit code to {phoneNumber}",
+        "phoneSignInHint": "We'll text you a 6-digit code — no password needed."
+      },
+      "invalidCode": "That code is invalid or expired.",
+      "invalidPhoneNumber": "Please enter a valid phone number."
     },
     "nearbyForm": {
       "buttons": {
@@ -887,6 +936,34 @@
     "myQRCodeDetail": {
       "share": "Share Link",
       "copy": "Copy Link"
+    },
+    "phoneSignupForm": {
+      "labels": {
+        "enterPhone": "What's your number?",
+        "enterCode": "Enter your code",
+        "enterEmail": "Add your e-mail",
+        "optionalPassword": "Password (optional)",
+        "accountType": "Which kind of account?"
+      },
+      "subtitles": {
+        "enterPhone": "We'll text you a code to verify it's you.",
+        "enterEmail": "We use it for receipts, password resets, and account recovery.",
+        "optionalPassword": "Skip it — you can always sign in with a texted code.",
+        "accountType": "This number already has an account, so pick a different type for this one.",
+        "accountTypeHint": "Each phone number can have one personal, one creator, and one business account."
+      },
+      "buttons": {
+        "sendCode": "Send Code",
+        "verify": "Verify",
+        "changeNumber": "Use a different number",
+        "useEmailInstead": "Sign up with e-mail instead",
+        "usePhoneInstead": "Sign up with your phone instead"
+      },
+      "errorMessages": {
+        "accountExists": "An account already uses this number. Try signing in.",
+        "accountTypeTaken": "This number already has an account of that type. Pick another type or sign in instead.",
+        "accountLimitReached": "This number already has the maximum number of accounts. Try signing in."
+      }
     }
   },
   "interests": {
@@ -1227,7 +1304,8 @@
       "buttons": {
         "syncSuccess": "Sync Success!",
         "syncFailed": "Failed to Sync",
-        "syncContacts": "Sync Your Contacts?"
+        "syncContacts": "Sync Your Contacts?",
+        "resyncContacts": "Sync contacts again"
       },
       "labels": {
         "allUsers": "All Users",
@@ -1260,6 +1338,18 @@
         "shareLink": "Share a Link",
         "syncContacts": "Sync Contacts",
         "skip": "Skip for Now"
+      },
+      "pageHeaderContacts": "Find your friends",
+      "pageSubHeaderContacts": "Sync your contacts to see who is already here",
+      "progress": {
+        "back": "Go back a step"
+      },
+      "syncContacts": {
+        "description": "We match your contacts against Therr accounts so you can connect right away. Your contacts are never shared with anyone else.",
+        "continue": "Continue",
+        "skip": "Not Now",
+        "errorMessage": "We could not sync your contacts. Please try again.",
+        "permissionsDenied": "Contact access is off. Enable it in your device settings to find friends."
       }
     },
     "cropImage": {
@@ -1516,7 +1606,8 @@
       "pageTitle": "Welcome",
       "pageSubtitle": "Sign in to Therr to see what you missed",
       "userAlerts": {
-        "registerSuccess": "Registration success! Check your e-mail for verification."
+        "registerSuccess": "Registration success! Check your e-mail for verification.",
+        "phoneRegisterSuccess": "Account created! Sign in with a code sent to your phone."
       }
     },
     "map": {
@@ -1958,6 +2049,12 @@
         "header": "Achievement Earned!",
         "message": "Share your achievement with friends!"
       }
+    },
+    "accountPicker": {
+      "switchHeader": "Switch account",
+      "chooseHeader": "Choose an account",
+      "useAnotherAccount": "Use another account",
+      "removeAccount": "Remove saved account"
     }
   },
   "permissions": {

@@ -16,6 +16,24 @@ _fetch_once()
     fi
 }
 
+# Resolve the branch to diff against for "what changed here?" checks.
+#
+# The promotion chain is feature -> general -> stage -> main, so the meaningful
+# comparison is always against the NEXT branch down the chain. Hardcoding
+# `general` breaks on the general branch itself: `git diff origin/general` while
+# on general is empty, so every changed-files check silently finds nothing and
+# passes. That reads as a working gate while checking nothing at all.
+resolve_diff_base()
+{
+    local CURRENT_BRANCH=${CICD_BRANCH:-${CIRCLE_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}}
+
+    case "$CURRENT_BRANCH" in
+        general) echo "stage" ;;
+        stage)   echo "main" ;;
+        *)       echo "general" ;;
+    esac
+}
+
 has_diff_changes()
 {
     ORIGIN_BRANCH=$1

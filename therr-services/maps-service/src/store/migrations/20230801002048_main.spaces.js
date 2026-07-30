@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', (table) => {
     table.string('phoneNumber', 24).nullable();
     table.string('websiteUrl').nullable();
     table.string('menuUrl').nullable();

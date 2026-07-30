@@ -162,6 +162,7 @@ interface ICreateNotificationMessage extends ICreateBaseMessage {
     notificationTitle: string;
     notificationBody: string;
     channelId?: AndroidChannelId;
+    brandVariation?: BrandVariations;
 }
 
 const getPostActionId = (postType?: string) => {
@@ -186,6 +187,21 @@ const getAppBundleIdentifier = (brandVariation: BrandVariations) => {
             return 'com.therr.mobile.Therr';
         default:
             return 'com.therr.mobile.Therr';
+    }
+};
+
+// Android notification small-icon tint per brand. Values mirror each app's
+// primary accent (see TherrMobile/main/styles/themes/brandConstants.ts on the
+// corresponding niche branch).
+const getBrandAccentColor = (brandVariation: BrandVariations): string => {
+    switch (brandVariation) {
+        case BrandVariations.HABITS:
+            return '#1C7F8A';
+        case BrandVariations.TEEM:
+            return '#0f7b82';
+        case BrandVariations.THERR:
+        default:
+            return '#0f7b82';
     }
 };
 
@@ -306,6 +322,7 @@ const createNotificationMessage = ({
     notificationTitle,
     notificationBody,
     channelId = AndroidChannelId.default,
+    brandVariation = BrandVariations.THERR,
 }: ICreateNotificationMessage): admin.messaging.Message | false => ({
     ...createBaseMessage({
         data,
@@ -314,7 +331,7 @@ const createNotificationMessage = ({
     android: {
         notification: {
             icon: 'ic_notification_icon',
-            color: '#0f7b82', // TODO: use brandVariation for icon color
+            color: getBrandAccentColor(brandVariation),
             // clickAction: 'app.therrmobile.VIEW_MOMENT',
             channelId,
         },
@@ -351,6 +368,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.createYourProfileReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.createYourProfileReminder.body'),
                 channelId: AndroidChannelId.reminders,
@@ -361,6 +379,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.createAMomentReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.createAMomentReminder.body'),
                 channelId: AndroidChannelId.reminders,
@@ -371,6 +390,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.completeDraftReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.completeDraftReminder.body'),
                 channelId: AndroidChannelId.reminders,
@@ -381,6 +401,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.latestPostLikesStats.title'),
                 notificationBody: translate(config.userLocale, 'notifications.latestPostLikesStats.body', {
                     likeCount: config.likeCount || 0,
@@ -400,12 +421,13 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.momentView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'LATEST_POST_VIEWCOUNT_STATS'));
+            }, getAppBrandingClickAction(brandVariation, 'LATEST_POST_VIEWCOUNT_STATS'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.unreadNotificationsReminder:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.unreadNotificationsReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.unreadNotificationsReminder.body', {
                     notificationsCount: config.notificationsCount || 0,
@@ -418,6 +440,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.unclaimedAchievementsReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.unclaimedAchievementsReminder.body', {
                     achievementsCount: config.achievementsCount || 0,
@@ -430,6 +453,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.inviteFriendsReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.inviteFriendsReminder.body'),
                 channelId: AndroidChannelId.reminders,
@@ -442,6 +466,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.achievementCompleted.title'),
                 notificationBody: translate(config.userLocale, 'notifications.achievementCompleted.body'),
                 channelId: AndroidChannelId.rewardUpdates,
@@ -470,7 +495,7 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NEW_CONNECTION'));
+            }, getAppBrandingClickAction(brandVariation, 'NEW_CONNECTION'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.newConnectionRequest:
             // Expects modifiedData.fromUser = { id: ..., userName };
@@ -494,7 +519,7 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NEW_CONNECTION_REQUEST'));
+            }, getAppBrandingClickAction(brandVariation, 'NEW_CONNECTION_REQUEST'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.newDirectMessage:
             // Expects modifiedData.fromUser = { id: ..., userName };
@@ -518,7 +543,7 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NEW_DIRECT_MESSAGE'));
+            }, getAppBrandingClickAction(brandVariation, 'NEW_DIRECT_MESSAGE'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.newGroupMessage:
             baseMessage = createDataOnlyMessage({
@@ -541,12 +566,13 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NEW_GROUP_MESSAGE'));
+            }, getAppBrandingClickAction(brandVariation, 'NEW_GROUP_MESSAGE'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.newGroupMembers:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.newGroupMembers.title'),
                 notificationBody: translate(config.userLocale, 'notifications.newGroupMembers.body', {
                     groupName: String(config.groupName || ''),
@@ -560,6 +586,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.newGroupInvite.title'),
                 notificationBody: translate(config.userLocale, 'notifications.newGroupInvite.body', {
                     groupName: String(config.groupName || ''),
@@ -586,7 +613,7 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NEW_LIKE_RECEIVED'));
+            }, getAppBrandingClickAction(brandVariation, 'NEW_LIKE_RECEIVED'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.newSuperLikeReceived:
             baseMessage = createDataOnlyMessage({
@@ -605,12 +632,13 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NEW_SUPER_LIKE_RECEIVED'));
+            }, getAppBrandingClickAction(brandVariation, 'NEW_SUPER_LIKE_RECEIVED'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.newAreasActivated:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.newAreasActivated.title'),
                 notificationBody: translate(config.userLocale, 'notifications.newAreasActivated.body', {
                     totalAreasActivated: Number(config.totalAreasActivated || 0),
@@ -636,7 +664,7 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NUDGE_SPACE_ENGAGEMENT'));
+            }, getAppBrandingClickAction(brandVariation, 'NUDGE_SPACE_ENGAGEMENT'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.proximityRequiredMoment:
             return createNotificationMessage({
@@ -671,7 +699,7 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NEW_THOUGHT_REPLY_RECEIVED'));
+            }, getAppBrandingClickAction(brandVariation, 'NEW_THOUGHT_REPLY_RECEIVED'), brandVariation);
             return baseMessage;
 
         // HABITS — Streak framing & pact lifecycle.
@@ -691,12 +719,13 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.checkinView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'STREAK_AT_RISK'));
+            }, getAppBrandingClickAction(brandVariation, 'STREAK_AT_RISK'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.streakBroken:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.streakBroken.title'),
                 notificationBody: translate(config.userLocale, 'notifications.streakBroken.body', {
                     streakCount: Number(config.streakCount || 0),
@@ -731,7 +760,7 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.streakView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'STREAK_MILESTONE'));
+            }, getAppBrandingClickAction(brandVariation, 'STREAK_MILESTONE'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.newPersonalRecord:
             baseMessage = createDataOnlyMessage({
@@ -746,7 +775,7 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.streakView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'NEW_PERSONAL_RECORD'));
+            }, getAppBrandingClickAction(brandVariation, 'NEW_PERSONAL_RECORD'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.partnerCheckedIn:
             baseMessage = createDataOnlyMessage({
@@ -761,7 +790,7 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'PARTNER_CHECKED_IN'));
+            }, getAppBrandingClickAction(brandVariation, 'PARTNER_CHECKED_IN'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.partnerMissedDay:
             baseMessage = createDataOnlyMessage({
@@ -775,7 +804,7 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'PARTNER_MISSED_DAY'));
+            }, getAppBrandingClickAction(brandVariation, 'PARTNER_MISSED_DAY'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.partnerCelebrated:
             baseMessage = createDataOnlyMessage({
@@ -788,7 +817,7 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'PARTNER_CELEBRATED'));
+            }, getAppBrandingClickAction(brandVariation, 'PARTNER_CELEBRATED'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.pactInvitation:
             baseMessage = createDataOnlyMessage({
@@ -812,7 +841,7 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'PACT_INVITATION'));
+            }, getAppBrandingClickAction(brandVariation, 'PACT_INVITATION'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.pactNudge:
             baseMessage = createDataOnlyMessage({
@@ -836,7 +865,7 @@ const createMessage = (
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'PACT_NUDGE'));
+            }, getAppBrandingClickAction(brandVariation, 'PACT_NUDGE'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.pactAccepted:
             baseMessage = createDataOnlyMessage({
@@ -850,12 +879,13 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'PACT_ACCEPTED'));
+            }, getAppBrandingClickAction(brandVariation, 'PACT_ACCEPTED'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.pactDeclined:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.pactDeclined.title'),
                 notificationBody: translate(config.userLocale, 'notifications.pactDeclined.body', {
                     partnerName: String(config.partnerName || config.fromUserName || ''),
@@ -876,7 +906,7 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'PACT_COMPLETED'));
+            }, getAppBrandingClickAction(brandVariation, 'PACT_COMPLETED'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.pactExpiring:
             baseMessage = createDataOnlyMessage({
@@ -890,12 +920,13 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'PACT_EXPIRING'));
+            }, getAppBrandingClickAction(brandVariation, 'PACT_EXPIRING'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.dailyHabitReminder:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.dailyHabitReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.dailyHabitReminder.body', {
                     habitName: String(config.habitName || ''),
@@ -908,6 +939,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.morningMotivation.title'),
                 notificationBody: translate(config.userLocale, 'notifications.morningMotivation.body'),
                 channelId: AndroidChannelId.reminders,
@@ -918,6 +950,7 @@ const createMessage = (
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.eveningCheckIn.title'),
                 notificationBody: translate(config.userLocale, 'notifications.eveningCheckIn.body'),
                 channelId: AndroidChannelId.reminders,

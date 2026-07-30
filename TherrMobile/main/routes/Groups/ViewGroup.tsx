@@ -635,7 +635,6 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: member }) => (
                             <UserSearchItem
-                                key={user.id}
                                 userDetails={member.user}
                                 getUserSubtitle={this.getMembershipText}
                                 goToViewUser={this.goToUser}

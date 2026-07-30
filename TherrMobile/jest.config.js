@@ -17,6 +17,13 @@ module.exports = {
         '@react-native-firebase/messaging': '<rootDir>/__mocks__/firebase/messaging.ts',
         '@invertase/react-native-apple-authentication': '<rootDir>/__mocks__/@invertase/react-native-apple-authentication.js',
         'react-native-device-info': '<rootDir>/__mocks__/react-native-device-info.ts',
+        // Reaches for a JSI native module at import time, which is unavailable under Jest.
+        '^react-native-audio-api$': '<rootDir>/__mocks__/react-native-audio-api.ts',
+        // Calls TurboModuleRegistry.getEnforcing at import time, which throws under Jest.
+        '^react-native-haptic-feedback$': '<rootDir>/__mocks__/react-native-haptic-feedback.ts',
+        // Reaches for its native module at import time, which fails under Jest and takes the
+        // whole App.tsx suite with it.
+        'react-native-keyboard-controller': '<rootDir>/__mocks__/react-native-keyboard-controller.tsx',
         '^pretty-format$': '<rootDir>/../node_modules/pretty-format',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],

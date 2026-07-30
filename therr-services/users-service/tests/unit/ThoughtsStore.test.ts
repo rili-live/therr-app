@@ -116,6 +116,68 @@ describe('ThoughtsStore brand filtering', () => {
             expect(sql).to.include(`"replies"."fromUserId" as "replies[].fromUserId"`);
         });
 
+        it('pages parents before attaching reply previews (LIMIT applies to parents, not joined rows)', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.find(BrandVariations.THERR, ['t1'], {
+                limit: 21,
+                before: '2026-04-27T00:00:00.000Z',
+            }, { withReplies: true });
+
+            const sql = readStub.args[0][0] as string;
+            // The parent page closes inside the subquery...
+            expect(sql).to.include(`limit 21) as "parents"`);
+            // ...and the lateral join hangs off the already-paged set
+            expect(sql).to.include(`replies."parentId" = parents.id`);
+            // No outer LIMIT that joined reply rows could consume
+            const afterJoin = sql.slice(sql.indexOf('ON TRUE'));
+            expect(afterJoin).to.not.include('limit');
+        });
+
+        it('computes isLastPage from parent count, not raw joined rows', async () => {
+            // 2 parents x 3 reply-preview rows = 6 raw rows; with limit 5 the old
+            // rows-based check (6 < 5) wrongly claimed another page exists
+            const rows = ['p1', 'p2'].flatMap((id) => [1, 2, 3].map((n) => ({
+                id,
+                fromUserId: 'author-1',
+                replyCount: '3',
+                'replies[].id': `${id}-r${n}`,
+                'replies[].fromUserId': 'replier-1',
+                'replies[].message': 'a reply',
+                'replies[].createdAt': '2026-04-26T00:00:00.000Z',
+            })));
+            const readStub = sinon.stub().callsFake(() => Promise.resolve({ rows }));
+            const store = new ThoughtsStore({
+                read: { query: readStub } as any,
+                write: { query: sinon.stub() } as any,
+            }, stubUsersStore);
+
+            const result = await store.find(BrandVariations.THERR, ['p1', 'p2'], {
+                limit: 5,
+                before: '2026-04-27T00:00:00.000Z',
+            }, { withReplies: true });
+
+            expect(result.thoughts).to.have.length(2);
+            expect(result.isLastPage).to.equal(true);
+            expect(result.thoughts[0].replyCount).to.equal(3);
+            expect(result.thoughts[0].replies).to.have.length(3);
+        });
+
+        it('does NOT filter reply previews on isPublic (visibility follows the parent)', () => {
+            // Deliberate policy, not an oversight: clients mint every reply with
+            // isPublic=false (TherrMobile ViewThought handleSubmitReply), so an isPublic
+            // filter here would blank out every thread preview in the app.
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.find(BrandVariations.THERR, ['t1'], {
+                limit: 21,
+                before: '2026-04-27T00:00:00.000Z',
+            }, { withReplies: true, shouldHideMatureContent: true });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.not.include(`replies."isPublic" =`);
+        });
+
         it('excludes mature replies from previews when shouldHideMatureContent is set', () => {
             const { connection, readStub } = buildMockConnection();
             const store = new ThoughtsStore(connection, stubUsersStore);
@@ -154,6 +216,78 @@ describe('ThoughtsStore brand filtering', () => {
             expect(sql).to.include(`"brandVariation" in ('habits')`);
             expect(sql).to.include('interests.hiking');
         });
+
+        // The hot score used to exist only in the ORDER BY, so the ranking was thrown away
+        // once candidates were chosen. It is now also selected, and the caller persists it
+        // onto the reaction row as relevanceScore.
+        it('returns the hot score so the ranking can outlive candidate selection', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include('AS "hotScore"');
+        });
+
+        it('scores and orders by the identical expression', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            const scoreExpression = '("replyCount" + 1) / POWER(GREATEST(EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600, 0) + 2, 1.5)';
+            // Selected value and sort key must be the same number, or the persisted score
+            // would not explain the order the rows came back in.
+            expect(sql).to.include(`${scoreExpression} AS "hotScore"`);
+            expect(sql).to.include(`order by ${scoreExpression} DESC`);
+        });
+
+        // Regression: therr-ai-automator writes thoughts with a future createdAt to drip
+        // content out between its runs. Those rows sort to the very top of a createdAt-DESC
+        // pool, so they were always present. With an unclamped age the hot score computed
+        // POWER(<negative>, 1.5), which Postgres raises as an ERROR rather than returning
+        // NULL — aborting the query, tripping the catch in
+        // TherrEventEmitter.runThoughtDistributorAlgorithm, and activating nothing at all.
+        // Every user's feed then showed no new content until the last post-dated thought
+        // aged into the past.
+        it('excludes future-dated thoughts from the candidate pool', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            // Raw fragment, so the table name is not identifier-quoted the way knex's
+            // builder-generated clauses are.
+            expect(sql).to.include(`main.thoughts."createdAt" <= NOW()`);
+        });
+
+        it('clamps negative age so a future-dated row can never error the score', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getRecentThoughts(BrandVariations.THERR, 10);
+
+            const sql = readStub.args[0][0] as string;
+            // POWER() must never see a negative base.
+            expect(sql).to.include('POWER(GREATEST(');
+            expect(sql).to.not.include('POWER((EXTRACT');
+        });
+    });
+
+    describe('search (deterministic ordering)', () => {
+        // This query previously had no ORDER BY at all, which makes LIMIT/OFFSET paging
+        // unsound: Postgres may return rows in any order, so pages can repeat and skip.
+        it('orders by an indexed column with an id tiebreak', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.search(BrandVariations.THERR, {
+                pagination: { itemsPerPage: 20, pageNumber: 1 },
+            }, ['id']);
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include('order by "main"."thoughts"."createdAt" desc, "main"."thoughts"."id" desc');
+            // updatedAt is unindexed and was measured as slow — it must stay out of the sort.
+            expect(sql).to.not.include('"updatedAt" desc');
+        });
     });
 
     describe('getById', () => {
@@ -174,6 +308,47 @@ describe('ThoughtsStore brand filtering', () => {
 
             const sql = readStub.args[0][0] as string;
             expect(sql).to.not.include('brandVariation');
+        });
+
+        it('selects a nested reply count per reply, brand-restricted to match the reply join', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getById(BrandVariations.HABITS, 'thought-1', {}, { withReplies: true });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include('SELECT COUNT(*) FROM main.thoughts AS nested WHERE nested."parentId" = replies.id');
+            expect(sql).to.include(`nested."brandVariation" IN ('habits')`);
+            expect(sql).to.include('"replies[].replyCount"');
+        });
+
+        it('does not select a nested reply count when replies are not requested', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getById(BrandVariations.THERR, 'thought-1', {}, {});
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.not.include('replyCount');
+        });
+
+        it('coerces the nested reply count from a pg bigint string to a number', async () => {
+            const { connection, readStub } = buildMockConnection();
+            readStub.callsFake(() => Promise.resolve({
+                rows: [{
+                    id: 'thought-1',
+                    'replies[].id': 'reply-1',
+                    'replies[].replyCount': '3',
+                }, {
+                    id: 'thought-1',
+                    'replies[].id': 'reply-2',
+                    'replies[].replyCount': '0',
+                }],
+            }));
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.THERR, 'thought-1', {}, { withReplies: true });
+
+            expect(thoughts[0].replies[0].replyCount).to.equal(3);
+            expect(thoughts[0].replies[1].replyCount).to.equal(0);
         });
     });
 

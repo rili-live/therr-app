@@ -45,6 +45,29 @@ export const getMilestoneProgress = (currentStreak: number): { nextMilestone: nu
 };
 
 /**
+ * Parse any accepted date value to local midnight of the calendar date it
+ * represents. Date-only strings (YYYY-MM-DD) are treated as that calendar
+ * date rather than UTC midnight: `new Date('2026-07-22')` parses as UTC
+ * midnight, so in any timezone west of UTC it lands on the evening of Jul 21
+ * local, and `.setHours(0,0,0,0)` then snaps it to Jul 21 — every date-only
+ * value silently shifts back a day and streak-gap math is off by one. Date
+ * objects and full datetime strings keep their local calendar date, matching
+ * the convention in normalizeDateString.
+ */
+const toLocalMidnight = (value: string | Date): Date => {
+    if (typeof value === 'string') {
+        const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        if (dateOnlyMatch) {
+            const [, year, month, day] = dateOnlyMatch;
+            return new Date(Number(year), Number(month) - 1, Number(day));
+        }
+    }
+    const d = new Date(value);
+    d.setHours(0, 0, 0, 0);
+    return d;
+};
+
+/**
  * Calculate if a day was missed based on last completed date
  * Takes into account that habits might not be daily (e.g., 3x per week)
  */
@@ -60,8 +83,7 @@ export const wasDayMissed = (
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const lastCompleted = new Date(lastCompletedDate);
-    lastCompleted.setHours(0, 0, 0, 0);
+    const lastCompleted = toLocalMidnight(lastCompletedDate);
 
     const daysDiff = Math.floor((today.getTime() - lastCompleted.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -101,6 +123,75 @@ export const canUseGracePeriod = (
     gracePeriodDays: number,
     graceDaysUsed: number,
 ): boolean => gracePeriodDays > 0 && graceDaysUsed < gracePeriodDays;
+
+/**
+ * Whole days between two dates (date-only comparison; positive when `later`
+ * is after `earlier`). Accepts date strings or Date objects.
+ */
+export const getDaysBetweenDates = (earlier: string | Date, later: string | Date): number => {
+    const a = toLocalMidnight(earlier);
+    const b = toLocalMidnight(later);
+    return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+/**
+ * Normalize a date value (Date or ISO/date string) to YYYY-MM-DD for
+ * comparison against checkin scheduledDate strings.
+ */
+export const normalizeDateString = (date: string | Date): string => {
+    const d = toLocalMidnight(date);
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
+};
+
+/**
+ * Count the required days that were missed between the last completed
+ * check-in and the current check-in, respecting the habit's cadence.
+ * 0 means the streak is intact (same-day or on-cadence completion).
+ *
+ * The check-in flow uses this to decide whether to consume streak-freeze
+ * (grace) days or reset the streak — see createCheckin in handlers/habitCheckins.ts.
+ */
+export const countMissedDaysForStreak = (
+    lastCompletedDate: string | Date,
+    checkinDate: string,
+    frequencyType: string,
+    targetDaysOfWeek?: number[],
+): number => {
+    const daysDiff = getDaysBetweenDates(lastCompletedDate, checkinDate);
+    if (daysDiff <= 1) {
+        return 0;
+    }
+
+    if (frequencyType === 'weekly' && targetDaysOfWeek?.length) {
+        // Count target days strictly between last completion and this check-in
+        let missed = 0;
+        for (let i = 1; i < daysDiff; i += 1) {
+            const d = toLocalMidnight(lastCompletedDate);
+            d.setDate(d.getDate() + i);
+            if (targetDaysOfWeek.includes(d.getDay())) {
+                missed += 1;
+            }
+        }
+        return missed;
+    }
+
+    if (frequencyType === 'weekly') {
+        // X-times-per-week habits get full-week flexibility; only a gap of
+        // more than one whole week counts as a single miss event.
+        return Math.floor(daysDiff / 7) > 1 ? 1 : 0;
+    }
+
+    // Daily cadence: every uncompleted day in the gap is a miss
+    return daysDiff - 1;
+};
+
+/**
+ * Maximum earnable streak freezes (grace days). New streaks start with 1;
+ * each 7+ day milestone earns one more, capped here.
+ */
+export const MAX_GRACE_PERIOD_DAYS = 3;
 
 /**
  * Format streak for display

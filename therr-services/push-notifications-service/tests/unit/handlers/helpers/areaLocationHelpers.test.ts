@@ -1,5 +1,9 @@
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { Location } from 'therr-js-utilities/constants';
+import { createAppAndPushNotification, hasSentNotificationRecently as hasSentRecently } from '../../../../src/handlers/helpers/areaLocationHelpers';
+import redisClient from '../../../../src/store/redisClient';
+import RealUserLocationCache from '../../../../src/store/UserLocationCache';
 
 describe('areaLocationHelpers', () => {
     describe('hasSentNotificationRecently', () => {
@@ -357,5 +361,142 @@ describe('Area filtering logic', () => {
             const expectedMax = Math.max(Location.AREA_PROXIMITY_METERS, 300);
             expect(maxActivationDistance).to.equal(expectedMax);
         });
+    });
+});
+
+// Unlike the logic-replication suites above, these drive the real exported
+// function — the bug they guard lives in the ordering of a side effect, which a
+// re-implementation of the logic could not have caught.
+describe('createAppAndPushNotification - dwelling suppression', () => {
+    const buildUserLocationCache = () => ({
+        setLastMomentNotificationDate: sinon.stub().resolves(),
+        setLastSpaceNotificationDate: sinon.stub().resolves(),
+    });
+
+    const invoke = (areaType: 'moments' | 'spaces', cache: any, shouldSendPushNotification: boolean) => createAppAndPushNotification(
+        areaType,
+        cache,
+            {} as any,
+            'area-1',
+            { area: { id: 'area-1' } },
+            // Skip the in-app notification so the call makes no outbound HTTP request.
+            false,
+            null,
+            undefined,
+            shouldSendPushNotification,
+    );
+
+    it('does not stamp the space throttle date when the push is suppressed', async () => {
+        const cache = buildUserLocationCache();
+
+        await invoke('spaces', cache, false);
+
+        // Stamping it here would keep hasSentNotificationRecently() true, which also
+        // gates the in-app NEW_AREAS_ACTIVATED notification that suppression is
+        // explicitly meant to preserve.
+        expect(cache.setLastSpaceNotificationDate.called).to.be.eq(false);
+        expect(cache.setLastMomentNotificationDate.called).to.be.eq(false);
+    });
+
+    it('does not stamp the moment throttle date when the push is suppressed', async () => {
+        const cache = buildUserLocationCache();
+
+        await invoke('moments', cache, false);
+
+        expect(cache.setLastMomentNotificationDate.called).to.be.eq(false);
+        expect(cache.setLastSpaceNotificationDate.called).to.be.eq(false);
+    });
+
+    it('stamps the space throttle date when the push is allowed through', async () => {
+        const cache = buildUserLocationCache();
+
+        await invoke('spaces', cache, true);
+
+        expect(cache.setLastSpaceNotificationDate.calledOnce).to.be.eq(true);
+    });
+
+    it('stamps the moment throttle date when the push is allowed through', async () => {
+        const cache = buildUserLocationCache();
+
+        await invoke('moments', cache, true);
+
+        expect(cache.setLastMomentNotificationDate.calledOnce).to.be.eq(true);
+    });
+});
+
+// End-to-end proof that the throttle actually engages. The unit tests above assert that
+// createAppAndPushNotification *calls* the cache setter; these drive the real
+// UserLocationCache against an in-memory redis so a broken key would surface as "the
+// throttle never trips" rather than as a passing stub assertion.
+describe('push notification throttle end to end', () => {
+    const USER_ID = 'user-throttle';
+
+    const installFakeRedis = () => {
+        const store: Record<string, Record<string, string>> = {};
+
+        (redisClient as any).pipeline = sinon.fake(() => ({
+            hset: sinon.stub(),
+            expire: sinon.stub(),
+            exec: sinon.fake.resolves(null),
+        }));
+        (redisClient as any).hset = sinon.fake((key: any, field: string, value: any) => {
+            const resolvedKey = key == null ? '' : String(key);
+            store[resolvedKey] = store[resolvedKey] || {};
+            store[resolvedKey][field] = String(value);
+            return Promise.resolve(1);
+        });
+        (redisClient as any).hget = sinon.fake((key: any, field: string) => {
+            const resolvedKey = key == null ? '' : String(key);
+            return Promise.resolve(store[resolvedKey]?.[field] ?? null);
+        });
+    };
+
+    const sendOnce = (cache: any, shouldSendPushNotification: boolean) => createAppAndPushNotification(
+        'spaces',
+        cache,
+        {} as any,
+        'area-1',
+        { area: { id: 'area-1' } },
+        false,
+        null,
+        undefined,
+        shouldSendPushNotification,
+    );
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('throttles a second push that follows immediately after the first', async () => {
+        installFakeRedis();
+        const cache = new RealUserLocationCache(USER_ID);
+
+        // Nothing sent yet, so nothing to throttle.
+        expect(!hasSentRecently(await cache.getLastSpaceNotificationDate())).to.be.eq(true);
+
+        await sendOnce(cache, true);
+
+        // MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS has not elapsed, so the next pass must skip.
+        expect(hasSentRecently(await cache.getLastSpaceNotificationDate())).to.be.eq(true);
+    });
+
+    it('does not arm the throttle when the push was suppressed at a dwelling', async () => {
+        installFakeRedis();
+        const cache = new RealUserLocationCache(USER_ID);
+
+        await sendOnce(cache, false);
+
+        // No push went out, so the throttle must stay disarmed — otherwise dwelling
+        // suppression would also silence the in-app notifications it is meant to preserve.
+        expect(!hasSentRecently(await cache.getLastSpaceNotificationDate())).to.be.eq(true);
+    });
+
+    it('leaves the moment throttle disarmed after a space push', async () => {
+        installFakeRedis();
+        const cache = new RealUserLocationCache(USER_ID);
+
+        await sendOnce(cache, true);
+
+        expect(!hasSentRecently(await cache.getLastMomentNotificationDate())).to.be.eq(true);
     });
 });

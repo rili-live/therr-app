@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', (table) => {
     table.string('featuredIncentiveKey'); // These are duplicated properties from the spaceIncentiveDetails table
     table.double('featuredIncentiveValue'); // These are duplicated properties from the spaceIncentiveDetails table
     table.string('featuredIncentiveRewardKey'); // These are duplicated properties from the spaceIncentiveDetails table

@@ -6,19 +6,28 @@
 set -e
 
 source ./_bin/lib/colorize.sh
+source ./_bin/lib/has_diff_changes.sh
 
 # Locale dictionary parity check — zero-dep Node script, runs before `npm ci`
 # so it fails fast on translation drift without waiting for dependency install.
 printMessageNeutral "=== Locale dictionary parity check ==="
 node scripts/locale-check/index.js
 
-# Fetch general branch for comparison
-git fetch origin general
+# Mirrored-file drift check — same rationale as above: zero-dep Node script, runs before
+# `npm ci`. Catches a fix applied to only one copy of a deliberately duplicated module.
+printMessageNeutral "=== Mirrored file drift check ==="
+node scripts/mirrored-files/index.js
 
-# Get changed .ts and .js source files relative to general
+# Diff against the next branch down the promotion chain (see resolve_diff_base).
+# On a feature branch that is `general`; on `general` it is `stage`; on `stage`, `main`.
+DIFF_BASE=$(resolve_diff_base)
+printMessageNeutral "Comparing against origin/${DIFF_BASE}"
+git fetch origin "$DIFF_BASE"
+
+# Get changed .ts and .js source files relative to the diff base
 # --diff-filter=d excludes deleted files (which don't exist in the working tree)
 # Exclude build artifacts, config files, and non-source directories
-CHANGED_FILES=$(git diff --name-only --diff-filter=d origin/general -- '*.ts' '*.tsx' '*.js' '*.jsx' \
+CHANGED_FILES=$(git diff --name-only --diff-filter=d "origin/${DIFF_BASE}" -- '*.ts' '*.tsx' '*.js' '*.jsx' \
   | grep -v node_modules \
   | grep -v '/lib/' \
   | grep -v '/build/' \

@@ -4,17 +4,22 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
+import validateReactionMetrics from '../utilities/validateReactionMetrics';
 // import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
 // import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
 const createOrUpdateThoughtReaction = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
     const {
         locale,
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
+    }
 
     return Store.thoughtReactions.get({
         userId,
@@ -31,7 +36,10 @@ const createOrUpdateThoughtReaction = (req, res) => {
             }, {
                 ...req.body,
                 userLocale: locale,
-                userViewCount: reactionsResponse[0].userViewCount + (req.body.userViewCount || 0),
+                // Number() is load-bearing: a JSON body may carry "1" as a string, and
+                // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
+                // very total the bounds above exist to cap.
+                userViewCount: reactionsResponse[0].userViewCount + Number(req.body.userViewCount || 0),
                 userHasActivated: true,
             })
                 .then(([thoughtReaction]) => {
@@ -59,12 +67,16 @@ const createOrUpdateThoughtReaction = (req, res) => {
 
 // CREATE/UPDATE
 const createOrUpdateMultiThoughtReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
     if (!userId) {
         return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
     }
 
     const { thoughtIds } = req.body;
@@ -77,6 +89,15 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
 
     const params = { ...req.body };
     delete params.thoughtIds;
+    // Per-thought, so it can't ride along in the shared param set that gets spread into
+    // every inserted/updated row — it is applied separately below.
+    delete params.relevanceScores;
+
+    const relevanceScores = req.body.relevanceScores || {};
+    const scoreFor = (thoughtId: string) => {
+        const score = Number(relevanceScores[thoughtId]);
+        return Number.isFinite(score) ? score : null;
+    };
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -90,6 +111,13 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
         });
         let updatedReactions: any[] = [];
         if (existing?.length) {
+            // Scores first, so the bulk update's RETURNING * below reports the fresh values.
+            const scoresForExisting = existing.reduce((acc, reaction) => {
+                const score = scoreFor(reaction.thoughtId);
+                return score == null ? acc : { ...acc, [reaction.thoughtId]: score };
+            }, {});
+            await Store.thoughtReactions.updateRelevanceScores(userId, scoresForExisting);
+
             await Store.thoughtReactions.update({}, {
                 ...params,
                 userLocale: locale,
@@ -107,6 +135,10 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
                 thoughtId,
                 ...params,
                 userLocale: locale,
+                // Always present (null when unscored) so every row in the multi-row insert
+                // carries the same column set.
+                relevanceScore: scoreFor(thoughtId),
+                scoredAt: scoreFor(thoughtId) == null ? null : new Date(),
             }));
 
         return Store.thoughtReactions.create(createArray).then((createdReactions) => res.status(200).send({

@@ -46,6 +46,54 @@ redisEphemeralClient.connect().catch(() => {
 const HANDOFF_PREFIX = 'handoff:';
 const HANDOFF_TTL_SECONDS = 60;
 
+const DISTRIBUTOR_GATE_PREFIX = 'distributor:gate:';
+
+/**
+ * Rate-limits the thought distributor to at most one run per user per window.
+ *
+ * The distributor is triggered from searchNotifications, i.e. on every notifications poll.
+ * Each run costs a 3-table interests join, two candidate scans over the recent thought pool
+ * with a correlated reply-count subquery, and a cross-service write of up to ~20 reaction
+ * rows — so the cost scaled with polling frequency rather than with users or content.
+ *
+ * Footprint is deliberately tiny: one key per *recently active* user, ~90 bytes including
+ * ioredis/Redis overhead, holding only the literal '1', and expiring on its own. At 100k
+ * users active within a single window that is under 10 MB, and idle users hold nothing.
+ * Nothing here is a cache that has to be warm — losing the whole keyspace only means the
+ * next poll per user runs the distributor once more than it needed to.
+ *
+ * Fails OPEN: if Redis is unreachable the distributor runs, which is exactly the behavior
+ * before this gate existed. A Redis outage should not silently stop stream population.
+ */
+export const tryAcquireDistributorRun = async (userId: string, windowSeconds: number): Promise<boolean> => {
+    if (!userId || !windowSeconds || windowSeconds <= 0) {
+        return true;
+    }
+
+    try {
+        // NX makes claim-and-check a single atomic op, so concurrent polls from the same
+        // user (multiple devices, or a client retry) can't both win the window.
+        const result = await redisEphemeralClient.set(
+            `${DISTRIBUTOR_GATE_PREFIX}${userId}`,
+            '1',
+            'EX',
+            windowSeconds,
+            'NX',
+        );
+        return result === 'OK';
+    } catch (err) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'REDIS_EPHEMERAL_ERROR',
+            messages: ['Failed to check thought distributor gate; running ungated', (err as any)?.message],
+            traceArgs: {
+                'user.id': userId,
+            },
+        });
+        return true;
+    }
+};
+
 export const mintHandoffCode = async (code: string, entry: IHandoffEntry): Promise<void> => {
     if (!code || !entry?.userId || !entry?.targetBrand) {
         throw new Error('mintHandoffCode requires code, userId, and targetBrand');

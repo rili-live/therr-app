@@ -12,6 +12,13 @@ const getUserLocations = (req, res) => Store.userLocations.get({
     }))
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_LOCATIONS_ROUTES:ERROR' }));
 
+// Locations where the user lives or is currently staying (home, hotel, apartment, etc.)
+const getUserDwellingLocations = (req, res) => Store.userLocations.getDwellings(req.params.userId)
+    .then((results) => res.status(200).send({
+        userLocations: results,
+    }))
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_LOCATIONS_ROUTES:ERROR' }));
+
 // WRTIE
 const createUserLocations = (req, res) => Store.userLocations.create([{
     userId: req.params.userId,
@@ -40,6 +47,7 @@ const updateUserLocation = (req, res) => Store.userLocations.update(req.params.u
 
 export {
     getUserLocations,
+    getUserDwellingLocations,
     createUserLocations,
     updateUserLocation,
 };

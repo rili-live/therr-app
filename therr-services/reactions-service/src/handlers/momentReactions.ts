@@ -6,14 +6,19 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
 import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
+import validateReactionMetrics from '../utilities/validateReactionMetrics';
 
 // CREATE/UPDATE
 const createOrUpdateMomentReaction = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
     const {
         locale,
         userId,
     } = parseHeaders(req.headers);
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
+    }
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -30,7 +35,10 @@ const createOrUpdateMomentReaction = (req, res) => {
             }, {
                 ...req.body,
                 userLocale: locale,
-                userViewCount: reactionsResponse[0].userViewCount + (req.body.userViewCount || 0),
+                // Number() is load-bearing: a JSON body may carry "1" as a string, and
+                // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
+                // very total the bounds above exist to cap.
+                userViewCount: reactionsResponse[0].userViewCount + Number(req.body.userViewCount || 0),
             })
                 .then(([momentReaction]) => {
                     // TODO: Should this be a blocking request to ensure update?
@@ -74,12 +82,16 @@ const createOrUpdateMomentReaction = (req, res) => {
 
 // CREATE/UPDATE
 const createOrUpdateMultiMomentReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
     if (!userId) {
         return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
     }
 
     const { momentIds } = req.body;

@@ -1,7 +1,16 @@
 import logger from 'redux-logger';
 import { configureStore } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { persistStore, persistReducer } from 'redux-persist';
+import {
+    persistStore,
+    persistReducer,
+    FLUSH,
+    REHYDRATE,
+    PAUSE,
+    PERSIST,
+    PURGE,
+    REGISTER,
+} from 'redux-persist';
 import type { Persistor } from 'redux-persist';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import basePersistConfig from 'therr-react/redux/persistConfig';
@@ -62,8 +71,10 @@ const purgeOnLogoutMiddleware = () => (next: any) => (action: any) => {
 const getMiddleware = (getDefaultMiddleware: any) => {
     const middleware = getDefaultMiddleware({
         serializableCheck: {
-            // redux-persist actions contain non-serializable values
-            ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+            // redux-persist actions carry non-serializable callbacks (e.g. the
+            // `result` fn on PURGE/REGISTER dispatched by persistor.purge() in
+            // purgeOnLogoutMiddleware). Ignore the full set of persist actions.
+            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
     }).concat(purgeOnLogoutMiddleware);
 

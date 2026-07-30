@@ -4,6 +4,7 @@ import Content from './Content';
 import ErrorCodes from './ErrorCodes';
 import FilePaths from './FilePaths';
 import Location from './Location';
+import Reactions from './Reactions';
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
     CurrentSocialValuations,
@@ -38,6 +39,15 @@ import {
     BRAND_THOUGHTS_VISIBILITY,
     getReadableBrands,
 } from './brandThoughtsVisibility';
+import {
+    PhoneAccountType,
+    PHONE_ACCOUNT_TYPES,
+    MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
+    DEFAULT_MAX_ACCOUNTS_PER_PHONE,
+    getMaxAccountsPerPhone,
+    getPhoneAccountType,
+    getAvailablePhoneAccountTypes,
+} from './phoneAccounts';
 import {
     FeatureFlags,
     HABITS_FREE_PACT_LIMIT,
@@ -99,12 +109,20 @@ export {
     MetricNames,
     MetricValueTypes,
     Location,
+    Reactions,
     ILogLevel,
     LogLevelMap,
     Notifications,
     OAuthIntegrationProviders,
     PushNotifications,
     PasswordRegex,
+    PhoneAccountType,
+    PHONE_ACCOUNT_TYPES,
+    MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
+    DEFAULT_MAX_ACCOUNTS_PER_PHONE,
+    getMaxAccountsPerPhone,
+    getPhoneAccountType,
+    getAvailablePhoneAccountTypes,
     CurrentSocialValuations,
     CurrentMomentValuations,
     CurrentCheckInValuations,
