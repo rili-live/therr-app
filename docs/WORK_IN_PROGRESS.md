@@ -72,6 +72,16 @@ append new items here rather than only printing them once.
   `npm run migrations:run` (verify per-service `package.json`).
 - [ ] **Invalidate CDN cache for assets** (`docs/CLOUDFLARE_CDN.md`) after any
   change to global CSS, brand assets, or favicons.
+- [ ] **Add any new web origin to `URI_WHITELIST`** in
+  `k8s/prod/api-gateway-service-deployment.yaml` in the same change that adds it
+  to `k8s/prod/ingress-service.yaml`. Production CORS is enforced
+  (`therr-api-gateway/src/index.ts` uses `cors(corsOptions)` gated on
+  `URI_WHITELIST`), and a missing origin surfaces only as a preflight with no
+  `Access-Control-Allow-Origin` — which reads like a frontend bug, not a config
+  one. This exact gap broke `dashboard.therr.com` login in July 2026. After
+  applying, confirm the env is live on the running pod rather than just in the
+  image: `kubectl set env deployment/api-gateway-service --list | grep URI_WHITELIST`.
+  Mobile is unaffected (it sends no Origin header).
 - [ ] **Expect users-service to land on a preemptible node after its next
   deploy.** The strategy moved `Recreate` → `RollingUpdate` with
   `maxUnavailable: 0`, so a deploy now briefly runs two pods. main-pool has
@@ -112,7 +122,6 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
-- [ ] (2026-07-28, dwelling-location-notifications) Run `20260728000001_main.userLocations.dwelling` on production users-service (`npm run migrations:run`). Adds `distinctDayCount` (NOT NULL, default 1) and `lastVisitedAt` (NOT NULL, default now()) to `main.userLocations`, plus a `(userId, distinctDayCount)` index, and backfills both from existing `createdAt`/`updatedAt`/`visitCount`. Additive and defaulted, so applying it ahead of the image is safe; if the image ships first, `GET /users-locations/:userId/dwellings` errors on the unknown columns and `POST /users-locations/:userId` fails on the new upsert clause — which would break background location processing. **Run this migration before or with the users-service deploy.**
 - [ ] (2026-07-30, /work-plan) After the reaction-metrics bounds deploy, watch api-gateway for a rise in 400s on `POST /v1/reactions-service/{moment,thought,space,event}-reactions/:id`. Every client today sends `userViewCount: 1` (`TherrMobile/main/routes/Map/TherrMapView.tsx`) and no client sends `userBookmarkPriority`, so legitimate traffic should never trip the new bounds (view count 0–100, bookmark priority 0–100, rating 1–5) — a sustained 400 rate means either a client path nobody mapped or a real abuse attempt, and the two are worth telling apart before widening the range. Note the already-deployed mobile app cannot be force-updated, so a bad assumption here reaches users who cannot upgrade away from it. No migration and no env var; bounds live in `therr-js-utilities/constants` → `Reactions`.
 - [ ] (2026-07-30, /work-plan) One-off data check before trusting space ratings: `rating` was previously unbounded, so any existing `main."spaceReactions"` / `main."eventReactions"` row outside 1–5 is still averaged into the rating shown on public space pages. Query `SELECT COUNT(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND (rating < 1 OR rating > 5);` (and the same for `eventReactions`) — if it returns non-zero, those rows need clearing or clamping, since the new validation only stops *new* bad writes.
 - [ ] (2026-07-28, dwelling-location-notifications) Post-deploy tuning check: watch for the `BackgroundGeolocation - Suppressing nearby push notifications at dwelling location` info span. If it fires for places users clearly do not live (a daily-commute office, a gym), raise `Location.DWELL_MIN_DISTINCT_DAYS` from 3; if users still report notification spam at home after ~a week of data, lower `Location.DWELL_LOCATION_RADIUS_METERS` scrutiny first (both live in `therr-public-library/therr-js-utilities/src/constants/Location.ts`).
@@ -127,7 +136,6 @@ append new items here rather than only printing them once.
 - [ ] (2026-07-25, /quality-peer-review) (Optional, no longer required for correctness) One-off backfill to normalize legacy `main.users.phoneNumber` rows onto the canonical display dialect. `UsersStore` now normalizes on write, so *new* rows no longer diverge, and `getByPhoneNumber` / `getAllByPhoneNumber` / `findUser` match a candidate set covering both dialects — so the mixed column works as-is. This is cleanup: until it happens, every future phone lookup has to keep replicating the candidate set. Do **not** add a phone-format CHECK constraint to the column as part of this — Apple SSO signups deliberately write the non-phone sentinel `'apple-sso'` there (`createUserHelper`, `handlers/helpers/user.ts`).
 - [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits). Existing installs self-heal on next launch — mobile compares its FCM token against `/users/me` and re-registers via `updateUser`, which dual-writes the brand-scoped row — so expect one launch of latency per app before routing is correct.
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
-- [ ] (2026-07-20, /work-plan) Run `20260720000001_main.invites.brandVariation` on production users-service (`npm run migrations:run`). Adds a NOT NULL `brandVariation` column (default `'therr'`) to `main.invites`, stamped at invite-creation and returned by `getInviteByToken`. Additive and defaulted, so applying it early is safe for the currently-deployed release; if the image ships first, invite creation fails on the unknown column.
 - [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
 - [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
   project env var (full Play service-account key JSON with the "Release manager"
@@ -135,7 +143,6 @@ append new items here rather than only printing them once.
   release notes. Until it is set, the release-notes step logs a skip and the
   pipeline still succeeds — notes just won't update. See
   `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`.
-- [ ] (2026-07-03, magic-invite-links) Run the new users-service migrations on production (`npm run migrations:run` in `therr-services/users-service`): `20260703000001_main.invites.token`, `20260703000002_main.invites.reminders`, `20260703000003_main.userStatsAggregations.onboarding`. The invite-token migration backfills a unique token per existing invite row; the onboarding-stat columns are read by the messaging-automator's completion-nudge pass.
 - [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Corrected 2026-07-14 (/quality-peer-review): the user does not get a generic error — they get nothing at all.** `TherrMobile/main/routes/Invite/PhoneContacts.tsx` ends its invite call with `.catch(() => { /* Error handled silently */ })`, so the 403 is swallowed and the "Invite" button is a silent no-op. This hits the *already-deployed* app (which cannot be force-updated), and now hits **every** new signup, since phone is no longer required to reach `EMAIL_VERIFIED`. Treat as higher priority than originally logged: at minimum surface the 403 as a toast, ideally a "verify your phone to invite" prompt that deep-links to phone verification. Also audit any other action that assumes phone presence.
 - [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
   digest: an internal cron (k8s CronJob or equivalent) must POST once daily —
@@ -145,10 +152,6 @@ append new items here rather than only printing them once.
   deliberately not exposed through the API gateway. Running it more than once
   a day duplicates streakAtRisk/partnerMissedDay/pactExpiring pushes.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
-- [ ] (2026-04-25, manual) Run `20260425000004_main.directMessages.brandVariation`
-  migration on production messages-service (`npm run migrations:run`). Without it
-  the `brandVariation` column does not exist, `searchDirectMessages` fails with a
-  SQL error, and the DM thread shows empty even when old messages exist.
 - [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
   account env vars on push-notifications-service production
   (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
@@ -192,22 +195,6 @@ append new items here rather than only printing them once.
   the deployment manifest's env block, services silently fall back to the
   `therr-api` default — still internally consistent, so issuer-based cross-env token
   separation would be inactive without any error surfacing. Verify, don't assume.
-- [ ] (2026-06-08, /quality-peer-review) Run the
-  `20260517000001_habits.pact_members.nudgedAt` migration on production
-  (users-service: `npm run migrations:run`) after deploying — adds the nullable
-  `habits.pact_members.nudgedAt` column the new pact-nudge endpoint writes to via
-  `markNudged`. Without it, every nudge call 500s on the `markNudged` update.
-- [ ] (2026-06-20, /quality-peer-review; hit in prod 2026-07-28) Production CORS is
-  enforced — `therr-api-gateway/src/index.ts` uses `cors(corsOptions)` gated on
-  `URI_WHITELIST`. This **did** break `dashboard.therr.com` login: the prod manifest
-  whitelist only listed the therr.com/therr.app origins, so the dashboard's preflight
-  to `/v1/users-service/auth` came back with no `Access-Control-Allow-Origin`.
-  `k8s/prod/api-gateway-service-deployment.yaml` now lists the dashboard, www-dashboard,
-  and habits origins. **Remaining manual step:** apply the manifest and confirm the env
-  is live on the running pod, not just in the image:
-  `kubectl set env deployment/api-gateway-service --list | grep URI_WHITELIST`.
-  Mobile is unaffected (sends no Origin header). When a new web origin is added to
-  `k8s/prod/ingress-service.yaml`, add it here in the same change.
 - [ ] (2026-06-20, /quality-peer-review) `JWT_SECRET` and `JWT_EMAIL_SECRET` are
   now hard-required at boot — api-gateway middleware (`authenticate`,
   `authenticateOptional`, `authenticateUnsubscribe`) throws at import if missing,
@@ -221,20 +208,6 @@ append new items here rather than only printing them once.
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
-- [ ] (2026-07-26, /quality-peer-review) Run the
-  `20260726000000_main.thoughtReactions.relevanceScore` migration on production
-  (reactions-service: `npm run migrations:run`) **before** the reactions-service
-  image rolls out. The new activation path inserts `relevanceScore` / `scoredAt`
-  on every `thoughtReactions` row and the activated-feed read orders by
-  `relevanceScore`; if the columns are missing, both thought activation and the
-  stream 500 outright. This is a hard ordering dependency, not a soft one.
-- [ ] (2026-07-26, /quality-peer-review) That same migration creates
-  `idx_thought_reactions_user_relevance` with a plain (non-`CONCURRENTLY`)
-  `CREATE INDEX`, which takes an ACCESS EXCLUSIVE lock on
-  `main."thoughtReactions"` for the duration of the build. Knex runs migrations
-  inside a transaction so `CONCURRENTLY` is not available here — schedule the run
-  during a low-traffic window, or build the index by hand with `CONCURRENTLY`
-  first so the migration's `IF NOT EXISTS` becomes a no-op.
 - [ ] (2026-07-26, /quality-peer-review) First feed load after the relevance
   rollout reshuffles for every existing user: rows activated before the migration
   have `relevanceScore IS NULL` and sort last (`NULLS LAST`). Expected and in the
