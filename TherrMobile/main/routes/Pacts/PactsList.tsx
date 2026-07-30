@@ -5,13 +5,17 @@ import { bindActionCreators } from 'redux';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IPact } from 'therr-react/types';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import translator from '../../utilities/translator';
+import permissions from '../../utilities/permissionsOrchestrator';
+import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import ConfirmModal from '../../components/Modals/ConfirmModal';
 import { PactCard, SentInviteCard } from '../../components/Habits';
 
 type PactsTab = 'active' | 'pending' | 'outgoing' | 'all';
@@ -20,6 +24,8 @@ interface IPactsListDispatchProps {
     getUserPacts: Function;
     getActivePacts: Function;
     getPendingInvites: Function;
+    acceptPact: Function;
+    declinePact: Function;
 }
 
 interface IStoreProps extends IPactsListDispatchProps {
@@ -35,6 +41,8 @@ export interface IPactsListProps extends IStoreProps {
 interface IPactsListState {
     isRefreshing: boolean;
     activeTab: PactsTab;
+    respondingPactId: string | null;
+    pactIdPendingDecline: string | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -46,6 +54,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getUserPacts: HabitActions.getUserPacts,
     getActivePacts: HabitActions.getActivePacts,
     getPendingInvites: HabitActions.getPendingInvites,
+    acceptPact: HabitActions.acceptPact,
+    declinePact: HabitActions.declinePact,
 }, dispatch);
 
 const TABS: PactsTab[] = ['active', 'pending', 'outgoing', 'all'];
@@ -64,6 +74,8 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
         this.state = {
             isRefreshing: false,
             activeTab: props.route?.params?.initialTab || 'active',
+            respondingPactId: null,
+            pactIdPendingDecline: null,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -119,6 +131,81 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
         navigation.navigate('PactDetail', { pactId: pact.id });
     };
 
+    handleAcceptInvite = (pact: IPact) => {
+        const { acceptPact } = this.props;
+
+        this.setState({ respondingPactId: pact.id });
+
+        acceptPact(pact.id)
+            .then(() => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.acceptedTitle'),
+                    text2: this.translate('pages.pacts.acceptedMessage'),
+                    visibilityTime: 2000,
+                });
+                permissions.requestIfAppropriate('notifications', { trigger: 'pactAccept' });
+                // The pact is active now — send the user where it lives.
+                this.setState({ activeTab: 'active' });
+                this.handleRefresh();
+            })
+            .catch(() => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: this.translate('pages.pacts.acceptError'),
+                    visibilityTime: 2000,
+                });
+            })
+            .finally(() => {
+                this.setState({ respondingPactId: null });
+            });
+    };
+
+    handleDeclineInvitePress = (pact: IPact) => {
+        this.setState({ pactIdPendingDecline: pact.id });
+    };
+
+    handleCancelDecline = () => {
+        this.setState({ pactIdPendingDecline: null });
+    };
+
+    handleConfirmDecline = () => {
+        const { declinePact } = this.props;
+        const { pactIdPendingDecline } = this.state;
+
+        if (!pactIdPendingDecline) {
+            return;
+        }
+
+        this.setState({
+            respondingPactId: pactIdPendingDecline,
+            pactIdPendingDecline: null,
+        });
+
+        declinePact(pactIdPendingDecline)
+            .then(() => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.successTitle'),
+                    text2: this.translate('pages.pacts.declinedMessage'),
+                    visibilityTime: 2000,
+                });
+                this.handleRefresh();
+            })
+            .catch(() => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: this.translate('pages.pacts.declineError'),
+                    visibilityTime: 2000,
+                });
+            })
+            .finally(() => {
+                this.setState({ respondingPactId: null });
+            });
+    };
+
     setActiveTab = (tab: PactsTab) => {
         this.setState({ activeTab: tab });
     };
@@ -129,6 +216,16 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
         return (habits.pacts || []).filter(
             (p) => p.status === 'pending' && p.creatorUserId === currentUserId,
         );
+    };
+
+    isPendingInviteForMe = (pact: IPact): boolean => {
+        const { habits, user } = this.props;
+        // The server-computed invite list is authoritative (and is the only
+        // signal on pending invites, which come back without member rows);
+        // fall back to the member/partner fields for pacts surfaced by the
+        // other tabs.
+        return (habits.pendingInvites || []).some((invite) => invite.id === pact.id)
+            || isPactInviteAwaitingResponse(pact, user.details?.id);
     };
 
     getPactsList = (): IPact[] => {
@@ -150,7 +247,7 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
 
     renderPactItem = ({ item }: { item: IPact }) => {
         const { user } = this.props;
-        const { activeTab } = this.state;
+        const { activeTab, respondingPactId } = this.state;
 
         if (activeTab === 'outgoing') {
             return (
@@ -166,11 +263,19 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
             );
         }
 
+        // Any pact still awaiting this user's response gets inline actions,
+        // whichever tab surfaced it (a group pact can be active for others
+        // while this user's own invite is still pending).
+        const isAwaitingMyResponse = this.isPendingInviteForMe(item);
+
         return (
             <PactCard
                 pact={item}
                 currentUserId={user.details?.id || ''}
                 onPress={() => this.handlePactPress(item)}
+                onAccept={isAwaitingMyResponse ? () => this.handleAcceptInvite(item) : undefined}
+                onDecline={isAwaitingMyResponse ? () => this.handleDeclineInvitePress(item) : undefined}
+                isRespondPending={respondingPactId === item.id}
                 themeHabits={this.themeHabits}
                 translate={this.translate}
             />
@@ -256,7 +361,7 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
 
     render() {
         const { navigation, user } = this.props;
-        const { isRefreshing } = this.state;
+        const { isRefreshing, pactIdPendingDecline } = this.state;
         const pacts = this.getPactsList();
 
         return (
@@ -294,6 +399,17 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
+                />
+
+                <ConfirmModal
+                    isVisible={!!pactIdPendingDecline}
+                    onCancel={this.handleCancelDecline}
+                    onConfirm={this.handleConfirmDecline}
+                    text={this.translate('pages.pacts.confirmDecline')}
+                    textConfirm={this.translate('modals.confirmModal.confirm')}
+                    textCancel={this.translate('modals.confirmModal.cancel')}
+                    translate={this.translate}
+                    themeButtons={this.themeButtons}
                 />
             </>
         );

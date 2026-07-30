@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { IPact, IPactMember } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 
@@ -7,6 +7,12 @@ interface IPactCardProps {
     pact: IPact;
     currentUserId: string;
     onPress?: () => void;
+    // When both handlers are supplied the card renders inline Accept/Decline
+    // actions. Used for invites awaiting this user's response so they never
+    // have to discover the pact detail screen to respond.
+    onAccept?: () => void;
+    onDecline?: () => void;
+    isRespondPending?: boolean;
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -29,11 +35,15 @@ const PactCard: React.FC<IPactCardProps> = ({
     pact,
     currentUserId,
     onPress,
+    onAccept,
+    onDecline,
+    isRespondPending,
     themeHabits,
     translate,
 }) => {
     const currentUserMember = pact.members?.find((m) => m.userId === currentUserId);
     const partnerMember = pact.members?.find((m) => m.userId !== currentUserId);
+    const showInviteActions = !!onAccept && !!onDecline;
 
     const getStatusBadgeStyle = () => {
         if (pact.status === 'active') {
@@ -113,6 +123,50 @@ const PactCard: React.FC<IPactCardProps> = ({
                         partnerMember?.firstName || translate('pages.pacts.partnerFallback'),
                     )}
                 </View>
+            )}
+
+            {showInviteActions && (
+                <>
+                    <Text style={themeHabits.styles.pactCardInvitePrompt}>
+                        {translate('pages.pacts.inviteePrompt')}
+                    </Text>
+                    <View style={themeHabits.styles.pactCardInviteActions}>
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('pages.pacts.accept')}
+                            disabled={isRespondPending}
+                            onPress={onAccept}
+                            style={({ pressed }) => [
+                                themeHabits.styles.pactCardInviteButton,
+                                themeHabits.styles.pactCardInviteButtonPrimary,
+                                pressed && themeHabits.styles.pactCardInviteButtonPressed,
+                            ]}
+                        >
+                            {isRespondPending
+                                ? <ActivityIndicator color={themeHabits.colors.brandingWhite} size="small" />
+                                : (
+                                    <Text style={themeHabits.styles.pactCardInviteButtonPrimaryText}>
+                                        {translate('pages.pacts.acceptShort')}
+                                    </Text>
+                                )}
+                        </Pressable>
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('pages.pacts.decline')}
+                            disabled={isRespondPending}
+                            onPress={onDecline}
+                            style={({ pressed }) => [
+                                themeHabits.styles.pactCardInviteButton,
+                                themeHabits.styles.pactCardInviteButtonSecondary,
+                                pressed && themeHabits.styles.pactCardInviteButtonPressed,
+                            ]}
+                        >
+                            <Text style={themeHabits.styles.pactCardInviteButtonSecondaryText}>
+                                {translate('pages.pacts.decline')}
+                            </Text>
+                        </Pressable>
+                    </View>
+                </>
             )}
         </Pressable>
     );
