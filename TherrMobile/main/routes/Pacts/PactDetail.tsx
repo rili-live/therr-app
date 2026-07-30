@@ -1,9 +1,10 @@
 import React from 'react';
-import { SafeAreaView, View, Text, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { HabitActions } from 'therr-react/redux/actions';
 import permissions from '../../utilities/permissionsOrchestrator';
+import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
@@ -73,6 +74,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             confirmAction: null,
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
         this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
@@ -91,7 +93,12 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     getPact = (): IPact | undefined => {
         const { habits, route } = this.props;
         const { pactId } = route.params;
-        return habits.pacts.find((p: IPact) => p.id === pactId);
+        // `pacts` is the canonical list (getPactDetails writes into it), but
+        // fall back to the invite/active lists so arriving from those tabs
+        // renders immediately instead of flashing "Pact not found".
+        return habits.pacts.find((p: IPact) => p.id === pactId)
+            || habits.pendingInvites.find((p: IPact) => p.id === pactId)
+            || habits.activePacts.find((p: IPact) => p.id === pactId);
     };
 
     handleRefresh = () => {
@@ -213,17 +220,20 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         const currentUserId = user.details?.id || '';
         const currentUserMember = pact?.members?.find((m) => m.userId === currentUserId);
         const partnerMember = pact?.members?.find((m) => m.userId !== currentUserId);
-        const isPending = pact?.status === 'pending';
         const isActive = pact?.status === 'active';
-        const isInvitedUser = pact?.partnerUserId === currentUserId && isPending;
+        const isInvitedUser = isPactInviteAwaitingResponse(pact, currentUserId);
 
         if (!pact) {
             return (
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <View style={this.themeHabits.styles.emptyStateContainer}>
-                        <Text style={this.themeHabits.styles.emptyStateTitle}>
-                            {this.translate('pages.pacts.pactNotFound')}
-                        </Text>
+                        {isRefreshing
+                            ? <ActivityIndicator size="large" color={this.theme.colors.primary3} />
+                            : (
+                                <Text style={this.themeHabits.styles.emptyStateTitle}>
+                                    {this.translate('pages.pacts.pactNotFound')}
+                                </Text>
+                            )}
                     </View>
                 </SafeAreaView>
             );
@@ -324,7 +334,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                             </View>
                         )}
 
-                        {isActive && (
+                        {isActive && !isInvitedUser && (
                             <View style={this.themeHabits.styles.streakWidgetContainer}>
                                 <Button
                                     buttonStyle={this.themeButtons.styles.btnClear}

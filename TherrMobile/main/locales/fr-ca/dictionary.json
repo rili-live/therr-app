@@ -1855,7 +1855,9 @@
       "comparison": "Comparaison des progrès",
       "timeline": "Chronologie",
       "accept": "Accepter le pacte",
+      "acceptShort": "Accepter",
       "decline": "Refuser",
+      "inviteePrompt": "Vous avez été invité à ce pacte — répondez ci-dessous.",
       "abandon": "Abandonner le pacte",
       "noPactsTitle": "Aucun pacte pour le moment",
       "noPactsSubtitle": "Créez un pacte avec un ami pour rester responsable",
@@ -1908,7 +1910,14 @@
         "emptyTitle": "Aucune invitation envoyée pour l'instant",
         "emptySubtitle": "Envoie une invitation de pacte pour commencer",
         "cardSubtitle": "En attente d'acceptation",
-        "nudgeButton": "Rappel",
+        "invitedTimeAgo": "Invité il y a {timeAgo}",
+        "sendNudge": "Envoyer un rappel",
+        "nudgeSentTimeAgo": "Rappel envoyé il y a {timeAgo}",
+        "nudgeSuccess": "Rappel envoyé ! Votre partenaire sera notifié.",
+        "nudgeCooldown": "Vous avez déjà envoyé un rappel récemment. Réessayez dans quelques jours.",
+        "noResponseYet": "Pas encore de réponse. Que souhaitez-vous faire ?",
+        "inviteSomeoneElse": "Inviter quelqu'un d'autre",
+        "shareInviteButton": "Partager le lien d'invitation",
         "nudgeShareTitle": "Petit rappel amical"
       },
       "wizard": {
@@ -2081,35 +2090,6 @@
       },
       "messages": {
         "noHabits": "Aucune habitude active pour l'instant. Commencez par créer une habitude pour développer votre série !"
-      }
-    },
-    "myPacts": {
-      "headerTitle": "Mes Pactes",
-      "pageHeader": "Mes Pactes",
-      "tabs": {
-        "sent": "Envoyés",
-        "received": "Reçus"
-      },
-      "buttons": {
-        "sendNudge": "Envoyer un rappel",
-        "nudgeSent": "Rappel envoyé",
-        "inviteSomeoneElse": "Inviter quelqu'un d'autre",
-        "startNewPact": "Démarrer un nouveau pacte",
-        "accept": "Accepter",
-        "decline": "Refuser"
-      },
-      "labels": {
-        "invitedTimeAgo": "Invité il y a {timeAgo}",
-        "nudgeSentTimeAgo": "Rappel envoyé il y a {timeAgo}",
-        "waitingForResponse": "En attente de réponse...",
-        "habitGoal": "Habitude",
-        "noResponseYet": "Pas encore de réponse. Que souhaitez-vous faire ?"
-      },
-      "messages": {
-        "noSentPacts": "Aucune invitation envoyée en attente.",
-        "noReceivedPacts": "Aucune invitation reçue en attente.",
-        "nudgeSuccess": "Rappel envoyé ! Votre partenaire sera notifié.",
-        "nudgeCooldown": "Vous avez déjà envoyé un rappel récemment. Réessayez dans quelques jours."
       }
     }
   },

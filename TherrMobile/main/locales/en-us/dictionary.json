@@ -1855,7 +1855,9 @@
       "comparison": "Progress Comparison",
       "timeline": "Timeline",
       "accept": "Accept Pact",
+      "acceptShort": "Accept",
       "decline": "Decline",
+      "inviteePrompt": "You've been invited to this pact — respond below.",
       "abandon": "Abandon Pact",
       "noPactsTitle": "No pacts yet",
       "noPactsSubtitle": "Create a pact with a friend to stay accountable",
@@ -1908,7 +1910,14 @@
         "emptyTitle": "No invites sent yet",
         "emptySubtitle": "Send a pact invite to get started",
         "cardSubtitle": "Awaiting acceptance",
-        "nudgeButton": "Nudge",
+        "invitedTimeAgo": "Invited {timeAgo}",
+        "sendNudge": "Send Nudge",
+        "nudgeSentTimeAgo": "Nudge sent {timeAgo}",
+        "nudgeSuccess": "Nudge sent! Your partner will be reminded.",
+        "nudgeCooldown": "You already sent a nudge recently. Try again in a few days.",
+        "noResponseYet": "No response yet. What would you like to do?",
+        "inviteSomeoneElse": "Invite Someone Else",
+        "shareInviteButton": "Share Invite Link",
         "nudgeShareTitle": "Friendly reminder"
       },
       "wizard": {
@@ -2081,35 +2090,6 @@
       },
       "messages": {
         "noHabits": "No active habits yet. Start by creating a habit to build your streak!"
-      }
-    },
-    "myPacts": {
-      "headerTitle": "My Pacts",
-      "pageHeader": "My Pacts",
-      "tabs": {
-        "sent": "Sent",
-        "received": "Received"
-      },
-      "buttons": {
-        "sendNudge": "Send Nudge",
-        "nudgeSent": "Nudge Sent",
-        "inviteSomeoneElse": "Invite Someone Else",
-        "startNewPact": "Start a New Pact",
-        "accept": "Accept",
-        "decline": "Decline"
-      },
-      "labels": {
-        "invitedTimeAgo": "Invited {timeAgo}",
-        "nudgeSentTimeAgo": "Nudge sent {timeAgo}",
-        "waitingForResponse": "Waiting for response...",
-        "habitGoal": "Habit",
-        "noResponseYet": "No response yet. What would you like to do?"
-      },
-      "messages": {
-        "noSentPacts": "No pending sent invites.",
-        "noReceivedPacts": "No pending received invites.",
-        "nudgeSuccess": "Nudge sent! Your partner will be reminded.",
-        "nudgeCooldown": "You already sent a nudge recently. Try again in a few days."
       }
     }
   },

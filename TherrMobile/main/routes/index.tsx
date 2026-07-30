@@ -54,7 +54,6 @@ import MyQRCodes from './MyQRCodes';
 import MyQRCodeDetail from './MyQRCodes/MyQRCodeDetail';
 import Invite from './Invite';
 import MyHabits from './MyHabits';
-import MyPacts from './MyPacts';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 // HABITS routes
@@ -509,15 +508,6 @@ const routes: RouteConfig<
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
-    {
-        name: 'MyPacts',
-        component: MyPacts,
-        options: () => ({
-            title: 'My Pacts',
-            requiredFeatures: [FeatureFlags.ENABLE_PACTS],
-            access: AccessPresets.EMAIL_VERIFIED,
-        }),
-    },
     // HABITS routes
     {
         name: 'HabitsDashboard',
@@ -542,7 +532,10 @@ const routes: RouteConfig<
         component: PactsList,
         options: () => ({
             title: 'My Pacts',
-            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            // Inherits the gating of the former MyPacts screen, which this
+            // screen replaced. ENABLE_PACTS is only ever on where
+            // ENABLE_HABITS is, so this is not a new restriction.
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS, FeatureFlags.ENABLE_PACTS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },

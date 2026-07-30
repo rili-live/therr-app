@@ -292,6 +292,61 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '600',
             color: therrTheme.colors.brandingWhite,
         },
+        // Pact Card — pending invite response actions
+        pactCardInvitePrompt: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            color: therrTheme.colors.textGray,
+            marginTop: 12,
+        },
+        pactCardInviteActions: {
+            flexDirection: 'row',
+            marginTop: 12,
+        },
+        pactCardInviteButton: {
+            flex: 1,
+            minHeight: 42,
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 12,
+        },
+        pactCardInviteButtonPrimary: {
+            backgroundColor: therrTheme.colors.primary3,
+            marginRight: 8,
+        },
+        // Full-width variant for cards that stack actions instead of pairing
+        // them side by side (sent invites: nudge, then invite someone else).
+        pactCardInviteButtonStacked: {
+            marginRight: 0,
+            marginTop: 12,
+        },
+        pactCardNudgeSent: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            fontStyle: 'italic',
+            color: therrTheme.colors.primary3,
+            marginTop: 12,
+        },
+        pactCardInviteButtonSecondary: {
+            borderWidth: 1.5,
+            borderColor: therrTheme.colorVariations.primary3Fade,
+        },
+        pactCardInviteButtonPressed: {
+            opacity: 0.75,
+        },
+        pactCardInviteButtonPrimaryText: {
+            fontFamily: therrFontFamily,
+            fontSize: 15,
+            fontWeight: '600',
+            color: therrTheme.colors.brandingWhite,
+        },
+        pactCardInviteButtonSecondaryText: {
+            fontFamily: therrFontFamily,
+            fontSize: 15,
+            fontWeight: '600',
+            color: therrTheme.colors.accentRed,
+        },
         pactPartnerRow: {
             flexDirection: 'row',
             alignItems: 'center',
