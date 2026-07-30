@@ -49,6 +49,15 @@ printMessageNeutral "Installing dependencies for linting..."
 npm ci --legacy-peer-deps --ignore-scripts
 printMessageSuccess "Dependencies installed"
 
+# Unit tests for eslint-plugin-therr. These rules are the repo's architectural invariants
+# (brand-scoped table access, Knex builder footguns, migration idempotency) and nothing else
+# exercises them — a rule that silently stops matching keeps passing every lint run it is
+# part of. Runs here rather than in its own job because it needs the root install and
+# nothing else, so it is effectively free at this point in the script.
+printMessageNeutral "=== ESLint custom rule tests ==="
+npm run test:lint-rules
+printMessageSuccess "Custom rule tests passed"
+
 # Build shared libraries so eslint can resolve therr-react/* and therr-js-utilities/* imports
 # (lib/ directories are gitignored and must be built before linting consumers)
 printMessageNeutral "Building shared libraries for import resolution..."

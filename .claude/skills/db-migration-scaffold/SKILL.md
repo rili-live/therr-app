@@ -107,8 +107,11 @@ exports.down = function(knex) {
 For **creating a table in an existing schema**:
 
 ```javascript
-exports.up = function(knex) {
-    return knex.schema.withSchema('<schema>').createTable('<table>', (table) => {
+exports.up = async function(knex) {
+    if (await knex.schema.withSchema('<schema>').hasTable('<table>')) {
+        return;
+    }
+    await knex.schema.withSchema('<schema>').createTable('<table>', (table) => {
         table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
         // TODO: add columns
         table.timestamp('createdAt').notNullable().defaultTo(knex.fn.now());
@@ -121,9 +124,37 @@ exports.down = function(knex) {
 };
 ```
 
-For **add_column** on an existing table, read the latest migration touching that table and follow its style (`alterTable`, correct schema, matching column naming). Surface the reference migration to the user.
+For **add_column** on an existing table, use raw SQL so the add and the drop carry their own
+guards (Knex's `alterTable` builder emits neither):
 
-For **add_index**, use `knex.schema.withSchema('<schema>').alterTable('<table>', ...)` with `.index([...])` and ensure the `down` is symmetric via `.dropIndex([...])`.
+```javascript
+exports.up = function(knex) {
+    return knex.raw(`
+        ALTER TABLE <schema>."<table>"
+        ADD COLUMN IF NOT EXISTS "<column>" <type> <default-or-null>
+    `);
+};
+
+exports.down = function(knex) {
+    return knex.raw('ALTER TABLE <schema>."<table>" DROP COLUMN IF EXISTS "<column>"');
+};
+```
+
+Read the latest migration touching that table for column-naming style, and surface it to the user as the reference.
+
+For **add_index**, use raw SQL both ways — `CREATE INDEX IF NOT EXISTS` / `DROP INDEX IF EXISTS` — rather than `.index([...])` / `.dropIndex([...])`, which compile to unguarded statements.
+
+### Idempotency is a lint error, not a preference
+
+`therr/require-idempotent-migration` fails the build on any migration dated `20260730000000`
+or later whose DDL has no existence guard. A migration that dies partway through leaves the
+schema half-changed with no `knex_migrations` row, so the next deploy re-runs it from the top
+and fails on the half it already applied.
+
+Never scaffold `createTableIfNotExists` as the fix for `createTable` — Knex warns against it
+(it drops the follow-up ALTER statements it generates for some column types). Probe with
+`hasTable` instead, as above. Full table of substitutions:
+`docs/NICHE_APP_DATABASE_GUIDELINES.md` → "Idempotency (enforced by lint)".
 
 ### Step 4: Cross-reference FKs
 
@@ -180,6 +211,7 @@ Scan every `.js` file in the six service migrations dirs. Report violations:
 - **Filename format**: does it match `^\d{14}_[a-z]+\.[A-Za-z_]+.*\.js$`?
 - **Schema mismatch**: does the filename schema prefix match the `withSchema('...')` or `CREATE SCHEMA` inside the file?
 - **Missing `down`**: does every migration export a non-empty `down` that undoes `up`?
+- **Non-idempotent DDL**: `npx eslint <migration-path>` from the service directory — `therr/require-idempotent-migration` reports unguarded creates and drops. Only migrations dated at or after the cutoff are in scope.
 - **Niche table on main**: any migration whose filename starts with `main.` but whose `up` references `habits.*` or another niche schema — and vice versa.
 - **Non-main table without schema prefix**: `createTable('pact_activities', ...)` without `.withSchema('habits')` would put it on the default schema; flag it.
 
