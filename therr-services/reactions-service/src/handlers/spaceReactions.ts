@@ -80,7 +80,10 @@ const createOrUpdateSpaceReaction = (req, res) => {
             }, {
                 ...req.body,
                 userLocale: locale,
-                userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
+                // Number() is load-bearing: a JSON body may carry "1" as a string, and
+                // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
+                // very total the bounds above exist to cap.
+                userViewCount: existing[0].userViewCount + Number(req.body.userViewCount || 0),
             })
                 .then(async ([spaceReaction]) => {
                     const space = existing[0];

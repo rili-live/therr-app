@@ -247,6 +247,18 @@ append new items here rather than only printing them once.
   different curves), `INTEREST_IMPLICIT_DISCOUNT` (default 0.6; note `0` falls
   back to the default rather than disabling the discount), and
   `INTEREST_SHADOW_LOG_SAMPLE_RATE` (default 0.02; `0` does disable logging).
+- [ ] (2026-07-30, /quality-peer-review) After deploying the reaction-metric
+  bounds (0392f95ce + the follow-up fix), audit and clean the rows the bounds
+  now reject but that were written before them. The new validation only stops
+  new bad data; it does not repair history. Two queries against the reactions
+  DB: `SELECT count(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND
+  (rating < 1 OR rating > 5);` (same for `main."eventReactions"`) — any hit is
+  currently skewing the `avg(rating)` shown on public space pages, so decide
+  whether to clamp or NULL them; and `SELECT count(*) FROM
+  main."thoughtReactions" WHERE "userViewCount" > 100;` (same for
+  `momentReactions`, `spaceReactions`, `eventReactions`) — inflated totals from
+  the string-concatenation bug where `existing + '1'` wrote `'91'` instead of
+  10.
 <!-- skill-followups:end -->
 
 ---

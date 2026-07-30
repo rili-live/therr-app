@@ -34,6 +34,34 @@ describe('validateReactionMetrics', () => {
         });
     });
 
+    // Regression: the check used a bare `Number(value)`, which coerces types that are
+    // not metrics at all — `Number([])` is 0, `Number([50])` is 50, `Number(true)` is 1,
+    // `Number('')` is 0. Each cleared the bounds and then reached the handlers'
+    // `existing.userViewCount + req.body.userViewCount`, where a non-number makes `+`
+    // concatenate instead of add.
+    describe('rejects non-numeric types that Number() would silently coerce', () => {
+        const expected = 'userViewCount must be an integer between 0 and 100';
+
+        it('rejects an array, which Number() coerces to a passing integer', () => {
+            expect(validateReactionMetrics({ userViewCount: [] })).to.be.eq(expected);
+            expect(validateReactionMetrics({ userViewCount: [50] })).to.be.eq(expected);
+        });
+
+        it('rejects a boolean', () => {
+            expect(validateReactionMetrics({ userViewCount: true })).to.be.eq(expected);
+            expect(validateReactionMetrics({ userViewCount: false })).to.be.eq(expected);
+        });
+
+        it('rejects an empty or whitespace-only string', () => {
+            expect(validateReactionMetrics({ userViewCount: '' })).to.be.eq(expected);
+            expect(validateReactionMetrics({ userViewCount: '   ' })).to.be.eq(expected);
+        });
+
+        it('rejects an object', () => {
+            expect(validateReactionMetrics({ userViewCount: {} })).to.be.eq(expected);
+        });
+    });
+
     describe('rejects unbounded metric inflation', () => {
         it('rejects a userViewCount far above the per-request ceiling', () => {
             // The handlers do `existing.userViewCount + req.body.userViewCount`,

@@ -50,7 +50,13 @@ const validateReactionMetrics = (body: any, { withRating = false }: { withRating
 
         // Absent is fine — every one of these columns is optional on write.
         if (value !== undefined && value !== null) {
-            const numeric = Number(value);
+            // Only a number or a numeric string may be coerced. `Number()` alone would
+            // wave through types that are not metrics at all: `Number([])` is 0,
+            // `Number([50])` is 50, `Number(true)` is 1, `Number('')` is 0. Each of those
+            // would clear the bound below and then reach the handlers' `existing + body`
+            // arithmetic as a non-number.
+            const isCoercible = typeof value === 'number' || (typeof value === 'string' && value.trim() !== '');
+            const numeric = isCoercible ? Number(value) : NaN;
 
             if (!Number.isInteger(numeric) || numeric < min || numeric > max) {
                 return `${key} must be an integer between ${min} and ${max}`;
