@@ -1960,6 +1960,7 @@
         "nudgeSentTimeAgo": "Rappel envoyé il y a {timeAgo}",
         "nudgeSuccess": "Rappel envoyé ! Votre partenaire sera notifié.",
         "nudgeCooldown": "Vous avez déjà envoyé un rappel récemment. Réessayez dans quelques jours.",
+        "nudgeError": "Impossible d'envoyer le rappel. Veuillez réessayer.",
         "noResponseYet": "Pas encore de réponse. Que souhaitez-vous faire ?",
         "inviteSomeoneElse": "Inviter quelqu'un d'autre",
         "shareInviteButton": "Partager le lien d'invitation",

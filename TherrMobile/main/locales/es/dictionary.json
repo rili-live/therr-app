@@ -1960,6 +1960,7 @@
         "nudgeSentTimeAgo": "Recordatorio enviado hace {timeAgo}",
         "nudgeSuccess": "¡Recordatorio enviado! Tu compañero será notificado.",
         "nudgeCooldown": "Ya enviaste un recordatorio recientemente. Inténtalo de nuevo en unos días.",
+        "nudgeError": "No se pudo enviar el recordatorio. Inténtalo de nuevo.",
         "noResponseYet": "Sin respuesta aún. ¿Qué te gustaría hacer?",
         "inviteSomeoneElse": "Invitar a alguien más",
         "shareInviteButton": "Compartir enlace de invitación",

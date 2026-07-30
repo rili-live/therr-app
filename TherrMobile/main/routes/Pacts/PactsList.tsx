@@ -3,7 +3,9 @@ import { SafeAreaView, View, Text, Pressable } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { HabitActions } from 'therr-react/redux/actions';
-import { IUserState, IHabitsState, IPact } from 'therr-react/types';
+import {
+    IUserState, IHabitsState, IPact, IPactNudgeResult,
+} from 'therr-react/types';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -172,18 +174,39 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
         this.setState({ nudgingPactId: pact.id });
 
         nudgePact(pact.id)
-            .then(() => {
-                Toast.show({
-                    type: 'success',
-                    text1: this.translate('pages.pacts.outgoing.nudgeSuccess'),
-                    visibilityTime: 2000,
-                });
+            .then((response: any) => {
+                // The endpoint answers 200 even when nothing was sent: the
+                // 7-day per-partner cooldown and per-partner dispatch failures
+                // are reported inside `nudgeResults`, not as an HTTP error.
+                // Reading only the status would tell the user "Nudge sent!"
+                // when no nudge went out.
+                const results: IPactNudgeResult[] = response?.nudgeResults || [];
+                const wasAnyNudged = results.length === 0 || results.some((result) => result.nudged);
+                const isCooldown = !wasAnyNudged && results.some((result) => result.reason === 'cooldown');
+
+                if (wasAnyNudged) {
+                    Toast.show({
+                        type: 'success',
+                        text1: this.translate('pages.pacts.outgoing.nudgeSuccess'),
+                        visibilityTime: 2000,
+                    });
+                } else {
+                    Toast.show({
+                        type: isCooldown ? 'warn' : 'error',
+                        text1: this.translate(isCooldown
+                            ? 'pages.pacts.outgoing.nudgeCooldown'
+                            : 'pages.pacts.outgoing.nudgeError'),
+                        visibilityTime: 2000,
+                    });
+                }
+
                 this.handleRefresh();
             })
             .catch(() => {
                 Toast.show({
-                    type: 'errorToast',
-                    text1: this.translate('pages.pacts.outgoing.nudgeCooldown'),
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: this.translate('pages.pacts.outgoing.nudgeError'),
                     visibilityTime: 2000,
                 });
             })
