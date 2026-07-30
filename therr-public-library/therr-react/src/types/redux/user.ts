@@ -29,7 +29,7 @@ export interface IUser {
 
 export interface IUserSettings {
   locale: string;
-  mobileThemeName: string;
+  mobileThemeName: IMobileThemeName;
   navigationTourCount?: number;
   settingsTherrCoinTotal?: any;
   [key: string]: any;

@@ -4,8 +4,8 @@
   "description": "Multi-purpose code used in the Therr codebase and open-sourced to the developer community",
   "main": "index.js",
   "scripts": {
-    "build": "../../node_modules/.bin/webpack --env production",
-    "build:dev": "../../node_modules/.bin/webpack --env production",
+    "build": "../../node_modules/.bin/webpack --env production && node ../../_bin/generate-declaration-barrels.js lib",
+    "build:dev": "../../node_modules/.bin/webpack --env production && node ../../_bin/generate-declaration-barrels.js lib",
     "build:watch": "../../node_modules/.bin/webpack --watch --env development",
     "lint:fix": "../../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
     "lint": "../../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",

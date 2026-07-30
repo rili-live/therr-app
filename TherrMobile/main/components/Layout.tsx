@@ -594,7 +594,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } = this.props;
         if (user.isAuthenticated) {
             // Pre-load activated content
-            if (!content?.content?.activeMoments?.length) {
+            if (!content?.activeMoments?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveMoments: true,
                 });
@@ -613,7 +613,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeThoughts?.length) {
+            if (!content?.activeThoughts?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveThoughts: true,
                 });
@@ -632,7 +632,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeEvents?.length) {
+            if (!content?.activeEvents?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveEvents: true,
                 });
