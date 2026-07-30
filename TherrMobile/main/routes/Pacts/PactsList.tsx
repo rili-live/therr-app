@@ -318,7 +318,6 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                     onNudge={this.handleNudge}
                     onInviteSomeoneElse={this.handleInviteSomeoneElse}
                     themeHabits={this.themeHabits}
-                    themeButtons={this.themeButtons}
                     translate={this.translate}
                     onPress={() => this.handlePactPress(item)}
                 />
@@ -346,32 +345,33 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
 
     renderEmptyState = () => {
         const { activeTab } = this.state;
-        if (activeTab === 'outgoing') {
-            return (
-                <View style={this.themeHabits.styles.emptyStateContainer}>
-                    <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
-                    <Text style={this.themeHabits.styles.emptyStateTitle}>
-                        {this.translate('pages.pacts.outgoing.emptyTitle')}
-                    </Text>
-                    <Text style={this.themeHabits.styles.emptyStateSubtitle}>
-                        {this.translate('pages.pacts.outgoing.emptySubtitle')}
-                    </Text>
-                </View>
-            );
-        }
+        const isOutgoing = activeTab === 'outgoing';
+
         return (
             <View style={this.themeHabits.styles.emptyStateContainer}>
-                <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
+                <View style={this.themeHabits.styles.emptyStateIconCircle}>
+                    <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
+                </View>
                 <Text style={this.themeHabits.styles.emptyStateTitle}>
-                    {this.translate('pages.pacts.noPactsTitle')}
+                    {this.translate(isOutgoing
+                        ? 'pages.pacts.outgoing.emptyTitle'
+                        : 'pages.pacts.noPactsTitle')}
                 </Text>
                 <Text style={this.themeHabits.styles.emptyStateSubtitle}>
-                    {this.translate('pages.pacts.noPactsSubtitle')}
+                    {this.translate(isOutgoing
+                        ? 'pages.pacts.outgoing.emptySubtitle'
+                        : 'pages.pacts.noPactsSubtitle')}
                 </Text>
             </View>
         );
     };
 
+    /**
+     * Segmented control. Replaces four cramped, left-aligned text labels with a
+     * 2dp underline — the segments now share the row evenly, each gets a real
+     * touch target, and the selected one is a raised pill rather than a rule
+     * that was easy to miss.
+     */
     renderTabBar = () => {
         const { activeTab } = this.state;
         const labelKeys: Record<PactsTab, string> = {
@@ -380,39 +380,30 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
             outgoing: 'pages.pacts.outgoing.tabLabel',
             all: 'pages.pacts.allTabLabel',
         };
+
         return (
-            <View
-                style={{
-                    flexDirection: 'row',
-                    paddingHorizontal: 8,
-                    paddingTop: 8,
-                    backgroundColor: this.theme.colors.surface,
-                }}
-            >
+            <View style={this.themeHabits.styles.segmentedControl}>
                 {TABS.map((tab) => {
                     const isActive = activeTab === tab;
-                    const label = this.translate(labelKeys[tab]);
                     return (
                         <Pressable
                             key={tab}
+                            accessibilityRole="tab"
+                            accessibilityState={{ selected: isActive }}
                             onPress={() => this.setActiveTab(tab)}
-                            style={{
-                                paddingVertical: 8,
-                                paddingHorizontal: 12,
-                                marginRight: 4,
-                                borderBottomWidth: 2,
-                                borderBottomColor: isActive
-                                    ? this.theme.colors.primary3
-                                    : 'transparent',
-                            }}
+                            style={[
+                                this.themeHabits.styles.segmentedControlItem,
+                                isActive && this.themeHabits.styles.segmentedControlItemActive,
+                            ]}
                         >
                             <Text
+                                numberOfLines={1}
                                 style={[
-                                    this.themeHabits.styles.habitCardSubtitle,
-                                    isActive && { color: this.theme.colors.primary3, fontWeight: '600' },
+                                    this.themeHabits.styles.segmentedControlLabel,
+                                    isActive && this.themeHabits.styles.segmentedControlLabelActive,
                                 ]}
                             >
-                                {label}
+                                {this.translate(labelKeys[tab])}
                             </Text>
                         </Pressable>
                     );
@@ -452,7 +443,7 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                             />
                         }
                         ListEmptyComponent={this.renderEmptyState}
-                        contentContainerStyle={{ paddingBottom: 100 }}
+                        contentContainerStyle={this.themeHabits.styles.pactsListContent}
                     />
                 </SafeAreaView>
                 <MainButtonMenu

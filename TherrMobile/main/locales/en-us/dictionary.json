@@ -1953,7 +1953,9 @@
         "habitCardHeader": "Your habit or savings goal",
         "partnerCardHeader": "Your accountability team",
         "pactCardHeader": "Your pact",
-        "samplePactStatus": "Pending your accepted invite"
+        "samplePactStatus": "Pending your accepted invite",
+        "stepOf": "Step {current} of {total}",
+        "stepDone": "Completed"
       },
       "outgoing": {
         "tabLabel": "Sent",

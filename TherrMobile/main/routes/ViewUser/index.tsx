@@ -844,6 +844,7 @@ class ViewUser extends React.Component<
                 handleClaim={onPress}
                 isClaiming={false}
                 onPressAchievement={onPress}
+                progressText={(params) => this.translate('pages.achievements.info.progressOf', params)}
                 themeAchievements={this.themeAchievements}
             />
         );

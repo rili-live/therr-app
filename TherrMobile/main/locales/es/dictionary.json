@@ -1953,7 +1953,9 @@
         "habitCardHeader": "Tu hábito o meta de ahorro",
         "partnerCardHeader": "Tu equipo de responsabilidad",
         "pactCardHeader": "Tu pacto",
-        "samplePactStatus": "Pendiente que acepten tu invitación"
+        "samplePactStatus": "Pendiente que acepten tu invitación",
+        "stepOf": "Paso {current} de {total}",
+        "stepDone": "Completado"
       },
       "outgoing": {
         "tabLabel": "Enviadas",

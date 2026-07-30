@@ -1953,7 +1953,9 @@
         "habitCardHeader": "Ton habitude ou objectif d'épargne",
         "partnerCardHeader": "Ton équipe de responsabilité",
         "pactCardHeader": "Ton pacte",
-        "samplePactStatus": "En attente d'acceptation de ton invitation"
+        "samplePactStatus": "En attente d'acceptation de ton invitation",
+        "stepOf": "Étape {current} sur {total}",
+        "stepDone": "Terminé"
       },
       "outgoing": {
         "tabLabel": "Envoyées",
