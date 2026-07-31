@@ -12,5 +12,6 @@ module.exports = {
     rules: {
         'no-direct-brand-scoped-table': require('./rules/no-direct-brand-scoped-table'),
         'no-async-table-builder-callback': require('./rules/no-async-table-builder-callback'),
+        'require-idempotent-migration': require('./rules/require-idempotent-migration'),
     },
 };

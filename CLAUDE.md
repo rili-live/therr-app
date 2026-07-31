@@ -232,6 +232,31 @@ The four rules that actually bite:
 Full detail, including the table-by-table coupling surface and the internal-LB network path:
 `docs/CROSS_REPO_INTEGRATION.md`.
 
+## Migrations
+
+Two invariants are enforced by `eslint-plugin-therr` on `src/store/migrations/**`, both
+because the failure they prevent has already happened here:
+
+- **`no-async-table-builder-callback`** — an `async` callback passed to a Knex table builder
+  silently drops every `table.*` call after the first `await` from the emitted DDL.
+- **`require-idempotent-migration`** — every migration must be safe to run twice. Knex writes
+  the `knex_migrations` row only after the function resolves, so a run killed partway leaves
+  the schema half-changed with no ledger row, and the next deploy re-runs the file from the
+  top and fails on the half it already applied.
+
+In practice that means: `dropTableIfExists` over `dropTable`, `CREATE INDEX IF NOT EXISTS`
+over `CREATE INDEX`, raw `ADD COLUMN IF NOT EXISTS` / `DROP COLUMN IF EXISTS` over an
+`alterTable` builder callback, and a `hasTable` probe around `createTable`. Not
+`createTableIfNotExists` — Knex itself warns against it and the rule flags it.
+
+Only migrations dated at or after `MIGRATION_IDEMPOTENCY_CUTOFF`
+(`eslint-config/migration-idempotency-cutoff.js`) are in scope; the already-deployed back
+catalogue is exempt. That cutoff is a one-way ratchet — `npm run test:lint-rules` fails if it
+is moved forward, or if any migration in scope stops passing.
+
+Full substitution table: `docs/NICHE_APP_DATABASE_GUIDELINES.md` → "Idempotency (enforced by
+lint)". Use `/db-migration-scaffold` to generate migrations in the right service and schema.
+
 ## Localization
 
 Every user-facing string must exist in **all** locales for its package —
