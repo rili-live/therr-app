@@ -480,6 +480,32 @@ When adding a new feature schema:
 2. **Deploy backend services** (new handlers use new tables)
 3. **Deploy frontend** (UI can now call new endpoints)
 
+### Out-of-repo consumers: expand/contract on `main.*`
+
+Two GCP Cloud Functions in sibling repos — `therr-messaging-automator` and
+`therr-ai-automator` — open their own Knex pools against this database and read (and, for
+thoughts, write) `main.*` tables directly. They are not behind the API gateway and are
+invisible to this repo's ESLint, type checking, and CI.
+
+Consequences for migrations on `main`:
+
+- **Never a bare rename or drop.** Add the new column → backfill → ship the consumer repos →
+  drop the old one in a later migration. A rename merged to `main` here runs automatically
+  via `_bin/cicd/run-migrations.sh` and breaks a Cloud Function at its next Cloud Scheduler
+  firing — hours later, with no alert.
+- **Check before you write the migration:**
+
+  ```bash
+  grep -rn "<columnOrTable>" ~/Code/therr-messaging-automator/src/store \
+                             ~/Code/therr-ai-automator/src/store
+  ```
+
+- **Adding a table to `BRAND_SCOPED_TABLES` does not protect a consumer's reads.** The
+  `therr/no-direct-brand-scoped-table` rule cannot see another repository. If an automator
+  reads the table, mirror the scoping into its `src/store/brandScoped.ts` in the same batch.
+
+The full coupling surface is in [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md).
+
 ### Rollback Safety
 
 Always ensure migrations can be rolled back:
@@ -548,4 +574,5 @@ main.users
 
 - [MULTI_BRAND_ARCHITECTURE.md](./MULTI_BRAND_ARCHITECTURE.md) - Brand variation system
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
+- [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) - Cloud Functions that read this database directly
 - Service-specific CLAUDE.md files for migration patterns

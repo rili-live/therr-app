@@ -166,6 +166,22 @@ table.uuid('userId').notNullable().references('id').inTable('main.users').onDele
 
 If the new table references another niche table, reference it in its own schema: `'<schema>.<table>'`.
 
+### Step 4.5: Cross-repo consumer check (destructive changes on `main.*` only)
+
+Two Cloud Functions in sibling repos query this database directly and are invisible to
+this repo's lint, types, and CI. If the change **renames or drops** a column or table in
+the `main` schema, grep them before scaffolding:
+
+```bash
+grep -rn "<tableOrColumn>" ~/Code/therr-messaging-automator/src/store \
+                           ~/Code/therr-ai-automator/src/store
+```
+
+On a hit, do not scaffold a bare rename. Scaffold the expand half only (add the new
+column), and report that the consumer repo must ship before the drop can be scaffolded.
+If the sibling checkouts are not present locally, say so and flag the check as unverified
+rather than assuming it's clean. Background: `docs/CROSS_REPO_INTEGRATION.md` §2.
+
 ### Step 5: Report
 
 ```
@@ -245,6 +261,7 @@ Always link to `docs/NICHE_APP_DATABASE_GUIDELINES.md` as the authoritative refe
 - **Never run migrations from this skill.** Scaffolding ≠ execution. The developer runs migrations in their environment.
 - **Never use `--force` automatically.** If the user's combination of `--schema main --feature <niche>` looks wrong, refuse and explain — don't silently override.
 - Do not invent column definitions beyond `id`, `createdAt`, `updatedAt`. The developer knows the feature; you don't.
+- **Expand/contract for anything the Cloud Functions read** (Step 4.5). A bare rename on a `main.*` table deploys green here and breaks a Cloud Function at its next scheduler firing, with no alert.
 - Do not modify migrations that already exist on any branch — they're append-only in practice. If the user wants to change a table, generate a new migration.
 - Match the service's existing naming convention (snake_case vs camelCase columns) — inconsistency across a service is a code smell.
 - This skill does not commit. It creates the file, leaves it staged or unstaged per git's default.

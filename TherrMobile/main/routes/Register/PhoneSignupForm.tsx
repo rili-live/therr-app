@@ -36,7 +36,7 @@ import { ITherrThemeColors, ITherrThemeColorVariations, isDarkTheme } from '../.
  * Three steps, in order. The account row is not created until `details` is submitted, so an
  * abandoned sign-up leaves nothing behind — only a spent SMS code and an expired token.
  */
-type PhoneSignupStep = 'phone' | 'code' | 'details';
+export type PhoneSignupStep = 'phone' | 'code' | 'details';
 
 /** Reuses the labels the CreateProfile account-type picker already ships in every locale. */
 const ACCOUNT_TYPE_LABEL_KEYS: { [key in PhoneAccountType]: string } = {
@@ -50,6 +50,12 @@ interface IPhoneSignupFormProps {
     onSuccess: (args: { email: string; phoneNumber: string }) => void;
     onSwitchToEmailSignup: () => void;
     onSwitchToSignIn: () => void;
+    /**
+     * Fires whenever the flow moves between steps. The screen uses it to take down pre-login
+     * chrome that would destroy an in-flight sign-up — see the note on the language selector
+     * in `Register/index.tsx`.
+     */
+    onStepChange?: (step: PhoneSignupStep) => void;
     toggleEULA: Function;
     userSettings: any;
     theme: {
@@ -137,6 +143,12 @@ export class PhoneSignupFormComponent extends React.Component<
         // Read from `this.props` so labels re-translate when the pre-login locale changes.
         this.translate = (key: string, params?: any) =>
             translator(this.props.userSettings?.locale || 'en-us', key, params);
+    }
+
+    componentDidUpdate(prevProps: IPhoneSignupFormProps, prevState: IPhoneSignupFormState) {
+        if (prevState.step !== this.state.step) {
+            this.props.onStepChange?.(this.state.step);
+        }
     }
 
     getDefaultBirthdate = () => {

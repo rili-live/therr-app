@@ -15,7 +15,7 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
 import RegisterForm from './RegisterForm';
-import PhoneSignupForm from './PhoneSignupForm';
+import PhoneSignupForm, { PhoneSignupStep } from './PhoneSignupForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import setPreLoginLocale from '../../redux/actions/setPreLoginLocale';
@@ -53,6 +53,8 @@ interface IRegisterState {
      * whole premise is a specific email address.
      */
     signupMethod: 'phone' | 'email';
+    /** Mirrors `PhoneSignupForm`'s step so the screen can hide chrome mid-sign-up. */
+    phoneSignupStep: PhoneSignupStep;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -89,6 +91,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
             // An invite link carries the invitee's email and grants verified access on that
             // channel — routing them through phone verification would throw that away.
             signupMethod: props.route?.params?.inviteToken ? 'email' : 'phone',
+            phoneSignupStep: 'phone',
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -167,8 +170,13 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         });
     };
 
+    onPhoneSignupStepChange = (phoneSignupStep: PhoneSignupStep) => {
+        this.setState({ phoneSignupStep });
+    };
+
     setSignupMethod = (signupMethod: 'phone' | 'email') => {
-        this.setState({ signupMethod });
+        // Switching away unmounts the phone form, so the step it reports is stale from here on.
+        this.setState({ signupMethod, phoneSignupStep: 'phone' });
     };
 
     goToLogin = () => {
@@ -187,7 +195,11 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     };
 
     render() {
-        const { isEULAVisible, signupMethod } = this.state;
+        const { isEULAVisible, phoneSignupStep, signupMethod } = this.state;
+        // Same reasoning as the sign-in screen: a locale change remounts the navigator and wipes
+        // the form's in-memory state, so the picker comes down once there is a verified number
+        // (or a code in flight) to lose. The email form is a single step with nothing at stake.
+        const isLanguageSelectorVisible = signupMethod === 'email' || phoneSignupStep === 'phone';
         const pageTitle = this.translate('pages.register.pageTitle');
         const pageSubtitle = this.translate('pages.register.pageSubtitle');
         const pageSubtitleMapPreviewLink = this.translate('pages.register.pageSubtitleMapPreviewLink');
@@ -209,16 +221,22 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                     {pageSubtitle} <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>{pageSubtitleMapPreviewLink}</Text>
                                 </Text>
                             </View>
-                            <LanguageSelector
-                                locale={this.props.user?.settings?.locale || 'en-us'}
-                                onChangeLocale={this.onChangeLocale}
-                                translate={this.translate}
-                                theme={this.theme}
-                                // Unlike Login, the selector sits *above* the form here, so it
-                                // needs real separation from the first step's heading —
-                                // otherwise "What's your number?" reads as its caption.
-                                containerStyle={[this.theme.styles.sectionContainerWide, spacingStyles.marginBotXl]}
-                            />
+                            {
+                                isLanguageSelectorVisible
+                                    ? (
+                                        <LanguageSelector
+                                            locale={this.props.user?.settings?.locale || 'en-us'}
+                                            onChangeLocale={this.onChangeLocale}
+                                            translate={this.translate}
+                                            theme={this.theme}
+                                            // Unlike Login, the selector sits *above* the form here, so it
+                                            // needs real separation from the first step's heading —
+                                            // otherwise "What's your number?" reads as its caption.
+                                            containerStyle={[this.theme.styles.sectionContainerWide, spacingStyles.marginBotXl]}
+                                        />
+                                    )
+                                    : null
+                            }
                             {
                                 signupMethod === 'phone'
                                     ? (
@@ -227,6 +245,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                             onSuccess={this.onPhoneSignupSuccess}
                                             onSwitchToEmailSignup={() => this.setSignupMethod('email')}
                                             onSwitchToSignIn={this.goToLogin}
+                                            onStepChange={this.onPhoneSignupStepChange}
                                             theme={this.theme}
                                             themeAlerts={this.themeAlerts}
                                             themeAuthForm={this.themeAuthForm}
