@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
 import { FilePaths } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
-import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
+import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak, IIdentitySnapshot } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
@@ -13,8 +13,16 @@ import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { CheckinButton, CheckinProofSheet, HabitCalendar, StreakWidget } from '../../components/Habits';
+import {
+    CheckinButton,
+    CheckinProofSheet,
+    HabitCalendar,
+    IdentityCard,
+    IdentityPromptSheet,
+    StreakWidget,
+} from '../../components/Habits';
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
+import { IdentityPromptMode } from '../../components/Habits/IdentityPromptSheet';
 import { signImageUrl } from '../../utilities/content';
 import { showToast } from '../../utilities/toasts';
 
@@ -22,6 +30,9 @@ interface IHabitDetailDispatchProps {
     getCheckinsByRange: Function;
     getStreakByHabit: Function;
     createCheckin: Function;
+    getIdentityByHabit: Function;
+    setIdentityLabel: Function;
+    createIdentityReflection: Function;
 }
 
 interface IStoreProps extends IHabitDetailDispatchProps {
@@ -44,7 +55,16 @@ interface IHabitDetailState {
     calendarMonth: Date;
     checkins: IHabitCheckin[];
     streak: IStreak | null;
+    identity: IIdentitySnapshot | null;
     isProofSheetVisible: boolean;
+    /** null when no identity prompt is open. */
+    identityPrompt: {
+        mode: IdentityPromptMode;
+        promptKey?: string;
+        reflectionType?: string;
+        checkinId?: string;
+    } | null;
+    isIdentitySubmitting: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -56,6 +76,9 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getCheckinsByRange: HabitActions.getCheckinsByRange,
     getStreakByHabit: HabitActions.getStreakByHabit,
     createCheckin: HabitActions.createCheckin,
+    getIdentityByHabit: HabitActions.getIdentityByHabit,
+    setIdentityLabel: HabitActions.setIdentityLabel,
+    createIdentityReflection: HabitActions.createIdentityReflection,
 }, dispatch);
 
 export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetailState> {
@@ -75,7 +98,10 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             calendarMonth: new Date(today.getFullYear(), today.getMonth(), 1),
             checkins: [],
             streak: null,
+            identity: null,
             isProofSheetVisible: false,
+            identityPrompt: null,
+            isIdentitySubmitting: false,
         };
 
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
@@ -111,7 +137,12 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     };
 
     handleRefresh = () => {
-        const { getCheckinsByRange, getStreakByHabit, route } = this.props;
+        const {
+            getCheckinsByRange,
+            getStreakByHabit,
+            getIdentityByHabit,
+            route,
+        } = this.props;
         const { calendarMonth } = this.state;
         const { habitGoalId } = route.params;
 
@@ -122,10 +153,12 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         Promise.all([
             getCheckinsByRange(startDate, endDate, habitGoalId),
             getStreakByHabit(habitGoalId),
-        ]).then(([checkinsData, streakData]) => {
+            getIdentityByHabit(habitGoalId),
+        ]).then(([checkinsData, streakData, identityData]) => {
             this.setState({
                 checkins: checkinsData || [],
                 streak: streakData || null,
+                identity: identityData || null,
             });
         }).finally(() => {
             this.setState({ isRefreshing: false });
@@ -191,6 +224,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 notes,
                 proofMedias,
             }))
+            .then((response: any) => this.handleIdentityOutcome(response?.identity))
             .catch((err) => {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
@@ -203,6 +237,86 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     isProofSheetVisible: false,
                 });
                 this.handleRefresh();
+            });
+    };
+
+    /**
+     * React to the identity payload the check-in response carries.
+     *
+     * A stage-up is celebrated immediately — it is the moment the app gets to tell
+     * someone they are no longer just doing the thing. The reflection prompt is
+     * opened after, and only when the server picked one; it enforces the cooldowns
+     * so the client never decides to ask on its own.
+     */
+    handleIdentityOutcome = (identity?: any) => {
+        if (!identity) {
+            return;
+        }
+
+        this.setState({ identity });
+
+        if (identity.stageAdvancedTo != null && identity.evaluation?.stageKey) {
+            showToast.success({
+                text1: this.translate('pages.habits.identity.stageUpTitle'),
+                text2: this.translate(
+                    `pages.habits.identity.stages.${identity.evaluation.stageKey}.stageUpBody`,
+                ),
+            });
+        }
+
+        if (identity.prompt) {
+            this.setState({
+                identityPrompt: {
+                    mode: identity.prompt.responseFormat === 'scale' ? 'scale' : 'text',
+                    promptKey: identity.prompt.promptKey,
+                    reflectionType: identity.prompt.type,
+                },
+            });
+        }
+    };
+
+    handleNameIdentity = () => {
+        this.setState({ identityPrompt: { mode: 'label' } });
+    };
+
+    handleIdentityPromptCancel = () => {
+        this.setState({ identityPrompt: null });
+    };
+
+    handleIdentityPromptConfirm = ({ text, score }: { text?: string; score?: number }) => {
+        const { setIdentityLabel, createIdentityReflection, route } = this.props;
+        const { identityPrompt } = this.state;
+        const { habitGoalId } = route.params;
+
+        if (!identityPrompt) {
+            return;
+        }
+
+        this.setState({ isIdentitySubmitting: true });
+
+        const request = identityPrompt.mode === 'label'
+            ? setIdentityLabel(habitGoalId, text)
+            : createIdentityReflection(habitGoalId, {
+                reflectionType: identityPrompt.reflectionType,
+                responseText: text,
+                responseScore: score,
+                checkinId: identityPrompt.checkinId,
+            });
+
+        request
+            .then((snapshot: IIdentitySnapshot) => {
+                if (snapshot) {
+                    this.setState({ identity: snapshot });
+                }
+            })
+            .catch((err: any) => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: err?.message || this.translate('pages.habits.identity.saveFailed'),
+                });
+            })
+            .finally(() => {
+                this.setState({ isIdentitySubmitting: false, identityPrompt: null });
             });
     };
 
@@ -227,7 +341,10 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             calendarMonth,
             checkins,
             streak,
+            identity,
             isProofSheetVisible,
+            identityPrompt,
+            isIdentitySubmitting,
         } = this.state;
 
         const habitGoal = this.getHabitGoal();
@@ -285,6 +402,15 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                             />
                         </View>
 
+                        {/* Above the streak on purpose: the streak is the number
+                            that resets, this is the one that doesn't. */}
+                        <IdentityCard
+                            snapshot={identity}
+                            onNameIdentity={this.handleNameIdentity}
+                            themeHabits={this.themeHabits}
+                            translate={this.translate}
+                        />
+
                         {streak && streak.currentStreak > 0 && (
                             <StreakWidget
                                 streak={streak}
@@ -338,6 +464,20 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     onCancel={this.handleProofSheetCancel}
                     onConfirm={this.handleProofSheetConfirm}
                     translate={this.translate}
+                    themeConfirmModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
+                <IdentityPromptSheet
+                    isVisible={!!identityPrompt}
+                    isSubmitting={isIdentitySubmitting}
+                    mode={identityPrompt?.mode || 'label'}
+                    promptKey={identityPrompt?.promptKey}
+                    initialValue={identityPrompt?.mode === 'label' ? identity?.progress?.identityLabel : undefined}
+                    habitName={habitGoal.name}
+                    onCancel={this.handleIdentityPromptCancel}
+                    onConfirm={this.handleIdentityPromptConfirm}
+                    translate={this.translate}
+                    themeHabits={this.themeHabits}
                     themeConfirmModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
                 />

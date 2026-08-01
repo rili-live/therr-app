@@ -1888,6 +1888,92 @@
         "days": "days",
         "nextMilestone": "Next milestone: {days} days",
         "graceDaysRemaining": "Grace days remaining: {count}"
+      },
+      "identity": {
+        "eyebrow": "Who you're becoming",
+        "statement": "I'm {label}.",
+        "unnamedPrompt": "Every check-in is a vote for someone. Who is this habit making you?",
+        "voteSingular": "vote cast for that person",
+        "votePlural": "votes cast for that person",
+        "stageUpTitle": "You moved up a rung",
+        "dormant": "It's been {days} days. The gap didn't undo any of this — the votes are still cast. Pick it back up today.",
+        "nameItCta": "Name who you're becoming",
+        "editLabelCta": "Change who you're becoming",
+        "promptSkip": "Not now",
+        "promptSave": "Save",
+        "saveFailed": "We couldn't save that. Try again.",
+        "labelPrompt": {
+          "title": "Who are you becoming?",
+          "body": "Not the goal — the person. \"Someone who runs before work\" sticks better than \"run 3x a week\", because every check-in becomes evidence about you instead of a box you ticked.",
+          "placeholder": "someone who runs before work"
+        },
+        "stages": {
+          "intention": {
+            "title": "Intention",
+            "blurb": "You've decided who you want to be. Nothing is proven yet, and that's fine — this is where everyone starts.",
+            "stageUpBody": "You've named who you're becoming. Now the votes start counting."
+          },
+          "repetition": {
+            "title": "Repetition",
+            "blurb": "You're doing it on purpose, and it still takes effort. That effort is the work.",
+            "stageUpBody": "You're repeating it on purpose now. That's the first real rung."
+          },
+          "automaticity": {
+            "title": "Automaticity",
+            "blurb": "It costs you less than it used to. That drop in effort is what a habit actually is.",
+            "stageUpBody": "It's getting easier. That's what a habit forming feels like from the inside."
+          },
+          "mindset": {
+            "title": "Mindset",
+            "blurb": "You think about this differently now — and it survived a miss, which is the part most people never test.",
+            "stageUpBody": "Your thinking shifted, and it held through a stumble. That's the hard part."
+          },
+          "identity": {
+            "title": "Identity",
+            "blurb": "You say it about yourself, you've said it over time, and someone who knows you says it too.",
+            "stageUpBody": "This is who you are now. Months of evidence, and your partner sees it too."
+          }
+        },
+        "next": {
+          "hasIdentityLabel": "Name who this habit is making you, and the ladder starts.",
+          "votesCast": "{remaining} more check-ins to reach {stage}.",
+          "consistencyRatio": "Hit about {thresholdPercent}% of your scheduled days over four weeks. You're at {actualPercent}%.",
+          "distinctWeeksActive": "Keep going for {remaining} more weeks — spread out, not crammed into one.",
+          "meanRecentDifficulty": "Rate how hard each check-in feels. {stage} unlocks when it starts feeling easy.",
+          "reflectionCount": "Answer one reflection about this habit.",
+          "comebackCount": "This rung waits for a stumble. Miss a day, come back, and it counts.",
+          "daysSinceFirstVote": "{remaining} more days. Identity isn't available at any speed.",
+          "selfConceptScore": "We'll ask how true \"this is who I am\" feels. Answer it honestly.",
+          "partnerAffirmationCount": "Ask your pact partner to affirm it. This rung needs someone other than you."
+        },
+        "prompts": {
+          "why": {
+            "title": "Why this one?",
+            "body": "Write it down now, while it's easy. You'll get this back on a day it isn't.",
+            "placeholder": "Because..."
+          },
+          "recommitment": {
+            "title": "You came back",
+            "body": "That's the part most people skip. What brought you back?",
+            "placeholder": "What got me back here was..."
+          },
+          "obstacle": {
+            "title": "What gets in the way?",
+            "body": "Name the thing that usually stops you. Naming it is most of beating it.",
+            "placeholder": "It usually falls apart when..."
+          },
+          "selfConcept": {
+            "title": "Which sounds truer?",
+            "body": "There's no right answer, and a low one costs you nothing. We only ask so the app stops guessing.",
+            "lowAnchor": "I'm trying to",
+            "highAnchor": "I am"
+          },
+          "partnerAffirmation": {
+            "title": "Tell them what you see",
+            "body": "You've watched them do this. Say what it says about them — it counts for a rung they can't reach alone.",
+            "placeholder": "You've become someone who..."
+          }
+        }
       }
     },
     "pacts": {

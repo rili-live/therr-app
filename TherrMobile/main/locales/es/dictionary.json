@@ -1888,6 +1888,92 @@
         "days": "días",
         "nextMilestone": "Próximo hito: {days} días",
         "graceDaysRemaining": "Días de gracia restantes: {count}"
+      },
+      "identity": {
+        "eyebrow": "En quién te estás convirtiendo",
+        "statement": "Soy {label}.",
+        "unnamedPrompt": "Cada registro es un voto por alguien. ¿En quién te está convirtiendo este hábito?",
+        "voteSingular": "voto por esa persona",
+        "votePlural": "votos por esa persona",
+        "stageUpTitle": "Subiste un escalón",
+        "dormant": "Han pasado {days} días. La pausa no borró nada: los votos siguen contados. Retómalo hoy.",
+        "nameItCta": "Nombra en quién te conviertes",
+        "editLabelCta": "Cambia en quién te conviertes",
+        "promptSkip": "Ahora no",
+        "promptSave": "Guardar",
+        "saveFailed": "No pudimos guardar eso. Inténtalo de nuevo.",
+        "labelPrompt": {
+          "title": "¿En quién te estás convirtiendo?",
+          "body": "No la meta — la persona. «Alguien que corre antes del trabajo» funciona mejor que «correr 3 veces por semana», porque cada registro se vuelve evidencia sobre ti y no una casilla marcada.",
+          "placeholder": "alguien que corre antes del trabajo"
+        },
+        "stages": {
+          "intention": {
+            "title": "Intención",
+            "blurb": "Ya decidiste quién quieres ser. Todavía no hay nada probado, y está bien: aquí empieza todo el mundo.",
+            "stageUpBody": "Nombraste en quién te conviertes. Ahora los votos empiezan a contar."
+          },
+          "repetition": {
+            "title": "Repetición",
+            "blurb": "Lo haces a propósito y aún cuesta esfuerzo. Ese esfuerzo es el trabajo.",
+            "stageUpBody": "Ya lo repites a propósito. Ese es el primer escalón real."
+          },
+          "automaticity": {
+            "title": "Automatismo",
+            "blurb": "Te cuesta menos que antes. Esa caída del esfuerzo es lo que realmente es un hábito.",
+            "stageUpBody": "Se está volviendo más fácil. Así se siente un hábito formándose."
+          },
+          "mindset": {
+            "title": "Mentalidad",
+            "blurb": "Ahora piensas distinto sobre esto — y sobrevivió a una falla, la parte que casi nadie llega a probar.",
+            "stageUpBody": "Tu forma de pensar cambió y aguantó un tropiezo. Esa es la parte difícil."
+          },
+          "identity": {
+            "title": "Identidad",
+            "blurb": "Lo dices de ti, lo has dicho con el tiempo, y alguien que te conoce también lo dice.",
+            "stageUpBody": "Esto es quien eres ahora. Meses de evidencia, y tu compañero también lo ve."
+          }
+        },
+        "next": {
+          "hasIdentityLabel": "Nombra en quién te convierte este hábito y empieza la escalera.",
+          "votesCast": "{remaining} registros más para llegar a {stage}.",
+          "consistencyRatio": "Cumple cerca del {thresholdPercent}% de tus días programados durante cuatro semanas. Vas en {actualPercent}%.",
+          "distinctWeeksActive": "Sigue {remaining} semanas más — repartidas, no amontonadas en una.",
+          "meanRecentDifficulty": "Califica qué tan difícil se siente cada registro. {stage} se desbloquea cuando empieza a sentirse fácil.",
+          "reflectionCount": "Responde una reflexión sobre este hábito.",
+          "comebackCount": "Este escalón espera un tropiezo. Falla un día, vuelve, y cuenta.",
+          "daysSinceFirstVote": "{remaining} días más. La identidad no está disponible a cualquier velocidad.",
+          "selfConceptScore": "Te preguntaremos qué tan cierto se siente «así soy yo». Responde con honestidad.",
+          "partnerAffirmationCount": "Pide a tu compañero de pacto que lo reconozca. Este escalón necesita a alguien más."
+        },
+        "prompts": {
+          "why": {
+            "title": "¿Por qué este?",
+            "body": "Escríbelo ahora, mientras es fácil. Te lo devolveremos un día en que no lo sea.",
+            "placeholder": "Porque..."
+          },
+          "recommitment": {
+            "title": "Volviste",
+            "body": "Esa es la parte que casi nadie hace. ¿Qué te trajo de vuelta?",
+            "placeholder": "Lo que me trajo de vuelta fue..."
+          },
+          "obstacle": {
+            "title": "¿Qué se interpone?",
+            "body": "Nombra lo que suele detenerte. Nombrarlo es casi todo el trabajo de vencerlo.",
+            "placeholder": "Normalmente se cae cuando..."
+          },
+          "selfConcept": {
+            "title": "¿Qué suena más cierto?",
+            "body": "No hay respuesta correcta, y una baja no te cuesta nada. Solo preguntamos para que la app deje de adivinar.",
+            "lowAnchor": "Lo estoy intentando",
+            "highAnchor": "Yo soy"
+          },
+          "partnerAffirmation": {
+            "title": "Dile lo que ves",
+            "body": "Lo has visto hacerlo. Di lo que eso dice de esa persona — cuenta para un escalón que no puede alcanzar sola.",
+            "placeholder": "Te has convertido en alguien que..."
+          }
+        }
       }
     },
     "pacts": {
