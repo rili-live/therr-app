@@ -223,8 +223,45 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 - [ ] Create pact activity feed
 - [ ] Build push notification system for partner activity
 - [ ] Add basic streak tracking
+- [x] Add identity progression — the habit → mindset → identity ladder (see below)
 
 **Deliverable:** Two users can create pacts, invite each other, check in daily, see partner activity
+
+#### Identity progression (retention layer)
+
+Streaks measure repetition and reset to zero on a miss — precisely when a user
+most needs a reason to continue. Lasting change runs habit → mindset → identity,
+and the app now models all three layers rather than only the first.
+
+Each habit carries a **user-authored identity statement** ("someone who runs
+before work"), and every completed check-in is a **vote** for that person. The
+vote count is monotonic and the ladder stage never drops, so a lapse costs a
+streak but never an identity.
+
+Five rungs, each gated on a **different kind** of evidence so that volume alone
+cannot buy the top:
+
+| Rung | What it takes |
+|---|---|
+| Intention | Name who you're becoming |
+| Repetition | The behavior starts happening on purpose |
+| Automaticity | Consistency ratio + spread across weeks (defeats cramming) |
+| Mindset | Effort dropping (`difficultyRating` trend), a reflection, **and a recovered lapse** |
+| Identity | Elapsed calendar time, a self-concept self-report, **and a pact-partner affirmation** |
+
+Two of these are the product bet. **A habit that has never been interrupted has
+never been tested**, so Mindset requires a comeback. And identity is socially
+confirmed, so the top rung requires an outside witness — which is exactly the
+asset a mandatory-partner app has and solo trackers don't.
+
+Reflection prompts (why / recommitment / obstacle / self-concept) supply the
+mindset-layer evidence. They are chosen server-side under per-type cooldowns, at
+most one per check-in, and the check-in that *ends a lapse* outranks all others —
+it is the only moment a user can say what brought them back.
+
+Rules live in `therr-js-utilities/config/habits` (shared by server and client);
+state in `habits.identity_progress` + `habits.identity_reflections`; API at
+`/habits/identity`; mobile UI in `components/Habits/IdentityCard`.
 
 ---
 
