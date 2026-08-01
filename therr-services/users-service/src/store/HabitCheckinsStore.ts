@@ -150,6 +150,41 @@ export default class HabitCheckinsStore {
             .then((response) => parseInt(response.rows[0]?.count || '0', 10));
     }
 
+    /**
+     * `difficultyRating` of the most recent rated completions, newest first.
+     * Feeds the identity ladder's automaticity signal — the same act reported as
+     * easier over time — so unrated check-ins are excluded rather than defaulted.
+     */
+    getRecentDifficultyRatings(userId: string, habitGoalId: string, limit: number) {
+        const queryString = knexBuilder
+            .select('difficultyRating')
+            .from(HABIT_CHECKINS_TABLE_NAME)
+            .where({ userId, habitGoalId, status: 'completed' })
+            .whereNotNull('difficultyRating')
+            .orderBy('scheduledDate', 'desc')
+            .limit(limit)
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => response.rows.map((row) => Number(row.difficultyRating)));
+    }
+
+    /**
+     * Distinct calendar weeks containing at least one completed check-in, all time.
+     * The identity ladder uses this to reject cramming: 40 check-ins inside one
+     * week is volume, not a habit.
+     */
+    getDistinctActiveWeekCount(userId: string, habitGoalId: string) {
+        const queryString = knexBuilder
+            .from(HABIT_CHECKINS_TABLE_NAME)
+            .count(knexBuilder.raw('DISTINCT date_trunc(\'week\', "scheduledDate")'))
+            .where({ userId, habitGoalId, status: 'completed' })
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count || '0', 10));
+    }
+
     create(params: ICreateHabitCheckinParams) {
         const queryString = knexBuilder
             .insert({

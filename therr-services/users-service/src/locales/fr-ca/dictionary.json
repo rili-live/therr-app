@@ -38,6 +38,16 @@
         },
         "privacy": {
             "restrictedMedia": "Contenu restreint"
+        },
+        "identity": {
+            "habitNotFound": "Cette habitude n'existe plus",
+            "labelRequired": "Dis-nous qui tu deviens",
+            "labelTooLong": "Maximum {max} caractères",
+            "invalidReflectionType": "Ce type de réflexion n'est pas reconnu",
+            "responseRequired": "Ajoute une réponse avant d'enregistrer",
+            "invalidScore": "Choisis une valeur entre {min} et {max}",
+            "affirmationRequiresPartner": "Choisis le partenaire que tu veux reconnaître",
+            "affirmationNotPermitted": "Tu peux seulement reconnaître un partenaire avec qui tu partages un pacte"
         }
     },
     "metrics": {

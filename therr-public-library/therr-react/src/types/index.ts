@@ -27,6 +27,12 @@ import {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IIdentityProgress,
+    IIdentityRequirementView,
+    IIdentityEvaluation,
+    IIdentitySnapshot,
+    IIdentityReflectionPromptView,
+    IIdentityReflection,
 
     // Messages
     MessageActionTypes,
@@ -121,6 +127,12 @@ export {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IIdentityProgress,
+    IIdentityRequirementView,
+    IIdentityEvaluation,
+    IIdentitySnapshot,
+    IIdentityReflectionPromptView,
+    IIdentityReflection,
 
     // Maps
     IMapState,

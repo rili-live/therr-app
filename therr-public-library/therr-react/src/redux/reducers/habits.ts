@@ -13,6 +13,9 @@ const initialState: IHabitsState = {
     streaks: [],
     activeStreaks: [],
     milestones: [],
+    identities: [],
+    identityByHabitGoalId: {},
+    reflectionsByHabitGoalId: {},
     isLoading: false,
 };
 
@@ -159,6 +162,43 @@ const habits = produce((draft: IHabitsState, action: any) => {
             const graceActiveIdx = draft.activeStreaks.findIndex((s) => s.id === action.data.id);
             if (graceActiveIdx > -1) {
                 draft.activeStreaks[graceActiveIdx] = action.data;
+            }
+            break;
+        }
+
+        // Identity progression
+        case HabitsActionTypes.GET_USER_IDENTITIES:
+            draft.identities = action.data || [];
+            break;
+        case HabitsActionTypes.GET_IDENTITY_BY_HABIT:
+        case HabitsActionTypes.SET_IDENTITY_LABEL:
+        case HabitsActionTypes.CREATE_IDENTITY_REFLECTION: {
+            const { habitGoalId, snapshot } = action.data || {};
+            if (!habitGoalId || !snapshot) {
+                break;
+            }
+            draft.identityByHabitGoalId[habitGoalId] = snapshot;
+            // Keep the list surface in step with the detail card, so a stage-up
+            // seen on the habit screen isn't stale when the user goes back.
+            if (snapshot.progress) {
+                const identityIdx = draft.identities.findIndex((i) => i.habitGoalId === habitGoalId);
+                if (identityIdx > -1) {
+                    draft.identities[identityIdx] = {
+                        // The list rows carry joined habit name/emoji that the
+                        // detail payload doesn't, so merge rather than replace.
+                        ...draft.identities[identityIdx],
+                        ...snapshot.progress,
+                    };
+                } else {
+                    draft.identities.push(snapshot.progress);
+                }
+            }
+            break;
+        }
+        case HabitsActionTypes.GET_IDENTITY_REFLECTIONS: {
+            const { habitGoalId, reflections } = action.data || {};
+            if (habitGoalId) {
+                draft.reflectionsByHabitGoalId[habitGoalId] = reflections || [];
             }
             break;
         }

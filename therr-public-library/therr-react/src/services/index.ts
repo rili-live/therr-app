@@ -25,6 +25,7 @@ import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '.
 import PactsService, { ICreatePactBody } from './PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from './HabitCheckinsService';
 import StreaksService from './StreaksService';
+import IdentityService, { ICreateIdentityReflectionBody } from './IdentityService';
 
 export {
     ApiService,
@@ -56,4 +57,6 @@ export {
     ICreateCheckinBody,
     IUpdateCheckinBody,
     StreaksService,
+    IdentityService,
+    ICreateIdentityReflectionBody,
 };

@@ -136,6 +136,94 @@ export interface IStreakHistory {
     createdAt: string;
 }
 
+// Identity Progression Types (habit -> mindset -> identity)
+// The ladder's stages, thresholds, and evaluator live in
+// therr-js-utilities/config (IdentityStages, evaluateIdentityStage) so the client
+// and users-service agree on them. These types describe the wire shape only.
+export interface IIdentityProgress {
+    id: string;
+    userId: string;
+    habitGoalId: string;
+    pactId?: string;
+    /** The user's own words: "someone who runs before work". */
+    identityLabel?: string;
+    identityLabelSetAt?: string;
+    /** IdentityStages: 0 intention .. 4 identity. Never decreases. */
+    stage: number;
+    stageEnteredAt: string;
+    highestStage: number;
+    /** Completed check-ins, all time. Unlike a streak, this never resets. */
+    votesCast: number;
+    comebackCount: number;
+    reflectionCount: number;
+    partnerAffirmationCount: number;
+    selfConceptScore?: number;
+    selfConceptScoredAt?: string;
+    firstVoteDate?: string;
+    lastVoteDate?: string;
+    identityConfirmedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+    // Joined fields
+    habitGoalName?: string;
+    habitGoalEmoji?: string;
+}
+
+/** One resolved rung requirement, as returned by `evaluateIdentityStage`. */
+export interface IIdentityRequirementView {
+    key: string;
+    comparison: 'gte' | 'lte';
+    threshold: number;
+    actual: number | null;
+    isMet: boolean;
+    progress: number;
+}
+
+export interface IIdentityEvaluation {
+    stage: number;
+    stageKey: string;
+    nextStage: number | null;
+    nextStageKey: string | null;
+    requirements: IIdentityRequirementView[];
+    progressToNextStage: number;
+    unmetRequirements: IIdentityRequirementView[];
+}
+
+/** The identity detail payload: stored row plus a freshly evaluated stage. */
+export interface IIdentitySnapshot {
+    progress: IIdentityProgress | null;
+    evaluation: IIdentityEvaluation | null;
+    isDormant: boolean;
+    daysSinceLastVote: number | null;
+    /** Present only on the check-in response, when that vote moved a rung. */
+    stageAdvancedTo?: number | null;
+    /** Present only on the check-in response: at most one prompt to surface. */
+    prompt?: IIdentityReflectionPromptView | null;
+}
+
+export interface IIdentityReflectionPromptView {
+    type: string;
+    responseFormat: 'scale' | 'text';
+    promptKey: string;
+    minStage: number;
+    cooldownDays: number;
+    isPartnerAuthored?: boolean;
+}
+
+export interface IIdentityReflection {
+    id: string;
+    identityProgressId: string;
+    userId: string;
+    habitGoalId: string;
+    authorUserId: string;
+    checkinId?: string;
+    reflectionType: string;
+    promptKey: string;
+    responseScore?: number;
+    responseText?: string;
+    createdAt: string;
+}
+
 // State Interface
 export interface IHabitsState {
     habitGoals: IHabitGoal[];
@@ -148,6 +236,12 @@ export interface IHabitsState {
     streaks: IStreak[];
     activeStreaks: IStreak[];
     milestones: IStreakHistory[];
+    /** Every identity the user is building, for list surfaces. */
+    identities: IIdentityProgress[];
+    /** Full snapshots keyed by habitGoalId, for the detail card. */
+    identityByHabitGoalId: { [habitGoalId: string]: IIdentitySnapshot };
+    /** Reflection timelines keyed by habitGoalId. */
+    reflectionsByHabitGoalId: { [habitGoalId: string]: IIdentityReflection[] };
     isLoading: boolean;
 }
 
@@ -185,6 +279,13 @@ export enum HabitsActionTypes {
     GET_STREAK_BY_HABIT = 'GET_STREAK_BY_HABIT',
     GET_MILESTONES = 'GET_MILESTONES',
     USE_GRACE_DAY = 'USE_GRACE_DAY',
+
+    // Identity progression
+    GET_USER_IDENTITIES = 'GET_USER_IDENTITIES',
+    GET_IDENTITY_BY_HABIT = 'GET_IDENTITY_BY_HABIT',
+    SET_IDENTITY_LABEL = 'SET_IDENTITY_LABEL',
+    CREATE_IDENTITY_REFLECTION = 'CREATE_IDENTITY_REFLECTION',
+    GET_IDENTITY_REFLECTIONS = 'GET_IDENTITY_REFLECTIONS',
 
     // Loading
     HABITS_LOADING = 'HABITS_LOADING',

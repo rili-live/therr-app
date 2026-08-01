@@ -22,6 +22,12 @@ import {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IIdentityProgress,
+    IIdentityRequirementView,
+    IIdentityEvaluation,
+    IIdentitySnapshot,
+    IIdentityReflectionPromptView,
+    IIdentityReflection,
 } from './habits';
 import {
     IMapState,
@@ -89,6 +95,12 @@ export {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IIdentityProgress,
+    IIdentityRequirementView,
+    IIdentityEvaluation,
+    IIdentitySnapshot,
+    IIdentityReflectionPromptView,
+    IIdentityReflection,
 
     // Maps
     IMapState,

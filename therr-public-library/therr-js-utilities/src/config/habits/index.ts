@@ -1,10 +1,3 @@
-import achievements, {
-    achievementsByClass,
-    achievementClassesByBrand,
-    getAchievementsForBrand,
-    isAchievementClassEnabledForBrand,
-    IAchievement,
-} from './achievements';
 import {
     IdentityStages,
     IdentityStage,
@@ -23,6 +16,8 @@ import {
     evaluateIdentityStage,
     getStageRequirements,
     isIdentityDormant,
+} from './identityProgression';
+import {
     IdentityReflectionTypes,
     IdentityReflectionType,
     IdentityReflectionResponseFormat,
@@ -31,17 +26,9 @@ import {
     IDENTITY_REFLECTION_PROMPTS,
     REFLECTION_PROMPT_PRIORITY,
     selectReflectionPrompt,
-} from './habits';
+} from './identityReflections';
 
 export {
-    achievements,
-    achievementsByClass,
-    achievementClassesByBrand,
-    getAchievementsForBrand,
-    isAchievementClassEnabledForBrand,
-    IAchievement,
-
-    // HABITS — identity progression (habit -> mindset -> identity)
     IdentityStages,
     IdentityStage,
     IDENTITY_STAGE_ORDER,
