@@ -397,7 +397,9 @@
     },
     "thoughtDisplay": {
       "viewAllReplies": "Ver las {count} respuestas",
-      "viewReplies": "Ver {count} respuestas"
+      "viewReplies": "Ver {count} respuestas",
+      "likeThought": "Me gusta esta publicación",
+      "unlikeThought": "Quitar me gusta de esta publicación"
     },
     "userMenu": {
       "buttons": {
@@ -1819,7 +1821,8 @@
     "viewThought": {
       "headerTitle": "Pensamientos",
       "reply": "Responder",
-      "replies": "Respuestas"
+      "replies": "Respuestas",
+      "repliesFailed": "No pudimos cargar las respuestas. Inténtalo de nuevo en un momento."
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
