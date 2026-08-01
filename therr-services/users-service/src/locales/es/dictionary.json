@@ -38,6 +38,16 @@
         },
         "privacy": {
             "restrictedMedia": "Contenido restringido"
+        },
+        "identity": {
+            "habitNotFound": "Ese hábito ya no existe",
+            "labelRequired": "Dinos en quién te estás convirtiendo",
+            "labelTooLong": "Máximo {max} caracteres",
+            "invalidReflectionType": "Ese tipo de reflexión no se reconoce",
+            "responseRequired": "Añade una respuesta antes de guardar",
+            "invalidScore": "Elige un valor entre {min} y {max}",
+            "affirmationRequiresPartner": "Elige al compañero que quieres reconocer",
+            "affirmationNotPermitted": "Solo puedes reconocer a un compañero con quien compartes un pacto"
         }
     },
     "metrics": {

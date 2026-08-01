@@ -32,6 +32,8 @@ import HabitCheckinsStore from './HabitCheckinsStore';
 import StreaksStore from './StreaksStore';
 import ProofsStore from './ProofsStore';
 import PactActivitiesStore from './PactActivitiesStore';
+import IdentityProgressStore from './IdentityProgressStore';
+import IdentityReflectionsStore from './IdentityReflectionsStore';
 
 class Store {
     db: IConnection;
@@ -101,6 +103,10 @@ class Store {
 
     pactActivities: PactActivitiesStore;
 
+    identityProgress: IdentityProgressStore;
+
+    identityReflections: IdentityReflectionsStore;
+
     constructor(dbConnection) {
         this.db = dbConnection;
 
@@ -138,6 +144,8 @@ class Store {
         this.streaks = new StreaksStore(this.db);
         this.proofs = new ProofsStore(this.db);
         this.pactActivities = new PactActivitiesStore(this.db);
+        this.identityProgress = new IdentityProgressStore(this.db);
+        this.identityReflections = new IdentityReflectionsStore(this.db);
     }
 }
 

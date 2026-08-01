@@ -38,6 +38,16 @@
         },
         "privacy": {
             "restrictedMedia": "Restricted Media"
+        },
+        "identity": {
+            "habitNotFound": "That habit no longer exists",
+            "labelRequired": "Tell us who you're becoming",
+            "labelTooLong": "Keep it to {max} characters or fewer",
+            "invalidReflectionType": "That reflection type is not recognized",
+            "responseRequired": "Add a response before saving",
+            "invalidScore": "Choose a value between {min} and {max}",
+            "affirmationRequiresPartner": "Choose the partner you want to affirm",
+            "affirmationNotPermitted": "You can only affirm a partner you share a pact with"
         }
     },
     "metrics": {

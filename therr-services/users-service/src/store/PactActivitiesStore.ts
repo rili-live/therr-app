@@ -14,7 +14,12 @@ export type PactActivityType =
     | 'streak_broken'
     | 'partner_joined'
     | 'pact_started'
-    | 'pact_completed';
+    | 'pact_completed'
+    // Identity progression (habit -> mindset -> identity). A stage-up and an
+    // affirmation are both social events by design: the ladder's top rung requires
+    // a witness, so these belong in the pact feed rather than a private screen.
+    | 'identity_stage_up'
+    | 'identity_affirmed';
 
 export interface ICreatePactActivityParams {
     pactId: string;

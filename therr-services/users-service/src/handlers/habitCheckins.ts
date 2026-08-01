@@ -26,6 +26,7 @@ import {
     headersForOtherUser,
 } from './helpers/awardHabitAchievements';
 import { awardLeaderboardPoints } from './helpers/leaderboards';
+import { IRecordVoteResult, recordIdentityVoteSafely } from './helpers/identityProgress';
 import { LeaderboardXpValues } from '../utilities/leaderboardHelpers';
 
 // CREATE
@@ -107,6 +108,8 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         hasProof,
     })
         .then(async (checkin) => {
+            let identityResult: IRecordVoteResult | null = null;
+
             // Persist any attached proofs
             if (hasProof) {
                 await Store.proofs.deleteByCheckinId(checkin.id);
@@ -140,7 +143,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 // history/achievements/partner pushes already fired. Proofs
                 // and notes were still updated above.
                 if (lastCompletedStr === checkinDate) {
-                    return res.status(201).send(checkin);
+                    return res.status(201).send({ ...checkin, identity: identityResult });
                 }
 
                 // First completion for this habit+date: the upsert only returns
@@ -213,7 +216,8 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 // Multi-habit consistency (Two At Once / Triple Threat / All Things at Once).
                 // No-op if the user has fewer than 2 active habits or no perfect 7-day window.
                 scanMultiHabitConsistency(req.headers, userId, checkinDate);
-                if (isComebackStart(streakBefore, updatedStreak.currentStreak, longestBefore)) {
+                const isComeback = isComebackStart(streakBefore, updatedStreak.currentStreak, longestBefore);
+                if (isComeback) {
                     awardResilienceComebackAchievement(req.headers, 1);
                 }
                 if (isPhoenixMoment(updatedStreak.currentStreak, longestBefore)) {
@@ -333,9 +337,53 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
                 // Mark checkin as contributing to streak
                 await Store.habitCheckins.update(checkin.id, { contributedToStreak: true });
+
+                // Identity progression — cast this check-in as a vote for who the
+                // user is becoming (habit -> mindset -> identity). Gated on the
+                // same first-completion flag as XP so an edited or re-submitted
+                // check-in never votes twice. Failures are swallowed and logged:
+                // the check-in, streak, and partner notification above are the
+                // contract, and none of them should fail because a secondary
+                // counter did.
+                if (isFirstCompletionForDate) {
+                    identityResult = await recordIdentityVoteSafely({
+                        userId,
+                        habitGoalId,
+                        pactId,
+                        habitGoal,
+                        checkinDate,
+                        isComeback,
+                    });
+
+                    // A stage-up is a social event on purpose — the top rung needs
+                    // a witness, so the partner sees it in the pact feed.
+                    if (identityResult?.stageAdvancedTo && pactId) {
+                        await Store.pactActivities.create({
+                            pactId,
+                            userId,
+                            activityType: 'identity_stage_up',
+                            checkinId: checkin.id,
+                            data: {
+                                habitGoalId,
+                                stage: identityResult.stageAdvancedTo,
+                                identityLabel: identityResult.progress?.identityLabel,
+                            },
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'warn',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Failed to record identity stage-up activity'],
+                                traceArgs: { 'error.message': err?.message, pactId },
+                            });
+                        });
+                    }
+                }
             }
 
-            return res.status(201).send(checkin);
+            // `identity` rides along so the client can celebrate a stage-up and
+            // show a reflection prompt without a second round trip on the
+            // check-in's happy path. Null whenever progression didn't run.
+            return res.status(201).send({ ...checkin, identity: identityResult });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
 };

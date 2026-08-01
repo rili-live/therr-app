@@ -767,6 +767,32 @@ usersServiceRouter.put('/habits/streaks/:id/grace', handleServiceRequest({
     method: 'put',
 }));
 
+// HABITS — Identity progression (habit -> mindset -> identity)
+usersServiceRouter.get('/habits/identity/habit/:habitGoalId/reflections', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/identity/habit/:habitGoalId/partner/:partnerUserId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/identity/habit/:habitGoalId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/identity', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/identity/habit/:habitGoalId/reflections', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/identity/habit/:habitGoalId/label', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
 // Catch-all param route -- MUST stay last. Any literal `POST /users/<name>` route
 // registered below this line will be shadowed by it and rejected with a 400.
 usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
