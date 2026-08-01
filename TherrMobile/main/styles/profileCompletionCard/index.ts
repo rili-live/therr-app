@@ -21,6 +21,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const styles = StyleSheet.create({
         container: {
             ...shadowSm,
+            // ViewUser's parent container centers its children (`alignItems: 'center'`),
+            // which makes an unconstrained child shrink to fit its content instead of
+            // filling the row. Stretch explicitly — siblings there do the same with
+            // `width: '100%'`, but that would overflow by 2x the horizontal margin here.
+            alignSelf: 'stretch',
             backgroundColor: tint(therrTheme.colors.brand, washOpacity),
             borderRadius: radius.xl,
             marginHorizontal: space.lg,
