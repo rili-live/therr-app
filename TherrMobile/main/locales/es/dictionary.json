@@ -117,7 +117,9 @@
     "lessThanHours": "< 1h",
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}d",
-    "yearsSinceDate": "{count}a"
+    "yearsSinceDate": "{count}a",
+    "justNow": "Ahora",
+    "minutesSinceDate": "{count} min"
   },
   "quoteOfTheDay": "Frase del día",
   "dailyQuotes": [
@@ -1632,6 +1634,14 @@
         "places": "Lugares",
         "events": "Eventos",
         "music": "Música"
+      },
+      "preview": {
+        "activeNearby": "{count} activos cerca de ti",
+        "activeNearbyOne": "1 activo cerca de ti",
+        "nothingNearby": "Aún no hay publicaciones cerca de ti",
+        "createPromptTitle": "Sé el primero en publicar aquí",
+        "createPromptTitleAtSpace": "Sé el primero en {spaceTitle}",
+        "createPromptSubtitle": "Comparte un momento y pon este lugar en el mapa"
       }
     },
     "mapFilteredSearch": {

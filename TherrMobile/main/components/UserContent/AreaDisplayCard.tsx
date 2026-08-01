@@ -15,6 +15,7 @@ import { ITherrThemeColors } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
+import { compactTimeSince } from '../../utilities/formatDate';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -71,6 +72,14 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
             translate,
         } = this.props;
         const isQuickReport = Categories.QuickReportCategories.includes(area.category);
+        // Urgency signal: anything posted in the last couple of hours reads as live. Quick
+        // reports keep their existing LIVE wording; everything else shows its actual age.
+        const freshnessLabel = area.createdAt
+            // The prop is typed as the bare `Function`, which is not assignable to a call
+            // signature; the helper needs the specific shape.
+            ? compactTimeSince(new Date(area.createdAt), translate as (key: string, params?: any) => string)
+            : undefined;
+        const shouldShowFreshnessBadge = !isQuickReport && !!freshnessLabel;
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
@@ -119,6 +128,12 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                 <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.brandingOrange }]}>
                                     <MaterialIcon name="schedule" size={10} color={theme.colors.brandingWhite} />
                                     <Text style={localStyles.quickReportBadgeText}>LIVE</Text>
+                                </View>
+                            )}
+                            {shouldShowFreshnessBadge && (
+                                <View style={[localStyles.quickReportBadge, { backgroundColor: theme.colors.accentAlt }]}>
+                                    <MaterialIcon name="schedule" size={10} color={theme.colors.brandingWhite} />
+                                    <Text style={localStyles.quickReportBadgeText}>{freshnessLabel}</Text>
                                 </View>
                             )}
                         </View>
