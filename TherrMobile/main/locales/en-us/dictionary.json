@@ -2015,7 +2015,25 @@
       "checkinsLabel": "{completed}/{total} checkins",
       "completionLabel": "{pct}% completion",
       "vs": "vs",
-      "partnerFallback": "Friend"
+      "partnerFallback": "Friend",
+      "partnersTitle": "Accountability Partners",
+      "viewProfileOf": "View {name}'s profile",
+      "messagePartner": "Message {name}",
+      "viewHabitDetails": "View habit & check in",
+      "dayOfTotal": "Day {current} of {total}",
+      "daysRemaining": "{days} days left",
+      "timelineEnded": "Ended",
+      "memberRole": {
+        "creator": "Organizer",
+        "partner": "Partner"
+      },
+      "memberStatus": {
+        "pending": "Invite pending",
+        "active": "Active",
+        "completed": "Completed",
+        "left": "Left the pact",
+        "removed": "Removed"
+      }
     },
     "pushOptIn": {
       "title": "Get notified when your friend joins",

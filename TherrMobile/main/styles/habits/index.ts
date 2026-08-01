@@ -379,6 +379,76 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         pactComparisonItem: {
             alignItems: 'center',
         },
+        pactComparisonItemPressed: {
+            opacity: 0.6,
+        },
+
+        // Pact Detail — member list + inline navigation links
+        pactMemberRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 12,
+        },
+        pactMemberRowDivided: {
+            borderTopWidth: 1,
+            borderTopColor: therrTheme.colors.primary4,
+        },
+        // The profile link fills the row; the message button sits outside it so
+        // the two tap targets never overlap.
+        pactMemberRowLink: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        pactMemberDetails: {
+            flex: 1,
+            marginLeft: 12,
+        },
+        pactMemberName: {
+            fontFamily: therrFontFamily,
+            fontSize: 15,
+            fontWeight: '600',
+            color: therrTheme.colors.onSurface,
+        },
+        pactMemberMeta: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            color: therrTheme.colors.textGray,
+            marginTop: 2,
+        },
+        pactMemberAction: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+            backgroundColor: therrTheme.colorVariations.primary3Fade,
+        },
+        pactLinkRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 12,
+            paddingTop: 12,
+            borderTopWidth: 1,
+            borderTopColor: therrTheme.colors.primary4,
+        },
+        pactLinkText: {
+            fontFamily: therrFontFamily,
+            fontSize: 14,
+            fontWeight: '600',
+            color: therrTheme.colors.primary3,
+        },
+        pactPressedSurface: {
+            opacity: 0.75,
+        },
+        pactTimelineRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 8,
+        },
         pactComparisonValue: {
             fontFamily: therrFontFamily,
             fontSize: 24,
