@@ -3,10 +3,12 @@ import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import { ListItem } from '../../../components/BaseListItem';
 import 'react-native-gesture-handler';
+import { getContactDisplayName, getContactInviteTargetLabel } from '../../../utilities/inviteContacts';
 
 interface IPhoneContactItemProps {
     contactDetails: any;
     isCheckable?: boolean;
+    isActionDisabled?: boolean;
     onPress: any;
     onActionPress?: () => void;
     actionLabel?: string;
@@ -19,6 +21,7 @@ interface IPhoneContactItemProps {
 const PhoneContactItem: React.FunctionComponent<IPhoneContactItemProps> = ({
     contactDetails,
     isCheckable,
+    isActionDisabled,
     onPress,
     onActionPress,
     actionLabel,
@@ -34,6 +37,10 @@ const PhoneContactItem: React.FunctionComponent<IPhoneContactItemProps> = ({
         }
     };
 
+    // Shows which number/email the invite will actually go to, so a contact card with
+    // several entries is not a guess.
+    const inviteTarget = isCheckable ? getContactInviteTargetLabel(contactDetails) : '';
+
     return (
         <ListItem
             onPress={handlePress}
@@ -41,7 +48,8 @@ const PhoneContactItem: React.FunctionComponent<IPhoneContactItemProps> = ({
             containerStyle={theme.styles.listItemCard}
         >
             <ListItem.Content>
-                <ListItem.Title>{`${contactDetails.givenName} ${contactDetails.familyName}`}</ListItem.Title>
+                <ListItem.Title numberOfLines={1}>{getContactDisplayName(contactDetails)}</ListItem.Title>
+                {!!inviteTarget && <ListItem.Subtitle numberOfLines={1}>{inviteTarget}</ListItem.Subtitle>}
             </ListItem.Content>
             {isCheckable && (
                 <ListItem.CheckBox
@@ -53,8 +61,11 @@ const PhoneContactItem: React.FunctionComponent<IPhoneContactItemProps> = ({
             {onActionPress && (
                 <TouchableOpacity
                     onPress={onActionPress}
+                    disabled={isActionDisabled}
                     style={{
-                        backgroundColor: theme.colors.brandingBlueGreen,
+                        backgroundColor: isActionDisabled
+                            ? theme.colors.textGray
+                            : theme.colors.brandingBlueGreen,
                         paddingHorizontal: 12,
                         paddingVertical: 6,
                         borderRadius: 16,

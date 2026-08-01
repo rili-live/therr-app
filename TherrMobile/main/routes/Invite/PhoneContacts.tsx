@@ -23,6 +23,15 @@ import ListEmpty from '../../components/ListEmpty';
 import PhoneContactItem from './components/PhoneContactItem';
 import spacingStyles from '../../styles/layouts/spacing';
 import { IMatchedUser } from '../../utilities/contacts';
+import {
+    buildMailToUrl,
+    buildSmsUrl,
+    getContactDisplayName,
+    getContactEmail,
+    getContactInviteTargetLabel,
+    getContactPhoneNumber,
+    isContactInvitable,
+} from '../../utilities/inviteContacts';
 
 const MAX_BATCH_INVITE = 10;
 
@@ -111,8 +120,10 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             const matchedUser = contactMatchesUser(contact, matchedUsers);
             if (matchedUser) {
                 onApp.push({ ...contact, matchedUser });
-            } else {
-                notOnApp.push(contact);
+            } else if (isContactInvitable(contact)) {
+                // Contacts with neither a phone number nor an email have nowhere for an
+                // invite to go, so listing them only produces a button that cannot work.
+                notOnApp.push({ ...contact, isChecked: false, isInvited: false });
             }
         });
 
@@ -141,12 +152,14 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
     }
 
     onContactPress = (contactId) => {
-        const { contactsNotOnApp } = this.state;
-        const modifiedContactList = [...contactsNotOnApp];
-        const idx = modifiedContactList.findIndex((c) => c.recordID === contactId);
-        if (idx > -1) {
-            modifiedContactList[idx].isChecked = !modifiedContactList[idx].isChecked;
-        }
+        // Replace the toggled contact rather than mutating it — the same object is
+        // referenced by the filtered list, so an in-place edit leaves the two copies
+        // sharing state and the checkbox can miss its re-render.
+        const modifiedContactList = this.state.contactsNotOnApp.map((contact) => (
+            contact.recordID === contactId
+                ? { ...contact, isChecked: !contact.isChecked }
+                : contact
+        ));
 
         this.setState({
             contactsNotOnApp: modifiedContactList,
@@ -169,9 +182,8 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
 
         const filterFn = (contact) => {
             if (!value) { return true; }
-            return contact.givenName?.toLowerCase().includes(lowerValue)
-                || contact.familyName?.toLowerCase().includes(lowerValue)
-                || `${contact.givenName} ${contact.familyName}`.toLowerCase().includes(lowerValue);
+            return getContactDisplayName(contact).toLowerCase().includes(lowerValue)
+                || getContactInviteTargetLabel(contact).toLowerCase().includes(lowerValue);
         };
 
         this.setState({
@@ -218,34 +230,11 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
     };
 
     onInvitePress = (contact: any) => {
-        const { user } = this.props;
-        const locale = user.settings?.locale || 'en-us';
-        const inviteMessage = this.translate('pages.phoneContacts.inviteMessage', {
-            inviteCode: user.details.userName,
-            shareUrl: buildInviteUrl(locale, user.details.userName),
-        });
-
-        const mobileNumber = contact.phoneNumbers?.find((n) => n.label === 'mobile');
-        if (mobileNumber) {
-            const smsUrl = `sms:${mobileNumber.number}&body=${encodeURIComponent(inviteMessage)}`;
-            Linking.openURL(smsUrl).catch(() => {
-                // Fallback: try with ? separator (iOS)
-                Linking.openURL(`sms:${mobileNumber.number}?body=${encodeURIComponent(inviteMessage)}`).catch(() => {});
-            });
-        } else if (contact.emailAddresses?.length) {
-            const emailUrl = `mailto:${contact.emailAddresses[0].email}?subject=${
-                encodeURIComponent(this.translate('pages.phoneContacts.inviteSubject'))
-            }&body=${encodeURIComponent(inviteMessage)}`;
-            Linking.openURL(emailUrl).catch(() => {});
-        }
+        this.sendInvites([contact]);
     };
 
     onInviteSelected = () => {
-        const { user } = this.props;
-        const { contactsNotOnApp } = this.state;
-        const selectedContacts = contactsNotOnApp
-            .filter((c) => c.isChecked)
-            .slice(0, MAX_BATCH_INVITE);
+        const selectedContacts = this.state.contactsNotOnApp.filter((c) => c.isChecked);
 
         if (!selectedContacts.length) {
             showToast.info({
@@ -255,42 +244,41 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             return;
         }
 
+        this.sendInvites(selectedContacts);
+    };
+
+    /**
+     * Single entry point for both the per-row "Invite" button and the batched
+     * "Invite Selected" button so the two cannot drift apart again — previously only
+     * the batch path registered the invite server-side.
+     */
+    sendInvites = (contacts: any[]) => {
+        const { user } = this.props;
+
+        const invitableContacts = contacts.filter(isContactInvitable);
+
+        if (!invitableContacts.length) {
+            showToast.error({
+                text1: this.translate('pages.phoneContacts.alertTitles.noContactInfo'),
+                text2: this.translate('pages.phoneContacts.alertMessages.noContactInfo'),
+            });
+            return;
+        }
+
+        if (invitableContacts.length > MAX_BATCH_INVITE) {
+            showToast.warn({
+                text1: this.translate('pages.phoneContacts.alertTitles.tooManySelected'),
+                text2: this.translate('pages.phoneContacts.alertMessages.tooManySelected', {
+                    count: MAX_BATCH_INVITE,
+                }),
+            });
+        }
+
+        const invitees = invitableContacts.slice(0, MAX_BATCH_INVITE);
         const locale = user.settings?.locale || 'en-us';
         const inviteMessage = this.translate('pages.phoneContacts.inviteMessage', {
             inviteCode: user.details.userName,
             shareUrl: buildInviteUrl(locale, user.details.userName),
-        });
-
-        // Collect phone numbers for batch SMS
-        const phoneNumbers = selectedContacts
-            .map((c) => {
-                const mobile = c.phoneNumbers?.find((n) => n.label === 'mobile');
-                return mobile?.number || c.phoneNumbers?.[0]?.number;
-            })
-            .filter(Boolean);
-
-        if (phoneNumbers.length) {
-            const smsUrl = `sms:${phoneNumbers.join(',')}&body=${encodeURIComponent(inviteMessage)}`;
-            Linking.openURL(smsUrl).catch(() => {
-                Linking.openURL(`sms:${phoneNumbers.join(',')}?body=${encodeURIComponent(inviteMessage)}`).catch(() => {});
-            });
-        }
-
-        // Also send server-side invites
-        const inviteList = selectedContacts.map((phoneContact) => {
-            const normalizedContact: any = {};
-            if (phoneContact.emailAddresses?.length) {
-                normalizedContact.email = phoneContact.emailAddresses[0].email;
-            }
-            if (phoneContact.phoneNumbers?.length) {
-                const mobileNumber = phoneContact.phoneNumbers.find((n) => n.label === 'mobile');
-                if (mobileNumber) {
-                    normalizedContact.phoneNumber = mobileNumber.number;
-                } else {
-                    normalizedContact.phoneNumber = phoneContact.phoneNumbers[0].number;
-                }
-            }
-            return normalizedContact;
         });
 
         UserConnectionsService.invite({
@@ -298,14 +286,88 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             requestingUserEmail: user.details.email,
             requestingUserFirstName: user.details.firstName,
             requestingUserLastName: user.details.lastName,
-            inviteList,
+            inviteList: invitees.map((contact) => {
+                const normalizedContact: any = {};
+                const email = getContactEmail(contact);
+                const phoneNumber = getContactPhoneNumber(contact);
+
+                if (email) {
+                    normalizedContact.email = email;
+                }
+                if (phoneNumber) {
+                    normalizedContact.phoneNumber = phoneNumber;
+                }
+
+                return normalizedContact;
+            }),
         }).then(() => {
             showToast.success({
                 text1: this.translate('pages.phoneContacts.alertTitles.contactInvitesSent'),
                 text2: this.translate('pages.phoneContacts.alertMessages.contactInvitesSent'),
             });
-        }).catch(() => {
-            // Error handled silently
+        }).catch((error) => {
+            // The gateway gates bulk invites on MOBILE_VERIFIED, so an account that
+            // signed up without verifying a phone gets a 403 here. Swallowing it made
+            // the button look dead; the SMS composer below still opens either way.
+            const isPhoneUnverified = error?.response?.status === 403;
+
+            showToast.error({
+                text1: this.translate(isPhoneUnverified
+                    ? 'pages.phoneContacts.alertTitles.phoneVerificationRequired'
+                    : 'pages.phoneContacts.alertTitles.inviteFailed'),
+                text2: this.translate(isPhoneUnverified
+                    ? 'pages.phoneContacts.alertMessages.phoneVerificationRequired'
+                    : 'pages.phoneContacts.alertMessages.inviteFailed'),
+            });
+        });
+
+        this.markContactsInvited(invitees);
+        this.openInviteComposer(invitees, inviteMessage);
+    };
+
+    /**
+     * Opens the OS composer prefilled with the invite so the user can send a personal
+     * message alongside the server-sent invite.
+     */
+    openInviteComposer = (invitees: any[], inviteMessage: string) => {
+        const smsUrl = buildSmsUrl(invitees.map(getContactPhoneNumber), inviteMessage);
+
+        if (smsUrl) {
+            Linking.openURL(smsUrl).catch(() => {
+                // The server-side invite already went out, so a device with no SMS
+                // handler is not a failure worth interrupting the user over.
+            });
+            return;
+        }
+
+        // Email-only selection: a mailto composer only accepts one invite message, so
+        // fall back to it just for a single contact. Larger email-only batches are
+        // fully covered by the server-side invite.
+        if (invitees.length === 1) {
+            const mailToUrl = buildMailToUrl(
+                getContactEmail(invitees[0]),
+                this.translate('pages.phoneContacts.inviteSubject'),
+                inviteMessage,
+            );
+
+            if (mailToUrl) {
+                Linking.openURL(mailToUrl).catch(() => {});
+            }
+        }
+    };
+
+    markContactsInvited = (invitees: any[]) => {
+        const invitedIds = new Set(invitees.map((contact) => contact.recordID));
+        const modifiedContactList = this.state.contactsNotOnApp.map((contact) => (
+            invitedIds.has(contact.recordID)
+                ? { ...contact, isChecked: false, isInvited: true }
+                : contact
+        ));
+
+        this.setState({
+            contactsNotOnApp: modifiedContactList,
+        }, () => {
+            this.applySearchFilter(this.state.searchInputValue);
         });
     };
 
@@ -314,6 +376,8 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
     };
 
     renderSectionHeader = ({ section }: { section: { title: string; key: string } }) => {
+        const selectedCount = this.state.contactsNotOnApp.filter((c) => c.isChecked).length;
+
         return (
             <View style={{
                 backgroundColor: this.theme.colors.primary,
@@ -329,11 +393,14 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                     <Button
                         mode="contained"
                         onPress={this.onInviteSelected}
+                        disabled={!selectedCount}
                         style={{ marginTop: 8, alignSelf: 'flex-start' }}
                         labelStyle={{ fontSize: 12 }}
                         compact
                     >
-                        {this.translate('pages.phoneContacts.buttons.inviteSelected')}
+                        {selectedCount
+                            ? this.translate('pages.phoneContacts.buttons.inviteSelectedCount', { count: selectedCount })
+                            : this.translate('pages.phoneContacts.buttons.inviteSelected')}
                     </Button>
                 )}
             </View>
@@ -359,10 +426,15 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                 key={contact.recordID}
                 contactDetails={contact}
                 isCheckable
+                isActionDisabled={contact.isInvited}
                 onPress={this.onContactPress}
                 onActionPress={() => this.onInvitePress(contact)}
                 theme={this.theme}
-                actionLabel={this.translate('pages.phoneContacts.buttons.invite')}
+                actionLabel={this.translate(
+                    contact.isInvited
+                        ? 'pages.phoneContacts.buttons.invited'
+                        : 'pages.phoneContacts.buttons.invite'
+                )}
             />
         );
     };
@@ -399,6 +471,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                 <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <SectionList
                         sections={sections}
+                        extraData={this.state.contactsNotOnApp}
                         keyExtractor={(item) => String(item.recordID)}
                         renderSectionHeader={this.renderSectionHeader}
                         renderItem={this.renderItem}
