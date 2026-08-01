@@ -2,6 +2,8 @@ import CheckinButton from './CheckinButton';
 import CheckinProofSheet from './CheckinProofSheet';
 import HabitCalendar from './HabitCalendar';
 import HabitCard from './HabitCard';
+import IdentityCard from './IdentityCard';
+import IdentityPromptSheet from './IdentityPromptSheet';
 import PactCard from './PactCard';
 import PactOnboardingGuard from './PactOnboardingGuard';
 import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
@@ -13,6 +15,8 @@ export {
     CheckinProofSheet,
     HabitCalendar,
     HabitCard,
+    IdentityCard,
+    IdentityPromptSheet,
     PactCard,
     PactOnboardingGuard,
     PactPreviewOverlay,

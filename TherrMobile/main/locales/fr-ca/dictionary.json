@@ -1888,6 +1888,92 @@
         "days": "jours",
         "nextMilestone": "Prochain jalon : {days} jours",
         "graceDaysRemaining": "Jours de grâce restants : {count}"
+      },
+      "identity": {
+        "eyebrow": "Qui tu deviens",
+        "statement": "Je suis {label}.",
+        "unnamedPrompt": "Chaque suivi est un vote pour quelqu'un. Qui cette habitude fait-elle de toi?",
+        "voteSingular": "vote pour cette personne",
+        "votePlural": "votes pour cette personne",
+        "stageUpTitle": "Tu as monté un échelon",
+        "dormant": "Ça fait {days} jours. La pause n'a rien effacé — les votes comptent toujours. Reprends aujourd'hui.",
+        "nameItCta": "Nomme qui tu deviens",
+        "editLabelCta": "Change qui tu deviens",
+        "promptSkip": "Pas maintenant",
+        "promptSave": "Enregistrer",
+        "saveFailed": "Nous n'avons pas pu enregistrer. Réessaie.",
+        "labelPrompt": {
+          "title": "Qui deviens-tu?",
+          "body": "Pas l'objectif — la personne. « Quelqu'un qui court avant le travail » tient mieux que « courir 3 fois par semaine », parce que chaque suivi devient une preuve sur toi plutôt qu'une case cochée.",
+          "placeholder": "quelqu'un qui court avant le travail"
+        },
+        "stages": {
+          "intention": {
+            "title": "Intention",
+            "blurb": "Tu as décidé qui tu veux être. Rien n'est encore prouvé, et c'est normal : tout le monde commence ici.",
+            "stageUpBody": "Tu as nommé qui tu deviens. Les votes commencent à compter."
+          },
+          "repetition": {
+            "title": "Répétition",
+            "blurb": "Tu le fais exprès, et ça demande encore un effort. Cet effort, c'est le travail.",
+            "stageUpBody": "Tu le répètes exprès maintenant. C'est le premier vrai échelon."
+          },
+          "automaticity": {
+            "title": "Automatisme",
+            "blurb": "Ça te coûte moins qu'avant. Cette baisse d'effort, c'est ce qu'est vraiment une habitude.",
+            "stageUpBody": "Ça devient plus facile. C'est exactement ce que ça fait, une habitude qui prend."
+          },
+          "mindset": {
+            "title": "État d'esprit",
+            "blurb": "Tu y penses autrement maintenant — et ça a survécu à un manqué, la partie que presque personne ne teste.",
+            "stageUpBody": "Ta façon de penser a changé, et elle a tenu malgré un faux pas. C'est le bout difficile."
+          },
+          "identity": {
+            "title": "Identité",
+            "blurb": "Tu le dis de toi, tu le dis depuis un moment, et quelqu'un qui te connaît le dit aussi.",
+            "stageUpBody": "C'est qui tu es maintenant. Des mois de preuves, et ton partenaire le voit aussi."
+          }
+        },
+        "next": {
+          "hasIdentityLabel": "Nomme qui cette habitude fait de toi, et l'échelle commence.",
+          "votesCast": "{remaining} suivis de plus pour atteindre {stage}.",
+          "consistencyRatio": "Atteins environ {thresholdPercent} % de tes jours prévus sur quatre semaines. Tu es à {actualPercent} %.",
+          "distinctWeeksActive": "Continue encore {remaining} semaines — réparties, pas entassées dans une seule.",
+          "meanRecentDifficulty": "Évalue la difficulté de chaque suivi. {stage} se débloque quand ça commence à sembler facile.",
+          "reflectionCount": "Réponds à une réflexion sur cette habitude.",
+          "comebackCount": "Cet échelon attend un faux pas. Manque une journée, reviens, et ça compte.",
+          "daysSinceFirstVote": "{remaining} jours de plus. L'identité n'est pas disponible à n'importe quelle vitesse.",
+          "selfConceptScore": "On te demandera à quel point « c'est qui je suis » sonne vrai. Réponds honnêtement.",
+          "partnerAffirmationCount": "Demande à ton partenaire de pacte de le reconnaître. Cet échelon a besoin de quelqu'un d'autre que toi."
+        },
+        "prompts": {
+          "why": {
+            "title": "Pourquoi celle-là?",
+            "body": "Écris-le maintenant, pendant que c'est facile. On te le redonnera un jour où ça ne le sera pas.",
+            "placeholder": "Parce que..."
+          },
+          "recommitment": {
+            "title": "Tu es revenu",
+            "body": "C'est la partie que presque personne ne fait. Qu'est-ce qui t'a ramené?",
+            "placeholder": "Ce qui m'a ramené, c'est..."
+          },
+          "obstacle": {
+            "title": "Qu'est-ce qui nuit?",
+            "body": "Nomme ce qui t'arrête d'habitude. Le nommer, c'est presque tout le travail.",
+            "placeholder": "Ça déraille surtout quand..."
+          },
+          "selfConcept": {
+            "title": "Qu'est-ce qui sonne le plus vrai?",
+            "body": "Il n'y a pas de bonne réponse, et une note basse ne te coûte rien. On demande seulement pour que l'appli arrête de deviner.",
+            "lowAnchor": "J'essaie de",
+            "highAnchor": "Je suis"
+          },
+          "partnerAffirmation": {
+            "title": "Dis-lui ce que tu vois",
+            "body": "Tu l'as vu faire. Dis ce que ça dit de cette personne — ça compte pour un échelon qu'elle ne peut pas atteindre seule.",
+            "placeholder": "Tu es devenu quelqu'un qui..."
+          }
+        }
       }
     },
     "pacts": {
