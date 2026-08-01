@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, ScrollView, Pressable } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
@@ -15,7 +15,7 @@ import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { HabitCard, CheckinProofSheet } from '../../components/Habits';
+import { HabitCard, CheckinProofSheet, NewPactButton } from '../../components/Habits';
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { signImageUrl } from '../../utilities/content';
@@ -211,6 +211,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         navigation.navigate('HabitDetail', { habitGoalId: habitGoal.id });
     };
 
+    // The invite wizard is the single creation flow: it creates the habit goal
+    // (from a template or a custom name) and sends the pact invites together.
+    handleCreatePact = () => {
+        const { navigation } = this.props;
+        navigation.navigate('CreatePactInvite');
+    };
+
     getTodayCheckinForHabit = (habitGoalId: string): IHabitCheckin | undefined => {
         const { habits } = this.props;
         return habits.todayCheckins.find((c: IHabitCheckin) => c.habitGoalId === habitGoalId);
@@ -248,6 +255,19 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             <Text style={this.themeHabits.styles.emptyStateSubtitle}>
                 {this.translate('pages.habits.noHabitsSubtitle')}
             </Text>
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={this.translate('pages.pacts.createPactAccessibility')}
+                onPress={this.handleCreatePact}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.emptyStateActionButton,
+                    pressed && this.themeHabits.styles.pressedOpacity,
+                ]}
+            >
+                <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                    {this.translate('pages.pacts.createPactCta')}
+                </Text>
+            </Pressable>
         </View>
     );
 
@@ -328,6 +348,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
                 <SafeAreaView style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}>
                     <ScrollView
+                        contentContainerStyle={this.themeHabits.styles.dashboardScrollContent}
                         refreshControl={
                             <RefreshControl
                                 refreshing={isRefreshing}
@@ -367,6 +388,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                         )}
                     </ScrollView>
                 </SafeAreaView>
+                <NewPactButton
+                    onPress={this.handleCreatePact}
+                    themeHabits={this.themeHabits}
+                    translate={this.translate}
+                />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}

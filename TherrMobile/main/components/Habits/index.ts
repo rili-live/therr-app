@@ -2,6 +2,7 @@ import CheckinButton from './CheckinButton';
 import CheckinProofSheet from './CheckinProofSheet';
 import HabitCalendar from './HabitCalendar';
 import HabitCard from './HabitCard';
+import NewPactButton from './NewPactButton';
 import PactCard from './PactCard';
 import PactMemberRow from './PactMemberRow';
 import PactOnboardingGuard from './PactOnboardingGuard';
@@ -14,6 +15,7 @@ export {
     CheckinProofSheet,
     HabitCalendar,
     HabitCard,
+    NewPactButton,
     PactCard,
     PactMemberRow,
     PactOnboardingGuard,

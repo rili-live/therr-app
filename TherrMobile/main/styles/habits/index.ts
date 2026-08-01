@@ -5,11 +5,16 @@ import { therrFontFamily } from '../font';
 import { fontSizes, fontWeights, lineHeights } from '../text';
 import { space } from '../layouts/spacing';
 import { radius } from '../radii';
-import { shadowSm } from '../elevation';
+import { shadowMd, shadowSm } from '../elevation';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
 import { getTheme, ITherrTheme } from '../themes';
 
 const tint = (color: string, alpha: number) => new Color(color).alpha(alpha).string();
+
+// Height of the floating "new pact" action, and the bottom padding a scrolling
+// surface needs so its last row clears both that action and the button menu.
+const NEW_PACT_FAB_HEIGHT = 48;
+const newPactFabClearance = buttonMenuHeight + NEW_PACT_FAB_HEIGHT + (space.lg * 2);
 
 const getCheckinButtonStyles = (_theme: ITherrTheme): any => ({
     borderRadius: 16,
@@ -791,10 +796,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             opacity: 0.75,
         },
 
-        // Clears the floating bottom nav so the last card is fully reachable.
+        // Clears the floating bottom nav *and* the floating "new pact" action
+        // so the last card is fully readable and tappable.
         pactsListContent: {
             paddingTop: space.xs,
-            paddingBottom: buttonMenuHeight + space.lg,
+            paddingBottom: newPactFabClearance,
+        },
+        dashboardScrollContent: {
+            paddingBottom: newPactFabClearance,
         },
 
         // Empty state
@@ -832,6 +841,58 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.onSurfaceMuted,
             textAlign: 'center',
             marginTop: space.sm,
+        },
+        // Empty states used to be copy only, which left "how do I start one?"
+        // unanswered on the exact screen where the user is asking it.
+        emptyStateActionButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 44,
+            marginTop: space.lg,
+            paddingHorizontal: space.xl,
+            borderRadius: radius.md,
+            backgroundColor: therrTheme.colors.brand,
+            ...shadowSm,
+        },
+        emptyStateActionLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onBrand,
+        },
+
+        // Floating "new pact" action.
+        //
+        // Creating a pact used to be reachable only from the onboarding
+        // overlay — which stops rendering the moment the user has an active
+        // pact — and from a link inside the Sent tab's invite card. A user
+        // with a live pact therefore had no way to start another one. This
+        // sits above the button menu on both the dashboard and the pacts list.
+        newPactFabContainer: {
+            position: 'absolute',
+            right: space.lg,
+            bottom: buttonMenuHeight + space.lg,
+        },
+        newPactFab: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: NEW_PACT_FAB_HEIGHT,
+            paddingHorizontal: space.lg,
+            borderRadius: radius.pill,
+            backgroundColor: therrTheme.colors.brand,
+            ...shadowMd,
+        },
+        newPactFabIcon: {
+            color: therrTheme.colors.onBrand,
+            marginRight: space.xs,
+        },
+        newPactFabLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onBrand,
         },
 
         // Pact onboarding stepper
