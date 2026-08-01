@@ -199,7 +199,63 @@ migrations in the right service and schema.
 
 > Note: both Cloud Function repos (`therr-ai-automator`, `therr-messaging-automator`)
 > query this database directly and are **not** covered by the lint rule. Check them
-> before renaming or dropping any column they read.
+> before renaming or dropping any column they read — see § Sibling Repos below.
+
+## Sibling Repos
+
+This monorepo is not the whole system. Four sibling repos in the `rili-live` org run in
+production, and two of them **read and write this database directly**, bypassing the
+gateway. No CI in any repo checks these couplings.
+
+| Repo | Couples to this repo via |
+|---|---|
+| `therr-messaging-automator` | Direct Knex reads (users/maps/reactions) + `POST /v1/habits/pacts/digest/run-daily` on users-service over the VPC |
+| `therr-ai-automator` | Direct Knex reads **and writes** — it authors `main.thoughts` / `main.thoughtReactions` |
+| `therr-infra-terraform` | Provisions Cloud SQL, the Cloud Functions, Cloud Scheduler, and the internal IP that `k8s/prod` pins |
+| `therr-landing` | Public API only (`/v1/users-service/subscribers/signup`) — not coupled |
+
+The four rules that actually bite:
+
+1. **Migrations are expand/contract.** A rename here deploys green and breaks a Cloud
+   Function hours later at its next scheduler firing, with no alert. Grep both automators'
+   `src/store/` first.
+2. **Brand-scoping doesn't cross repos.** `therr/no-direct-brand-scoped-table` can't see
+   another repository, and the messaging automator reads `main.notifications` and
+   `main.userAchievements`. Adding a table to `BRAND_SCOPED_TABLES` means mirroring it into
+   that repo's `src/store/brandScoped.ts` too.
+3. **`main.thoughts` rows can be dated in the future** (ai-automator drips a run's output out
+   over ~30h). Any SQL doing arithmetic on `NOW() - "createdAt"` must assume a negative
+   result — an unclamped `POWER()` on one caused an 8-day feed outage.
+4. **The habits digest has no server-side dedup.** Once-a-day is a property of there being a
+   single Cloud Scheduler job, not of the code. Never add a second trigger path.
+
+Full detail, including the table-by-table coupling surface and the internal-LB network path:
+`docs/CROSS_REPO_INTEGRATION.md`.
+
+## Migrations
+
+Two invariants are enforced by `eslint-plugin-therr` on `src/store/migrations/**`, both
+because the failure they prevent has already happened here:
+
+- **`no-async-table-builder-callback`** — an `async` callback passed to a Knex table builder
+  silently drops every `table.*` call after the first `await` from the emitted DDL.
+- **`require-idempotent-migration`** — every migration must be safe to run twice. Knex writes
+  the `knex_migrations` row only after the function resolves, so a run killed partway leaves
+  the schema half-changed with no ledger row, and the next deploy re-runs the file from the
+  top and fails on the half it already applied.
+
+In practice that means: `dropTableIfExists` over `dropTable`, `CREATE INDEX IF NOT EXISTS`
+over `CREATE INDEX`, raw `ADD COLUMN IF NOT EXISTS` / `DROP COLUMN IF EXISTS` over an
+`alterTable` builder callback, and a `hasTable` probe around `createTable`. Not
+`createTableIfNotExists` — Knex itself warns against it and the rule flags it.
+
+Only migrations dated at or after `MIGRATION_IDEMPOTENCY_CUTOFF`
+(`eslint-config/migration-idempotency-cutoff.js`) are in scope; the already-deployed back
+catalogue is exempt. That cutoff is a one-way ratchet — `npm run test:lint-rules` fails if it
+is moved forward, or if any migration in scope stops passing.
+
+Full substitution table: `docs/NICHE_APP_DATABASE_GUIDELINES.md` → "Idempotency (enforced by
+lint)". Use `/db-migration-scaffold` to generate migrations in the right service and schema.
 
 ## Localization
 
@@ -239,6 +295,7 @@ this" / "forget about" requests and enforces the cap. Full protocol:
 Read when relevant — see [`docs/README.md`](docs/README.md) for the full index.
 
 - `docs/ARCHITECTURE.md` — system design, service boundaries
+- `docs/CROSS_REPO_INTEGRATION.md` — the four sibling repos and what couples them to this one
 - `docs/MULTI_BRAND_ARCHITECTURE.md` — brand variation system
 - `docs/NICHE_APP_DATABASE_GUIDELINES.md` — schema isolation, migration patterns
 - `docs/NICHE_APP_SETUP_STEPS.md` — creating a new brand variation

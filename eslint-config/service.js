@@ -6,6 +6,7 @@
 const path = require('path');
 const baseConfig = require('./base');
 const { SHARED_LIBRARY_MODULES, SHARED_LIBRARY_INTERNAL_REGEX } = require('./shared-library-modules');
+const { MIGRATION_IDEMPOTENCY_CUTOFF } = require('./migration-idempotency-cutoff');
 
 // The brand-scoped-table and async-table-builder invariants used to be expressed as
 // `no-restricted-syntax` selectors. Two problems with that, both now fixed by moving them
@@ -68,15 +69,23 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
             // or dropping them — brand-scoping is enforced at runtime via BrandScopedStore, and
             // schema-level DDL is safe by definition. So that rule is off here.
             //
-            // Migrations have their own footgun instead: an `async` callback passed to a Knex
-            // table builder silently drops every `table.*` call after the first `await` from the
-            // emitted DDL. That rule is on only here, where migrations actually live.
-            // See eslint-config/plugin/rules/no-async-table-builder-callback.js.
+            // Migrations have their own footguns instead, and both rules below are on only
+            // here, where migrations actually live:
+            //
+            //   - `no-async-table-builder-callback`: an `async` callback passed to a Knex table
+            //     builder silently drops every `table.*` call after the first `await` from the
+            //     emitted DDL.
+            //   - `require-idempotent-migration`: a migration that dies partway through leaves
+            //     the schema half-changed with no `knex_migrations` row, so the next deploy
+            //     re-runs it from the top and fails on the half it already applied. Applies from
+            //     MIGRATION_IDEMPOTENCY_CUTOFF forward — see migration-idempotency-cutoff.js for
+            //     why the back catalogue is exempt.
             {
                 files: ['src/store/migrations/**/*.js', 'src/store/seeds/**/*.js'],
                 rules: {
                     'therr/no-direct-brand-scoped-table': 'off',
                     'therr/no-async-table-builder-callback': 'error',
+                    'therr/require-idempotent-migration': ['error', { since: MIGRATION_IDEMPOTENCY_CUTOFF }],
                 },
             },
             ...(overrides.overrides || []),

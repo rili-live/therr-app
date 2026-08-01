@@ -39,6 +39,23 @@ The result: **zero added infrastructure cost, zero added runtime overhead on
 the cluster** (read-only queries, run on demand by a human), and a tight
 security boundary.
 
+### It only sees the GKE cluster
+
+Two Cloud Functions run outside it (`therr-messaging-automator`, `therr-ai-automator`), on
+Cloud Scheduler, and they touch production data directly. A clean digest does **not** mean a
+clean system. If the symptom is missing emails/pushes, missing or stale AI-generated content,
+or a data anomaly with no matching cluster error, check GCF logs in the GCP console and see
+[CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md).
+
+Two signatures worth memorizing:
+
+- **Habits digest hangs ~127s then `ETIMEDOUT`** — the users-service internal LB or its
+  NetworkPolicy `ipBlock` is missing/wrong (`k8s/prod/users-service-*.yaml`). Dropped
+  packets, not refused; `ECONNREFUSED` means something else.
+- **Feeds go empty platform-wide with no 5xx spike** — suspect a future-dated
+  `main.thoughts` row breaking a candidate query (the ai-automator writes them ahead of
+  `NOW()` on purpose). This mode failed silently for 8 days in July 2026.
+
 ---
 
 ## Security model
