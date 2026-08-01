@@ -18,7 +18,7 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
-import { PactCard, SentInviteCard } from '../../components/Habits';
+import { NewPactButton, PactCard, SentInviteCard } from '../../components/Habits';
 
 type PactsTab = 'active' | 'pending' | 'outgoing' | 'all';
 
@@ -215,7 +215,11 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
             });
     };
 
-    handleInviteSomeoneElse = () => {
+    // The invite wizard is the single creation flow: it creates the habit goal
+    // (from a template or a custom name) and sends the pact invites together.
+    // Shared by the floating action, the empty states, and the Sent-tab card's
+    // "invite someone else" link.
+    handleCreatePact = () => {
         const { navigation } = this.props;
         navigation.navigate('CreatePactInvite');
     };
@@ -316,7 +320,7 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                     userName={user.details?.userName || ''}
                     isNudging={nudgingPactId === item.id}
                     onNudge={this.handleNudge}
-                    onInviteSomeoneElse={this.handleInviteSomeoneElse}
+                    onInviteSomeoneElse={this.handleCreatePact}
                     themeHabits={this.themeHabits}
                     translate={this.translate}
                     onPress={() => this.handlePactPress(item)}
@@ -362,6 +366,19 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                         ? 'pages.pacts.outgoing.emptySubtitle'
                         : 'pages.pacts.noPactsSubtitle')}
                 </Text>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={this.translate('pages.pacts.createPactAccessibility')}
+                    onPress={this.handleCreatePact}
+                    style={({ pressed }) => [
+                        this.themeHabits.styles.emptyStateActionButton,
+                        pressed && this.themeHabits.styles.pressedOpacity,
+                    ]}
+                >
+                    <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                        {this.translate('pages.pacts.createPactCta')}
+                    </Text>
+                </Pressable>
             </View>
         );
     };
@@ -446,6 +463,11 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                         contentContainerStyle={this.themeHabits.styles.pactsListContent}
                     />
                 </SafeAreaView>
+                <NewPactButton
+                    onPress={this.handleCreatePact}
+                    themeHabits={this.themeHabits}
+                    translate={this.translate}
+                />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
