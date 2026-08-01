@@ -1715,7 +1715,9 @@
       "buttons": {
         "connect": "Connecter",
         "invite": "Inviter",
-        "inviteSelected": "Inviter la sélection"
+        "inviteSelected": "Inviter la sélection",
+        "invited": "Invité",
+        "inviteSelectedCount": "Inviter la sélection ({count})"
       },
       "empty": {
         "onApp": "Aucun de vos contacts n'est encore sur Friends with Habits",
@@ -1726,12 +1728,20 @@
       "alertTitles": {
         "contactInvitesSent": "Invitations envoyées",
         "connectRequestSent": "Demande de connexion envoyée",
-        "noContactsSelected": "Aucun contact sélectionné"
+        "noContactsSelected": "Aucun contact sélectionné",
+        "noContactInfo": "Aucune coordonnée",
+        "tooManySelected": "Trop de sélections",
+        "inviteFailed": "Invitation non envoyée",
+        "phoneVerificationRequired": "Vérifiez votre téléphone"
       },
       "alertMessages": {
         "contactInvitesSent": "Vos invitations sont en route",
         "connectRequestSent": "Votre demande de connexion a été envoyée",
-        "noContactsSelected": "Veuillez sélectionner au moins un contact à inviter"
+        "noContactsSelected": "Veuillez sélectionner au moins un contact à inviter",
+        "noContactInfo": "Ce contact n'a ni numéro de téléphone ni adresse courriel pour recevoir une invitation",
+        "tooManySelected": "Seuls les {count} premiers contacts ont été invités. Sélectionnez-en moins pour inviter les autres.",
+        "inviteFailed": "Nous n'avons pas pu envoyer vos invitations. Veuillez réessayer.",
+        "phoneVerificationRequired": "Vérifiez votre numéro de téléphone dans votre profil avant d'envoyer des invitations"
       }
     },
     "register": {
