@@ -26,6 +26,12 @@ const findReactionsByUser = (thoughtIds: string[], headers: InternalConfigHeader
         url: `${baseReactionsServiceRoute}/thought-reactions/find/dynamic`,
         data: {
             thoughtIds,
+            // `find/dynamic` defaults to 100 rows ordered by `createdAt DESC`. Replies on a
+            // thought are not capped, and opening a thread activates every reply (one reaction
+            // row each), so leaving the default in place silently drops the like state of
+            // every reply past the 100th on a busy thread. There is at most one reaction row
+            // per (user, thought), so the batch size is the exact bound.
+            limit: thoughtIds.length,
         },
     })
         .then(({ data }) => (data?.reactions || []).reduce((acc: any, reaction: any) => ({

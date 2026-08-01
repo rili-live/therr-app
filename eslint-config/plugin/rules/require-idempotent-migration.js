@@ -390,7 +390,7 @@ module.exports = {
     },
 
     create(context) {
-        const since = (context.options[0] || {}).since;
+        const { since } = context.options[0] || {};
         const filename = context.filename || context.getFilename();
         const basename = path.basename(filename || '');
         const timestampMatch = basename.match(MIGRATION_TIMESTAMP);
