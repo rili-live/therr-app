@@ -392,7 +392,9 @@
       "buttons": {
         "accept": "Accepter",
         "reject": "Refuser",
-        "view": "Voir"
+        "view": "Voir",
+        "markRead": "Marquer comme lu",
+        "markUnread": "Marquer comme non lu"
       }
     },
     "thoughtDisplay": {
@@ -1242,7 +1244,8 @@
         "claimTitleInProgress": "{achievementClass} : {achievementTitle}",
         "alreadyClaimed": "Vous avez déjà réclamé les récompenses pour cette réalisation",
         "unClaimed": "Cette réalisation est terminée! Retournez en arrière et appuyez sur « réclamer les récompenses » pour continuer.",
-        "inProgressDescription": "Vous y êtes presque! Continuez sur cette lancée!"
+        "inProgressDescription": "Vous y êtes presque! Continuez sur cette lancée!",
+        "progressOf": "{count} sur {total}"
       },
       "sections": {
         "unclaimed": "Réclamez vos récompenses",
@@ -1678,7 +1681,9 @@
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
       "noNotifications": "Vous n'avez aucune notification pour le moment",
-      "markAllRead": "Tout marquer comme lu"
+      "markAllRead": "Tout marquer comme lu",
+      "unreadCount": "{count} non lue(s)",
+      "caughtUp": "Tu es à jour"
     },
     "pageNotFound": {
       "pageTitle": "Page non trouvée"
