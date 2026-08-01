@@ -183,6 +183,22 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderTopWidth: 1,
             borderTopColor: therrTheme.colors.primary4,
         },
+        habitCardPartnerText: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            color: therrTheme.colors.textGray,
+            marginTop: 8,
+        },
+        habitCardAwaitingText: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            fontStyle: 'italic',
+            color: therrTheme.colors.textGray,
+            marginTop: 16,
+            paddingTop: 12,
+            borderTopWidth: 1,
+            borderTopColor: therrTheme.colors.primary4,
+        },
 
         // Calendar
         calendarContainer: {

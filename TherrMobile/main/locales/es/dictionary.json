@@ -1857,6 +1857,10 @@
       "completed": "¡Completado!",
       "noHabitsTitle": "Aún no hay hábitos",
       "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
+      "pendingHabits": "Esperando a los compañeros",
+      "pactWithPartners": "Pacto con {partners}",
+      "awaitingPartnerAcceptance": "Esperando a que {partners} acepte para que comience este pacto.",
+      "awaitingAnyPartnerAcceptance": "Esperando a que se acepte tu invitación para que comience este pacto.",
       "habitNotFound": "Hábito no encontrado",
       "checkinProof": {
         "title": "Registrar",

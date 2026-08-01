@@ -1857,6 +1857,10 @@
       "completed": "Completed!",
       "noHabitsTitle": "No habits yet",
       "noHabitsSubtitle": "Create a habit to start tracking your progress",
+      "pendingHabits": "Waiting on Partners",
+      "pactWithPartners": "Pact with {partners}",
+      "awaitingPartnerAcceptance": "Waiting for {partners} to accept before this pact starts.",
+      "awaitingAnyPartnerAcceptance": "Waiting for your invite to be accepted before this pact starts.",
       "habitNotFound": "Habit not found",
       "checkinProof": {
         "title": "Check In",

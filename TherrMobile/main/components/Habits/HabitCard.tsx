@@ -13,6 +13,16 @@ interface IHabitCardProps {
     onCheckin?: () => void;
     isCheckinLoading?: boolean;
     showStreak?: boolean;
+    /**
+     * Set when the habit's only pacts are still awaiting an invitee's
+     * acceptance. The card then explains who it is waiting on instead of
+     * offering a check-in for a pact that has not started.
+     */
+    isAwaitingPartner?: boolean;
+    /** Invitees yet to accept. May be empty when their names are unknown. */
+    awaitingPartnerNames?: string[];
+    /** Partners already checked into this habit's active pact. */
+    partnerNames?: string[];
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -60,6 +70,9 @@ const HabitCard: React.FC<IHabitCardProps> = ({
     onCheckin,
     isCheckinLoading = false,
     showStreak = true,
+    isAwaitingPartner = false,
+    awaitingPartnerNames,
+    partnerNames,
     themeHabits,
     translate,
 }) => {
@@ -92,7 +105,15 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                 </View>
             )}
 
-            {showStreak && streak && streak.currentStreak > 0 && (
+            {!!partnerNames?.length && (
+                <Text style={themeHabits.styles.habitCardPartnerText}>
+                    {translate('pages.habits.pactWithPartners', {
+                        partners: partnerNames.join(', '),
+                    })}
+                </Text>
+            )}
+
+            {showStreak && !isAwaitingPartner && streak && streak.currentStreak > 0 && (
                 <StreakWidget
                     streak={streak}
                     themeHabits={themeHabits}
@@ -100,7 +121,17 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                 />
             )}
 
-            {onCheckin && (
+            {isAwaitingPartner && (
+                <Text style={themeHabits.styles.habitCardAwaitingText}>
+                    {awaitingPartnerNames?.length
+                        ? translate('pages.habits.awaitingPartnerAcceptance', {
+                            partners: awaitingPartnerNames.join(', '),
+                        })
+                        : translate('pages.habits.awaitingAnyPartnerAcceptance')}
+                </Text>
+            )}
+
+            {onCheckin && !isAwaitingPartner && (
                 <View style={themeHabits.styles.habitCardFooter}>
                     <CheckinButton
                         isCompleted={isCompleted}

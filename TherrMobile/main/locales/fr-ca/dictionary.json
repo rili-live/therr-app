@@ -1857,6 +1857,10 @@
       "completed": "Complété!",
       "noHabitsTitle": "Aucune habitude pour le moment",
       "noHabitsSubtitle": "Créez une habitude pour commencer à suivre vos progrès",
+      "pendingHabits": "En attente des partenaires",
+      "pactWithPartners": "Pacte avec {partners}",
+      "awaitingPartnerAcceptance": "En attente de l'acceptation de {partners} pour démarrer ce pacte.",
+      "awaitingAnyPartnerAcceptance": "En attente de l'acceptation de votre invitation pour démarrer ce pacte.",
       "habitNotFound": "Habitude introuvable",
       "checkinProof": {
         "title": "Enregistrer",
