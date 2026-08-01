@@ -1698,7 +1698,9 @@
       "buttons": {
         "connect": "Connect",
         "invite": "Invite",
-        "inviteSelected": "Invite Selected"
+        "inviteSelected": "Invite Selected",
+        "invited": "Invited",
+        "inviteSelectedCount": "Invite Selected ({count})"
       },
       "empty": {
         "onApp": "None of your contacts are on Therr yet",
@@ -1709,12 +1711,20 @@
       "alertTitles": {
         "contactInvitesSent": "Invite Success",
         "connectRequestSent": "Connect Request Sent",
-        "noContactsSelected": "No Contacts Selected"
+        "noContactsSelected": "No Contacts Selected",
+        "noContactInfo": "No Contact Info",
+        "tooManySelected": "Too Many Selected",
+        "inviteFailed": "Invite Not Sent",
+        "phoneVerificationRequired": "Verify Your Phone"
       },
       "alertMessages": {
         "contactInvitesSent": "Your invites are on the way",
         "connectRequestSent": "Your connection request has been sent",
-        "noContactsSelected": "Please select at least one contact to invite"
+        "noContactsSelected": "Please select at least one contact to invite",
+        "noContactInfo": "This contact has no phone number or email address to send an invite to",
+        "tooManySelected": "Only the first {count} contacts were invited. Select fewer to invite the rest.",
+        "inviteFailed": "We could not send your invites. Please try again.",
+        "phoneVerificationRequired": "Verify your phone number in your profile before sending invites"
       }
     },
     "register": {

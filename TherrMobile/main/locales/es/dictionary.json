@@ -1698,7 +1698,9 @@
       "buttons": {
         "connect": "Conectar",
         "invite": "Invitar",
-        "inviteSelected": "Invitar seleccionados"
+        "inviteSelected": "Invitar seleccionados",
+        "invited": "Invitado",
+        "inviteSelectedCount": "Invitar seleccionados ({count})"
       },
       "empty": {
         "onApp": "Ninguno de tus contactos está en Therr todavía",
@@ -1709,12 +1711,20 @@
       "alertTitles": {
         "contactInvitesSent": "Invitación exitosa",
         "connectRequestSent": "Solicitud de conexión enviada",
-        "noContactsSelected": "No se seleccionaron contactos"
+        "noContactsSelected": "No se seleccionaron contactos",
+        "noContactInfo": "Sin datos de contacto",
+        "tooManySelected": "Demasiados seleccionados",
+        "inviteFailed": "Invitación no enviada",
+        "phoneVerificationRequired": "Verifica tu teléfono"
       },
       "alertMessages": {
         "contactInvitesSent": "Tus invitaciones están en camino",
         "connectRequestSent": "Tu solicitud de conexión ha sido enviada",
-        "noContactsSelected": "Por favor, selecciona al menos un contacto para invitar"
+        "noContactsSelected": "Por favor, selecciona al menos un contacto para invitar",
+        "noContactInfo": "Este contacto no tiene un número de teléfono ni un correo electrónico al que enviar la invitación",
+        "tooManySelected": "Solo se invitó a los primeros {count} contactos. Selecciona menos para invitar al resto.",
+        "inviteFailed": "No pudimos enviar tus invitaciones. Inténtalo de nuevo.",
+        "phoneVerificationRequired": "Verifica tu número de teléfono en tu perfil antes de enviar invitaciones"
       }
     },
     "register": {
