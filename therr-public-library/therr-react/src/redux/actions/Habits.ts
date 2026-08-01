@@ -3,6 +3,7 @@ import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '.
 import PactsService, { ICreatePactBody, IBulkInvitePactBody } from '../../services/PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from '../../services/HabitCheckinsService';
 import StreaksService from '../../services/StreaksService';
+import IdentityService, { ICreateIdentityReflectionBody } from '../../services/IdentityService';
 
 const Habits = {
     // Habit Goals
@@ -168,10 +169,21 @@ const Habits = {
 
     createCheckin: (data: ICreateCheckinBody) => (dispatch: any) => HabitCheckinsService
         .create(data).then((response) => {
+            // The check-in response carries an `identity` snapshot alongside the
+            // check-in row. Split it out so the checkin stored in state stays a
+            // plain checkin, and the identity card updates from the same request.
+            const { identity, ...checkin } = response.data || {};
             dispatch({
                 type: HabitsActionTypes.CREATE_CHECKIN,
-                data: response.data,
+                data: checkin,
             });
+            if (identity) {
+                dispatch({
+                    type: HabitsActionTypes.GET_IDENTITY_BY_HABIT,
+                    data: { habitGoalId: checkin.habitGoalId, snapshot: identity },
+                });
+            }
+            // Callers need the stage-up and prompt, so hand back the full payload.
             return response.data;
         }),
 
@@ -239,6 +251,60 @@ const Habits = {
         });
         return response.data;
     }),
+
+    // Identity progression (habit -> mindset -> identity)
+    getUserIdentities: () => (dispatch: any) => IdentityService.getUserIdentities().then((response: any) => {
+        if (response?.isOfflineFallback) return undefined;
+        dispatch({
+            type: HabitsActionTypes.GET_USER_IDENTITIES,
+            data: response.data,
+        });
+        return response.data;
+    }),
+
+    getIdentityByHabit: (habitGoalId: string) => (dispatch: any) => IdentityService
+        .getByHabit(habitGoalId).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: HabitsActionTypes.GET_IDENTITY_BY_HABIT,
+                data: { habitGoalId, snapshot: response.data },
+            });
+            return response.data;
+        }),
+
+    setIdentityLabel: (habitGoalId: string, identityLabel: string, pactId?: string) => (dispatch: any) => IdentityService
+        .setIdentityLabel(habitGoalId, identityLabel, pactId).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.SET_IDENTITY_LABEL,
+                data: { habitGoalId, snapshot: response.data },
+            });
+            return response.data;
+        }),
+
+    createIdentityReflection: (
+        habitGoalId: string,
+        data: ICreateIdentityReflectionBody,
+    ) => (dispatch: any) => IdentityService.createReflection(habitGoalId, data).then((response) => {
+        // A partner affirmation writes to the PARTNER's identity, not the
+        // author's, so it must not overwrite the author's cached snapshot.
+        if (!data.targetUserId) {
+            dispatch({
+                type: HabitsActionTypes.CREATE_IDENTITY_REFLECTION,
+                data: { habitGoalId, snapshot: response.data },
+            });
+        }
+        return response.data;
+    }),
+
+    getIdentityReflections: (habitGoalId: string, limit?: number) => (dispatch: any) => IdentityService
+        .getReflections(habitGoalId, limit).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: HabitsActionTypes.GET_IDENTITY_REFLECTIONS,
+                data: { habitGoalId, reflections: response.data },
+            });
+            return response.data;
+        }),
 
     // Reset
     reset: () => (dispatch: any) => {

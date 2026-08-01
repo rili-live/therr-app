@@ -264,6 +264,97 @@ describe('habits reducer', () => {
         expect(result.activeStreaks[0].graceDaysUsed).toBe(1);
     });
 
+    // Identity progression (habit -> mindset -> identity)
+    it('handles GET_USER_IDENTITIES', () => {
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.GET_USER_IDENTITIES,
+            data: [{ id: 'i1', habitGoalId: 'g1', identityLabel: 'someone who runs' }],
+        });
+        expect(result.identities.length).toBe(1);
+        expect(result.identities[0].identityLabel).toBe('someone who runs');
+    });
+
+    it('handles GET_USER_IDENTITIES with null data', () => {
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.GET_USER_IDENTITIES,
+            data: null,
+        });
+        expect(Array.from(result.identities)).toEqual([]);
+    });
+
+    it('handles GET_IDENTITY_BY_HABIT and mirrors the row into the list', () => {
+        const snapshot = {
+            progress: { id: 'i1', habitGoalId: 'g1', stage: 2 },
+            evaluation: { stage: 2, nextStage: 3 },
+            isDormant: false,
+            daysSinceLastVote: 0,
+        };
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.GET_IDENTITY_BY_HABIT,
+            data: { habitGoalId: 'g1', snapshot },
+        });
+        expect(result.identityByHabitGoalId.g1.evaluation.stage).toBe(2);
+        expect(result.identities.length).toBe(1);
+        expect(result.identities[0].stage).toBe(2);
+    });
+
+    it('merges into an existing identity row rather than dropping its joined fields', () => {
+        // List rows carry joined habitGoalName/Emoji that the detail payload lacks;
+        // replacing outright would blank the card's title after a check-in.
+        const listed = reducer(initialState, {
+            type: HabitsActionTypes.GET_USER_IDENTITIES,
+            data: [{
+                id: 'i1', habitGoalId: 'g1', stage: 1, habitGoalName: 'Morning run',
+            }],
+        });
+        const result = reducer(listed, {
+            type: HabitsActionTypes.GET_IDENTITY_BY_HABIT,
+            data: {
+                habitGoalId: 'g1',
+                snapshot: { progress: { id: 'i1', habitGoalId: 'g1', stage: 2 } },
+            },
+        });
+        expect(result.identities.length).toBe(1);
+        expect(result.identities[0].stage).toBe(2);
+        expect(result.identities[0].habitGoalName).toBe('Morning run');
+    });
+
+    it('ignores an identity action with no snapshot', () => {
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.GET_IDENTITY_BY_HABIT,
+            data: { habitGoalId: 'g1' },
+        });
+        expect(result.identityByHabitGoalId.g1).toBeUndefined();
+        expect(Array.from(result.identities)).toEqual([]);
+    });
+
+    it('handles SET_IDENTITY_LABEL', () => {
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.SET_IDENTITY_LABEL,
+            data: {
+                habitGoalId: 'g1',
+                snapshot: { progress: { id: 'i1', habitGoalId: 'g1', identityLabel: 'a reader' } },
+            },
+        });
+        expect(result.identityByHabitGoalId.g1.progress.identityLabel).toBe('a reader');
+    });
+
+    it('handles GET_IDENTITY_REFLECTIONS', () => {
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.GET_IDENTITY_REFLECTIONS,
+            data: { habitGoalId: 'g1', reflections: [{ id: 'r1', reflectionType: 'why' }] },
+        });
+        expect(result.reflectionsByHabitGoalId.g1.length).toBe(1);
+    });
+
+    it('handles GET_IDENTITY_REFLECTIONS with null reflections', () => {
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.GET_IDENTITY_REFLECTIONS,
+            data: { habitGoalId: 'g1', reflections: null },
+        });
+        expect(Array.from(result.reflectionsByHabitGoalId.g1)).toEqual([]);
+    });
+
     // Reset
     it('handles RESET_HABITS', () => {
         const populated = reducer(initialState, {
