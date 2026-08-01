@@ -102,9 +102,11 @@ const routes: RouteConfig<
         }),
     },
     {
-        // ORDER IS LOAD-BEARING: Layout renders these in array order and does not
-        // set `initialRouteName`, so the first route the user is authorized for
-        // becomes the landing screen. `CreateProfile` must sit AFTER `Map`:
+        // ORDER IS LOAD-BEARING: Layout renders these in array order, and for any
+        // brand `Layout.getBrandInitialRouteName()` does not answer for (today:
+        // everything except HABITS) it sets no `initialRouteName`, so the first
+        // route the user is authorized for becomes the landing screen.
+        // `CreateProfile` must sit AFTER `Map`:
         //   - onboarding users (missing properties) fail Landing/Login/Map, so
         //     CreateProfile is their first surviving route — first-run onboarding;
         //   - fully verified users now also match CreateProfile (they re-enter it
