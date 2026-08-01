@@ -4,14 +4,19 @@ import { it, describe, expect } from '@jest/globals';
 import {
     applyAuthorDiversity,
     buildCategoryAffinityMap,
+    buildSpaceActivityMap,
+    getAreaPreviewScore,
     getPostRankingScore,
     getReplyCount,
     getTopReply,
+    rankAreaPreviews,
     rankFeedPosts,
     shouldAutoExpandThread,
 } from '../../main/utilities/feedRanking';
 
 const hoursAgo = (hours: number) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+const hoursAhead = (hours: number) => new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+const MILES_PER_METER = 1 / 1609.34;
 
 describe('feedRanking', () => {
     describe('getReplyCount', () => {
@@ -109,6 +114,73 @@ describe('feedRanking', () => {
             };
             expect(getTopReply(thought as any)).toBeUndefined();
             expect(getTopReply({ id: 't', createdAt: hoursAgo(4) } as any)).toBeUndefined();
+        });
+    });
+
+    describe('buildSpaceActivityMap', () => {
+        it('records the newest moment and a count per space, ignoring spaceless moments', () => {
+            const newest = hoursAgo(1);
+            const map = buildSpaceActivityMap([
+                { id: 'm1', spaceId: 's1', createdAt: hoursAgo(10) },
+                { id: 'm2', spaceId: 's1', createdAt: newest },
+                { id: 'm3', createdAt: newest },
+            ] as any);
+
+            expect(map.s1.activityCount).toBe(2);
+            expect(map.s1.latestActivityMs).toBe(new Date(newest).getTime());
+            expect(Object.keys(map)).toEqual(['s1']);
+        });
+
+        it('handles empty input', () => {
+            expect(buildSpaceActivityMap([] as any)).toEqual({});
+        });
+    });
+
+    describe('rankAreaPreviews', () => {
+        const context = () => ({ nowMs: Date.now(), spaceActivity: {} });
+
+        it('prefers a nearby area over a distant one, all else equal', () => {
+            const near = { id: 'near', areaType: 'moments', createdAt: hoursAgo(2), distanceFromPress: 200 * MILES_PER_METER };
+            const far = { id: 'far', areaType: 'moments', createdAt: hoursAgo(2), distanceFromPress: 5000 * MILES_PER_METER };
+            expect(rankAreaPreviews([far, near] as any, [] as any).map((a) => a.id)).toEqual(['near', 'far']);
+        });
+
+        it('lifts a slightly further area that has recent activity above a stale closer one', () => {
+            const staleClose = { id: 'stale', areaType: 'moments', createdAt: hoursAgo(24 * 30), distanceFromPress: 300 * MILES_PER_METER };
+            const freshFurther = { id: 'fresh', areaType: 'moments', createdAt: hoursAgo(1), distanceFromPress: 600 * MILES_PER_METER };
+            expect(rankAreaPreviews([staleClose, freshFurther] as any, [] as any).map((a) => a.id)).toEqual(['fresh', 'stale']);
+        });
+
+        it('does not zero out spaces just because they are old', () => {
+            // A space created years ago must still outrank a far-away fresh moment.
+            const space = { id: 's1', areaType: 'spaces', createdAt: hoursAgo(24 * 365 * 3), distanceFromPress: 100 * MILES_PER_METER };
+            const distantMoment = { id: 'm1', areaType: 'moments', createdAt: hoursAgo(1), distanceFromPress: 9000 * MILES_PER_METER };
+            expect(rankAreaPreviews([distantMoment, space] as any, [] as any).map((a) => a.id)).toEqual(['s1', 'm1']);
+        });
+
+        it('gives a space credit for recent moments posted at it', () => {
+            const quiet = { id: 'quiet', areaType: 'spaces', createdAt: hoursAgo(24 * 100), distanceFromPress: 400 * MILES_PER_METER };
+            const busy = { id: 'busy', areaType: 'spaces', createdAt: hoursAgo(24 * 100), distanceFromPress: 400 * MILES_PER_METER };
+            const moments = [
+                { id: 'm1', spaceId: 'busy', createdAt: hoursAgo(1) },
+                { id: 'm2', spaceId: 'busy', createdAt: hoursAgo(2) },
+            ];
+            expect(rankAreaPreviews([quiet, busy] as any, moments as any).map((a) => a.id)).toEqual(['busy', 'quiet']);
+        });
+
+        it('treats an imminent event as current activity', () => {
+            const imminent = { id: 'soon', areaType: 'events', scheduleStartAt: hoursAhead(3), distanceFromPress: 500 * MILES_PER_METER };
+            const distantFuture = { id: 'later', areaType: 'events', scheduleStartAt: hoursAhead(24 * 20), distanceFromPress: 500 * MILES_PER_METER };
+            expect(rankAreaPreviews([distantFuture, imminent] as any, [] as any).map((a) => a.id)).toEqual(['soon', 'later']);
+        });
+
+        it('scores an area with no recency signal without penalizing it below zero', () => {
+            const noSignal = { id: 'x', areaType: 'spaces', distanceFromPress: 0 };
+            expect(getAreaPreviewScore(noSignal as any, 0, context() as any)).toBeGreaterThan(0);
+        });
+
+        it('handles empty input', () => {
+            expect(rankAreaPreviews([] as any, [] as any)).toEqual([]);
         });
     });
 
