@@ -350,6 +350,52 @@ describe('ThoughtsStore brand filtering', () => {
             expect(thoughts[0].replies[0].replyCount).to.equal(3);
             expect(thoughts[0].replies[1].replyCount).to.equal(0);
         });
+
+        it('nulls the nested reply count when the left join produced no reply', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getById(BrandVariations.THERR, 'thought-1', {}, { withReplies: true });
+
+            const sql = readStub.args[0][0] as string;
+            // Without this, COUNT(*) returns 0 (never NULL) on the all-NULL join row, which
+            // formatSQLJoinAsJSON reads as proof a reply exists.
+            expect(sql).to.include('CASE WHEN replies.id IS NULL THEN NULL ELSE');
+        });
+
+        it('returns no replies for a thought that has none (no phantom reply row)', async () => {
+            const { connection, readStub } = buildMockConnection();
+            // The shape pg returns for a left join that matched nothing.
+            readStub.callsFake(() => Promise.resolve({
+                rows: [{
+                    id: 'thought-1',
+                    message: 'a reply with no replies of its own',
+                    'replies[].replyCount': null,
+                    'replies[].id': null,
+                    'replies[].message': null,
+                }],
+            }));
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.THERR, 'thought-1', {}, { withReplies: true });
+
+            expect(thoughts[0].replies).to.deep.equal([]);
+        });
+
+        it('drops id-less reply rows even if a column sneaks through as non-null', async () => {
+            const { connection, readStub } = buildMockConnection();
+            readStub.callsFake(() => Promise.resolve({
+                rows: [{
+                    id: 'thought-1',
+                    'replies[].replyCount': '0',
+                    'replies[].id': null,
+                }],
+            }));
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.THERR, 'thought-1', {}, { withReplies: true });
+
+            expect(thoughts[0].replies).to.deep.equal([]);
+        });
     });
 
     describe('create', () => {

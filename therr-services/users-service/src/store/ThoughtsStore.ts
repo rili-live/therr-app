@@ -277,9 +277,16 @@ export default class ThoughtsStore {
                 })
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
+                    // The CASE is load-bearing, not defensive: on a thought with no replies the
+                    // left join yields a row of NULL reply columns, but COUNT(*) still returns 0
+                    // — never NULL. formatSQLJoinAsJSON treats any non-null `replies[].*` value as
+                    // proof a reply exists, so an unguarded count fabricates a phantom reply
+                    // `{ replyCount: 0 }` with no id, which then renders as an empty card and
+                    // 404s the moment it is opened.
                     knexBuilder.raw(
-                        `(SELECT COUNT(*) FROM ${THOUGHTS_TABLE_NAME} AS nested `
-                        + `WHERE nested."parentId" = replies.id${nestedRepliesBrandClause}) AS "replies[].replyCount"`,
+                        'CASE WHEN replies.id IS NULL THEN NULL ELSE '
+                        + `(SELECT COUNT(*) FROM ${THOUGHTS_TABLE_NAME} AS nested `
+                        + `WHERE nested."parentId" = replies.id${nestedRepliesBrandClause}) END AS "replies[].replyCount"`,
                     ),
                     'replies.id as replies[].id',
                     'replies.fromUserId as replies[].fromUserId',
@@ -312,9 +319,14 @@ export default class ThoughtsStore {
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
 
             if (options.withReplies) {
-                // pg returns COUNT(*) as a bigint string; clients render/compare it as a number
                 thoughts.forEach((thought) => {
-                    (thought.replies || []).forEach((reply) => {
+                    const modifiedThought = thought;
+                    // Every consumer of `replies` assumes an addressable row. Dropping id-less
+                    // entries keeps that invariant even if a future always-non-null aliased
+                    // column re-introduces the phantom the CASE above guards against.
+                    modifiedThought.replies = (modifiedThought.replies || []).filter((reply) => !!reply.id);
+                    // pg returns COUNT(*) as a bigint string; clients render/compare it as a number
+                    modifiedThought.replies.forEach((reply) => {
                         const modifiedReply = reply;
                         modifiedReply.replyCount = parseInt(modifiedReply.replyCount || 0, 10);
                     });
