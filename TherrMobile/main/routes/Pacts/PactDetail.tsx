@@ -1,15 +1,20 @@
 import React from 'react';
-import { SafeAreaView, View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView, View, Text, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
+import getPactTimeline from '../../utilities/pactTimeline';
+import getConfig from '../../utilities/getConfig';
 import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import translator from '../../utilities/translator';
 import { Button } from '../../components/BaseButton';
+import { PactMemberRow } from '../../components/Habits';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
@@ -19,6 +24,7 @@ import { buildStyles as buildModalStyles } from '../../styles/modal/confirmModal
 
 interface IPactDetailDispatchProps {
     getPactDetails: Function;
+    getUserGoals: Function;
     acceptPact: Function;
     declinePact: Function;
     abandonPact: Function;
@@ -52,6 +58,7 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getPactDetails: HabitActions.getPactDetails,
+    getUserGoals: HabitActions.getUserGoals,
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
     abandonPact: HabitActions.abandonPact,
@@ -102,13 +109,51 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     };
 
     handleRefresh = () => {
-        const { getPactDetails, route } = this.props;
+        const { getPactDetails, getUserGoals, route } = this.props;
         const { pactId } = route.params;
 
         this.setState({ isRefreshing: true });
 
-        getPactDetails(pactId).finally(() => {
+        // Goals are fetched alongside the pact so the "view habit" link can be
+        // offered on a cold navigation (deep link, push notification) that never
+        // passed through the habits dashboard.
+        Promise.all([
+            getPactDetails(pactId),
+            getUserGoals(),
+        ]).catch(() => undefined).finally(() => {
             this.setState({ isRefreshing: false });
+        });
+    };
+
+    /**
+     * The pact's habit goal only appears in this user's goal list when they own
+     * it — an invited partner shares the pact but not the goal row, and
+     * HabitDetail resolves off `habits.habitGoals`. Linking there regardless
+     * would land them on "Habit not found".
+     */
+    getLinkableHabitGoalId = (pact: IPact): string | undefined => {
+        const { habits } = this.props;
+        return habits.habitGoals?.some((goal) => goal.id === pact.habitGoalId)
+            ? pact.habitGoalId
+            : undefined;
+    };
+
+    goToHabitDetail = (habitGoalId: string) => {
+        this.props.navigation.navigate('HabitDetail', { habitGoalId });
+    };
+
+    goToUserProfile = (userId: string) => {
+        this.props.navigation.navigate('ViewUser', {
+            userInView: { id: userId },
+        });
+    };
+
+    goToDirectMessage = (member: IPactMember) => {
+        this.props.navigation.navigate('DirectMessage', {
+            connectionDetails: {
+                id: member.userId,
+                userName: member.userName,
+            },
         });
     };
 
@@ -188,29 +233,155 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         this.setState({ showConfirmModal: false, confirmAction: null });
     };
 
-    renderMemberStats = (member: IPactMember, label: string) => (
-        <View style={this.themeHabits.styles.pactComparisonItem}>
-            <Text style={this.themeHabits.styles.pactComparisonValue}>
-                {member.currentStreak}
-            </Text>
-            <Text style={this.themeHabits.styles.pactComparisonLabel}>
-                {label}
-            </Text>
-            <Text style={this.themeHabits.styles.streakMilestoneText}>
-                {this.translate('pages.pacts.checkinsLabel', {
-                    completed: member.completedCheckins,
-                    total: member.totalCheckins,
-                })}
-            </Text>
-            {member.completionRate !== undefined && (
+    renderMemberStats = (
+        member: IPactMember,
+        label: string,
+        link?: { onPress: () => void; accessibilityLabel: string },
+    ) => {
+        const stats = (
+            <>
+                <Text style={this.themeHabits.styles.pactComparisonValue}>
+                    {member.currentStreak}
+                </Text>
+                <Text style={this.themeHabits.styles.pactComparisonLabel}>
+                    {label}
+                </Text>
                 <Text style={this.themeHabits.styles.streakMilestoneText}>
-                    {this.translate('pages.pacts.completionLabel', {
-                        pct: Math.round(member.completionRate),
+                    {this.translate('pages.pacts.checkinsLabel', {
+                        completed: member.completedCheckins,
+                        total: member.totalCheckins,
                     })}
                 </Text>
-            )}
-        </View>
+                {member.completionRate !== undefined && (
+                    <Text style={this.themeHabits.styles.streakMilestoneText}>
+                        {this.translate('pages.pacts.completionLabel', {
+                            pct: Math.round(member.completionRate),
+                        })}
+                    </Text>
+                )}
+            </>
+        );
+
+        if (!link) {
+            return (
+                <View style={this.themeHabits.styles.pactComparisonItem}>
+                    {stats}
+                </View>
+            );
+        }
+
+        return (
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={link.accessibilityLabel}
+                onPress={link.onPress}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.pactComparisonItem,
+                    pressed && this.themeHabits.styles.pactComparisonItemPressed,
+                ]}
+            >
+                {stats}
+            </Pressable>
+        );
+    };
+
+    renderHabitLink = (habitGoalId: string) => (
+        <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={this.translate('pages.pacts.viewHabitDetails')}
+            onPress={() => this.goToHabitDetail(habitGoalId)}
+            style={({ pressed }) => [
+                this.themeHabits.styles.pactLinkRow,
+                pressed && this.themeHabits.styles.pactPressedSurface,
+            ]}
+        >
+            <Text style={this.themeHabits.styles.pactLinkText}>
+                {this.translate('pages.pacts.viewHabitDetails')}
+            </Text>
+            <MaterialIcon
+                name="chevron-right"
+                size={24}
+                color={this.themeHabits.colors.primary3}
+            />
+        </Pressable>
     );
+
+    renderMembersCard = (pact: IPact, currentUserId: string) => {
+        const otherMembers = (pact.members || []).filter((m) => m.userId !== currentUserId);
+
+        if (!otherMembers.length) {
+            return null;
+        }
+
+        const isDirectMessagingEnabled = getConfig().featureFlags?.[FeatureFlags.ENABLE_DIRECT_MESSAGING] === true;
+
+        return (
+            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                <Text style={this.themeHabits.styles.streakWidgetTitle}>
+                    {this.translate('pages.pacts.partnersTitle')}
+                </Text>
+                {otherMembers.map((member, index) => (
+                    <PactMemberRow
+                        key={member.id || member.userId}
+                        member={member}
+                        isDivided={index > 0}
+                        onPress={() => this.goToUserProfile(member.userId)}
+                        onMessagePress={isDirectMessagingEnabled && member.userName
+                            ? () => this.goToDirectMessage(member)
+                            : undefined}
+                        themeHabits={this.themeHabits}
+                        translate={this.translate}
+                    />
+                ))}
+            </View>
+        );
+    };
+
+    renderTimelineCard = (pact: IPact) => {
+        if (!pact.startDate || !pact.endDate) {
+            return null;
+        }
+
+        const timeline = getPactTimeline(pact);
+
+        return (
+            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                <Text style={this.themeHabits.styles.streakWidgetTitle}>
+                    {this.translate('pages.pacts.timeline')}
+                </Text>
+                <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                    {new Date(pact.startDate).toLocaleDateString()} - {new Date(pact.endDate).toLocaleDateString()}
+                </Text>
+                {timeline && (
+                    <>
+                        <View style={this.themeHabits.styles.streakProgressContainer}>
+                            <View style={this.themeHabits.styles.streakProgressBar}>
+                                <View style={[
+                                    this.themeHabits.styles.streakProgressFill,
+                                    { width: `${timeline.progressPct}%` },
+                                ]} />
+                            </View>
+                        </View>
+                        <View style={this.themeHabits.styles.pactTimelineRow}>
+                            <Text style={this.themeHabits.styles.streakMilestoneText}>
+                                {this.translate('pages.pacts.dayOfTotal', {
+                                    current: timeline.currentDay,
+                                    total: timeline.totalDays,
+                                })}
+                            </Text>
+                            <Text style={this.themeHabits.styles.streakMilestoneText}>
+                                {timeline.hasEnded
+                                    ? this.translate('pages.pacts.timelineEnded')
+                                    : this.translate('pages.pacts.daysRemaining', {
+                                        days: timeline.daysRemaining,
+                                    })}
+                            </Text>
+                        </View>
+                    </>
+                )}
+            </View>
+        );
+    };
 
     render() {
         const { user } = this.props;
@@ -222,6 +393,10 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         const partnerMember = pact?.members?.find((m) => m.userId !== currentUserId);
         const isActive = pact?.status === 'active';
         const isInvitedUser = isPactInviteAwaitingResponse(pact, currentUserId);
+        const linkableHabitGoalId = pact && this.getLinkableHabitGoalId(pact);
+        const partnerName = partnerMember?.firstName
+            || partnerMember?.userName
+            || this.translate('pages.pacts.partnerFallback');
 
         if (!pact) {
             return (
@@ -279,40 +454,46 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                     {this.translate(`pages.pacts.status.${pact.status}`).toUpperCase()}
                                 </Text>
                             </View>
+
+                            {linkableHabitGoalId && this.renderHabitLink(linkableHabitGoalId)}
                         </View>
+
+                        {this.renderMembersCard(pact, currentUserId)}
 
                         {isActive && pact.members && pact.members.length > 1 && (
                             <View style={this.themeHabits.styles.streakWidgetContainer}>
-                                <Text style={this.themeHabits.styles.dashboardSectionTitle}>
+                                <Text style={this.themeHabits.styles.streakWidgetTitle}>
                                     {this.translate('pages.pacts.comparison')}
                                 </Text>
                                 <View style={this.themeHabits.styles.pactComparisonContainer}>
                                     {currentUserMember && this.renderMemberStats(
                                         currentUserMember,
                                         this.translate('pages.pacts.you'),
+                                        linkableHabitGoalId
+                                            ? {
+                                                onPress: () => this.goToHabitDetail(linkableHabitGoalId),
+                                                accessibilityLabel: this.translate('pages.pacts.viewHabitDetails'),
+                                            }
+                                            : undefined,
                                     )}
                                     <Text style={this.themeHabits.styles.habitCardSubtitle}>
                                         {this.translate('pages.pacts.vs')}
                                     </Text>
                                     {partnerMember && this.renderMemberStats(
                                         partnerMember,
-                                        partnerMember.firstName
-                                            || this.translate('pages.pacts.partnerFallback'),
+                                        partnerName,
+                                        {
+                                            onPress: () => this.goToUserProfile(partnerMember.userId),
+                                            accessibilityLabel: this.translate('pages.pacts.viewProfileOf', {
+                                                name: partnerName,
+                                            }),
+                                        },
                                     )}
                                 </View>
                             </View>
                         )}
 
-                        {pact.startDate && pact.endDate && (
-                            <View style={this.themeHabits.styles.streakWidgetContainer}>
-                                <Text style={this.themeHabits.styles.streakWidgetTitle}>
-                                    {this.translate('pages.pacts.timeline')}
-                                </Text>
-                                <Text style={this.themeHabits.styles.habitCardSubtitle}>
-                                    {new Date(pact.startDate).toLocaleDateString()} - {new Date(pact.endDate).toLocaleDateString()}
-                                </Text>
-                            </View>
-                        )}
+                        {this.renderTimelineCard(pact)}
 
                         {isInvitedUser && (
                             <View style={this.themeHabits.styles.streakWidgetContainer}>

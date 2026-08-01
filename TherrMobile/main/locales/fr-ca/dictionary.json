@@ -2015,7 +2015,25 @@
       "checkinsLabel": "{completed}/{total} pointages",
       "completionLabel": "{pct}% terminé",
       "vs": "vs",
-      "partnerFallback": "Ami"
+      "partnerFallback": "Ami",
+      "partnersTitle": "Partenaires de responsabilité",
+      "viewProfileOf": "Voir le profil de {name}",
+      "messagePartner": "Envoyer un message à {name}",
+      "viewHabitDetails": "Voir l'habitude et pointer",
+      "dayOfTotal": "Jour {current} sur {total}",
+      "daysRemaining": "{days} jours restants",
+      "timelineEnded": "Terminé",
+      "memberRole": {
+        "creator": "Organisateur",
+        "partner": "Partenaire"
+      },
+      "memberStatus": {
+        "pending": "Invitation en attente",
+        "active": "Actif",
+        "completed": "Terminé",
+        "left": "A quitté le pacte",
+        "removed": "Retiré"
+      }
     },
     "pushOptIn": {
       "title": "Reçois une notification quand ton ami se joint",

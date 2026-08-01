@@ -3,6 +3,7 @@ import CheckinProofSheet from './CheckinProofSheet';
 import HabitCalendar from './HabitCalendar';
 import HabitCard from './HabitCard';
 import PactCard from './PactCard';
+import PactMemberRow from './PactMemberRow';
 import PactOnboardingGuard from './PactOnboardingGuard';
 import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
 import SentInviteCard from './SentInviteCard';
@@ -14,6 +15,7 @@ export {
     HabitCalendar,
     HabitCard,
     PactCard,
+    PactMemberRow,
     PactOnboardingGuard,
     PactPreviewOverlay,
     SentInviteCard,

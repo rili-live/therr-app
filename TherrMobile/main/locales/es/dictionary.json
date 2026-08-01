@@ -2015,7 +2015,25 @@
       "checkinsLabel": "{completed}/{total} registros",
       "completionLabel": "{pct}% completado",
       "vs": "vs",
-      "partnerFallback": "Amigo"
+      "partnerFallback": "Amigo",
+      "partnersTitle": "Compañeros de responsabilidad",
+      "viewProfileOf": "Ver el perfil de {name}",
+      "messagePartner": "Enviar mensaje a {name}",
+      "viewHabitDetails": "Ver hábito y registrarse",
+      "dayOfTotal": "Día {current} de {total}",
+      "daysRemaining": "Quedan {days} días",
+      "timelineEnded": "Finalizado",
+      "memberRole": {
+        "creator": "Organizador",
+        "partner": "Compañero"
+      },
+      "memberStatus": {
+        "pending": "Invitación pendiente",
+        "active": "Activo",
+        "completed": "Completado",
+        "left": "Dejó el pacto",
+        "removed": "Eliminado"
+      }
     },
     "pushOptIn": {
       "title": "Recibe una notificación cuando tu amigo se una",
