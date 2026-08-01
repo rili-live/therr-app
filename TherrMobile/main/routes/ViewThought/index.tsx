@@ -35,6 +35,7 @@ import { getReactionUpdateArgs } from '../../utilities/reactions';
 import TherrIcon from '../../components/TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import { navToViewContent } from '../../utilities/postViewHelpers';
+import { showToast } from '../../utilities/toasts';
 
 const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 // On HABITS the "thought" backend hosts the user's Goals feed; surface goal-specific copy.
@@ -154,12 +155,21 @@ const ViewThought = ({
         }).then((response) => {
             setFetchedThought(response?.thought || {});
             setReplies(
-                response?.thought?.replies?.sort(
+                // The id filter guards against a backend that has not yet shipped the
+                // phantom-reply fix: an id-less reply renders as an empty card, inflates the
+                // reply count, and cannot be opened.
+                response?.thought?.replies?.filter((reply) => !!reply?.id).sort(
                     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 ) || []
             );
         }).catch(() => {
-            navigation.goBack();
+            // Deliberately not navigating away: the thought passed through route params is
+            // enough to render the post itself, and bouncing the user back to the feed on a
+            // transient failure reads as "tapping a reply does nothing".
+            showToast.error({
+                text1: translate('alertTitles.backendErrorMessage'),
+                text2: translate('pages.viewThought.repliesFailed'),
+            });
         });
 
         navigation.setOptions({
@@ -178,7 +188,12 @@ const ViewThought = ({
 
     // Handlers
     const handleGoBack = useCallback(() => {
-        if (fetchedThought?.parentId) {
+        // Nested replies are pushed onto the stack, so unwinding one level is a plain pop.
+        if (previousView === 'ViewThought' && navigation.canGoBack()) {
+            navigation.goBack();
+        } else if (fetchedThought?.parentId) {
+            // Reached without a parent screen below (eg. a push notification deep link into a
+            // reply), so walk up to the parent thought explicitly.
             navToViewContent({
                 id: fetchedThought.parentId,
             }, user, navigation.replace);
@@ -204,25 +219,50 @@ const ViewThought = ({
     }, [navigation]);
 
     const handleGoToContent = useCallback((content) => {
-        navToViewContent(content, user, navigation.replace);
+        if (!content?.id) {
+            return;
+        }
+        // `push`, not `replace`: a thread is walked one level at a time, so the parent has to
+        // stay on the stack for the back gesture to return to it instead of exiting to the feed.
+        navToViewContent(content, user, navigation.push, 'ViewThought');
     }, [user, navigation]);
 
-    const handleUpdateThoughtReaction = useCallback((thoughtId, data) => {
-        navigation.setParams({
-            thought: {
-                ...thought,
-                reaction: {
-                    ...thought.reaction,
-                    ...data,
+    const handleUpdateThoughtReaction = useCallback((thoughtId, data, contentUserId) => {
+        if (thoughtId === thought.id) {
+            navigation.setParams({
+                thought: {
+                    ...thought,
+                    reaction: {
+                        ...thought.reaction,
+                        ...data,
+                    },
                 },
-            },
-        });
-        return createOrUpdateThoughtReaction(thoughtId, data, thought.fromUserId, user.details.userName);
+            });
+        } else {
+            // A reply was reacted to. Keep its reaction in local state so the control stays
+            // toggled if this screen re-renders before the next details fetch.
+            setReplies((prevReplies) => prevReplies.map((reply) => (reply.id === thoughtId
+                ? {
+                    ...reply,
+                    reaction: {
+                        ...reply.reaction,
+                        ...data,
+                    },
+                }
+                : reply)));
+        }
+
+        return createOrUpdateThoughtReaction(
+            thoughtId,
+            data,
+            contentUserId || thought.fromUserId,
+            user.details.userName,
+        );
     }, [thought, navigation, createOrUpdateThoughtReaction, user.details.userName]);
 
     const handleThoughtOptionSelect = useCallback((type: IContentSelectionType, selectedThought: any) => {
         const requestArgs: any = getReactionUpdateArgs(type);
-        handleUpdateThoughtReaction(selectedThought.id, requestArgs);
+        handleUpdateThoughtReaction(selectedThought.id, requestArgs, selectedThought.fromUserId);
     }, [handleUpdateThoughtReaction]);
 
     const handleToggleThoughtOptions = useCallback((selectedThought: any) => {
@@ -289,7 +329,9 @@ const ViewThought = ({
 
         createThought(createArgs)
             .then((newReply) => {
-                setReplies((prev) => [newReply, ...prev]);
+                // The create response has no reaction columns; seeding them keeps the new
+                // reply's like control interactive without waiting for a details refetch.
+                setReplies((prev) => [{ likeCount: 0, replyCount: 0, ...newReply }, ...prev]);
 
                 logEvent(getAnalytics(), 'thought_reply_create', {
                     parentId,
@@ -393,7 +435,7 @@ const ViewThought = ({
                                     isDarkMode={isDarkMode}
                                     isExpanded={false}
                                     inspectThought={handleGoToContent}
-                                    showReplyCount={true}
+                                    showThreadActions={true}
                                     thought={reply}
                                     goToViewUser={handleGoToViewUser}
                                     updateThoughtReaction={handleUpdateThoughtReaction}

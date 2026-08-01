@@ -1,8 +1,8 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, View, Text } from 'react-native';
 import LottieView from 'lottie-react-native';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { achievementsByClass } from 'therr-js-utilities/config';
-import spacingStyles from '../../styles/layouts/spacing';
 
 const cardImagesLottie: { [key: string]: any } = {
     communityLeader: require('../../assets/socialite-card.json'),
@@ -24,13 +24,39 @@ const cardImagesLottie: { [key: string]: any } = {
     weeklyChampion: require('../../assets/influencer-card.json'),
 };
 
-const AchievementTile = ({ claimText, completedText, handleClaim, isClaiming, onPressAchievement, userAchievement, themeAchievements }) => {
+const lottieFillStyle = { position: 'absolute' as const, width: '100%' as const, height: '100%' as const };
+
+const AchievementTile = ({
+    claimText,
+    completedText,
+    handleClaim,
+    isClaiming,
+    onPressAchievement,
+    progressText,
+    userAchievement,
+    themeAchievements,
+}) => {
     const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
-    const progressPercent = `${userAchievement.progressCount * 100 / achievement.countToComplete}%`;
-    const progressText = `${userAchievement.progressCount}/${achievement.countToComplete}`;
+    const isComplete = !!userAchievement.completedAt;
+    // Clamp so an over-counted progress value can't overflow the track.
+    const progressRatio = Math.max(0, Math.min(1, userAchievement.progressCount / achievement.countToComplete));
+    const progressPercent = `${(isComplete ? 1 : progressRatio) * 100}%`;
+    const progressLabel = progressText({
+        count: Math.min(userAchievement.progressCount, achievement.countToComplete),
+        total: achievement.countToComplete,
+    });
+    const hasUnclaimedReward = isComplete && userAchievement.unclaimedRewardPts > 0;
 
     return (
-        <Pressable style={themeAchievements.styles.achievementTile} onPress={onPressAchievement}>
+        <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${achievement.title}. ${progressLabel}`}
+            style={({ pressed }) => [
+                themeAchievements.styles.achievementTile,
+                pressed && themeAchievements.styles.achievementTilePressed,
+            ]}
+            onPress={onPressAchievement}
+        >
             <View style={themeAchievements.styles.achievementTileContainer}>
                 <View style={themeAchievements.styles.cardImageContainer}>
                     <View style={themeAchievements.styles.cardImage}>
@@ -39,47 +65,65 @@ const AchievementTile = ({ claimText, completedText, handleClaim, isClaiming, on
                             resizeMode="cover"
                             speed={1}
                             progress={0}
-                            style={{ position: 'absolute', width: '100%', height: '100%' }}
+                            style={lottieFillStyle}
                         />
                     </View>
                 </View>
-                <View style={{ display: 'flex', flexDirection: 'column', flex: 1, paddingVertical: 6 }}>
-                    <Text style={{ textTransform: 'capitalize', fontWeight: '600', fontSize: 18, paddingBottom: 4, color: themeAchievements.colors.textWhite }}>
-                        {userAchievement.achievementClass.replace(/([A-Z])/g, ' $1')}: <Text style={{ fontWeight: '400' }}>{achievement.title}</Text>
+                <View style={themeAchievements.styles.tileTextContainer}>
+                    <Text style={themeAchievements.styles.achievementClassLabel} numberOfLines={1}>
+                        {userAchievement.achievementClass.replace(/([A-Z])/g, ' $1')}
                     </Text>
-                    <Text style={[spacingStyles.flexOne, { color: themeAchievements.colors.textGray }]}>{achievement.description}</Text>
-                    <View style={{ width: '100%', display: 'flex', flexDirection: 'row' }}>
-                        <View style={{ position: 'relative', flex: 1 }}>
-                            <View style={themeAchievements.styles.progressBarBackground} />
-                            <View style={[themeAchievements.styles.progressBar, { width: progressPercent }]} />
+                    <Text style={themeAchievements.styles.achievementTitle}>
+                        {achievement.title}
+                    </Text>
+                    <Text style={themeAchievements.styles.achievementDescription}>
+                        {achievement.description}
+                    </Text>
+                    <View style={themeAchievements.styles.progressRow}>
+                        <View style={themeAchievements.styles.progressBarTrack}>
+                            <View
+                                style={[
+                                    themeAchievements.styles.progressBarFill,
+                                    isComplete && themeAchievements.styles.progressBarFillComplete,
+                                    { width: progressPercent },
+                                ]}
+                            />
                         </View>
-                        <Text style={{ fontSize: 14, fontWeight: '600', paddingLeft: 8, color: themeAchievements.colors.textWhite }}>
-                            {userAchievement.completedAt ? '✓' : progressText}
+                        <Text style={themeAchievements.styles.progressLabel}>
+                            {progressLabel}
                         </Text>
                     </View>
                 </View>
             </View>
-            {
-                !!userAchievement.completedAt &&
-                <>
-                    {
-                        userAchievement.unclaimedRewardPts > 0 ?
-                            <View style={themeAchievements.styles.completedContainer}>
-                                <Pressable
-                                    onPress={handleClaim}
-                                    style={[themeAchievements.styles.claimButton, isClaiming && { opacity: 0.7 }]}
-                                    disabled={isClaiming}
-                                >
-                                    {isClaiming
-                                        ? <ActivityIndicator size="small" color={themeAchievements.colors.brandingWhite} />
-                                        : <Text style={themeAchievements.styles.claimText}>{claimText}</Text>
-                                    }
-                                </Pressable>
-                            </View> :
-                            <Text style={themeAchievements.styles.completeText}>{completedText}</Text>
-                    }
-                </>
-            }
+            {hasUnclaimedReward && (
+                <View style={themeAchievements.styles.completedContainer}>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={claimText}
+                        onPress={handleClaim}
+                        style={({ pressed }) => [
+                            themeAchievements.styles.claimButton,
+                            (pressed || isClaiming) && themeAchievements.styles.claimButtonPressed,
+                        ]}
+                        disabled={isClaiming}
+                    >
+                        {isClaiming
+                            ? <ActivityIndicator size="small" color={themeAchievements.colors.onAccent} />
+                            : (
+                                <>
+                                    <FontAwesome5Icon name="gift" size={14} color={themeAchievements.colors.onAccent} />
+                                    <Text style={themeAchievements.styles.claimText}>{claimText}</Text>
+                                </>
+                            )}
+                    </Pressable>
+                </View>
+            )}
+            {isComplete && !hasUnclaimedReward && (
+                <View style={themeAchievements.styles.completedChip}>
+                    <FontAwesome5Icon name="check" size={11} color={themeAchievements.colors.alertSuccess} />
+                    <Text style={themeAchievements.styles.completeText}>{completedText}</Text>
+                </View>
+            )}
         </Pressable>
     );
 };

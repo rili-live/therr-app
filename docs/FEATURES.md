@@ -49,6 +49,7 @@
 - **Ranked social feed (mobile)** — Discoveries/Thoughts tabs ordered by engagement score (recency decay × likes/replies/views × category affinity from the user's own reactions); backend stream activation ranks candidates by reply-count hot score
 - **Auto-expanded thread previews (mobile)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style)
 - **Nested reply counts (mobile & web)** — in the thought details view only, each reply renders a reply icon with its own nested reply count; tapping it opens that reply's details view so threads can be walked one level at a time
+- **Inline reply likes (mobile)** — replies in the thought details view carry their own like control with an optimistic toggle (reverted if the request fails), so a reply can be liked without opening it. `getThoughtDetails` returns each reply's like count and the requesting user's reaction
 - **Content categories** — 20+ categories (food, music, nature, art, gaming, etc.)
 - **Media uploads** — image upload with CDN (ImageKit), YouTube video embedding
 

@@ -1,7 +1,15 @@
 import { StyleSheet } from 'react-native';
+import Color from 'color';
 import { IMobileThemeName } from 'therr-react/types';
 import { therrFontFamily } from '../font';
+import { fontSizes, fontWeights, lineHeights } from '../text';
+import { space } from '../layouts/spacing';
+import { radius } from '../radii';
+import { shadowSm } from '../elevation';
+import { buttonMenuHeight } from '../navigation/buttonMenu';
 import { getTheme, ITherrTheme } from '../themes';
+
+const tint = (color: string, alpha: number) => new Color(color).alpha(alpha).string();
 
 const getCheckinButtonStyles = (_theme: ITherrTheme): any => ({
     borderRadius: 16,
@@ -137,38 +145,50 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         // Habit Card
         habitCardContainer: {
             backgroundColor: therrTheme.colors.surface,
-            borderRadius: 16,
-            padding: 16,
-            marginHorizontal: 16,
-            marginVertical: 8,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 2,
+            borderRadius: radius.xl,
+            padding: space.lg,
+            marginHorizontal: space.lg,
+            marginVertical: space.sm,
+            ...shadowSm,
         },
         habitCardHeader: {
             flexDirection: 'row',
             alignItems: 'center',
-            marginBottom: 12,
+            marginBottom: space.md,
         },
         habitCardEmoji: {
             fontSize: 32,
-            marginRight: 12,
+            marginRight: space.md,
+        },
+        // Opt-in contained variant: a tinted disc so habit glyphs sit on a
+        // consistent baseline instead of each emoji's own optical box. Used by
+        // the pact cards; the bare `habitCardEmoji` above is retained for the
+        // call sites that have not adopted it.
+        habitCardEmojiContainer: {
+            width: 44,
+            height: 44,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: tint(therrTheme.colors.brand, 0.10),
+            marginRight: space.md,
+        },
+        habitCardEmojiContained: {
+            fontSize: 22,
         },
         habitCardTitleContainer: {
             flex: 1,
         },
         habitCardTitle: {
             fontFamily: therrFontFamily,
-            fontSize: 18,
-            fontWeight: '600',
+            fontSize: fontSizes.lg,
+            fontWeight: fontWeights.semibold,
             color: therrTheme.colors.onSurface,
         },
         habitCardSubtitle: {
             fontFamily: therrFontFamily,
-            fontSize: 14,
-            color: therrTheme.colors.textGray,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
             marginTop: 2,
         },
         habitCardBody: {
@@ -178,6 +198,22 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
+            marginTop: 16,
+            paddingTop: 12,
+            borderTopWidth: 1,
+            borderTopColor: therrTheme.colors.primary4,
+        },
+        habitCardPartnerText: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            color: therrTheme.colors.textGray,
+            marginTop: 8,
+        },
+        habitCardAwaitingText: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            fontStyle: 'italic',
+            color: therrTheme.colors.textGray,
             marginTop: 16,
             paddingTop: 12,
             borderTopWidth: 1,
@@ -263,34 +299,58 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         // Pact Card
         pactCardContainer: {
             backgroundColor: therrTheme.colors.surface,
-            borderRadius: 16,
-            padding: 16,
-            marginHorizontal: 16,
-            marginVertical: 8,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 2,
+            borderRadius: radius.xl,
+            padding: space.lg,
+            marginHorizontal: space.lg,
+            marginVertical: space.sm,
+            ...shadowSm,
         },
+        pactCardContainerPressed: {
+            opacity: 0.9,
+        },
+        // Status badges are tonal — a tinted surface with saturated text —
+        // rather than a saturated fill with white text. The previous pending
+        // badge was `brandingWhite` on `brandingMapYellow` (#ebc300), roughly
+        // 1.8:1 contrast, which fails WCAG AA at any size. Tonal badges also
+        // pair a dot with the color so status is not signalled by hue alone.
         pactCardStatusBadge: {
-            paddingHorizontal: 12,
-            paddingVertical: 4,
-            borderRadius: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: space.md,
+            paddingVertical: space.xs,
+            borderRadius: radius.pill,
             alignSelf: 'flex-start',
-            marginBottom: 8,
+            marginBottom: space.md,
+        },
+        pactCardStatusDot: {
+            width: 6,
+            height: 6,
+            borderRadius: radius.circle,
+            marginRight: space.sm,
         },
         pactCardStatusActive: {
-            backgroundColor: therrTheme.colors.brandingBlueGreen,
+            backgroundColor: tint(therrTheme.colors.alertSuccess, 0.14),
         },
         pactCardStatusPending: {
-            backgroundColor: therrTheme.colors.brandingMapYellow,
+            backgroundColor: tint(therrTheme.colors.alertWarning, 0.16),
+        },
+        pactCardStatusNeutral: {
+            backgroundColor: therrTheme.colors.backgroundNeutral,
         },
         pactCardStatusText: {
             fontFamily: therrFontFamily,
-            fontSize: 12,
-            fontWeight: '600',
-            color: therrTheme.colors.brandingWhite,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 0.3,
+        },
+        pactCardStatusTextActive: {
+            color: therrTheme.colors.alertSuccess,
+        },
+        pactCardStatusTextPending: {
+            color: therrTheme.colors.alertWarning,
+        },
+        pactCardStatusTextNeutral: {
+            color: therrTheme.colors.onSurfaceMuted,
         },
         // Pact Card — pending invite response actions
         pactCardInvitePrompt: {
@@ -301,71 +361,131 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         pactCardInviteActions: {
             flexDirection: 'row',
-            marginTop: 12,
+            marginTop: space.md,
         },
+        // `flex: 1` belongs on the side-by-side variant only. It used to live
+        // on the base style, so a stacked button — the Nudge action on a sent
+        // invite — inherited it inside a *column* card and stretched to fill
+        // all remaining vertical space, leaving a large dead gap mid-card.
         pactCardInviteButton: {
-            flex: 1,
-            minHeight: 42,
-            borderRadius: 8,
+            flexDirection: 'row',
+            minHeight: 44,
+            borderRadius: radius.md,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingHorizontal: 12,
+            paddingHorizontal: space.md,
+        },
+        pactCardInviteButtonInline: {
+            flex: 1,
         },
         pactCardInviteButtonPrimary: {
-            backgroundColor: therrTheme.colors.primary3,
-            marginRight: 8,
+            backgroundColor: therrTheme.colors.brand,
+            marginRight: space.sm,
+            ...shadowSm,
         },
         // Full-width variant for cards that stack actions instead of pairing
         // them side by side (sent invites: nudge, then invite someone else).
         pactCardInviteButtonStacked: {
+            alignSelf: 'stretch',
             marginRight: 0,
-            marginTop: 12,
+            marginTop: space.md,
         },
         pactCardNudgeSent: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            alignSelf: 'flex-start',
+            marginTop: space.md,
+            paddingVertical: space.xs,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            backgroundColor: tint(therrTheme.colors.alertSuccess, 0.14),
+        },
+        pactCardNudgeSentText: {
             fontFamily: therrFontFamily,
-            fontSize: 13,
-            fontStyle: 'italic',
-            color: therrTheme.colors.primary3,
-            marginTop: 12,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.medium,
+            color: therrTheme.colors.alertSuccess,
+            marginLeft: space.xs,
         },
         pactCardInviteButtonSecondary: {
-            borderWidth: 1.5,
-            borderColor: therrTheme.colorVariations.primary3Fade,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
         },
         pactCardInviteButtonPressed: {
             opacity: 0.75,
         },
         pactCardInviteButtonPrimaryText: {
             fontFamily: therrFontFamily,
-            fontSize: 15,
-            fontWeight: '600',
-            color: therrTheme.colors.brandingWhite,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onBrand,
+            marginLeft: space.sm,
         },
         pactCardInviteButtonSecondaryText: {
             fontFamily: therrFontFamily,
-            fontSize: 15,
-            fontWeight: '600',
-            color: therrTheme.colors.accentRed,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginLeft: space.sm,
+        },
+        // Decline keeps a destructive tone, but via `alertError` (~5.9:1 on the
+        // light surface) rather than `accentRed` (#fe0156, ~3.9:1) which did
+        // not clear AA for text at this size.
+        pactCardInviteButtonDestructiveText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.alertError,
+            marginLeft: space.sm,
+        },
+        // Tertiary text action (share invite) — no chrome, so it sits clearly
+        // below the primary action instead of competing with it.
+        pactCardTextAction: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            alignSelf: 'stretch',
+            minHeight: 44,
+            marginTop: space.xs,
+        },
+        pactCardTextActionLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
+            marginLeft: space.sm,
         },
         pactPartnerRow: {
             flexDirection: 'row',
             alignItems: 'center',
-            marginTop: 12,
+            marginTop: space.md,
+            paddingTop: space.md,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
         },
         pactPartnerAvatar: {
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: therrTheme.colors.primary4,
+            width: 32,
+            height: 32,
+            borderRadius: radius.circle,
+            backgroundColor: tint(therrTheme.colors.brand, 0.14),
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: 12,
+            marginRight: space.sm,
+        },
+        // Initials were rendering in the default text color on a dark purple
+        // disc; brand-on-tint keeps them legible in every theme.
+        pactPartnerAvatarInitial: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
         },
         pactPartnerName: {
             fontFamily: therrFontFamily,
-            fontSize: 14,
-            fontWeight: '500',
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.medium,
             color: therrTheme.colors.onSurface,
+            flexShrink: 1,
         },
         pactComparisonContainer: {
             flexDirection: 'row',
@@ -378,6 +498,76 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         pactComparisonItem: {
             alignItems: 'center',
+        },
+        pactComparisonItemPressed: {
+            opacity: 0.6,
+        },
+
+        // Pact Detail — member list + inline navigation links
+        pactMemberRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 12,
+        },
+        pactMemberRowDivided: {
+            borderTopWidth: 1,
+            borderTopColor: therrTheme.colors.primary4,
+        },
+        // The profile link fills the row; the message button sits outside it so
+        // the two tap targets never overlap.
+        pactMemberRowLink: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        pactMemberDetails: {
+            flex: 1,
+            marginLeft: 12,
+        },
+        pactMemberName: {
+            fontFamily: therrFontFamily,
+            fontSize: 15,
+            fontWeight: '600',
+            color: therrTheme.colors.onSurface,
+        },
+        pactMemberMeta: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            color: therrTheme.colors.textGray,
+            marginTop: 2,
+        },
+        pactMemberAction: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+            backgroundColor: therrTheme.colorVariations.primary3Fade,
+        },
+        pactLinkRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 12,
+            paddingTop: 12,
+            borderTopWidth: 1,
+            borderTopColor: therrTheme.colors.primary4,
+        },
+        pactLinkText: {
+            fontFamily: therrFontFamily,
+            fontSize: 14,
+            fontWeight: '600',
+            color: therrTheme.colors.primary3,
+        },
+        pactPressedSurface: {
+            opacity: 0.75,
+        },
+        pactTimelineRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 8,
         },
         pactComparisonValue: {
             fontFamily: therrFontFamily,
@@ -398,64 +588,268 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             backgroundColor: therrTheme.colors.backgroundGray,
         },
         dashboardHeader: {
-            padding: 20,
+            paddingHorizontal: space.lg,
+            paddingTop: space.lg,
+            paddingBottom: space.md,
             backgroundColor: therrTheme.colors.surface,
         },
         dashboardGreeting: {
             fontFamily: therrFontFamily,
-            fontSize: 24,
-            fontWeight: '700',
+            fontSize: fontSizes.xxl,
+            lineHeight: fontSizes.xxl * lineHeights.tight,
+            fontWeight: fontWeights.bold,
             color: therrTheme.colors.onSurface,
         },
         dashboardSubtitle: {
             fontFamily: therrFontFamily,
-            fontSize: 16,
-            color: therrTheme.colors.textGray,
-            marginTop: 4,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.xs,
         },
         dashboardSection: {
-            marginTop: 16,
+            marginTop: space.lg,
         },
         dashboardSectionTitle: {
             fontFamily: therrFontFamily,
-            fontSize: 18,
-            fontWeight: '600',
-            color: therrTheme.colors.textWhite,
-            marginHorizontal: 16,
-            marginBottom: 8,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.bold,
+            letterSpacing: 0.8,
+            textTransform: 'uppercase',
+            color: therrTheme.colors.onSurfaceMuted,
+            marginHorizontal: space.lg,
+            marginBottom: space.sm,
+        },
+
+        // Segmented control — the tab row was four cramped text labels with a
+        // 2dp underline, left-aligned so the row read as unfinished. A pill
+        // segmented control is the current cross-platform convention and gives
+        // each segment a real, equally-sized touch target.
+        segmentedControl: {
+            flexDirection: 'row',
+            marginHorizontal: space.lg,
+            marginTop: space.md,
+            marginBottom: space.sm,
+            padding: 3,
+            borderRadius: radius.pill,
+            backgroundColor: therrTheme.colors.backgroundNeutral,
+        },
+        segmentedControlItem: {
+            flex: 1,
+            minHeight: 34,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: space.xs,
+            borderRadius: radius.pill,
+        },
+        segmentedControlItemActive: {
+            backgroundColor: therrTheme.colors.surface,
+            ...shadowSm,
+        },
+        segmentedControlLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.medium,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        segmentedControlLabelActive: {
+            color: therrTheme.colors.onSurface,
+            fontWeight: fontWeights.semibold,
+        },
+
+        // ------------------------------------------------------------------
+        // My Habits
+        // ------------------------------------------------------------------
+        //
+        // This screen previously carried its own local StyleSheet built around
+        // hardcoded `rgba(255,255,255,0.06)` surfaces and `#fff` text. Those
+        // values assume a dark background — on the light theme the app actually
+        // ships, the cards were white-on-white and the body text was invisible.
+        // Everything here resolves through the theme instead.
+        myHabitsPageHeader: {
+            marginBottom: space.lg,
+        },
+        myHabitsCard: {
+            borderRadius: radius.xl,
+            backgroundColor: therrTheme.colors.surface,
+            padding: space.lg,
+            marginBottom: space.md,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            ...shadowSm,
+        },
+        myHabitsCardActive: {
+            borderColor: therrTheme.colors.brand,
+        },
+        myHabitsCardHeader: {
+            marginBottom: space.md,
+            gap: space.sm,
+        },
+        myHabitsEmoji: {
+            fontSize: fontSizes.xxl,
+        },
+        myHabitsTitle: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        myHabitsPendingSection: {
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+            paddingTop: space.md,
+            gap: space.sm,
+        },
+        myHabitsPendingBadge: {
+            alignSelf: 'flex-start',
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tint(therrTheme.colors.alertWarning, 0.16),
+            borderRadius: radius.pill,
+            paddingHorizontal: space.md,
+            paddingVertical: space.xs,
+        },
+        myHabitsPendingBadgeText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.alertWarning,
+        },
+        myHabitsPactRow: {
+            gap: space.xs,
+        },
+        myHabitsTeamRow: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+        myHabitsTeamLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        myHabitsTeamNames: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.medium,
+            color: therrTheme.colors.onSurface,
+        },
+        myHabitsInvitedTime: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        myHabitsTextAction: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            alignSelf: 'flex-start',
+            minHeight: 44,
+        },
+        myHabitsTextActionLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
+        },
+        myHabitsPactsLink: {
+            alignSelf: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 44,
+            paddingHorizontal: space.md,
+            marginTop: space.sm,
+        },
+        myHabitsEmptyContainer: {
+            alignItems: 'center',
+            paddingTop: space.xxl,
+            gap: space.lg,
+        },
+        myHabitsEmptyText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            lineHeight: fontSizes.md * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+            textAlign: 'center',
+        },
+        myHabitsPrimaryButton: {
+            flexDirection: 'row',
+            backgroundColor: therrTheme.colors.brand,
+            borderRadius: radius.md,
+            minHeight: 44,
+            paddingHorizontal: space.xl,
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...shadowSm,
+        },
+        myHabitsPrimaryButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onBrand,
+        },
+        pressedOpacity: {
+            opacity: 0.75,
+        },
+
+        // Clears the floating bottom nav so the last card is fully reachable.
+        pactsListContent: {
+            paddingTop: space.xs,
+            paddingBottom: buttonMenuHeight + space.lg,
         },
 
         // Empty state
         emptyStateContainer: {
-            padding: 32,
+            paddingHorizontal: space.xl,
+            paddingTop: space.xxxl,
+            paddingBottom: space.xl,
             alignItems: 'center',
         },
+        // A tinted disc behind the glyph keeps the empty state from reading as
+        // a stray emoji floating in whitespace.
+        emptyStateIconCircle: {
+            width: 72,
+            height: 72,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: tint(therrTheme.colors.brand, 0.10),
+            marginBottom: space.lg,
+        },
         emptyStateEmoji: {
-            fontSize: 48,
-            marginBottom: 16,
+            fontSize: 32,
         },
         emptyStateTitle: {
             fontFamily: therrFontFamily,
-            fontSize: 18,
-            fontWeight: '600',
-            color: therrTheme.colors.textWhite,
+            fontSize: fontSizes.lg,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
             textAlign: 'center',
         },
         emptyStateSubtitle: {
             fontFamily: therrFontFamily,
-            fontSize: 14,
-            color: therrTheme.colors.textGray,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
             textAlign: 'center',
-            marginTop: 8,
+            marginTop: space.sm,
         },
 
         // Pact onboarding stepper
+        //
+        // The three states used to be indistinguishable: `stepperCircle` was
+        // `primary4` and `stepperCircleActive` was `primary3` — on HABITS both
+        // are purple (#5B4273 / #6E5C85), so every step read as reached and the
+        // stepper conveyed nothing. States are now genuinely distinct:
+        //   done    — filled brand + check glyph
+        //   current — brand-tinted surface, brand ring, brand number
+        //   upcoming— neutral surface, muted number
         stepperContainer: {
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
-            paddingHorizontal: 24,
-            paddingVertical: 20,
+            paddingHorizontal: space.xl,
+            paddingTop: space.md,
+            paddingBottom: space.lg,
             backgroundColor: therrTheme.colors.surface,
         },
         stepperItem: {
@@ -464,102 +858,171 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         stepperConnector: {
             position: 'absolute',
-            top: 18,
+            top: 17,
             left: '50%',
             right: '-50%',
             height: 2,
-            backgroundColor: therrTheme.colors.primary4,
+            backgroundColor: therrTheme.colors.backgroundNeutral,
             zIndex: -1,
         },
         stepperConnectorActive: {
-            backgroundColor: therrTheme.colors.primary3,
+            backgroundColor: therrTheme.colors.brand,
         },
         stepperCircle: {
             width: 36,
             height: 36,
-            borderRadius: 18,
+            borderRadius: radius.circle,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: therrTheme.colors.primary4,
-            marginBottom: 8,
+            borderWidth: 2,
+            borderColor: 'transparent',
+            backgroundColor: therrTheme.colors.backgroundNeutral,
+            marginBottom: space.sm,
         },
-        stepperCircleActive: {
-            backgroundColor: therrTheme.colors.primary3,
+        stepperCircleCurrent: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.14),
+            borderColor: therrTheme.colors.brand,
+        },
+        stepperCircleDone: {
+            backgroundColor: therrTheme.colors.brand,
+            borderColor: therrTheme.colors.brand,
         },
         stepperCircleNumber: {
             fontFamily: therrFontFamily,
-            fontSize: 16,
-            fontWeight: '700',
-            color: therrTheme.colors.brandingBlack,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurfaceMuted,
         },
-        stepperCircleNumberActive: {
-            color: therrTheme.colors.brandingWhite,
+        stepperCircleNumberCurrent: {
+            color: therrTheme.colors.brand,
         },
         stepperLabel: {
             fontFamily: therrFontFamily,
-            fontSize: 14,
-            fontWeight: '600',
-            color: therrTheme.colors.onSurface,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.medium,
+            color: therrTheme.colors.onSurfaceMuted,
             textAlign: 'center',
         },
         stepperLabelActive: {
-            color: therrTheme.colors.primary3,
+            color: therrTheme.colors.onSurface,
+            fontWeight: fontWeights.semibold,
         },
         stepperSublabel: {
             fontFamily: therrFontFamily,
-            fontSize: 12,
-            color: therrTheme.colors.textGray,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
             textAlign: 'center',
             marginTop: 2,
         },
 
-        // Onboarding step badge (above each card)
-        stepBadge: {
-            alignSelf: 'flex-start',
-            paddingHorizontal: 12,
-            paddingVertical: 4,
-            borderRadius: 12,
-            backgroundColor: therrTheme.colors.primary3,
-            marginHorizontal: 16,
-            marginTop: 16,
-            marginBottom: 4,
+        // Onboarding cards
+        //
+        // The separate "Step N of 3" badge above each card duplicated the
+        // stepper directly above it. The step index now lives inside the card
+        // header as a small numbered disc, which ties the number to the content
+        // it describes instead of repeating the stepper twice on one screen.
+        onboardingCardStepIndex: {
+            width: 22,
+            height: 22,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: tint(therrTheme.colors.brand, 0.14),
+            marginRight: space.sm,
         },
-        stepBadgeText: {
+        onboardingCardStepIndexDone: {
+            backgroundColor: therrTheme.colors.brand,
+        },
+        onboardingCardStepIndexText: {
             fontFamily: therrFontFamily,
-            fontSize: 12,
-            fontWeight: '700',
-            color: therrTheme.colors.brandingWhite,
-            letterSpacing: 0.5,
+            fontSize: 11,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.brand,
         },
-
-        // Onboarding card overrides — explicit headers + larger body text
+        onboardingCardStepIndexTextDone: {
+            color: therrTheme.colors.onBrand,
+        },
+        onboardingCardHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: space.sm,
+        },
         onboardingCardHeader: {
             fontFamily: therrFontFamily,
-            fontSize: 13,
-            fontWeight: '700',
-            color: therrTheme.colors.primary3,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.brand,
             textTransform: 'uppercase',
             letterSpacing: 0.6,
-            marginBottom: 4,
+            flexShrink: 1,
         },
         onboardingCardTitle: {
             fontFamily: therrFontFamily,
-            fontSize: 19,
-            fontWeight: '700',
+            fontSize: fontSizes.lg,
+            fontWeight: fontWeights.semibold,
             color: therrTheme.colors.onSurface,
-            marginBottom: 6,
+            marginBottom: space.xs,
         },
         onboardingCardBody: {
             fontFamily: therrFontFamily,
-            fontSize: 15,
-            lineHeight: 21,
-            color: therrTheme.colors.onSurface,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
         },
         onboardingCardFooter: {
             fontFamily: therrFontFamily,
-            fontSize: 13,
-            color: therrTheme.colors.textGray,
-            marginTop: 10,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.md,
+            paddingTop: space.md,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+        },
+        onboardingCardLeading: {
+            width: 40,
+            height: 40,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: tint(therrTheme.colors.brand, 0.10),
+            marginRight: space.md,
+        },
+        onboardingCardLeadingGlyph: {
+            fontSize: 20,
+        },
+
+        // Sticky onboarding footer
+        onboardingFooter: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: therrTheme.colors.surface,
+            borderTopLeftRadius: radius.xl,
+            borderTopRightRadius: radius.xl,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+            paddingTop: space.lg,
+            paddingHorizontal: space.lg,
+        },
+        onboardingFooterHelper: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+            textAlign: 'center',
+            marginBottom: space.md,
+        },
+        onboardingFooterSecondary: {
+            minHeight: 44,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: space.xs,
+        },
+        onboardingFooterSecondaryText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
         },
     });
 

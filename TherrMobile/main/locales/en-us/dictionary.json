@@ -392,12 +392,16 @@
       "buttons": {
         "accept": "Accept",
         "reject": "Reject",
-        "view": "View"
+        "view": "View",
+        "markRead": "Mark as read",
+        "markUnread": "Mark as unread"
       }
     },
     "thoughtDisplay": {
       "viewAllReplies": "View all {count} replies",
-      "viewReplies": "View {count} replies"
+      "viewReplies": "View {count} replies",
+      "likeThought": "Like this post",
+      "unlikeThought": "Remove like from this post"
     },
     "userMenu": {
       "buttons": {
@@ -1255,7 +1259,8 @@
         "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
         "alreadyClaimed": "You have already claimed rewards for this achievement",
         "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
-        "inProgressDescription": "You're almost there! Keep on keepin' on!"
+        "inProgressDescription": "You're almost there! Keep on keepin' on!",
+        "progressOf": "{count} of {total}"
       },
       "sections": {
         "unclaimed": "Claim Your Rewards",
@@ -1693,7 +1698,9 @@
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
       "noNotifications": "You have no notifications at this time",
-      "markAllRead": "Mark all read"
+      "markAllRead": "Mark all read",
+      "unreadCount": "{count} unread",
+      "caughtUp": "You're all caught up"
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
@@ -1837,7 +1844,8 @@
       "headerTitle": "Thoughts",
       "headerTitleGoal": "Goal",
       "reply": "Reply",
-      "replies": "Replies"
+      "replies": "Replies",
+      "repliesFailed": "We couldn't load the replies. Try again in a moment."
     },
     "habits": {
       "headerTitle": "My Habits",
@@ -1857,6 +1865,10 @@
       "completed": "Completed!",
       "noHabitsTitle": "No habits yet",
       "noHabitsSubtitle": "Create a habit to start tracking your progress",
+      "pendingHabits": "Waiting on Partners",
+      "pactWithPartners": "Pact with {partners}",
+      "awaitingPartnerAcceptance": "Waiting for {partners} to accept before this pact starts.",
+      "awaitingAnyPartnerAcceptance": "Waiting for your invite to be accepted before this pact starts.",
       "habitNotFound": "Habit not found",
       "checkinProof": {
         "title": "Check In",
@@ -1948,7 +1960,9 @@
         "habitCardHeader": "Your habit or savings goal",
         "partnerCardHeader": "Your accountability team",
         "pactCardHeader": "Your pact",
-        "samplePactStatus": "Pending your accepted invite"
+        "samplePactStatus": "Pending your accepted invite",
+        "stepOf": "Step {current} of {total}",
+        "stepDone": "Completed"
       },
       "outgoing": {
         "tabLabel": "Sent",
@@ -2015,7 +2029,25 @@
       "checkinsLabel": "{completed}/{total} checkins",
       "completionLabel": "{pct}% completion",
       "vs": "vs",
-      "partnerFallback": "Friend"
+      "partnerFallback": "Friend",
+      "partnersTitle": "Accountability Partners",
+      "viewProfileOf": "View {name}'s profile",
+      "messagePartner": "Message {name}",
+      "viewHabitDetails": "View habit & check in",
+      "dayOfTotal": "Day {current} of {total}",
+      "daysRemaining": "{days} days left",
+      "timelineEnded": "Ended",
+      "memberRole": {
+        "creator": "Organizer",
+        "partner": "Partner"
+      },
+      "memberStatus": {
+        "pending": "Invite pending",
+        "active": "Active",
+        "completed": "Completed",
+        "left": "Left the pact",
+        "removed": "Removed"
+      }
     },
     "pushOptIn": {
       "title": "Get notified when your friend joins",

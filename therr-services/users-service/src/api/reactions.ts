@@ -10,15 +10,36 @@ const getReactions = (thoughtId: string, headers: InternalConfigHeaders) => inte
     url: `${baseReactionsServiceRoute}/thought-reactions/${thoughtId}`,
 });
 
-const findReactions = (thoughtId: string, headers: InternalConfigHeaders) => internalRestRequest({
-    headers,
-}, {
-    method: 'post',
-    url: `${baseReactionsServiceRoute}/thought-reactions/find/dynamic`,
-    data: {
-        thoughtIds: [thoughtId],
-    },
-});
+/**
+ * The requesting user's own reactions for a batch of thoughts, keyed by thoughtId.
+ * Used to render each reply's like/bookmark control in its already-toggled state.
+ */
+const findReactionsByUser = (thoughtIds: string[], headers: InternalConfigHeaders) => {
+    if (!thoughtIds?.length) {
+        return Promise.resolve({});
+    }
+
+    return internalRestRequest({
+        headers,
+    }, {
+        method: 'post',
+        url: `${baseReactionsServiceRoute}/thought-reactions/find/dynamic`,
+        data: {
+            thoughtIds,
+            // `find/dynamic` defaults to 100 rows ordered by `createdAt DESC`. Replies on a
+            // thought are not capped, and opening a thread activates every reply (one reaction
+            // row each), so leaving the default in place silently drops the like state of
+            // every reply past the 100th on a busy thread. There is at most one reaction row
+            // per (user, thought), so the batch size is the exact bound.
+            limit: thoughtIds.length,
+        },
+    })
+        .then(({ data }) => (data?.reactions || []).reduce((acc: any, reaction: any) => ({
+            ...acc,
+            [reaction.thoughtId]: reaction,
+        }), {}))
+        .catch(() => ({}));
+};
 
 const countReactions = (thoughtId: string, headers: InternalConfigHeaders) => internalRestRequest({
     headers,
@@ -27,6 +48,28 @@ const countReactions = (thoughtId: string, headers: InternalConfigHeaders) => in
     url: `${baseReactionsServiceRoute}/thought-reactions/${thoughtId}/count`,
 })
     .then(({ data: countResult }) => countResult);
+
+/**
+ * Like counts for a batch of thoughts, keyed by thoughtId. Missing keys mean zero likes.
+ * A failure here degrades to "no counts" rather than failing the whole details view.
+ */
+const countReactionsByThoughtId = (thoughtIds: string[], headers: InternalConfigHeaders) => {
+    if (!thoughtIds?.length) {
+        return Promise.resolve({});
+    }
+
+    return internalRestRequest({
+        headers,
+    }, {
+        method: 'post',
+        url: `${baseReactionsServiceRoute}/thought-reactions/count/multiple`,
+        data: {
+            thoughtIds,
+        },
+    })
+        .then(({ data }) => data?.counts || {})
+        .catch(() => ({}));
+};
 
 const hasUserReacted = (thoughtId: string, headers) => getReactions(thoughtId, headers)
     .then(({ data: thoughtReaction }) => !!(thoughtReaction && thoughtReaction.userHasActivated))
@@ -78,8 +121,9 @@ const createReactions = (
 
 export {
     createReactions,
-    findReactions,
+    findReactionsByUser,
     countReactions,
+    countReactionsByThoughtId,
     getReactions,
     hasUserReacted,
 };

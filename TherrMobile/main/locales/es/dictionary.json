@@ -392,12 +392,16 @@
       "buttons": {
         "accept": "Aceptar",
         "reject": "Rechazar",
-        "view": "Ver"
+        "view": "Ver",
+        "markRead": "Marcar como leído",
+        "markUnread": "Marcar como no leído"
       }
     },
     "thoughtDisplay": {
       "viewAllReplies": "Ver las {count} respuestas",
-      "viewReplies": "Ver {count} respuestas"
+      "viewReplies": "Ver {count} respuestas",
+      "likeThought": "Me gusta esta publicación",
+      "unlikeThought": "Quitar me gusta de esta publicación"
     },
     "userMenu": {
       "buttons": {
@@ -1255,7 +1259,8 @@
         "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
         "alreadyClaimed": "Ya has reclamado las recompensas de este logro",
         "unClaimed": "¡Este logro está completo! Regresa y presiona 'reclamar recompensas' para continuar.",
-        "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!"
+        "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!",
+        "progressOf": "{count} de {total}"
       },
       "sections": {
         "unclaimed": "Reclama tus recompensas",
@@ -1693,7 +1698,9 @@
       "headerTitle": "Notificaciones",
       "pageTitle": "Notificaciones",
       "noNotifications": "No tienes notificaciones en este momento",
-      "markAllRead": "Marcar todo leído"
+      "markAllRead": "Marcar todo leído",
+      "unreadCount": "{count} sin leer",
+      "caughtUp": "Estás al día"
     },
     "pageNotFound": {
       "pageTitle": "Página no encontrada"
@@ -1837,7 +1844,8 @@
       "headerTitle": "Pensamientos",
       "headerTitleGoal": "Meta",
       "reply": "Responder",
-      "replies": "Respuestas"
+      "replies": "Respuestas",
+      "repliesFailed": "No pudimos cargar las respuestas. Inténtalo de nuevo en un momento."
     },
     "habits": {
       "headerTitle": "Mis hábitos",
@@ -1857,6 +1865,10 @@
       "completed": "¡Completado!",
       "noHabitsTitle": "Aún no hay hábitos",
       "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
+      "pendingHabits": "Esperando a los compañeros",
+      "pactWithPartners": "Pacto con {partners}",
+      "awaitingPartnerAcceptance": "Esperando a que {partners} acepte para que comience este pacto.",
+      "awaitingAnyPartnerAcceptance": "Esperando a que se acepte tu invitación para que comience este pacto.",
       "habitNotFound": "Hábito no encontrado",
       "checkinProof": {
         "title": "Registrar",
@@ -1948,7 +1960,9 @@
         "habitCardHeader": "Tu hábito o meta de ahorro",
         "partnerCardHeader": "Tu equipo de responsabilidad",
         "pactCardHeader": "Tu pacto",
-        "samplePactStatus": "Pendiente que acepten tu invitación"
+        "samplePactStatus": "Pendiente que acepten tu invitación",
+        "stepOf": "Paso {current} de {total}",
+        "stepDone": "Completado"
       },
       "outgoing": {
         "tabLabel": "Enviadas",
@@ -2015,7 +2029,25 @@
       "checkinsLabel": "{completed}/{total} registros",
       "completionLabel": "{pct}% completado",
       "vs": "vs",
-      "partnerFallback": "Amigo"
+      "partnerFallback": "Amigo",
+      "partnersTitle": "Compañeros de responsabilidad",
+      "viewProfileOf": "Ver el perfil de {name}",
+      "messagePartner": "Enviar mensaje a {name}",
+      "viewHabitDetails": "Ver hábito y registrarse",
+      "dayOfTotal": "Día {current} de {total}",
+      "daysRemaining": "Quedan {days} días",
+      "timelineEnded": "Finalizado",
+      "memberRole": {
+        "creator": "Organizador",
+        "partner": "Compañero"
+      },
+      "memberStatus": {
+        "pending": "Invitación pendiente",
+        "active": "Activo",
+        "completed": "Completado",
+        "left": "Dejó el pacto",
+        "removed": "Eliminado"
+      }
     },
     "pushOptIn": {
       "title": "Recibe una notificación cuando tu amigo se una",
