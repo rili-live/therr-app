@@ -397,7 +397,9 @@
     },
     "thoughtDisplay": {
       "viewAllReplies": "Voir les {count} réponses",
-      "viewReplies": "Voir {count} réponses"
+      "viewReplies": "Voir {count} réponses",
+      "likeThought": "Aimer cette publication",
+      "unlikeThought": "Retirer le « j'aime » de cette publication"
     },
     "userMenu": {
       "buttons": {
@@ -1819,7 +1821,8 @@
     "viewThought": {
       "headerTitle": "Pensées",
       "reply": "Répondre",
-      "replies": "Réponses"
+      "replies": "Réponses",
+      "repliesFailed": "Impossible de charger les réponses. Réessayez dans un instant."
     },
     "manageSpaces": {
       "headerTitle": "Mes Commerces",

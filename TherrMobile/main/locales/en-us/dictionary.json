@@ -397,7 +397,9 @@
     },
     "thoughtDisplay": {
       "viewAllReplies": "View all {count} replies",
-      "viewReplies": "View {count} replies"
+      "viewReplies": "View {count} replies",
+      "likeThought": "Like this post",
+      "unlikeThought": "Remove like from this post"
     },
     "userMenu": {
       "buttons": {
@@ -1819,7 +1821,8 @@
     "viewThought": {
       "headerTitle": "Thoughts",
       "reply": "Reply",
-      "replies": "Replies"
+      "replies": "Replies",
+      "repliesFailed": "We couldn't load the replies. Try again in a moment."
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",
