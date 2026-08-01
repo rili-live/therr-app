@@ -20,12 +20,14 @@ import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { signImageUrl } from '../../utilities/content';
 import { showToast } from '../../utilities/toasts';
+import { IHabitWithPactState, splitHabitsByPactState } from './pactState';
 
 interface IHabitsDashboardDispatchProps {
     getUserGoals: Function;
     getTodayCheckins: Function;
     getActiveStreaks: Function;
     getActivePacts: Function;
+    getUserPacts: Function;
     createCheckin: Function;
 }
 
@@ -55,6 +57,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getTodayCheckins: HabitActions.getTodayCheckins,
     getActiveStreaks: HabitActions.getActiveStreaks,
     getActivePacts: HabitActions.getActivePacts,
+    getUserPacts: HabitActions.getUserPacts,
     createCheckin: HabitActions.createCheckin,
 }, dispatch);
 
@@ -105,7 +108,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
     handleRefresh = () => {
         const {
-            getUserGoals, getTodayCheckins, getActiveStreaks, getActivePacts,
+            getUserGoals, getTodayCheckins, getActiveStreaks, getActivePacts, getUserPacts,
         } = this.props;
 
         this.setState({ isRefreshing: true });
@@ -115,6 +118,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             getTodayCheckins(),
             getActiveStreaks(),
             getActivePacts(),
+            // Needed to tell a habit whose pact is live apart from one whose
+            // invite is still outstanding — getActivePacts only returns the former.
+            getUserPacts(),
         ]).finally(() => {
             this.setState({ isRefreshing: false });
         });
@@ -215,6 +221,17 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         return habits.activeStreaks.find((s: IStreak) => s.habitGoalId === habitGoalId);
     };
 
+    getHabitsByPactState = () => {
+        const { habits, user } = this.props;
+
+        return splitHabitsByPactState(
+            habits.habitGoals || [],
+            habits.activePacts || [],
+            habits.pacts || [],
+            user.details?.id,
+        );
+    };
+
     getGreeting = (): string => {
         const hour = new Date().getHours();
         if (hour < 12) {return this.translate('pages.habits.greetingMorning');}
@@ -222,58 +239,55 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         return this.translate('pages.habits.greetingEvening');
     };
 
-    renderHabitsList = () => {
-        const { habits } = this.props;
+    renderEmptyState = () => (
+        <View style={this.themeHabits.styles.emptyStateContainer}>
+            <Text style={this.themeHabits.styles.emptyStateEmoji}>{'\uD83C\uDFAF'}</Text>
+            <Text style={this.themeHabits.styles.emptyStateTitle}>
+                {this.translate('pages.habits.noHabitsTitle')}
+            </Text>
+            <Text style={this.themeHabits.styles.emptyStateSubtitle}>
+                {this.translate('pages.habits.noHabitsSubtitle')}
+            </Text>
+        </View>
+    );
+
+    renderHabitCard = ({ goal, partnerNames, awaitingPartnerNames }: IHabitWithPactState, isAwaitingPartner: boolean) => {
         const { checkinLoadingIds } = this.state;
-        const { habitGoals } = habits;
 
-        if (!habitGoals || habitGoals.length === 0) {
-            return (
-                <View style={this.themeHabits.styles.emptyStateContainer}>
-                    <Text style={this.themeHabits.styles.emptyStateEmoji}>{'\uD83C\uDFAF'}</Text>
-                    <Text style={this.themeHabits.styles.emptyStateTitle}>
-                        {this.translate('pages.habits.noHabitsTitle')}
-                    </Text>
-                    <Text style={this.themeHabits.styles.emptyStateSubtitle}>
-                        {this.translate('pages.habits.noHabitsSubtitle')}
-                    </Text>
-                </View>
-            );
-        }
-
-        return habitGoals.map((goal: IHabitGoal) => {
-            const todayCheckin = this.getTodayCheckinForHabit(goal.id);
-            const streak = this.getStreakForHabit(goal.id);
-
-            return (
-                <HabitCard
-                    key={goal.id}
-                    habitGoal={goal}
-                    todayCheckin={todayCheckin}
-                    streak={streak}
-                    onPress={() => this.handleHabitPress(goal)}
-                    onCheckin={() => this.handleCheckin(goal)}
-                    isCheckinLoading={checkinLoadingIds.has(goal.id)}
-                    showStreak={true}
-                    themeHabits={this.themeHabits}
-                    translate={this.translate}
-                />
-            );
-        });
+        return (
+            <HabitCard
+                key={goal.id}
+                habitGoal={goal}
+                todayCheckin={this.getTodayCheckinForHabit(goal.id)}
+                streak={this.getStreakForHabit(goal.id)}
+                onPress={() => this.handleHabitPress(goal)}
+                onCheckin={() => this.handleCheckin(goal)}
+                isCheckinLoading={checkinLoadingIds.has(goal.id)}
+                showStreak={true}
+                isAwaitingPartner={isAwaitingPartner}
+                awaitingPartnerNames={awaitingPartnerNames}
+                partnerNames={partnerNames}
+                themeHabits={this.themeHabits}
+                translate={this.translate}
+            />
+        );
     };
 
-    renderOverallProgress = () => {
+    renderOverallProgress = (liveHabits: IHabitWithPactState[]) => {
         const { habits } = this.props;
-        const { activeStreaks, todayCheckins, habitGoals } = habits;
+        const { activeStreaks, todayCheckins } = habits;
 
-        if (!habitGoals || habitGoals.length === 0) {
+        if (liveHabits.length === 0) {
             return null;
         }
 
+        // Only habits with a live pact are checkin-able, so counting the
+        // pending ones in the denominator would make "today" unreachable.
+        const liveGoalIds = liveHabits.map(({ goal }) => goal.id);
         const completedToday = todayCheckins.filter(
-            (c: IHabitCheckin) => c.status === 'completed',
+            (c: IHabitCheckin) => c.status === 'completed' && liveGoalIds.includes(c.habitGoalId),
         ).length;
-        const totalHabits = habitGoals.length;
+        const totalHabits = liveHabits.length;
         const longestStreak = activeStreaks.reduce(
             (max: number, s: IStreak) => Math.max(max, s.currentStreak),
             0,
@@ -306,6 +320,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     render() {
         const { navigation, user } = this.props;
         const { isRefreshing, proofSheetHabit, isSubmittingCheckin } = this.state;
+        const { live, pending } = this.getHabitsByPactState();
+        const hasAnyHabits = live.length > 0 || pending.length > 0;
 
         return (
             <PactOnboardingGuard navigation={navigation}>
@@ -328,14 +344,27 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                             </Text>
                         </View>
 
-                        {this.renderOverallProgress()}
+                        {this.renderOverallProgress(live)}
 
-                        <View style={this.themeHabits.styles.dashboardSection}>
-                            <Text style={this.themeHabits.styles.dashboardSectionTitle}>
-                                {this.translate('pages.habits.yourHabits')}
-                            </Text>
-                            {this.renderHabitsList()}
-                        </View>
+                        {!hasAnyHabits && this.renderEmptyState()}
+
+                        {live.length > 0 && (
+                            <View style={this.themeHabits.styles.dashboardSection}>
+                                <Text style={this.themeHabits.styles.dashboardSectionTitle}>
+                                    {this.translate('pages.habits.yourHabits')}
+                                </Text>
+                                {live.map((habit) => this.renderHabitCard(habit, false))}
+                            </View>
+                        )}
+
+                        {pending.length > 0 && (
+                            <View style={this.themeHabits.styles.dashboardSection}>
+                                <Text style={this.themeHabits.styles.dashboardSectionTitle}>
+                                    {this.translate('pages.habits.pendingHabits')}
+                                </Text>
+                                {pending.map((habit) => this.renderHabitCard(habit, true))}
+                            </View>
+                        )}
                     </ScrollView>
                 </SafeAreaView>
                 <MainButtonMenu
