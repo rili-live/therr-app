@@ -94,4 +94,31 @@ describe('pactTimeline', () => {
         expect(timeline?.progressPct).toBe(0);
         expect(timeline?.hasStarted).toBe(false);
     });
+
+    /**
+     * The day counter is derived from the gap between two *local* midnights,
+     * which is only an exact multiple of 24h when no DST transition falls
+     * between them. A March window straddles spring-forward in the Americas and
+     * Europe, where flooring the (23h-short) gap reported the pact a day behind
+     * for the remainder of its run.
+     *
+     * Asserted as a walk over every day of the window rather than a single
+     * hardcoded date so the test stays correct under any TZ — including the UTC
+     * that CI runs in, which has no transition to trip over.
+     */
+    it('counts each day exactly once across a DST transition', () => {
+        const pact = buildPact({
+            durationDays: 30,
+            startDate: localAt(2026, 3, 1, 9).toISOString(),
+            endDate: localAt(2026, 3, 31, 9).toISOString(),
+        });
+
+        for (let dayIndex = 0; dayIndex < 30; dayIndex += 1) {
+            // Midday, so the assertion is about the calendar date and not about
+            // an hour landing either side of the transition itself.
+            const timeline = getPactTimeline(pact, at(2026, 3, 1 + dayIndex, 12));
+
+            expect(timeline?.currentDay).toBe(dayIndex + 1);
+        }
+    });
 });
