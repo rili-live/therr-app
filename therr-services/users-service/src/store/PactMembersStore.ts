@@ -69,26 +69,14 @@ export default class PactMembersStore {
     }
 
     getByPactId(pactId: string) {
-        const queryString = knexBuilder
-            .select([
-                `${PACT_MEMBERS_TABLE_NAME}.*`,
-                `${USERS_TABLE_NAME}.userName`,
-                `${USERS_TABLE_NAME}.firstName`,
-                `${USERS_TABLE_NAME}.lastName`,
-                `${USERS_TABLE_NAME}.media as userMedia`,
-            ])
-            .from(PACT_MEMBERS_TABLE_NAME)
-            .leftJoin(USERS_TABLE_NAME, `${PACT_MEMBERS_TABLE_NAME}.userId`, `${USERS_TABLE_NAME}.id`)
-            .where(`${PACT_MEMBERS_TABLE_NAME}.pactId`, pactId)
-            .orderBy(`${PACT_MEMBERS_TABLE_NAME}.role`, 'asc');
-
-        return this.db.read.query(queryString.toString())
-            .then((response) => response.rows);
+        return this.getByPactIds([pactId]);
     }
 
     /**
-     * Batch equivalent of getByPactId for list endpoints — one query for the
-     * whole page of pacts instead of an N+1 fan-out.
+     * Members for one or many pacts, hydrated with the display fields the
+     * client needs to name a partner. List endpoints pass the whole page in
+     * one call rather than fanning out per pact (N+1); getByPactId is the
+     * single-pact case of the same query.
      */
     getByPactIds(pactIds: string[]) {
         if (!pactIds.length) {

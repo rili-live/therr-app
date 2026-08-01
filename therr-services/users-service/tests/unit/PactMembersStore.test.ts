@@ -58,4 +58,29 @@ describe('PactMembersStore', () => {
             expect(result[1].role).to.be.equal('partner');
         });
     });
+
+    describe('getByPactId', () => {
+        // getByPactId delegates to the batch query so the two cannot drift in
+        // the columns they expose. getPact returns its result straight to the
+        // client, so a dropped join column here is a blank partner name there.
+        it('selects the same hydrated columns as the batch query', async () => {
+            const single = buildStore();
+            const batch = buildStore();
+
+            await single.store.getByPactId('pact-1');
+            await batch.store.getByPactIds(['pact-1']);
+
+            expect(single.mockConnection.read.query.args[0][0])
+                .to.be.equal(batch.mockConnection.read.query.args[0][0]);
+        });
+
+        it('still filters to the requested pact', async () => {
+            const { store, mockConnection } = buildStore();
+
+            await store.getByPactId('pact-1');
+
+            const queryString = mockConnection.read.query.args[0][0];
+            expect(queryString).to.contain('"habits"."pact_members"."pactId" in (\'pact-1\')');
+        });
+    });
 });
