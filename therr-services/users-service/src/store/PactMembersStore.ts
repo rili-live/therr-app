@@ -86,6 +86,32 @@ export default class PactMembersStore {
             .then((response) => response.rows);
     }
 
+    /**
+     * Batch equivalent of getByPactId for list endpoints — one query for the
+     * whole page of pacts instead of an N+1 fan-out.
+     */
+    getByPactIds(pactIds: string[]) {
+        if (!pactIds.length) {
+            return Promise.resolve([]);
+        }
+
+        const queryString = knexBuilder
+            .select([
+                `${PACT_MEMBERS_TABLE_NAME}.*`,
+                `${USERS_TABLE_NAME}.userName`,
+                `${USERS_TABLE_NAME}.firstName`,
+                `${USERS_TABLE_NAME}.lastName`,
+                `${USERS_TABLE_NAME}.media as userMedia`,
+            ])
+            .from(PACT_MEMBERS_TABLE_NAME)
+            .leftJoin(USERS_TABLE_NAME, `${PACT_MEMBERS_TABLE_NAME}.userId`, `${USERS_TABLE_NAME}.id`)
+            .whereIn(`${PACT_MEMBERS_TABLE_NAME}.pactId`, pactIds)
+            .orderBy(`${PACT_MEMBERS_TABLE_NAME}.role`, 'asc');
+
+        return this.db.read.query(queryString.toString())
+            .then((response) => response.rows);
+    }
+
     getByPactAndUser(pactId: string, userId: string) {
         return this.get({ pactId, userId }).then((results) => results[0]);
     }
