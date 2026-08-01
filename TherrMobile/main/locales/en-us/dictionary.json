@@ -117,7 +117,9 @@
     "lessThanHours": "< 1h",
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}d",
-    "yearsSinceDate": "{count}y"
+    "yearsSinceDate": "{count}y",
+    "justNow": "Now",
+    "minutesSinceDate": "{count}m"
   },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [
@@ -1632,6 +1634,14 @@
         "places": "Places",
         "events": "Events",
         "music": "Music"
+      },
+      "preview": {
+        "activeNearby": "{count} active near you",
+        "activeNearbyOne": "1 active near you",
+        "nothingNearby": "Nothing posted near you yet",
+        "createPromptTitle": "Be the first to post here",
+        "createPromptTitleAtSpace": "Be the first at {spaceTitle}",
+        "createPromptSubtitle": "Share a moment and put this place on the map"
       }
     },
     "mapFilteredSearch": {

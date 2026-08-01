@@ -16,11 +16,16 @@ import claimASpace from '../../assets/claim-a-space.json';
 import { MIN_TIME_BTW_CHECK_INS_MS, MIN_TIME_BTW_MOMENTS_MS } from '../../constants';
 import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
+import { areaPreviewStripFootprint } from '../../styles/bottom-sheet';
 
 const BUTTON_SPACING = 60;
 const BASE_BOTTOM = 120;
 const COLLAPSE_OFFSET = 20;
 const BTN_LARGE_WIDTH = 42;
+
+// In compact mode the surviving buttons are translated up rather than repositioned, so
+// they keep their existing anchor styles and only need to clear the preview card strip.
+const COMPACT_LIFT_STYLE = { transform: [{ translateY: -areaPreviewStripFootprint }] };
 
 export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in' | 'event' | 'quick-report';
 
@@ -39,6 +44,12 @@ interface MapActionButtonsProps {
     toggleCreateActions: Function;
     toggleFollow: () => any;
     isAuthorized: any;
+    /**
+     * Compact mode: the area preview card strip is open, so only the featured create
+     * action and the GPS recenter remain, lifted clear of the strip. Everything else is
+     * one tap away again as soon as the strip closes.
+     */
+    isCompact: boolean;
     isGpsEnabled: boolean;
     isFollowEnabled: boolean;
     nearbySpaces: {
@@ -126,18 +137,22 @@ export default ({
     toggleFollow,
     // hasNotifications,
     // isAuthorized,
+    isCompact,
     isGpsEnabled,
     isFollowEnabled,
     nearbySpaces,
     recentEngagements,
     translate,
     // goToNotifications,
-    shouldShowCreateActions,
+    shouldShowCreateActions: shouldShowCreateActionsProp,
     theme,
     themeButtons,
     themeConfirmModal,
     user,
 }: MapActionButtonsProps) => {
+    // Compact mode hides the +/- expander, so the expanded create menu must never stay
+    // rendered — there would be no control left to close it.
+    const shouldShowCreateActions = isCompact ? false : shouldShowCreateActionsProp;
     // const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
     const [isModalVisible, setModalVisibility] = useState(false);
     const [isCheckInModalVisible, setCheckInModalVisibility] = useState(false);
@@ -222,7 +237,7 @@ export default ({
     return (
         <>
             {
-                isGpsEnabled && <View style={themeButtons.styles.toggleFollow}>
+                !isCompact && isGpsEnabled && <View style={themeButtons.styles.toggleFollow}>
                     <FAB
                         icon={isFollowEnabled ? renderCompassIcon : renderWalkingIcon}
                         style={fabStyle}
@@ -232,7 +247,7 @@ export default ({
                     />
                 </View>
             }
-            <View style={themeButtons.styles.locationEnable}>
+            <View style={[themeButtons.styles.locationEnable, isCompact && COMPACT_LIFT_STYLE]}>
                 <AttachStep index={1}>
                     <FAB
                         icon={isGpsEnabled ? renderMapFollowFilledIcon : renderGpsOffIcon}
@@ -243,28 +258,36 @@ export default ({
                     />
                 </AttachStep>
             </View>
-            <View style={themeButtons.styles.mapFilters}>
-                <FAB
-                    icon={renderFiltersIcon}
-                    variant="secondary"
-                    size="small"
-                    style={fabStyle}
-                    onPress={handleOpenMapFilters}
-                />
-            </View>
-            <View style={themeButtons.styles.matchUp}>
-                <AttachStep index={0}>
-                    <FAB
-                        icon={renderBonfireIcon}
-                        style={fabStyle}
-                        variant="secondary"
-                        size="medium"
-                        onPress={handleMatchUp}
-                    />
-                </AttachStep>
-            </View>
             {
-                filterCount > 0 &&
+                !isCompact &&
+                <View style={themeButtons.styles.mapFilters}>
+                    <FAB
+                        icon={renderFiltersIcon}
+                        variant="secondary"
+                        size="small"
+                        style={fabStyle}
+                        onPress={handleOpenMapFilters}
+                    />
+                </View>
+            }
+            {
+                // size="medium" makes this the largest button on the map, so hiding it in
+                // compact mode is what buys back most of the visible map area.
+                !isCompact &&
+                <View style={themeButtons.styles.matchUp}>
+                    <AttachStep index={0}>
+                        <FAB
+                            icon={renderBonfireIcon}
+                            style={fabStyle}
+                            variant="secondary"
+                            size="medium"
+                            onPress={handleMatchUp}
+                        />
+                    </AttachStep>
+                </View>
+            }
+            {
+                !isCompact && filterCount > 0 &&
                 <View style={themeButtons.styles.mapFiltersCount}>
                     {/* <Button
                         containerStyle={themeButtons.styles.btnContainer}
@@ -280,29 +303,32 @@ export default ({
                     </Pressable>
                 </View>
             }
-            <View style={themeButtons.styles.addAMoment}>
-                <AttachStep index={3}>
-                    <FAB
-                        icon={shouldShowCreateActions ? renderMinusIcon : renderPlusIcon}
-                        style={fabStyle}
-                        variant="secondary"
-                        size="small"
-                        onPress={() => toggleCreateActions()}
-                    />
-                </AttachStep>
-            </View>
+            {
+                !isCompact &&
+                <View style={themeButtons.styles.addAMoment}>
+                    <AttachStep index={3}>
+                        <FAB
+                            icon={shouldShowCreateActions ? renderMinusIcon : renderPlusIcon}
+                            style={fabStyle}
+                            variant="secondary"
+                            size="small"
+                            onPress={() => toggleCreateActions()}
+                        />
+                    </AttachStep>
+                </View>
+            }
             {/* Featured quick-access buttons (collapsed state only) */}
             {
                 !shouldShowCreateActions && shouldFeatureCheckIn
                     ? <>
-                        <View style={themeButtons.styles.addACheckInBadgeFeatured}>
+                        <View style={[themeButtons.styles.addACheckInBadgeFeatured, isCompact && COMPACT_LIFT_STYLE]}>
                             <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.checkInRewardsBadgeContainer}>
                                 <Badge style={themeButtons.styles.checkInRewardsBadge}>
                                     {`$${checkinValue}`}
                                 </Badge>
                             </Pressable>
                         </View>
-                        <View style={themeButtons.styles.addACheckInFeatured}>
+                        <View style={[themeButtons.styles.addACheckInFeatured, isCompact && COMPACT_LIFT_STYLE]}>
                             <FAB
                                 icon={renderMapMarkerClockIcon}
                                 variant="secondary"
@@ -314,7 +340,7 @@ export default ({
                     : !shouldShowCreateActions && <>
                         {
                             validRewardMoments?.length > 0 &&
-                            <View style={themeButtons.styles.uploadMomentBadgeFeatured}>
+                            <View style={[themeButtons.styles.uploadMomentBadgeFeatured, isCompact && COMPACT_LIFT_STYLE]}>
                                 <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.momentRewardsBadgeContainer}>
                                     <Badge style={themeButtons.styles.momentRewardsBadge}>
                                         {`$${momentRewardValue}`}
@@ -322,7 +348,7 @@ export default ({
                                 </Pressable>
                             </View>
                         }
-                        <View style={themeButtons.styles.uploadMomentFeatured}>
+                        <View style={[themeButtons.styles.uploadMomentFeatured, isCompact && COMPACT_LIFT_STYLE]}>
                             <FAB
                                 icon={renderMapMarkerPlusIcon}
                                 variant="secondary"
@@ -333,17 +359,20 @@ export default ({
                         </View>
                     </>
             }
-            {/* Quick report: always visible as quick-access; labeled when expanded */}
-            <View style={themeButtons.styles.quickReport}>
-                <FAB
-                    icon={renderFlagIcon}
-                    label={shouldShowCreateActions ? translate('menus.mapActions.quickReport') : undefined}
-                    variant="secondary"
-                    size="small"
-                    style={fabStyle}
-                    onPress={() => handleCreate('quick-report')}
-                />
-            </View>
+            {/* Quick report: quick-access outside compact mode; labeled when expanded */}
+            {
+                !isCompact &&
+                <View style={themeButtons.styles.quickReport}>
+                    <FAB
+                        icon={renderFlagIcon}
+                        label={shouldShowCreateActions ? translate('menus.mapActions.quickReport') : undefined}
+                        variant="secondary"
+                        size="small"
+                        style={fabStyle}
+                        onPress={() => handleCreate('quick-report')}
+                    />
+                </View>
+            }
             {/* Expanded menu buttons (only when plus is toggled) */}
             {
                 shouldShowCreateActions &&
