@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { IPact, IPactMember } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 
@@ -45,15 +46,31 @@ const PactCard: React.FC<IPactCardProps> = ({
     const partnerMember = pact.members?.find((m) => m.userId !== currentUserId);
     const showInviteActions = !!onAccept && !!onDecline;
 
-    const getStatusBadgeStyle = () => {
+    // Badge surface, dot and label color move together — a tonal badge is only
+    // legible when its foreground matches the tint it sits on.
+    const getStatusBadgeStyles = () => {
         if (pact.status === 'active') {
-            return themeHabits.styles.pactCardStatusActive;
+            return {
+                container: themeHabits.styles.pactCardStatusActive,
+                label: themeHabits.styles.pactCardStatusTextActive,
+                dot: themeHabits.colors.alertSuccess,
+            };
         }
         if (pact.status === 'pending') {
-            return themeHabits.styles.pactCardStatusPending;
+            return {
+                container: themeHabits.styles.pactCardStatusPending,
+                label: themeHabits.styles.pactCardStatusTextPending,
+                dot: themeHabits.colors.alertWarning,
+            };
         }
-        return {};
+        return {
+            container: themeHabits.styles.pactCardStatusNeutral,
+            label: themeHabits.styles.pactCardStatusTextNeutral,
+            dot: themeHabits.colors.onSurfaceMuted,
+        };
     };
+
+    const statusStyles = getStatusBadgeStyles();
 
     const renderMemberComparison = (member: IPactMember | undefined, label: string) => (
         <View style={themeHabits.styles.pactComparisonItem}>
@@ -73,19 +90,27 @@ const PactCard: React.FC<IPactCardProps> = ({
 
     return (
         <Pressable
-            style={themeHabits.styles.pactCardContainer}
+            accessibilityRole="button"
+            accessibilityLabel={pact.habitGoalName || translate('pages.pacts.defaultTitle')}
+            style={({ pressed }) => [
+                themeHabits.styles.pactCardContainer,
+                pressed && themeHabits.styles.pactCardContainerPressed,
+            ]}
             onPress={onPress}
         >
-            <View style={[themeHabits.styles.pactCardStatusBadge, getStatusBadgeStyle()]}>
-                <Text style={themeHabits.styles.pactCardStatusText}>
+            <View style={[themeHabits.styles.pactCardStatusBadge, statusStyles.container]}>
+                <View style={[themeHabits.styles.pactCardStatusDot, { backgroundColor: statusStyles.dot }]} />
+                <Text style={[themeHabits.styles.pactCardStatusText, statusStyles.label]}>
                     {getStatusText(pact.status, translate)}
                 </Text>
             </View>
 
             <View style={themeHabits.styles.habitCardHeader}>
-                <Text style={themeHabits.styles.habitCardEmoji}>
-                    {pact.habitGoalEmoji || '\uD83E\uDD1D'}
-                </Text>
+                <View style={themeHabits.styles.habitCardEmojiContainer}>
+                    <Text style={themeHabits.styles.habitCardEmojiContained}>
+                        {pact.habitGoalEmoji || '\uD83E\uDD1D'}
+                    </Text>
+                </View>
                 <View style={themeHabits.styles.habitCardTitleContainer}>
                     <Text style={themeHabits.styles.habitCardTitle}>
                         {pact.habitGoalName || translate('pages.pacts.defaultTitle')}
@@ -102,9 +127,11 @@ const PactCard: React.FC<IPactCardProps> = ({
             {partnerMember && (
                 <View style={themeHabits.styles.pactPartnerRow}>
                     <View style={themeHabits.styles.pactPartnerAvatar}>
-                        <Text>{(partnerMember.firstName?.[0] || 'P').toUpperCase()}</Text>
+                        <Text style={themeHabits.styles.pactPartnerAvatarInitial}>
+                            {(partnerMember.firstName?.[0] || partnerMember.userName?.[0] || 'P').toUpperCase()}
+                        </Text>
                     </View>
-                    <Text style={themeHabits.styles.pactPartnerName}>
+                    <Text style={themeHabits.styles.pactPartnerName} numberOfLines={1}>
                         {partnerMember.firstName
                             || partnerMember.userName
                             || translate('pages.pacts.partnerFallback')}
@@ -138,16 +165,20 @@ const PactCard: React.FC<IPactCardProps> = ({
                             onPress={onAccept}
                             style={({ pressed }) => [
                                 themeHabits.styles.pactCardInviteButton,
+                                themeHabits.styles.pactCardInviteButtonInline,
                                 themeHabits.styles.pactCardInviteButtonPrimary,
                                 pressed && themeHabits.styles.pactCardInviteButtonPressed,
                             ]}
                         >
                             {isRespondPending
-                                ? <ActivityIndicator color={themeHabits.colors.brandingWhite} size="small" />
+                                ? <ActivityIndicator color={themeHabits.colors.onBrand} size="small" />
                                 : (
-                                    <Text style={themeHabits.styles.pactCardInviteButtonPrimaryText}>
-                                        {translate('pages.pacts.acceptShort')}
-                                    </Text>
+                                    <>
+                                        <FontAwesome5Icon name="check" size={13} color={themeHabits.colors.onBrand} />
+                                        <Text style={themeHabits.styles.pactCardInviteButtonPrimaryText}>
+                                            {translate('pages.pacts.acceptShort')}
+                                        </Text>
+                                    </>
                                 )}
                         </Pressable>
                         <Pressable
@@ -157,11 +188,12 @@ const PactCard: React.FC<IPactCardProps> = ({
                             onPress={onDecline}
                             style={({ pressed }) => [
                                 themeHabits.styles.pactCardInviteButton,
+                                themeHabits.styles.pactCardInviteButtonInline,
                                 themeHabits.styles.pactCardInviteButtonSecondary,
                                 pressed && themeHabits.styles.pactCardInviteButtonPressed,
                             ]}
                         >
-                            <Text style={themeHabits.styles.pactCardInviteButtonSecondaryText}>
+                            <Text style={themeHabits.styles.pactCardInviteButtonDestructiveText}>
                                 {translate('pages.pacts.decline')}
                             </Text>
                         </Pressable>

@@ -2,6 +2,7 @@ import React from 'react';
 import {
     View, Text, Pressable, Share, ActivityIndicator,
 } from 'react-native';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { IPact } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { buildInviteUrl } from '../../utilities/shareUrls';
@@ -17,7 +18,6 @@ interface ISentInviteCardProps {
     onNudge?: (pact: IPact) => void;
     onInviteSomeoneElse?: (pact: IPact) => void;
     themeHabits: { colors: ITherrThemeColors; styles: any };
-    themeButtons: { colors: ITherrThemeColors; styles: any };
     translate: (key: string, params?: any) => string;
     onPress?: () => void;
 }
@@ -31,7 +31,6 @@ const SentInviteCard: React.FC<ISentInviteCardProps> = ({
     onNudge,
     onInviteSomeoneElse,
     themeHabits,
-    themeButtons,
     translate,
     onPress,
 }) => {
@@ -60,16 +59,27 @@ const SentInviteCard: React.FC<ISentInviteCardProps> = ({
     };
 
     return (
-        <Pressable style={themeHabits.styles.pactCardContainer} onPress={onPress}>
+        <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={pact.habitGoalName || translate('pages.pacts.defaultTitle')}
+            style={({ pressed }) => [
+                themeHabits.styles.pactCardContainer,
+                pressed && themeHabits.styles.pactCardContainerPressed,
+            ]}
+            onPress={onPress}
+        >
             <View style={[themeHabits.styles.pactCardStatusBadge, themeHabits.styles.pactCardStatusPending]}>
-                <Text style={themeHabits.styles.pactCardStatusText}>
+                <View style={[themeHabits.styles.pactCardStatusDot, { backgroundColor: themeHabits.colors.alertWarning }]} />
+                <Text style={[themeHabits.styles.pactCardStatusText, themeHabits.styles.pactCardStatusTextPending]}>
                     {translate('pages.pacts.outgoing.cardSubtitle')}
                 </Text>
             </View>
             <View style={themeHabits.styles.habitCardHeader}>
-                <Text style={themeHabits.styles.habitCardEmoji}>
-                    {pact.habitGoalEmoji || '🤝'}
-                </Text>
+                <View style={themeHabits.styles.habitCardEmojiContainer}>
+                    <Text style={themeHabits.styles.habitCardEmojiContained}>
+                        {pact.habitGoalEmoji || '🤝'}
+                    </Text>
+                </View>
                 <View style={themeHabits.styles.habitCardTitleContainer}>
                     <Text style={themeHabits.styles.habitCardTitle}>
                         {pact.habitGoalName || translate('pages.pacts.defaultTitle')}
@@ -98,22 +108,27 @@ const SentInviteCard: React.FC<ISentInviteCardProps> = ({
                     ]}
                 >
                     {isNudging
-                        ? <ActivityIndicator color={themeHabits.colors.brandingWhite} size="small" />
+                        ? <ActivityIndicator color={themeHabits.colors.onBrand} size="small" />
                         : (
-                            <Text style={themeHabits.styles.pactCardInviteButtonPrimaryText}>
-                                {translate('pages.pacts.outgoing.sendNudge')}
-                            </Text>
+                            <>
+                                <FontAwesome5Icon name="hand-point-right" size={13} color={themeHabits.colors.onBrand} />
+                                <Text style={themeHabits.styles.pactCardInviteButtonPrimaryText}>
+                                    {translate('pages.pacts.outgoing.sendNudge')}
+                                </Text>
+                            </>
                         )}
                 </Pressable>
             )}
 
             {nudgeSentRecently && (
-                <Text style={themeHabits.styles.pactCardNudgeSent}>
-                    {'✓ '}
-                    {translate('pages.pacts.outgoing.nudgeSentTimeAgo', {
-                        timeAgo: hoursDaysOrYearsSince(nudgedAt as Date, translate),
-                    })}
-                </Text>
+                <View style={themeHabits.styles.pactCardNudgeSent}>
+                    <FontAwesome5Icon name="check" size={11} color={themeHabits.colors.alertSuccess} />
+                    <Text style={themeHabits.styles.pactCardNudgeSentText}>
+                        {translate('pages.pacts.outgoing.nudgeSentTimeAgo', {
+                            timeAgo: hoursDaysOrYearsSince(nudgedAt as Date, translate),
+                        })}
+                    </Text>
+                </View>
             )}
 
             {showRecoveryPath && !!onInviteSomeoneElse && (
@@ -132,6 +147,7 @@ const SentInviteCard: React.FC<ISentInviteCardProps> = ({
                             pressed && themeHabits.styles.pactCardInviteButtonPressed,
                         ]}
                     >
+                        <FontAwesome5Icon name="user-plus" size={13} color={themeHabits.colors.onBrand} />
                         <Text style={themeHabits.styles.pactCardInviteButtonPrimaryText}>
                             {translate('pages.pacts.outgoing.inviteSomeoneElse')}
                         </Text>
@@ -139,12 +155,19 @@ const SentInviteCard: React.FC<ISentInviteCardProps> = ({
                 </>
             )}
 
+            {/* Sharing is the fallback path, so it reads as a text action
+                rather than a second filled button competing with the nudge. */}
             <Pressable
                 accessibilityRole="button"
+                accessibilityLabel={translate('pages.pacts.outgoing.shareInviteButton')}
                 onPress={handleShareInvite}
-                style={[themeButtons.styles.btnMediumWithText, { marginTop: 8, alignItems: 'center' }]}
+                style={({ pressed }) => [
+                    themeHabits.styles.pactCardTextAction,
+                    pressed && themeHabits.styles.pactCardInviteButtonPressed,
+                ]}
             >
-                <Text style={themeButtons.styles.btnMediumTitle}>
+                <FontAwesome5Icon name="share-alt" size={13} color={themeHabits.colors.brand} />
+                <Text style={themeHabits.styles.pactCardTextActionLabel}>
                     {translate('pages.pacts.outgoing.shareInviteButton')}
                 </Text>
             </Pressable>
