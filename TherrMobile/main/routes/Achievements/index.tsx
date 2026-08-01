@@ -166,39 +166,30 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
 
     renderLeaderboardLink = () => (
         <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={this.translate('pages.achievements.buttons.viewLeaderboard')}
             onPress={this.goToLeaderboard}
-            style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginHorizontal: 10,
-                marginTop: 10,
-                marginBottom: 4,
-                paddingVertical: 12,
-                paddingHorizontal: 14,
-                borderRadius: 10,
-                backgroundColor: this.theme.colors.primary3,
-            }}
+            style={({ pressed }) => [
+                this.themeAchievements.styles.leaderboardLink,
+                pressed && this.themeAchievements.styles.leaderboardLinkPressed,
+            ]}
         >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <FontAwesome5Icon
-                    name="trophy"
-                    size={16}
-                    color={this.theme.colors.brandingWhite}
-                />
-                <Text style={{
-                    marginLeft: 10,
-                    fontSize: 15,
-                    fontWeight: '700',
-                    color: this.theme.colors.brandingWhite,
-                }}>
+            <View style={this.themeAchievements.styles.leaderboardLinkContent}>
+                <View style={this.themeAchievements.styles.leaderboardIconContainer}>
+                    <FontAwesome5Icon
+                        name="trophy"
+                        size={14}
+                        color={this.themeAchievements.colors.onBrand}
+                    />
+                </View>
+                <Text style={this.themeAchievements.styles.leaderboardLinkText}>
                     {this.translate('pages.achievements.buttons.viewLeaderboard')}
                 </Text>
             </View>
             <FontAwesome5Icon
                 name="chevron-right"
-                size={14}
-                color={this.theme.colors.brandingWhite}
+                size={13}
+                color={this.themeAchievements.colors.onBrand}
             />
         </Pressable>
     );
@@ -277,16 +268,8 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
 
         if (!section.isCollapsible) {
             return (
-                <View style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
-                    backgroundColor: this.theme.colors.backgroundGray,
-                }}>
-                    <Text style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: this.theme.colors.textWhite,
-                    }}>
+                <View style={this.themeAchievements.styles.sectionHeader}>
+                    <Text style={this.themeAchievements.styles.sectionHeaderTitle}>
                         {section.title}
                     </Text>
                 </View>
@@ -295,28 +278,28 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
 
         return (
             <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: !isCollapsed }}
+                accessibilityLabel={section.title}
                 onPress={() => this.toggleSection(section.title)}
-                style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
-                    backgroundColor: this.theme.colors.backgroundGray,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
+                style={({ pressed }) => [
+                    this.themeAchievements.styles.sectionHeader,
+                    pressed && this.themeAchievements.styles.sectionHeaderPressed,
+                ]}
             >
-                <Text style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: this.theme.colors.textWhite,
-                }}>
-                    {section.title} ({section.totalCount ?? section.data.length})
+                <Text style={this.themeAchievements.styles.sectionHeaderTitle}>
+                    {section.title}
                 </Text>
-                <FontAwesome5Icon
-                    name={isCollapsed ? 'chevron-down' : 'chevron-up'}
-                    size={14}
-                    color={this.theme.colors.textWhite}
-                />
+                <View style={this.themeAchievements.styles.sectionHeaderTrailing}>
+                    <Text style={this.themeAchievements.styles.sectionHeaderCount}>
+                        {section.totalCount ?? section.data.length}
+                    </Text>
+                    <FontAwesome5Icon
+                        name={isCollapsed ? 'chevron-down' : 'chevron-up'}
+                        size={12}
+                        color={this.themeAchievements.colors.onSurfaceMuted}
+                    />
+                </View>
             </Pressable>
         );
     };
@@ -348,11 +331,13 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                 handleClaim={() => this.handleClaim(item)}
                                 isClaiming={!!claimingIds[item.id]}
                                 onPressAchievement={() => this.onPressAchievement(item)}
+                                progressText={(params) => this.translate('pages.achievements.info.progressOf', params)}
                                 themeAchievements={this.themeAchievements}
                                 userAchievement={item}
                             />}
                             renderSectionHeader={this.renderSectionHeader}
                             ListHeaderComponent={this.renderLeaderboardLink()}
+                            contentContainerStyle={this.themeAchievements.styles.listContentContainer}
                             refreshControl={<RefreshControl
                                 refreshing={isRefreshing}
                                 onRefresh={this.handleRefresh}

@@ -51,6 +51,52 @@ All brand variants share the same PostgreSQL database infrastructure and **singl
 
 ## Migration Patterns
 
+### Idempotency (enforced by lint)
+
+**Every migration must be safe to run more than once.** This is a lint error, not a
+convention: `therr/require-idempotent-migration` in `eslint-plugin-therr` fails the build on
+any migration dated `20260730000000` or later that issues DDL without an existence guard.
+
+The reason is the gap between applying a migration and recording it. Knex writes the
+`knex_migrations` row only after the migration function resolves, so a migration that dies
+partway through — a deploy killed mid-run, a statement timeout on a large table, a dropped
+connection, `config.transaction = false` on a multi-statement migration — leaves the schema
+half-changed with no ledger row. The next deploy runs the same file again from the top, hits
+the `CREATE INDEX` for the index it already created, and fails. Recovery is a human in psql
+on production. The same applies to a `down` that fails partway.
+
+Idempotent migrations turn that entire class into "run it again."
+
+| Instead of | Write |
+|---|---|
+| `knex.schema.dropTable(...)` | `knex.schema.dropTableIfExists(...)` |
+| `knex.schema.createSchema(...)` | `knex.schema.createSchemaIfNotExists(...)` |
+| `knex.schema.createTable(...)` | `if (!(await knex.schema.withSchema(s).hasTable(t))) { ...createTable... }` |
+| `alterTable(t, (table) => table.string('x'))` | `knex.raw('ALTER TABLE s.t ADD COLUMN IF NOT EXISTS "x" text')` |
+| `alterTable(t, (table) => table.dropColumn('x'))` | `knex.raw('ALTER TABLE s.t DROP COLUMN IF EXISTS "x"')` |
+| `CREATE INDEX idx ...` | `CREATE INDEX IF NOT EXISTS idx ...` |
+| `DROP INDEX s.idx` | `DROP INDEX IF EXISTS s.idx` |
+| `ADD CONSTRAINT chk ...` | `DROP CONSTRAINT IF EXISTS chk;` then `ADD CONSTRAINT chk ...` |
+| `CREATE FUNCTION` / `CREATE VIEW` | `CREATE OR REPLACE FUNCTION` / `CREATE OR REPLACE VIEW` |
+
+Notes:
+
+- **Do not reach for `createTableIfNotExists`.** Knex logs a warning telling you not to: it
+  emits a bare `CREATE TABLE IF NOT EXISTS` and drops the follow-up `ALTER` statements Knex
+  generates for some column types, so the table can come out missing constraints. The rule
+  flags it. Probe with `hasTable` instead.
+- `ADD CONSTRAINT`, `CREATE TYPE`, `CREATE TRIGGER` and `CREATE POLICY` have no
+  `IF NOT EXISTS` in Postgres. Drop the object first, or wrap the statement in a
+  `DO $$ ... $$` block that checks the catalog — the rule accepts either.
+- `ALTER COLUMN`-shaped changes (`.alter()`, `dropNullable`, `setNullable`) already re-apply
+  cleanly, so they need no guard.
+
+Migrations written before the cutoff are exempt — they are applied in every environment
+already and rewriting deployed history buys nothing. See
+`eslint-config/migration-idempotency-cutoff.js`; the cutoff is a one-way ratchet, and
+`eslint-config/plugin/tests/migration-idempotency-cutoff.test.js` fails if it is moved
+forward or if anything in scope stops passing.
+
 ### Creating a New Schema
 
 ```javascript
@@ -72,8 +118,12 @@ Every migration must declare its archetype in a header comment so reviewers can 
 // migrations/20250125000002_habits.habit_goals.js
 //
 // Archetype: Brand-only (habits schema)
-exports.up = function(knex) {
-    return knex.schema.withSchema('habits').createTable('habit_goals', (table) => {
+exports.up = async function(knex) {
+    // The hasTable probe is what makes this re-runnable — see "Idempotency" above.
+    if (await knex.schema.withSchema('habits').hasTable('habit_goals')) {
+        return;
+    }
+    await knex.schema.withSchema('habits').createTable('habit_goals', (table) => {
         table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
         table.string('name', 255).notNullable();
         table.text('description');
@@ -95,36 +145,61 @@ exports.down = function(knex) {
 };
 ```
 
+> Note the `async`/`await` on `exports.up` — but **never** on the `createTable` callback
+> itself. Knex calls that callback synchronously and discards its return value, so every
+> `table.*` line after an `await` inside it is silently dropped from the emitted DDL. That is
+> its own lint error (`therr/no-async-table-builder-callback`).
+
 ### Adding Columns to Existing Tables (Safe Pattern)
 
 When extending `main.users` or other core tables:
 
+Postgres has `ADD COLUMN IF NOT EXISTS` / `DROP COLUMN IF EXISTS`; Knex's `alterTable` builder
+does not emit either. For column changes on an existing table, raw SQL is the shorter route to
+an idempotent migration:
+
 ```javascript
 // migrations/20250125000010_main.users_habits.js
 exports.up = function(knex) {
-    return knex.schema.withSchema('main').alterTable('users', (table) => {
-        // All columns MUST have defaults or be nullable
-        table.string('settingsTimezone', 50);  // nullable
-        table.time('settingsPreferredReminderTime');  // nullable
-        table.boolean('settingsPushHabitReminders').defaultTo(true);
-        table.boolean('settingsPushPartnerActivity').defaultTo(true);
-        table.boolean('settingsPushStreakAlerts').defaultTo(true);
-        table.integer('currentLongestStreak').defaultTo(0);
-        table.integer('allTimeLongestStreak').defaultTo(0);
-        table.integer('totalHabitsCompleted').defaultTo(0);
-    });
+    // All columns MUST have defaults or be nullable
+    return knex.raw(`
+        ALTER TABLE main."users"
+            ADD COLUMN IF NOT EXISTS "settingsTimezone" varchar(50),
+            ADD COLUMN IF NOT EXISTS "settingsPreferredReminderTime" time,
+            ADD COLUMN IF NOT EXISTS "settingsPushHabitReminders" boolean DEFAULT true,
+            ADD COLUMN IF NOT EXISTS "settingsPushPartnerActivity" boolean DEFAULT true,
+            ADD COLUMN IF NOT EXISTS "settingsPushStreakAlerts" boolean DEFAULT true,
+            ADD COLUMN IF NOT EXISTS "currentLongestStreak" integer DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS "allTimeLongestStreak" integer DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS "totalHabitsCompleted" integer DEFAULT 0
+    `);
 };
 
 exports.down = function(knex) {
-    return knex.schema.withSchema('main').alterTable('users', (table) => {
-        table.dropColumn('settingsTimezone');
-        table.dropColumn('settingsPreferredReminderTime');
-        table.dropColumn('settingsPushHabitReminders');
-        table.dropColumn('settingsPushPartnerActivity');
-        table.dropColumn('settingsPushStreakAlerts');
-        table.dropColumn('currentLongestStreak');
-        table.dropColumn('allTimeLongestStreak');
-        table.dropColumn('totalHabitsCompleted');
+    return knex.raw(`
+        ALTER TABLE main."users"
+            DROP COLUMN IF EXISTS "settingsTimezone",
+            DROP COLUMN IF EXISTS "settingsPreferredReminderTime",
+            DROP COLUMN IF EXISTS "settingsPushHabitReminders",
+            DROP COLUMN IF EXISTS "settingsPushPartnerActivity",
+            DROP COLUMN IF EXISTS "settingsPushStreakAlerts",
+            DROP COLUMN IF EXISTS "currentLongestStreak",
+            DROP COLUMN IF EXISTS "allTimeLongestStreak",
+            DROP COLUMN IF EXISTS "totalHabitsCompleted"
+    `);
+};
+```
+
+If you want the Knex builder instead — for foreign keys or column types that are awkward to
+hand-write — probe first:
+
+```javascript
+exports.up = async function(knex) {
+    if (await knex.schema.withSchema('main').hasColumn('users', 'settingsTimezone')) {
+        return;
+    }
+    await knex.schema.withSchema('main').alterTable('users', (table) => {
+        table.string('settingsTimezone', 50);
     });
 };
 ```
@@ -134,6 +209,7 @@ exports.down = function(knex) {
 2. Never add NOT NULL without a default
 3. Avoid UNIQUE constraints on new columns (unless truly required)
 4. Add indexes in separate migrations if needed
+5. Guard every add and drop so the migration can be re-run (see "Idempotency" above)
 
 ## Table Naming Conventions
 
@@ -313,10 +389,12 @@ A single user signed into multiple apps with the same identity must NOT see data
 // Adds brandVariation discriminator + composite index per
 // docs/NICHE_APP_DATABASE_GUIDELINES.md ("Brand-scoped" archetype).
 exports.up = async (knex) => {
-    await knex.schema.withSchema('main').alterTable('notifications', (table) => {
-        // NOT NULL with default — every existing row was created by the original Therr app.
-        table.string('brandVariation', 50).notNullable().defaultTo('therr');
-    });
+    // NOT NULL with default — every existing row was created by the original Therr app.
+    // Raw SQL rather than alterTable so the column add carries its own IF NOT EXISTS.
+    await knex.raw(`
+        ALTER TABLE main."notifications"
+        ADD COLUMN IF NOT EXISTS "brandVariation" varchar(50) NOT NULL DEFAULT 'therr'
+    `);
     await knex.raw(`
         CREATE INDEX IF NOT EXISTS idx_notifications_user_brand_unread
         ON main.notifications ("userId", "brandVariation", "isUnread")
@@ -325,9 +403,7 @@ exports.up = async (knex) => {
 
 exports.down = async (knex) => {
     await knex.raw('DROP INDEX IF EXISTS main.idx_notifications_user_brand_unread');
-    await knex.schema.withSchema('main').alterTable('notifications', (table) => {
-        table.dropColumn('brandVariation');
-    });
+    await knex.raw('ALTER TABLE main."notifications" DROP COLUMN IF EXISTS "brandVariation"');
 };
 ```
 
@@ -404,6 +480,32 @@ When adding a new feature schema:
 2. **Deploy backend services** (new handlers use new tables)
 3. **Deploy frontend** (UI can now call new endpoints)
 
+### Out-of-repo consumers: expand/contract on `main.*`
+
+Two GCP Cloud Functions in sibling repos — `therr-messaging-automator` and
+`therr-ai-automator` — open their own Knex pools against this database and read (and, for
+thoughts, write) `main.*` tables directly. They are not behind the API gateway and are
+invisible to this repo's ESLint, type checking, and CI.
+
+Consequences for migrations on `main`:
+
+- **Never a bare rename or drop.** Add the new column → backfill → ship the consumer repos →
+  drop the old one in a later migration. A rename merged to `main` here runs automatically
+  via `_bin/cicd/run-migrations.sh` and breaks a Cloud Function at its next Cloud Scheduler
+  firing — hours later, with no alert.
+- **Check before you write the migration:**
+
+  ```bash
+  grep -rn "<columnOrTable>" ~/Code/therr-messaging-automator/src/store \
+                             ~/Code/therr-ai-automator/src/store
+  ```
+
+- **Adding a table to `BRAND_SCOPED_TABLES` does not protect a consumer's reads.** The
+  `therr/no-direct-brand-scoped-table` rule cannot see another repository. If an automator
+  reads the table, mirror the scoping into its `src/store/brandScoped.ts` in the same batch.
+
+The full coupling surface is in [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md).
+
 ### Rollback Safety
 
 Always ensure migrations can be rolled back:
@@ -472,4 +574,5 @@ main.users
 
 - [MULTI_BRAND_ARCHITECTURE.md](./MULTI_BRAND_ARCHITECTURE.md) - Brand variation system
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
+- [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) - Cloud Functions that read this database directly
 - Service-specific CLAUDE.md files for migration patterns

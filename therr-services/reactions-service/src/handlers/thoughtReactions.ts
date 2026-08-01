@@ -255,6 +255,34 @@ const countThoughtReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
+/**
+ * Like counts for a batch of thoughts, keyed by thoughtId.
+ *
+ * The single-thought variant above is fine for a details view's root thought, but the same
+ * view renders every reply with its own like control — fanning that out into one internal
+ * request per reply is what this exists to avoid.
+ */
+const countMultiThoughtReactions: RequestHandler = async (req: any, res: any) => {
+    const { thoughtIds } = req.body;
+
+    if (!Array.isArray(thoughtIds)) {
+        return handleHttpError({ res, message: 'thoughtIds is required', statusCode: 400 });
+    }
+
+    const validThoughtIds = thoughtIds.filter((id) => !!id);
+
+    return Store.thoughtReactions.getCounts(validThoughtIds, {})
+        .then((results) => res.status(200).send({
+            // Thoughts with zero likes have no rows to group, so they are absent here rather
+            // than zero — callers should default a missing key to 0.
+            counts: results.reduce((acc: any, result: any) => ({
+                ...acc,
+                [result.thoughtId]: parseInt(result.count || 0, 10),
+            }), {}),
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getThoughtReactions,
     getReactionsByThoughtId,
@@ -262,4 +290,5 @@ export {
     createOrUpdateMultiThoughtReactions,
     findThoughtReactions,
     countThoughtReactions,
+    countMultiThoughtReactions,
 };

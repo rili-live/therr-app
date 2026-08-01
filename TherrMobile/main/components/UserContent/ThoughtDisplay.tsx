@@ -46,11 +46,11 @@ interface IThoughtDisplayProps {
     topReply?: any;
     replyCount?: number;
     /**
-     * Renders a standalone reply-count icon/count for content that is not itself repliable
-     * (ie. replies rendered within the thought details view). Pressing it inspects the nested
-     * thought. Off by default so feed/carousel displays are unaffected.
+     * Renders a standalone action row for content that is not itself repliable (ie. replies
+     * rendered within the thought details view): a reply-count icon that inspects the nested
+     * thought, and a like control. Off by default so feed/carousel displays are unaffected.
      */
-    showReplyCount?: boolean;
+    showThreadActions?: boolean;
     goToViewUser: Function;
     updateThoughtReaction: Function;
     user: IUserState;
@@ -101,15 +101,20 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
 
     onBookmarkPress = (thought) => {
         const { updateThoughtReaction, user } = this.props;
-        const newIsBookmarked = !this.state.isBookmarked;
+        const previousIsBookmarked = this.state.isBookmarked;
+        const newIsBookmarked = !previousIsBookmarked;
 
         this.setState({
             isBookmarked: newIsBookmarked,
         });
 
-        updateThoughtReaction(thought.id, {
+        const request = updateThoughtReaction(thought.id, {
             userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, thought.fromUserId, user?.details?.userName);
+
+        // Not every caller returns the request (some fire-and-forget through an action sheet),
+        // so this is opt-in: when we can see the failure, undo the optimistic toggle.
+        request?.catch?.(() => this.setState({ isBookmarked: previousIsBookmarked }));
     };
 
     // TODO: Open full screen reply editor
@@ -123,18 +128,25 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         if (!thought.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateThoughtReaction, user } = this.props;
-            const newIsLiked = !this.state.isLiked;
+            const previousIsLiked = this.state.isLiked;
+            const previousLikeCount = this.state.likeCount;
+            const newIsLiked = !previousIsLiked;
 
             this.setState({
                 isLiked: newIsLiked,
                 likeCount: this.props.thought.likeCount != null
-                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
-                    : this.state.likeCount,
+                    ? Math.max((previousLikeCount || 0) + (newIsLiked ? 1 : -1), 0)
+                    : previousLikeCount,
             });
 
-            updateThoughtReaction(thought.id, {
+            const request = updateThoughtReaction(thought.id, {
                 userHasLiked: newIsLiked,
             }, thought.fromUserId, user?.details?.userName);
+
+            request?.catch?.(() => this.setState({
+                isLiked: previousIsLiked,
+                likeCount: previousLikeCount,
+            }));
         }
     };
 
@@ -150,7 +162,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             thought,
             topReply,
             replyCount,
-            showReplyCount,
+            showThreadActions,
             goToViewUser,
             contentUserDetails,
             theme,
@@ -241,7 +253,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                     onLikePress={this.onLikePress}
                                     goToViewUser={goToViewUser}
                                     replyCount={replyCount}
-                                    showReplyCount={showReplyCount}
+                                    showThreadActions={showThreadActions}
                                     theme={theme}
                                     themeForms={themeForms}
                                     themeViewContent={themeViewContent}
@@ -282,7 +294,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 onLikePress={this.onLikePress}
                                 goToViewUser={goToViewUser}
                                 replyCount={replyCount}
-                                showReplyCount={showReplyCount}
+                                showThreadActions={showThreadActions}
                                 theme={theme}
                                 themeForms={themeForms}
                                 themeViewContent={themeViewContent}
@@ -362,7 +374,7 @@ const ThoughtContent = ({
     onLikePress,
     goToViewUser,
     replyCount,
-    showReplyCount,
+    showThreadActions,
     theme,
     themeForms,
     themeViewContent,
@@ -372,9 +384,9 @@ const ThoughtContent = ({
     const totalReplies = replyCount ?? thought.replyCount ?? thought.replies?.length;
     const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
     const hasRepliableActions = !thought.isDraft && isRepliable;
-    // The repliable action row already renders a reply icon/count, so this only fills the gap
-    // for non-repliable content (replies within the thought details view).
-    const shouldShowStandaloneReplyCount = !hasRepliableActions && !thought.isDraft && showReplyCount;
+    // The repliable action row already renders a reply icon/count and a like control, so this
+    // only fills the gap for non-repliable content (replies within the thought details view).
+    const shouldShowThreadActions = !hasRepliableActions && !thought.isDraft && showThreadActions;
 
     return (
         <Pressable style={themeViewContent.styles.thoughtContentContainer} onPress={() => inspectThought(thought)}>
@@ -398,27 +410,56 @@ const ThoughtContent = ({
                 </View>
                 <View style={isExpanded ? themeViewContent.styles.thoughtReactionsContainerExpanded : themeViewContent.styles.thoughtReactionsContainer}>
                     {
-                        shouldShowStandaloneReplyCount &&
-                        <Button
-                            containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
-                            buttonStyle={themeViewContent.styles.thoughtReactionButton}
-                            icon={
-                                <TherrIcon
-                                    name="chat"
-                                    size={22}
-                                    color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
-                                />
-                            }
-                            onPress={() => inspectThought(thought)}
-                            type="clear"
-                            title={`${totalReplies || 0}`}
-                            titleStyle={[
-                                themeViewContent.styles.thoughtReactionButtonTitle,
-                                { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
-                            ]}
-                            accessibilityLabel={translate('components.thoughtDisplay.viewReplies', { count: totalReplies || 0 })}
-                            TouchableComponent={TouchableWithoutFeedbackComponent}
-                        />
+                        shouldShowThreadActions &&
+                        <>
+                            <Button
+                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name="chat"
+                                        size={22}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={() => inspectThought(thought)}
+                                type="clear"
+                                title={`${totalReplies || 0}`}
+                                titleStyle={[
+                                    themeViewContent.styles.thoughtReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
+                                accessibilityLabel={translate('components.thoughtDisplay.viewReplies', { count: totalReplies || 0 })}
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                            {/*
+                                The like control is deliberately its own pressable rather than part
+                                of the card's inspect gesture — liking a reply should not first
+                                require opening it.
+                            */}
+                            <Button
+                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name={ isLiked ? 'heart-filled' : 'heart' }
+                                        size={22}
+                                        color={likeColor}
+                                    />
+                                }
+                                onPress={() => onLikePress(thought)}
+                                type="clear"
+                                title={(likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                                titleStyle={[
+                                    themeViewContent.styles.thoughtReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
+                                accessibilityLabel={translate(isLiked
+                                    ? 'components.thoughtDisplay.unlikeThought'
+                                    : 'components.thoughtDisplay.likeThought')}
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                        </>
                     }
                     {
                         hasRepliableActions &&

@@ -72,6 +72,14 @@ export enum BrandVariations {
 | Header Parser | `therr-js-utilities/src/http/parse-headers.ts` | Extracts brand from headers |
 | Inter-service | `therr-js-utilities/src/internal-rest-request.ts` | Preserves header across services |
 
+> **Brand awareness has to be re-implemented outside this repo.** `therr-messaging-automator`
+> reads `main.notifications` and `main.userAchievements` straight from Postgres — no header,
+> no `BrandScopedStore`, and out of reach of `therr/no-direct-brand-scoped-table`. It resolves
+> a primary brand per user in its own store layer. Promoting a table into
+> `BRAND_SCOPED_TABLES` here means mirroring it there in the same batch of work, or that
+> repo's reads silently span brands. See
+> [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) §2.
+
 ## Branch Strategy for Multi-Brand Development
 
 | Branch | Purpose | What Goes Here |
