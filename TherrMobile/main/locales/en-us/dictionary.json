@@ -419,36 +419,10 @@
       "dismiss": "Dismiss",
       "messageSingular": "Finish your profile — 1 step left"
     },
-    "profileCompletionCard": {
-      "title": "Finish your profile!",
+    "profileCompletionLink": {
+      "title": "Finish your profile",
       "stepsLeft": "{count} steps left",
-      "stepLeft": "1 step left",
-      "continue": "Continue",
-      "collapse": "Collapse checklist",
-      "expand": "Expand checklist",
-      "skipped": "Skipped — tap to do it now",
-      "steps": {
-        "name": {
-          "label": "Add your name",
-          "description": "So friends can recognize you"
-        },
-        "interests": {
-          "label": "Pick your interests",
-          "description": "We use these to show you better content"
-        },
-        "picture": {
-          "label": "Add a profile photo",
-          "description": "Profiles with photos get more connections"
-        },
-        "phone": {
-          "label": "Verify your phone",
-          "description": "Keeps your account secure"
-        },
-        "contacts": {
-          "label": "Sync your contacts",
-          "description": "Find friends who are already here"
-        }
-      }
+      "stepLeft": "1 step left"
     }
   },
   "forms": {
@@ -1684,6 +1658,37 @@
       "markAllRead": "Mark all read",
       "unreadCount": "{count} unread",
       "caughtUp": "You're all caught up"
+    },
+    "profileCompletion": {
+      "headerTitle": "Finish Your Profile",
+      "title": "Finish your profile!",
+      "stepsLeft": "{count} steps left",
+      "stepLeft": "1 step left",
+      "continue": "Continue",
+      "skipped": "Skipped — tap to do it now",
+      "allDone": "Your profile is all set. Nothing left to do here!",
+      "steps": {
+        "name": {
+          "label": "Add your name",
+          "description": "So friends can recognize you"
+        },
+        "interests": {
+          "label": "Pick your interests",
+          "description": "We use these to show you better content"
+        },
+        "picture": {
+          "label": "Add a profile photo",
+          "description": "Profiles with photos get more connections"
+        },
+        "phone": {
+          "label": "Verify your phone",
+          "description": "Keeps your account secure"
+        },
+        "contacts": {
+          "label": "Sync your contacts",
+          "description": "Find friends who are already here"
+        }
+      }
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"

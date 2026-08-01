@@ -419,36 +419,10 @@
       "dismiss": "Ignorer",
       "messageSingular": "Complétez votre profil — il reste 1 étape"
     },
-    "profileCompletionCard": {
-      "title": "Complétez votre profil!",
+    "profileCompletionLink": {
+      "title": "Complétez votre profil",
       "stepsLeft": "Il reste {count} étapes",
-      "stepLeft": "Il reste 1 étape",
-      "continue": "Continuer",
-      "collapse": "Réduire la liste",
-      "expand": "Afficher la liste",
-      "skipped": "Ignoré — touchez pour le faire maintenant",
-      "steps": {
-        "name": {
-          "label": "Ajoutez votre nom",
-          "description": "Pour que vos amis puissent vous reconnaître"
-        },
-        "interests": {
-          "label": "Choisissez vos intérêts",
-          "description": "Nous les utilisons pour vous montrer du meilleur contenu"
-        },
-        "picture": {
-          "label": "Ajoutez une photo de profil",
-          "description": "Les profils avec photo obtiennent plus de connexions"
-        },
-        "phone": {
-          "label": "Vérifiez votre téléphone",
-          "description": "Garde votre compte sécuritaire"
-        },
-        "contacts": {
-          "label": "Synchronisez vos contacts",
-          "description": "Trouvez des amis qui sont déjà ici"
-        }
-      }
+      "stepLeft": "Il reste 1 étape"
     }
   },
   "forms": {
@@ -1684,6 +1658,37 @@
       "markAllRead": "Tout marquer comme lu",
       "unreadCount": "{count} non lue(s)",
       "caughtUp": "Tu es à jour"
+    },
+    "profileCompletion": {
+      "headerTitle": "Complétez votre profil",
+      "title": "Complétez votre profil!",
+      "stepsLeft": "Il reste {count} étapes",
+      "stepLeft": "Il reste 1 étape",
+      "continue": "Continuer",
+      "skipped": "Ignoré — touchez pour le faire maintenant",
+      "allDone": "Votre profil est complet. Il ne reste rien à faire ici!",
+      "steps": {
+        "name": {
+          "label": "Ajoutez votre nom",
+          "description": "Pour que vos amis puissent vous reconnaître"
+        },
+        "interests": {
+          "label": "Choisissez vos intérêts",
+          "description": "Nous les utilisons pour vous montrer du meilleur contenu"
+        },
+        "picture": {
+          "label": "Ajoutez une photo de profil",
+          "description": "Les profils avec photo obtiennent plus de connexions"
+        },
+        "phone": {
+          "label": "Vérifiez votre téléphone",
+          "description": "Garde votre compte sécuritaire"
+        },
+        "contacts": {
+          "label": "Synchronisez vos contacts",
+          "description": "Trouvez des amis qui sont déjà ici"
+        }
+      }
     },
     "pageNotFound": {
       "pageTitle": "Page non trouvée"
