@@ -76,6 +76,7 @@ import background1 from '../assets/landing-jungle.webp';
 import background2 from '../assets/landing-tree.webp';
 import background3 from '../assets/landing-chameleon.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
+import { getBrandInitialRouteName } from '../utilities/brandLandingRoute';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
 
@@ -455,10 +456,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     // and self-upgrade to EMAIL_VERIFIED.
     resetToHabitsLanding = async () => {
         if (!isUserEmailVerified(this.props.user)) {
-            RootNavigation.reset({
-                index: 0,
-                routes: [{ name: 'CreateProfile' }],
-            });
+            this.resetToRouteIfNeeded('CreateProfile');
             return;
         }
         let optInShown = 'true';
@@ -469,9 +467,29 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             optInShown = 'true';
         }
         const target = optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
+        this.resetToRouteIfNeeded(target);
+    };
+
+    /**
+     * The navigator now mounts directly on the brand landing screen (see
+     * `getBrandInitialRouteName`), so the persisted-session reset is usually a
+     * no-op. Dispatching it anyway remounted the landing screen and re-ran its
+     * fetches for no reason, so only reset when the stack is not already
+     * exactly `[routeName]`.
+     */
+    resetToRouteIfNeeded = (routeName: string) => {
+        const currentRouteName = RootNavigation.getCurrentRoute()?.name;
+        const stackDepth = navigationRef.isReady()
+            ? (navigationRef.getRootState()?.routes?.length || 0)
+            : 0;
+
+        if (currentRouteName === routeName && stackDepth <= 1) {
+            return;
+        }
+
         RootNavigation.reset({
             index: 0,
-            routes: [{ name: target }],
+            routes: [{ name: routeName }],
         });
     };
 
@@ -1946,6 +1964,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 >
                     <Stack.Navigator
                         id={undefined}
+                        // Mount straight onto the brand's landing screen instead of
+                        // rendering the first authorized route and resetting away
+                        // from it a frame later.
+                        initialRouteName={getBrandInitialRouteName(user)}
                         screenOptions={({ route, navigation }) => {
                             const themeName = this.props?.user?.settings?.mobileThemeName;
                             const currentScreen = route.name;
