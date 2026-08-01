@@ -399,7 +399,9 @@
     },
     "thoughtDisplay": {
       "viewAllReplies": "Voir les {count} réponses",
-      "viewReplies": "Voir {count} réponses"
+      "viewReplies": "Voir {count} réponses",
+      "likeThought": "Aimer cette publication",
+      "unlikeThought": "Retirer le « j'aime » de cette publication"
     },
     "userMenu": {
       "buttons": {
@@ -1842,7 +1844,8 @@
       "headerTitle": "Pensées",
       "headerTitleGoal": "Objectif",
       "reply": "Répondre",
-      "replies": "Réponses"
+      "replies": "Réponses",
+      "repliesFailed": "Impossible de charger les réponses. Réessayez dans un instant."
     },
     "habits": {
       "headerTitle": "Mes habitudes",

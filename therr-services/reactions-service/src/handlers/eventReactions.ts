@@ -4,16 +4,21 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
+import validateReactionMetrics from '../utilities/validateReactionMetrics';
 
 // CREATE/UPDATE
 const createOrUpdateEventReaction = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate events on demand
     const {
         authorization,
         locale,
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+
+    const metricsError = validateReactionMetrics(req.body, { withRating: true });
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
+    }
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -28,7 +33,10 @@ const createOrUpdateEventReaction = (req, res) => {
             }, {
                 ...req.body,
                 userLocale: locale,
-                userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
+                // Number() is load-bearing: a JSON body may carry "1" as a string, and
+                // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
+                // very total the bounds above exist to cap.
+                userViewCount: existing[0].userViewCount + Number(req.body.userViewCount || 0),
             })
                 .then(([eventReaction]) => {
                     const event = existing[0];
@@ -50,12 +58,16 @@ const createOrUpdateEventReaction = (req, res) => {
 
 // CREATE/UPDATE
 const createOrUpdateMultiEventReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate events on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
     if (!userId) {
         return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const metricsError = validateReactionMetrics(req.body, { withRating: true });
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
     }
 
     const { eventIds } = req.body;
@@ -108,13 +120,17 @@ const createOrUpdateMultiEventReactions = (req, res) => {
 };
 
 const createOrUpdateMultiUserReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate events on demand
     const locale = req.headers['x-localecode'] || 'en-us';
 
     const { eventId, userIds } = req.body;
 
     if (!eventId) {
         return handleHttpError({ res, message: 'eventId is required', statusCode: 400 });
+    }
+
+    const metricsError = validateReactionMetrics(req.body, { withRating: true });
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
     }
 
     if (!userIds?.length) {

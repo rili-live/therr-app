@@ -40,6 +40,7 @@ went unread.
 
 ### Architecture & platform
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — system design, service boundaries, data layer
+- [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) — the four sibling repos, the tables the Cloud Functions read directly, the habits digest network path
 - [MULTI_BRAND_ARCHITECTURE.md](./MULTI_BRAND_ARCHITECTURE.md) — brand variation system, header flow
 - [NICHE_APP_DATABASE_GUIDELINES.md](./NICHE_APP_DATABASE_GUIDELINES.md) — schema isolation, migration patterns
 - [NICHE_APP_SETUP_STEPS.md](./NICHE_APP_SETUP_STEPS.md) — creating a new brand variation
@@ -86,5 +87,9 @@ two GCP Cloud Functions, and the Terraform infrastructure live separately. Both 
 Functions query this repository's database directly, so schema changes here can break
 them with no CI signal in either repo.
 
+Read [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) before any migration that
+renames or drops a column, before adding a table to `BRAND_SCOPED_TABLES`, and before
+touching the users-service internal load balancer or NetworkPolicy in `k8s/prod`.
+
 If a `~/Code/therr-workspace` checkout exists locally, its `CLAUDE.md` and
-`docs/CROSS_REPO_ARCHITECTURE.md` document those couplings.
+`docs/CROSS_REPO_ARCHITECTURE.md` add the operational/runbook view across all five repos.

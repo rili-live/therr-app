@@ -4,6 +4,7 @@ import Content from './Content';
 import ErrorCodes from './ErrorCodes';
 import FilePaths from './FilePaths';
 import Location from './Location';
+import Reactions from './Reactions';
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
     CurrentSocialValuations,
@@ -108,6 +109,7 @@ export {
     MetricNames,
     MetricValueTypes,
     Location,
+    Reactions,
     ILogLevel,
     LogLevelMap,
     Notifications,

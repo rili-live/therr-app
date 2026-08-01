@@ -15,7 +15,9 @@ import userMetricsService from '../api/userMetricsService';
 import * as globalConfig from '../../../../global-config';
 import {
     countReactions,
+    countReactionsByThoughtId,
     createReactions,
+    findReactionsByUser,
     hasUserReacted,
 } from '../api/reactions';
 import handleHttpError from '../utilities/handleHttpError';
@@ -315,7 +317,15 @@ const getThoughtDetails = (req, res) => {
 
             // Verify that user has activated thought and has access to view it
             if (!thought.isPublic && !isOwnThought) {
-                userHasAccessPromise = hasUserReacted(thoughtId, req.headers);
+                // Replies are always minted with isPublic=false, so the flag is not a privacy
+                // signal on them — their visibility follows the parent thought. Falling back to
+                // the parent's activation is what lets a thread be opened from a deep link (or
+                // any order other than parent-then-reply) instead of 400ing on a reply the user
+                // is plainly allowed to read.
+                userHasAccessPromise = hasUserReacted(thoughtId, req.headers)
+                    .then((hasActivated) => (hasActivated || !thought.parentId
+                        ? hasActivated
+                        : hasUserReacted(thought.parentId, req.headers)));
             }
 
             return userHasAccessPromise.then((isActivated) => {
@@ -331,18 +341,38 @@ const getThoughtDetails = (req, res) => {
                 let createReactionsPromise = Promise.resolve({});
                 countReactionsPromise = countReactions(thoughtId, req.headers);
 
+                const replyIds = (thought.replies || []).map((reply) => reply.id).filter((id) => !!id);
+                // Activating this thought too (when it is itself a reply) keeps a reply reachable
+                // on its own after it was first opened via the parent's access.
+                const idsToActivate = thought.parentId ? [thought.id, ...replyIds] : replyIds;
+
                 // Activate child thoughts otherwise
-                if (thought.replies?.length) {
-                    createReactionsPromise = createReactions(thought.replies.map((reply) => reply.id), req.headers);
+                if (idsToActivate.length) {
+                    createReactionsPromise = createReactions(idsToActivate, req.headers);
                 }
 
-                return Promise.all([countReactionsPromise, createReactionsPromise]).then(([thoughtCounts]) => {
+                // Replies render their own like control, so they need the same reaction state the
+                // root thought gets — the count across all users, plus this user's own reaction.
+                const replyCountsPromise = countReactionsByThoughtId(replyIds, req.headers);
+                const replyReactionsPromise = findReactionsByUser(replyIds, req.headers);
+
+                return Promise.all([
+                    countReactionsPromise,
+                    createReactionsPromise,
+                    replyCountsPromise,
+                    replyReactionsPromise,
+                ]).then(([thoughtCounts, , replyLikeCounts, replyReactions]) => {
                     const thoughtResult = {
                         ...thought,
                     };
 
                     thoughtResult.viewCount = parseInt(viewCount || '0', 10);
                     thoughtResult.likeCount = parseInt(thoughtCounts?.count || '0', 10);
+                    thoughtResult.replies = (thought.replies || []).map((reply) => ({
+                        ...reply,
+                        likeCount: replyLikeCounts[reply.id] || 0,
+                        reaction: replyReactions[reply.id],
+                    }));
 
                     if (userId && userId !== thought.fromUserId) {
                         Store.userConnections.incrementUserConnection(userId, thought.fromUserId, 1)

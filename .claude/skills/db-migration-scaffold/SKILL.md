@@ -107,8 +107,11 @@ exports.down = function(knex) {
 For **creating a table in an existing schema**:
 
 ```javascript
-exports.up = function(knex) {
-    return knex.schema.withSchema('<schema>').createTable('<table>', (table) => {
+exports.up = async function(knex) {
+    if (await knex.schema.withSchema('<schema>').hasTable('<table>')) {
+        return;
+    }
+    await knex.schema.withSchema('<schema>').createTable('<table>', (table) => {
         table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
         // TODO: add columns
         table.timestamp('createdAt').notNullable().defaultTo(knex.fn.now());
@@ -121,9 +124,37 @@ exports.down = function(knex) {
 };
 ```
 
-For **add_column** on an existing table, read the latest migration touching that table and follow its style (`alterTable`, correct schema, matching column naming). Surface the reference migration to the user.
+For **add_column** on an existing table, use raw SQL so the add and the drop carry their own
+guards (Knex's `alterTable` builder emits neither):
 
-For **add_index**, use `knex.schema.withSchema('<schema>').alterTable('<table>', ...)` with `.index([...])` and ensure the `down` is symmetric via `.dropIndex([...])`.
+```javascript
+exports.up = function(knex) {
+    return knex.raw(`
+        ALTER TABLE <schema>."<table>"
+        ADD COLUMN IF NOT EXISTS "<column>" <type> <default-or-null>
+    `);
+};
+
+exports.down = function(knex) {
+    return knex.raw('ALTER TABLE <schema>."<table>" DROP COLUMN IF EXISTS "<column>"');
+};
+```
+
+Read the latest migration touching that table for column-naming style, and surface it to the user as the reference.
+
+For **add_index**, use raw SQL both ways — `CREATE INDEX IF NOT EXISTS` / `DROP INDEX IF EXISTS` — rather than `.index([...])` / `.dropIndex([...])`, which compile to unguarded statements.
+
+### Idempotency is a lint error, not a preference
+
+`therr/require-idempotent-migration` fails the build on any migration dated `20260730000000`
+or later whose DDL has no existence guard. A migration that dies partway through leaves the
+schema half-changed with no `knex_migrations` row, so the next deploy re-runs it from the top
+and fails on the half it already applied.
+
+Never scaffold `createTableIfNotExists` as the fix for `createTable` — Knex warns against it
+(it drops the follow-up ALTER statements it generates for some column types). Probe with
+`hasTable` instead, as above. Full table of substitutions:
+`docs/NICHE_APP_DATABASE_GUIDELINES.md` → "Idempotency (enforced by lint)".
 
 ### Step 4: Cross-reference FKs
 
@@ -134,6 +165,22 @@ table.uuid('userId').notNullable().references('id').inTable('main.users').onDele
 ```
 
 If the new table references another niche table, reference it in its own schema: `'<schema>.<table>'`.
+
+### Step 4.5: Cross-repo consumer check (destructive changes on `main.*` only)
+
+Two Cloud Functions in sibling repos query this database directly and are invisible to
+this repo's lint, types, and CI. If the change **renames or drops** a column or table in
+the `main` schema, grep them before scaffolding:
+
+```bash
+grep -rn "<tableOrColumn>" ~/Code/therr-messaging-automator/src/store \
+                           ~/Code/therr-ai-automator/src/store
+```
+
+On a hit, do not scaffold a bare rename. Scaffold the expand half only (add the new
+column), and report that the consumer repo must ship before the drop can be scaffolded.
+If the sibling checkouts are not present locally, say so and flag the check as unverified
+rather than assuming it's clean. Background: `docs/CROSS_REPO_INTEGRATION.md` §2.
 
 ### Step 5: Report
 
@@ -180,6 +227,7 @@ Scan every `.js` file in the six service migrations dirs. Report violations:
 - **Filename format**: does it match `^\d{14}_[a-z]+\.[A-Za-z_]+.*\.js$`?
 - **Schema mismatch**: does the filename schema prefix match the `withSchema('...')` or `CREATE SCHEMA` inside the file?
 - **Missing `down`**: does every migration export a non-empty `down` that undoes `up`?
+- **Non-idempotent DDL**: `npx eslint <migration-path>` from the service directory — `therr/require-idempotent-migration` reports unguarded creates and drops. Only migrations dated at or after the cutoff are in scope.
 - **Niche table on main**: any migration whose filename starts with `main.` but whose `up` references `habits.*` or another niche schema — and vice versa.
 - **Non-main table without schema prefix**: `createTable('pact_activities', ...)` without `.withSchema('habits')` would put it on the default schema; flag it.
 
@@ -213,6 +261,7 @@ Always link to `docs/NICHE_APP_DATABASE_GUIDELINES.md` as the authoritative refe
 - **Never run migrations from this skill.** Scaffolding ≠ execution. The developer runs migrations in their environment.
 - **Never use `--force` automatically.** If the user's combination of `--schema main --feature <niche>` looks wrong, refuse and explain — don't silently override.
 - Do not invent column definitions beyond `id`, `createdAt`, `updatedAt`. The developer knows the feature; you don't.
+- **Expand/contract for anything the Cloud Functions read** (Step 4.5). A bare rename on a `main.*` table deploys green here and breaks a Cloud Function at its next scheduler firing, with no alert.
 - Do not modify migrations that already exist on any branch — they're append-only in practice. If the user wants to change a table, generate a new migration.
 - Match the service's existing naming convention (snake_case vs camelCase columns) — inconsistency across a service is a code smell.
 - This skill does not commit. It creates the file, leaves it staged or unstaged per git's default.
