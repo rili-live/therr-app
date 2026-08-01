@@ -426,6 +426,26 @@ const getPact: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
 
+/**
+ * Attaches `members` to a list of pacts in a single query. Clients rely on it
+ * to name the partner they're waiting on (or partnered with) without having to
+ * fetch each pact's details individually.
+ */
+const withMembers = async (pacts: any[]) => {
+    if (!pacts.length) {
+        return pacts;
+    }
+
+    const members = await Store.pactMembers.getByPactIds(pacts.map((pact) => pact.id));
+    const membersByPactId = members.reduce((acc: any, member: any) => {
+        acc[member.pactId] = acc[member.pactId] || [];
+        acc[member.pactId].push(member);
+        return acc;
+    }, {});
+
+    return pacts.map((pact) => ({ ...pact, members: membersByPactId[pact.id] || [] }));
+};
+
 const getUserPacts: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
     const { status, limit, offset } = req.query;
@@ -436,6 +456,7 @@ const getUserPacts: RequestHandler = async (req: any, res: any) => {
         limit ? parseInt(limit, 10) : undefined,
         offset ? parseInt(offset, 10) : undefined,
     )
+        .then(withMembers)
         .then((pacts) => res.status(200).send(pacts))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
@@ -444,6 +465,7 @@ const getActivePacts: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
 
     return Store.pacts.getActivePactsByUserId(userId)
+        .then(withMembers)
         .then((pacts) => res.status(200).send(pacts))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
