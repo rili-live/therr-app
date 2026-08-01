@@ -49,7 +49,12 @@ const getPactTimeline = (pact: IPact, now: number = Date.now()): IPactTimeline |
     const spanDays = Math.max(1, Math.round((startOfLocalDay(new Date(endMs)) - startOfLocalDay(new Date(startMs))) / MS_PER_DAY));
     const totalDays = pact.durationDays > 0 ? pact.durationDays : spanDays;
 
-    const elapsedDays = Math.floor((startOfLocalDay(new Date(now)) - startOfLocalDay(new Date(startMs))) / MS_PER_DAY);
+    // Rounded, not floored: the gap between two local midnights is only an exact
+    // multiple of MS_PER_DAY when no DST transition falls between them. After a
+    // spring-forward it is short by an hour, and flooring would report the pact
+    // as a day behind for the rest of its run (correct in UTC/CI, wrong in the
+    // Americas and Europe). `spanDays` above rounds for the same reason.
+    const elapsedDays = Math.round((startOfLocalDay(new Date(now)) - startOfLocalDay(new Date(startMs))) / MS_PER_DAY);
 
     return {
         totalDays,
