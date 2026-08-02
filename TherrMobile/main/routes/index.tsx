@@ -33,6 +33,7 @@ import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
 import Nearby from './Areas/Nearby';
 import Notifications from './Notifications';
+import ProfileCompletion from './ProfileCompletion';
 import Register from './Register';
 import Settings from './Settings';
 import ManageAccount from './Settings/ManageAccount';
@@ -110,6 +111,16 @@ const routes: RouteConfig<
         component: CreateProfile,
         options: () => ({
             title: 'Create Profile',
+            access: AccessPresets.ANY_AUTHENTICATED,
+        }),
+    },
+    {
+        // Sits after `CreateProfile` for the same ordering reason: onboarding
+        // users must land on CreateProfile, not on the checklist that links to it.
+        name: 'ProfileCompletion',
+        component: ProfileCompletion,
+        options: () => ({
+            title: 'Finish Your Profile',
             access: AccessPresets.ANY_AUTHENTICATED,
         }),
     },
