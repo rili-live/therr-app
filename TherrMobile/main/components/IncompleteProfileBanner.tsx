@@ -29,8 +29,8 @@ interface IIncompleteProfileBannerState {
 
 /**
  * Dismissible banner that nudges users with an unfinished profile toward the
- * guided completion flow. It reads the same step model as the "Finish your
- * profile" card so the two can never disagree about what is left. Dismissal is
+ * guided completion flow. It reads the same step model as the ProfileCompletion
+ * screen so the two can never disagree about what is left. Dismissal is
  * persisted to AsyncStorage with a timestamp and the banner re-appears after
  * 7 days.
  */

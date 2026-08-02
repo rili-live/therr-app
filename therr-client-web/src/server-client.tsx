@@ -30,6 +30,9 @@ import {
     getGuide, getPublishedGuides, resolveGuideForLocale, getCategoryUrlSlug,
 } from './utilities/guideContent';
 import { buildGuideSchemas } from './utilities/guideJsonLd';
+import {
+    IHabitsInviteRouteMatch, UUID_V4_RE, matchHabitsInviteRoute,
+} from './utilities/habitsSubdomainRoutes';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
@@ -250,6 +253,129 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
 // Format: /u/:userName  (alphanumeric, dot, dash, underscore — keep tight to avoid abuse)
 const HABITS_PROFILE_PATH_RE = /^\/u\/([A-Za-z0-9._-]{1,64})\/?$/;
 
+// The inviter lookup blocks the invite landing's render, and axios has no default
+// timeout — without this a stalled gateway holds the SSR request open indefinitely
+// instead of degrading to the generic headline this resolver already falls back to.
+const HABITS_INVITER_LOOKUP_TIMEOUT_MS = 4000;
+
+/**
+ * Resolves the display name (and avatar) of whoever sent an invite, for the
+ * invite landing's headline. Best-effort by design: the invite is still valid and
+ * still worth an install CTA when the lookup fails, so every failure path returns
+ * empty values rather than propagating.
+ */
+const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
+    inviterName: string;
+    avatarUri: string;
+}> => {
+    const empty = { inviterName: '', avatarUri: '' };
+
+    try {
+        if (match.kind === 'invite-username') {
+            const response = await axios.get(
+                `/users-service/users/by-username/${encodeURIComponent(match.value)}`,
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS },
+            );
+            const inviter = response?.data;
+            if (!inviter?.userName) {
+                return empty;
+            }
+            const displayName = inviter.isBusinessAccount
+                ? inviter.firstName
+                : [inviter.firstName, inviter.lastName].filter(Boolean).join(' ').trim();
+            return {
+                inviterName: displayName || inviter.userName,
+                // Only a real profile picture. getUserImageUri falls back to a robohash
+                // avatar keyed on user id, which reads as broken next to "X invited you" —
+                // the initial placeholder in the template is the better empty state.
+                avatarUri: inviter.media?.profilePicture
+                    ? getUserImageUri({ details: inviter }, 480)
+                    : '',
+            };
+        }
+
+        // Token landings ('/invite/link/:token'). The endpoint validates a v4 UUID,
+        // so anything else is a malformed link — skip the round-trip and fall back
+        // to the generic headline.
+        if (match.kind === 'invite-link' && UUID_V4_RE.test(match.value)) {
+            const response = await axios.get(
+                `/users-service/users/invites/${encodeURIComponent(match.value)}`,
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS },
+            );
+            return {
+                inviterName: response?.data?.inviterName || '',
+                avatarUri: '',
+            };
+        }
+    } catch (err) {
+        return empty;
+    }
+
+    return empty;
+};
+
+/**
+ * Invite, magic-invite-link, and pact-claim landings for habits.therr.com.
+ *
+ * These URLs are minted by the HABITS brand itself — invite emails and SMS build
+ * them from hostContext's `appHostFull` (https://habits.therr.com), and pact
+ * invitations point at /claim-pact/:token on the same host. The React SSR routes
+ * that back them only serve www.therr.com, so on this host every one of them used
+ * to fall through to the hard 404 at the end of this middleware.
+ *
+ * An unresolvable username or token still renders the page: 404ing someone who
+ * followed a real invite is the bug being fixed, and the install CTA is useful
+ * regardless of whether the lookup succeeded.
+ */
+const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) => {
+    const { inviterName, avatarUri } = await resolveHabitsInviter(match);
+    const firstInitial = inviterName ? inviterName.trim().charAt(0).toUpperCase() : '';
+
+    let heading: string;
+    let title: string;
+    let body: string;
+    let description: string;
+
+    if (match.kind === 'claim-pact') {
+        heading = inviterName
+            ? `${inviterName} wants to make a pact with you`
+            : 'You have a pact invitation';
+        title = 'Your pact invitation | Friends with Habits';
+        body = 'A pact is a daily habit you and a friend commit to together. Install Friends with Habits to accept it and start your streak.';
+        description = 'Accept your pact invitation on Friends with Habits and start building a daily habit with a friend.';
+    } else {
+        heading = inviterName
+            ? `${inviterName} invited you to Friends with Habits`
+            : 'You have been invited to Friends with Habits';
+        title = inviterName
+            ? `${inviterName} invited you | Friends with Habits`
+            : 'Your invite | Friends with Habits';
+        body = 'Habits stick when a friend is on the hook too. Install the app, pact up, and check in daily to keep each other on streak.';
+        description = 'Join Friends with Habits — pact with a friend, check in daily, and keep each other on streak.';
+    }
+
+    // Personal, token-bearing URLs: never cached by a shared proxy.
+    res.setHeader('Cache-Control', HABITS_NO_STORE);
+
+    // Values are handed to Handlebars raw; `{{value}}` HTML-escapes by default and
+    // pre-escaping here would double-encode names containing & < > " '.
+    return res.render('habits/invite', {
+        title,
+        description,
+        canonicalUrl: `https://habits.therr.com${req.path}`,
+        heading,
+        body,
+        ctaNote: 'Free to install. Available on Google Play — iOS coming next.',
+        inviterName,
+        avatarUri,
+        hasAvatar: !!avatarUri,
+        firstInitial,
+        // Surfaced so a user who installs first can still find their pact by code.
+        inviteCodeLabel: match.kind === 'claim-pact' ? 'Your pact code' : '',
+        inviteCode: match.kind === 'claim-pact' ? match.value : '',
+    });
+};
+
 app.use(async (req, res, next) => {
     if (!HABITS_HOSTS.has(req.hostname)) {
         return next();
@@ -308,6 +434,10 @@ app.use(async (req, res, next) => {
                 userName,
             });
         }
+    }
+    const inviteMatch = matchHabitsInviteRoute(req.path);
+    if (inviteMatch) {
+        return renderHabitsInviteView(req, res, inviteMatch);
     }
     const renderer = HABITS_ROUTE_RENDERERS[req.path];
     if (!renderer) {

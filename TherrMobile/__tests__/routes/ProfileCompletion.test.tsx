@@ -23,19 +23,26 @@ jest.mock('therr-react/services', () => ({
     },
 }));
 
-import ProfileCompletionCard from '../../main/components/ProfileCompletionCard';
-import { buildStyles as buildCardStyles } from '../../main/styles/profileCompletionCard';
+// Assert on locale keys rather than translated copy, so these stay valid when
+// the wording changes.
+jest.mock('../../main/utilities/translator', () => ({
+    __esModule: true,
+    default: (_locale: string, key: string) => key,
+}));
+
+jest.mock('../../main/components/ButtonMenu/MainButtonMenu', () => () => null);
+
+import { ProfileCompletion } from '../../main/routes/ProfileCompletion';
 import { markContactsSkipped, markContactsSynced, markInterestsSelected } from '../../main/utilities/profileCompletion';
 
 const AsyncStorage = require('@react-native-async-storage/async-storage').default;
 
+// `BaseButton` reads the theme name straight off the store via `useSelector`.
 const mockStore = {
     getState: () => ({ user: { settings: { mobileThemeName: 'light' } } }),
     subscribe: () => () => {},
     dispatch: () => {},
 };
-
-const translate = (key: string) => key;
 
 const buildUser = (details: any = {}) => ({
     details: {
@@ -55,17 +62,19 @@ const completeUser = buildUser({
 
 const buildNavigation = () => ({
     navigate: jest.fn(),
+    goBack: jest.fn(),
+    setOptions: jest.fn(),
     addListener: jest.fn().mockReturnValue(jest.fn()),
 });
 
 const rendered: renderer.ReactTestRenderer[] = [];
 
-const renderCard = async (props: any) => {
+const renderScreen = async (props: any) => {
     let component: renderer.ReactTestRenderer;
     await act(async () => {
         component = renderer.create(
             <Provider store={mockStore as any}>
-                <ProfileCompletionCard {...props} />
+                <ProfileCompletion {...props} />
             </Provider>
         );
         await Promise.resolve();
@@ -94,82 +103,74 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
-describe('ProfileCompletionCard', () => {
+describe('ProfileCompletion', () => {
     it('lists every outstanding step for a new profile', async () => {
-        const component = await renderCard({
+        const component = await renderScreen({
             navigation: buildNavigation(),
-            translate,
             user: buildUser(),
-            themeName: 'light',
         });
 
         const tree = JSON.stringify(component.toJSON());
-        expect(tree).toContain('components.profileCompletionCard.title');
-        expect(tree).toContain('components.profileCompletionCard.steps.name.label');
-        expect(tree).toContain('components.profileCompletionCard.steps.contacts.label');
+        expect(tree).toContain('pages.profileCompletion.title');
+        expect(tree).toContain('pages.profileCompletion.steps.name.label');
+        expect(tree).toContain('pages.profileCompletion.steps.contacts.label');
         // 5 outstanding steps → plural copy.
-        expect(tree).toContain('components.profileCompletionCard.stepsLeft');
+        expect(tree).toContain('pages.profileCompletion.stepsLeft');
     });
 
     it('uses singular copy when a single step remains', async () => {
         await markInterestsSelected('user-123');
         await markContactsSynced('user-123');
 
-        const component = await renderCard({
+        const component = await renderScreen({
             navigation: buildNavigation(),
-            translate,
             user: buildUser({
                 firstName: 'Zack',
                 lastName: 'Anselm',
                 phoneNumber: '+15555555555',
             }),
-            themeName: 'light',
         });
 
         const tree = JSON.stringify(component.toJSON());
-        expect(tree).toContain('components.profileCompletionCard.stepLeft');
-        expect(tree).not.toContain('components.profileCompletionCard.stepsLeft');
+        expect(tree).toContain('pages.profileCompletion.stepLeft');
+        expect(tree).not.toContain('pages.profileCompletion.stepsLeft');
     });
 
-    it('renders nothing once every step is resolved', async () => {
+    it('shows the finished state once every step is resolved', async () => {
         await markInterestsSelected('user-123');
         await markContactsSynced('user-123');
 
-        const component = await renderCard({
+        const component = await renderScreen({
             navigation: buildNavigation(),
-            translate,
             user: completeUser,
-            themeName: 'light',
         });
 
-        expect(component.toJSON()).toBeNull();
+        const tree = JSON.stringify(component.toJSON());
+        expect(tree).toContain('pages.profileCompletion.allDone');
+        expect(tree).not.toContain('pages.profileCompletion.steps.name.label');
     });
 
     it('counts a skipped contact sync toward completion', async () => {
         await markInterestsSelected('user-123');
         await markContactsSkipped('user-123');
 
-        const component = await renderCard({
+        const component = await renderScreen({
             navigation: buildNavigation(),
-            translate,
             user: completeUser,
-            themeName: 'light',
         });
 
-        expect(component.toJSON()).toBeNull();
+        expect(JSON.stringify(component.toJSON())).toContain('pages.profileCompletion.allDone');
     });
 
     it('hands off to the guided flow at the first unfinished step', async () => {
         const navigation = buildNavigation();
-        const component = await renderCard({
+        const component = await renderScreen({
             navigation,
-            translate,
             user: buildUser({ firstName: 'Zack', lastName: 'Anselm' }),
-            themeName: 'light',
         });
 
         const [continueButton] = component.root.findAll(
-            (node) => node.props?.title === 'components.profileCompletionCard.continue'
+            (node) => node.props?.title === 'pages.profileCompletion.continue'
         );
 
         act(() => { continueButton.props.onPress(); });
@@ -182,14 +183,12 @@ describe('ProfileCompletionCard', () => {
 
     it('jumps straight to a step the user taps out of order', async () => {
         const navigation = buildNavigation();
-        const component = await renderCard({
+        const component = await renderScreen({
             navigation,
-            translate,
             user: buildUser(),
-            themeName: 'light',
         });
 
-        const [contactsRow] = findByLabel(component, 'components.profileCompletionCard.steps.contacts.label');
+        const [contactsRow] = findByLabel(component, 'pages.profileCompletion.steps.contacts.label');
 
         act(() => { contactsRow.props.onPress(); });
 
@@ -199,52 +198,13 @@ describe('ProfileCompletionCard', () => {
         });
     });
 
-    it('collapses the checklist to just the progress bar on demand', async () => {
-        const component = await renderCard({
-            navigation: buildNavigation(),
-            translate,
-            user: buildUser(),
-            themeName: 'light',
-        });
-
-        const [collapseButton] = findByLabel(component, 'components.profileCompletionCard.collapse');
-        act(() => { collapseButton.props.onPress(); });
-
-        const tree = JSON.stringify(component.toJSON());
-        expect(tree).not.toContain('components.profileCompletionCard.steps.name.label');
-        // The header and progress bar survive so the card is still re-openable.
-        expect(tree).toContain('components.profileCompletionCard.title');
-        expect(tree).toContain('components.profileCompletionCard.expand');
-    });
-
     it('re-reads persisted progress when the screen regains focus', async () => {
         const navigation = buildNavigation();
-        await renderCard({
+        await renderScreen({
             navigation,
-            translate,
             user: buildUser(),
-            themeName: 'light',
         });
 
         expect(navigation.addListener).toHaveBeenCalledWith('focus', expect.any(Function));
-    });
-
-    // ViewUser nests this card in a container that sets `alignItems: 'center'`,
-    // which collapses an unconstrained child to its content width. Without an
-    // explicit stretch the card rendered as a narrow column with every label
-    // wrapped mid-word. Percentage width is not an option: it resolves against
-    // the parent without subtracting `marginHorizontal`, so it would overflow.
-    it.each(['light', 'dark', 'retro'])('stretches to fill its parent in the %s theme', (themeName) => {
-        const { styles } = buildCardStyles(themeName as any);
-
-        expect(styles.container.alignSelf).toBe('stretch');
-        expect(styles.container.width).toBeUndefined();
-        expect(styles.container.marginHorizontal).toBeGreaterThan(0);
-    });
-
-    it('keeps the header text flexible so the title is not squeezed by the collapse toggle', () => {
-        const { styles } = buildCardStyles('light');
-
-        expect(styles.headerTextContainer.flex).toBe(1);
     });
 });
