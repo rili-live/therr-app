@@ -167,7 +167,60 @@
   padding-top: 4px;
 }
 
-// Reply-count control on nested replies (thought details view only)
+// Inline thread preview: the top reply surfaced under a post in the feed
+.thought-card-thread-preview {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border-left: 2px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  [data-mantine-color-scheme="dark"] & {
+    border-left-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.04);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+  }
+}
+
+.thought-card-thread-preview-avatar {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.thought-card-thread-preview-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.thought-card-thread-preview-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.thought-card-thread-preview-view-all {
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Reply-count control on a post card and on nested replies (thought details view)
 .thought-card-reply-count {
   padding-left: 4px;
   padding-right: 6px;

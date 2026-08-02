@@ -65,12 +65,18 @@
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
 
+        <!--
+          Hosts come from the appLinkHost/appLinkHostWww manifest placeholders in
+          app/build.gradle, which picks them by applicationId. Hardcoding therr.com here
+          meant the Friends with Habits build (com.therr.habits) never claimed
+          habits.therr.com, so its own invite and pact links always opened in the browser.
+        -->
         <data
           android:scheme="https"
-          android:host="www.therr.com" />
+          android:host="${appLinkHostWww}" />
         <data
           android:scheme="https"
-          android:host="therr.com" />
+          android:host="${appLinkHost}" />
       </intent-filter>
       <intent-filter>
         <action android:name="app.therrmobile.ACHIEVEMENT_COMPLETED" />

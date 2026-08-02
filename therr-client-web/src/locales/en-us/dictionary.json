@@ -418,7 +418,11 @@
       "visibilityPrivate": "Private",
       "postSuccess": "Thought posted!",
       "postError": "Failed to post thought. Please try again.",
-      "messageTooShort": "Message is too short"
+      "messageTooShort": "Message is too short",
+      "viewAllReplies": "View all {count} replies",
+      "viewReplies": "View {count} replies",
+      "viewReply": "View 1 reply",
+      "reply": "Reply"
     },
     "viewThought": {
       "headerTitle": "Thought",
