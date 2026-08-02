@@ -414,13 +414,12 @@ const UserDisplayHeader = ({
                 />
             </View>
             {topStreak && themeHabits && (
-                <View style={spacingStyles.marginHorizLg}>
-                    <StreakWidget
-                        streak={topStreak}
-                        themeHabits={themeHabits}
-                        translate={translate}
-                    />
-                </View>
+                <StreakWidget
+                    compact
+                    streak={topStreak}
+                    themeHabits={themeHabits}
+                    translate={translate}
+                />
             )}
         </>
     );
