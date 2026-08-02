@@ -418,7 +418,10 @@
       "visibilityPrivate": "Privé",
       "postSuccess": "Pensée publiée!",
       "postError": "Échec de la publication de la pensée. Veuillez réessayer.",
-      "messageTooShort": "Le message est trop court"
+      "messageTooShort": "Le message est trop court",
+      "viewAllReplies": "Voir les {count} réponses",
+      "viewReplies": "Voir {count} réponses",
+      "viewReply": "Voir 1 réponse"
     },
     "explorePeople": {
       "pageTitle": "Rechercher des personnes",
