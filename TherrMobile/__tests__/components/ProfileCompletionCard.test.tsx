@@ -24,6 +24,7 @@ jest.mock('therr-react/services', () => ({
 }));
 
 import ProfileCompletionCard from '../../main/components/ProfileCompletionCard';
+import { buildStyles as buildCardStyles } from '../../main/styles/profileCompletionCard';
 import { markContactsSkipped, markContactsSynced, markInterestsSelected } from '../../main/utilities/profileCompletion';
 
 const AsyncStorage = require('@react-native-async-storage/async-storage').default;
@@ -226,5 +227,24 @@ describe('ProfileCompletionCard', () => {
         });
 
         expect(navigation.addListener).toHaveBeenCalledWith('focus', expect.any(Function));
+    });
+
+    // ViewUser nests this card in a container that sets `alignItems: 'center'`,
+    // which collapses an unconstrained child to its content width. Without an
+    // explicit stretch the card rendered as a narrow column with every label
+    // wrapped mid-word. Percentage width is not an option: it resolves against
+    // the parent without subtracting `marginHorizontal`, so it would overflow.
+    it.each(['light', 'dark', 'retro'])('stretches to fill its parent in the %s theme', (themeName) => {
+        const { styles } = buildCardStyles(themeName as any);
+
+        expect(styles.container.alignSelf).toBe('stretch');
+        expect(styles.container.width).toBeUndefined();
+        expect(styles.container.marginHorizontal).toBeGreaterThan(0);
+    });
+
+    it('keeps the header text flexible so the title is not squeezed by the collapse toggle', () => {
+        const { styles } = buildCardStyles('light');
+
+        expect(styles.headerTextContainer.flex).toBe(1);
     });
 });
