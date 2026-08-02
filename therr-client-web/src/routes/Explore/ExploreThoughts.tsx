@@ -6,6 +6,7 @@ import { InlineSvg } from 'therr-react/components';
 import {
     ActionIcon,
     Anchor,
+    Avatar,
     Badge,
     Breadcrumbs,
     Button,
@@ -24,6 +25,10 @@ import {
 } from '@mantine/core';
 import { Categories } from 'therr-js-utilities/constants';
 import { toIntlLocale } from '../../utilities/formatDate';
+import getUserImageUri from '../../utilities/getUserImageUri';
+import {
+    getRepliesLabelKey, getReplyCount, getTopReply, shouldAutoExpandThread,
+} from '../../utilities/threadPreview';
 import UsersActions from '../../redux/actions/UsersActions';
 import useTranslation from '../../hooks/useTranslation';
 
@@ -52,6 +57,71 @@ const formatTimeAgo = (dateStr: string, locale: string): string => {
     return date.toLocaleDateString(toIntlLocale(locale), { month: 'short', day: 'numeric' });
 };
 
+interface IThreadPreviewProps {
+    onOpenThread: () => void;
+    replyCount: number;
+    topReply: any;
+}
+
+/**
+ * Surfaces the top reply inline beneath a post, so the feed reads as a conversation
+ * rather than a wall of isolated posts. Mirrors the mobile ThreadPreview in
+ * `TherrMobile/main/components/UserContent/ThoughtDisplay.tsx`.
+ */
+const ThreadPreview: React.FC<IThreadPreviewProps> = ({ onOpenThread, replyCount, topReply }) => {
+    const navigate = useNavigate();
+    const { t: translate, locale } = useTranslation();
+
+    const handleReplyUserClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        navigate(`/users/${topReply.fromUserId}`);
+    }, [navigate, topReply.fromUserId]);
+
+    // The card itself is clickable; stop the bubble so opening the thread navigates once.
+    const handleContainerClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        onOpenThread();
+    }, [onOpenThread]);
+
+    return (
+        <div className="thought-card-thread-preview" onClick={handleContainerClick}>
+            <Avatar
+                src={getUserImageUri({ details: { media: topReply.fromUserMedia, id: topReply.fromUserId } }, 32)}
+                alt={topReply.fromUserName || ''}
+                size={28}
+                radius="xl"
+                onClick={handleReplyUserClick}
+                className="thought-card-thread-preview-avatar"
+            />
+            <div className="thought-card-thread-preview-body">
+                <Group gap="xs" align="center" mb={2}>
+                    {topReply.fromUserName && (
+                        <Text
+                            fw={600}
+                            size="xs"
+                            onClick={handleReplyUserClick}
+                            className="thought-card-username"
+                        >
+                            {topReply.fromUserName}
+                        </Text>
+                    )}
+                    <Text size="xs" c="dimmed">
+                        {topReply.createdAt && formatTimeAgo(topReply.createdAt, locale)}
+                    </Text>
+                </Group>
+                <Text size="sm" className="thought-card-thread-preview-message">
+                    {topReply.message}
+                </Text>
+                {replyCount > 1 && (
+                    <Text size="xs" c="dimmed" mt={4} className="thought-card-thread-preview-view-all">
+                        {translate('pages.exploreThoughts.viewAllReplies', { count: replyCount })}
+                    </Text>
+                )}
+            </div>
+        </div>
+    );
+};
+
 interface IThoughtCardProps {
     thought: any;
     onLike: (thought: any) => void;
@@ -62,10 +132,13 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     thought, onLike, onBookmark,
 }) => {
     const navigate = useNavigate();
-    const { locale } = useTranslation();
+    const { t: translate, locale } = useTranslation();
     const isLiked = thought.reaction?.userHasLiked;
     const isBookmarked = thought.reaction?.userBookmarkCategory;
     const hashtags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
+    const replyCount = getReplyCount(thought);
+    const topReply = shouldAutoExpandThread(thought) ? getTopReply(thought) : undefined;
+    const repliesLabel = translate(getRepliesLabelKey(replyCount), { count: replyCount });
 
     const handleUserClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -148,7 +221,30 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                             />
                         </ActionIcon>
                     </Tooltip>
+                    <Tooltip label={repliesLabel}>
+                        <Button
+                            variant="subtle"
+                            size="compact-xs"
+                            color="gray"
+                            aria-label={repliesLabel}
+                            onClick={handleCardClick}
+                            leftSection={(
+                                <InlineSvg name="forum" className="discovered-tile-icon" />
+                            )}
+                            className="thought-card-reply-count"
+                        >
+                            {replyCount || ''}
+                        </Button>
+                    </Tooltip>
                 </Group>
+
+                {topReply && (
+                    <ThreadPreview
+                        onOpenThread={handleCardClick}
+                        replyCount={replyCount}
+                        topReply={topReply}
+                    />
+                )}
             </div>
         </div>
     );
@@ -357,6 +453,9 @@ const ExploreThoughts: React.FC = () => {
         const params = {
             withMedia: true,
             withUser: true,
+            // Powers the inline thread previews. The API caps this at a few preview
+            // replies per post and returns the true total as `replyCount`.
+            withReplies: true,
             offset,
             ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,
