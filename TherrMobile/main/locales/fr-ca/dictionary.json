@@ -1914,7 +1914,9 @@
         "day": "jour",
         "days": "jours",
         "nextMilestone": "Prochain jalon : {days} jours",
-        "graceDaysRemaining": "Jours de grâce restants : {count}"
+        "graceDaysRemaining": "Jours de grâce restants : {count}",
+        "nextMilestoneCompact": "proch. {days} j",
+        "graceDaysCompact": "{count} de grâce"
       }
     },
     "pacts": {

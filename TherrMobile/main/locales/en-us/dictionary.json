@@ -1914,7 +1914,9 @@
         "day": "day",
         "days": "days",
         "nextMilestone": "Next milestone: {days} days",
-        "graceDaysRemaining": "Grace days remaining: {count}"
+        "graceDaysRemaining": "Grace days remaining: {count}",
+        "nextMilestoneCompact": "next {days}d",
+        "graceDaysCompact": "{count} grace"
       }
     },
     "pacts": {
