@@ -418,7 +418,10 @@
       "visibilityPrivate": "Privado",
       "postSuccess": "¡Pensamiento publicado!",
       "postError": "No se pudo publicar el pensamiento. Por favor, inténtalo de nuevo.",
-      "messageTooShort": "El mensaje es demasiado corto"
+      "messageTooShort": "El mensaje es demasiado corto",
+      "viewAllReplies": "Ver las {count} respuestas",
+      "viewReplies": "Ver {count} respuestas",
+      "viewReply": "Ver 1 respuesta"
     },
     "viewThought": {
       "headerTitle": "Pensamiento",
