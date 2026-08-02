@@ -421,7 +421,8 @@
       "messageTooShort": "Le message est trop court",
       "viewAllReplies": "Voir les {count} réponses",
       "viewReplies": "Voir {count} réponses",
-      "viewReply": "Voir 1 réponse"
+      "viewReply": "Voir 1 réponse",
+      "reply": "Répondre"
     },
     "explorePeople": {
       "pageTitle": "Rechercher des personnes",

@@ -26,7 +26,9 @@ import {
 import { Categories } from 'therr-js-utilities/constants';
 import { toIntlLocale } from '../../utilities/formatDate';
 import getUserImageUri from '../../utilities/getUserImageUri';
-import { getReplyCount, getTopReply, shouldAutoExpandThread } from '../../utilities/threadPreview';
+import {
+    getRepliesLabelKey, getReplyCount, getTopReply, shouldAutoExpandThread,
+} from '../../utilities/threadPreview';
 import UsersActions from '../../redux/actions/UsersActions';
 import useTranslation from '../../hooks/useTranslation';
 
@@ -136,9 +138,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     const hashtags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
     const replyCount = getReplyCount(thought);
     const topReply = shouldAutoExpandThread(thought) ? getTopReply(thought) : undefined;
-    const repliesLabel = replyCount === 1
-        ? translate('pages.exploreThoughts.viewReply')
-        : translate('pages.exploreThoughts.viewReplies', { count: replyCount });
+    const repliesLabel = translate(getRepliesLabelKey(replyCount), { count: replyCount });
 
     const handleUserClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();

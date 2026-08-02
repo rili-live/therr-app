@@ -50,6 +50,25 @@ export const getTopReply = (post: IThreadPreviewPost): any | undefined => {
 };
 
 /**
+ * Translation key for the reply control under a post, given its reply total.
+ *
+ * A post with no replies must not be labelled "View 0 replies" — that string is the
+ * control's tooltip *and* its aria-label, and on an empty thread the control opens
+ * the thread to write the first reply rather than to view anything.
+ */
+export const getRepliesLabelKey = (replyCount: number): string => {
+    if (!replyCount || replyCount < 1) {
+        return 'pages.exploreThoughts.reply';
+    }
+
+    if (replyCount === 1) {
+        return 'pages.exploreThoughts.viewReply';
+    }
+
+    return 'pages.exploreThoughts.viewReplies';
+};
+
+/**
  * Auto-expand criteria: threads with real conversation (2+ replies) always expand;
  * single-reply threads only expand when there is a like signal on the parent or reply.
  */

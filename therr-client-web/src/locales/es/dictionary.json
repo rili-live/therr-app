@@ -421,7 +421,8 @@
       "messageTooShort": "El mensaje es demasiado corto",
       "viewAllReplies": "Ver las {count} respuestas",
       "viewReplies": "Ver {count} respuestas",
-      "viewReply": "Ver 1 respuesta"
+      "viewReply": "Ver 1 respuesta",
+      "reply": "Responder"
     },
     "viewThought": {
       "headerTitle": "Pensamiento",

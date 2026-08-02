@@ -1,7 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-import { getReplyCount, getTopReply, shouldAutoExpandThread } from '../threadPreview';
+import {
+    getRepliesLabelKey, getReplyCount, getTopReply, shouldAutoExpandThread,
+} from '../threadPreview';
 
 const reply = (overrides: any = {}) => ({
     id: 'reply-1',
@@ -73,6 +75,29 @@ describe('getTopReply', () => {
         getTopReply({ replies });
 
         expect(replies.map((r) => r.id)).toEqual(['a', 'b']);
+    });
+});
+
+describe('getRepliesLabelKey', () => {
+    // Regression: the label is the control's tooltip *and* its aria-label, so a
+    // zero-reply post used to announce itself to screen readers as "View 0 replies".
+    it('labels a post with no replies as an invitation to reply', () => {
+        expect(getRepliesLabelKey(0)).toBe('pages.exploreThoughts.reply');
+    });
+
+    it('uses the singular key for exactly one reply', () => {
+        expect(getRepliesLabelKey(1)).toBe('pages.exploreThoughts.viewReply');
+    });
+
+    it('uses the counted plural key for two or more replies', () => {
+        expect(getRepliesLabelKey(2)).toBe('pages.exploreThoughts.viewReplies');
+        expect(getRepliesLabelKey(42)).toBe('pages.exploreThoughts.viewReplies');
+    });
+
+    it('never renders a count for a missing or nonsensical total', () => {
+        expect(getRepliesLabelKey(undefined as any)).toBe('pages.exploreThoughts.reply');
+        expect(getRepliesLabelKey(NaN)).toBe('pages.exploreThoughts.reply');
+        expect(getRepliesLabelKey(-1)).toBe('pages.exploreThoughts.reply');
     });
 });
 

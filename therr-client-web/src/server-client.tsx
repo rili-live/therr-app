@@ -253,6 +253,11 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
 // Format: /u/:userName  (alphanumeric, dot, dash, underscore — keep tight to avoid abuse)
 const HABITS_PROFILE_PATH_RE = /^\/u\/([A-Za-z0-9._-]{1,64})\/?$/;
 
+// The inviter lookup blocks the invite landing's render, and axios has no default
+// timeout — without this a stalled gateway holds the SSR request open indefinitely
+// instead of degrading to the generic headline this resolver already falls back to.
+const HABITS_INVITER_LOOKUP_TIMEOUT_MS = 4000;
+
 /**
  * Resolves the display name (and avatar) of whoever sent an invite, for the
  * invite landing's headline. Best-effort by design: the invite is still valid and
@@ -267,7 +272,10 @@ const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
 
     try {
         if (match.kind === 'invite-username') {
-            const response = await axios.get(`/users-service/users/by-username/${encodeURIComponent(match.value)}`);
+            const response = await axios.get(
+                `/users-service/users/by-username/${encodeURIComponent(match.value)}`,
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS },
+            );
             const inviter = response?.data;
             if (!inviter?.userName) {
                 return empty;
@@ -290,7 +298,10 @@ const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
         // so anything else is a malformed link — skip the round-trip and fall back
         // to the generic headline.
         if (match.kind === 'invite-link' && UUID_V4_RE.test(match.value)) {
-            const response = await axios.get(`/users-service/users/invites/${encodeURIComponent(match.value)}`);
+            const response = await axios.get(
+                `/users-service/users/invites/${encodeURIComponent(match.value)}`,
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS },
+            );
             return {
                 inviterName: response?.data?.inviterName || '',
                 avatarUri: '',
