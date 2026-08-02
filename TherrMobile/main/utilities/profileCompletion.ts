@@ -4,10 +4,10 @@ import { UsersService } from 'therr-react/services';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
 
 /**
- * Profile completion model shared by the "Finish your profile" card, the
- * incomplete-profile banner, and the guided CreateProfile flow. Keeping the
- * step list in one place means the card, the banner, and the onboarding stages
- * can never disagree about what is left to do.
+ * Profile completion model shared by the ProfileCompletion screen, the profile
+ * link that points at it, the incomplete-profile banner, and the guided
+ * CreateProfile flow. Keeping the step list in one place means the screen, the
+ * banners, and the onboarding stages can never disagree about what is left to do.
  */
 
 export type IProfileStepKey = 'name' | 'interests' | 'picture' | 'phone' | 'contacts';
@@ -158,8 +158,8 @@ export const getProfileCompletionSummary = (
             key: 'name',
             stage: 'details',
             icon: 'user-edit',
-            labelKey: 'components.profileCompletionCard.steps.name.label',
-            descriptionKey: 'components.profileCompletionCard.steps.name.description',
+            labelKey: 'pages.profileCompletion.steps.name.label',
+            descriptionKey: 'pages.profileCompletion.steps.name.description',
             isComplete: hasRealName(details),
             isSkipped: false,
         },
@@ -167,8 +167,8 @@ export const getProfileCompletionSummary = (
             key: 'interests',
             stage: 'interests',
             icon: 'heart',
-            labelKey: 'components.profileCompletionCard.steps.interests.label',
-            descriptionKey: 'components.profileCompletionCard.steps.interests.description',
+            labelKey: 'pages.profileCompletion.steps.interests.label',
+            descriptionKey: 'pages.profileCompletion.steps.interests.description',
             isComplete: !!flags.hasSelectedInterests,
             isSkipped: false,
         },
@@ -176,8 +176,8 @@ export const getProfileCompletionSummary = (
             key: 'picture',
             stage: 'picture',
             icon: 'camera',
-            labelKey: 'components.profileCompletionCard.steps.picture.label',
-            descriptionKey: 'components.profileCompletionCard.steps.picture.description',
+            labelKey: 'pages.profileCompletion.steps.picture.label',
+            descriptionKey: 'pages.profileCompletion.steps.picture.description',
             isComplete: !!details?.media?.profilePicture,
             isSkipped: false,
         },
@@ -185,8 +185,8 @@ export const getProfileCompletionSummary = (
             key: 'phone',
             stage: 'phone',
             icon: 'shield-alt',
-            labelKey: 'components.profileCompletionCard.steps.phone.label',
-            descriptionKey: 'components.profileCompletionCard.steps.phone.description',
+            labelKey: 'pages.profileCompletion.steps.phone.label',
+            descriptionKey: 'pages.profileCompletion.steps.phone.description',
             isComplete: !!details?.phoneNumber,
             isSkipped: false,
         },
@@ -194,8 +194,8 @@ export const getProfileCompletionSummary = (
             key: 'contacts',
             stage: 'contacts',
             icon: 'address-book',
-            labelKey: 'components.profileCompletionCard.steps.contacts.label',
-            descriptionKey: 'components.profileCompletionCard.steps.contacts.description',
+            labelKey: 'pages.profileCompletion.steps.contacts.label',
+            descriptionKey: 'pages.profileCompletion.steps.contacts.description',
             isComplete: !!flags.hasSyncedContacts,
             isSkipped: !flags.hasSyncedContacts && !!flags.hasSkippedContacts,
         },

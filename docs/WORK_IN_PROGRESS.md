@@ -271,6 +271,28 @@ append new items here rather than only printing them once.
   `momentReactions`, `spaceReactions`, `eventReactions`) — inflated totals from
   the string-concatenation bug where `existing + '1'` wrote `'91'` instead of
   10.
+- [ ] (2026-08-01, /quality-peer-review) Merge `general` into
+  `niche/HABITS-general` and confirm the `build.gradle` merge KEPT the
+  `appLinkHostsByAppId` block from ad82b0ae1. `AndroidManifest.xml` now
+  substitutes `${appLinkHost}` / `${appLinkHostWww}`, but the habits branch
+  still carries the old single-entry `manifestPlaceholders` line, so the two
+  files conflict. Resolving in favour of the habits side leaves both
+  placeholders undefined and the Android manifest merger fails the build
+  outright. This commit is a no-op on `general` (applicationId there is
+  `app.therrmobile`, which resolves to the unchanged therr.com defaults) — it
+  only does anything once merged to the habits branch.
+- [ ] (2026-08-01, /quality-peer-review) Ship a new `com.therr.habits` Android
+  build after that merge. Android runs App Links domain verification at
+  install/update time only, so already-installed Friends with Habits users keep
+  opening habits.therr.com invite and pact links in the browser until they
+  update.
+- [ ] (2026-08-01, /quality-peer-review) Post-deploy smoke check on
+  habits.therr.com, which hard-404s anything outside its allowlist: confirm
+  `/invite/<username>`, `/invite/link/<uuid>`, and `/claim-pact/<token>` all
+  render the new landing, and that
+  `https://habits.therr.com/.well-known/assetlinks.json` still returns the
+  `com.therr.habits` file (App Links verification silently fails if that host
+  ever serves the default `app.therrmobile` one).
 <!-- skill-followups:end -->
 
 ---

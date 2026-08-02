@@ -142,6 +142,11 @@ app.use(authenticate.unless({
         { url: '/v1/users-service/social-sync/oauth2-instagram', methods: ['GET'] }, // Instagram OAuth
         { url: /\/v1\/users-service\/users\/verify\/.*/, methods: ['POST'] }, // verify account
         { url: /\/v1\/users-service\/users\/by-username\/.*/, methods: ['GET'] }, // Get public/private profile
+        // Magic invite-link token lookup. Pre-signup by definition — the invitee has no
+        // account yet, so requiring a JWT made the endpoint unreachable from the very
+        // landing pages it exists for. Exposure is limited to whoever holds the
+        // unguessable token, and the route is rate limited in services/users/router.ts.
+        { url: /\/v1\/users-service\/users\/invites\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, methods: ['GET'] },
         { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy
         { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
         { url: '/v1/maps-service/geocode', methods: ['GET'] }, // Nominatim geocoding proxy

@@ -45,7 +45,7 @@ import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import UserDisplayHeader from './UserDisplayHeader';
-import ProfileCompletionCard from '../../components/ProfileCompletionCard';
+import ProfileCompletionLink from '../../components/ProfileCompletionLink';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
@@ -1000,7 +1000,7 @@ class ViewUser extends React.Component<
                                 />
                                 {
                                     user.userInView?.id === user.details.id &&
-                                    <ProfileCompletionCard
+                                    <ProfileCompletionLink
                                         navigation={navigation}
                                         translate={this.translate as any}
                                         user={user}

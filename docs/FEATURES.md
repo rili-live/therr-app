@@ -24,7 +24,7 @@
 - **Organization management** — business account grouping
 
 ### User Profiles
-- **Guided profile completion (mobile)** — a "Finish your profile" checklist card on the user's own profile shows the remaining steps (name, interests, photo, phone, contact sync) with a progress bar; each row hands off to the matching stage of the guided `CreateProfile` flow, which carries a Duolingo-style step progress bar and per-stage back navigation. The home-feed nudge banner reads the same step model. The card disappears once every step is resolved
+- **Guided profile completion (mobile)** — a single-row "Finish your profile" link on the user's own profile summarizes how many steps are left and opens the dedicated `ProfileCompletion` screen, which lists the remaining steps (name, interests, photo, phone, contact sync) with a progress bar; each row hands off to the matching stage of the guided `CreateProfile` flow, which carries a Duolingo-style step progress bar and per-stage back navigation. The home-feed nudge banner reads the same step model. The link disappears once every step is resolved
 - **Contact sync step (mobile)** — a first-class onboarding stage that asks to match phone contacts against existing accounts, with an explicit "Not Now". A completed sync is recorded per user, which collapses the sync prompt on the people list to a single "sync again" link
 - **Profile editing** — name, bio, profile picture, privacy settings
 - **View other users** — public profile with content tabs (spaces, events, thoughts)
@@ -47,7 +47,7 @@
 - **Events** — time-bound location happenings; start/stop scheduling, group/space association
 - **Thoughts** — micro-posts with categories, reply threads, mentions, hashtags
 - **Ranked social feed (mobile)** — Discoveries/Thoughts tabs ordered by engagement score (recency decay × likes/replies/views × category affinity from the user's own reactions); backend stream activation ranks candidates by reply-count hot score
-- **Auto-expanded thread previews (mobile)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style)
+- **Auto-expanded thread previews (mobile & web)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style); each post card also carries a reply-count control. Auto-expand criteria are shared: 2+ replies always expand, single-reply threads need a like signal on the parent or the reply
 - **Nested reply counts (mobile & web)** — in the thought details view only, each reply renders a reply icon with its own nested reply count; tapping it opens that reply's details view so threads can be walked one level at a time
 - **Inline reply likes (mobile)** — replies in the thought details view carry their own like control with an optimistic toggle (reverted if the request fails), so a reply can be liked without opening it. `getThoughtDetails` returns each reply's like count and the requesting user's reaction
 - **Content categories** — 20+ categories (food, music, nature, art, gaming, etc.)
