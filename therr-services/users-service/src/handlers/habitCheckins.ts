@@ -297,7 +297,15 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     }
                 }
 
-                // Update pact member stats if in a pact
+                // Update pact member stats if in a pact.
+                //
+                // Only reached when the caller passes an explicit `pactId` —
+                // no client does, since a check-in is logged against a habit
+                // goal. The pact endpoints therefore derive member progress
+                // from check-ins and streaks instead of reading these columns
+                // (see utilities/pactMemberStats); the counters below are kept
+                // so an explicit pactId still keeps the row warm, and
+                // completePact freezes the derived values over them.
                 if (pactId) {
                     const member = await Store.pactMembers.getByPactAndUser(pactId, userId);
                     if (member) {

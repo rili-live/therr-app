@@ -15,6 +15,7 @@ import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotif
 import { dispatchPactInvitation } from '../utilities/dispatchPactInvitation';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
+import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMemberStats';
 import {
     validatePactParams,
     isUserInPact,
@@ -385,7 +386,7 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
             Store.habitGoals.incrementUsageCount(habitGoalId).catch((e) => e);
 
             const members = await Store.pactMembers.getByPactId(pact.id);
-            return res.status(201).send({ ...pact, members });
+            return res.status(201).send(await attachMemberStatsToPact({ ...pact, members }));
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
@@ -421,7 +422,7 @@ const getPact: RequestHandler = async (req: any, res: any) => {
                 });
             }
 
-            return res.status(200).send({ ...pact, members });
+            return res.status(200).send(await attachMemberStatsToPact({ ...pact, members }));
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
@@ -430,6 +431,10 @@ const getPact: RequestHandler = async (req: any, res: any) => {
  * Attaches `members` to a list of pacts in a single query. Clients rely on it
  * to name the partner they're waiting on (or partnered with) without having to
  * fetch each pact's details individually.
+ *
+ * Members come back with derived progress stats — the pact list card renders a
+ * streak and completion rate per member, and the stored columns are never
+ * populated (see utilities/pactMemberStats).
  */
 const withMembers = async (pacts: any[]) => {
     if (!pacts.length) {
@@ -443,7 +448,10 @@ const withMembers = async (pacts: any[]) => {
         return acc;
     }, {});
 
-    return pacts.map((pact) => ({ ...pact, members: membersByPactId[pact.id] || [] }));
+    return attachPactMemberStats(pacts.map((pact) => ({
+        ...pact,
+        members: membersByPactId[pact.id] || [],
+    })));
 };
 
 const getUserPacts: RequestHandler = async (req: any, res: any) => {
@@ -861,10 +869,19 @@ const completePact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    // Recompute completion rates for both members before persisting status=completed
+    // Derive final stats from check-ins/streaks and freeze them onto
+    // pact_members before persisting status=completed. The stored columns are
+    // the only record left once the pact is over — the derived window closes
+    // with it — so this is the one place they must be written.
     const members = await Store.pactMembers.getByPactId(id);
-    await Promise.all(members.map((m: any) => Store.pactMembers.updateCompletionRate(m.id)));
-    const refreshedMembers = await Store.pactMembers.getByPactId(id);
+    const { members: refreshedMembers } = await attachMemberStatsToPact({ ...pact, members });
+    await Promise.all(refreshedMembers.map((m: any) => Store.pactMembers.update(m.id, {
+        totalCheckins: m.totalCheckins,
+        completedCheckins: m.completedCheckins,
+        currentStreak: m.currentStreak,
+        longestStreak: m.longestStreak,
+        completionRate: m.completionRate,
+    })));
 
     const creatorMember = refreshedMembers.find((m: any) => m.role === 'creator');
     const partnerMember = refreshedMembers.find((m: any) => m.role === 'partner');
@@ -1085,7 +1102,8 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
         Store.pacts.getByIdWithDetails(id),
         Store.pactMembers.getByPactId(id),
     ]);
-    return res.status(200).send({ ...updatedPact, members: updatedMembers, nudgeResults });
+    const hydratedPact = await attachMemberStatsToPact({ ...updatedPact, members: updatedMembers });
+    return res.status(200).send({ ...hydratedPact, nudgeResults });
 };
 
 export {

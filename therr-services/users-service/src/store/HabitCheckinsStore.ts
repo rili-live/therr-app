@@ -17,6 +17,14 @@ export interface ICreateHabitCheckinParams {
     hasProof?: boolean;
 }
 
+export interface ICheckinCountTarget {
+    key: string; // caller-supplied identifier echoed back in the result map
+    userId: string;
+    habitGoalId: string;
+    startDate: string; // YYYY-MM-DD, inclusive
+    endDate: string; // YYYY-MM-DD, inclusive
+}
+
 export interface IUpdateHabitCheckinParams {
     status?: string;
     completedAt?: Date;
@@ -148,6 +156,53 @@ export default class HabitCheckinsStore {
 
         return this.db.read.query(queryString.toString())
             .then((response) => parseInt(response.rows[0]?.count || '0', 10));
+    }
+
+    /**
+     * Completed check-in counts for many (user, habit goal, date window)
+     * targets in a single query. Each target carries its own window — two
+     * pacts on the same habit can cover different date ranges — so the counts
+     * are grouped by the caller's opaque `key` rather than by user+goal, which
+     * would conflate them.
+     */
+    getCompletedCountsForWindows(targets: ICheckinCountTarget[]): Promise<Record<string, number>> {
+        if (!targets.length) {
+            return Promise.resolve({});
+        }
+
+        const values = targets.map(() => '(?, ?::uuid, ?::uuid, ?::date, ?::date)').join(', ');
+        const bindings = targets.reduce(
+            (acc: string[], target) => acc.concat([
+                target.key,
+                target.userId,
+                target.habitGoalId,
+                target.startDate,
+                target.endDate,
+            ]),
+            [],
+        );
+
+        const queryString = knexBuilder.raw(
+            `WITH targets("key", "userId", "habitGoalId", "startDate", "endDate") AS (VALUES ${values})
+            SELECT t."key" AS key, COUNT(c.id)::int AS count
+            FROM targets t
+            LEFT JOIN ${HABIT_CHECKINS_TABLE_NAME} c
+                ON c."userId" = t."userId"
+                AND c."habitGoalId" = t."habitGoalId"
+                AND c.status = 'completed'
+                AND c."scheduledDate" >= t."startDate"
+                AND c."scheduledDate" <= t."endDate"
+            GROUP BY t."key"`,
+            bindings,
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.reduce(
+            (acc: Record<string, number>, row: any) => {
+                acc[row.key] = Number(row.count) || 0;
+                return acc;
+            },
+            {},
+        ));
     }
 
     create(params: ICreateHabitCheckinParams) {
