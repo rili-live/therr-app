@@ -98,11 +98,6 @@
             text-decoration: none;
             color: #fff;
         }
-        .cta--placeholder {
-            background: var(--habits-text-muted);
-            cursor: not-allowed;
-        }
-        .cta--placeholder:hover { background: var(--habits-text-muted); }
         .cta-note {
             font-size: 0.875rem;
             color: var(--habits-text-muted);
@@ -215,8 +210,14 @@
             <div class="container">
                 <h1>Habits that stick when a friend's on the hook too.</h1>
                 <p class="lede">Most habit apps let you give up in private. Friends with Habits doesn't. Pact with a friend, check in daily, and keep each other on streak.</p>
-                <a class="cta cta--placeholder" href="#" aria-disabled="true">Coming soon to Google Play</a>
-                <div class="cta-note">Internal testing in progress. iOS coming next.</div>
+                <!--
+                    Friends with Habits applicationId — NOT app.therrmobile. Sending a
+                    visitor to the Therr listing installs an app that cannot open a
+                    Friends with Habits account. Hardcoded rather than interpolated
+                    because Handlebars escapes '=' in an attribute to &#x3D;.
+                -->
+                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get it on Google Play</a>
+                <div class="cta-note">Free to install &mdash; currently in open testing on Google Play. iOS coming next.</div>
             </div>
         </section>
 

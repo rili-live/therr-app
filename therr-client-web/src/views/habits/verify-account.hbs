@@ -162,13 +162,19 @@
                 <h1>You&rsquo;re in.</h1>
                 <div class="alert alert--success">Email verified. Open the Friends with Habits app to start your first pact.</div>
                 <p class="lede">Already installed? Open the app and sign in &mdash; you&rsquo;re all set.</p>
-                <a class="cta" href="https://play.google.com/store/apps/details?id=app.therrmobile" rel="noopener">Get the app</a>
+                <!--
+                    Friends with Habits applicationId — NOT app.therrmobile. The Therr
+                    listing installs an app that cannot open the account just verified
+                    here. Hardcoded rather than interpolated because Handlebars escapes
+                    '=' in an attribute to &#x3D;.
+                -->
+                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get the app</a>
             </div>
 
             <div id="state-already-verified" hidden>
                 <h1>Already verified</h1>
                 <div class="alert alert--info">This account&rsquo;s email is already confirmed. Open the app and sign in.</div>
-                <a class="cta" href="https://play.google.com/store/apps/details?id=app.therrmobile" rel="noopener">Get the app</a>
+                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get the app</a>
             </div>
 
             <div id="state-failed" hidden>
