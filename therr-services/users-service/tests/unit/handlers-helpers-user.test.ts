@@ -63,10 +63,12 @@ describe('handlers/helpers/user', () => {
                 acceptingUserId: TARGET_USER_ID,
                 requestStatus: UserConnectionTypes.COMPLETE,
                 isConnectionBroken: false,
+                type: 2,
             });
 
             expect(profile.isNotConnected).to.equal(false);
             expect(profile.isPendingConnection).to.equal(false);
+            expect(profile.connectionType).to.equal(2);
         });
 
         it('reports a completed connection stored in the reverse direction as connected', async () => {
@@ -93,6 +95,21 @@ describe('handlers/helpers/user', () => {
             });
 
             expect(profile.isNotConnected).to.equal(true);
+        });
+
+        it('reports no connection strength on a broken connection', async () => {
+            // `connectionType > 0` is what mobile keys the connection-tier icon off of. A
+            // COMPLETE-but-broken row kept a non-zero type, so the icon survived the
+            // unconnect on a profile the same response reports as not connected.
+            const profile = await getProfileFor({
+                requestingUserId: VIEWER_USER_ID,
+                acceptingUserId: TARGET_USER_ID,
+                requestStatus: UserConnectionTypes.COMPLETE,
+                isConnectionBroken: true,
+                type: 3,
+            });
+
+            expect(profile.connectionType).to.equal(0);
         });
 
         it('reports a pending request as not connected but pending', async () => {

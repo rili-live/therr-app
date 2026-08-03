@@ -175,8 +175,12 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
             // `isMe` carries no connection row; keep reporting your own profile as connected
             // so the client never offers you a Connect button pointed at yourself.
             isNotConnected: !friendship?.isMe && !isCompletedConnection(friendship),
-            connectionType: friendship?.requestStatus === UserConnectionTypes.COMPLETE
-                ? friendship.type
+            // Same predicate as `isNotConnected` above, for the same reason: a COMPLETE but
+            // broken row would otherwise still report a connection *strength*, so mobile's
+            // `connectionType > 0` checks kept drawing the connection-tier icon on a profile
+            // the rest of this response now calls not connected.
+            connectionType: isCompletedConnection(friendship)
+                ? friendship?.type
                 : 0,
             isPendingConnection: friendship
                 // eslint-disable-next-line max-len
