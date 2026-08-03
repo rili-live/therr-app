@@ -236,7 +236,11 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         });
     };
 
-    getConnectionDetails = () => {
+    /**
+     * The other party as the *cached connections list* knows them. Only a fallback now —
+     * see `isConnectedToUserInView` for why this list can't be trusted on its own.
+     */
+    getCachedConnectionDetails = () => {
         const { user, userConnections } = this.props;
         const { userId } = this.state;
 
@@ -249,6 +253,25 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         return connection.users.find((u: any) => u.id !== user.details.id);
     };
 
+    /**
+     * Whether the viewer is connected to the profile in view.
+     *
+     * Trusts `isNotConnected`, which users-service computes per request against the
+     * *currently authenticated* user. Deriving it from `userConnections.connections`
+     * instead — as this screen used to — reported "not connected" for real connections
+     * in three routine cases: the list is a single 50-item page, it is only fetched when
+     * empty, and it is persisted (redux-persist) so one account's list survives into the
+     * next account's session. The cached list stays as a fallback for responses that
+     * predate the flag.
+     */
+    isConnectedToUserInView = (userInView: any) => {
+        if (userInView?.isNotConnected !== undefined) {
+            return !userInView.isNotConnected;
+        }
+
+        return !!this.getCachedConnectionDetails();
+    };
+
     handleChatClick = (e: any) => {
         const { onInitMessaging, user } = this.props;
 
@@ -259,7 +282,11 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
         e.stopPropagation();
 
-        const connectionDetails = this.getConnectionDetails();
+        // The fetched profile is the authoritative source for who we're messaging; the
+        // cached list entry is only reached when the profile hasn't resolved yet.
+        const connectionDetails = user.userInView?.id
+            ? user.userInView
+            : this.getCachedConnectionDetails();
         if (connectionDetails && onInitMessaging) {
             onInitMessaging(e, connectionDetails, 'view-user');
         }
@@ -387,7 +414,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         } = this.state;
 
         const isOwnProfile = user.isAuthenticated && user.details?.id === userInView.id;
-        const isConnected = !isOwnProfile && !!this.getConnectionDetails();
+        const isConnected = !isOwnProfile && this.isConnectedToUserInView(userInView);
         const showChatButton = !isOwnProfile && (isConnected || !user.isAuthenticated);
         const userImageUri = getUserImageUri({ details: userInView }, 480);
 
@@ -534,7 +561,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         const { userThoughts } = this.state;
 
         const isOwnProfile = user.isAuthenticated && user.details?.id === userInView.id;
-        const isConnected = !isOwnProfile && !!this.getConnectionDetails();
+        const isConnected = !isOwnProfile && this.isConnectedToUserInView(userInView);
         const showChatButton = !isOwnProfile && (isConnected || !user.isAuthenticated);
 
         const userImageUri = getUserImageUri({ details: userInView }, 480);

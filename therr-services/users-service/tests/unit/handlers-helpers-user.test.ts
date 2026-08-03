@@ -1,9 +1,11 @@
 /* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { awsSES } from '../../src/api/aws';
 import {
     createUserHelper,
+    getUserHelper,
     isUserProfileIncomplete,
 } from '../../src/handlers/helpers/user';
 import Store from '../../src/store';
@@ -16,6 +18,164 @@ afterEach(() => {
 });
 
 describe('handlers/helpers/user', () => {
+    describe('getUserHelper connection status', () => {
+        const TARGET_USER_ID = 'target-user-id';
+        const VIEWER_USER_ID = 'viewer-user-id';
+
+        // Captures whatever getUserHelper hands to res.send
+        const mockResponse = () => {
+            const res: any = {};
+            res.status = sinon.stub().returns(res);
+            res.send = sinon.stub().returns(res);
+            return res;
+        };
+
+        const stubStoresFor = (connectionRow: any, settingsIsProfilePublic = true) => {
+            sinon.stub(Store.users, 'getUserByConditions').resolves([{
+                id: TARGET_USER_ID,
+                userName: 'targetuser',
+                firstName: 'Target',
+                lastName: 'User',
+                settingsIsProfilePublic,
+            }]);
+            sinon.stub(Store.userConnections, 'countUserConnections').resolves([{ count: '3' }]);
+            sinon.stub(Store.socialSyncs, 'getSyncs').resolves([]);
+            sinon.stub(Store.userConnections, 'getUserConnections').resolves(connectionRow ? [connectionRow] : []);
+        };
+
+        const getProfileFor = async (connectionRow: any, settingsIsProfilePublic = true) => {
+            stubStoresFor(connectionRow, settingsIsProfilePublic);
+            const res = mockResponse();
+
+            await getUserHelper({
+                isAuthorized: true,
+                requestingUserId: VIEWER_USER_ID,
+                targetUserParams: { id: TARGET_USER_ID },
+                res,
+            });
+
+            return res.send.firstCall.args[0];
+        };
+
+        it('reports a completed, unbroken connection as connected', async () => {
+            const profile = await getProfileFor({
+                requestingUserId: VIEWER_USER_ID,
+                acceptingUserId: TARGET_USER_ID,
+                requestStatus: UserConnectionTypes.COMPLETE,
+                isConnectionBroken: false,
+                type: 2,
+            });
+
+            expect(profile.isNotConnected).to.equal(false);
+            expect(profile.isPendingConnection).to.equal(false);
+            expect(profile.connectionType).to.equal(2);
+        });
+
+        it('reports a completed connection stored in the reverse direction as connected', async () => {
+            // getUserConnections is called with shouldCheckReverse, so the row it returns is
+            // just as likely to name the viewer as the accepting side.
+            const profile = await getProfileFor({
+                requestingUserId: TARGET_USER_ID,
+                acceptingUserId: VIEWER_USER_ID,
+                requestStatus: UserConnectionTypes.COMPLETE,
+                isConnectionBroken: false,
+            });
+
+            expect(profile.isNotConnected).to.equal(false);
+        });
+
+        it('reports a broken connection as not connected, matching the connections list', async () => {
+            // searchUserConnections filters on isConnectionBroken = false, so a broken row is
+            // absent from the connections list. The profile has to agree.
+            const profile = await getProfileFor({
+                requestingUserId: VIEWER_USER_ID,
+                acceptingUserId: TARGET_USER_ID,
+                requestStatus: UserConnectionTypes.COMPLETE,
+                isConnectionBroken: true,
+            });
+
+            expect(profile.isNotConnected).to.equal(true);
+        });
+
+        it('reports no connection strength on a broken connection', async () => {
+            // `connectionType > 0` is what mobile keys the connection-tier icon off of. A
+            // COMPLETE-but-broken row kept a non-zero type, so the icon survived the
+            // unconnect on a profile the same response reports as not connected.
+            const profile = await getProfileFor({
+                requestingUserId: VIEWER_USER_ID,
+                acceptingUserId: TARGET_USER_ID,
+                requestStatus: UserConnectionTypes.COMPLETE,
+                isConnectionBroken: true,
+                type: 3,
+            });
+
+            expect(profile.connectionType).to.equal(0);
+        });
+
+        it('reports a pending request as not connected but pending', async () => {
+            const profile = await getProfileFor({
+                requestingUserId: VIEWER_USER_ID,
+                acceptingUserId: TARGET_USER_ID,
+                requestStatus: UserConnectionTypes.PENDING,
+                isConnectionBroken: false,
+            });
+
+            expect(profile.isNotConnected).to.equal(true);
+            expect(profile.isPendingConnection).to.equal(true);
+        });
+
+        it('reports a might-know edge as not connected', async () => {
+            const profile = await getProfileFor({
+                requestingUserId: VIEWER_USER_ID,
+                acceptingUserId: TARGET_USER_ID,
+                requestStatus: UserConnectionTypes.MIGHT_KNOW,
+                isConnectionBroken: false,
+            });
+
+            expect(profile.isNotConnected).to.equal(true);
+            expect(profile.isPendingConnection).to.equal(false);
+        });
+
+        it('reports no connection row at all as not connected', async () => {
+            const profile = await getProfileFor(null);
+
+            expect(profile.isNotConnected).to.equal(true);
+            expect(profile.isPendingConnection).to.equal(false);
+        });
+
+        it('keeps a private profile visible to a completed connection', async () => {
+            const profile = await getProfileFor({
+                requestingUserId: VIEWER_USER_ID,
+                acceptingUserId: TARGET_USER_ID,
+                requestStatus: UserConnectionTypes.COMPLETE,
+                isConnectionBroken: false,
+            }, false);
+
+            expect(profile.isNotConnected).to.equal(false);
+            expect(profile.firstName).to.equal('Target');
+        });
+
+        it('does not offer a connect action on your own profile', async () => {
+            sinon.stub(Store.users, 'getUserByConditions').resolves([{
+                id: VIEWER_USER_ID,
+                userName: 'viewer',
+                settingsIsProfilePublic: false,
+            }]);
+            sinon.stub(Store.userConnections, 'countUserConnections').resolves([{ count: '0' }]);
+            sinon.stub(Store.socialSyncs, 'getSyncs').resolves([]);
+            const res = mockResponse();
+
+            await getUserHelper({
+                isAuthorized: true,
+                requestingUserId: VIEWER_USER_ID,
+                targetUserParams: { id: VIEWER_USER_ID },
+                res,
+            });
+
+            expect(res.send.firstCall.args[0].isNotConnected).to.equal(false);
+        });
+    });
+
     describe('isUserProfileIncomplete', () => {
         it('is true if no existing user and update is missing properties', () => {
             const mockUpdate = {};

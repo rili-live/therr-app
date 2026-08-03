@@ -185,10 +185,15 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             }
 
             if (getResults.length && getResults[0].isConnectionBroken) {
-                // Re-create connection after unconnection
+                // Re-create connection after unconnection.
+                // Both sides of the WHERE must come from the row itself: the lookup above is
+                // reverse-checking, so the existing row is just as likely to be stored as
+                // (other -> me). Pairing the row's `requestingUserId` with `acceptingUser.id`
+                // then yielded `requestingUserId = X AND acceptingUserId = X`, which matches
+                // nothing — the update silently no-op'd and the re-connect never took.
                 connectionPromise = Store.userConnections.updateUserConnection({
                     requestingUserId: getResults[0].requestingUserId,
-                    acceptingUserId: acceptingUser.id as string,
+                    acceptingUserId: getResults[0].acceptingUserId,
                 }, {
                     isConnectionBroken: false,
                     requestStatus: UserConnectionTypes.PENDING,
