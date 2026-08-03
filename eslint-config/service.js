@@ -54,6 +54,12 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
                 },
             ],
             'therr/no-direct-brand-scoped-table': 'error',
+            // A live connection is `requestStatus = 'complete' AND isConnectionBroken = false`
+            // — the exact predicate `searchUserConnections` filters the connections list on.
+            // Checking only the status half has shipped twice from the same object literal in
+            // the profile response, each time leaving a profile screen and the connections
+            // list disagreeing about the same pair of users.
+            'therr/no-partial-connection-status-check': 'error',
             ...(overrides.rules || {}),
         },
         overrides: [

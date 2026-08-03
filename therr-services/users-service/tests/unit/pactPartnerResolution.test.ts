@@ -41,7 +41,12 @@ describe('pact partner resolution', () => {
             expect(queryString).to.contain(`"habits"."pact_members"."status" = 'active'`);
         });
 
-        it('falls back to the creator/partner columns for pacts predating pact_members', async () => {
+        // Gated on the member row being absent, not merely on membership failing to match.
+        // `pacts.partnerUserId` outlives membership — declining an already-active 1:1 pact
+        // marks the member `left` and leaves the column pointing at them — so an ungated
+        // fallback keeps crediting a departed member's check-ins to the pact they left.
+        // Behaviour is pinned end-to-end in tests/integration/pacts.integration.test.ts.
+        it('falls back to the creator/partner columns only when the user has no member row', async () => {
             const { store, mockConnection } = buildStore(PactsStore);
 
             await store.getActiveByUserAndHabitGoal('user-1', 'goal-1');
@@ -49,6 +54,12 @@ describe('pact partner resolution', () => {
             const queryString = mockConnection.read.query.args[0][0];
             expect(queryString).to.contain(`"creatorUserId" = 'user-1'`);
             expect(queryString).to.contain(`"partnerUserId" = 'user-1'`);
+            // The join is already scoped to this user, so a null member id means
+            // "no row for them" rather than "the pact has no members".
+            expect(queryString).to.contain('"habits"."pact_members"."id" is null');
+            expect(queryString).to.match(
+                /"habits"\."pact_members"\."id" is null and \("habits"\."pacts"\."creatorUserId"/,
+            );
         });
 
         // habit_checkins.pactId is singular, so a goal backing two active pacts

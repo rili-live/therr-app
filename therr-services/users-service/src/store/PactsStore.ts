@@ -132,7 +132,16 @@ export default class PactsStore {
      * one active pact (a group pact plus a 1:1, say), hence the plural.
      *
      * Membership is the source of truth, with the same creator/partner
-     * fallback as getByUserId for 1:1 pacts that pre-date pact_members.
+     * fallback as getByUserId — but only for 1:1 pacts that pre-date
+     * pact_members and so have no member row to consult. Where a member row
+     * does exist it decides on its own, because the creator/partner columns
+     * outlive membership: declining an already-active 1:1 pact marks the
+     * member `left` while `pacts.partnerUserId` keeps pointing at them, and
+     * consulting the column as an alternative would go on crediting their
+     * check-ins to the pact they left (and pushing "your partner checked in"
+     * to the creator). The join is already scoped to this user, so a null
+     * member id means "no row for them", not "no rows at all".
+     *
      * Ordered by startDate so callers that must pick a single pact (the
      * singular habit_checkins.pactId column) pick deterministically.
      */
@@ -147,11 +156,14 @@ export default class PactsStore {
             .where(`${PACTS_TABLE_NAME}.habitGoalId`, habitGoalId)
             .andWhere(`${PACTS_TABLE_NAME}.status`, 'active')
             .andWhere((builder) => {
-                builder.where((b1) => {
-                    b1.where(`${PACT_MEMBERS_TABLE_NAME}.userId`, userId)
-                        .andWhere(`${PACT_MEMBERS_TABLE_NAME}.status`, 'active');
-                }).orWhere(`${PACTS_TABLE_NAME}.creatorUserId`, userId)
-                    .orWhere(`${PACTS_TABLE_NAME}.partnerUserId`, userId);
+                builder.where(`${PACT_MEMBERS_TABLE_NAME}.status`, 'active')
+                    .orWhere((legacy) => {
+                        legacy.whereNull(`${PACT_MEMBERS_TABLE_NAME}.id`)
+                            .andWhere((participant) => {
+                                participant.where(`${PACTS_TABLE_NAME}.creatorUserId`, userId)
+                                    .orWhere(`${PACTS_TABLE_NAME}.partnerUserId`, userId);
+                            });
+                    });
             })
             .orderBy(`${PACTS_TABLE_NAME}.startDate`, 'asc');
 
