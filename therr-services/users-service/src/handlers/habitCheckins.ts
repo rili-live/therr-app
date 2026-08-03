@@ -15,8 +15,9 @@ import {
     normalizeDateString,
     MAX_GRACE_PERIOD_DAYS,
 } from '../utilities/streakHelpers';
-import { getPartnerUserId } from '../utilities/pactHelpers';
+import { isUserInPact } from '../utilities/pactHelpers';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { resolvePactPartnerIds } from './helpers/pactPartners';
 import {
     awardStreakAchievement,
     awardConsistencyAchievement,
@@ -72,11 +73,18 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    // If pact is specified, verify user is participant
-    let pact;
+    // Resolve which pacts this check-in counts toward.
+    //
+    // Clients log a check-in against a habit goal, never a pact — the pact is
+    // a property of the goal — so an explicit `pactId` is the exception. Until
+    // this resolution existed nothing downstream of it ever ran: check-in rows
+    // were written with a null pactId (leaving GET /pacts/:pactId/checkins
+    // permanently empty), partners were never told their accountability
+    // partner checked in, and mid-pact Wing Person credit never landed.
+    let pacts: any[] = [];
     if (pactId) {
-        pact = await Store.pacts.getById(pactId);
-        if (!pact) {
+        const requestedPact = await Store.pacts.getById(pactId);
+        if (!requestedPact) {
             return handleHttpError({
                 res,
                 message: 'Pact not found',
@@ -84,19 +92,34 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
             });
         }
 
-        if (pact.creatorUserId !== userId && pact.partnerUserId !== userId) {
+        // Authorize via pact_members as well: a group pact has no
+        // partnerUserId, so its invitees would otherwise be refused a check-in
+        // on their own pact.
+        const membership = await Store.pactMembers.getByPactAndUser(pactId, userId);
+        const isParticipant = isUserInPact(userId, requestedPact.creatorUserId, requestedPact.partnerUserId)
+            || membership?.status === 'active';
+        if (!isParticipant) {
             return handleHttpError({
                 res,
                 message: 'You are not a participant in this pact',
                 statusCode: 403,
             });
         }
+
+        pacts = [requestedPact];
+    } else {
+        pacts = await Store.pacts.getActiveByUserAndHabitGoal(userId, habitGoalId);
     }
+
+    // `habit_checkins.pactId` is singular. When a goal backs several active
+    // pacts the row is attributed to the earliest-started one (the store
+    // orders by startDate); every pact is still credited below.
+    const attributedPactId = pactId || pacts[0]?.id;
 
     // Create or update the checkin
     return Store.habitCheckins.createOrUpdate({
         userId,
-        pactId,
+        pactId: attributedPactId,
         habitGoalId,
         scheduledDate: checkinDate,
         status: status || 'completed',
@@ -117,7 +140,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             userId,
                             checkinId: checkin.id,
                             habitGoalId,
-                            pactId,
+                            pactId: attributedPactId,
                             mediaType: m.type === 'video' ? 'video' : 'image',
                             mediaPath: m.path,
                             thumbnailPath: m.thumbnailPath,
@@ -129,7 +152,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
             // If completed, update streak
             if (checkin.status === 'completed') {
-                let streak = await Store.streaks.getOrCreate(userId, habitGoalId, pactId);
+                let streak = await Store.streaks.getOrCreate(userId, habitGoalId, attributedPactId);
                 const lastCompletedStr = streak.lastCompletedDate
                     ? normalizeDateString(streak.lastCompletedDate)
                     : null;
@@ -282,36 +305,45 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     // why. Skip when there's no pact (solo habits only credit
                     // the user's own ladder).
                     const isNewLongestStreak = updatedStreak.longestStreak > longestBefore;
-                    if (isNewLongestStreak && pactId && pact) {
-                        const partnerForMilestoneId = getPartnerUserId(
-                            userId,
-                            pact.creatorUserId,
-                            pact.partnerUserId,
-                        );
-                        if (partnerForMilestoneId) {
+                    if (isNewLongestStreak && pacts.length) {
+                        (await resolvePactPartnerIds(pacts, userId)).forEach((partnerForMilestoneId) => {
                             awardAccountabilityWingAchievement(
                                 headersForOtherUser(req.headers, partnerForMilestoneId),
                                 1,
                             );
-                        }
+                        });
                     }
                 }
 
-                // Update pact member stats if in a pact
-                if (pactId) {
-                    const member = await Store.pactMembers.getByPactAndUser(pactId, userId);
-                    if (member) {
-                        await Store.pactMembers.incrementCheckinStats(
-                            member.id,
-                            true,
-                            updatedStreak.currentStreak,
-                        );
-                        await Store.pactMembers.updateCompletionRate(member.id);
-                    }
+                // Credit every pact this habit goal backs.
+                //
+                // The pact endpoints derive member progress from check-ins and
+                // streaks rather than reading these columns (see
+                // utilities/pactMemberStats), so the counters are no longer
+                // load-bearing for display — but completePact freezes the
+                // derived values over them, and keeping them warm means the
+                // stored row isn't wildly stale in the meantime.
+                if (pacts.length) {
+                    const ownMemberships = await Promise.all(
+                        pacts.map((p: any) => Store.pactMembers.getByPactAndUser(p.id, userId)),
+                    );
+                    await Promise.all(ownMemberships
+                        .filter((member: any) => member)
+                        .map(async (member: any) => {
+                            await Store.pactMembers.incrementCheckinStats(
+                                member.id,
+                                true,
+                                updatedStreak.currentStreak,
+                            );
+                            return Store.pactMembers.updateCompletionRate(member.id);
+                        }));
 
-                    // Notify partner
-                    const partnerId = getPartnerUserId(userId, pact.creatorUserId, pact.partnerUserId);
-                    if (partnerId) {
+                    // Notify partners. Someone in two pacts on this same habit
+                    // is told once, not once per pact.
+                    const partnerIds = await resolvePactPartnerIds(pacts, userId, {
+                        onlyCelebrating: true,
+                    });
+                    partnerIds.forEach((partnerId) => {
                         sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                             authorization,
                             fromUser: { id: userId, userName },
@@ -325,10 +357,10 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
                                 messages: ['Error sending partner checkin notification'],
-                                traceArgs: { 'error.message': err?.message },
+                                traceArgs: { 'error.message': err?.message, partnerId },
                             });
                         });
-                    }
+                    });
                 }
 
                 // Mark checkin as contributing to streak
