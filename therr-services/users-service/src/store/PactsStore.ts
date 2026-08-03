@@ -124,6 +124,42 @@ export default class PactsStore {
     }
 
     /**
+     * The active pacts a user's check-in on a given habit goal counts toward.
+     *
+     * Clients log a check-in against a habit goal, never a pact — the pact is
+     * a property of the goal — so this is how the check-in flow finds the
+     * pacts to credit and the partners to notify. A goal can back more than
+     * one active pact (a group pact plus a 1:1, say), hence the plural.
+     *
+     * Membership is the source of truth, with the same creator/partner
+     * fallback as getByUserId for 1:1 pacts that pre-date pact_members.
+     * Ordered by startDate so callers that must pick a single pact (the
+     * singular habit_checkins.pactId column) pick deterministically.
+     */
+    getActiveByUserAndHabitGoal(userId: string, habitGoalId: string) {
+        const queryString = knexBuilder
+            .distinct(`${PACTS_TABLE_NAME}.*`)
+            .from(PACTS_TABLE_NAME)
+            .leftJoin(PACT_MEMBERS_TABLE_NAME, function joinMembers() {
+                this.on(`${PACT_MEMBERS_TABLE_NAME}.pactId`, '=', `${PACTS_TABLE_NAME}.id`)
+                    .andOn(`${PACT_MEMBERS_TABLE_NAME}.userId`, '=', knexBuilder.raw('?', [userId]));
+            })
+            .where(`${PACTS_TABLE_NAME}.habitGoalId`, habitGoalId)
+            .andWhere(`${PACTS_TABLE_NAME}.status`, 'active')
+            .andWhere((builder) => {
+                builder.where((b1) => {
+                    b1.where(`${PACT_MEMBERS_TABLE_NAME}.userId`, userId)
+                        .andWhere(`${PACT_MEMBERS_TABLE_NAME}.status`, 'active');
+                }).orWhere(`${PACTS_TABLE_NAME}.creatorUserId`, userId)
+                    .orWhere(`${PACTS_TABLE_NAME}.partnerUserId`, userId);
+            })
+            .orderBy(`${PACTS_TABLE_NAME}.startDate`, 'asc');
+
+        return this.db.read.query(queryString.toString())
+            .then((response) => response.rows);
+    }
+
+    /**
      * Counts pacts this user has created (not joined as partner) that are
      * still in flight — pending invitation or active. Used to enforce the
      * HABITS free-tier limit so that pacts they're invited to don't count

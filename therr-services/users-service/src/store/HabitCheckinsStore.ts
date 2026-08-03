@@ -231,6 +231,10 @@ export default class HabitCheckinsStore {
             .onConflict(['userId', 'habitGoalId', 'scheduledDate'])
             .merge({
                 status: params.status,
+                // Backfills rows written before the check-in flow resolved a
+                // pact from the habit goal. Knex drops undefined keys from the
+                // merge, so a genuinely pact-less check-in stays pact-less.
+                pactId: params.pactId,
                 completedAt: params.completedAt,
                 notes: params.notes,
                 selfRating: params.selfRating,
