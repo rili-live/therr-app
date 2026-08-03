@@ -3,6 +3,7 @@ import { configureStore, Middleware } from '@reduxjs/toolkit';
 import {
     persistStore,
     persistReducer,
+    Persistor,
     FLUSH,
     REHYDRATE,
     PAUSE,
@@ -93,9 +94,9 @@ if (isClient) {
     }
 }
 
-// Late-bound reference to the persistor created below. The purge middleware needs
-// it, but it can only exist after the store is configured.
-let persistorRef: any = null;
+// Late-bound reference to the persistor created below. The purge middleware needs it,
+// but it can only exist after the store is configured.
+let persistorRef: Persistor | null = null;
 
 // redux-persist keeps its own copy of the whitelisted slices (`user`, `content`,
 // `notifications`, `userConnections`) in localStorage. On logout the reducers clear
@@ -104,6 +105,11 @@ let persistorRef: any = null;
 // therefore inherits the previous account's cached data: their connections list, their
 // notifications, their feed. Purge here so a session's data can never outlive it.
 // Mirrors `purgeOnLogoutMiddleware` in TherrMobile/main/getStore.tsx.
+//
+// Reads through `persistorRef` rather than the `persistor` const below: the innermost
+// body cannot run before module evaluation finishes, so referencing `persistor` directly
+// would be correct at runtime, but `no-use-before-define` cannot see that and would
+// need two disable comments to say so.
 const purgeOnLogoutMiddleware = () => (next: any) => (action: any) => {
     const result = next(action);
 

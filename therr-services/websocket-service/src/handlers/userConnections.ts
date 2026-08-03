@@ -133,7 +133,13 @@ const updateConnection = (internalConfig: IInternalConfig, socket: socketio.Sock
 
         return connection;
     }).then((connection: any) => {
-        if (connection.requestStatus === UserConnectionTypes.COMPLETE) { // Do not send notification when connection denied
+        // Do not send notification when the connection was denied — or removed. An unconnect
+        // PUTs `{ isConnectionBroken: true }` with no `requestStatus`, and Knex omits
+        // undefined from the SET clause, so the row comes back still holding its old
+        // `requestStatus: 'complete'`. Checking the status alone therefore fired a
+        // CONNECTION_REQUEST_ACCEPTED notification at the other party on every unconnect.
+        // The socket-emit branch above already reads `isConnectionBroken` first; this one did not.
+        if (connection.requestStatus === UserConnectionTypes.COMPLETE && !connection.isConnectionBroken) {
             return restRequest(internalConfig, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,

@@ -112,6 +112,24 @@ export default class HabitGoalsStore {
             .then((response) => response.rows);
     }
 
+    /**
+     * Bulk goal lookup for callers that already know the ids they need (e.g.
+     * hydrating a page of pacts with their habit cadence) and would otherwise
+     * fan out one getById per row.
+     */
+    getByIds(ids: string[]) {
+        if (!ids.length) {
+            return Promise.resolve([]);
+        }
+
+        const queryString = knexBuilder
+            .from(HABIT_GOALS_TABLE_NAME)
+            .whereIn('id', ids)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     getTemplates(category?: string, limit?: number, offset?: number) {
         const conditions: any = { isTemplate: true };
         if (category) {
