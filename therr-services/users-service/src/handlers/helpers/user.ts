@@ -127,11 +127,25 @@ const redactUserCreds = (dbUser) => {
 };
 
 /**
+ * The single definition of "these two users are connected".
+ *
+ * Deliberately identical to the predicate `UserConnectionsStore.searchUserConnections`
+ * filters the connections list on (`requestStatus = 'complete' AND isConnectionBroken = false`).
+ * The profile response used to answer a looser question — "is there any row that isn't
+ * MIGHT_KNOW" — so a pending, denied, blocked or *broken* row all reported the profile as
+ * connected even though the connections list had already dropped it. Two definitions of
+ * connected on the same pair of users is what produced the mismatch between the two screens.
+ */
+const isCompletedConnection = (connection?: { [key: string]: any }) => !!connection
+    && connection.requestStatus === UserConnectionTypes.COMPLETE
+    && !connection.isConnectionBroken;
+
+/**
  * True if the user profile setting is public or the requesting user is friends with the target user profile
  * @returns boolean
  */
 const isUserInfoPublic = (user, connection) => connection?.isMe || user.settingsIsProfilePublic
-    || (connection?.requestStatus === UserConnectionTypes.COMPLETE && !connection?.isConnectionBroken);
+    || isCompletedConnection(connection);
 
 const getUserProfileResponse = (userResult, friendship: undefined | { [key: string]: any }, connectionCount: number, socialSyncs) => {
     // Only select specific properties should be returned
@@ -158,7 +172,9 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
             ...sanitizedUserResult,
 
             // More details
-            isNotConnected: !friendship || friendship.requestStatus === UserConnectionTypes.MIGHT_KNOW,
+            // `isMe` carries no connection row; keep reporting your own profile as connected
+            // so the client never offers you a Connect button pointed at yourself.
+            isNotConnected: !friendship?.isMe && !isCompletedConnection(friendship),
             connectionType: friendship?.requestStatus === UserConnectionTypes.COMPLETE
                 ? friendship.type
                 : 0,
