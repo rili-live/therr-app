@@ -155,10 +155,18 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                                 </Alert>
                             )
                         }
+                        {/*
+                            autoComplete is what makes the assetlinks.json
+                            `delegate_permission/common.get_login_creds` relation useful: Chrome
+                            only offers to save a credential it can identify, and only a saved
+                            credential gets shared with the associated Android app. Without these
+                            two hints the association resolves but there is nothing to share.
+                        */}
                         <MantineInput
                             type="text"
                             id="user_name"
                             name="userName"
+                            autoComplete="username"
                             value={this.state.inputs.userName}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
@@ -171,6 +179,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             type="password"
                             id="password"
                             name="password"
+                            autoComplete="current-password"
                             value={this.state.inputs.password}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
