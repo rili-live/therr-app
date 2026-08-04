@@ -196,12 +196,21 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsBio,
             settingsLocale: selectedLocale,
             settingsThemeName: selectedTheme,
-            settingsContentAlgorithm: selectedAlgorithm,
             settingsPushMarketing: isOptedInToAds,
             settingsPushBackground: isOptedInToAds,
             settingsIsProfilePublic: isProfilePublic,
             shouldHideMatureContent: shouldHideMatureContent === 'false' ? false : true,
         };
+
+        // Sent only when it actually changed, unlike the settings above. Submitting it
+        // unconditionally means a device whose cached redux predates the user's choice
+        // reverts it on any unrelated save — and because the server resets the stream's
+        // relevance scores on a change, that silently wipes the ranking too. Comparing
+        // against the same value the picker was seeded from makes a stale device send
+        // nothing rather than send the wrong thing.
+        if (selectedAlgorithm !== (user.settings.settingsContentAlgorithm || 'pulse')) {
+            updateArgs.settingsContentAlgorithm = selectedAlgorithm;
+        }
 
         if (oldPassword && password === repeatPassword) {
             updateArgs.password = password;

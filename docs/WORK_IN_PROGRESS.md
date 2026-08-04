@@ -303,6 +303,16 @@ append new items here rather than only printing them once.
   `20260803000001_main.users.settingsContentAlgorithm` before the mobile release
   that ships the Settings picker. It backfills every row to `'pulse'`, which
   reproduces the pre-abstraction ranker exactly, so no existing feed changes.
+- [ ] (2026-08-03, /quality-peer-review) Make the maps-service surfaces
+  profile-aware so WANDER can be released. It is fully implemented in
+  `content-ranking` but stays out of `SELECTABLE_CONTENT_ALGORITHMS` because it is
+  geo-dominant and no profile-aware surface supplies coordinates: `main.thoughts`
+  has none, and the mobile carousels rank a cached page with no distance. Until
+  maps-service ranks through `getScoreSqlExpression` with a `distanceMeters`
+  column, `weights.geo`, `geoScaleMeters`, `searchRadiusMeters`,
+  `getGeoSqlExpression`, and `getGeoTerm` have no production consumer. Either land
+  that surface or drop the geo half of the module — it should not sit unconsumed
+  indefinitely.
 - [ ] (2026-08-03, /quality-peer-review) Know the rollback lever before rollout:
   `CONTENT_ALGORITHM_OVERRIDE=pulse` on users-service forces every user onto
   PULSE regardless of their stored setting, without a deploy
