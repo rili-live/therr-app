@@ -2,6 +2,17 @@ type IAccessLevel = Array<string>;
 
 export type IMobileThemeName = 'light' | 'dark' | 'retro';
 
+/**
+ * Which algorithm ranks the user's content stream. Mirrors ContentAlgorithms in
+ * therr-js-utilities `content-ranking`, restated here so this package (which is consumed by
+ * both web and mobile) does not take a value import purely for a string union.
+ *
+ * 'wander' is intentionally present: the column can already hold it, so anything reading the
+ * setting must be able to describe it. Only 'pulse' and 'focus' are user-selectable today —
+ * SELECTABLE_CONTENT_ALGORITHMS is the authority on that, enforced at the API gateway.
+ */
+export type IContentAlgorithmName = 'pulse' | 'focus' | 'wander';
+
 // Multi-app auth: which Therr-family apps a given user is active in. The backend appends to this
 // array on every successful login under a given x-brand-variation. Used by the AccountCenter to
 // render "Apps in your Therr account" and to gate cross-app handoff offers.
@@ -30,6 +41,9 @@ export interface IUser {
 export interface IUserSettings {
   locale: string;
   mobileThemeName: IMobileThemeName;
+  // Keeps its DB column name through to redux, unlike settingsThemeName -> mobileThemeName.
+  // That rename is the exception here; most settings pass straight through.
+  settingsContentAlgorithm?: IContentAlgorithmName;
   navigationTourCount?: number;
   settingsTherrCoinTotal?: any;
   [key: string]: any;

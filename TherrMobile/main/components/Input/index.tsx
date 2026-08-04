@@ -35,6 +35,12 @@ export interface IBaseInputProps extends TextInputProps {
     inputStyle?: any;
     label?: string;
     labelStyle?: any;
+    /**
+     * Forwarded to the underlying Paper TextInput, which exposes focus/blur/clear.
+     * A plain `ref` can't do this — BaseInput is a class component, so `ref` resolves
+     * to the BaseInput instance rather than the text input.
+     */
+    inputRef?: React.Ref<any>;
     rightIcon?: React.ReactNode;
     leftIcon?: React.ReactNode;
     rightIconContainerStyle?: any;
@@ -73,6 +79,7 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
             inputStyle,
             label,
             labelStyle: _labelStyle,
+            inputRef,
             rightIcon,
             leftIcon,
             rightIconContainerStyle: _rightIconContainerStyle,
@@ -153,6 +160,7 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
         return (
             <View style={containerStyle ?? variantContainerStyle}>
                 <PaperTextInput
+                    ref={inputRef}
                     mode={mode}
                     label={label}
                     cursorColor={themeForms.colors.selectionColor as unknown as string}

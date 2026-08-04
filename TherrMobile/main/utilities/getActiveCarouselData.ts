@@ -73,6 +73,11 @@ interface IGetActiveDataArgs {
     shouldIncludeMoments?: boolean;
     shouldIncludeSpaces?: boolean;
     translate: any;
+    /**
+     * The user's `settingsContentAlgorithm`. Only consulted when sortBy is 'ranked'; the
+     * other sort modes are explicit orderings the user asked for, not algorithmic ones.
+     */
+    contentAlgorithm?: string;
 }
 
 export default ({
@@ -85,6 +90,7 @@ export default ({
     shouldIncludeMoments,
     shouldIncludeSpaces,
     translate,
+    contentAlgorithm,
 }: IGetActiveDataArgs, sortBy = 'createdAt', categories: string[] = [SELECT_ALL]) => {
     if (activeTab === CAROUSEL_TABS.NEWS) {
         return [];
@@ -135,7 +141,7 @@ export default ({
             || categories.map((cat) => cat.replace('categories.', '')).includes(areaOrThought.category));
 
     if (sortBy === 'ranked') {
-        return rankFeedPosts(filteredData);
+        return rankFeedPosts(filteredData, contentAlgorithm);
     }
 
     return filteredData;

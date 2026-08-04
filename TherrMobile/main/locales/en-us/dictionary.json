@@ -846,7 +846,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Passwords do not match",
-        "passwordInsecure": "New password does not meet minimum security requirements"
+        "passwordInsecure": "New password does not meet minimum security requirements",
+        "userNameRequired": "Username is required",
+        "firstNameRequired": "First name is required",
+        "lastNameRequired": "Last name is required",
+        "oldPasswordRequired": "Enter your current password to change it",
+        "newPasswordRequired": "Enter a new password, then repeat it below"
       },
       "labels": {
         "accountTypeLabel": "Account Type: ",
@@ -1776,12 +1781,18 @@
         "themeDark": "Dark",
         "themeRetro": "Retro",
         "enableRewards": "Opt-In?",
-        "isPublic": "Public Profile?"
+        "isPublic": "Public Profile?",
+        "contentAlgorithm": "Content algorithm",
+        "algorithmPulse": "Pulse",
+        "algorithmFocus": "Focus",
+        "algorithmPulseDescription": "What's happening right now — the most active and recent posts lead.",
+        "algorithmFocusDescription": "Only what you chose. A quieter feed, limited to your interests."
       },
       "alertTitles": {
         "accountUpdated": "Account Updated",
         "backendErrorMessage": "Oops! Something went wrong.",
-        "insecurePassword": "Insecure Password"
+        "insecurePassword": "Insecure Password",
+        "incompleteForm": "Check your details"
       },
       "alertMessages": {
         "accountUpdated": "Successfully updated."

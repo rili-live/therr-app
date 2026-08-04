@@ -846,7 +846,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Les mots de passe ne correspondent pas",
-        "passwordInsecure": "Le nouveau mot de passe ne respecte pas les exigences minimales de sécurité"
+        "passwordInsecure": "Le nouveau mot de passe ne respecte pas les exigences minimales de sécurité",
+        "userNameRequired": "Le nom d'utilisateur est obligatoire",
+        "firstNameRequired": "Le prénom est obligatoire",
+        "lastNameRequired": "Le nom de famille est obligatoire",
+        "oldPasswordRequired": "Entrez votre mot de passe actuel pour le modifier",
+        "newPasswordRequired": "Entrez un nouveau mot de passe, puis répétez-le ci-dessous"
       },
       "labels": {
         "accountTypeLabel": "Type de compte : ",
@@ -1776,12 +1781,18 @@
         "themeDark": "Sombre",
         "themeRetro": "Rétro",
         "enableRewards": "Participer?",
-        "isPublic": "Profil public?"
+        "isPublic": "Profil public?",
+        "contentAlgorithm": "Algorithme du fil",
+        "algorithmPulse": "Pouls",
+        "algorithmFocus": "Focus",
+        "algorithmPulseDescription": "Ce qui se passe maintenant : les publications les plus actives et récentes en tête.",
+        "algorithmFocusDescription": "Seulement ce que vous avez choisi. Un fil plus calme, limité à vos intérêts."
       },
       "alertTitles": {
         "accountUpdated": "Compte mis à jour",
         "backendErrorMessage": "Oups! Une erreur est survenue.",
-        "insecurePassword": "Mot de passe non sécurisé"
+        "insecurePassword": "Mot de passe non sécurisé",
+        "incompleteForm": "Vérifiez vos informations"
       },
       "alertMessages": {
         "accountUpdated": "Mis à jour avec succès."

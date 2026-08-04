@@ -131,6 +131,30 @@ const issueUserSession = async (req: any, res: any, {
         },
     });
 
+    /**
+     * Seed the user's content stream for the new session. Deferred via setImmediate so it
+     * never delays the login response, and ungated (unlike the notifications-poll caller) so a
+     * fresh session always re-seeds.
+     *
+     * `x-userid` is set explicitly rather than inherited from `req.headers`. Login is an
+     * unauthenticated route — the gateway's `authenticateOptional` leaves the header empty on a
+     * fresh sign-in, and `internalRestRequest` forwards it verbatim, so reactions-service's
+     * `createOrUpdateMultiThoughtReactions` rejected the whole batch with a 401 that
+     * `createReactions` caught and logged. The seed silently never happened. That header is
+     * also the identity the reaction rows are written under, and what the distributor resolves
+     * the user's content algorithm from, so it has to name the user who just authenticated.
+     *
+     * This runs here rather than at the lookup in `login` because that point precedes
+     * `validateCredentials`: seeding there fired on failed attempts and let anyone trigger a
+     * run for any account by submitting its email.
+     */
+    setImmediate(() => {
+        TherrEventEmitter.runThoughtDistributorAlgorithm({
+            ...req.headers,
+            'x-userid': userDetails.id,
+        }, [userDetails.id], 'createdAt', 10);
+    });
+
     // Fire and forget — first-login invite redemption. Marks every
     // matching pending invite accepted, rewards each inviter, and
     // guarantees a COMPLETE userConnection between inviter and this
@@ -265,17 +289,10 @@ const login: RequestHandler = (req: any, res: any) => {
     return getUsersPromise
         .then((userSearchResults) => {
             if (userSearchResults.length) {
-                /**
-                 * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
-                 * We will probably want to move this to a scheduler to run at a set interval.
-                 *
-                 * Uses createdAt to target recently created users
-                 * Deferred via setImmediate to avoid blocking login response
-                 */
-                setImmediate(() => {
-                    TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userSearchResults[0].id], 'createdAt', 10);
-                });
-
+                // NOTE: the thought distributor used to run here. This point is reached by a
+                // bare username/email/phone lookup, before `validateCredentials` — so it fired
+                // on failed attempts too, and anyone could trigger a seed for any account by
+                // submitting its email. It now runs in `issueUserSession`, past that gate.
                 if (req.body.isDashboard && !userSearchResults[0].isBusinessAccount) {
                     // TODO: Disallow login to dashboard for non-business users
                 }

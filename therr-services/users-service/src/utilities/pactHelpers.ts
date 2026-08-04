@@ -149,6 +149,57 @@ export const getPartnerUserId = (
     return null;
 };
 
+export interface IPactPartnerMember {
+    pactId: string;
+    userId: string;
+    status?: string;
+    shouldMuteNotifs?: boolean;
+    celebratePartnerCheckins?: boolean;
+}
+
+/**
+ * Everyone other than `userId` who should hear about their activity, across a
+ * set of pacts, deduplicated.
+ *
+ * `getPartnerUserId` only understands 1:1 pacts — a group pact leaves
+ * `partnerUserId` null and tracks everyone in pact_members — so membership is
+ * the source of truth here, with getPartnerUserId as the fallback for 1:1
+ * pacts that pre-date pact_members and have no member rows at all.
+ *
+ * `onlyCelebrating` applies each recipient's own per-pact notification
+ * preferences (`shouldMuteNotifs`, `celebratePartnerCheckins`). Pass it for
+ * pushes; leave it off for silent side effects like achievement credit, which
+ * a muted member should still receive.
+ */
+export const selectPactPartnerIds = (
+    pacts: { id: string; creatorUserId: string; partnerUserId: string | null }[],
+    membersByPactId: Record<string, IPactPartnerMember[]>,
+    userId: string,
+    { onlyCelebrating = false }: { onlyCelebrating?: boolean } = {},
+): string[] => {
+    const partnerIds = new Set<string>();
+
+    pacts.forEach((pact) => {
+        const members = membersByPactId[pact.id] || [];
+
+        if (!members.length) {
+            const legacyPartnerId = getPartnerUserId(userId, pact.creatorUserId, pact.partnerUserId);
+            if (legacyPartnerId) {
+                partnerIds.add(legacyPartnerId);
+            }
+            return;
+        }
+
+        members
+            .filter((member) => member.userId !== userId && member.status === 'active')
+            .filter((member) => !onlyCelebrating
+                || (!member.shouldMuteNotifs && member.celebratePartnerCheckins !== false))
+            .forEach((member) => partnerIds.add(member.userId));
+    });
+
+    return [...partnerIds];
+};
+
 /**
  * Check if user is the creator of the pact
  */

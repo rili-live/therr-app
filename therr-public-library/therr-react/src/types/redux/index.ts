@@ -46,6 +46,7 @@ import {
 } from './reactions';
 import {
     IMobileThemeName,
+    IContentAlgorithmName,
     IUser,
     ISocketDetails,
     IUserState,
@@ -113,6 +114,7 @@ export {
 
     // User
     IMobileThemeName,
+    IContentAlgorithmName,
     IUser,
     ISocketDetails,
     IUserState,
