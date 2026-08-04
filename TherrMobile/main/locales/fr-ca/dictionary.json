@@ -843,7 +843,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Les mots de passe ne correspondent pas",
-        "passwordInsecure": "Le nouveau mot de passe ne respecte pas les exigences minimales de sécurité"
+        "passwordInsecure": "Le nouveau mot de passe ne respecte pas les exigences minimales de sécurité",
+        "userNameRequired": "Le nom d'utilisateur est obligatoire",
+        "firstNameRequired": "Le prénom est obligatoire",
+        "lastNameRequired": "Le nom de famille est obligatoire",
+        "oldPasswordRequired": "Entrez votre mot de passe actuel pour le modifier",
+        "newPasswordRequired": "Entrez un nouveau mot de passe, puis répétez-le ci-dessous"
       },
       "labels": {
         "accountTypeLabel": "Type de compte : ",
@@ -1769,7 +1774,8 @@
       "alertTitles": {
         "accountUpdated": "Compte mis à jour",
         "backendErrorMessage": "Oups! Une erreur est survenue.",
-        "insecurePassword": "Mot de passe non sécurisé"
+        "insecurePassword": "Mot de passe non sécurisé",
+        "incompleteForm": "Vérifiez vos informations"
       },
       "alertMessages": {
         "accountUpdated": "Mis à jour avec succès."

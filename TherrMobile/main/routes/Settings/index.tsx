@@ -22,7 +22,7 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/settingsForm';
 import textStyles from '../../styles/text';
-import SquareInput from '../../components/Input/Square';
+import BaseInput from '../../components/Input';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import UserImage from '../../components/UserContent/UserImage';
@@ -55,8 +55,18 @@ interface ISettingsState {
     isOptedInToAds: boolean;
     isProfilePublic: boolean;
     isSubmitting: boolean;
-    passwordErrorMessage: string;
+    formErrors: IFormErrors;
 }
+
+type IFormErrors = { [fieldName: string]: string };
+
+/**
+ * Validated fields in the order they render. Drives which error the summary toast
+ * reports and which section the screen scrolls to, so the user is always sent to the
+ * topmost problem rather than an arbitrary key-order one.
+ */
+const VALIDATED_FIELDS = ['userName', 'firstName', 'lastName', 'oldPassword', 'password', 'repeatPassword'];
+const PASSWORD_FIELDS = ['oldPassword', 'password', 'repeatPassword'];
 
 const mapStateToProps = (state) => ({
     user: state.user,
@@ -71,6 +81,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     // Measured on layout rather than hardcoded: the sections above "User Profile" vary in
     // height by locale, theme, and which conditional links render for this account.
     private userSectionYOffset: number | null = null;
+    private passwordSectionYOffset: number | null = null;
     private isUserSectionScrollPending = false;
     private firstNameInputRef;
     private translate: Function;
@@ -100,7 +111,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             isOptedInToAds: props.user.settings.settingsPushBackground && props.user.settings.settingsPushMarketing,
             isProfilePublic: props.user.settings.settingsIsProfilePublic,
             isSubmitting: false,
-            passwordErrorMessage: '',
+            formErrors: {},
         };
 
         this.reloadTheme();
@@ -133,6 +144,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     onUserSectionLayout = (event) => {
         this.userSectionYOffset = event.nativeEvent.layout.y;
         this.scrollToUserSection();
+    };
+
+    onPasswordSectionLayout = (event) => {
+        this.passwordSectionYOffset = event.nativeEvent.layout.y;
     };
 
     /**
@@ -189,19 +204,68 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         navigation.push('MyQRCodes');
     };
 
-    isFormDisabled() {
-        const { inputs, isSubmitting } = this.state;
+    /**
+     * Field-level validation keyed by input name; empty means the form can be submitted.
+     *
+     * The submit button intentionally stays enabled when this is non-empty. Disabling it
+     * left accounts that are missing a name — a state this screen explicitly prompts users
+     * to fix, and the normal state for Apple SSO sign-ups — staring at a dead button with
+     * nothing on screen naming the blocking field. Validation now runs on press instead,
+     * where it can say what is wrong and scroll to it.
+     *
+     * Phone number is not required: Apple SSO accounts are not guaranteed to have one.
+     */
+    getFormErrors = (): IFormErrors => {
+        const { inputs } = this.state;
+        const errors: IFormErrors = {};
 
-        // Phone number is not required for Apple users (due to stupid Apple SSO rule)
-        // ...so we need to add more logic here
-        return (
-            (inputs.oldPassword && inputs.password !== inputs.repeatPassword) ||
-            !inputs.userName ||
-            !inputs.firstName ||
-            !inputs.lastName ||
-            isSubmitting
-        );
-    }
+        if (!inputs.userName) {
+            errors.userName = this.translate('forms.settings.errorMessages.userNameRequired');
+        }
+        if (!inputs.firstName) {
+            errors.firstName = this.translate('forms.settings.errorMessages.firstNameRequired');
+        }
+        if (!inputs.lastName) {
+            errors.lastName = this.translate('forms.settings.errorMessages.lastNameRequired');
+        }
+
+        // A password change is all-or-nothing. The API needs the current password to
+        // authorize the new one, so a half-filled trio previously passed validation and
+        // then got silently dropped by the `oldPassword && password === repeatPassword`
+        // guard below — the save reported success and the password never changed.
+        if (PASSWORD_FIELDS.some((field) => inputs[field])) {
+            if (!inputs.oldPassword) {
+                errors.oldPassword = this.translate('forms.settings.errorMessages.oldPasswordRequired');
+            }
+            if (!inputs.password) {
+                errors.password = this.translate('forms.settings.errorMessages.newPasswordRequired');
+            } else if (!PasswordRegex.test(inputs.password)) {
+                errors.password = this.translate('forms.settings.errorMessages.passwordInsecure');
+            }
+            if (inputs.password !== inputs.repeatPassword) {
+                errors.repeatPassword = this.translate('forms.settings.errorMessages.repeatPassword');
+            }
+        }
+
+        return errors;
+    };
+
+    /**
+     * Scrolls to whichever section owns the given field. Both offsets are measured on
+     * layout rather than hardcoded, for the same reason the user section already was:
+     * the sections above vary in height by locale, theme, and account type.
+     */
+    scrollToFieldSection = (fieldName: string) => {
+        const yOffset = PASSWORD_FIELDS.includes(fieldName)
+            ? this.passwordSectionYOffset
+            : this.userSectionYOffset;
+
+        if (yOffset == null) {
+            return;
+        }
+
+        this.scrollViewRef?.scrollTo({ x: 0, y: yOffset, animated: true });
+    };
 
     reloadTheme = () => {
         const themeName = this.props.user.settings?.mobileThemeName;
@@ -227,14 +291,25 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { selectedTheme, selectedLocale, selectedAlgorithm, isOptedInToAds, isProfilePublic } = this.state;
         const { user } = this.props;
 
-        if (password && !PasswordRegex.test(password)) {
+        if (this.state.isSubmitting) {
+            return;
+        }
+
+        const formErrors = this.getFormErrors();
+        const firstErrorField = VALIDATED_FIELDS.find((field) => formErrors[field]);
+
+        if (firstErrorField) {
+            // Three channels, because each covers a gap the others leave: inline messages
+            // mark every offending field, the toast surfaces the reason even when the
+            // field is off screen, and the scroll puts the first one in view.
+            this.setState({ formErrors });
             showToast.error({
-                text1: this.translate('pages.settings.alertTitles.insecurePassword'),
-                text2: this.translate(
-                    'forms.settings.errorMessages.passwordInsecure'
-                ),
+                text1: this.translate(firstErrorField === 'password' && password
+                    ? 'pages.settings.alertTitles.insecurePassword'
+                    : 'pages.settings.alertTitles.incompleteForm'),
+                text2: formErrors[firstErrorField],
             });
-            this.scrollViewRef?.scrollTo({ x: 0, y: 0, animated: true });
+            this.scrollToFieldSection(firstErrorField);
             return;
         }
 
@@ -268,16 +343,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             updateArgs.oldPassword = oldPassword;
         }
 
-        if (!this.isFormDisabled()) {
+        this.setState({
+            formErrors: {},
+            isSubmitting: true,
+        });
+        this.requestUserUpdate(user, updateArgs).finally(() => {
             this.setState({
-                isSubmitting: true,
+                isSubmitting: false,
             });
-            this.requestUserUpdate(user, updateArgs).finally(() => {
-                this.setState({
-                    isSubmitting: false,
-                });
-            });
-        }
+        });
     };
 
     requestUserUpdate = (user, updateArgs) => this.props
@@ -332,16 +406,24 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             ...newInputChanges,
         };
 
+        // Editing a field clears its own error: leaving a stale message under an input the
+        // user is actively fixing reads as though the fix did not take.
+        const formErrors = { ...this.state.formErrors };
+        delete formErrors[name];
+
+        // The confirmation mismatch is the exception that stays live rather than waiting
+        // for submit — it is the only error the user cannot see from a single field.
         const hasPasswordMismatch = (mergedInputs.password || mergedInputs.repeatPassword)
             && mergedInputs.password !== mergedInputs.repeatPassword;
-        const passwordErrorMessage = hasPasswordMismatch
-            ? this.translate('forms.settings.errorMessages.repeatPassword')
-            : '';
+        if (hasPasswordMismatch) {
+            formErrors.repeatPassword = this.translate('forms.settings.errorMessages.repeatPassword');
+        } else {
+            delete formErrors.repeatPassword;
+        }
 
         this.setState({
             inputs: mergedInputs,
-            isSubmitting: false,
-            passwordErrorMessage,
+            formErrors,
         });
     };
 
@@ -439,7 +521,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             selectedAlgorithm,
             isOptedInToAds,
             isProfilePublic,
-            passwordErrorMessage,
+            isSubmitting,
+            formErrors,
         } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
@@ -642,7 +725,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     themeForms={this.themeForms}
                                     userImageUri={userImageUri}
                                 />
-                                <SquareInput
+                                <BaseInput
+                                    variant="square"
                                     label={this.translate(
                                         'forms.settings.labels.userName'
                                     )}
@@ -651,6 +735,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('userName', text)
                                     }
+                                    errorMessage={formErrors.userName}
                                     rightIcon={
                                         <FontAwesomeIcon
                                             name="user"
@@ -660,7 +745,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
-                                <SquareInput
+                                <BaseInput
+                                    variant="square"
                                     inputRef={(component) => (this.firstNameInputRef = component)}
                                     label={this.translate(
                                         'forms.settings.labels.firstName'
@@ -670,6 +756,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('firstName', text)
                                     }
+                                    errorMessage={formErrors.firstName}
                                     rightIcon={
                                         <FontAwesomeIcon
                                             name="smile"
@@ -679,7 +766,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
-                                <SquareInput
+                                <BaseInput
+                                    variant="square"
                                     label={this.translate(
                                         'forms.settings.labels.lastName'
                                     )}
@@ -688,6 +776,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('lastName', text)
                                     }
+                                    errorMessage={formErrors.lastName}
                                     rightIcon={
                                         <FontAwesomeIcon
                                             name="smile-beam"
@@ -697,7 +786,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
-                                <SquareInput
+                                <BaseInput
+                                    variant="square"
                                     disabled
                                     label={this.translate(
                                         'forms.settings.labels.email'
@@ -717,7 +807,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     themeForms={this.themeForms}
                                 />
                                 {/* TODO: RMOBILE-26: Use react-native-phone-input */}
-                                <SquareInput
+                                <BaseInput
+                                    variant="square"
                                     disabled
                                     label={this.translate(
                                         'forms.settings.labels.phoneNumber'
@@ -736,7 +827,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
-                                <Text style={this.theme.styles.sectionTitle}>{this.translate('forms.settings.labels.bioHeader')}</Text>
+                                <Text style={[this.theme.styles.sectionTitle, spacingStyles.marginTopLg]}>
+                                    {this.translate('forms.settings.labels.bioHeader')}
+                                </Text>
                                 <RoundTextInput
                                     placeholder={this.translate(
                                         'forms.settings.labels.bio'
@@ -773,14 +866,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     </Text>
                                 </View>
                             )}
-                            <View style={this.theme.styles.sectionContainer}>
+                            <View style={this.theme.styles.sectionContainer} onLayout={this.onPasswordSectionLayout}>
                                 <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderPassword}
                                 </Text>
                             </View>
                             <View style={this.themeSettingsForm.styles.passwordContainer}>
                                 <PasswordRequirements translate={this.translate} password={inputs.password} themeForms={this.themeForms} />
-                                <SquareInput
+                                <BaseInput
+                                    variant="square"
                                     placeholder={this.translate(
                                         'forms.settings.labels.password'
                                     )}
@@ -790,6 +884,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('oldPassword', text)
                                     }
                                     secureTextEntry={true}
+                                    errorMessage={formErrors.oldPassword}
                                     rightIcon={
                                         <MaterialIcon
                                             name="vpn-key"
@@ -799,7 +894,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
-                                <SquareInput
+                                <BaseInput
+                                    variant="square"
                                     placeholder={this.translate(
                                         'forms.settings.labels.newPassword'
                                     )}
@@ -809,6 +905,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('password', text)
                                     }
                                     secureTextEntry={true}
+                                    errorMessage={formErrors.password}
                                     rightIcon={
                                         <MaterialIcon
                                             name="lock"
@@ -818,7 +915,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
-                                <SquareInput
+                                <BaseInput
+                                    variant="square"
                                     placeholder={this.translate(
                                         'forms.settings.labels.repeatPassword'
                                     )}
@@ -828,7 +926,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('repeatPassword', text)
                                     }
                                     secureTextEntry={true}
-                                    errorMessage={passwordErrorMessage}
+                                    errorMessage={formErrors.repeatPassword}
                                     rightIcon={
                                         <MaterialIcon
                                             name="lock"
@@ -864,7 +962,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             'forms.settings.buttons.submit'
                         )}
                         onPress={this.onSubmit}
-                        disabled={this.isFormDisabled()}
+                        disabled={isSubmitting}
+                        loading={isSubmitting}
                     />
                 </View>
                 <MainButtonMenu

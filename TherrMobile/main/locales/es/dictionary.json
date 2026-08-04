@@ -843,7 +843,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Las contraseñas no coinciden",
-        "passwordInsecure": "La nueva contraseña no cumple los requisitos mínimos de seguridad"
+        "passwordInsecure": "La nueva contraseña no cumple los requisitos mínimos de seguridad",
+        "userNameRequired": "El nombre de usuario es obligatorio",
+        "firstNameRequired": "El nombre es obligatorio",
+        "lastNameRequired": "El apellido es obligatorio",
+        "oldPasswordRequired": "Ingresa tu contraseña actual para cambiarla",
+        "newPasswordRequired": "Ingresa una nueva contraseña y repítela abajo"
       },
       "labels": {
         "accountTypeLabel": "Tipo de cuenta: ",
@@ -1769,7 +1774,8 @@
       "alertTitles": {
         "accountUpdated": "Cuenta actualizada",
         "backendErrorMessage": "¡Ups! Algo salió mal.",
-        "insecurePassword": "Contraseña insegura"
+        "insecurePassword": "Contraseña insegura",
+        "incompleteForm": "Revisa tus datos"
       },
       "alertMessages": {
         "accountUpdated": "Actualizado exitosamente."
