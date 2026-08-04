@@ -10,19 +10,28 @@ import notifee, {
     TriggerType,
 } from '@notifee/react-native';
 import { AndroidChannelIds, getAndroidChannel } from '../constants';
+import { BRAND_BLUE_GREEN } from '../styles/themes/brandConstants';
 
+// Android locks a channel's importance at creation time — later createChannel calls
+// with a different importance are ignored for the life of the install. So whichever
+// code path happened to post first used to decide, permanently, whether e.g. the
+// "Habit Reminders" channel could show a heads-up banner: the foreground path forced
+// DEFAULT, the background path forced HIGH. Importance now comes from the channel's
+// own definition in ../constants unless a caller deliberately overrides it, which
+// makes AndroidChannels the single source of truth and the outcome order-independent.
 const sendForegroundNotification = (
     notification: Notification,
     androidChannel?: AndroidChannel,
-    importance: AndroidImportance = AndroidImportance.DEFAULT,
+    importance?: AndroidImportance,
     shouldRequestPermission = true,
 ) => {
+    const channel = androidChannel || getAndroidChannel(AndroidChannelIds.default, false);
     const permissionPromise = shouldRequestPermission ? notifee.requestPermission() : Promise.resolve();
     // Request permissions (required for iOS)
     return permissionPromise
         .then(() => notifee.createChannel({
-            ...(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)),
-            importance,
+            ...channel,
+            importance: importance ?? channel.importance ?? AndroidImportance.DEFAULT,
         }))
         .then((channelId: string) => {
             return notifee.displayNotification({
@@ -32,7 +41,7 @@ const sendForegroundNotification = (
                     actions: notification.android?.actions || undefined,
                     channelId,
                     smallIcon: notification.android?.smallIcon || 'ic_notification_icon', // optional, defaults to 'ic_launcher'.
-                    color: '#0f7b82',
+                    color: BRAND_BLUE_GREEN,
                     // pressAction is needed if you want the notification to open the app when pressed
                     pressAction: notification.android?.pressAction || {
                         id: PushNotifications.PressActionIds.default,
@@ -49,8 +58,10 @@ const sendForegroundNotification = (
  * Sends a Notifee push notification when a data-only Firebase notification is received in the background
  */
 const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
-    // Request permissions (required for iOS)
-    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH, true);
+    // Importance intentionally omitted — see sendForegroundNotification. The channel
+    // picked by getAndroidChannelFromClickActionId already encodes how loud this
+    // notification should be.
+    return sendForegroundNotification(notification, androidChannel, undefined, true);
 };
 
 const sendTriggerNotification = async (
@@ -83,7 +94,7 @@ const sendTriggerNotification = async (
                     actions: notification.android?.actions || undefined,
                     channelId,
                     smallIcon: notification.android?.smallIcon || 'ic_notification_icon', // optional, defaults to 'ic_launcher'.
-                    color: '#0f7b82',
+                    color: BRAND_BLUE_GREEN,
                     // pressAction is needed if you want the notification to open the app when pressed
                     pressAction: notification.android?.pressAction || {
                         id: PushNotifications.PressActionIds.default,

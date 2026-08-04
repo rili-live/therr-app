@@ -103,10 +103,26 @@ android {
             'com.therr.habits': ['habits.therr.com', 'www.habits.therr.com'],
         ]
         def appLinkHosts = appLinkHostsByAppId.getOrDefault(applicationId, ['therr.com', 'www.therr.com'])
+
+        // Prefix for the push-notification click-action intent filters in
+        // AndroidManifest.xml. MUST stay byte-identical to the corresponding enum in
+        // therr-public-library/therr-js-utilities/src/constants/enums/PushNotifications.ts
+        // (`AndroidIntentActions`) — the backend stamps those exact strings onto FCM
+        // display notifications as `android.notification.clickAction`, and an action with
+        // no matching intent-filter makes the notification tap a silent no-op.
+        //
+        // Note this is deliberately NOT derived from applicationId: Habits ships as
+        // `com.therr.habits` but its published intent actions are `com.therr.mobile.habits.*`.
+        def notificationActionPrefixByAppId = [
+            'com.therr.habits': 'com.therr.mobile.habits',
+            'com.therr.mobile.Teem': 'com.therr.mobile',
+        ]
         manifestPlaceholders = [
             GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}",
             appLinkHost: appLinkHosts[0],
             appLinkHostWww: appLinkHosts[1],
+            notificationActionPrefix: notificationActionPrefixByAppId
+                .getOrDefault(applicationId, 'app.therrmobile'),
         ]
         vectorDrawables.useSupportLibrary = true
     }

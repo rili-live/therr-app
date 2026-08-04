@@ -131,10 +131,31 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'NEW_LIKE_RECEIVED',
     'NEW_SUPER_LIKE_RECEIVED',
     'NEW_THOUGHT_REPLY_RECEIVED',
+    // HABITS — time-sensitive nudges. These are the retention loop; on the
+    // DEFAULT-importance channel they post silently with no heads-up banner,
+    // which is indistinguishable from "push isn't working" to a user.
+    'STREAK_AT_RISK',
+    'PACT_INVITATION',
+    'PACT_NUDGE',
+    'PACT_EXPIRING',
 ]);
 
 const REWARD_ACTION_KEYS = new Set<string>([
     'NUDGE_SPACE_ENGAGEMENT',
+    // HABITS — "Streak Updates" channel. Celebratory milestones.
+    'STREAK_MILESTONE',
+    'NEW_PERSONAL_RECORD',
+    'LEADERBOARD_RANK_MILESTONE',
+]);
+
+// HABITS — "Friend Activity" channel. Partner/pact state changes: worth
+// surfacing, but not urgent enough for a HIGH-importance heads-up.
+const CONTENT_DISCOVERY_ACTION_KEYS = new Set<string>([
+    'PARTNER_CHECKED_IN',
+    'PARTNER_MISSED_DAY',
+    'PARTNER_CELEBRATED',
+    'PACT_ACCEPTED',
+    'PACT_COMPLETED',
 ]);
 
 const getIntentActionKey = (clickActionId: string): string => {
@@ -152,6 +173,10 @@ const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChann
 
     if (REWARD_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.rewardUpdates);
+    }
+
+    if (CONTENT_DISCOVERY_ACTION_KEYS.has(key)) {
+        return getAndroidChannel(AndroidChannelIds.contentDiscovery);
     }
 
     return getAndroidChannel(AndroidChannelIds.default);
