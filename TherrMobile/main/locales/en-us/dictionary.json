@@ -1760,7 +1760,7 @@
         "themeRetro": "Retro",
         "enableRewards": "Opt-In?",
         "isPublic": "Public Profile?",
-        "contentAlgorithm": "Feed algorithm",
+        "contentAlgorithm": "Content algorithm",
         "algorithmPulse": "Pulse",
         "algorithmFocus": "Focus",
         "algorithmPulseDescription": "What's happening right now — the most active and recent posts lead.",

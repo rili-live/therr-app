@@ -661,6 +661,153 @@ describe('Settings', () => {
         });
     });
 
+    describe('Scroll To User Profile Section', () => {
+        const layoutEvent = { nativeEvent: { layout: { y: 1234 } } };
+
+        const renderWithScrollSpy = (props: any) => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
+            const scrollTo = jest.fn();
+            // The KeyboardAwareScrollView is mocked as a plain View, so the real ref
+            // has no scrollTo to spy on.
+            (instance as any).scrollViewRef = { scrollTo };
+
+            return { instance, scrollTo };
+        };
+
+        it('should scroll to the measured user section when navigated with the param', () => {
+            const { instance, scrollTo } = renderWithScrollSpy({
+                ...defaultProps,
+                navigation: { ...defaultProps.navigation, setParams: jest.fn() },
+                route: { params: { scrollToSection: 'userProfile' } },
+            });
+
+            act(() => { instance.onUserSectionLayout(layoutEvent); });
+
+            expect(scrollTo).toHaveBeenCalledWith({ x: 0, y: 1234, animated: true });
+        });
+
+        it('should not scroll when navigated without the param', () => {
+            const { instance, scrollTo } = renderWithScrollSpy({
+                ...defaultProps,
+                navigation: { ...defaultProps.navigation, setParams: jest.fn() },
+                route: { params: {} },
+            });
+
+            act(() => { instance.onUserSectionLayout(layoutEvent); });
+
+            expect(scrollTo).not.toHaveBeenCalled();
+        });
+
+        it('should not re-scroll on subsequent layout passes', () => {
+            const { instance, scrollTo } = renderWithScrollSpy({
+                ...defaultProps,
+                navigation: { ...defaultProps.navigation, setParams: jest.fn() },
+                route: { params: { scrollToSection: 'userProfile' } },
+            });
+
+            act(() => { instance.onUserSectionLayout(layoutEvent); });
+            act(() => { instance.onUserSectionLayout({ nativeEvent: { layout: { y: 1300 } } }); });
+
+            expect(scrollTo).toHaveBeenCalledTimes(1);
+        });
+
+        it('should scroll when the param arrives after mount and the section is already measured', () => {
+            const mockSetParams = jest.fn();
+            const props = {
+                ...defaultProps,
+                navigation: { ...defaultProps.navigation, setParams: mockSetParams },
+                route: { params: {} },
+            };
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
+            const scrollTo = jest.fn();
+            (instance as any).scrollViewRef = { scrollTo };
+
+            act(() => { instance.onUserSectionLayout(layoutEvent); });
+            expect(scrollTo).not.toHaveBeenCalled();
+
+            act(() => {
+                component.update(
+                    <Settings {...props} route={{ params: { scrollToSection: 'userProfile' } }} />
+                );
+            });
+
+            expect(scrollTo).toHaveBeenCalledWith({ x: 0, y: 1234, animated: true });
+            expect(mockSetParams).toHaveBeenCalledWith({ scrollToSection: undefined });
+        });
+    });
+
+    describe('Add Your Name Prompt', () => {
+        const userWithoutName = {
+            ...mockUser,
+            details: { ...mockUser.details, firstName: '' },
+        };
+
+        it('should focus the first name input instead of navigating to ManageAccount', () => {
+            const mockPush = jest.fn();
+            const props = {
+                ...defaultProps,
+                user: userWithoutName,
+                navigation: { ...defaultProps.navigation, push: mockPush },
+            };
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
+            const focus = jest.fn();
+            (instance as any).firstNameInputRef = { focus };
+
+            // Matches both the composite Text and its host element.
+            const prompts = component!.root.findAll(
+                (node) => node.props?.onPress === instance.focusFirstNameInput
+            );
+            expect(prompts.length).toBeGreaterThan(0);
+
+            act(() => { prompts[0].props.onPress(); });
+
+            expect(focus).toHaveBeenCalled();
+            // ManageAccount only offers account deletion — it is the wrong destination here.
+            expect(mockPush).not.toHaveBeenCalledWith('ManageAccount');
+        });
+
+        it('should wire an inputRef to the first name input', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} user={userWithoutName} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            const refInputs = component!.root.findAll((node) => typeof node.props?.inputRef === 'function');
+            expect(refInputs.length).toBeGreaterThan(0);
+
+            act(() => { refInputs[0].props.inputRef({ focus: jest.fn() }); });
+
+            expect((instance as any).firstNameInputRef).toBeDefined();
+        });
+
+        it('should not render the prompt when the user already has a name', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            const prompts = component!.root.findAll(
+                (node) => node.props?.onPress === instance.focusFirstNameInput
+            );
+
+            expect(prompts).toHaveLength(0);
+        });
+    });
+
     describe('Content Settings', () => {
         it('should update shouldHideMatureContent setting', () => {
             let component: renderer.ReactTestRenderer;

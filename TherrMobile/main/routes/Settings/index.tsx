@@ -42,6 +42,7 @@ interface IStoreProps extends ISettingsDispatchProps {
 // Regular component props
 export interface ISettingsProps extends IStoreProps {
     navigation: any;
+    route: any;
 }
 
 interface ISettingsState {
@@ -67,6 +68,11 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 
 export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     private scrollViewRef;
+    // Measured on layout rather than hardcoded: the sections above "User Profile" vary in
+    // height by locale, theme, and which conditional links render for this account.
+    private userSectionYOffset: number | null = null;
+    private isUserSectionScrollPending = false;
+    private firstNameInputRef;
     private translate: Function;
     private theme = buildStyles();
     private themeMenu = buildMenuStyles();
@@ -106,12 +112,57 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         this.props.navigation.setOptions({
             title: this.translate('pages.settings.headerTitle'),
         });
+
+        if (this.props.route?.params?.scrollToSection === 'userProfile') {
+            this.isUserSectionScrollPending = true;
+            this.scrollToUserSection();
+        }
+    };
+
+    componentDidUpdate = (prevProps: ISettingsProps) => {
+        // Navigating here from a screen already below Settings in the stack re-uses this
+        // instance, so the request arrives as a param change rather than a mount.
+        const { params } = this.props.route || {};
+
+        if (params !== prevProps.route?.params && params?.scrollToSection === 'userProfile') {
+            this.isUserSectionScrollPending = true;
+            this.scrollToUserSection();
+        }
+    };
+
+    onUserSectionLayout = (event) => {
+        this.userSectionYOffset = event.nativeEvent.layout.y;
+        this.scrollToUserSection();
+    };
+
+    /**
+     * Scrolls to the "User Profile" section once both the request and the measurement exist.
+     * Either can land first: the section may lay out before the param arrives on a re-navigate,
+     * and on mount the param is known before anything has been measured.
+     */
+    scrollToUserSection = () => {
+        if (!this.isUserSectionScrollPending || this.userSectionYOffset == null) {
+            return;
+        }
+
+        this.isUserSectionScrollPending = false;
+        this.props.navigation.setParams({ scrollToSection: undefined });
+        this.scrollViewRef?.scrollTo({ x: 0, y: this.userSectionYOffset, animated: true });
     };
 
     goToManageAccount = () => {
         const { navigation } = this.props;
 
         navigation.push('ManageAccount');
+    };
+
+    /**
+     * The "add your name" prompt renders directly above the name fields on this screen,
+     * so it focuses them rather than navigating anywhere. KeyboardAwareScrollView
+     * scrolls the focused input clear of the keyboard on its own.
+     */
+    focusFirstNameInput = () => {
+        this.firstNameInputRef?.focus();
     };
 
     goToManageSpaces = () => {
@@ -504,32 +555,29 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
-                                    {pageHeaderNotificationSettings}
-                                </Text>
-                            </View>
-                            <View style={this.themeSettingsForm.styles.advancedContainer}>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    <Text
-                                        style={this.themeForms.styles.buttonLink}
-                                        onPress={this.goToManageNotifications}>{this.translate('forms.settings.buttons.manageNotifications')}</Text>
-                                </Text>
-                            </View>
-                            <View style={this.themeSettingsForm.styles.advancedContainer}>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    <Text
-                                        style={this.themeForms.styles.buttonLink}
-                                        onPress={this.goToMyQRCodes}>{this.translate('forms.settings.buttons.myQRCodes')}</Text>
-                                </Text>
-                            </View>
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderContentSettings}
                                 </Text>
                             </View>
                             <View style={this.themeSettingsForm.styles.settingsContainer}>
+                                <SegmentedButtons
+                                    value={selectedAlgorithm}
+                                    onValueChange={this.onAlgorithmChange}
+                                    buttons={[
+                                        { value: 'pulse', label: this.translate('pages.settings.labels.algorithmPulse'), icon: 'pulse' },
+                                        { value: 'focus', label: this.translate('pages.settings.labels.algorithmFocus'), icon: 'target' },
+                                    ]}
+                                />
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    {this.translate('pages.settings.labels.contentAlgorithm')}: {this.translate(
+                                        selectedAlgorithm === 'focus'
+                                            ? 'pages.settings.labels.algorithmFocusDescription'
+                                            : 'pages.settings.labels.algorithmPulseDescription'
+                                    )}
+                                </Text>
                                 <Text style={[
                                     this.theme.styles.sectionDescription,
                                     spacingStyles.marginBotXl,
+                                    spacingStyles.marginTopLg,
                                 ]}>
                                     <Text
                                         style={this.themeForms.styles.buttonLink}
@@ -549,26 +597,27 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         'forms.settings.labels.showReportedContent'
                                     )} value={'false'} />
                                 </ReactPicker>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    {this.translate('pages.settings.labels.contentAlgorithm')}
-                                </Text>
-                                <SegmentedButtons
-                                    value={selectedAlgorithm}
-                                    onValueChange={this.onAlgorithmChange}
-                                    buttons={[
-                                        { value: 'pulse', label: this.translate('pages.settings.labels.algorithmPulse'), icon: 'pulse' },
-                                        { value: 'focus', label: this.translate('pages.settings.labels.algorithmFocus'), icon: 'target' },
-                                    ]}
-                                />
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    {this.translate(
-                                        selectedAlgorithm === 'focus'
-                                            ? 'pages.settings.labels.algorithmFocusDescription'
-                                            : 'pages.settings.labels.algorithmPulseDescription'
-                                    )}
-                                </Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderNotificationSettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToManageNotifications}>{this.translate('forms.settings.buttons.manageNotifications')}</Text>
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToMyQRCodes}>{this.translate('forms.settings.buttons.myQRCodes')}</Text>
+                                </Text>
+                            </View>
+                            <View style={this.theme.styles.sectionContainer} onLayout={this.onUserSectionLayout}>
                                 <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderUser}
                                 </Text>
@@ -578,7 +627,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     <Text style={[this.theme.styles.sectionDescription, { color: this.theme.colors.primary3 }]}>
                                         <Text
                                             style={this.themeForms.styles.buttonLink}
-                                            onPress={this.goToManageAccount}
+                                            onPress={this.focusFirstNameInput}
                                         >
                                             {this.translate('forms.settings.labels.addYourNamePrompt')}
                                         </Text>
@@ -612,6 +661,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     themeForms={this.themeForms}
                                 />
                                 <SquareInput
+                                    inputRef={(component) => (this.firstNameInputRef = component)}
                                     label={this.translate(
                                         'forms.settings.labels.firstName'
                                     )}
@@ -794,6 +844,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     title={this.translate(
                                         'forms.loginForm.buttons.forgotPassword'
                                     )}
+                                    containerStyle={[
+                                        spacingStyles.marginTopSm,
+                                        spacingStyles.marginBotSm,
+                                    ]}
                                     onPress={() => navigation.navigate('ForgotPassword')}
                                 />
                             </View>
