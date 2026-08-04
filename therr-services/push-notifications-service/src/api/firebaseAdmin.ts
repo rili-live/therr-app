@@ -670,6 +670,7 @@ const createMessage = (
             return createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
                 channelId: AndroidChannelId.contentDiscovery,
@@ -678,6 +679,7 @@ const createMessage = (
             return createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
+                brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueSpace.title'),
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueSpace.body'),
                 channelId: AndroidChannelId.contentDiscovery,
@@ -746,7 +748,7 @@ const createMessage = (
                     notificationPressActionId: PushNotifications.PressActionIds.leaderboardView,
                 },
                 deviceToken: config.deviceToken,
-            }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'));
+            }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.streakMilestone:
             baseMessage = createDataOnlyMessage({
