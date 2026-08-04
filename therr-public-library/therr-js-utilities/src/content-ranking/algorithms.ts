@@ -83,3 +83,23 @@ export const normalizeContentAlgorithm = (value: any): ContentAlgorithms => (isC
     : DEFAULT_CONTENT_ALGORITHM);
 
 export const CONTENT_ALGORITHM_VALUES: ContentAlgorithms[] = Object.values(ContentAlgorithms);
+
+/**
+ * The algorithms a user may actually choose today.
+ *
+ * WANDER is defined and fully implemented but deliberately unreleased: it is geo-dominant and
+ * `main.thoughts` carries no coordinates, so on the only surface that is currently
+ * profile-aware its geo term contributes exactly 0 and it degenerates into a weak
+ * low-engagement recency feed. It becomes selectable when the maps-service surfaces are
+ * profile-aware too.
+ *
+ * The API gateway validates against THIS list rather than the full enum, so a client cannot
+ * put itself onto an unreleased profile.
+ */
+export const SELECTABLE_CONTENT_ALGORITHMS: ContentAlgorithms[] = [
+    ContentAlgorithms.PULSE,
+    ContentAlgorithms.FOCUS,
+];
+
+export const isSelectableContentAlgorithm = (value: any): value is ContentAlgorithms => typeof value === 'string'
+    && (SELECTABLE_CONTENT_ALGORITHMS as string[]).includes(value);

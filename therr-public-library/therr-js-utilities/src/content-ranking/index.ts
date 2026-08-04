@@ -2,7 +2,9 @@ export {
     ContentAlgorithms,
     CONTENT_ALGORITHM_VALUES,
     DEFAULT_CONTENT_ALGORITHM,
+    SELECTABLE_CONTENT_ALGORITHMS,
     isContentAlgorithm,
+    isSelectableContentAlgorithm,
     normalizeContentAlgorithm,
 } from './algorithms';
 export type { IAlgorithmProfile, IAlgorithmWeights } from './algorithms';

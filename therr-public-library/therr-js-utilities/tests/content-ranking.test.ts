@@ -14,6 +14,7 @@ import {
     CONTENT_ALGORITHM_VALUES,
     ContentAlgorithms,
     DEFAULT_CONTENT_ALGORITHM,
+    SELECTABLE_CONTENT_ALGORITHMS,
     applyAuthorDiversity,
     getAlgorithmProfile,
     getAllAlgorithmProfiles,
@@ -21,6 +22,7 @@ import {
     getHotnessTerm,
     getScoreSqlExpression,
     isContentAlgorithm,
+    isSelectableContentAlgorithm,
     normalizeContentAlgorithm,
     numberFromEnv,
     rankByScore,
@@ -89,6 +91,30 @@ describe('content-ranking', () => {
             expect(isContentAlgorithm('wander')).to.equal(true);
             expect(isContentAlgorithm('Wander')).to.equal(false);
             expect(isContentAlgorithm(undefined)).to.equal(false);
+        });
+
+        it('offers only PULSE and FOCUS for selection — WANDER is implemented but unreleased', () => {
+            // WANDER is geo-dominant and main.thoughts has no coordinates, so on the only
+            // profile-aware surface today it would degenerate into a weak recency feed.
+            expect(SELECTABLE_CONTENT_ALGORITHMS).to.have.members([
+                ContentAlgorithms.PULSE,
+                ContentAlgorithms.FOCUS,
+            ]);
+            expect(SELECTABLE_CONTENT_ALGORITHMS).to.not.include(ContentAlgorithms.WANDER);
+        });
+
+        it('rejects an unreleased algorithm at the selection boundary but still resolves it internally', () => {
+            // The gateway validates against isSelectable; normalize must stay permissive so a
+            // row that already holds 'wander' resolves to a usable profile instead of throwing.
+            expect(isSelectableContentAlgorithm(ContentAlgorithms.WANDER)).to.equal(false);
+            expect(isSelectableContentAlgorithm(ContentAlgorithms.FOCUS)).to.equal(true);
+            expect(isSelectableContentAlgorithm('typo')).to.equal(false);
+            expect(normalizeContentAlgorithm(ContentAlgorithms.WANDER)).to.equal(ContentAlgorithms.WANDER);
+            expect(getAlgorithmProfile(ContentAlgorithms.WANDER).key).to.equal(ContentAlgorithms.WANDER);
+        });
+
+        it('keeps the default selectable, so the default can never be an unpickable state', () => {
+            expect(SELECTABLE_CONTENT_ALGORITHMS).to.include(DEFAULT_CONTENT_ALGORITHM);
         });
     });
 
