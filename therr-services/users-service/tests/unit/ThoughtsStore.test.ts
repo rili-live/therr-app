@@ -2,6 +2,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { BrandVariations } from 'therr-js-utilities/constants';
+import { ContentAlgorithms, getAlgorithmProfile } from 'therr-js-utilities/content-ranking';
 import ThoughtsStore from '../../src/store/ThoughtsStore';
 
 const buildMockConnection = () => {
@@ -270,6 +271,69 @@ describe('ThoughtsStore brand filtering', () => {
             // POWER() must never see a negative base.
             expect(sql).to.include('POWER(GREATEST(');
             expect(sql).to.not.include('POWER((EXTRACT');
+        });
+
+        // Every assertion above calls getRecentThoughts with no profile, so they all describe
+        // the PULSE default — that is deliberate. PULSE reproduces the pre-abstraction ranker
+        // exactly, so those tests double as the regression that introducing selectable
+        // algorithms did not move anybody's feed.
+        describe('algorithm profiles', () => {
+            it('leaves the default (PULSE) query byte-identical to an explicit PULSE profile', () => {
+                const withDefault = buildMockConnection();
+                new ThoughtsStore(withDefault.connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, ['interests.hiking']);
+
+                const withPulse = buildMockConnection();
+                new ThoughtsStore(withPulse.connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, ['interests.hiking'], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE));
+
+                expect(withPulse.readStub.args[0][0]).to.equal(withDefault.readStub.args[0][0]);
+            });
+
+            it('widens the candidate pool under FOCUS', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.FOCUS));
+
+                const sql = readStub.args[0][0] as string;
+                expect(sql).to.include('limit 300');
+                expect(sql).to.not.include('limit 200');
+            });
+
+            it('caps candidates per author under FOCUS, ranked by score so authors keep their best', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.FOCUS));
+
+                const sql = readStub.args[0][0] as string;
+                expect(sql).to.include('ROW_NUMBER() OVER (PARTITION BY "fromUserId" ORDER BY');
+                expect(sql).to.include('"authorRank" <= 2');
+                // fromUserId has to reach the window function through the candidate subquery.
+                expect(sql).to.include('"fromUserId"');
+            });
+
+            it('emits no author-diversity layer at all under PULSE (uncapped, as production was)', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE));
+
+                const sql = readStub.args[0][0] as string;
+                expect(sql).to.not.include('ROW_NUMBER()');
+                expect(sql).to.not.include('authorRank');
+            });
+
+            it('keeps the clamp and the score/order agreement under FOCUS too', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.FOCUS));
+
+                const sql = readStub.args[0][0] as string;
+                expect(sql).to.include('POWER(GREATEST(');
+                expect(sql).to.not.include('POWER((EXTRACT');
+                // FOCUS dampens engagement to 0.2 and softens gravity to 1.2.
+                expect(sql).to.include('(0.2 * "replyCount")');
+                expect(sql).to.include(', 1.2)');
+            });
         });
     });
 

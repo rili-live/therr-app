@@ -843,7 +843,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Las contraseñas no coinciden",
-        "passwordInsecure": "La nueva contraseña no cumple los requisitos mínimos de seguridad"
+        "passwordInsecure": "La nueva contraseña no cumple los requisitos mínimos de seguridad",
+        "userNameRequired": "El nombre de usuario es obligatorio",
+        "firstNameRequired": "El nombre es obligatorio",
+        "lastNameRequired": "El apellido es obligatorio",
+        "oldPasswordRequired": "Ingresa tu contraseña actual para cambiarla",
+        "newPasswordRequired": "Ingresa una nueva contraseña y repítela abajo"
       },
       "labels": {
         "accountTypeLabel": "Tipo de cuenta: ",
@@ -1759,12 +1764,18 @@
         "themeDark": "Oscuro",
         "themeRetro": "Retro",
         "enableRewards": "¿Participar?",
-        "isPublic": "¿Perfil público?"
+        "isPublic": "¿Perfil público?",
+        "contentAlgorithm": "Algoritmo del muro",
+        "algorithmPulse": "Pulso",
+        "algorithmFocus": "Enfoque",
+        "algorithmPulseDescription": "Lo que está pasando ahora: las publicaciones más activas y recientes van primero.",
+        "algorithmFocusDescription": "Solo lo que elegiste. Un muro más tranquilo, limitado a tus intereses."
       },
       "alertTitles": {
         "accountUpdated": "Cuenta actualizada",
         "backendErrorMessage": "¡Ups! Algo salió mal.",
-        "insecurePassword": "Contraseña insegura"
+        "insecurePassword": "Contraseña insegura",
+        "incompleteForm": "Revisa tus datos"
       },
       "alertMessages": {
         "accountUpdated": "Actualizado exitosamente."

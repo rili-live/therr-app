@@ -93,6 +93,26 @@ describe('UsersActions.update — Redux settings dispatch scoping', () => {
         expect(updateDispatch[0].data.settings.mobileThemeName).toBe('dark');
     });
 
+    // The content algorithm is the first setting whose value drives server-side SQL ordering
+    // rather than client rendering, so it has to survive the round trip into redux — the
+    // Settings screen seeds its picker from this slice on next mount. It keeps its DB column
+    // name through to redux (unlike settingsThemeName -> mobileThemeName); the `settings`
+    // prefix is what makes the dispatch guard below fire at all.
+    it('dispatches settings when the request includes a settingsContentAlgorithm change', async () => {
+        (UsersService.update as jest.Mock).mockResolvedValue({
+            data: { ...serverUser, settingsContentAlgorithm: 'focus' },
+        });
+        const dispatch = jest.fn();
+        const actions = createActions();
+        await actions.update('u1', { settingsContentAlgorithm: 'focus' })(dispatch);
+
+        const updateDispatch = dispatch.mock.calls.find(
+            ([action]) => action?.type === SocketClientActionTypes.UPDATE_USER,
+        );
+        expect(updateDispatch[0].data.settings).toBeDefined();
+        expect(updateDispatch[0].data.settings.settingsContentAlgorithm).toBe('focus');
+    });
+
     it('dispatches settings when the request includes any settingsEmail* change', async () => {
         const dispatch = jest.fn();
         const actions = createActions();

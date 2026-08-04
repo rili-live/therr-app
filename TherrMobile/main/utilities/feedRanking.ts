@@ -6,15 +6,26 @@
  * boost for categories the user has previously liked/bookmarked. Runs on at most a
  * few hundred cached posts per refresh, so it stays cheap enough to compute in render.
  *
- * Server-side, the analogous ranking happens in users-service
- * ThoughtsStore.getRecentThoughts (stream activation candidates). Keep the two
- * philosophically aligned: engagement dampened by age.
+ * The curve itself now comes from the user's selected content algorithm
+ * (`settingsContentAlgorithm`) via therr-js-utilities `content-ranking`, which is the same
+ * module users-service ThoughtsStore.getRecentThoughts ranks stream activation with. Before
+ * this, the carousels applied their own fixed gravity regardless of the setting, so picking
+ * Focus visibly changed which posts got activated but not how the list the user actually
+ * scrolls was ordered. See docs/ALGORITHM_AUDIT.md.
+ *
+ * What stays local is what the server has no data for: this file decides what counts as
+ * engagement (likes/replies/views, log-dampened) and derives an interest signal from the
+ * user's own reactions in the cached page. The profile decides how those are weighed.
  */
+import {
+    IAlgorithmProfile,
+    IScoreComponents,
+    applyAuthorDiversity as capPerAuthor,
+    getAlgorithmProfile,
+    rankByScore,
+    scoreContent,
+} from 'therr-js-utilities/content-ranking';
 
-// How quickly older content loses rank; higher = fresher feed
-const RECENCY_GRAVITY = 1.1;
-// Multiplier for posts in categories the user has engaged with
-const CATEGORY_AFFINITY_BOOST = 1.25;
 const MS_PER_HOUR = 1000 * 60 * 60;
 
 interface IRankablePost {
@@ -39,6 +50,14 @@ interface IRankablePost {
 interface IRankingContext {
     nowMs: number;
     categoryAffinity: { [category: string]: number };
+    profile: IAlgorithmProfile;
+    /**
+     * The largest affinity count in `categoryAffinity`, used to normalize the interest term
+     * to 0..1. Without it the term would be a raw engagement tally, which under FOCUS (whose
+     * interest weight is 1.0 against a hotness weight of 0.3) would let a single heavily-liked
+     * category outrank everything else by an arbitrary factor.
+     */
+    maxCategoryAffinity: number;
 }
 
 const getPostCategory = (post: IRankablePost): string => post.category || 'uncategorized';
@@ -68,19 +87,35 @@ export const buildCategoryAffinityMap = (posts: IRankablePost[]): { [category: s
     return affinityMap;
 };
 
-export const getPostRankingScore = (post: IRankablePost, context: IRankingContext): number => {
-    const createdAtMs = new Date(post.createdAt).getTime();
-    const ageHours = Math.max((context.nowMs - createdAtMs) / MS_PER_HOUR, 0);
-    const recency = 1 / Math.pow(ageHours + 2, RECENCY_GRAVITY);
-    const engagement = Math.log1p(
-        (post.likeCount || 0) * 3
-        + getReplyCount(post) * 2
-        + (post.viewCount || 0) * 0.25,
-    );
-    const affinityBoost = context.categoryAffinity[getPostCategory(post)] ? CATEGORY_AFFINITY_BOOST : 1;
+/**
+ * Maps a post onto the signals the shared profile knows how to weigh. This is the whole of
+ * mobile's local ranking opinion; everything past it belongs to the selected algorithm.
+ */
+const toScoreComponents = (post: IRankablePost, context: IRankingContext): IScoreComponents => {
+    const affinity = context.categoryAffinity[getPostCategory(post)] || 0;
 
-    return recency * (1 + engagement) * affinityBoost;
+    return {
+        ageHours: Math.max((context.nowMs - new Date(post.createdAt).getTime()) / MS_PER_HOUR, 0),
+        // Log-dampened so one viral post cannot bury a whole page of fresher content. This is
+        // what the carousels have always used, and it is deliberately kept on the mobile side:
+        // the shared profile weighs an engagement count, it does not define what to count.
+        engagementCount: Math.log1p(
+            (post.likeCount || 0) * 3
+            + getReplyCount(post) * 2
+            + (post.viewCount || 0) * 0.25,
+        ),
+        // Normalized 0..1 rather than a raw count — see maxCategoryAffinity.
+        interestOverlap: context.maxCategoryAffinity > 0 ? affinity / context.maxCategoryAffinity : 0,
+        // No coordinates on a cached carousel page, so distanceMeters is left absent and the
+        // geo term contributes 0 rather than reading as "infinitely close".
+        isInterestMatch: affinity > 0,
+    };
 };
+
+export const getPostRankingScore = (post: IRankablePost, context: IRankingContext): number => scoreContent(
+    toScoreComponents(post, context),
+    context.profile,
+);
 
 /**
  * Prevents a wall of posts from one author: when a post would be the 3rd
@@ -107,23 +142,39 @@ export const applyAuthorDiversity = (posts: IRankablePost[]): IRankablePost[] =>
     return result;
 };
 
-export const rankFeedPosts = (posts: IRankablePost[]): IRankablePost[] => {
+/**
+ * @param contentAlgorithm the user's `settingsContentAlgorithm`. Anything unrecognized (an
+ * older cached redux value, or an algorithm this build predates) degrades to the default
+ * rather than throwing — `getAlgorithmProfile` normalizes it.
+ */
+export const rankFeedPosts = (posts: IRankablePost[], contentAlgorithm?: string): IRankablePost[] => {
     if (!posts?.length) {
         return posts;
     }
 
+    const categoryAffinity = buildCategoryAffinityMap(posts);
+    const affinityCounts = Object.values(categoryAffinity);
     const context: IRankingContext = {
         nowMs: Date.now(),
-        categoryAffinity: buildCategoryAffinityMap(posts),
+        categoryAffinity,
+        profile: getAlgorithmProfile(contentAlgorithm),
+        maxCategoryAffinity: affinityCounts.length ? Math.max(...affinityCounts) : 0,
     };
 
-    const ranked = posts
-        .map((post) => ({ post, score: getPostRankingScore(post, context) }))
-        .sort((a, b) => (b.score - a.score)
-            || (new Date(b.post.createdAt).getTime() - new Date(a.post.createdAt).getTime()))
-        .map((scored) => scored.post);
+    // Callers hand this list over already sorted by createdAt descending, so rankByScore's
+    // original-index tiebreak preserves the recency ordering that equal scores used to fall
+    // back on explicitly.
+    const ranked = rankByScore(posts, context.profile, (post) => toScoreComponents(post, context));
 
-    return applyAuthorDiversity(ranked);
+    // Two different constraints, applied in order. The profile's cap limits an author's total
+    // share of the page (FOCUS keeps 2; PULSE is uncapped and this is a no-op), and can leave
+    // the deferred overflow bunched at the tail — so the consecutive-run pass runs afterwards
+    // to smooth whatever the cap produced.
+    const capped = context.profile.maxPerAuthor > 0
+        ? capPerAuthor(ranked, context.profile.maxPerAuthor)
+        : ranked;
+
+    return applyAuthorDiversity(capped);
 };
 
 /**
