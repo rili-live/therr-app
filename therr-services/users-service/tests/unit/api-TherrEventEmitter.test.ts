@@ -26,8 +26,9 @@ describe('TherrEventEmitter.runThoughtDistributorAlgorithm — content algorithm
         findUsersStub.callsFake(() => Promise.resolve(users));
     };
 
-    const userWith = (settingsContentAlgorithm: string | undefined, interestKeys: string[] = []) => ({
-        id: 'user-1',
+    // Defaults to the id in HEADERS, since most cases are a run for the reaction owner.
+    const userWith = (settingsContentAlgorithm: string | undefined, interestKeys: string[] = [], id = 'user-1') => ({
+        id,
         settingsContentAlgorithm,
         userInterests: interestKeys.map((displayNameKey) => ({ displayNameKey })),
     });
@@ -68,19 +69,74 @@ describe('TherrEventEmitter.runThoughtDistributorAlgorithm — content algorithm
         expect(getRecentThoughtsStub.args[0][4].key).to.equal(ContentAlgorithms.PULSE);
     });
 
-    // No caller batches users today — both pass a single id. This guards the branch for one
-    // that might: resolving one profile for a mixed batch would let whichever user sorted
-    // first rank everybody's stream.
-    it('falls back to the default profile for a mixed multi-user batch', async () => {
-        stubContextUsers([
-            userWith(ContentAlgorithms.FOCUS, ['interests.hiking']),
-            userWith(ContentAlgorithms.PULSE, ['interests.coffee']),
-        ]);
+    /**
+     * Which user's algorithm ranks a run.
+     *
+     * The reaction rows this run writes are stamped with `x-userid`, so that user owns the
+     * stream being scored and their profile is the only one entitled to score it. No caller
+     * batches users today, but the moment one does, resolving off the context list would let
+     * a batch stamp one user's rows with another user's `algorithmKey`.
+     */
+    describe('profile ownership', () => {
+        it('uses the reaction owner\'s profile even when the batch contains other users', async () => {
+            stubContextUsers([
+                userWith(ContentAlgorithms.PULSE, ['interests.coffee'], 'user-2'),
+                userWith(ContentAlgorithms.FOCUS, ['interests.hiking'], 'user-1'),
+            ]);
 
-        await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1', 'user-2'], 'createdAt', 10);
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1', 'user-2'], 'createdAt', 10);
 
-        getRecentThoughtsStub.args.forEach((args) => {
-            expect(args[4].key).to.equal(ContentAlgorithms.PULSE);
+            // FOCUS is user-1's, and user-1 is the x-userid the rows will be written under —
+            // note it is not the first entry, so this cannot pass by list order alone.
+            getRecentThoughtsStub.args.forEach((args) => {
+                expect(args[4].key).to.equal(ContentAlgorithms.FOCUS);
+            });
+        });
+
+        it('takes the default when the batch does not contain the reaction owner at all', async () => {
+            stubContextUsers([
+                userWith(ContentAlgorithms.FOCUS, ['interests.hiking'], 'user-2'),
+                userWith(ContentAlgorithms.FOCUS, ['interests.coffee'], 'user-3'),
+            ]);
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-2', 'user-3'], 'createdAt', 10);
+
+            getRecentThoughtsStub.args.forEach((args) => {
+                expect(args[4].key).to.equal(ContentAlgorithms.PULSE);
+            });
+        });
+
+        // Internal triggers can seed a stream without an authenticated header. A one-user run
+        // still names its owner unambiguously, so it keeps resolving that user's profile.
+        it('falls back to a single context user when no x-userid is present', async () => {
+            stubContextUsers([userWith(ContentAlgorithms.FOCUS, ['interests.hiking'])]);
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(
+                { 'x-brand-variation': 'therr' } as any,
+                ['user-1'],
+                'createdAt',
+                10,
+            );
+
+            expect(getRecentThoughtsStub.args[0][4].key).to.equal(ContentAlgorithms.FOCUS);
+        });
+
+        it('takes the default for an unattributable batch — no header user and no single owner', async () => {
+            stubContextUsers([
+                userWith(ContentAlgorithms.FOCUS, ['interests.hiking'], 'user-1'),
+                userWith(ContentAlgorithms.FOCUS, ['interests.coffee'], 'user-2'),
+            ]);
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(
+                { 'x-brand-variation': 'therr' } as any,
+                ['user-1', 'user-2'],
+                'createdAt',
+                10,
+            );
+
+            getRecentThoughtsStub.args.forEach((args) => {
+                expect(args[4].key).to.equal(ContentAlgorithms.PULSE);
+            });
         });
     });
 

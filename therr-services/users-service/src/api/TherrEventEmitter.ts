@@ -8,6 +8,23 @@ import { createReactions } from './reactions';
 
 const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
+/**
+ * The context user whose content algorithm may rank this run, or `undefined` when the run
+ * cannot be attributed to one.
+ *
+ * Prefers the `x-userid` header because that is the identity the resulting reaction rows are
+ * written under. Falls back to a single-user context list, which names its owner
+ * unambiguously even when the trigger carries no authenticated header.
+ */
+const resolveProfileOwner = (headers: InternalConfigHeaders, contextUsers: any[]): any | undefined => {
+    const headerUserId = headers?.['x-userid'];
+    if (headerUserId) {
+        return contextUsers.find((user) => user?.id === headerUserId);
+    }
+
+    return contextUsers.length === 1 ? contextUsers[0] : undefined;
+};
+
 class TherrEventEmitter {
     /**
      * Activates a batch of candidate thoughts for the requesting user's stream.
@@ -48,13 +65,27 @@ class TherrEventEmitter {
             const interestsKeys = contextUsers
                 .reduce((acc, cur) => [...acc, ...(cur?.userInterests || []).map((i: any) => i.displayNameKey)], []);
 
-            // Both current callers (login, notifications poll) pass exactly one context user,
-            // so in practice this always resolves that user's own setting. The multi-user
-            // branch is a guard for a future batched caller: resolving one profile for a mixed
-            // batch would let one user's algorithm rank another user's stream, so a batch
-            // falls back to the default rather than picking arbitrarily.
-            const profile = contextUsers.length === 1
-                ? getAlgorithmProfile(contextUsers[0]?.settingsContentAlgorithm)
+            // Whose algorithm gets to rank this run.
+            //
+            // Every reaction this run creates is stamped with the `x-userid` header, not with a
+            // context user id (reactions-service `createOrUpdateMultiThoughtReactions` reads the
+            // header and ignores the body for identity). So the header user is the one whose
+            // stream is being scored, and therefore the only one whose profile may score it —
+            // `contextUserIds` is an input to *candidate selection*, and a batched caller could
+            // legitimately name people other than the reaction owner.
+            //
+            // Resolving off the context list instead would let a batch stamp one user's rows
+            // with another user's `algorithmKey`, breaking the invariant that column exists to
+            // make observable: at steady state a user's activated rows are scored under their
+            // current profile or not at all.
+            //
+            // Falling back to the single context user keeps the internal callers that trigger a
+            // seed without an authenticated header (login) resolving the profile they intend —
+            // a one-user run names its owner unambiguously. Only a batch we cannot attribute
+            // takes the default.
+            const targetUser = resolveProfileOwner(headers, contextUsers);
+            const profile = targetUser
+                ? getAlgorithmProfile(targetUser.settingsContentAlgorithm)
                 : getDefaultAlgorithmProfile();
             const numThoughts = randomIntFromInterval(profile.minActivationBatch, profile.maxActivationBatch);
 
