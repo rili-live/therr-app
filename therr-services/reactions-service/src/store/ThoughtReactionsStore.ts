@@ -154,8 +154,13 @@ export default class ThoughtReactionsStore {
      *
      * Rows that don't exist yet are not created here; the caller inserts those with their
      * score already set.
+     *
+     * `algorithmKey` is stamped here rather than in the caller's bulk `update` because it
+     * describes the score, so it has to move with the score or it starts describing rows it
+     * did not produce. Omitted from the SET clause when absent, so a caller that supplies no
+     * key leaves whatever was already recorded alone instead of erasing it.
      */
-    updateRelevanceScores(userId: string, scoresByThoughtId: IRelevanceScoresByThoughtId) {
+    updateRelevanceScores(userId: string, scoresByThoughtId: IRelevanceScoresByThoughtId, algorithmKey?: string | null) {
         const entries = Object.entries(scoresByThoughtId || {})
             .filter(([thoughtId, score]) => !!thoughtId && Number.isFinite(Number(score)));
 
@@ -163,16 +168,27 @@ export default class ThoughtReactionsStore {
             return Promise.resolve([]);
         }
 
+        // Bindings are positional, so they must be pushed in the order the `?` placeholders
+        // appear in the statement below — the SET clause comes before the VALUES list, so the
+        // algorithm key binds first, then the (thoughtId, score) pairs, then the user.
         const bindings: any[] = [];
+
+        let algorithmKeyClause = '';
+        if (algorithmKey) {
+            algorithmKeyClause = ', "algorithmKey" = ?';
+            bindings.push(algorithmKey);
+        }
+
         entries.forEach(([thoughtId, score]) => {
             bindings.push(thoughtId, Number(score));
         });
+
         bindings.push(userId);
 
         const valuesPlaceholders = entries.map(() => '(?::uuid, ?::double precision)').join(', ');
         const queryString = knexBuilder.raw(
             `UPDATE main."thoughtReactions" AS tr
-                SET "relevanceScore" = v.score, "scoredAt" = NOW(), "updatedAt" = NOW()
+                SET "relevanceScore" = v.score, "scoredAt" = NOW(), "updatedAt" = NOW()${algorithmKeyClause}
                 FROM (VALUES ${valuesPlaceholders}) AS v("thoughtId", score)
                 WHERE tr."thoughtId" = v."thoughtId" AND tr."userId" = ?::uuid
                 RETURNING tr.*`,

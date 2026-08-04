@@ -92,7 +92,13 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
     // Per-thought, so it can't ride along in the shared param set that gets spread into
     // every inserted/updated row — it is applied separately below.
     delete params.relevanceScores;
+    // Sent once per run, but it describes the score rather than the row. Spreading it into
+    // the shared param set stamped it onto every row in the batch, including ones this run
+    // did not score — so a row could name a profile that never ranked it, which is exactly
+    // the invariant the column exists to make observable. Applied with the scores instead.
+    delete params.algorithmKey;
 
+    const { algorithmKey } = req.body;
     const relevanceScores = req.body.relevanceScores || {};
     const scoreFor = (thoughtId: string) => {
         const score = Number(relevanceScores[thoughtId]);
@@ -116,7 +122,7 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
                 const score = scoreFor(reaction.thoughtId);
                 return score == null ? acc : { ...acc, [reaction.thoughtId]: score };
             }, {});
-            await Store.thoughtReactions.updateRelevanceScores(userId, scoresForExisting);
+            await Store.thoughtReactions.updateRelevanceScores(userId, scoresForExisting, algorithmKey);
 
             await Store.thoughtReactions.update({}, {
                 ...params,
@@ -139,6 +145,9 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
                 // carries the same column set.
                 relevanceScore: scoreFor(thoughtId),
                 scoredAt: scoreFor(thoughtId) == null ? null : new Date(),
+                // Tied to the score for the same reason: an unscored row has no profile to
+                // name, and claiming one would misreport which rows still need re-scoring.
+                algorithmKey: scoreFor(thoughtId) == null ? null : (algorithmKey || null),
             }));
 
         return Store.thoughtReactions.create(createArray).then((createdReactions) => res.status(200).send({

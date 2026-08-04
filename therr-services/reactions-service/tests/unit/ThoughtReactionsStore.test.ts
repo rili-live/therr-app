@@ -238,6 +238,39 @@ describe('ThoughtReactionsStore', () => {
             expect(mockStore.write.query.called).to.be.eq(false);
         });
 
+        // algorithmKey travels with the score. It used to ride in the caller's shared param
+        // set, which stamped it onto every row in the batch — including rows this run did not
+        // score — so a row could name a profile that never ranked it.
+        it('records the algorithm alongside the score it produced', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            await store.updateRelevanceScores('11111111-1111-1111-1111-111111111111', {
+                '22222222-2222-2222-2222-222222222222': 3.5,
+            }, 'focus');
+
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include('"algorithmKey" = \'focus\'');
+            // Still bound to the right user, i.e. the extra binding did not shift the others.
+            expect(query).to.include(`tr."userId" = '11111111-1111-1111-1111-111111111111'::uuid`);
+            expect(query).to.include("'22222222-2222-2222-2222-222222222222'::uuid, 3.5::double precision");
+        });
+
+        it('leaves an already-recorded algorithm alone when the caller supplies none', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            await store.updateRelevanceScores('11111111-1111-1111-1111-111111111111', {
+                '22222222-2222-2222-2222-222222222222': 3.5,
+            });
+
+            const query = mockStore.write.query.args[0][0];
+            // Absent from SET entirely rather than set to NULL — an older caller that does not
+            // know about profiles should not erase what a newer one recorded.
+            expect(query).to.not.include('"algorithmKey"');
+            expect(query).to.include(`tr."userId" = '11111111-1111-1111-1111-111111111111'::uuid`);
+        });
+
         it('drops non-numeric scores rather than emitting invalid SQL', async () => {
             const mockStore = createMockStore();
             const store = new ThoughtReactionsStore(mockStore);
