@@ -1759,7 +1759,12 @@
         "themeDark": "Oscuro",
         "themeRetro": "Retro",
         "enableRewards": "¿Participar?",
-        "isPublic": "¿Perfil público?"
+        "isPublic": "¿Perfil público?",
+        "contentAlgorithm": "Algoritmo del muro",
+        "algorithmPulse": "Pulso",
+        "algorithmFocus": "Enfoque",
+        "algorithmPulseDescription": "Lo que está pasando ahora: las publicaciones más activas y recientes van primero.",
+        "algorithmFocusDescription": "Solo lo que elegiste. Un muro más tranquilo, limitado a tus intereses."
       },
       "alertTitles": {
         "accountUpdated": "Cuenta actualizada",
