@@ -618,6 +618,10 @@ export default class UsersStore {
             modifiedParams.settingsIsLeaderboardEnabled = params.settingsIsLeaderboardEnabled;
         }
 
+        if (params.settingsContentAlgorithm != null) {
+            modifiedParams.settingsContentAlgorithm = params.settingsContentAlgorithm;
+        }
+
         if (params.settingsLocale != null) {
             modifiedParams.settingsLocale = params.settingsLocale;
         }

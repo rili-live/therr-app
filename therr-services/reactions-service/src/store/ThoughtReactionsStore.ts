@@ -182,6 +182,36 @@ export default class ThoughtReactionsStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
+    /**
+     * Clears every relevance score in one user's activated stream.
+     *
+     * Called when a user switches content algorithms. Scores from two profiles cannot be
+     * meaningfully interleaved — PULSE weights the hot term at 1.0, FOCUS at 0.3 plus an
+     * interest term — so the old ones are discarded rather than mixed with the new. Cleared
+     * rows become NULL, which the read path already sorts last via `NULLS LAST`, so they fall
+     * beneath freshly-scored activations and the stream rebuilds under the new profile.
+     *
+     * Scoped to `userHasActivated` because those are the only rows the feed reads; a
+     * deactivated row's stale score is unreachable and not worth the write amplification.
+     */
+    resetRelevanceScores(userId: string) {
+        if (!userId) {
+            return Promise.resolve([]);
+        }
+
+        const queryString = knexBuilder.raw(
+            `UPDATE main."thoughtReactions"
+                SET "relevanceScore" = NULL, "scoredAt" = NULL, "algorithmKey" = NULL, "updatedAt" = NOW()
+                WHERE "userId" = ?::uuid
+                  AND "userHasActivated" = true
+                  AND "relevanceScore" IS NOT NULL
+                RETURNING "thoughtId"`,
+            [userId],
+        ).toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
     update(conditions: IUpdateThoughtReactionConditions, params: IUpdateThoughtReactionParams, whereIn?: IUpdateWhereInConfig) {
         let queryString = knexBuilder.update({
             ...params,

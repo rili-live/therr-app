@@ -283,6 +283,26 @@ const countMultiThoughtReactions: RequestHandler = async (req: any, res: any) =>
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
+/**
+ * Clears the requesting user's relevance scores so their stream re-ranks under a new
+ * algorithm. Called by users-service when `settingsContentAlgorithm` changes.
+ *
+ * The user is taken from `x-userid`, never from the body — this only ever resets the caller's
+ * own stream, so it cannot be used to wipe another user's ranking. There is no route for it on
+ * the public API gateway; it is reachable only service-to-service.
+ */
+const resetThoughtRelevanceScores = (req, res) => {
+    const { userId } = parseHeaders(req.headers);
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'User ID is required', statusCode: 400 });
+    }
+
+    return Store.thoughtReactions.resetRelevanceScores(userId)
+        .then((rows) => res.status(200).send({ resetCount: rows?.length || 0 }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getThoughtReactions,
     getReactionsByThoughtId,
@@ -291,4 +311,5 @@ export {
     findThoughtReactions,
     countThoughtReactions,
     countMultiThoughtReactions,
+    resetThoughtRelevanceScores,
 };
