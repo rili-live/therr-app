@@ -19,6 +19,7 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import syncDeviceTokenForBrand from '../utilities/syncDeviceTokenForBrand';
+import handleContentAlgorithmChange from '../utilities/handleContentAlgorithmChange';
 import sendEmailAndOrPushNotification, { resolveDeviceTokenForBrand } from '../utilities/sendEmailAndOrPushNotification';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
@@ -896,6 +897,7 @@ const updateUser = (req, res) => {
                 settingsThemeName: req.body.settingsThemeName,
                 settingsIsProfilePublic: req.body.settingsIsProfilePublic,
                 settingsIsLeaderboardEnabled: req.body.settingsIsLeaderboardEnabled,
+                settingsContentAlgorithm: req.body.settingsContentAlgorithm,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
                 settingsLocale: req.body.settingsLocale,
@@ -976,6 +978,16 @@ const updateUser = (req, res) => {
 
                             // Phase 2 dual-write to brand-scoped token table. Fire-and-forget; legacy column above stays authoritative until cutover.
                             syncDeviceTokenForBrand(req.headers, user.id, req.body.deviceMobileFirebaseToken);
+
+                            // Fire-and-forget: a failure here leaves a stale ordering that the
+                            // next distributor run corrects. It must never fail the settings
+                            // save the user actually asked for.
+                            handleContentAlgorithmChange(
+                                req.headers,
+                                userId,
+                                currentUser.settingsContentAlgorithm,
+                                req.body.settingsContentAlgorithm,
+                            );
 
                             const userOrgs = await Store.userOrganizations.get({
                                 userId: user.id,

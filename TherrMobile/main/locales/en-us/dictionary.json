@@ -1759,7 +1759,12 @@
         "themeDark": "Dark",
         "themeRetro": "Retro",
         "enableRewards": "Opt-In?",
-        "isPublic": "Public Profile?"
+        "isPublic": "Public Profile?",
+        "contentAlgorithm": "Feed algorithm",
+        "algorithmPulse": "Pulse",
+        "algorithmFocus": "Focus",
+        "algorithmPulseDescription": "What's happening right now — the most active and recent posts lead.",
+        "algorithmFocusDescription": "Only what you chose. A quieter feed, limited to your interests."
       },
       "alertTitles": {
         "accountUpdated": "Account Updated",

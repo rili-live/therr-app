@@ -1759,7 +1759,12 @@
         "themeDark": "Sombre",
         "themeRetro": "Rétro",
         "enableRewards": "Participer?",
-        "isPublic": "Profil public?"
+        "isPublic": "Profil public?",
+        "contentAlgorithm": "Algorithme du fil",
+        "algorithmPulse": "Pouls",
+        "algorithmFocus": "Focus",
+        "algorithmPulseDescription": "Ce qui se passe maintenant : les publications les plus actives et récentes en tête.",
+        "algorithmFocusDescription": "Seulement ce que vous avez choisi. Un fil plus calme, limité à vos intérêts."
       },
       "alertTitles": {
         "accountUpdated": "Compte mis à jour",

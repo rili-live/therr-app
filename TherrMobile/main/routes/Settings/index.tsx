@@ -7,7 +7,7 @@ import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
-import { IMobileThemeName, IUserState } from 'therr-react/types';
+import { IContentAlgorithmName, IMobileThemeName, IUserState } from 'therr-react/types';
 import { Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -50,6 +50,7 @@ interface ISettingsState {
     isCropping: boolean;
     selectedLocale: string;
     selectedTheme: IMobileThemeName;
+    selectedAlgorithm: IContentAlgorithmName;
     isOptedInToAds: boolean;
     isProfilePublic: boolean;
     isSubmitting: boolean;
@@ -89,6 +90,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             isCropping: false,
             selectedLocale: props.user.settings.locale || 'en-us',
             selectedTheme: props.user.settings.mobileThemeName || 'light',
+            selectedAlgorithm: props.user.settings.settingsContentAlgorithm || 'pulse',
             isOptedInToAds: props.user.settings.settingsPushBackground && props.user.settings.settingsPushMarketing,
             isProfilePublic: props.user.settings.settingsIsProfilePublic,
             isSubmitting: false,
@@ -171,7 +173,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsBio,
             shouldHideMatureContent,
         } = this.state.inputs;
-        const { selectedTheme, selectedLocale, isOptedInToAds, isProfilePublic } = this.state;
+        const { selectedTheme, selectedLocale, selectedAlgorithm, isOptedInToAds, isProfilePublic } = this.state;
         const { user } = this.props;
 
         if (password && !PasswordRegex.test(password)) {
@@ -194,6 +196,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsBio,
             settingsLocale: selectedLocale,
             settingsThemeName: selectedTheme,
+            settingsContentAlgorithm: selectedAlgorithm,
             settingsPushMarketing: isOptedInToAds,
             settingsPushBackground: isOptedInToAds,
             settingsIsProfilePublic: isProfilePublic,
@@ -294,6 +297,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
     };
 
+    onAlgorithmChange = (value: string) => {
+        this.setState({
+            selectedAlgorithm: value as IContentAlgorithmName,
+        });
+    };
+
     onRewardSettingsChange = (isOptedInToAds: boolean) => {
         this.setState({
             isOptedInToAds,
@@ -367,6 +376,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             inputs,
             selectedLocale,
             selectedTheme,
+            selectedAlgorithm,
             isOptedInToAds,
             isProfilePublic,
             passwordErrorMessage,
@@ -530,6 +540,24 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         'forms.settings.labels.showReportedContent'
                                     )} value={'false'} />
                                 </ReactPicker>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    {this.translate('pages.settings.labels.contentAlgorithm')}
+                                </Text>
+                                <SegmentedButtons
+                                    value={selectedAlgorithm}
+                                    onValueChange={this.onAlgorithmChange}
+                                    buttons={[
+                                        { value: 'pulse', label: this.translate('pages.settings.labels.algorithmPulse'), icon: 'pulse' },
+                                        { value: 'focus', label: this.translate('pages.settings.labels.algorithmFocus'), icon: 'target' },
+                                    ]}
+                                />
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    {this.translate(
+                                        selectedAlgorithm === 'focus'
+                                            ? 'pages.settings.labels.algorithmFocusDescription'
+                                            : 'pages.settings.labels.algorithmPulseDescription'
+                                    )}
+                                </Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>

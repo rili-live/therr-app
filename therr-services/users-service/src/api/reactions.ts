@@ -91,6 +91,7 @@ const createReactions = (
     thoughtIds: string[],
     headers: InternalConfigHeaders,
     relevanceScores?: IRelevanceScoresByThoughtId,
+    algorithmKey?: string,
 ) => internalRestRequest({
     headers,
 }, {
@@ -100,6 +101,11 @@ const createReactions = (
         thoughtIds,
         userHasActivated: true,
         ...(relevanceScores ? { relevanceScores } : {}),
+        // Unlike relevanceScores this is per-run, not per-thought, so it rides along in the
+        // shared param set the receiving handler spreads into every inserted/updated row.
+        // Records which profile produced the scores, so a row's score can be interpreted (and
+        // a future read-time blend can tell whether it needs re-scoring).
+        ...(algorithmKey ? { algorithmKey } : {}),
     },
 })
     // eslint-disable-next-line arrow-body-style
@@ -119,8 +125,22 @@ const createReactions = (
         throw err;
     });
 
+/**
+ * Clears the user's stored relevance scores so their stream re-ranks under a newly-selected
+ * algorithm. The target user comes from the `x-userid` header the internal client already
+ * sends, so this only ever resets the acting user's own stream.
+ */
+const resetThoughtRelevance = (headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
+    method: 'post',
+    url: `${baseReactionsServiceRoute}/thought-reactions/relevance/reset`,
+    data: {},
+});
+
 export {
     createReactions,
+    resetThoughtRelevance,
     findReactionsByUser,
     countReactions,
     countReactionsByThoughtId,

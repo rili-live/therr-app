@@ -167,6 +167,48 @@ describe('ThoughtReactionsStore', () => {
         });
     });
 
+    // Called when a user switches content algorithms. Scores from two profiles are on
+    // different scales (PULSE weights the hot term at 1.0, FOCUS at 0.3 plus an interest
+    // term), so the old ones are discarded rather than interleaved with the new.
+    describe('resetRelevanceScores', () => {
+        it('does nothing without a user, rather than clearing every row in the table', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            const result = await store.resetRelevanceScores('');
+
+            expect(result).to.deep.equal([]);
+            expect(mockStore.write.query.called).to.be.eq(false);
+        });
+
+        it('nulls the score, its timestamp, and the algorithm that produced it', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            store.resetRelevanceScores('user-123');
+
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include('"relevanceScore" = NULL');
+            expect(query).to.include('"scoredAt" = NULL');
+            expect(query).to.include('"algorithmKey" = NULL');
+        });
+
+        it('scopes to one user and to activated rows only', async () => {
+            const mockStore = createMockStore();
+            const store = new ThoughtReactionsStore(mockStore);
+
+            store.resetRelevanceScores('user-123');
+
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include("'user-123'");
+            // The feed only ever reads activated rows; rewriting the rest is write
+            // amplification for an ordering nothing can observe.
+            expect(query).to.include('"userHasActivated" = true');
+            // Already-null rows are skipped for the same reason.
+            expect(query).to.include('"relevanceScore" IS NOT NULL');
+        });
+    });
+
     describe('updateRelevanceScores', () => {
         it('sets a different score per thought in a single statement', async () => {
             const mockStore = createMockStore();
