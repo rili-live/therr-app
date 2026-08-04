@@ -1,6 +1,8 @@
 // Note: import explicitly to use the types shipped with jest.
 import { it, describe, expect } from '@jest/globals';
 
+import { getAlgorithmProfile } from 'therr-js-utilities/content-ranking';
+
 import {
     applyAuthorDiversity,
     buildCategoryAffinityMap,
@@ -12,6 +14,23 @@ import {
 } from '../../main/utilities/feedRanking';
 
 const hoursAgo = (hours: number) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+
+/**
+ * Mirrors what rankFeedPosts builds internally, so getPostRankingScore can be exercised
+ * directly. `algorithm` defaults to the profile every existing assertion here was written
+ * against.
+ */
+const buildContext = (affinitySeed: any[] = [], algorithm = 'pulse') => {
+    const categoryAffinity = buildCategoryAffinityMap(affinitySeed as any);
+    const affinityCounts = Object.values(categoryAffinity);
+
+    return {
+        nowMs: Date.now(),
+        categoryAffinity,
+        profile: getAlgorithmProfile(algorithm),
+        maxCategoryAffinity: affinityCounts.length ? Math.max(...affinityCounts) : 0,
+    };
+};
 
 describe('feedRanking', () => {
     describe('getReplyCount', () => {
@@ -49,12 +68,9 @@ describe('feedRanking', () => {
         });
 
         it('boosts categories the user has liked (personalization)', () => {
-            const context = {
-                nowMs: Date.now(),
-                categoryAffinity: buildCategoryAffinityMap([
-                    { id: 'liked', createdAt: hoursAgo(2), category: 'music', reaction: { userHasLiked: true } },
-                ] as any),
-            };
+            const context = buildContext([
+                { id: 'liked', createdAt: hoursAgo(2), category: 'music', reaction: { userHasLiked: true } },
+            ]);
             const musicPost = { id: 'a', createdAt: hoursAgo(3), category: 'music', likeCount: 1 };
             const otherPost = { id: 'b', createdAt: hoursAgo(3), category: 'food', likeCount: 1 };
             expect(getPostRankingScore(musicPost as any, context))
@@ -63,6 +79,70 @@ describe('feedRanking', () => {
 
         it('handles empty input', () => {
             expect(rankFeedPosts([] as any)).toEqual([]);
+        });
+    });
+
+    /**
+     * The carousels used to rank with a fixed gravity regardless of the user's
+     * settingsContentAlgorithm, so choosing Focus changed which posts the server activated but
+     * not how the list the user scrolls was ordered.
+     */
+    describe('content algorithm awareness', () => {
+        it('applies the profile\'s author cap under FOCUS', () => {
+            const posts = [
+                { id: '1', fromUserId: 'a', createdAt: hoursAgo(1), likeCount: 9 },
+                { id: '2', fromUserId: 'a', createdAt: hoursAgo(2), likeCount: 8 },
+                { id: '3', fromUserId: 'a', createdAt: hoursAgo(3), likeCount: 7 },
+                { id: '4', fromUserId: 'b', createdAt: hoursAgo(4), likeCount: 1 },
+            ];
+            // FOCUS keeps 2 per author, so 'a' third post sinks below the other author's.
+            const ranked = rankFeedPosts(posts as any, 'focus');
+            const positionOfThirdA = ranked.findIndex((p) => p.id === '3');
+            const positionOfB = ranked.findIndex((p) => p.id === '4');
+            expect(positionOfThirdA).toBeGreaterThan(positionOfB);
+        });
+
+        it('leaves the page uncapped under PULSE, which is how it has always behaved', () => {
+            const posts = [
+                { id: '1', fromUserId: 'a', createdAt: hoursAgo(1), likeCount: 9 },
+                { id: '2', fromUserId: 'a', createdAt: hoursAgo(2), likeCount: 8 },
+                { id: '3', fromUserId: 'b', createdAt: hoursAgo(3), likeCount: 1 },
+            ];
+            const ranked = rankFeedPosts(posts as any, 'pulse');
+            // No cap to enforce and no 3-run to break up, so score order survives intact.
+            expect(ranked.map((p) => p.id)).toEqual(['1', '2', '3']);
+        });
+
+        it('weights declared interests far higher under FOCUS than under PULSE', () => {
+            // Same page, same ages, same engagement — only the category affinity differs.
+            const posts = [
+                { id: 'offInterest', createdAt: hoursAgo(1), category: 'food', likeCount: 4 },
+                { id: 'onInterest', createdAt: hoursAgo(6), category: 'music', likeCount: 0 },
+                { id: 'seed', createdAt: hoursAgo(2), category: 'music', reaction: { userHasLiked: true } },
+            ];
+
+            // Under FOCUS the interest term carries weight 1.0 against hotness at 0.3, so the
+            // older on-interest post outranks the fresher off-interest one.
+            const focused = rankFeedPosts(posts as any, 'focus');
+            expect(focused.findIndex((p) => p.id === 'onInterest'))
+                .toBeLessThan(focused.findIndex((p) => p.id === 'offInterest'));
+
+            // Under PULSE the interest weight is 0, so recency and engagement win instead.
+            const pulsed = rankFeedPosts(posts as any, 'pulse');
+            expect(pulsed.findIndex((p) => p.id === 'offInterest'))
+                .toBeLessThan(pulsed.findIndex((p) => p.id === 'onInterest'));
+        });
+
+        it('degrades an unrecognized or missing algorithm to the default rather than throwing', () => {
+            const posts = [
+                { id: 'a', createdAt: hoursAgo(1), likeCount: 2 },
+                { id: 'b', createdAt: hoursAgo(9), likeCount: 0 },
+            ];
+            const expected = rankFeedPosts(posts as any, 'pulse').map((p) => p.id);
+
+            // A stale persisted redux value, an algorithm this build predates, and no value.
+            expect(rankFeedPosts(posts as any, 'not-a-real-algorithm').map((p) => p.id)).toEqual(expected);
+            expect(rankFeedPosts(posts as any).map((p) => p.id)).toEqual(expected);
         });
     });
 

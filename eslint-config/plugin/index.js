@@ -13,5 +13,6 @@ module.exports = {
         'no-direct-brand-scoped-table': require('./rules/no-direct-brand-scoped-table'),
         'no-async-table-builder-callback': require('./rules/no-async-table-builder-callback'),
         'require-idempotent-migration': require('./rules/require-idempotent-migration'),
+        'no-partial-connection-status-check': require('./rules/no-partial-connection-status-check'),
     },
 };

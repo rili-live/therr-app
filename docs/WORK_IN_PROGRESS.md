@@ -122,6 +122,14 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-03, /quality-peer-review) **Habits partner push volume will rise after this deploy — expected, watch it anyway.** `createCheckin` now resolves the active pacts backing a check-in's habit goal (`PactsStore.getActiveByUserAndHabitGoal`) instead of relying on a `pactId` no client has ever sent. Three code paths behind the old `if (pactId)` guard were dead and go live at once: the `partnerCheckedIn` push, mid-pact Wing Person achievement credit, and writes to `habit_checkins.pactId`. A per-pact mute already applies to the push (`shouldMuteNotifs` / `celebratePartnerCheckins`, honored via `selectPactPartnerIds({ onlyCelebrating: true })`) and recipients are deduplicated across pacts, so the ceiling is one push per check-in per active pact-mate — but nobody has ever received one, so treat the first days' volume as the real baseline rather than a regression. No migration, no env var.
+- [ ] (2026-08-03, /quality-peer-review) Optional one-off backfill of `habits.habit_checkins."pactId"`. Every check-in row written before the deploy above has a NULL `pactId`, so `GET /pacts/:pactId/checkins` stays empty for all historical activity even though new check-ins populate it. `HabitCheckinsStore.createOrUpdate` backfills the column on conflict, so a row self-heals only if that user re-submits the same (habitGoalId, scheduledDate). A backfill would set `pactId` from the earliest-started active pact on each row's `habitGoalId` for that user — the same attribution rule the handler uses. Purely cosmetic for pact history views; derived progress stats do not read this column (see `utilities/pactMemberStats`), so nothing is blocked on it.
+- [ ] (2026-08-03, /quality-peer-review) Web/mobile users carry one stale `user.userInView` through the first load after the persistConfig transform deploys. `stripUserInView` drops the key on the way *into* storage only — the outbound transform is deliberately identity (`persistConfig.test.ts`: "rehydrates whatever is in storage without alteration") — so a blob already in localStorage/AsyncStorage rehydrates its old `userInView` once, and is clean from the next persist write onward. This is the same one-launch window the `version` bump in the 2026-08-02 entry above would close for every persisted slice at once; decide the two together rather than adding an outbound strip just for this key.
+- [ ] (2026-08-02, /quality-peer-review) Confirm the Friends with Habits Play listing (`com.therr.habits`) resolves for a signed-out, non-tester browser before this web deploy goes public. The habits landing page CTA changed from a disabled "Coming soon" placeholder to a live link at `play.google.com/store/apps/details?id=com.therr.habits`, and an *open* testing track only serves that URL to accounts that joined via the opt-in link — a closed track returns "item not found". If the track is still closed, the landing page's only CTA dead-ends. Same URL is now used by `landing.hbs`, `verify-account.hbs`, `invite.hbs` and `ClaimPactLanding.tsx`, so one check covers all four. Purge any CDN/edge cache for `/habits` after deploying, since the previous HTML said "Internal testing in progress".
+- [ ] (2026-08-02, /quality-peer-review) Mobile follow-up (must land on `niche/HABITS-general` / `TherrMobile`, not `general`): the profile response now reports `isNotConnected: true` for PENDING/DENIED/BLOCKED rows, where it previously reported `false`. In the **already-deployed** app `UserDisplayHeader.getActionableOptions` sent that case to the "connected" branch and left `remove-connection-request` in the overflow menu, which was the only way to withdraw a pending request; it now falls to the pending branch, and `pending-connection-request` is commented out of `actionMenuOptions`, so the menu shows neither. Uncomment that option (or add a cancel action) and wire it to the withdraw path. The server change is correct and should not be reverted — but the deployed app cannot be force-updated, so the gap persists until a mobile release ships.
+- [ ] (2026-08-02, /quality-peer-review) Decide whether to bump `version` in `therr-public-library/therr-react/src/redux/persistConfig.ts` (currently `1`). `purgeOnLogoutMiddleware` now clears persisted state on logout in web as well as mobile, but only on a *future* logout — browsers and installs that already hold a previous account's `content` / `userConnections` / `notifications` keep them until that account signs out again. A version bump with no migrate function makes redux-persist discard the old payload for everyone on next load, which is the only way to clear the existing leak. Note this is shared config: bumping it purges mobile too, costing one cold feed/notification fetch per user.
+- [ ] (2026-08-01, /quality-peer-review) Niche follow-up on `niche/HABITS-general`: `GET /users-service/habits/goals/` (`getUserHabitGoals`) now returns goals the user **joined** via an accepted pact, not just ones they created. The Habits habit-list UI renders an edit/delete affordance per row, but `updateHabitGoal` and `deleteHabitGoal` both gate on `createdByUserId` and will 403 / no-op for a joined goal. Hide or disable those controls when `goal.createdByUserId !== me`. Backend behaviour is correct and this is UI-only, so it cannot be fixed on `general`.
+- [ ] (2026-08-01, /quality-peer-review) Bump and submit the iOS build for the 3.12.4 release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.12.4` / `versionCode 443`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still `MARKETING_VERSION = 1.70.0` / `CURRENT_PROJECT_VERSION = 212`. iOS uses a separate version scheme, so this is a bump-and-submit step, not a value to copy across. (Supersedes the earlier 3.12.1 entry — Android has since moved three times with no matching iOS submission, so the two stores are now three releases apart.)
 - [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
   digest via therr-messaging-automator — implementation plan in
   `docs/niche-sub-apps/habits/AUTOMATOR_HABITS_PLAN.md` (Phase 1: task-dispatch
@@ -131,8 +139,6 @@ append new items here rather than only printing them once.
   exposed through the API gateway; more than one run per day duplicates
   streakAtRisk/partnerMissedDay/pactExpiring pushes.
 - [ ] (2026-07-28, dwelling-location-notifications) Run `20260728000001_main.userLocations.dwelling` on production users-service (`npm run migrations:run`). Adds `distinctDayCount` (NOT NULL, default 1) and `lastVisitedAt` (NOT NULL, default now()) to `main.userLocations`, plus a `(userId, distinctDayCount)` index, and backfills both from existing `createdAt`/`updatedAt`/`visitCount`. Additive and defaulted, so applying it ahead of the image is safe; if the image ships first, `GET /users-locations/:userId/dwellings` errors on the unknown columns and `POST /users-locations/:userId` fails on the new upsert clause — which would break background location processing. **Run this migration before or with the users-service deploy.**
-- [ ] (2026-08-01, /quality-peer-review) Niche follow-up on `niche/HABITS-general`: `GET /users-service/habits/goals/` (`getUserHabitGoals`) now returns goals the user **joined** via an accepted pact, not just ones they created. The Habits habit-list UI renders an edit/delete affordance per row, but `updateHabitGoal` and `deleteHabitGoal` both gate on `createdByUserId` and will 403 / no-op for a joined goal. Hide or disable those controls when `goal.createdByUserId !== me`. Backend behaviour is correct and this is UI-only, so it cannot be fixed on `general`.
-- [ ] (2026-08-01, /quality-peer-review) Bump and submit the iOS build for the 3.12.4 release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.12.4` / `versionCode 443`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still `MARKETING_VERSION = 1.70.0` / `CURRENT_PROJECT_VERSION = 212`. iOS uses a separate version scheme, so this is a bump-and-submit step, not a value to copy across. (Supersedes the earlier 3.12.1 entry — Android has since moved three times with no matching iOS submission, so the two stores are now three releases apart.)
 - [ ] (2026-07-21, bot-personas) Run the `005_bot_users.js` seed on production users-service (`npm run seeds:run` from `therr-services/users-service`) — creates 10 persona-matched bot accounts (isBot=true) for therr-ai-automator content generation. Idempotent (fixed UUIDs, ON CONFLICT DO NOTHING). Optionally set `BOT_SEED_PASSWORD` beforehand; bots never log in, so the default hash is only a placeholder.
 - [ ] (2026-07-30, /work-plan) After the reaction-metrics bounds deploy, watch api-gateway for a rise in 400s on `POST /v1/reactions-service/{moment,thought,space,event}-reactions/:id`. Every client today sends `userViewCount: 1` (`TherrMobile/main/routes/Map/TherrMapView.tsx`) and no client sends `userBookmarkPriority`, so legitimate traffic should never trip the new bounds (view count 0–100, bookmark priority 0–100, rating 1–5) — a sustained 400 rate means either a client path nobody mapped or a real abuse attempt, and the two are worth telling apart before widening the range. Note the already-deployed mobile app cannot be force-updated, so a bad assumption here reaches users who cannot upgrade away from it. No migration and no env var; bounds live in `therr-js-utilities/constants` → `Reactions`.
 - [ ] (2026-07-30, /work-plan) One-off data check before trusting space ratings: `rating` was previously unbounded, so any existing `main."spaceReactions"` / `main."eventReactions"` row outside 1–5 is still averaged into the rating shown on public space pages. Query `SELECT COUNT(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND (rating < 1 OR rating > 5);` (and the same for `eventReactions`) — if it returns non-zero, those rows need clearing or clamping, since the new validation only stops *new* bad writes.
@@ -293,6 +299,44 @@ append new items here rather than only printing them once.
   `https://habits.therr.com/.well-known/assetlinks.json` still returns the
   `com.therr.habits` file (App Links verification silently fails if that host
   ever serves the default `app.therrmobile` one).
+- [ ] (2026-08-03, /quality-peer-review) Run the reactions-service migration
+  `20260803000002_main.thoughtReactions.algorithmKey` BEFORE (or in the same
+  window as) the users-service deploy. users-service now sends `algorithmKey` in
+  the `createReactions` body, and reactions-service's
+  `createOrUpdateMultiThoughtReactions` spreads the whole body into the INSERT
+  and UPDATE. If the column is missing, every thought-activation batch fails with
+  `column "algorithmKey" does not exist` — the error is caught and logged by
+  `createReactions`, so the feed silently stops seeding rather than erroring
+  visibly. Introduced by c15466695.
+- [ ] (2026-08-03, /quality-peer-review) Run the users-service migration
+  `20260803000001_main.users.settingsContentAlgorithm` before the mobile release
+  that ships the Settings picker. It backfills every row to `'pulse'`, which
+  reproduces the pre-abstraction ranker exactly, so no existing feed changes.
+- [ ] (2026-08-03, /quality-peer-review) Make the maps-service surfaces
+  profile-aware so WANDER can be released. It is fully implemented in
+  `content-ranking` but stays out of `SELECTABLE_CONTENT_ALGORITHMS` because it is
+  geo-dominant and no profile-aware surface supplies coordinates: `main.thoughts`
+  has none, and the mobile carousels rank a cached page with no distance. Until
+  maps-service ranks through `getScoreSqlExpression` with a `distanceMeters`
+  column, `weights.geo`, `geoScaleMeters`, `searchRadiusMeters`,
+  `getGeoSqlExpression`, and `getGeoTerm` have no production consumer. Either land
+  that surface or drop the geo half of the module — it should not sit unconsumed
+  indefinitely.
+- [ ] (2026-08-03, /quality-peer-review) Know the rollback lever before rollout:
+  `CONTENT_ALGORITHM_OVERRIDE=pulse` on users-service forces every user onto
+  PULSE regardless of their stored setting, without a deploy
+  (`content-ranking/profiles.ts` → `getAlgorithmProfile`). Leave it unset unless
+  a profile misbehaves.
+- [ ] (2026-08-04, /quality-peer-review) Watch mobile carousel engagement after the
+  3.13.0 release. "PULSE reproduces production exactly" holds for the *server* hot
+  score only — `TherrMobile/main/utilities/feedRanking.ts` previously ranked with its
+  own constants, and folding it onto the shared profile changed the default carousel
+  ordering for every user: recency gravity 1.1 → 1.5 (PULSE `recencyGravity`) and the
+  category-affinity boost 1.25 → 1.5 (PULSE `interestMatchBoost`). Both make the
+  Discoveries/Thoughts carousels noticeably fresher. If that reads as too aggressive,
+  it is tunable without a mobile release only on the server — the client compiles the
+  defaults in (`ALGO_*` env overrides are deliberately server-side), so a client-side
+  correction needs a new build. Introduced by 787472c3e.
 <!-- skill-followups:end -->
 
 ---

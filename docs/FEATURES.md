@@ -1,6 +1,6 @@
 # Therr App - Feature List
 
-**Last Updated:** March 2026
+**Last Updated:** August 2026
 **Scope:** TherrMobile (React Native) and therr-client-web (React SSR)
 
 > **For AI agents:** Update this file whenever you add, remove, or significantly change a feature.
@@ -46,7 +46,7 @@
 - **Spaces** — persistent location/business pages; claim storefronts, menu/reservation/order URLs, ratings, check-ins
 - **Events** — time-bound location happenings; start/stop scheduling, group/space association
 - **Thoughts** — micro-posts with categories, reply threads, mentions, hashtags
-- **Ranked social feed (mobile)** — Discoveries/Thoughts tabs ordered by engagement score (recency decay × likes/replies/views × category affinity from the user's own reactions); backend stream activation ranks candidates by reply-count hot score
+- **Ranked social feed (mobile)** — Discoveries/Thoughts tabs ordered by engagement score (recency decay × likes/replies/views × category affinity from the user's own reactions); backend stream activation ranks candidates by the same scoring contract. Both sides read the curve from the user's selected content algorithm (see § Content Algorithms), so client re-ranking and server activation agree
 - **Auto-expanded thread previews (mobile & web)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style); each post card also carries a reply-count control. Auto-expand criteria are shared: 2+ replies always expand, single-reply threads need a like signal on the parent or the reply
 - **Nested reply counts (mobile & web)** — in the thought details view only, each reply renders a reply icon with its own nested reply count; tapping it opens that reply's details view so threads can be walked one level at a time
 - **Inline reply likes (mobile)** — replies in the thought details view carry their own like control with an optimistic toggle (reverted if the request fails), so a reply can be liked without opening it. `getThoughtDetails` returns each reply's like count and the requesting user's reaction
@@ -93,6 +93,14 @@
 - **Pre-login language switcher** — change locale on the Login/Register screens before authenticating; selection persists to the new account on signup (`settingsLocale`)
 - **Notification preferences** — per-channel enable/disable
 - **Mature content filter** — toggle visibility of mature content
+- **Feed algorithm picker (mobile)** — choose how content is ranked; stored on `main.users.settingsContentAlgorithm` (see § Content Algorithms)
+
+### Content Algorithms
+- **Selectable ranking profiles** — one scoring contract in `therr-js-utilities/content-ranking` drives both server-side stream activation (users-service thought distributor) and client-side carousel re-ranking. Each profile is a weight vector over recency/engagement/interest/geo plus policy knobs (candidate pool size, activation batch range, per-author diversity cap, hard interest filter), overridable per-deploy via `ALGO_<KEY>_<FIELD>` env vars
+- **Pulse** (default) — "what's happening right now"; recency and engagement dominant. Reproduces the pre-abstraction production hot score exactly, so existing users see no reshuffle
+- **Focus** — "only what you chose"; hard-filtered to declared interests, smaller batches, lower volume. Falls back to unfiltered candidates for users with no interests, so SSO/onboarding-skip accounts never get an empty feed
+- **Wander** — geo-dominant local discovery; implemented but not yet user-selectable (the API gateway validates against `SELECTABLE_CONTENT_ALGORITHMS`, not the full enum) until the maps-service surfaces are profile-aware
+- **Switching rebuilds the stream** — changing the setting NULLs previously-activated relevance scores (they're only comparable within the profile that produced it) and releases the distributor throttle so the next poll re-seeds. Activated rows are stamped with the `algorithmKey` that scored them
 
 ### Payments
 - **Stripe integration** — web/subscription payments

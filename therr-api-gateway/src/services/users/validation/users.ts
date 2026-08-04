@@ -5,6 +5,7 @@ import {
     query,
 } from 'express-validator';
 import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
+import { SELECTABLE_CONTENT_ALGORITHMS } from 'therr-js-utilities/content-ranking';
 
 export const createUserValidation = [
     // checkFalsy: SSO/dashboard registration may omit phone by sending ''. A bare .optional()
@@ -115,6 +116,14 @@ export const updateUserValidation = [
     body('settingsIsProfilePublic').optional().isBoolean(),
     body('settingsPushMarketing').optional().isBoolean(),
     body('settingsPushBackground').optional().isBoolean(),
+    // Validated against the *selectable* list, not the full ContentAlgorithms enum, so a
+    // client cannot put itself onto an algorithm that has not been released yet (WANDER is
+    // implemented but needs geo-aware map surfaces to be meaningful).
+    //
+    // Unlike settingsThemeName — which is unvalidated here and only ever picks a stylesheet —
+    // this value selects a ranking profile whose constants are interpolated into ORDER BY
+    // expressions downstream. It is constrained at the edge rather than trusted.
+    body('settingsContentAlgorithm').optional().isIn(SELECTABLE_CONTENT_ALGORITHMS),
     body('shouldSendPushNotification').optional().isBoolean(),
 ];
 

@@ -147,6 +147,65 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textGray,
         },
 
+        // Streak Widget — compact variant
+        // Used on the profile header, where the widget competes for vertical space
+        // with the tab content below it. Same information, collapsed from four
+        // stacked rows into two: title + badge, then the progress bar with its
+        // milestone/grace summary inline beside it.
+        streakWidgetContainerCompact: {
+            // ViewUser's parent container centers its children (`alignItems: 'center'`),
+            // which makes an unconstrained child shrink to fit its content instead of
+            // filling the row. Matches the treatment in styles/profileCompletionLink.
+            alignSelf: 'stretch',
+            paddingVertical: space.sm,
+            paddingHorizontal: space.md,
+            marginHorizontal: space.lg,
+            marginVertical: space.xs,
+            borderRadius: radius.lg,
+            backgroundColor: therrTheme.colors.surface,
+        },
+        streakWidgetHeaderCompact: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: space.sm,
+        },
+        streakWidgetTitleCompact: {
+            fontSize: fontSizes.sm,
+        },
+        streakBadgeCompact: {
+            paddingVertical: space.xs,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+        },
+        streakBadgeTextCompact: {
+            fontSize: fontSizes.xs,
+        },
+        streakBadgeEmojiCompact: {
+            fontSize: fontSizes.sm,
+        },
+        streakProgressRowCompact: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.sm,
+            marginTop: space.xs + 2,
+        },
+        streakProgressBarCompact: {
+            flex: 1,
+            minWidth: 48,
+            height: 5,
+            borderRadius: radius.pill,
+        },
+        streakProgressFillCompact: {
+            borderRadius: radius.pill,
+        },
+        streakMetaTextCompact: {
+            fontFamily: therrFontFamily,
+            fontSize: 11,
+            color: therrTheme.colors.textGray,
+            flexShrink: 1,
+        },
+
         // Habit Card
         habitCardContainer: {
             backgroundColor: therrTheme.colors.surface,

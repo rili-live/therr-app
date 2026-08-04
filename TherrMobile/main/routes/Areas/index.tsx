@@ -686,6 +686,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: false,
                     translate: this.translate,
+                    contentAlgorithm: user.settings?.settingsContentAlgorithm,
                 }, 'ranked', categoriesFilter);
 
                 return (
@@ -726,6 +727,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     isForBookmarks: false,
                     shouldIncludeThoughts: true,
                     translate: this.translate,
+                    contentAlgorithm: user.settings?.settingsContentAlgorithm,
                 }, 'ranked', thoughtCategoriesFilter);
 
                 return (

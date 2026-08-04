@@ -105,6 +105,11 @@ The module resolution is complex due to the monorepo. Understanding this prevent
    - `react-native-screens+4.24.0.patch` (RTTI fix required for New Architecture)
    - `react-native-worklets+0.8.1.patch` (prefab headers race fix for Reanimated 4)
 
+   Patch filenames pin an **exact** version. When you bump a patched package the
+   patch stops applying — regenerate it rather than renaming the file. Run
+   `/mobile-dep-guard` after any dependency change; it cross-checks every patch
+   against the installed (or lockfile-resolved) version.
+
 **When adding a new shared library dependency**: Add it to root `package.json`, then ensure Metro can find it via `extraNodeModules` or the Proxy fallback.
 
 ## Key Patterns
@@ -200,5 +205,19 @@ Before completing changes:
 npm run lint:fix   # Auto-fix
 npm run lint       # Verify zero errors
 ```
+
+Type-checking here is a **baseline** gate, not a zero-error gate — the app carries
+~104 errors inherited from the RN 0.83 upgrade. Run `npm run pr:tsc-baseline:mobile`
+from the repo root; it fails only on error signatures absent from
+`TherrMobile/.tsc-baseline`. Never run the baseline script with `--update` to clear a
+failure.
+
+Three mobile-specific skills cover what lint and tsc cannot:
+
+| Skill | When |
+|---|---|
+| `/mobile-crash-guard` | After changing anything under `main/**` — audits for runtime-only failure classes (native modules at import time, missing effect cleanup, unguarded nav params and API fields, safe-area/system-bar regressions) |
+| `/mobile-dep-guard` | After adding, upgrading, or removing a dependency — checks the Metro/Babel/tsconfig/Jest/patch-package wiring matrix that silently breaks on device |
+| `/mobile-release-preflight` | Before cutting an EAS or Gradle release build — brand/branch agreement, version bump, patch drift, deprecated Android 15 APIs, locale parity |
 
 See root `CLAUDE.md` for full requirements.

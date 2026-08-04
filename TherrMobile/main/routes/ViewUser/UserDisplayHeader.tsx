@@ -364,7 +364,7 @@ const UserDisplayHeader = ({
                             buttonStyle={themeForms.styles.buttonPrimarySmall}
                             titleStyle={[themeForms.styles.buttonTitleSmall, spacingStyles.padRtSm]}
                             title={translate('user.profile.buttons.editProfile')}
-                            onPress={() => navigation.navigate('Settings')}
+                            onPress={() => navigation.navigate('Settings', { scrollToSection: 'userProfile' })}
                             icon={
                                 <TherrIcon
                                     name="edit"
@@ -414,13 +414,12 @@ const UserDisplayHeader = ({
                 />
             </View>
             {topStreak && themeHabits && (
-                <View style={spacingStyles.marginHorizLg}>
-                    <StreakWidget
-                        streak={topStreak}
-                        themeHabits={themeHabits}
-                        translate={translate}
-                    />
-                </View>
+                <StreakWidget
+                    compact
+                    streak={topStreak}
+                    themeHabits={themeHabits}
+                    translate={translate}
+                />
             )}
         </>
     );
