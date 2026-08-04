@@ -290,6 +290,24 @@ append new items here rather than only printing them once.
   `https://habits.therr.com/.well-known/assetlinks.json` still returns the
   `com.therr.habits` file (App Links verification silently fails if that host
   ever serves the default `app.therrmobile` one).
+- [ ] (2026-08-03, /quality-peer-review) Run the reactions-service migration
+  `20260803000002_main.thoughtReactions.algorithmKey` BEFORE (or in the same
+  window as) the users-service deploy. users-service now sends `algorithmKey` in
+  the `createReactions` body, and reactions-service's
+  `createOrUpdateMultiThoughtReactions` spreads the whole body into the INSERT
+  and UPDATE. If the column is missing, every thought-activation batch fails with
+  `column "algorithmKey" does not exist` — the error is caught and logged by
+  `createReactions`, so the feed silently stops seeding rather than erroring
+  visibly. Introduced by c15466695.
+- [ ] (2026-08-03, /quality-peer-review) Run the users-service migration
+  `20260803000001_main.users.settingsContentAlgorithm` before the mobile release
+  that ships the Settings picker. It backfills every row to `'pulse'`, which
+  reproduces the pre-abstraction ranker exactly, so no existing feed changes.
+- [ ] (2026-08-03, /quality-peer-review) Know the rollback lever before rollout:
+  `CONTENT_ALGORITHM_OVERRIDE=pulse` on users-service forces every user onto
+  PULSE regardless of their stored setting, without a deploy
+  (`content-ranking/profiles.ts` → `getAlgorithmProfile`). Leave it unset unless
+  a profile misbehaves.
 <!-- skill-followups:end -->
 
 ---

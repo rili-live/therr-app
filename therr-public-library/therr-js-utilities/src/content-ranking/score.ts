@@ -78,7 +78,13 @@ export const scoreContent = (components: IScoreComponents, profile: IAlgorithmPr
 };
 
 /**
- * Caps consecutive items per author, preserving relative order otherwise.
+ * Caps how many items each author contributes, preserving relative order otherwise.
+ *
+ * The cap is on an author's TOTAL count in the list, not on consecutive runs — the first
+ * `maxPerAuthor` items an author has keep their positions and the rest are appended after
+ * every other kept item. (TherrMobile's `utilities/feedRanking.ts` has a separate helper of
+ * the same name that instead breaks up consecutive runs by pulling a different author's post
+ * forward; the two are not interchangeable.)
  *
  * Applied after scoring rather than inside it: diversity is a constraint on the emitted
  * sequence, not a property of any single item, so folding it into the score cannot express
@@ -114,8 +120,13 @@ export const applyAuthorDiversity = <T extends { fromUserId?: any }>(items: T[],
 };
 
 /**
- * Ranks a page of already-fetched content. Used by the mobile carousel and anywhere a
- * server-ranked page needs local re-blending.
+ * Ranks a page of already-fetched content, for anywhere a server-ranked page needs local
+ * re-blending.
+ *
+ * No client consumes this yet. The mobile Areas carousels still rank locally through
+ * `TherrMobile/main/utilities/feedRanking.ts`, which is profile-unaware and applies its own
+ * fixed gravity — folding it onto this function is what would make a user's selected
+ * algorithm apply to the carousels too. See docs/ALGORITHM_AUDIT.md.
  */
 export const rankByScore = <T>(
     items: T[],
