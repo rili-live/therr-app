@@ -7,6 +7,11 @@ import {
     getReadableBrands,
 } from 'therr-js-utilities/constants';
 import { withBrandOnInsert } from 'therr-js-utilities/db';
+import {
+    IAlgorithmProfile,
+    getDefaultAlgorithmProfile,
+    getScoreSqlExpression,
+} from 'therr-js-utilities/content-ranking';
 import { IConnection } from './connection';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import UsersStore from './UsersStore';
@@ -17,20 +22,19 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const THOUGHTS_TABLE_NAME = 'main.thoughts';
 
-// Hacker-News-style gravity: reply count (the strongest engagement signal in this DB)
-// dampened by age. Declared once so the SELECT and the ORDER BY in getRecentThoughts can
-// never drift apart — the returned score has to be the same number the ranking used.
-// Only valid against the `candidates` subquery, which exposes "replyCount" and "createdAt".
+// The hot-score expression now comes from therr-js-utilities `content-ranking`, which emits it
+// from the user's selected algorithm profile. Under the default (PULSE) it produces the exact
+// string this file used to hardcode — content-ranking's tests assert that byte-for-byte, and
+// the tests in this file still assert it here, so the default ranking cannot move silently.
 //
-// GREATEST(..., 0) is load-bearing, not cosmetic. A thought dated in the future makes
-// (age + 2) negative, and POWER(<negative>, 1.5) is a hard Postgres ERROR ("a negative
-// number raised to a non-integer power yields a complex result") — not a NULL. That
-// aborts the whole candidate query, so a single future-dated row silently froze the
-// activation feed for every user. therr-ai-automator post-dates generated thoughts by
-// up to numHours, so such rows are routinely present. The candidate pool below also
-// excludes future rows; this clamp is the second line of defense, because the cost of
-// getting it wrong is a total feed outage rather than one mis-ranked post.
-const HOT_SCORE_EXPRESSION = '("replyCount" + 1) / POWER(GREATEST(EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600, 0) + 2, 1.5)';
+// The GREATEST(..., 0) age clamp moved with it and is still load-bearing: a thought dated in
+// the future makes (age + 2) negative, and POWER(<negative>, 1.5) is a hard Postgres ERROR
+// ("a negative number raised to a non-integer power yields a complex result"), not a NULL.
+// That aborts the whole candidate query, so a single future-dated row silently froze the
+// activation feed for every user. therr-ai-automator post-dates generated thoughts, so such
+// rows are routinely present. The candidate pool below also excludes future rows; the clamp is
+// the second line of defense, because the cost of getting it wrong is a total feed outage
+// rather than one mis-ranked post.
 
 export interface ICreateThoughtParams {
     parentId?: string;
@@ -108,10 +112,29 @@ export default class ThoughtsStore {
      * reaction row at activation (thoughtReactions.relevanceScore) and is what the stream
      * is ordered by on read.
      */
-    getRecentThoughts(brand: BrandValue, limit = 1, relatedInterestsKeys: string[] = [], returning = ['id'], candidatePoolSize = 200) {
+    getRecentThoughts(
+        brand: BrandValue,
+        limit = 1,
+        relatedInterestsKeys: string[] = [],
+        returning = ['id'],
+        profile: IAlgorithmProfile = getDefaultAlgorithmProfile(),
+    ) {
         const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
+        // Built once and reused in the SELECT, the ORDER BY, and (when capping per author) the
+        // window function, so the persisted score always explains the order the rows came back
+        // in. Under PULSE this emits the exact expression that shipped before profiles existed.
+        const scoreExpression = getScoreSqlExpression(profile, {
+            engagementCount: '"replyCount"',
+            createdAt: '"createdAt"',
+        });
+        // PULSE caps at 0 (uncapped), which must skip the extra query layer entirely rather
+        // than emit a no-op window — that is what keeps the default path's SQL unchanged.
+        const shouldCapPerAuthor = profile.maxPerAuthor > 0;
+        const candidateColumns = shouldCapPerAuthor
+            ? [...returning, 'createdAt', 'fromUserId']
+            : [...returning, 'createdAt'];
 
-        let innerQuery = knexBuilder.select([...returning, 'createdAt'])
+        let innerQuery = knexBuilder.select(candidateColumns)
             .select(knexBuilder.raw(
                 `(SELECT COUNT(*) FROM ${THOUGHTS_TABLE_NAME} AS c WHERE c."parentId" = ${THOUGHTS_TABLE_NAME}.id) AS "replyCount"`,
             ))
@@ -128,7 +151,7 @@ export default class ThoughtsStore {
             // GREATEST clamp above, made the hot score error out and killed the whole query.
             .andWhereRaw(`${THOUGHTS_TABLE_NAME}."createdAt" <= NOW()`)
             .orderBy('createdAt', 'desc')
-            .limit(candidatePoolSize);
+            .limit(profile.candidatePoolSize);
 
         const readable = getReadableBrands(brand);
         if (readable !== 'all') {
@@ -140,13 +163,31 @@ export default class ThoughtsStore {
             innerQuery = innerQuery.whereRaw(`"interestsKeys" \\?| ARRAY[${interestsPlaceholders}]::text[]`, relatedInterestsKeys);
         }
 
-        const query = knexBuilder.select(returning)
+        // Author diversity, for profiles that ask for it (FOCUS keeps 2 per author). Ranked by
+        // score rather than recency so each author keeps their *best* candidates, not their
+        // newest — a prolific poster should lose their weakest posts, not their strongest.
+        // Applied as its own layer so the cap runs against the already-filtered pool.
+        const candidateSource: any = shouldCapPerAuthor
+            ? knexBuilder
+                .select('*')
+                .select(knexBuilder.raw(`ROW_NUMBER() OVER (PARTITION BY "fromUserId" ORDER BY ${scoreExpression} DESC) AS "authorRank"`))
+                .from(innerQuery.as('candidates'))
+                .as('ranked')
+            : innerQuery.as('candidates');
+
+        let query = knexBuilder.select(returning)
             // Returned alongside the id so the caller can persist it onto the reaction row.
             // Without this the ranking below only decides which thoughts activate and is then
             // lost — the feed reads reactions back in activation order, not score order.
-            .select(knexBuilder.raw(`${HOT_SCORE_EXPRESSION} AS "hotScore"`))
-            .from(innerQuery.as('candidates'))
-            .orderByRaw(`${HOT_SCORE_EXPRESSION} DESC`)
+            .select(knexBuilder.raw(`${scoreExpression} AS "hotScore"`))
+            .from(candidateSource);
+
+        if (shouldCapPerAuthor) {
+            query = query.where('authorRank', '<=', profile.maxPerAuthor);
+        }
+
+        query = query
+            .orderByRaw(`${scoreExpression} DESC`)
             .limit(limit);
 
         return this.db.read.query(query.toString()).then((response) => response.rows);

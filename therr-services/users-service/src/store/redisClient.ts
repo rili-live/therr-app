@@ -94,6 +94,36 @@ export const tryAcquireDistributorRun = async (userId: string, windowSeconds: nu
     }
 };
 
+/**
+ * Releases a user's distributor gate so the next request re-seeds their stream immediately.
+ *
+ * Called when a user switches content algorithms: the gate exists to stop the distributor
+ * running on every notifications poll, but right after a switch that throttle is exactly
+ * wrong — the user is waiting to see their new algorithm take effect and would otherwise sit
+ * behind up to a full window (15 min by default) of the old ranking.
+ *
+ * Never rejects. A failure here degrades to "the gate expires on its own", which is a delay,
+ * not a broken feed — and it must not be able to fail the settings save that triggered it.
+ */
+export const clearDistributorRun = async (userId: string): Promise<void> => {
+    if (!userId) {
+        return;
+    }
+
+    try {
+        await redisEphemeralClient.del(`${DISTRIBUTOR_GATE_PREFIX}${userId}`);
+    } catch (err) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'REDIS_EPHEMERAL_ERROR',
+            messages: ['Failed to clear thought distributor gate; it will expire on its own', (err as any)?.message],
+            traceArgs: {
+                'user.id': userId,
+            },
+        });
+    }
+};
+
 export const mintHandoffCode = async (code: string, entry: IHandoffEntry): Promise<void> => {
     if (!code || !entry?.userId || !entry?.targetBrand) {
         throw new Error('mintHandoffCode requires code, userId, and targetBrand');
