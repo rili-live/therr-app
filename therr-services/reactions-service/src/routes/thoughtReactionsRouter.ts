@@ -18,7 +18,7 @@ router.post('/:thoughtId', createOrUpdateThoughtReaction);
 router.post('/create-update/multiple', createOrUpdateMultiThoughtReactions);
 
 // Two path segments, so this cannot be swallowed by the single-segment `POST /:thoughtId`
-// below. Internal-only (users-service calls it when a user switches content algorithms);
+// above. Internal-only (users-service calls it when a user switches content algorithms);
 // it is deliberately not exposed on the API gateway.
 router.post('/relevance/reset', resetThoughtRelevanceScores);
 

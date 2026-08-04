@@ -48,10 +48,11 @@ class TherrEventEmitter {
             const interestsKeys = contextUsers
                 .reduce((acc, cur) => [...acc, ...(cur?.userInterests || []).map((i: any) => i.displayNameKey)], []);
 
-            // The login path batches up to 10 recently-active users into one run, and they can
-            // be on different algorithms. Resolving a single profile for a mixed batch would
-            // let one user's algorithm rank another user's stream, so only a single-user run
-            // reads a user's setting; a mixed batch falls back to the default profile.
+            // Both current callers (login, notifications poll) pass exactly one context user,
+            // so in practice this always resolves that user's own setting. The multi-user
+            // branch is a guard for a future batched caller: resolving one profile for a mixed
+            // batch would let one user's algorithm rank another user's stream, so a batch
+            // falls back to the default rather than picking arbitrarily.
             const profile = contextUsers.length === 1
                 ? getAlgorithmProfile(contextUsers[0]?.settingsContentAlgorithm)
                 : getDefaultAlgorithmProfile();

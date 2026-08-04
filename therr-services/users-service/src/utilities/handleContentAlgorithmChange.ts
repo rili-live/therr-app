@@ -19,6 +19,17 @@ import { resetThoughtRelevance } from '../api/reactions';
  *     switch the throttle is exactly wrong — the user is waiting to see the new algorithm
  *     take effect — so the window is released and the next poll re-seeds.
  *
+ * They run in that order, not concurrently. The gate is what lets the next poll re-seed, and
+ * the reset is a cross-service round trip plus a bulk UPDATE while the gate release is a single
+ * Redis DEL — so releasing the gate first opens a window where the distributor re-scores the
+ * stream and the still-in-flight reset then NULLs the scores it just wrote. `resetRelevanceScores`
+ * clears every scored activated row regardless of `algorithmKey`, so it cannot tell the new
+ * rows from the old ones. The user would be left with an unranked feed and a gate that has
+ * re-closed for the rest of the window — the exact outcome this function exists to prevent.
+ *
+ * The gate is released even when the reset fails: leaving it in place would strand the user on
+ * the old ordering until the window expires, which is worse than re-seeding over stale scores.
+ *
  * Called for its side effects and deliberately not awaited. Worst case on failure is a stale
  * ordering that the next distributor run corrects on its own, which is a far better outcome
  * than 500ing a profile save because Redis blipped.
@@ -54,11 +65,11 @@ const handleContentAlgorithmChange = (
     };
 
     Promise.resolve(resetThoughtRelevance(headers))
-        .catch(onFailure('Failed to reset thought relevance scores after a content algorithm change'));
-
-    // clearDistributorRun swallows its own errors, so this catch is belt-and-braces against a
-    // future change making it throw synchronously.
-    Promise.resolve(clearDistributorRun(userId))
+        .catch(onFailure('Failed to reset thought relevance scores after a content algorithm change'))
+        // Only once the old scores are gone, so the next poll cannot be re-scored underneath
+        // the reset. clearDistributorRun swallows its own errors, so this catch is
+        // belt-and-braces against a future change making it throw synchronously.
+        .then(() => clearDistributorRun(userId))
         .catch(onFailure('Failed to clear the thought distributor gate after a content algorithm change'));
 };
 

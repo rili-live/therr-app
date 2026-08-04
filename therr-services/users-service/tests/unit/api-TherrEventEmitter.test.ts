@@ -68,8 +68,9 @@ describe('TherrEventEmitter.runThoughtDistributorAlgorithm — content algorithm
         expect(getRecentThoughtsStub.args[0][4].key).to.equal(ContentAlgorithms.PULSE);
     });
 
-    // The login path batches up to 10 recently-active users into a single run. Resolving one
-    // profile for that batch would let whichever user sorted first rank everybody's stream.
+    // No caller batches users today — both pass a single id. This guards the branch for one
+    // that might: resolving one profile for a mixed batch would let whichever user sorted
+    // first rank everybody's stream.
     it('falls back to the default profile for a mixed multi-user batch', async () => {
         stubContextUsers([
             userWith(ContentAlgorithms.FOCUS, ['interests.hiking']),

@@ -318,6 +318,16 @@ append new items here rather than only printing them once.
   PULSE regardless of their stored setting, without a deploy
   (`content-ranking/profiles.ts` → `getAlgorithmProfile`). Leave it unset unless
   a profile misbehaves.
+- [ ] (2026-08-04, /quality-peer-review) Watch mobile carousel engagement after the
+  3.13.0 release. "PULSE reproduces production exactly" holds for the *server* hot
+  score only — `TherrMobile/main/utilities/feedRanking.ts` previously ranked with its
+  own constants, and folding it onto the shared profile changed the default carousel
+  ordering for every user: recency gravity 1.1 → 1.5 (PULSE `recencyGravity`) and the
+  category-affinity boost 1.25 → 1.5 (PULSE `interestMatchBoost`). Both make the
+  Discoveries/Thoughts carousels noticeably fresher. If that reads as too aggressive,
+  it is tunable without a mobile release only on the server — the client compiles the
+  defaults in (`ALGO_*` env overrides are deliberately server-side), so a client-side
+  correction needs a new build. Introduced by 787472c3e.
 <!-- skill-followups:end -->
 
 ---
