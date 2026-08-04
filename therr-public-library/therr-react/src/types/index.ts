@@ -50,6 +50,7 @@ import {
     ISocketDetails,
     IUserState,
     IMobileThemeName,
+    IContentAlgorithmName,
 
     // User Connections
     IUserConnection,
@@ -148,6 +149,7 @@ export {
     ISocketDetails,
     IUserState,
     IMobileThemeName,
+    IContentAlgorithmName,
 
     // User Connections
     IUserConnection,
