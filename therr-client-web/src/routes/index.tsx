@@ -26,6 +26,7 @@ import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
+import ApiAccess from './ApiAccess';
 import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
 import InviteLinkLanding from './InviteLinkLanding';
@@ -163,6 +164,13 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/child-safety',
         element: <ChildSafety />,
+    },
+    {
+        // Public API onboarding explainer. Intentionally unauthenticated: it is the
+        // link target from the marketing site, and its CTA adapts to the visitor's
+        // account stage rather than dumping everyone on a login page.
+        path: '/api-access',
+        element: <ApiAccess />,
     },
     {
         path: '/delete-account',

@@ -1247,6 +1247,36 @@
         "thoughts": "Pensées"
       }
     },
+    "apiAccess": {
+      "headerTitle": "Accès à l'API",
+      "pageTitle": "Obtenir une clé API Therr",
+      "intro": "Les clés API se gèrent dans le tableau de bord web de Therr. Voici comment se déroule le processus.",
+      "steps": {
+        "one": {
+          "title": "Créez un compte entreprise",
+          "description": "Inscrivez-vous au tableau de bord Therr avec le courriel de votre entreprise. Un profil Therr personnel ne peut pas générer de clés API."
+        },
+        "two": {
+          "title": "Choisissez un forfait",
+          "description": "Ouvrez Paramètres dans le tableau de bord et choisissez un abonnement. Tous les forfaits payants incluent l'accès à l'API."
+        },
+        "three": {
+          "title": "Générez votre clé",
+          "description": "Allez dans Paramètres, puis Clés API, et créez une clé. Elle n'est affichée qu'une seule fois, à la création : copiez-la en lieu sûr."
+        },
+        "four": {
+          "title": "Commencez à créer",
+          "description": "Envoyez votre clé dans l'en-tête x-api-key de chaque requête. La référence de l'API décrit tous les points d'accès."
+        }
+      },
+      "statusEligible": "Votre compte peut créer des clés API. Ouvrez le tableau de bord pour les gérer.",
+      "statusNotEligible": "Vous aurez besoin d'un compte entreprise avec un forfait payant pour créer des clés API.",
+      "buttons": {
+        "manageKeys": "Gérer les clés API",
+        "openDashboard": "Ouvrir le tableau de bord web",
+        "viewDocs": "Consulter la référence de l'API"
+      }
+    },
     "advancedSettings": {
       "headerTitle": "Gérer le compte",
       "pageHeaderAccountActions": "Actions du compte",

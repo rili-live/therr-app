@@ -1247,6 +1247,36 @@
         "thoughts": "Pensamientos"
       }
     },
+    "apiAccess": {
+      "headerTitle": "Acceso a la API",
+      "pageTitle": "Obtén una clave de API de Therr",
+      "intro": "Las claves de API se administran en el panel web de Therr. Así funciona el proceso.",
+      "steps": {
+        "one": {
+          "title": "Crea una cuenta de negocio",
+          "description": "Regístrate en el panel de Therr con el correo de tu negocio. Un perfil personal de Therr no puede generar claves de API."
+        },
+        "two": {
+          "title": "Elige un plan",
+          "description": "Abre Configuración en el panel y elige una suscripción. Todos los planes de pago incluyen acceso a la API."
+        },
+        "three": {
+          "title": "Genera tu clave",
+          "description": "Ve a Configuración y luego a Claves de API para crear una clave. Se muestra una sola vez, al crearla: cópiala en un lugar seguro."
+        },
+        "four": {
+          "title": "Empieza a construir",
+          "description": "Envía tu clave en el encabezado x-api-key de cada solicitud. La referencia de la API describe todos los endpoints."
+        }
+      },
+      "statusEligible": "Tu cuenta puede crear claves de API. Abre el panel para administrarlas.",
+      "statusNotEligible": "Necesitarás una cuenta de negocio con un plan de pago para crear claves de API.",
+      "buttons": {
+        "manageKeys": "Administrar claves de API",
+        "openDashboard": "Abrir el panel web",
+        "viewDocs": "Leer la referencia de la API"
+      }
+    },
     "advancedSettings": {
       "headerTitle": "Administrar cuenta",
       "pageHeaderAccountActions": "Acciones de cuenta",

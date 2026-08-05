@@ -129,6 +129,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/api-access',
+        head: {
+            title: 'Get a Therr API Key',
+            description: 'How to get a Therr API key: create a business account, choose a plan, generate your key in the dashboard, and start building with our location APIs.',
+        },
+        view: 'index',
+    },
+    {
         route: '/child-safety',
         head: {
             title: 'Child Safety Standards',
