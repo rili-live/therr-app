@@ -70,7 +70,7 @@ export class ApiAccessComponent extends React.Component<IApiAccessProps> {
         super(props);
 
         this.reloadTheme();
-        this.translate = (key: string, params?: any) => translator('en-us', key, params);
+        this.translate = (key: string, params?: any) => translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
