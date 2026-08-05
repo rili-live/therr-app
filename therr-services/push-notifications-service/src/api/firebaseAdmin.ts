@@ -162,7 +162,9 @@ interface ICreateNotificationMessage extends ICreateBaseMessage {
     notificationTitle: string;
     notificationBody: string;
     channelId?: AndroidChannelId;
-    brandVariation?: BrandVariations;
+    // Required, with no default: a case that forgets it would address its
+    // pushes to the wrong app, and nothing at runtime reports that.
+    brandVariation: BrandVariations;
 }
 
 const getPostActionId = (postType?: string) => {
@@ -177,46 +179,64 @@ const getPostActionId = (postType?: string) => {
     return id;
 };
 
-const getAppBundleIdentifier = (brandVariation: BrandVariations) => {
-    switch (brandVariation) {
-        case BrandVariations.TEEM:
-            return 'com.therr.mobile.Teem';
-        case BrandVariations.HABITS:
-            return 'com.therr.mobile.habits';
-        case BrandVariations.THERR:
-            return 'com.therr.mobile.Therr';
-        default:
-            return 'com.therr.mobile.Therr';
-    }
+interface IBrandAppIdentity {
+    // APNS rejects any push whose `apns-topic` is not the receiving app's own
+    // bundle id, and does so silently — FCM still accepts the send.
+    bundleId: string;
+    // Android notification small-icon tint. Mirrors each app's primary accent
+    // (see TherrMobile/main/styles/themes/brandConstants.ts on the
+    // corresponding niche branch).
+    accentColor: string;
+    // The Android manifest must declare the exact action string or tapping the
+    // notification is a silent no-op.
+    intentActions: Record<string, string>;
+}
+
+const THERR_APP_IDENTITY: IBrandAppIdentity = {
+    bundleId: 'com.therr.mobile.Therr',
+    accentColor: '#0f7b82',
+    intentActions: PushNotifications.AndroidIntentActions.Therr,
 };
 
-// Android notification small-icon tint per brand. Values mirror each app's
-// primary accent (see TherrMobile/main/styles/themes/brandConstants.ts on the
-// corresponding niche branch).
-const getBrandAccentColor = (brandVariation: BrandVariations): string => {
-    switch (brandVariation) {
-        case BrandVariations.HABITS:
-            return '#1C7F8A';
-        case BrandVariations.TEEM:
-            return '#0f7b82';
-        case BrandVariations.THERR:
-        default:
-            return '#0f7b82';
-    }
+// One row per brand, keyed exhaustively so that adding a value to
+// `BrandVariations` fails to compile here rather than silently inheriting
+// Therr's identity. Every field above fails invisibly in production when it is
+// wrong, so a missing row must be a build error, not a runtime default.
+const BRAND_APP_IDENTITIES: Record<BrandVariations, IBrandAppIdentity> = {
+    [BrandVariations.THERR]: THERR_APP_IDENTITY,
+    [BrandVariations.TEEM]: {
+        bundleId: 'com.therr.mobile.Teem',
+        // Same value as Therr's: Teem's accent matches it. Intentional, not a placeholder.
+        accentColor: '#0f7b82',
+        intentActions: PushNotifications.AndroidIntentActions.Teem,
+    },
+    [BrandVariations.HABITS]: {
+        bundleId: 'com.therr.mobile.habits',
+        accentColor: '#1C7F8A',
+        intentActions: PushNotifications.AndroidIntentActions.Habits,
+    },
+    // Brands with no mobile app of their own. Their users' device tokens are
+    // registered against the Therr app, so they must keep Therr's identity —
+    // give a brand its own row the moment it ships an app.
+    [BrandVariations.APPY_SOCIAL]: THERR_APP_IDENTITY,
+    [BrandVariations.PARALLELS]: THERR_APP_IDENTITY,
+    [BrandVariations.OTAKU]: THERR_APP_IDENTITY,
+    [BrandVariations.DASHBOARD_THERR]: THERR_APP_IDENTITY,
 };
 
-const getAppBrandingClickAction = (brandVariation: BrandVariations, clickActionKey: string) => {
-    switch (brandVariation) {
-        case BrandVariations.TEEM:
-            return PushNotifications.AndroidIntentActions.Teem[clickActionKey];
-        case BrandVariations.HABITS:
-            return PushNotifications.AndroidIntentActions.Habits[clickActionKey];
-        case BrandVariations.THERR:
-            return PushNotifications.AndroidIntentActions.Therr[clickActionKey];
-        default:
-            return PushNotifications.AndroidIntentActions.Therr[clickActionKey];
-    }
-};
+// `brandVariation` originates from an untrusted `x-brand-variation` header, so
+// it can be a value outside the enum at runtime despite the type.
+const getBrandAppIdentity = (brandVariation: BrandVariations): IBrandAppIdentity => BRAND_APP_IDENTITIES[brandVariation]
+    || THERR_APP_IDENTITY;
+
+const getAppBundleIdentifier = (brandVariation: BrandVariations) => getBrandAppIdentity(brandVariation).bundleId;
+
+const getBrandAccentColor = (brandVariation: BrandVariations): string => getBrandAppIdentity(brandVariation).accentColor;
+
+const getAppBrandingClickAction = (
+    brandVariation: BrandVariations,
+    clickActionKey: string,
+) => getBrandAppIdentity(brandVariation).intentActions[clickActionKey];
 
 const createBaseMessage = (
     {
@@ -245,7 +265,7 @@ const createDataOnlyMessage = (
         deviceToken,
     }: ICreateBaseMessage,
     clickActionId: string,
-    brandVariation: BrandVariations = BrandVariations.THERR,
+    brandVariation: BrandVariations,
 ): admin.messaging.Message | false => {
     const baseMessage = createBaseMessage({
         data: {
@@ -320,7 +340,7 @@ const createNotificationMessage = ({
     notificationTitle,
     notificationBody,
     channelId = AndroidChannelId.default,
-    brandVariation = BrandVariations.THERR,
+    brandVariation,
 }: ICreateNotificationMessage): admin.messaging.Message | false => ({
     ...createBaseMessage({
         data,

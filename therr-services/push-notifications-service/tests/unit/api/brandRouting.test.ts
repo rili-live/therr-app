@@ -168,4 +168,21 @@ describe('firebaseAdmin brand routing', () => {
     it('returns false for an unknown type', () => {
         expect(createMessage('not-a-real-type' as any, {}, config, BrandVariations.HABITS)).to.equal(false);
     });
+
+    // Keeps the two lists above honest. Without this, a notification type added to
+    // createMessage is simply absent from both arrays and every assertion still
+    // passes — the coverage silently stops being total, which is the one property
+    // that makes these tests worth having.
+    it('classifies every notification type that createMessage handles', () => {
+        const classified = new Set<string>([...DATA_ONLY_TYPES, ...DISPLAY_TYPES]);
+        const unclassified = Object.values(PushNotifications.Types)
+            .filter((type) => !classified.has(type as string))
+            // An unhandled type falls to the `default` branch and returns false.
+            .filter((type) => createMessage(type as PushNotifications.Types, {}, config, BrandVariations.HABITS) !== false);
+
+        expect(
+            unclassified,
+            'add these to DATA_ONLY_TYPES or DISPLAY_TYPES so their brand routing is covered',
+        ).to.deep.equal([]);
+    });
 });
