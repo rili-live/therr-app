@@ -33,6 +33,7 @@ import { buildGuideSchemas } from './utilities/guideJsonLd';
 import {
     IHabitsInviteRouteMatch, UUID_V4_RE, matchHabitsInviteRoute,
 } from './utilities/habitsSubdomainRoutes';
+import { HABITS_HOSTS, resolveAssetLinksFileName } from './utilities/wellKnownAssets';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
@@ -146,15 +147,39 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Digital Asset Links — must be served per-brand on the matching hostname so
 // Android App Links verification picks up the correct package + cert fingerprint.
-// Runs before expressStaticGzip; otherwise habits.therr.com would receive the
-// default Therr file from /.well-known/assetlinks.json.
-app.get('/.well-known/assetlinks.json', (req, res, next) => {
-    if (req.hostname === 'habits.therr.com' || req.hostname === 'www.habits.therr.com') {
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        return res.sendFile(path.join(__dirname, '/../build/static/.well-known/assetlinks.habits.json'));
-    }
-    return next();
+//
+// This cannot be left to expressStaticGzip, and could not use a bare __dirname
+// path. Both of those failed in production:
+//
+//   1. express-static-gzip@3 bundles its own serve-static@2/send@1, whose
+//      `dotfiles` default is 'ignore' and which dropped send@0's exemption for
+//      paths whose *final* segment is not itself a dotfile. Every request under
+//      `/.well-known/` therefore 404'd out of the static middleware and fell
+//      through to the SSR catch-all, which answered 200 with a "Not Found" HTML
+//      page — Google's verifier saw HTML where it wanted JSON.
+//   2. webpack bundles this server with `node.__dirname: true`, which compiles
+//      `__dirname` to the *relative* string "src". serve-static resolves a
+//      relative root against cwd so it kept working, but `res.sendFile()` throws
+//      "path must be absolute" on a relative path — that was the 500 on
+//      habits.therr.com. `path.resolve` pins it to an absolute path.
+//
+// Registered before expressStaticGzip so the per-host file wins, and before the
+// bare-domain → www redirect further down, because App Links verification does
+// not follow redirects: therr.com has to answer 200 itself, not 301 to www.
+const WELL_KNOWN_DIR = path.resolve(__dirname, '../build/static/.well-known');
+app.get('/.well-known/assetlinks.json', (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.type('application/json');
+    return res.sendFile(resolveAssetLinksFileName(req.hostname), { root: WELL_KNOWN_DIR });
 });
+
+// Every other /.well-known file (apple-app-site-association, security.txt, …).
+// Mounted at the prefix so the dotfile segment is consumed by the mount path and
+// never reaches serve-static's dotfiles check — see (1) above.
+app.use('/.well-known', express.static(WELL_KNOWN_DIR, {
+    index: false,
+    setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=3600'),
+}));
 
 // Define the folder that will be used for static assets
 // Serves pre-compressed .br and .gz files when the client supports them
@@ -197,7 +222,8 @@ app.use((req, res, next) => {
 // www.habits.therr.com to client-cluster-ip-service:7070 — the same pod that
 // serves therr.com. This middleware short-circuits those requests before the
 // rest of the Therr SSR pipeline runs.
-const HABITS_HOSTS = new Set(['habits.therr.com', 'www.habits.therr.com']);
+// HABITS_HOSTS is shared with the Digital Asset Links route above — see
+// ./utilities/wellKnownAssets.
 interface IHabitsRendererEntry {
     view: string;
     title: string;
@@ -466,7 +492,14 @@ app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static
 
 // AI crawler policy — complements robots.txt with per-LLM-agent permissions.
 // Served at both /ai.txt and /.well-known/ai.txt (the emerging canonical location).
-app.get(['/ai.txt', '/.well-known/ai.txt'], express.static(path.join(__dirname, '/../build/static/ai.txt')));
+// express.static() takes a directory, not a file, so the previous form here never
+// served anything; /ai.txt only worked because expressStaticGzip had already
+// answered it, and /.well-known/ai.txt 404'd.
+app.get(['/ai.txt', '/.well-known/ai.txt'], (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.type('text/plain');
+    return res.sendFile('ai.txt', { root: path.resolve(__dirname, '../build/static') });
+});
 
 // IndexNow key file endpoint for Bing/Yandex verification
 // Key must be alphanumeric/hyphens only (8-128 chars) to prevent route injection
@@ -961,7 +994,7 @@ const appLinksJson = {
 
 // Apple universal link (Opens ios app when clicking therr URLs from mobile)
 app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
-// app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
+app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
 
 // Redirect bare domain to www (preserves path and query string)
 app.use((req, res, next) => {

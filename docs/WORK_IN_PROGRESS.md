@@ -51,6 +51,15 @@ append new items here rather than only printing them once.
 - [ ] **Submit / re-submit sitemap to Google Search Console** after any change
   that adds, removes, or restructures SSR routes (`therr-client-web/src/server-client.tsx`,
   `therr-client-web/src/sitemap.ts`). See `docs/GROWTH_STRATEGY.md` Priority 1.
+- [ ] **Re-verify `/.well-known/` responses** after any change to the static
+  middleware in either web server (`therr-client-web/src/server-client.tsx`,
+  `therr-client-web-dashboard/src/server-client.tsx`). `express-static-gzip@3`
+  bundles its own `serve-static`/`send`, whose `dotfiles` default is `'ignore'`,
+  so any dot-directory path that stops being explicitly routed falls out of the
+  static middleware into the SSR catch-all and answers **HTTP 200 with an HTML
+  page** — no 404, no alert, and Android App Links verification silently stops
+  passing. Confirm every claimed host returns `application/json`:
+  `for h in therr.com www.therr.com habits.therr.com www.habits.therr.com dashboard.therr.com; do curl -s -o /dev/null -w "$h %{http_code} %{content_type}\n" https://$h/.well-known/assetlinks.json; done`
 - [ ] **Verify Stripe webhook signature secret** is set in production env after
   a webhook handler change (`therr-services/users-service/src/api/stripe.ts`).
   Mismatched secrets silently 401 — no error is surfaced to the user.
@@ -122,6 +131,7 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
 - [ ] (2026-08-03, /quality-peer-review) **Habits partner push volume will rise after this deploy — expected, watch it anyway.** `createCheckin` now resolves the active pacts backing a check-in's habit goal (`PactsStore.getActiveByUserAndHabitGoal`) instead of relying on a `pactId` no client has ever sent. Three code paths behind the old `if (pactId)` guard were dead and go live at once: the `partnerCheckedIn` push, mid-pact Wing Person achievement credit, and writes to `habit_checkins.pactId`. A per-pact mute already applies to the push (`shouldMuteNotifs` / `celebratePartnerCheckins`, honored via `selectPactPartnerIds({ onlyCelebrating: true })`) and recipients are deduplicated across pacts, so the ceiling is one push per check-in per active pact-mate — but nobody has ever received one, so treat the first days' volume as the real baseline rather than a regression. No migration, no env var.
 - [ ] (2026-08-03, /quality-peer-review) Optional one-off backfill of `habits.habit_checkins."pactId"`. Every check-in row written before the deploy above has a NULL `pactId`, so `GET /pacts/:pactId/checkins` stays empty for all historical activity even though new check-ins populate it. `HabitCheckinsStore.createOrUpdate` backfills the column on conflict, so a row self-heals only if that user re-submits the same (habitGoalId, scheduledDate). A backfill would set `pactId` from the earliest-started active pact on each row's `habitGoalId` for that user — the same attribution rule the handler uses. Purely cosmetic for pact history views; derived progress stats do not read this column (see `utilities/pactMemberStats`), so nothing is blocked on it.
 - [ ] (2026-08-03, /quality-peer-review) Web/mobile users carry one stale `user.userInView` through the first load after the persistConfig transform deploys. `stripUserInView` drops the key on the way *into* storage only — the outbound transform is deliberately identity (`persistConfig.test.ts`: "rehydrates whatever is in storage without alteration") — so a blob already in localStorage/AsyncStorage rehydrates its old `userInView` once, and is clean from the next persist write onward. This is the same one-launch window the `version` bump in the 2026-08-02 entry above would close for every persisted slice at once; decide the two together rather than adding an outbound strip just for this key.
@@ -337,6 +347,16 @@ append new items here rather than only printing them once.
   it is tunable without a mobile release only on the server — the client compiles the
   defaults in (`ALGO_*` env overrides are deliberately server-side), so a client-side
   correction needs a new build. Introduced by 787472c3e.
+- [ ] (2026-08-04, /quality-peer-review) Confirm the HABITS iOS app's real bundle
+  identifier matches `getAppBundleIdentifier(BrandVariations.HABITS)` —
+  `com.therr.mobile.habits` in `push-notifications-service/src/api/firebaseAdmin.ts`.
+  `TherrMobile/ios` pbxproj still carries `com.therr.mobile.Therr`, so the Habits iOS
+  target may not exist yet. APNS rejects any push whose `apns-topic` is not the
+  receiving app's own bundle id, and the rejection is silent — FCM accepts the send.
+  6453beb9c made `leaderboardRankMilestone` the last of 21 data-only types to address
+  its topic per brand, so if the Habits iOS app ships under a different bundle id,
+  every data-only iOS push to it is dropped with no error anywhere. Verify before
+  the first Habits iOS release; Android is unaffected either way.
 <!-- skill-followups:end -->
 
 ---
@@ -521,14 +541,9 @@ depend on these working correctly.
   — RDATA-3: Smart rules around when to send push notifications
 - `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:676` —
   RDATA-3: ML to predict whether to send a push
-- `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:200, 222`
-  — Add brandVariation to dynamically set app bundle identifier (per-brand
-  Firebase routing)
-- `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:262` —
+- `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:283` —
   iOS Notification Service Extension so iOS can fetch message content before
   showing
-- `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:312` —
-  Use brandVariation for icon color
 - `therr-services/push-notifications-service/src/handlers/notifications.ts:47, 112`
   — Endpoint should accept a type parameter
 - `therr-services/websocket-service/src/handlers/messages.ts:168` — Send a

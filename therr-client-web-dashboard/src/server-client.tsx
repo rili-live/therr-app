@@ -91,6 +91,24 @@ if (process.env.NODE_ENV !== 'development') {
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Digital Asset Links, served ahead of expressStaticGzip.
+//
+// express-static-gzip@3 bundles its own serve-static@2/send@1, whose `dotfiles`
+// default is 'ignore', so every path under `/.well-known/` 404s out of the static
+// middleware below and falls through to the SSR catch-all — dashboard.therr.com
+// answered HTTP 200 with an HTML page where Google's verifier wanted JSON.
+// Mounting at the prefix means the dotfile segment is consumed by the mount path
+// and never reaches that check.
+//
+// `path.resolve` rather than `path.join`: webpack bundles this server with
+// `node.__dirname: true`, which compiles `__dirname` to the relative string "src".
+// serve-static resolves a relative root against cwd, but `res.sendFile()` throws
+// on a relative path.
+app.use('/.well-known', express.static(path.resolve(__dirname, '../build/static/.well-known'), {
+    index: false,
+    setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=3600'),
+}));
+
 // Define the folder that will be used for static assets
 // Serves pre-compressed .br and .gz files when the client supports them
 app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
