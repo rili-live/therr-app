@@ -218,7 +218,6 @@ const getAppBrandingClickAction = (brandVariation: BrandVariations, clickActionK
     }
 };
 
-// TODO: Add brandVariation to dynamically set app bundle identifier
 const createBaseMessage = (
     {
         data,
@@ -240,7 +239,6 @@ const createBaseMessage = (
     return message;
 };
 
-// TODO: Add brandVariation to dynamically set app bundle identifier
 const createDataOnlyMessage = (
     {
         data,
