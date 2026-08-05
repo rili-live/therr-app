@@ -107,6 +107,14 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
     vibration,
 });
 
+// Every channel the app declares. Used by createAndroidNotificationChannels to
+// register all four up front instead of lazily on first render — see the comment
+// there for why a channel that doesn't exist yet costs us the notification's
+// importance and its user-facing name.
+const getAllAndroidChannels = (): AndroidChannel[] => Object
+    .values(AndroidChannelIds)
+    .map((channelId) => getAndroidChannel(channelId));
+
 // Intent-action click ids are prefixed per brand — e.g.
 //   app.therrmobile.NEW_CONNECTION (Therr)
 //   com.therr.mobile.NEW_CONNECTION (Teem)
@@ -201,6 +209,7 @@ export {
     // Push Notifications
     AndroidChannels,
     AndroidChannelIds,
+    getAllAndroidChannels,
     getAndroidChannel,
     getAndroidChannelFromClickActionId,
 
