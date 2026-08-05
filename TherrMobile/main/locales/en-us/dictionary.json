@@ -1247,6 +1247,36 @@
         "thoughts": "Thoughts"
       }
     },
+    "apiAccess": {
+      "headerTitle": "API Access",
+      "pageTitle": "Get a Therr API Key",
+      "intro": "API keys are managed on the Therr web dashboard. Here is what the process looks like.",
+      "steps": {
+        "one": {
+          "title": "Create a business account",
+          "description": "Sign up on the Therr dashboard with your business email. A personal Therr profile cannot generate API keys."
+        },
+        "two": {
+          "title": "Choose a plan",
+          "description": "Open Settings on the dashboard and pick a subscription. Every paid plan includes API access."
+        },
+        "three": {
+          "title": "Generate your key",
+          "description": "Go to Settings, then API Keys, and create a key. It is shown once, at creation — copy it somewhere safe."
+        },
+        "four": {
+          "title": "Start building",
+          "description": "Send your key as the x-api-key header on any request. The API reference covers every endpoint."
+        }
+      },
+      "statusEligible": "Your account can create API keys. Open the dashboard to manage them.",
+      "statusNotEligible": "You will need a business account with a paid plan to create API keys.",
+      "buttons": {
+        "manageKeys": "Manage API keys",
+        "openDashboard": "Open the web dashboard",
+        "viewDocs": "Read the API reference"
+      }
+    },
     "advancedSettings": {
       "headerTitle": "Manage Account",
       "pageHeaderAccountActions": "Account Actions",

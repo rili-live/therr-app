@@ -38,6 +38,7 @@ import {
     faTasks,
     faNetworkWired,
     faPeopleArrows,
+    faKey,
 } from '@fortawesome/free-solid-svg-icons';
 import {
     Nav,
@@ -241,6 +242,7 @@ const Sidebar = (props: ISidebarProps) => {
                             <Dropdown.Divider className="my-3 border-indigo" />
 
                             <NavItem title="Settings" icon={faCog} link={'/settings'} />
+                            <NavItem title="API Keys" icon={faKey} link={'/settings/api-keys'} />
                             <CollapsableNavItem eventKey="documentation/" title="Getting Started" icon={faBook}>
                                 <NavItem title="Overview" link={'/documentation/overview'} />
                                 <NavItem title="Quick Start" link={'/claim-a-space'} />
