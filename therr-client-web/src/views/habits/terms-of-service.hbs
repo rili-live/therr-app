@@ -40,6 +40,16 @@
             border-bottom: 1px solid var(--habits-border);
             background: #fff;
         }
+        header.site-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        header.site-header .brand-mark {
+            width: 2rem;
+            height: 2rem;
+            display: block;
+        }
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
@@ -61,12 +71,24 @@
             color: var(--habits-text-muted);
             font-size: 0.875rem;
         }
-        footer.site-footer a { margin: 0 0.5rem; color: var(--habits-text-muted); }
+        footer.site-footer .footer-links {
+            margin-bottom: 0.75rem;
+        }
+        footer.site-footer .footer-links a {
+            margin: 0 0.5rem;
+            color: var(--habits-text-muted);
+        }
+        footer.site-footer .footer-family {
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
     <header class="site-header">
-        <div class="container"><a href="/" class="brand">Friends with Habits</a></div>
+        <div class="container">
+            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
+            <a href="/" class="brand">Friends with Habits</a>
+        </div>
     </header>
 
     <main>
@@ -151,14 +173,6 @@
         </div>
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <div>
-                <a href="/">Home</a>
-                <a href="/privacy-policy">Privacy Policy</a>
-            </div>
-            <div style="margin-top: 0.75rem;">&copy; Therr Inc.</div>
-        </div>
-    </footer>
+    {{> habitsFooter}}
 </body>
 </html>
