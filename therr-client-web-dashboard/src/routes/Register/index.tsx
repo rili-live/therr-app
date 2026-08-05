@@ -22,6 +22,7 @@ import withNavigation from '../../wrappers/withNavigation';
 import { getWebsiteName } from '../../utilities/getHostContext';
 import { onFBLoginPress, shouldRenderLoginForm } from '../../api/login';
 import { routeAfterLogin } from '../Login';
+import getReturnTo from '../../utilities/getReturnTo';
 import LoginWith from '../../components/LoginWith';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
@@ -117,7 +118,11 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             activationCode,
             paymentSessionId,
         }).then((response: any) => {
-            this.props.navigation.navigate('/login', {
+            // Keep the inbound destination attached through the login step so a business
+            // account created from the /api-access flow lands on API keys, not the overview.
+            const returnTo = getReturnTo(window?.location?.search, '');
+            const loginPath = returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : '/login';
+            this.props.navigation.navigate(loginPath, {
                 state: {
                     successMessage: this.translate('pages.register.registerSuccess'),
                 },
