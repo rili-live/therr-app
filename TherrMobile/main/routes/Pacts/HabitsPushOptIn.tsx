@@ -1,9 +1,9 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, Pressable, Platform, PermissionsAndroid } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text, Pressable } from 'react-native';
 import { connect } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import notifee from '@notifee/react-native';
 import { IUserState } from 'therr-react/types';
+import permissions from '../../utilities/permissionsOrchestrator';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
@@ -49,12 +49,19 @@ class HabitsPushOptIn extends React.Component<IHabitsPushOptInProps> {
         this.props.navigation.reset({ index: 0, routes: [{ name: 'HabitsDashboard' }] });
     };
 
+    // This screen is itself the soft-ask primer, so it goes through the orchestrator's
+    // custom-primer entry point rather than `permissions.request` (which would stack a
+    // second explainer modal on top of it) and rather than calling notifee/PermissionsAndroid
+    // directly (which asks the OS but never tells the rest of the app about it).
+    //
+    // Going through the orchestrator is what registers the FCM device token: Layout
+    // subscribes via `permissions.onGranted('notifications')`. Requesting the OS
+    // permission here in isolation left the token unregistered server-side until the
+    // next cold start, so a brand-new user who opted in during onboarding got no push
+    // notifications at all for the remainder of that session.
     requestPermissions = async () => {
         try {
-            if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
-                await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-            }
-            await notifee.requestPermission();
+            await permissions.requestAfterCustomPrimer('notifications', { trigger: 'habitsOnboarding' });
         } catch {
             // user denied or error — proceed regardless; we don't block onboarding
         }

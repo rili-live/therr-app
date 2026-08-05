@@ -24,6 +24,7 @@ export type Trigger =
     | 'firstConnectionAccepted'
     | 'pactCreate'
     | 'pactAccept'
+    | 'habitsOnboarding'
     | 'secondSession';
 
 type Status = 'granted' | 'denied' | 'blocked';
@@ -259,6 +260,46 @@ const request = async (type: PermType, opts: RequestOptions): Promise<RequestRes
     return { status, source: 'os' };
 };
 
+/**
+ * For call sites that render their own full-screen explainer instead of the shared
+ * primer modal (e.g. the HABITS onboarding push opt-in screen). Skips `showPrimer`
+ * — the caller IS the primer — but keeps everything else the orchestrator owns:
+ * the persisted `osAskedAt` / `lastStatus` state, and the `onGranted` fan-out that
+ * triggers FCM device-token registration in Layout.
+ *
+ * Calling `notifee.requestPermission()` directly instead of this leaves the device
+ * token unregistered until the next cold start (Layout only registers on mount or
+ * on an auth transition), so the user receives no pushes at all for the rest of the
+ * session they opted in — and, because `osAskedAt` never gets stamped, the
+ * second-session fallback re-prompts someone who already answered.
+ */
+const requestAfterCustomPrimer = async (
+    type: PermType,
+    opts: Partial<RequestOptions> = {},
+): Promise<Status> => {
+    const native = await nativeCheck(type);
+    if (native === 'granted') {
+        await updateStateFor(type, { lastStatus: 'granted' });
+        opts.onGranted?.();
+        fireGrantedListeners(type);
+        return 'granted';
+    }
+
+    const status = await performOSRequest(type, opts.storePermissionsResponse || noopStore);
+    await updateStateFor(type, {
+        osAskedAt: Date.now(),
+        lastStatus: status,
+        appVersionAtLastAsk: DeviceInfo.getVersion(),
+    });
+    if (status === 'granted') {
+        opts.onGranted?.();
+        fireGrantedListeners(type);
+    } else {
+        opts.onDenied?.('os');
+    }
+    return status;
+};
+
 const requestIfAppropriate = async (type: PermType, opts: RequestOptions): Promise<void> => {
     const native = await nativeCheck(type);
     if (native === 'granted') {
@@ -296,6 +337,7 @@ export const onGranted = (type: PermType, fn: () => void): (() => void) => {
 
 const permissions = {
     request,
+    requestAfterCustomPrimer,
     requestIfAppropriate,
     getStatus,
     maybeShowSecondSessionFallback,
