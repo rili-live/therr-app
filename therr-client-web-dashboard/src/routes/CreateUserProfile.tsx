@@ -21,10 +21,12 @@ import AccountDetailsForm from '../components/forms/AccountDetailsForm';
 import { getWebsiteName } from '../utilities/getHostContext';
 import UsersActions from '../redux/actions/UsersActions';
 import { routeAfterLogin } from './Login';
+import getReturnTo from '../utilities/getReturnTo';
 import UserProfileForm, { orgTypeOptions } from '../components/forms/UserProfileForm';
 import VerifyPhoneCodeForm from '../components/forms/VerifyPhoneCodeForm';
 
 interface ICreateUserProfileRouterProps {
+    location: Location;
     navigation: {
         navigate: NavigateFunction;
     }
@@ -237,7 +239,10 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
                         'Your phone number and code were successfully verified!',
                     );
                     setTimeout(() => {
-                        navigation.navigate(routeAfterLogin, {
+                        // AuthRoute attaches ?returnTo when it bounces a session-less visitor
+                        // here, so a deep link (mobile's API-access screen → /settings/api-keys)
+                        // survives the whole register → verify → profile detour.
+                        navigation.navigate(getReturnTo(this.props.location?.search, routeAfterLogin), {
                             state: {
                                 successMessage: this.translate('pages.createProfile.createProfileSuccess'),
                             },

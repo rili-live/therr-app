@@ -242,7 +242,47 @@
       "successVerifiedMessage": "Check your e-mail for a link to reset your password"
     },
     "settings": {
-      "pageTitle": "Settings"
+      "pageTitle": "Settings",
+      "apiKeys": {
+        "title": "API Keys",
+        "description": "Generate keys for your applications to call the Therr API, and revoke keys you no longer use.",
+        "manageButton": "Manage API keys"
+      }
+    },
+    "apiKeys": {
+      "pageTitle": "API Keys",
+      "pageDescription": "Create and manage the keys your applications use to call the Therr API.",
+      "viewDocs": "View the API reference",
+      "createTitle": "Create a new key",
+      "nameLabel": "Key name",
+      "namePlaceholder": "e.g. Production server",
+      "createButton": "Create key",
+      "atLimit": "You have reached the limit of {max} active keys. Revoke one to create another.",
+      "listTitle": "Your keys",
+      "emptyState": "You have not created any API keys yet.",
+      "unnamed": "Unnamed key",
+      "neverUsed": "Never used",
+      "revoke": "Revoke",
+      "confirmRevoke": "Revoke \"{keyName}\"? Any application using this key will stop working immediately.",
+      "createdTitle": "Copy your new key now",
+      "createdWarning": "This is the only time the full key will be shown. Store it somewhere safe — if you lose it, you will need to revoke it and create a new one.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "upgradeTitle": "API access requires a subscription",
+      "upgradeDescription": "API keys are included with every paid plan. Choose a plan to start building with the Therr API.",
+      "upgradeButton": "View plans",
+      "table": {
+        "name": "Name",
+        "prefix": "Key prefix",
+        "created": "Created",
+        "lastUsed": "Last used",
+        "actions": "Actions"
+      },
+      "errors": {
+        "loadFailed": "We could not load your API keys. Please refresh and try again.",
+        "createFailed": "We could not create the key. Please try again.",
+        "revokeFailed": "We could not revoke the key. Please try again."
+      }
     },
     "home": {
       "pageTitle": "Home"

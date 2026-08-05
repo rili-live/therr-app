@@ -705,6 +705,7 @@ app.get('/sitemap-static.xml', (req, res) => {
         { loc: '/locations', priority: '0.9' },
         { loc: '/locations/cities', priority: '0.9' },
         { loc: '/locations/categories', priority: '0.9' },
+        { loc: '/api-access', priority: '0.6' },
         ...categoryUrls,
         ...cityUrls,
     ];
@@ -2704,6 +2705,7 @@ const publicRoutePatterns = [
     /^\/invite\/[^/]+$/,
     /^\/lists\/[^/]+\/[a-z0-9-]+$/,
     /^\/child-safety$/,
+    /^\/api-access$/,
     /^\/go-mobile$/,
     /^\/app-feedback$/,
     /^\/reset-password$/,

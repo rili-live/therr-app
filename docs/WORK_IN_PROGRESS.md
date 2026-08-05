@@ -348,6 +348,35 @@ append new items here rather than only printing them once.
   its topic per brand, so if the Habits iOS app ships under a different bundle id,
   every data-only iOS push to it is dropped with no error anywhere. Verify before
   the first Habits iOS release; Android is unaffected either way.
+- [ ] (2026-08-05, /quality-peer-review) Re-submit `sitemap-static.xml` in Google Search
+  Console after the web deploy. f3b1556a7 adds `/api-access` to the static sitemap and to
+  `publicRoutePatterns` in `therr-client-web/src/server-client.tsx`; it is the SEO landing
+  page for the API funnel, so it should be indexed rather than waiting on an organic
+  recrawl.
+- [ ] (2026-08-05, /quality-peer-review) Cut a mobile release before promoting the
+  marketing site's "Get an API key" CTA. `therr.com/api-access` is an auto-verified
+  Android App Link, so on any device with the app installed the tap opens the **app**,
+  not the browser — and only builds containing 81f94b546 have the `ApiAccess` screen to
+  land on. Installs older than that still fall through to
+  `handleOpenByNotifeeNotification` and dead-end. Same release carries 541701457's eager
+  Android channel registration.
+- [ ] (2026-08-05, /quality-peer-review) Accept that 541701457 cannot repair existing
+  installs whose `reminders` channel was already created at the wrong importance —
+  Android locks a channel's importance and vibration at first creation, so the eager
+  registration only settles the values on installs that had not yet posted to it. If
+  HABITS reminder engagement stays flat for the pre-3.13.0 cohort after the release,
+  that is the reason, and the only fix is a new channel id.
+- [ ] (2026-08-05, /quality-peer-review) One hop of the dashboard deep-link chain still
+  drops `returnTo`. `AuthRoute` attaches it only when the visitor has **no session** —
+  an authenticated-but-under-privileged user gets the bare `redirectPath`, because Login
+  forwards an already-authenticated visitor straight to `returnTo` and that would bounce
+  off the same guard forever. The cost is that a newly-registered dashboard user who is
+  redirected to `/create-profile` for missing props arrives without a `returnTo` and
+  finishes on `/dashboard` rather than `/settings`. Preserving it there is safe in
+  principle (`/create-profile` only navigates on a successful submit, so it cannot
+  auto-loop), but it needs a per-route opt-in prop rather than hardcoding the path into
+  `therr-react`. Worth doing if the API funnel's register→subscribe conversion looks
+  lossy.
 <!-- skill-followups:end -->
 
 ---
