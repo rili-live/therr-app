@@ -366,6 +366,17 @@ append new items here rather than only printing them once.
   registration only settles the values on installs that had not yet posted to it. If
   HABITS reminder engagement stays flat for the pre-3.13.0 cohort after the release,
   that is the reason, and the only fix is a new channel id.
+- [ ] (2026-08-05, /quality-peer-review) One hop of the dashboard deep-link chain still
+  drops `returnTo`. `AuthRoute` attaches it only when the visitor has **no session** —
+  an authenticated-but-under-privileged user gets the bare `redirectPath`, because Login
+  forwards an already-authenticated visitor straight to `returnTo` and that would bounce
+  off the same guard forever. The cost is that a newly-registered dashboard user who is
+  redirected to `/create-profile` for missing props arrives without a `returnTo` and
+  finishes on `/dashboard` rather than `/settings`. Preserving it there is safe in
+  principle (`/create-profile` only navigates on a successful submit, so it cannot
+  auto-loop), but it needs a per-route opt-in prop rather than hardcoding the path into
+  `therr-react`. Worth doing if the API funnel's register→subscribe conversion looks
+  lossy.
 <!-- skill-followups:end -->
 
 ---
