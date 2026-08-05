@@ -96,7 +96,16 @@ export class ApiAccessComponent extends React.Component<IApiAccessProps> {
     onOpenDashboard = () => {
         // Eligible accounts go straight to the key generator; everyone else needs to
         // register or subscribe first, so send them to the dashboard entry point.
-        const path = this.isEligible ? '/settings/api-keys' : '/register';
+        //
+        // Both destinations carry the page they should end on. This link opens the system
+        // browser, which almost never has a dashboard session, so the eligible path gets
+        // bounced to /login by AuthRoute and the register path routes through
+        // /register -> /login -> /create-profile. Every one of those steps forwards
+        // `returnTo`, so without it the user finishes the detour on the dashboard overview
+        // and has to find their way back here on their own.
+        const path = this.isEligible
+            ? '/settings/api-keys'
+            : `/register?returnTo=${encodeURIComponent('/settings')}`;
         Linking.openURL(getDashboardUrl(path)).catch(() => {});
     };
 
