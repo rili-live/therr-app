@@ -338,6 +338,16 @@ append new items here rather than only printing them once.
   it is tunable without a mobile release only on the server — the client compiles the
   defaults in (`ALGO_*` env overrides are deliberately server-side), so a client-side
   correction needs a new build. Introduced by 787472c3e.
+- [ ] (2026-08-04, /quality-peer-review) Confirm the HABITS iOS app's real bundle
+  identifier matches `getAppBundleIdentifier(BrandVariations.HABITS)` —
+  `com.therr.mobile.habits` in `push-notifications-service/src/api/firebaseAdmin.ts`.
+  `TherrMobile/ios` pbxproj still carries `com.therr.mobile.Therr`, so the Habits iOS
+  target may not exist yet. APNS rejects any push whose `apns-topic` is not the
+  receiving app's own bundle id, and the rejection is silent — FCM accepts the send.
+  6453beb9c made `leaderboardRankMilestone` the last of 21 data-only types to address
+  its topic per brand, so if the Habits iOS app ships under a different bundle id,
+  every data-only iOS push to it is dropped with no error anywhere. Verify before
+  the first Habits iOS release; Android is unaffected either way.
 <!-- skill-followups:end -->
 
 ---
@@ -522,14 +532,9 @@ depend on these working correctly.
   — RDATA-3: Smart rules around when to send push notifications
 - `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:676` —
   RDATA-3: ML to predict whether to send a push
-- `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:200, 222`
-  — Add brandVariation to dynamically set app bundle identifier (per-brand
-  Firebase routing)
-- `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:262` —
+- `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:283` —
   iOS Notification Service Extension so iOS can fetch message content before
   showing
-- `therr-services/push-notifications-service/src/api/firebaseAdmin.ts:312` —
-  Use brandVariation for icon color
 - `therr-services/push-notifications-service/src/handlers/notifications.ts:47, 112`
   — Endpoint should accept a type parameter
 - `therr-services/websocket-service/src/handlers/messages.ts:168` — Send a
