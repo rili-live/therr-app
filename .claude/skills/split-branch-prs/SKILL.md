@@ -173,12 +173,42 @@ them all.
 - Locale strings only that variant renders
 - `.circleci/config.yml` release-job branch filters / EAS profile names for that brand
 
+**Shared files that get rebranded by mistake — check these every time.** None are in the
+niche bucket; they must keep their Therr values on `general`, and the niche look is produced
+by the override mechanisms listed under the next heading. Each of these actually shipped to
+`general` in the incident above, past every existing check:
+
+- `TherrMobile/main/styles/themes/{light,dark,retro}/colors.ts` — the **base** palettes are
+  always Therr's (`primary3: '#1C7F8A'`). Editing them rebrands every variant at once.
+- `TherrMobile/main/styles/themes/paper.ts` — base theme values *and* the comments
+  describing them.
+- `TherrMobile/main/locales/*/dictionary.json` — shared by every variant. Never hardcode a
+  brand name; copy that must name the app takes `{appName}` and is passed
+  `BRAND_DISPLAY_NAME` at the call site. This includes the Play **prominent disclosure**,
+  which the Therr build renders too and which must name the app the user is holding.
+- `TherrMobile/android/app/src/main/AndroidManifest.xml` — permission `tools:node="remove"`
+  strips and the Transistorsoft license meta-data. HABITS strips location on its own branch;
+  porting that to `general` silently disables location for Therr and Teem.
+- Hardcoded colour fallbacks in components (e.g. `|| '#1C7F8A'` in `Input/index.tsx`).
+
+`TherrMobile/__tests__/brandSurfaceConsistency.test.ts` asserts all of the above against
+whatever `brandConfig.ts` selects, so it passes on both branches and fails when they
+disagree. Run it on **both** sides of the split — it is the fastest way to prove the
+separation is clean.
+
 **Careful cases — these look niche but are shared:**
 
 - `TherrMobile/env-config.js` — the per-brand feature-flag override map is shared infrastructure.
   Every brand's overrides live on `general`.
 - Brand *feature* code (habits routes, pact components) and its additive assets
   (`main/assets/habits-icons/**`, landing images) — shared; it is flag-gated, not brand identity.
+- `brandColorOverrides` / `brandColorVariationOverrides` in `styles/themes/index.ts` and
+  `brandPaperColorOverrides` in `paper.ts` — shared. This is *the* supported way to give a
+  niche app its palette, which is why the base palettes above never need editing.
+- `BRAND_DISPLAY_NAMES` in `brandConfig.ts` — shared; it maps every brand, and
+  `BRAND_DISPLAY_NAME` is derived from the selected one, so no per-branch edit is needed.
+- A component branching on `CURRENT_BRAND_VARIATION === BrandVariations.HABITS` — shared and
+  correct; the other brand's path simply never runs.
 - `brandConfig.ts`'s type annotation (`: BrandVariations`) — shared. Only the assigned value is
   niche. Without the annotation, TypeScript narrows to a literal and every
   `=== BrandVariations.HABITS` guard becomes a false TS2367, which churns the mobile tsc baseline
