@@ -1345,7 +1345,7 @@
         "back": "Volver un paso"
       },
       "syncContacts": {
-        "description": "Comparamos tus contactos con las cuentas de Therr para que puedas conectarte de inmediato. Tus contactos nunca se comparten con nadie más.",
+        "description": "Descubre cuáles de tus contactos ya están aquí. Tu lista de contactos se envía a nuestros servidores para buscar cuentas coincidentes; te mostraremos todos los detalles antes de que nada salga de tu dispositivo.",
         "continue": "Continuar",
         "skip": "Ahora no",
         "errorMessage": "No pudimos sincronizar tus contactos. Inténtalo de nuevo.",
@@ -2369,7 +2369,10 @@
     "primer": {
       "shared": {
         "allow": "Permitir",
-        "notNow": "Ahora no"
+        "notNow": "Ahora no",
+        "agree": "Acepto",
+        "decline": "No permitir",
+        "privacyPolicy": "Lee nuestra Política de Privacidad"
       },
       "notifications": {
         "title": "Mantente al tanto",
@@ -2380,8 +2383,10 @@
         "body": "Therr necesita acceso a la cámara para adjuntar una foto a tu publicación."
       },
       "contacts": {
-        "title": "Encuentra amigos más rápido",
-        "body": "Conecta con contactos que ya están en Therr. Tu agenda permanece en tu dispositivo."
+        "title": "Friends with Habits recopila tus contactos",
+        "summary": "Friends with Habits recopila tu lista de contactos —los nombres, números de teléfono y correos electrónicos de tus contactos— y la envía a los servidores de Therr en api.therr.com para saber cuáles de tus contactos ya usan la aplicación.",
+        "detail": "Se incluyen todos los contactos de tu agenda, no solo los que elijas. Usamos estos datos para buscar cuentas coincidentes y para enviar las invitaciones que decidas enviar. Los contactos sin una cuenta coincidente no se guardan, salvo las personas a las que invites expresamente: conservamos su número de teléfono o correo electrónico para entregar esa invitación y para no invitarlas dos veces. Nunca vendemos tus contactos ni los compartimos con anunciantes.",
+        "optOut": "Esto es opcional. Puedes omitirlo y seguir usando Friends with Habits, y puedes desactivar el acceso a los contactos en cualquier momento en la configuración de tu dispositivo."
       }
     }
   },

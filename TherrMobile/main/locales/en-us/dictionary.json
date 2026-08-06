@@ -1345,7 +1345,7 @@
         "back": "Go back a step"
       },
       "syncContacts": {
-        "description": "We match your contacts against Therr accounts so you can connect right away. Your contacts are never shared with anyone else.",
+        "description": "See which of your contacts are already here. Your contact list is sent to our servers to look for matching accounts — we will show you the full details before anything leaves your device.",
         "continue": "Continue",
         "skip": "Not Now",
         "errorMessage": "We could not sync your contacts. Please try again.",
@@ -2369,7 +2369,10 @@
     "primer": {
       "shared": {
         "allow": "Allow",
-        "notNow": "Not now"
+        "notNow": "Not now",
+        "agree": "I Agree",
+        "decline": "Don't Allow",
+        "privacyPolicy": "Read our Privacy Policy"
       },
       "notifications": {
         "title": "Stay in the loop",
@@ -2380,8 +2383,10 @@
         "body": "Therr needs camera access to attach a photo to your post."
       },
       "contacts": {
-        "title": "Find friends faster",
-        "body": "Match contacts who are already on Therr. Your address book stays on your device."
+        "title": "Friends with Habits collects your contacts",
+        "summary": "Friends with Habits collects your contact list — your contacts' names, phone numbers and email addresses — and sends it to Therr servers at api.therr.com to find which of your contacts already use the app.",
+        "detail": "Every contact in your address book is included, not only the ones you pick. We use these details to look for matching accounts and to send any invites you choose to send. Contacts with no matching account are not stored, apart from anyone you explicitly invite — we keep their phone number or email address to deliver that invite and to avoid inviting them twice. We never sell your contacts or share them with advertisers.",
+        "optOut": "This is optional. You can skip it and keep using Friends with Habits, and you can turn off contact access at any time in your device settings."
       }
     }
   },
