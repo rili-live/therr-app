@@ -6,8 +6,6 @@ TherrMobile/main/components/ClusteredMapView.tsx	TS18046	'm.props' is of type 'u
 TherrMobile/main/components/ClusteredMapView.tsx	TS2322	Type '(region: Region, details?: { isGesture: boolean; }) => void' is not assignable to type '(region: Region, details: Details) => void'.
 TherrMobile/main/components/Input/index.tsx	TS2322	Type 'ColorValue | null' is not assignable to type 'string | undefined'.
 TherrMobile/main/components/Layout.tsx	TS2322	Type '(sheetId: "group-sheet" | "user-sheet", options: { payload: Partial<Sheets[typeof sheetId]["payload"]>; context?: string; }) => Promise<...> | undefined' is not assignable to type '(sheetId: "group-sheet" | "user-sheet", options?: { payload: Partial<{ group: any; translate: (key: string, params?: any) => string; themeForms: { colors: ITherrThemeColors; styles: any; }; ... 8 more ...; onPressShareGroup: (group: any) => void; } | { ...; }>; context?: string | undefined; } | undefined) => Promise...'.
-TherrMobile/main/components/Layout.tsx	TS2367	This comparison appears to be unintentional because the types 'BrandVariations.THERR' and 'BrandVariations.HABITS' have no overlap.
-TherrMobile/main/components/Layout.tsx	TS2367	This comparison appears to be unintentional because the types 'BrandVariations.THERR' and 'BrandVariations.TEEM' have no overlap.
 TherrMobile/main/components/LoginButtons/GoogleSignInButton.tsx	TS2339	Property 'code' does not exist on type '{}'.
 TherrMobile/main/components/LoginButtons/GoogleSignInButton.tsx	TS2339	Property 'data' does not exist on type 'User'.
 TherrMobile/main/components/LoginButtons/GoogleSignInButton.tsx	TS2339	Property 'message' does not exist on type '{}'.
