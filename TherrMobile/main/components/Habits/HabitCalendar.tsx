@@ -3,6 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { IHabitCheckin } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
+import { toLocalDateKey } from '../../utilities/localDateKey';
 
 interface IHabitCalendarProps {
     checkins: IHabitCheckin[];
@@ -18,7 +19,7 @@ interface IHabitCalendarProps {
 
 const DAYS_OF_WEEK_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
-const formatDateKey = (date: Date): string => date.toISOString().split('T')[0];
+const formatDateKey = toLocalDateKey;
 
 const HabitCalendar: React.FC<IHabitCalendarProps> = ({
     checkins,

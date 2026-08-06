@@ -387,6 +387,26 @@ append new items here rather than only printing them once.
   auto-loop), but it needs a per-route opt-in prop rather than hardcoding the path into
   `therr-react`. Worth doing if the API funnel's register→subscribe conversion looks
   lossy.
+- [ ] (2026-08-06, /quality-peer-review) **Decide the brand identity of `general` before
+  merging it to `stage`.** `general` currently carries Friends with Habits branding, which
+  CLAUDE.md lists as niche-only: `brandConfig.ts` sets `CURRENT_BRAND_VARIATION = HABITS`,
+  `build.gradle` sets `applicationId com.therr.habits` with versionCode **445 → 21** and
+  versionName **3.13.0 → 0.4.9**, `strings.xml` renames the app, and `app.json` points at
+  the Habits EAS project. Merging as-is means the flagship Therr Android app can no longer
+  be released from `main` — the package id changed and the versionCode went backwards, both
+  of which Play rejects. Either revert these files on `general` and keep them on
+  `niche/HABITS-general`, or accept the pivot and update CLAUDE.md + the project briefs to
+  say `general` builds Habits. Introduced by merges of `niche/HABITS-general` into `general`.
+- [ ] (2026-08-06, /quality-peer-review) `.circleci/config.yml` renamed
+  `therr_mobile_release`/`eas_build_therr_android` to the `habits_*` equivalents and moved
+  the trigger from `main` to `niche/HABITS-main`. After this lands there is no CI job that
+  builds the flagship Therr Android app on any branch. Confirm that is intended, or restore
+  a `main`-triggered Therr build alongside the Habits one.
+- [ ] (2026-08-06, /quality-peer-review) The mobile tsc baseline grew by four signatures
+  (`routes/index.tsx` HabitDetail + PactDetail, `MyHabits/index.tsx` TS2322/TS2345) rather
+  than the errors being fixed. The `MyHabits` pair is the endemic `translate: Function`
+  typing issue and is cheap to fix; the two `ConnectedComponent` ones match a long-standing
+  pattern. Worth clearing so the baseline stops ratcheting upward.
 <!-- skill-followups:end -->
 
 ---

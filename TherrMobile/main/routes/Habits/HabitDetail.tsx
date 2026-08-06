@@ -16,6 +16,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { CheckinButton, CheckinProofSheet, HabitCalendar, StreakWidget } from '../../components/Habits';
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { signImageUrl } from '../../utilities/content';
+import { toLocalDateKey } from '../../utilities/localDateKey';
 import { showToast } from '../../utilities/toasts';
 
 interface IHabitDetailDispatchProps {
@@ -105,8 +106,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
         return {
-            startDate: startDate.toISOString().split('T')[0],
-            endDate: endDate.toISOString().split('T')[0],
+            startDate: toLocalDateKey(startDate),
+            endDate: toLocalDateKey(endDate),
         };
     };
 
