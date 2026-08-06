@@ -4,7 +4,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import Svg, { Path, G } from 'react-native-svg';
 import { BrandVariations } from 'therr-js-utilities/constants';
-import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import { CURRENT_BRAND_VARIATION, BRAND_DISPLAY_NAME } from '../config/brandConfig';
 import { ITherrThemeColors } from '../styles/themes';
 
 export interface IHeaderTherrLogoProps {
@@ -23,7 +23,7 @@ export const HeaderTherrLogo = ({ theme }: IHeaderTherrLogoProps) => {
         return (
             <View style={theme.styles.headerTitleLogoText}>
                 <Text style={{ color: theme.colors.accentLogo, fontSize: 18, fontWeight: '700', letterSpacing: 0.3 }}>
-                    Friends with Habits
+                    {BRAND_DISPLAY_NAME}
                 </Text>
             </View>
         );
