@@ -21,6 +21,7 @@ import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
+import ApiAccess from './ApiAccess';
 import AchievementClaim from './Achievements/AchievementClaim';
 import Leaderboard from './Leaderboard';
 import ActivatedAreas from './Areas/ActivatedAreas';
@@ -337,6 +338,17 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Settings',
             access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // Public on purpose: this screen is the landing target for the therr.com/api-access
+        // App Link, and a signed-out visitor who taps that link must see the instructions
+        // rather than be bounced to a login wall with no explanation.
+        name: 'ApiAccess',
+        component: ApiAccess,
+        options: () => ({
+            title: 'API Access',
+            access: AccessPresets.PUBLIC_DEFAULT,
         }),
     },
     {

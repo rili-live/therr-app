@@ -1,0 +1,45 @@
+{{!
+    Shared footer for every Friends with Habits view. Registered as a Handlebars
+    partial in server-client.tsx, so views include it by the partial name
+    habitsFooter.
+
+    Keep the markup here rather than copied per view: the footers drifted apart
+    once already (three different link sets and two different copyright lines
+    across nine templates), and this is the surface search crawlers use to walk
+    between the two properties.
+
+    Two things this comment must not contain, both of which broke the footer on
+    every habits page when they were in here:
+
+      1. A partial call. Handlebars does not treat an HTML comment as a comment,
+         so naming this block's own partial inside one still executes it, and the
+         footer recursed into itself until the stack blew.
+      2. A Handlebars comment delimiter. The long comment form ends at the FIRST
+         closing delimiter, even one written inside backticks as prose, so the
+         rest of the block leaked onto the rendered page as visible text. Hence
+         the short bare-bang form here.
+
+    The styles it depends on - footer.site-footer, .footer-links, .footer-family
+    and .container - live in each view's own style block, since these templates
+    are otherwise self-contained and have no shared stylesheet.
+}}
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-links">
+            <a href="/privacy-policy">Privacy Policy</a>
+            <a href="/terms-of-service">Terms of Service</a>
+            <a href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Google Play</a>
+        </div>
+        <div>&copy; Therr Inc.</div>
+        <!--
+            Outbound link to the sibling property. habits.therr.com is a brand-new
+            subdomain with no inbound links of its own; the reciprocal link in the
+            therr.app footer is what gives crawlers a path to it from an indexed
+            domain, and this side ties the two entities together.
+        -->
+        <div class="footer-family">
+            Part of the Therr family of apps &mdash;
+            <a href="https://www.therr.app/" rel="noopener">Therr, for local discovery and community</a>.
+        </div>
+    </div>
+</footer>

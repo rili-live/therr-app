@@ -10,6 +10,7 @@ import DashboardOverview from './Dashboards/DashboardOverview';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
 import Settings from './Settings';
+import ApiKeys from './ApiKeys';
 import EmailVerification from './EmailVerification';
 import ResetPassword from './ResetPassword';
 import ManageSpaces from './ManageSpaces';
@@ -295,6 +296,20 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/settings',
         element: <AuthRoute
             component={Settings}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        // Gated on EMAIL_VERIFIED only, not on subscription level: an unsubscribed user
+        // who follows the link needs to land here and see the upgrade prompt rather than
+        // be bounced to /login with no explanation of why.
+        path: '/settings/api-keys',
+        element: <AuthRoute
+            component={ApiKeys}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ANY,
                 levels: [AccessLevels.EMAIL_VERIFIED],

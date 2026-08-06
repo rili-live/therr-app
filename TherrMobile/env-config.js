@@ -15,6 +15,11 @@ const devLanHost = null;
 // localhost; the iOS simulator shares the host's network and uses localhost.
 const hostDev = devLanHost || (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 const hostProd = 'therr.com';
+// The web dashboard is a separate host on purpose: therr.com / www.therr.com are
+// auto-verified App Links captured by this app, so a dashboard link on therr.com would
+// re-open the app instead of the browser. dashboard.therr.com is not in the intent filter.
+const dashboardHostDev = `http://${hostDev}:7071`;
+const dashboardHostProd = 'https://dashboard.therr.com';
 const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 
 // Base feature flag defaults (Therr / core app behavior)
@@ -104,6 +109,7 @@ module.exports = {
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
         host: hostDev,
+        dashboardHostFull: dashboardHostDev,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,
@@ -125,6 +131,7 @@ module.exports = {
         googleOAuth2WebClientIdiOS: '718962923226-1rhet8adgsvuviutj7ja2006bhcncr87.apps.googleusercontent.com',
         host: hostProd,
         hostFull: `https://${hostProd}`,
+        dashboardHostFull: dashboardHostProd,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,

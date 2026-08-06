@@ -34,6 +34,47 @@ import { BRAND_BLUE_GREEN } from '../styles/themes/brandConstants';
  * default_notification_channel_id points at `reminders` too, so it could not
  * cover the gap.)
  *
+ * Safe to call more than once: createChannels is an upsert. Android locks a
+ * channel's importance and vibration at first creation, so registering here —
+ * before any notification can arrive — also settles those values from the
+ * AndroidChannels declarations instead of leaving them to whichever call site
+ * happened to post first (sendForegroundNotification defaults to DEFAULT,
+ * sendBackgroundNotification forces HIGH). One consequence worth knowing: the
+ * `importance` argument below no longer has any effect on the four declared
+ * channels, only on an ad-hoc channel a caller passes in.
+ */
+const createAndroidNotificationChannels = (): Promise<void> => {
+    if (Platform.OS !== 'android') {
+        return Promise.resolve();
+    }
+
+    return notifee.createChannels(getAllAndroidChannels())
+        // Non-fatal: sendForegroundNotification still creates its own channel on
+        // demand, and a failure here must never stop the app from booting.
+        .catch((err) => console.log('Failed to create Android notification channels', err));
+};
+
+/**
+ * Registers every Android channel in ../constants up front, at app start.
+ *
+ * Until this existed, channels were only created as a side effect of Notifee
+ * rendering a notification on one — i.e. only on the *data-only* push path
+ * (createDataOnlyMessage → index.js → sendBackgroundNotification) and the local
+ * trigger notifications. But push-notifications-service also sends **display**
+ * notifications (createNotificationMessage) that name a channelId in the FCM
+ * payload and are rendered by the OS with no JS involved: dailyHabitReminder,
+ * morningMotivation, eveningCheckIn, streakBroken and pactDeclined all name
+ * `reminders`.
+ *
+ * On a fresh install that hadn't yet received a data-only push, `reminders` did
+ * not exist, so those notifications fell back to the FCM SDK's auto-created
+ * "Miscellaneous" channel at DEFAULT importance — no heads-up banner, and a
+ * channel name the user can't recognize or tune in Android settings. On HABITS
+ * that is the entire daily-reminder loop, silently degraded for exactly the
+ * users least likely to tolerate it. (strings.xml's
+ * default_notification_channel_id points at `reminders` too, so it could not
+ * cover the gap.)
+ *
  * Safe to call more than once: createChannels is an upsert. Android still locks
  * importance and vibration at first creation, so registering here — before any
  * notification can arrive — is also what makes those values deterministic
