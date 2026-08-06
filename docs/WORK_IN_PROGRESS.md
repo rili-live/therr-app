@@ -131,6 +131,7 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-06) **Play Console + privacy policy steps for the Friends with Habits contacts rejection — the code fix alone will not clear it.** Version code 20 was rejected under the User Data policy ("uploading users' Contact List information to https://api.therr.com/ without an adequate disclosure"). The in-app prominent disclosure is fixed in the app (`PermissionPrimerModal` + `permissions.primer.contacts.*`), but Google re-reviews the console declarations alongside the APK, and all three of these must agree with what the app now says: (1) **Data safety form** for `com.therr.habits` — declare Contacts → *Contacts* as both *collected* and *transferred off device*, purpose "App functionality"/"Account management", not "processed ephemerally" (the invite path persists invitee email/phone in `main.invites` past the request); (2) **Privacy policy** at `https://www.therr.app/privacy-policy.html` must name contact-list collection, the upload, and the retention split the in-app text now promises (non-matching contacts discarded, explicitly-invited contacts retained) — the app links to this URL directly from the disclosure, so a policy that omits contacts contradicts the disclosure the reviewer is reading; (3) in the **appeal/resubmission note**, point the reviewer at the exact screen — Connect tab → "Sync Your Contacts?", and onboarding → "Find your friends" — since the disclosure is behind a tap and reviewers have previously missed it. Do not resubmit as version code 20; the branch is already on 21 / `0.4.9`.
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
 - [ ] (2026-08-03, /quality-peer-review) **Habits partner push volume will rise after this deploy — expected, watch it anyway.** `createCheckin` now resolves the active pacts backing a check-in's habit goal (`PactsStore.getActiveByUserAndHabitGoal`) instead of relying on a `pactId` no client has ever sent. Three code paths behind the old `if (pactId)` guard were dead and go live at once: the `partnerCheckedIn` push, mid-pact Wing Person achievement credit, and writes to `habit_checkins.pactId`. A per-pact mute already applies to the push (`shouldMuteNotifs` / `celebratePartnerCheckins`, honored via `selectPactPartnerIds({ onlyCelebrating: true })`) and recipients are deduplicated across pacts, so the ceiling is one push per check-in per active pact-mate — but nobody has ever received one, so treat the first days' volume as the real baseline rather than a regression. No migration, no env var.
 - [ ] (2026-08-03, /quality-peer-review) Optional one-off backfill of `habits.habit_checkins."pactId"`. Every check-in row written before the deploy above has a NULL `pactId`, so `GET /pacts/:pactId/checkins` stays empty for all historical activity even though new check-ins populate it. `HabitCheckinsStore.createOrUpdate` backfills the column on conflict, so a row self-heals only if that user re-submits the same (habitGoalId, scheduledDate). A backfill would set `pactId` from the earliest-started active pact on each row's `habitGoalId` for that user — the same attribution rule the handler uses. Purely cosmetic for pact history views; derived progress stats do not read this column (see `utilities/pactMemberStats`), so nothing is blocked on it.
@@ -357,6 +358,60 @@ append new items here rather than only printing them once.
   its topic per brand, so if the Habits iOS app ships under a different bundle id,
   every data-only iOS push to it is dropped with no error anywhere. Verify before
   the first Habits iOS release; Android is unaffected either way.
+- [ ] (2026-08-05, /quality-peer-review) Re-submit `sitemap-static.xml` in Google Search
+  Console after the web deploy. f3b1556a7 adds `/api-access` to the static sitemap and to
+  `publicRoutePatterns` in `therr-client-web/src/server-client.tsx`; it is the SEO landing
+  page for the API funnel, so it should be indexed rather than waiting on an organic
+  recrawl.
+- [ ] (2026-08-05, /quality-peer-review) Cut a mobile release before promoting the
+  marketing site's "Get an API key" CTA. `therr.com/api-access` is an auto-verified
+  Android App Link, so on any device with the app installed the tap opens the **app**,
+  not the browser — and only builds containing 81f94b546 have the `ApiAccess` screen to
+  land on. Installs older than that still fall through to
+  `handleOpenByNotifeeNotification` and dead-end. Same release carries 541701457's eager
+  Android channel registration.
+- [ ] (2026-08-05, /quality-peer-review) Accept that 541701457 cannot repair existing
+  installs whose `reminders` channel was already created at the wrong importance —
+  Android locks a channel's importance and vibration at first creation, so the eager
+  registration only settles the values on installs that had not yet posted to it. If
+  HABITS reminder engagement stays flat for the pre-3.13.0 cohort after the release,
+  that is the reason, and the only fix is a new channel id.
+- [ ] (2026-08-05, /quality-peer-review) One hop of the dashboard deep-link chain still
+  drops `returnTo`. `AuthRoute` attaches it only when the visitor has **no session** —
+  an authenticated-but-under-privileged user gets the bare `redirectPath`, because Login
+  forwards an already-authenticated visitor straight to `returnTo` and that would bounce
+  off the same guard forever. The cost is that a newly-registered dashboard user who is
+  redirected to `/create-profile` for missing props arrives without a `returnTo` and
+  finishes on `/dashboard` rather than `/settings`. Preserving it there is safe in
+  principle (`/create-profile` only navigates on a successful submit, so it cannot
+  auto-loop), but it needs a per-route opt-in prop rather than hardcoding the path into
+  `therr-react`. Worth doing if the API funnel's register→subscribe conversion looks
+  lossy.
+- [ ] (2026-08-06, /quality-peer-review) Merge `niche/HABITS-restore-brand-identity` into
+  `niche/HABITS-general` **whenever `general` is merged down**, and expect to repeat the
+  pattern. The brand revert on `general` merges into the niche branch without conflicts and
+  silently un-brands Friends with Habits — nothing fails, the app just builds as Therr. A
+  merge of `general` into any `niche/*` branch should be followed by verifying
+  `brandConfig.ts`, `build.gradle` ids and `app.json` still carry the niche identity.
+  Worth automating as a pre-push check on `niche/*`.
+- [ ] (2026-08-06, /quality-peer-review) The mobile tsc baseline grew by four signatures
+  (`routes/index.tsx` HabitDetail + PactDetail, `MyHabits/index.tsx` TS2322/TS2345) rather
+  than the errors being fixed. The `MyHabits` pair is the endemic `translate: Function`
+  typing issue and is cheap to fix; the two `ConnectedComponent` ones match a long-standing
+  pattern. Worth clearing so the baseline stops ratcheting upward.
+- [ ] (2026-08-06, /quality-peer-review) Convert the Play prominent-disclosure copy to
+  `{appName}`. 848389103 landed the mechanism (`BRAND_DISPLAY_NAME` +the `translator.ts`
+  wrapper that defaults the param) and a test that guards it, but no dictionary string
+  uses `{appName}` yet — it appears 0 times in all three mobile locales, so the guard is
+  vacuous and the disclosure the change was written for is still hardcoded. The strings
+  are `permissions.accessFineLocation.message`, `permissions.accessFineLocation.title`
+  ("Therr Mobile") and `permissions.backgroundLocation.description2`, each naming "Therr"
+  literally in `en-us`, `es` and `fr-ca`. On `niche/HABITS-general` the Friends with
+  Habits app therefore renders "Therr uses background location…" — the exact Play
+  compliance problem the work targeted. Convert only these app-naming strings; the other
+  ~52 "Therr" mentions are the company, `api.therr.com` and TherrCoin, and are correct
+  for every variant. While in `en-us`, fix the typo "acces" → "access" in
+  `permissions.accessFineLocation.message`.
 <!-- skill-followups:end -->
 
 ---

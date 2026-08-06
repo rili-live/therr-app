@@ -34,10 +34,14 @@ import { BRAND_BLUE_GREEN } from '../styles/themes/brandConstants';
  * default_notification_channel_id points at `reminders` too, so it could not
  * cover the gap.)
  *
- * Safe to call more than once: createChannels is an upsert. Android still locks
- * importance and vibration at first creation, so registering here — before any
- * notification can arrive — is also what makes those values deterministic
- * rather than a race between call sites.
+ * Safe to call more than once: createChannels is an upsert. Android locks a
+ * channel's importance and vibration at first creation, so registering here —
+ * before any notification can arrive — also settles those values from the
+ * AndroidChannels declarations instead of leaving them to whichever call site
+ * happened to post first (sendForegroundNotification defaults to DEFAULT,
+ * sendBackgroundNotification forces HIGH). One consequence worth knowing: the
+ * `importance` argument below no longer has any effect on the four declared
+ * channels, only on an ad-hoc channel a caller passes in.
  */
 const createAndroidNotificationChannels = (): Promise<void> => {
     if (Platform.OS !== 'android') {

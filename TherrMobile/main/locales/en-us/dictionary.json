@@ -457,8 +457,8 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
-        "title": "Friends with Habits | Accountability App for Friends"
+        "message": "Join me on {appName} — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
+        "title": "{appName} | Accountability App for Friends"
       }
     },
     "createProfile": {
@@ -802,8 +802,8 @@
         "disclaimer": "By creating an account, you agree to our ",
         "and": " and ",
         "inviteCodeHint": "Enter a friend's username to earn coins, or paste a PACT-XXXX code from your invitation.",
-        "invitedBy": "{inviterName} invited you to Friends with Habits — finish signing up to connect!",
-        "birthdateHint": "You must be at least {minAge} years old to use Friends with Habits"
+        "invitedBy": "{inviterName} invited you to {appName} — finish signing up to connect!",
+        "birthdateHint": "You must be at least {minAge} years old to use {appName}"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
@@ -1262,6 +1262,36 @@
         "thoughts": "Thoughts"
       }
     },
+    "apiAccess": {
+      "headerTitle": "API Access",
+      "pageTitle": "Get a Therr API Key",
+      "intro": "API keys are managed on the Therr web dashboard. Here is what the process looks like.",
+      "steps": {
+        "one": {
+          "title": "Create a business account",
+          "description": "Sign up on the Therr dashboard with your business email. A personal Therr profile cannot generate API keys."
+        },
+        "two": {
+          "title": "Choose a plan",
+          "description": "Open Settings on the dashboard and pick a subscription. Every paid plan includes API access."
+        },
+        "three": {
+          "title": "Generate your key",
+          "description": "Go to Settings, then API Keys, and create a key. It is shown once, at creation — copy it somewhere safe."
+        },
+        "four": {
+          "title": "Start building",
+          "description": "Send your key as the x-api-key header on any request. The API reference covers every endpoint."
+        }
+      },
+      "statusEligible": "Your account can create API keys. Open the dashboard to manage them.",
+      "statusNotEligible": "You will need a business account with a paid plan to create API keys.",
+      "buttons": {
+        "manageKeys": "Manage API keys",
+        "openDashboard": "Open the web dashboard",
+        "viewDocs": "Read the API reference"
+      }
+    },
     "advancedSettings": {
       "headerTitle": "Manage Account",
       "pageHeaderAccountActions": "Account Actions",
@@ -1322,7 +1352,7 @@
       "pageTitle": "Forums"
     },
     "createProfile": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "{appName}",
       "pageHeaderDetails": "Create your profile",
       "pageSubHeaderDetails": "You can change your username at any time",
       "pageHeaderPhone": "Keep it secure",
@@ -1345,7 +1375,7 @@
         "back": "Go back a step"
       },
       "syncContacts": {
-        "description": "We match your contacts against Therr accounts so you can connect right away. Your contacts are never shared with anyone else.",
+        "description": "See which of your contacts are already here. Your contact list is sent to our servers to look for matching accounts — we will show you the full details before anything leaves your device.",
         "continue": "Continue",
         "skip": "Not Now",
         "errorMessage": "We could not sync your contacts. Please try again.",
@@ -1603,7 +1633,7 @@
       }
     },
     "login": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "{appName}",
       "pageTitle": "Welcome",
       "pageSubtitle": "Sign in to check in with your friends",
       "userAlerts": {
@@ -1719,8 +1749,8 @@
       "headerTitle": "Phone Contacts",
       "pageTitle": "Phone Contacts",
       "sections": {
-        "onApp": "Friends Already on Friends with Habits",
-        "notOnApp": "Invite to Friends with Habits"
+        "onApp": "Friends Already on {appName}",
+        "notOnApp": "Invite to {appName}"
       },
       "buttons": {
         "connect": "Connect",
@@ -1730,11 +1760,11 @@
         "inviteSelectedCount": "Invite Selected ({count})"
       },
       "empty": {
-        "onApp": "None of your contacts are on Friends with Habits yet",
-        "notOnApp": "All your contacts are already on Friends with Habits!"
+        "onApp": "None of your contacts are on {appName} yet",
+        "notOnApp": "All your contacts are already on {appName}!"
       },
-      "inviteMessage": "Hey! Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
-      "inviteSubject": "Join me on Friends with Habits!",
+      "inviteMessage": "Hey! Join me on {appName} — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
+      "inviteSubject": "Join me on {appName}!",
       "alertTitles": {
         "contactInvitesSent": "Invite Success",
         "connectRequestSent": "Connect Request Sent",
@@ -1755,7 +1785,7 @@
       }
     },
     "register": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "{appName}",
       "pageTitle": "Sign Up",
       "pageSubtitle": "Create a profile and see what you are missing or view the",
       "pageSubtitleMapPreviewLink": "public map",
@@ -1836,7 +1866,7 @@
         "shareFeedback": "Share Feedback"
       },
       "subtitles": {
-        "createConnection": "Send a connection request or invite a friend to join Friends with Habits!",
+        "createConnection": "Send a connection request or invite a friend to join {appName}!",
         "whoInviteDisclaimer": "Choose who and how you would like to invite."
       },
       "labels": {
@@ -1849,7 +1879,7 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription1": "Welcome to Friends with Habits. As we gather feedback and develop new features, let us know how we can improve the experience.",
+      "siteDescription1": "Welcome to {appName}. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
       "siteDescription3": "Invite a friend to form a pact, then build habits you'll hold each other to. Check in daily, share proof, and watch your streak grow.",
       "siteDescription4": "Keep the streak alive together. If one of you slips, the other is there to keep things on track — accountability is the whole point.",
@@ -1964,7 +1994,7 @@
       "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
       "onboarding": {
         "title": "Start with a Friend",
-        "subtitle": "Friends with Habits is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",
+        "subtitle": "{appName} is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",
         "createPact": "Invite a Friend",
         "viewInvites": "View {count} Pact Invite(s)",
         "findPartner": "Browse People",
@@ -2161,7 +2191,7 @@
     },
     "myQRCodes": {
       "headerTitle": "My QR Codes",
-      "subtitle": "Share any of your Friends with Habits content with a scan.",
+      "subtitle": "Share any of your {appName} content with a scan.",
       "profileCardHint": "Tap to view the full QR for your profile.",
       "profileAccessibilityLabel": "View full QR code for your profile",
       "profileFallbackName": "My Profile",
@@ -2178,7 +2208,7 @@
     },
     "myQRCodeDetail": {
       "headerTitle": "QR Code",
-      "helperText": "Have anyone scan this with their camera to open it in Friends with Habits.",
+      "helperText": "Have anyone scan this with their camera to open it in {appName}.",
       "accessibility": "QR code linking to {{title}}",
       "copied": "Link Copied",
       "privateNote": "Your profile is private — scanners will see a limited view until you connect.",
@@ -2369,7 +2399,10 @@
     "primer": {
       "shared": {
         "allow": "Allow",
-        "notNow": "Not now"
+        "notNow": "Not now",
+        "agree": "I Agree",
+        "decline": "Don't Allow",
+        "privacyPolicy": "Read our Privacy Policy"
       },
       "notifications": {
         "title": "Stay in the loop",
@@ -2377,11 +2410,13 @@
       },
       "camera": {
         "title": "Capture the moment",
-        "body": "Therr needs camera access to attach a photo to your post."
+        "body": "{appName} needs camera access to attach a photo to your post."
       },
       "contacts": {
-        "title": "Find friends faster",
-        "body": "Match contacts who are already on Therr. Your address book stays on your device."
+        "title": "{appName} collects your contacts",
+        "summary": "{appName} collects your contact list — your contacts' names, phone numbers and email addresses — and sends it to Therr servers at api.therr.com to find which of your contacts already use the app.",
+        "detail": "Every contact in your address book is included, not only the ones you pick. We use these details to look for matching accounts and to send any invites you choose to send. Contacts with no matching account are not stored, apart from anyone you explicitly invite — we keep their phone number or email address to deliver that invite and to avoid inviting them twice. We never sell your contacts or share them with advertisers.",
+        "optOut": "This is optional. You can skip it and keep using {appName}, and you can turn off contact access at any time in your device settings."
       }
     }
   },

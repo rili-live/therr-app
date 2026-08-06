@@ -1624,6 +1624,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     targetRouteView: 'Achievements',
                 });
             }
+        } else if (url?.includes('therr.com/api-access') || url?.includes('therr.com/api-keys')) {
+            // therr.com is an auto-verified App Link, so the marketing site's "Get an API key"
+            // CTA opens this app instead of the browser. Without this branch it fell through
+            // to handleOpenByNotifeeNotification and the user hit a dead end. The screen is
+            // public, so route signed-out users there too rather than deferring to targetRouteView.
+            // '/api-keys' is matched as well because older marketing links still point at it.
+            RootNavigation.navigate('ApiAccess');
         } else if (url?.includes('therr.com/app-feedback')) {
             if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('Home');

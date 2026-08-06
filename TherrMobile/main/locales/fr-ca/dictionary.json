@@ -457,8 +457,8 @@
         "email": "Courriel de l'invité"
       },
       "shareLink": {
-        "message": "Rejoins-moi sur Friends with Habits — on bâtit nos séries ensemble et on se tient mutuellement responsables. Inscris-toi avec mon lien : {shareUrl}",
-        "title": "Friends with Habits | App de responsabilité pour amis"
+        "message": "Rejoins-moi sur {appName} — on bâtit nos séries ensemble et on se tient mutuellement responsables. Inscris-toi avec mon lien : {shareUrl}",
+        "title": "{appName} | App de responsabilité pour amis"
       }
     },
     "createProfile": {
@@ -802,8 +802,8 @@
         "disclaimer": "En créant un compte, vous acceptez nos ",
         "and": " et ",
         "inviteCodeHint": "Entrez le nom d'un ami pour gagner des pièces, ou collez un code PACT-XXXX de votre invitation.",
-        "invitedBy": "{inviterName} t'a invité sur Friends with Habits — termine ton inscription pour te connecter!",
-        "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser Friends with Habits"
+        "invitedBy": "{inviterName} t'a invité sur {appName} — termine ton inscription pour te connecter!",
+        "birthdateHint": "Vous devez avoir au moins {minAge} ans pour utiliser {appName}"
       },
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"
@@ -1262,6 +1262,36 @@
         "thoughts": "Pensées"
       }
     },
+    "apiAccess": {
+      "headerTitle": "Accès à l'API",
+      "pageTitle": "Obtenir une clé API Therr",
+      "intro": "Les clés API se gèrent dans le tableau de bord web de Therr. Voici comment se déroule le processus.",
+      "steps": {
+        "one": {
+          "title": "Créez un compte entreprise",
+          "description": "Inscrivez-vous au tableau de bord Therr avec le courriel de votre entreprise. Un profil Therr personnel ne peut pas générer de clés API."
+        },
+        "two": {
+          "title": "Choisissez un forfait",
+          "description": "Ouvrez Paramètres dans le tableau de bord et choisissez un abonnement. Tous les forfaits payants incluent l'accès à l'API."
+        },
+        "three": {
+          "title": "Générez votre clé",
+          "description": "Allez dans Paramètres, puis Clés API, et créez une clé. Elle n'est affichée qu'une seule fois, à la création : copiez-la en lieu sûr."
+        },
+        "four": {
+          "title": "Commencez à créer",
+          "description": "Envoyez votre clé dans l'en-tête x-api-key de chaque requête. La référence de l'API décrit tous les points d'accès."
+        }
+      },
+      "statusEligible": "Votre compte peut créer des clés API. Ouvrez le tableau de bord pour les gérer.",
+      "statusNotEligible": "Vous aurez besoin d'un compte entreprise avec un forfait payant pour créer des clés API.",
+      "buttons": {
+        "manageKeys": "Gérer les clés API",
+        "openDashboard": "Ouvrir le tableau de bord web",
+        "viewDocs": "Consulter la référence de l'API"
+      }
+    },
     "advancedSettings": {
       "headerTitle": "Gérer le compte",
       "pageHeaderAccountActions": "Actions du compte",
@@ -1322,7 +1352,7 @@
       "pageTitle": "Forums"
     },
     "createProfile": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "{appName}",
       "pageHeaderDetails": "Créez votre profil",
       "pageSubHeaderDetails": "Vous pouvez changer votre nom d'utilisateur à tout moment",
       "pageHeaderPhone": "Sécurisez votre compte",
@@ -1345,7 +1375,7 @@
         "back": "Revenir à l’étape précédente"
       },
       "syncContacts": {
-        "description": "Nous comparons vos contacts aux comptes Therr pour que vous puissiez vous connecter tout de suite. Vos contacts ne sont jamais partagés avec qui que ce soit.",
+        "description": "Découvrez lesquels de vos contacts sont déjà ici. Votre carnet d’adresses est envoyé à nos serveurs pour y chercher des comptes correspondants; nous vous montrerons tous les détails avant que quoi que ce soit ne quitte votre appareil.",
         "continue": "Continuer",
         "skip": "Pas maintenant",
         "errorMessage": "Nous n’avons pas pu synchroniser vos contacts. Veuillez réessayer.",
@@ -1603,7 +1633,7 @@
       }
     },
     "login": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "{appName}",
       "pageTitle": "Bienvenue",
       "pageSubtitle": "Connectez-vous pour faire votre check-in avec vos amis",
       "userAlerts": {
@@ -1719,8 +1749,8 @@
       "headerTitle": "Contacts du téléphone",
       "pageTitle": "Contacts du téléphone",
       "sections": {
-        "onApp": "Amis déjà sur Friends with Habits",
-        "notOnApp": "Inviter sur Friends with Habits"
+        "onApp": "Amis déjà sur {appName}",
+        "notOnApp": "Inviter sur {appName}"
       },
       "buttons": {
         "connect": "Connecter",
@@ -1730,11 +1760,11 @@
         "inviteSelectedCount": "Inviter la sélection ({count})"
       },
       "empty": {
-        "onApp": "Aucun de vos contacts n'est encore sur Friends with Habits",
-        "notOnApp": "Tous vos contacts sont déjà sur Friends with Habits!"
+        "onApp": "Aucun de vos contacts n'est encore sur {appName}",
+        "notOnApp": "Tous vos contacts sont déjà sur {appName}!"
       },
-      "inviteMessage": "Hé! Rejoins-moi sur Friends with Habits — on bâtit nos séries ensemble et on se tient mutuellement responsables. Inscris-toi avec mon lien : {shareUrl}",
-      "inviteSubject": "Rejoins-moi sur Friends with Habits!",
+      "inviteMessage": "Hé! Rejoins-moi sur {appName} — on bâtit nos séries ensemble et on se tient mutuellement responsables. Inscris-toi avec mon lien : {shareUrl}",
+      "inviteSubject": "Rejoins-moi sur {appName}!",
       "alertTitles": {
         "contactInvitesSent": "Invitations envoyées",
         "connectRequestSent": "Demande de connexion envoyée",
@@ -1755,7 +1785,7 @@
       }
     },
     "register": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "{appName}",
       "pageTitle": "Inscription",
       "pageSubtitle": "Créez un profil et voyez ce que vous manquez ou consultez la",
       "pageSubtitleMapPreviewLink": "carte publique",
@@ -1836,7 +1866,7 @@
         "shareFeedback": "Partager vos commentaires"
       },
       "subtitles": {
-        "createConnection": "Envoyez une demande de connexion ou invitez un ami à rejoindre Friends with Habits!",
+        "createConnection": "Envoyez une demande de connexion ou invitez un ami à rejoindre {appName}!",
         "whoInviteDisclaimer": "Choisissez qui et comment vous souhaitez inviter."
       },
       "labels": {
@@ -1849,7 +1879,7 @@
         "userName": "Nom d'utilisateur"
       },
       "pageTitle": "Profil utilisateur",
-      "siteDescription1": "Bienvenue sur Friends with Habits. Pendant que nous recueillons des commentaires et développons de nouvelles fonctionnalités, dites-nous comment nous pouvons améliorer l'expérience.",
+      "siteDescription1": "Bienvenue sur {appName}. Pendant que nous recueillons des commentaires et développons de nouvelles fonctionnalités, dites-nous comment nous pouvons améliorer l'expérience.",
       "siteDescription2": "Alors, comment ça fonctionne?",
       "siteDescription3": "Invitez un ami pour former un pacte, puis bâtissez ensemble des habitudes dont vous vous tiendrez mutuellement responsables. Faites votre check-in quotidien, partagez une preuve et regardez votre série grandir.",
       "siteDescription4": "Ensuite, consultez votre fil pour les moments publiés par d'autres dans les endroits que vous fréquentez le plus souvent. Découvrez la culture locale en recherchant le contenu partagé à proximité. Appuyez n'importe où sur la carte pour commencer à explorer.",
@@ -1964,7 +1994,7 @@
       "confirmAbandon": "Êtes-vous sûr de vouloir abandonner ce pacte? Vos progrès seront perdus.",
       "onboarding": {
         "title": "Commence avec un ami",
-        "subtitle": "Friends with Habits est conçu pour deux — ou plus. Invite un ami ou forme un groupe autour d'un objectif commun (comme épargner pour des vacances) et bâtissez ensemble des habitudes dont vous vous tiendrez responsables.",
+        "subtitle": "{appName} est conçu pour deux — ou plus. Invite un ami ou forme un groupe autour d'un objectif commun (comme épargner pour des vacances) et bâtissez ensemble des habitudes dont vous vous tiendrez responsables.",
         "createPact": "Inviter un ami",
         "viewInvites": "Voir {count} invitation(s) de pacte",
         "findPartner": "Parcourir les gens",
@@ -2161,7 +2191,7 @@
     },
     "myQRCodes": {
       "headerTitle": "Mes codes QR",
-      "subtitle": "Partagez n’importe quel contenu Friends with Habits d’un simple scan.",
+      "subtitle": "Partagez n’importe quel contenu {appName} d’un simple scan.",
       "profileCardHint": "Touchez pour afficher le code QR complet de votre profil.",
       "profileAccessibilityLabel": "Afficher le code QR complet de votre profil",
       "profileFallbackName": "Mon profil",
@@ -2178,7 +2208,7 @@
     },
     "myQRCodeDetail": {
       "headerTitle": "Code QR",
-      "helperText": "Faites scanner ce code avec un appareil photo pour l’ouvrir dans Friends with Habits.",
+      "helperText": "Faites scanner ce code avec un appareil photo pour l’ouvrir dans {appName}.",
       "accessibility": "Code QR menant à {{title}}",
       "copied": "Lien copié",
       "privateNote": "Votre profil est privé — les personnes qui scannent verront une vue limitée jusqu’à ce qu’elles se connectent.",
@@ -2369,7 +2399,10 @@
     "primer": {
       "shared": {
         "allow": "Autoriser",
-        "notNow": "Pas maintenant"
+        "notNow": "Pas maintenant",
+        "agree": "J'accepte",
+        "decline": "Refuser",
+        "privacyPolicy": "Consulte notre politique de confidentialité"
       },
       "notifications": {
         "title": "Reste au courant",
@@ -2377,11 +2410,13 @@
       },
       "camera": {
         "title": "Capte l'instant",
-        "body": "Therr a besoin d'accéder à la caméra pour joindre une photo à ta publication."
+        "body": "{appName} a besoin d'accéder à la caméra pour joindre une photo à ta publication."
       },
       "contacts": {
-        "title": "Trouve tes amis plus vite",
-        "body": "Identifie les contacts déjà sur Therr. Ton carnet d'adresses reste sur ton appareil."
+        "title": "{appName} recueille tes contacts",
+        "summary": "{appName} recueille ton carnet d'adresses — les noms, numéros de téléphone et adresses courriel de tes contacts — et l'envoie aux serveurs de Therr, à api.therr.com, afin de repérer les contacts qui utilisent déjà l’application.",
+        "detail": "Tous les contacts de ton carnet d'adresses sont inclus, pas seulement ceux que tu choisis. Nous utilisons ces renseignements pour chercher des comptes correspondants et pour envoyer les invitations que tu décides d'envoyer. Les contacts sans compte correspondant ne sont pas conservés, sauf les personnes que tu invites explicitement : nous gardons leur numéro de téléphone ou leur adresse courriel pour livrer cette invitation et pour éviter de les inviter deux fois. Nous ne vendons jamais tes contacts et ne les partageons pas avec des annonceurs.",
+        "optOut": "C'est facultatif. Tu peux passer cette étape et continuer d'utiliser {appName}, et tu peux désactiver l'accès aux contacts en tout temps dans les réglages de ton appareil."
       }
     }
   },

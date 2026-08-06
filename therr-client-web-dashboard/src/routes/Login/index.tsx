@@ -22,6 +22,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import withNavigation from '../../wrappers/withNavigation';
 import { getWebsiteName } from '../../utilities/getHostContext';
 import { onFBLoginPress, shouldRenderLoginForm } from '../../api/login';
+import getReturnTo from '../../utilities/getReturnTo';
 import LoginWith from '../../components/LoginWith';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
@@ -73,9 +74,13 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     static getDerivedStateFromProps(nextProps: ILoginProps) {
         // TODO: Choose route based on accessLevels
         if (!shouldRenderLoginForm(nextProps)) {
+            // Honor ?returnTo so an inbound deep link (e.g. the /api-access page sending a
+            // user to /settings/api-keys) survives the login detour instead of dumping
+            // them on the dashboard overview with no idea where to go next.
+            const destination = getReturnTo(nextProps.location?.search, routeAfterLogin);
             // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
             // Causes a flicker / Need to investigate further
-            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            setTimeout(() => nextProps.navigation.navigate(destination));
             return null;
         }
         return {};
@@ -146,6 +151,10 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             alertIsVisible,
             alertVariation,
         } = this.state;
+        // Preserve the inbound destination across "Create account" too — a visitor sent here
+        // from /api-access usually has no dashboard account yet, so registration is their path.
+        const returnTo = getReturnTo(this.props.location?.search, '');
+        const registerPath = returnTo ? `/register?returnTo=${encodeURIComponent(returnTo)}` : '/register';
 
         return (
             <div id="page_login" className="flex-box center space-evenly row">
@@ -181,7 +190,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                             <span className='fw-normal'>
                                                 {/* eslint-disable-next-line no-trailing-spaces */}
                                                 Not registered? 
-                                                <Card.Link as={Link} to={'/register'} className='fw-bolder' style={{ paddingLeft: '.5rem' }}>
+                                                <Card.Link as={Link} to={registerPath} className='fw-bolder' style={{ paddingLeft: '.5rem' }}>
                                                     {'Create account'}
                                                 </Card.Link>
                                             </span>

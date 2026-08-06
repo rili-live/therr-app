@@ -44,6 +44,17 @@ These may stay on a `niche/*` branch:
 
 Do it in that order. Mixed commits cannot be split cleanly after the fact.
 
+Use `/split-branch-prs` to do this as two PRs (one based on `general`, one on
+`niche/<TAG>-general`) — the supported path when raising PRs, including from the Claude
+Code web app.
+
+> **Step 2 is silent in both directions.** Merging `general` into a niche branch is a clean
+> fast-forward that *un-brands the niche app* — no conflict, no failing check, it just builds
+> as Therr. The reverse (brand identity riding along on `general`) once set the flagship
+> app's `applicationId` to `com.therr.habits` and its `versionCode` from 445 to 21, which
+> would have made it unreleasable on Play. Always run `/split-branch-prs verify-brand` after
+> merging `general` down into a `niche/*` branch.
+
 ### Commit separation
 
 Every commit must be landable on a single branch:

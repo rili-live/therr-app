@@ -4,6 +4,7 @@ import * as path from 'path';
 import compression from 'compression';
 import express from 'express';
 import expressStaticGzip from 'express-static-gzip';
+import hbs from 'hbs';
 import helmet from 'helmet';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
@@ -145,6 +146,17 @@ if (process.env.NODE_ENV !== 'development') {
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Shared chunks of markup (currently the Friends with Habits footer) that would
+// otherwise be copy-pasted into every .hbs view and drift apart.
+//
+// `registerPartials` reads the directory asynchronously, but hbs queues any
+// render that arrives while registration is in flight and replays it once the
+// partials are on the instance, so there is no boot race to guard against.
+// The instance must be the same one express resolves for the 'hbs' view engine
+// — it is, because webpack leaves `hbs` external and both requires land on the
+// single copy in the root node_modules.
+hbs.registerPartials(path.join(__dirname, 'views/partials'));
+
 // Digital Asset Links — must be served per-brand on the matching hostname so
 // Android App Links verification picks up the correct package + cert fingerprint.
 //
@@ -240,8 +252,12 @@ const HABITS_NO_STORE = 'no-store';
 const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
     '/': {
         view: 'habits/landing',
-        title: 'Friends with Habits — Habits that stick when a friend\'s on the hook too',
-        description: 'Build habits that actually stick. Pact with a friend, check in daily, keep each other on streak.',
+        // Brand name first, then the head term the page is actually competing for.
+        // The old title led with the tagline and ran past ~70 chars, so SERPs
+        // truncated it before reaching any keyword.
+        title: 'Friends with Habits — Habit Tracker with an Accountability Partner',
+        description: 'A free habit tracker built around accountability partners. Make a pact with a friend, '
+            + 'check in daily with photo proof, and keep each other on streak.',
     },
     '/privacy-policy': {
         view: 'habits/privacy-policy',
@@ -406,10 +422,48 @@ app.use(async (req, res, next) => {
     if (!HABITS_HOSTS.has(req.hostname)) {
         return next();
     }
+    // Crawler policy for this host. Deliberately permissive to AI retrieval agents —
+    // GEO discovery is the point of this subdomain — but the personal, token-bearing
+    // and auth-sensitive paths are kept out of the crawl budget. They already carry
+    // `<meta name="robots" content="noindex">`; this stops the fetch as well.
     if (req.path === '/robots.txt') {
         res.type('text/plain');
         res.setHeader('Cache-Control', 'public, max-age=3600');
-        return res.send('User-agent: *\nAllow: /\n');
+        return res.send([
+            'User-agent: *',
+            'Allow: /',
+            'Disallow: /invite/',
+            'Disallow: /claim-pact/',
+            'Disallow: /verify-account',
+            'Disallow: /login',
+            'Disallow: /emails/',
+            '',
+            'Sitemap: https://habits.therr.com/sitemap.xml',
+            '',
+        ].join('\n'));
+    }
+    // Without this, a brand-new subdomain with no inbound links has no discovery
+    // path at all beyond the therr.app footer link.
+    if (req.path === '/sitemap.xml') {
+        const today = new Date().toISOString().split('T')[0];
+        const urls = [
+            { loc: 'https://habits.therr.com/', priority: '1.0', changefreq: 'weekly' },
+            { loc: 'https://habits.therr.com/privacy-policy', priority: '0.4', changefreq: 'yearly' },
+            { loc: 'https://habits.therr.com/terms-of-service', priority: '0.4', changefreq: 'yearly' },
+        ].map(({ loc, priority, changefreq }) => `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>`
+            + `\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`);
+        res.type('application/xml');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.send('<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
+            + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            + `${urls.join('\n')}\n</urlset>`);
+    }
+    // The app-wide /llms.txt route is registered *after* this middleware and is
+    // therr.com-specific anyway, so on this host it used to hit the hard 404 below.
+    if (req.path === '/llms.txt') {
+        res.type('text/plain');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.sendFile('habits-llms.txt', { root: path.resolve(__dirname, '../build/static') });
     }
     const profileMatch = req.path.match(HABITS_PROFILE_PATH_RE);
     if (profileMatch) {
@@ -705,6 +759,7 @@ app.get('/sitemap-static.xml', (req, res) => {
         { loc: '/locations', priority: '0.9' },
         { loc: '/locations/cities', priority: '0.9' },
         { loc: '/locations/categories', priority: '0.9' },
+        { loc: '/api-access', priority: '0.6' },
         ...categoryUrls,
         ...cityUrls,
     ];
@@ -2704,6 +2759,7 @@ const publicRoutePatterns = [
     /^\/invite\/[^/]+$/,
     /^\/lists\/[^/]+\/[a-z0-9-]+$/,
     /^\/child-safety$/,
+    /^\/api-access$/,
     /^\/go-mobile$/,
     /^\/app-feedback$/,
     /^\/reset-password$/,
