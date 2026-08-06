@@ -1,4 +1,6 @@
 import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
@@ -25,6 +27,10 @@ const PROFILE_CAROUSEL_TABS = {
     THOUGHTS: 'people',
     MEDIA: 'groups',
     MOMENTS: 'moments',
+    // HABITS profile tabs (Friends with Habits niche app)
+    GOALS: 'goals',
+    PACTS: 'pacts',
+    ACHIEVEMENTS: 'achievements',
 };
 
 const HAPTIC_FEEDBACK_TYPE = 'soft';
@@ -79,25 +85,27 @@ enum AndroidChannelIds {
     reminders = 'reminders'
 }
 
+const isHabits = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+
 const AndroidChannels = {
     default: {
         id: 'default',
-        name: 'Other',
+        name: isHabits ? 'General' : 'Other',
         importance: AndroidImportance.DEFAULT,
     },
     contentDiscovery: {
         id: 'contentDiscovery',
-        name: 'Content Discovery',
+        name: isHabits ? 'Friend Activity' : 'Content Discovery',
         importance: AndroidImportance.DEFAULT,
     },
     rewardUpdates: {
         id: 'rewardUpdates',
-        name: 'Reward Updates',
+        name: isHabits ? 'Streak Updates' : 'Reward Updates',
         importance: AndroidImportance.HIGH,
     },
     reminders: {
         id: 'reminders',
-        name: 'Reminders',
+        name: isHabits ? 'Habit Reminders' : 'Reminders',
         importance: AndroidImportance.HIGH,
     },
 };
@@ -131,10 +139,31 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'NEW_LIKE_RECEIVED',
     'NEW_SUPER_LIKE_RECEIVED',
     'NEW_THOUGHT_REPLY_RECEIVED',
+    // HABITS — time-sensitive nudges. These are the retention loop; on the
+    // DEFAULT-importance channel they post silently with no heads-up banner,
+    // which is indistinguishable from "push isn't working" to a user.
+    'STREAK_AT_RISK',
+    'PACT_INVITATION',
+    'PACT_NUDGE',
+    'PACT_EXPIRING',
 ]);
 
 const REWARD_ACTION_KEYS = new Set<string>([
     'NUDGE_SPACE_ENGAGEMENT',
+    // HABITS — "Streak Updates" channel. Celebratory milestones.
+    'STREAK_MILESTONE',
+    'NEW_PERSONAL_RECORD',
+    'LEADERBOARD_RANK_MILESTONE',
+]);
+
+// HABITS — "Friend Activity" channel. Partner/pact state changes: worth
+// surfacing, but not urgent enough for a HIGH-importance heads-up.
+const CONTENT_DISCOVERY_ACTION_KEYS = new Set<string>([
+    'PARTNER_CHECKED_IN',
+    'PARTNER_MISSED_DAY',
+    'PARTNER_CELEBRATED',
+    'PACT_ACCEPTED',
+    'PACT_COMPLETED',
 ]);
 
 const getIntentActionKey = (clickActionId: string): string => {
@@ -152,6 +181,10 @@ const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChann
 
     if (REWARD_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.rewardUpdates);
+    }
+
+    if (CONTENT_DISCOVERY_ACTION_KEYS.has(key)) {
+        return getAndroidChannel(AndroidChannelIds.contentDiscovery);
     }
 
     return getAndroidChannel(AndroidChannelIds.default);

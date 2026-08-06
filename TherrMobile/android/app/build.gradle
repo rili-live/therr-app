@@ -2,10 +2,6 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-// background-geolocation
-def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
-apply from: "${background_geolocation_path}/app.gradle"
-
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -90,11 +86,11 @@ android {
     // }
 
     defaultConfig {
-        applicationId "app.therrmobile"
+        applicationId "com.therr.habits"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 445
-        versionName "3.13.0"
+        versionCode 21
+        versionName "0.4.9"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.
@@ -107,10 +103,26 @@ android {
             'com.therr.habits': ['habits.therr.com', 'www.habits.therr.com'],
         ]
         def appLinkHosts = appLinkHostsByAppId.getOrDefault(applicationId, ['therr.com', 'www.therr.com'])
+
+        // Prefix for the push-notification click-action intent filters in
+        // AndroidManifest.xml. MUST stay byte-identical to the corresponding enum in
+        // therr-public-library/therr-js-utilities/src/constants/enums/PushNotifications.ts
+        // (`AndroidIntentActions`) — the backend stamps those exact strings onto FCM
+        // display notifications as `android.notification.clickAction`, and an action with
+        // no matching intent-filter makes the notification tap a silent no-op.
+        //
+        // Note this is deliberately NOT derived from applicationId: Habits ships as
+        // `com.therr.habits` but its published intent actions are `com.therr.mobile.habits.*`.
+        def notificationActionPrefixByAppId = [
+            'com.therr.habits': 'com.therr.mobile.habits',
+            'com.therr.mobile.Teem': 'com.therr.mobile',
+        ]
         manifestPlaceholders = [
             GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}",
             appLinkHost: appLinkHosts[0],
             appLinkHostWww: appLinkHosts[1],
+            notificationActionPrefix: notificationActionPrefixByAppId
+                .getOrDefault(applicationId, 'app.therrmobile'),
         ]
         vectorDrawables.useSupportLibrary = true
     }
@@ -159,8 +171,6 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             shrinkResources enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            // background_geolocation requires custom Proguard Rules
-            proguardFiles "${background_geolocation_path}/proguard-rules.pro"
         }
     }
 }

@@ -11,6 +11,7 @@ import notifee, {
 } from '@notifee/react-native';
 import { Platform } from 'react-native';
 import { AndroidChannelIds, getAllAndroidChannels, getAndroidChannel } from '../constants';
+import { BRAND_BLUE_GREEN } from '../styles/themes/brandConstants';
 
 /**
  * Registers every Android channel in ../constants up front, at app start.
@@ -53,18 +54,63 @@ const createAndroidNotificationChannels = (): Promise<void> => {
         .catch((err) => console.log('Failed to create Android notification channels', err));
 };
 
+/**
+ * Registers every Android channel in ../constants up front, at app start.
+ *
+ * Until this existed, channels were only created as a side effect of Notifee
+ * rendering a notification on one — i.e. only on the *data-only* push path
+ * (createDataOnlyMessage → index.js → sendBackgroundNotification) and the local
+ * trigger notifications. But push-notifications-service also sends **display**
+ * notifications (createNotificationMessage) that name a channelId in the FCM
+ * payload and are rendered by the OS with no JS involved: dailyHabitReminder,
+ * morningMotivation, eveningCheckIn, streakBroken and pactDeclined all name
+ * `reminders`.
+ *
+ * On a fresh install that hadn't yet received a data-only push, `reminders` did
+ * not exist, so those notifications fell back to the FCM SDK's auto-created
+ * "Miscellaneous" channel at DEFAULT importance — no heads-up banner, and a
+ * channel name the user can't recognize or tune in Android settings. On HABITS
+ * that is the entire daily-reminder loop, silently degraded for exactly the
+ * users least likely to tolerate it. (strings.xml's
+ * default_notification_channel_id points at `reminders` too, so it could not
+ * cover the gap.)
+ *
+ * Safe to call more than once: createChannels is an upsert. Android still locks
+ * importance and vibration at first creation, so registering here — before any
+ * notification can arrive — is also what makes those values deterministic
+ * rather than a race between call sites.
+ */
+const createAndroidNotificationChannels = (): Promise<void> => {
+    if (Platform.OS !== 'android') {
+        return Promise.resolve();
+    }
+
+    return notifee.createChannels(getAllAndroidChannels())
+        // Non-fatal: sendForegroundNotification still creates its own channel on
+        // demand, and a failure here must never stop the app from booting.
+        .catch((err) => console.log('Failed to create Android notification channels', err));
+};
+
+// Android locks a channel's importance at creation time — later createChannel calls
+// with a different importance are ignored for the life of the install. So whichever
+// code path happened to post first used to decide, permanently, whether e.g. the
+// "Habit Reminders" channel could show a heads-up banner: the foreground path forced
+// DEFAULT, the background path forced HIGH. Importance now comes from the channel's
+// own definition in ../constants unless a caller deliberately overrides it, which
+// makes AndroidChannels the single source of truth and the outcome order-independent.
 const sendForegroundNotification = (
     notification: Notification,
     androidChannel?: AndroidChannel,
-    importance: AndroidImportance = AndroidImportance.DEFAULT,
+    importance?: AndroidImportance,
     shouldRequestPermission = true,
 ) => {
+    const channel = androidChannel || getAndroidChannel(AndroidChannelIds.default, false);
     const permissionPromise = shouldRequestPermission ? notifee.requestPermission() : Promise.resolve();
     // Request permissions (required for iOS)
     return permissionPromise
         .then(() => notifee.createChannel({
-            ...(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)),
-            importance,
+            ...channel,
+            importance: importance ?? channel.importance ?? AndroidImportance.DEFAULT,
         }))
         .then((channelId: string) => {
             return notifee.displayNotification({
@@ -74,7 +120,7 @@ const sendForegroundNotification = (
                     actions: notification.android?.actions || undefined,
                     channelId,
                     smallIcon: notification.android?.smallIcon || 'ic_notification_icon', // optional, defaults to 'ic_launcher'.
-                    color: '#0f7b82',
+                    color: BRAND_BLUE_GREEN,
                     // pressAction is needed if you want the notification to open the app when pressed
                     pressAction: notification.android?.pressAction || {
                         id: PushNotifications.PressActionIds.default,
@@ -91,8 +137,10 @@ const sendForegroundNotification = (
  * Sends a Notifee push notification when a data-only Firebase notification is received in the background
  */
 const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
-    // Request permissions (required for iOS)
-    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH, true);
+    // Importance intentionally omitted — see sendForegroundNotification. The channel
+    // picked by getAndroidChannelFromClickActionId already encodes how loud this
+    // notification should be.
+    return sendForegroundNotification(notification, androidChannel, undefined, true);
 };
 
 const sendTriggerNotification = async (
@@ -125,7 +173,7 @@ const sendTriggerNotification = async (
                     actions: notification.android?.actions || undefined,
                     channelId,
                     smallIcon: notification.android?.smallIcon || 'ic_notification_icon', // optional, defaults to 'ic_launcher'.
-                    color: '#0f7b82',
+                    color: BRAND_BLUE_GREEN,
                     // pressAction is needed if you want the notification to open the app when pressed
                     pressAction: notification.android?.pressAction || {
                         id: PushNotifications.PressActionIds.default,

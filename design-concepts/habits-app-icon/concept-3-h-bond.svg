@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Friends With Habits — H Bond">
+  <title>Friends With Habits — H Bond</title>
+
+  <!-- Off-white app-icon background so the typographic mark feels premium -->
+  <rect width="1024" height="1024" rx="224" ry="224" fill="#FCFEFF"/>
+
+  <!-- Soft teal corner wash for brand recognition -->
+  <path d="M 0 0 H 1024 V 0 C 1024 360, 700 560, 400 540 C 160 524, 40 360, 0 200 Z"
+        fill="#1C7F8A" opacity="0.12"/>
+
+  <!-- Left vertical stroke of H (partner 1) -->
+  <rect x="208" y="220" width="140" height="584" rx="70" ry="70" fill="#1C7F8A"/>
+
+  <!-- Right vertical stroke of H (partner 2) -->
+  <rect x="676" y="220" width="140" height="584" rx="70" ry="70" fill="#001226"/>
+
+  <!-- Crossbar as two interlocked chain-link rings — the pact -->
+  <!-- Left link: attached to the left stroke, reaches right -->
+  <rect x="320" y="448" width="232" height="128" rx="64" ry="64"
+        fill="none" stroke="#1C7F8A" stroke-width="40"/>
+
+  <!-- Right link: attached to the right stroke, interlocks with left -->
+  <rect x="472" y="448" width="232" height="128" rx="64" ry="64"
+        fill="none" stroke="#E37107" stroke-width="40"/>
+
+  <!-- Re-draw a short segment of the left link at the crossing so it appears
+       to pass OVER the right link on one side, creating a real chain-link feel -->
+  <path d="M 552 448 L 552 448"
+        stroke="#1C7F8A" stroke-width="40" fill="none"/>
+  <path d="M 512 448 A 64 64 0 0 1 552 488 L 552 500"
+        stroke="#1C7F8A" stroke-width="40" fill="none" stroke-linecap="butt"/>
+</svg>

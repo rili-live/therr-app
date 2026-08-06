@@ -8,7 +8,9 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IContentAlgorithmName, IMobileThemeName, IUserState } from 'therr-react/types';
-import { Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
+import { BrandVariations, Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import { resolveMobileThemeName } from '../../styles/themes';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -106,7 +108,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             },
             isCropping: false,
             selectedLocale: props.user.settings.locale || 'en-us',
-            selectedTheme: props.user.settings.mobileThemeName || 'light',
+            selectedTheme: resolveMobileThemeName(props.user.settings.mobileThemeName) || 'light',
             selectedAlgorithm: props.user.settings.settingsContentAlgorithm || 'pulse',
             isOptedInToAds: props.user.settings.settingsPushBackground && props.user.settings.settingsPushMarketing,
             isProfilePublic: props.user.settings.settingsIsProfilePublic,
@@ -616,7 +618,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     buttons={[
                                         { value: 'light', label: this.translate('pages.settings.labels.themeLight'), icon: 'white-balance-sunny' },
                                         { value: 'dark', label: this.translate('pages.settings.labels.themeDark'), icon: 'moon-waning-crescent' },
-                                        { value: 'retro', label: this.translate('pages.settings.labels.themeRetro'), icon: 'palette-outline' },
+                                        ...(CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+                                            ? []
+                                            : [{ value: 'retro', label: this.translate('pages.settings.labels.themeRetro'), icon: 'palette-outline' }]),
                                     ]}
                                 />
                             </View>

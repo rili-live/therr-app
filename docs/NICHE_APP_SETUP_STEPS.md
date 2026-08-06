@@ -2,6 +2,25 @@
 
 These niche apps are a branch and/or child app of Therr App. The general idea is for a niche app to inherit the core foundations of Therr with unique, niche branding, content filtering specific to that branding, and some simple customizations that are controlled by feature flags.
 
+## Daily switching workflow
+
+Once a niche branch is set up, switching between brands during development is three commands:
+
+```bash
+git checkout niche/HABITS-general            # or general, or niche/TEEM-general
+./_bin/switch-brand.sh habits                # habits | therr | teem
+cd TherrMobile && npm start                  # terminal 1
+cd TherrMobile && npm run android:habits     # terminal 2
+```
+
+`switch-brand.sh` rewrites `CURRENT_BRAND_VARIATION` in `TherrMobile/main/config/brandConfig.ts` when the target differs, kills any running Metro bundler, and clears Metro caches. It warns (does not block) if the current git branch doesn't match the target brand.
+
+## Multi-app-per-Firebase-project pattern
+
+Niche apps reuse the Therr Firebase project by registering a second Android app with a distinct `applicationId` (e.g. `com.therr.habits`) in Firebase Console. The resulting `google-services.json` contains entries for every registered `applicationId`, so a single file in `TherrMobile/android/app/google-services.json` works across brands on the same device. Gradle selects the correct client entry by `applicationId` at build time. Android `namespace` stays `app.therrmobile` across brands so Kotlin sources don't move.
+
+This pattern is preferred over per-brand Firebase projects for MVP; split into separate projects only if a niche app needs isolated Cloud Messaging quotas, Analytics streams, or Crashlytics dashboards.
+
 ## Mobile App Setup (ex. Uses Teem for demonstration)
 
 ### Prerequisites

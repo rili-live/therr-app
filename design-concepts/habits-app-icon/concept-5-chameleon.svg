@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="shift" x1="0" y1="120" x2="1024" y2="880" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#6B5180"/>
+      <stop offset="55%"  stop-color="#717D88"/>
+      <stop offset="100%" stop-color="#7FA391"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="225" fill="#2E2140"/>
+
+  <!-- Main head: rounded triangle with a soft casque peak on top -->
+  <path d="M 512 210
+           Q 592 280 635 355
+           Q 742 380 790 475
+           Q 812 580 745 675
+           Q 660 765 512 795
+           Q 364 765 279 675
+           Q 212 580 234 475
+           Q 282 380 389 355
+           Q 432 280 512 210 Z"
+        fill="url(#shift)"/>
+
+  <!-- Left eye turret: bulges out from the side of the head -->
+  <ellipse cx="228" cy="515" rx="95" ry="105" fill="url(#shift)"/>
+  <circle cx="258" cy="515" r="40" fill="#EBDDF2"/>
+  <circle cx="272" cy="522" r="15" fill="#2E2140"/>
+
+  <!-- Right eye turret -->
+  <ellipse cx="796" cy="515" rx="95" ry="105" fill="url(#shift)"/>
+  <circle cx="766" cy="515" r="40" fill="#EBDDF2"/>
+  <circle cx="752" cy="522" r="15" fill="#2E2140"/>
+
+  <!-- Small curved mouth -->
+  <path d="M 468 705 Q 512 732 556 705"
+        stroke="#2E2140" stroke-width="10" fill="none"
+        stroke-linecap="round" opacity="0.7"/>
+</svg>

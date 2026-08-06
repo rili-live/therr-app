@@ -5,12 +5,14 @@ interface IFeatureDependency {
     requires: FeatureFlags[];
 }
 
-// Navigation tab flags for counting visible tabs
+// Navigation tab flags for counting visible tabs (across all brands)
 const NAVIGATION_TAB_FLAGS = [
     FeatureFlags.ENABLE_AREAS,
     FeatureFlags.ENABLE_GROUPS,
     FeatureFlags.ENABLE_MAP,
     FeatureFlags.ENABLE_CONNECT,
+    FeatureFlags.ENABLE_HABITS,
+    FeatureFlags.ENABLE_PACTS,
 ];
 
 // Define dependencies (feature X requires feature Y)
