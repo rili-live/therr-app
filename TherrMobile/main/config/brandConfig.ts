@@ -20,7 +20,7 @@ import { BrandVariations } from 'therr-js-utilities/constants';
 // are all correct at runtime, so the errors were pure noise, and worse, the set
 // of them changed with the selected brand: flipping this value churned the tsc
 // baseline and made a brand leak between `general` and `niche/*` hard to see.
-export const CURRENT_BRAND_VARIATION: BrandVariations = BrandVariations.THERR;
+export const CURRENT_BRAND_VARIATION: BrandVariations = BrandVariations.HABITS;
 
 export default {
     brandVariation: CURRENT_BRAND_VARIATION,

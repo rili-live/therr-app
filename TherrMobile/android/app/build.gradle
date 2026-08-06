@@ -90,11 +90,11 @@ android {
     // }
 
     defaultConfig {
-        applicationId "app.therrmobile"
+        applicationId "com.therr.habits"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 445
-        versionName "3.13.0"
+        versionCode 21
+        versionName "0.4.9"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.
