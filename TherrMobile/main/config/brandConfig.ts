@@ -13,22 +13,24 @@ import { BrandVariations } from 'therr-js-utilities/constants';
 // Edits there are picked up automatically by every `getTheme()` /
 // `getPaperTheme()` consumer.
 //
-// Annotated as the enum rather than inferred as a literal on purpose. Without
-// it, TypeScript narrows this to the one selected member and every
-// `CURRENT_BRAND_VARIATION === BrandVariations.HABITS` guard elsewhere becomes
-// a provably-false comparison (TS2367) — 23 of them on `general`. Those guards
-// are all correct at runtime, so the errors were pure noise, and worse, the set
-// of them changed with the selected brand: flipping this value churned the tsc
-// baseline and made a brand leak between `general` and `niche/*` hard to see.
+// The `: BrandVariations` annotation is deliberate and must not be removed. Without it
+// TypeScript narrows this to a single literal member, so every
+// `CURRENT_BRAND_VARIATION === BrandVariations.<other>` guard elsewhere becomes a false
+// TS2367 whose message names the *currently selected* brand. Those messages then differ
+// between `general` and `niche/<TAG>-general`, which churns the mobile tsc baseline on
+// every brand flip and hides real regressions behind the noise.
+//
+// NICHE(HABITS): this value is the one line of this file that differs from `general`.
 export const CURRENT_BRAND_VARIATION: BrandVariations = BrandVariations.HABITS;
 
-// User-facing app name, for copy that must name the app — most importantly the Google
-// Play prominent disclosure, which has to name the app the user is actually holding.
+// User-facing app name, for copy that must name the app — most importantly a Google Play
+// prominent disclosure, which has to name the app the user is actually holding.
 //
 // Derived from the selected brand rather than written out, so a niche branch flips
 // CURRENT_BRAND_VARIATION above and this follows. Never hardcode a brand name into a
 // locale dictionary: those are shared across every variant, so a hardcoded name renders
-// the wrong app's name for everyone else. Pass `{appName}` instead.
+// the wrong app's name for everyone else. Pass `{appName}` instead — `utilities/translator.ts`
+// resolves it with no per-call-site wiring.
 const BRAND_DISPLAY_NAMES: Partial<Record<BrandVariations, string>> = {
     [BrandVariations.THERR]: 'Therr',
     [BrandVariations.TEEM]: 'Teem',
