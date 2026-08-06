@@ -12,7 +12,13 @@ import { BrandVariations } from 'therr-js-utilities/constants';
 //   - `main/styles/themes/paper.ts → brandPaperColorOverrides`
 // Edits there are picked up automatically by every `getTheme()` /
 // `getPaperTheme()` consumer.
-export const CURRENT_BRAND_VARIATION = BrandVariations.THERR;
+// The `: BrandVariations` annotation is deliberate and must not be removed. Without it
+// TypeScript narrows this to a single literal member, so every
+// `CURRENT_BRAND_VARIATION === BrandVariations.<other>` guard elsewhere becomes a false
+// TS2367 whose message names the *currently selected* brand. Those messages then differ
+// between `general` and `niche/<TAG>-general`, which churns the mobile tsc baseline on
+// every brand flip and hides real regressions behind the noise.
+export const CURRENT_BRAND_VARIATION: BrandVariations = BrandVariations.THERR;
 
 // User-facing app name, for copy that must name the app — most importantly a Google Play
 // prominent disclosure, which has to name the app the user is actually holding.

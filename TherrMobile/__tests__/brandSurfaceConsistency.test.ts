@@ -69,6 +69,22 @@ describe('brand surface consistency', () => {
         expect(applicationId).toBe(EXPECTED_APPLICATION_ID[CURRENT_BRAND_VARIATION]);
     });
 
+    it('declares CURRENT_BRAND_VARIATION as the widened enum type', () => {
+        // Without the `: BrandVariations` annotation TypeScript narrows this to a single
+        // literal member, so every `CURRENT_BRAND_VARIATION === BrandVariations.<other>`
+        // guard becomes a false TS2367 naming whichever brand is selected. The error
+        // signatures then differ between general and niche/<TAG>-general (general emitted
+        // two, HABITS emits none because the else-branch narrows to never), so the mobile
+        // tsc baseline disagrees across the split — and a --update run on either branch
+        // makes the gate fail on the other.
+        //
+        // The baseline gate only catches the annotation's removal on general, so this
+        // asserts it brand-relatively and holds on both branches.
+        const source = read('main/config/brandConfig.ts');
+
+        expect(source).toMatch(/export const CURRENT_BRAND_VARIATION\s*:\s*BrandVariations\s*=/);
+    });
+
     it.each(['light', 'dark'])('keeps the Therr base palette in the %s theme', (theme) => {
         // Overwriting these rebrands every variant at once. The Habits purple lives in
         // brandColorOverrides, which is why this holds on the niche branch too.

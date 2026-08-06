@@ -377,6 +377,19 @@ append new items here rather than only printing them once.
   auto-loop), but it needs a per-route opt-in prop rather than hardcoding the path into
   `therr-react`. Worth doing if the API funnel's register→subscribe conversion looks
   lossy.
+- [ ] (2026-08-06, /quality-peer-review) Convert the Play prominent-disclosure copy to
+  `{appName}`. 848389103 landed the mechanism (`BRAND_DISPLAY_NAME` +the `translator.ts`
+  wrapper that defaults the param) and a test that guards it, but no dictionary string
+  uses `{appName}` yet — it appears 0 times in all three mobile locales, so the guard is
+  vacuous and the disclosure the change was written for is still hardcoded. The strings
+  are `permissions.accessFineLocation.message`, `permissions.accessFineLocation.title`
+  ("Therr Mobile") and `permissions.backgroundLocation.description2`, each naming "Therr"
+  literally in `en-us`, `es` and `fr-ca`. On `niche/HABITS-general` the Friends with
+  Habits app therefore renders "Therr uses background location…" — the exact Play
+  compliance problem the work targeted. Convert only these app-naming strings; the other
+  ~52 "Therr" mentions are the company, `api.therr.com` and TherrCoin, and are correct
+  for every variant. While in `en-us`, fix the typo "acces" → "access" in
+  `permissions.accessFineLocation.message`.
 <!-- skill-followups:end -->
 
 ---
