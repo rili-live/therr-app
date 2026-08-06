@@ -24,9 +24,26 @@ import { getBrandInitialRouteName } from '../../main/utilities/brandLandingRoute
  * silently restore the flash with no type error and no test failure anywhere
  * else.
  *
- * This suite runs on `niche/HABITS-general`, where `brandConfig.ts` selects
- * HABITS and `ENABLE_HABITS` is on.
+ * The brand and its feature flag are mocked rather than read from the ambient
+ * `brandConfig.ts`. The resolver's whole contract is "what does HABITS land on",
+ * so reading the branch's own brand made the suite pass only on
+ * `niche/HABITS-general` and fail on `general`, where brandConfig selects THERR.
  */
+
+jest.mock('../../main/config/brandConfig', () => {
+    const { BrandVariations } = jest.requireActual('therr-js-utilities/constants');
+
+    return {
+        __esModule: true,
+        CURRENT_BRAND_VARIATION: BrandVariations.HABITS,
+        default: { brandVariation: BrandVariations.HABITS },
+    };
+});
+
+jest.mock('../../main/utilities/getConfig', () => ({
+    __esModule: true,
+    default: () => ({ featureFlags: { ENABLE_HABITS: true } }),
+}));
 
 const LAYOUT_SOURCE_PATH = path.join(__dirname, '../../main/components/Layout.tsx');
 

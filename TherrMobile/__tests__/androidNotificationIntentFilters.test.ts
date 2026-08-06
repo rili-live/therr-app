@@ -137,19 +137,30 @@ describe('build.gradle notificationActionPrefix placeholder', () => {
         expect(buildGradle).toMatch(/getOrDefault\(applicationId, 'app\.therrmobile'\)/);
     });
 
-    it('resolves to the Habits prefix for this build', () => {
-        // This branch builds Friends with Habits. If applicationId ever changes without
-        // a matching entry in notificationActionPrefixByAppId, the app silently reverts
-        // to Therr actions and every notification becomes untappable again.
+    it('resolves whatever applicationId this branch builds to the right prefix', () => {
+        // Branch-agnostic on purpose: `general` builds Therr (app.therrmobile) and
+        // `niche/HABITS-general` builds Friends with Habits (com.therr.habits), so
+        // pinning one applicationId made this fail on the other branch. The invariant
+        // that actually matters is unchanged — if applicationId moves to a value with
+        // no matching entry and no correct fallback, the app silently reverts to Therr
+        // actions and every notification becomes untappable again.
+        const expectedPrefixByAppId: Record<string, string> = {
+            'app.therrmobile': 'app.therrmobile', // falls through to getOrDefault
+            'com.therr.habits': 'com.therr.mobile.habits',
+            'com.therr.mobile.Teem': 'com.therr.mobile',
+        };
+
         const applicationIdMatch = buildGradle.match(/applicationId "([^"]+)"/);
         expect(applicationIdMatch).not.toBeNull();
 
         const applicationId = applicationIdMatch![1];
+        expect(Object.keys(expectedPrefixByAppId)).toContain(applicationId);
+
         const prefixEntry = buildGradle.match(
             new RegExp(`'${applicationId.replace(/\./g, '\\.')}':\\s*'([^']+)'`),
         );
+        const resolvedPrefix = prefixEntry ? prefixEntry[1] : 'app.therrmobile';
 
-        expect(prefixEntry).not.toBeNull();
-        expect(prefixEntry![1]).toBe('com.therr.mobile.habits');
+        expect(resolvedPrefix).toBe(expectedPrefixByAppId[applicationId]);
     });
 });

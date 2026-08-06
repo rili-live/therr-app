@@ -1,16 +1,16 @@
 {
   "name": "Therr",
-  "displayName": "Friends with Habits",
+  "displayName": "Therr Mobile",
   "expo": {
     "owner": "therr-inc",
-    "name": "Friends with Habits",
-    "slug": "friends-with-habits",
+    "name": "Therr",
+    "slug": "therr-app",
     "android": {
-      "package": "com.therr.habits"
+      "package": "app.therrmobile"
     },
     "extra": {
       "eas": {
-        "projectId": "59e59c96-e58a-4b93-bed5-d20ccdf395c2"
+        "projectId": "b071fc20-7290-4ef4-a045-a2fe670e87f1"
       }
     }
   }

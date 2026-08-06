@@ -4,7 +4,7 @@
     "promptToConfigurePushNotifications": false
   },
   "build": {
-    "habits-internal": {
+    "therr-internal": {
       "distribution": "store",
       "environment": "production",
       "node": "24.12.0",
@@ -17,7 +17,7 @@
     }
   },
   "submit": {
-    "habits-internal": {
+    "therr-internal": {
       "android": {
         "track": "internal",
         "releaseStatus": "draft",
