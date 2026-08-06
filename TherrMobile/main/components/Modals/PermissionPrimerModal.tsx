@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking, ScrollView, Text, View } from 'react-native';
 import { Button, Dialog, Portal } from 'react-native-paper';
+import { BRAND_DISPLAY_NAME } from '../../config/brandConfig';
 
 export type PermissionPrimerType = 'notifications' | 'camera' | 'contacts';
 
@@ -66,13 +67,13 @@ const PermissionPrimerModal = ({
                     <Dialog.ScrollArea style={themeDisclosure.styles.scrollArea}>
                         <ScrollView contentContainerStyle={themeDisclosure.styles.scrollContent}>
                             <Text style={[themeDisclosure.styles.text, themeDisclosure.styles.textEmphasis]}>
-                                {translate(`permissions.primer.${permissionType}.summary`)}
+                                {translate(`permissions.primer.${permissionType}.summary`, { appName: BRAND_DISPLAY_NAME })}
                             </Text>
                             <Text style={themeDisclosure.styles.text}>
-                                {translate(`permissions.primer.${permissionType}.detail`)}
+                                {translate(`permissions.primer.${permissionType}.detail`, { appName: BRAND_DISPLAY_NAME })}
                             </Text>
                             <Text style={themeDisclosure.styles.text}>
-                                {translate(`permissions.primer.${permissionType}.optOut`)}
+                                {translate(`permissions.primer.${permissionType}.optOut`, { appName: BRAND_DISPLAY_NAME })}
                             </Text>
                             <Text
                                 style={[themeDisclosure.styles.text, themeDisclosure.styles.textLink]}
@@ -87,7 +88,7 @@ const PermissionPrimerModal = ({
                     <Dialog.Content>
                         <View>
                             <Text style={themeDisclosure.styles.text}>
-                                {translate(`permissions.primer.${permissionType}.body`)}
+                                {translate(`permissions.primer.${permissionType}.body`, { appName: BRAND_DISPLAY_NAME })}
                             </Text>
                         </View>
                     </Dialog.Content>

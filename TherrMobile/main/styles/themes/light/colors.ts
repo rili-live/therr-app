@@ -22,13 +22,13 @@ const colors: ITherrThemeColors = {
     // Legacy
     primary: '#ffffff',
     primary2: '#fcfeff',
-    primary3: '#3B2A4E',
-    primary4: '#241832',
-    primary5: '#52406D',
+    primary3: '#1C7F8A',
+    primary4: '#104B52',
+    primary5: '#17657D',
     secondary: '#E37107',
     ternary: '#ffffff',
     ternary2: '#ffc269',
-    tertiary: '#241832',
+    tertiary: '#104B52',
 
     // Text
     textBlack: '#fcfeff',
@@ -40,12 +40,12 @@ const colors: ITherrThemeColors = {
 
     // Branding - These colors should remain unchanged regardless of theme
     brandingWhite: '#fcfeff',
-    brandingBlack: '#1A0E26',
-    brandingBlueGreen: '#3B2A4E',
+    brandingBlack: '#001226',
+    brandingBlueGreen: '#1C7F8A',
     brandingMapYellow: '#ebc300',
     brandingOrange: '#DE6E07',
     brandingRed: '#FF3041',
-    brandingLightBlue: '#E8DEF2',
+    brandingLightBlue: '#d8f0f2',
 
     // Background
     backgroundCream: '#575d5d',
@@ -60,8 +60,8 @@ const colors: ITherrThemeColors = {
     placeholderTextColor: '#78909b',
     placeholderTextColorAlt: 'rgba(0,0,0,.58)',
 
-    hyperlink: '#52406D',
-    controlButtons: '#3B2A4E',
+    hyperlink: '#0e01b3',
+    controlButtons: '#1C7F8A',
 
     // Alerts
     alertError: '#AC3E59',
@@ -71,20 +71,20 @@ const colors: ITherrThemeColors = {
 
     // Accents - Alternate color scheme to add variety and reduce blandless
     accent1: '#ffffff',
-    accent1Fade: '#B9A8CC',
-    accent2: '#241832',
+    accent1Fade: '#97c5bb',
+    accent2: '#104B52',
     accent3: '#218a35',
-    accentAlt: '#6B4F8A',
-    accentTextBlack: '#3B2A4E',
-    accentTextWhite: '#1A0E26',
+    accentAlt: '#449885',
+    accentTextBlack: '#1C7F8A',
+    accentTextWhite: '#001226',
     accentRed: '#fe0156',
     accentYellow: '#fed61e',
-    accentBlue: '#52406D',
-    accentPurple: '#6B4F8A',
+    accentBlue: '#17657D',
+    accentPurple: '#0e01b3',
     accentTeal: '#2BC5D6',
     accentLime: '#26B379',
     accentDivider: '#4950571c',
-    accentLogo: '#7A5C9F',
+    accentLogo: '#1E8A96',
 
     // Socials
     facebook: '#4167b2',

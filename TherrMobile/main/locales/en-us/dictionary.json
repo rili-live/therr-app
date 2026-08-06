@@ -457,8 +457,8 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
-        "title": "Friends with Habits | Accountability App for Friends"
+        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 {shareUrl}",
+        "title": "Therr App | Local Community & Rewards App"
       }
     },
     "createProfile": {
@@ -802,8 +802,8 @@
         "disclaimer": "By creating an account, you agree to our ",
         "and": " and ",
         "inviteCodeHint": "Enter a friend's username to earn coins, or paste a PACT-XXXX code from your invitation.",
-        "invitedBy": "{inviterName} invited you to Friends with Habits — finish signing up to connect!",
-        "birthdateHint": "You must be at least {minAge} years old to use Friends with Habits"
+        "invitedBy": "{inviterName} invited you to Therr — finish signing up to connect!",
+        "birthdateHint": "You must be at least {minAge} years old to use Therr"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
@@ -1352,7 +1352,7 @@
       "pageTitle": "Forums"
     },
     "createProfile": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "Therr",
       "pageHeaderDetails": "Create your profile",
       "pageSubHeaderDetails": "You can change your username at any time",
       "pageHeaderPhone": "Keep it secure",
@@ -1375,7 +1375,7 @@
         "back": "Go back a step"
       },
       "syncContacts": {
-        "description": "See which of your contacts are already here. Your contact list is sent to our servers to look for matching accounts — we will show you the full details before anything leaves your device.",
+        "description": "We match your contacts against Therr accounts so you can connect right away. Your contacts are never shared with anyone else.",
         "continue": "Continue",
         "skip": "Not Now",
         "errorMessage": "We could not sync your contacts. Please try again.",
@@ -1633,9 +1633,9 @@
       }
     },
     "login": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "Therr",
       "pageTitle": "Welcome",
-      "pageSubtitle": "Sign in to check in with your friends",
+      "pageSubtitle": "Sign in to Therr to see what you missed",
       "userAlerts": {
         "registerSuccess": "Registration success! Check your e-mail for verification.",
         "phoneRegisterSuccess": "Account created! Sign in with a code sent to your phone."
@@ -1749,8 +1749,8 @@
       "headerTitle": "Phone Contacts",
       "pageTitle": "Phone Contacts",
       "sections": {
-        "onApp": "Friends Already on Friends with Habits",
-        "notOnApp": "Invite to Friends with Habits"
+        "onApp": "Friends Already on Therr",
+        "notOnApp": "Invite to Therr"
       },
       "buttons": {
         "connect": "Connect",
@@ -1760,11 +1760,11 @@
         "inviteSelectedCount": "Invite Selected ({count})"
       },
       "empty": {
-        "onApp": "None of your contacts are on Friends with Habits yet",
-        "notOnApp": "All your contacts are already on Friends with Habits!"
+        "onApp": "None of your contacts are on Therr yet",
+        "notOnApp": "All your contacts are already on Therr!"
       },
-      "inviteMessage": "Hey! Join me on Friends with Habits — we build streaks together and keep each other accountable. Sign up with my link: {shareUrl}",
-      "inviteSubject": "Join me on Friends with Habits!",
+      "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: {shareUrl}",
+      "inviteSubject": "Join me on Therr!",
       "alertTitles": {
         "contactInvitesSent": "Invite Success",
         "connectRequestSent": "Connect Request Sent",
@@ -1785,7 +1785,7 @@
       }
     },
     "register": {
-      "headerTitle": "Friends with Habits",
+      "headerTitle": "Therr",
       "pageTitle": "Sign Up",
       "pageSubtitle": "Create a profile and see what you are missing or view the",
       "pageSubtitleMapPreviewLink": "public map",
@@ -1866,7 +1866,7 @@
         "shareFeedback": "Share Feedback"
       },
       "subtitles": {
-        "createConnection": "Send a connection request or invite a friend to join Friends with Habits!",
+        "createConnection": "Send a connection request or invite someone to join Therr!",
         "whoInviteDisclaimer": "Choose who and how you would like to invite."
       },
       "labels": {
@@ -1879,9 +1879,9 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription1": "Welcome to Friends with Habits. As we gather feedback and develop new features, let us know how we can improve the experience.",
+      "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
-      "siteDescription3": "Invite a friend to form a pact, then build habits you'll hold each other to. Check in daily, share proof, and watch your streak grow.",
+      "siteDescription3": "Content on the map is proximity activated. Share a moment with your connections on the map. Discover spaces nearby, and claim TherrCoins for actions (posting, reviewing, visiting, etc).",
       "siteDescription4": "Keep the streak alive together. If one of you slips, the other is there to keep things on track — accountability is the whole point.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
@@ -1994,7 +1994,7 @@
       "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
       "onboarding": {
         "title": "Start with a Friend",
-        "subtitle": "Friends with Habits is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",
+        "subtitle": "{appName} is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",
         "createPact": "Invite a Friend",
         "viewInvites": "View {count} Pact Invite(s)",
         "findPartner": "Browse People",
@@ -2191,7 +2191,7 @@
     },
     "myQRCodes": {
       "headerTitle": "My QR Codes",
-      "subtitle": "Share any of your Friends with Habits content with a scan.",
+      "subtitle": "Share any of your Therr content with a scan.",
       "profileCardHint": "Tap to view the full QR for your profile.",
       "profileAccessibilityLabel": "View full QR code for your profile",
       "profileFallbackName": "My Profile",
@@ -2208,7 +2208,7 @@
     },
     "myQRCodeDetail": {
       "headerTitle": "QR Code",
-      "helperText": "Have anyone scan this with their camera to open it in Friends with Habits.",
+      "helperText": "Have anyone scan this with their camera to open it in Therr.",
       "accessibility": "QR code linking to {{title}}",
       "copied": "Link Copied",
       "privateNote": "Your profile is private — scanners will see a limited view until you connect.",
@@ -2410,13 +2410,13 @@
       },
       "camera": {
         "title": "Capture the moment",
-        "body": "Friends with Habits needs camera access to attach a photo to your post."
+        "body": "Therr needs camera access to attach a photo to your post."
       },
       "contacts": {
-        "title": "Friends with Habits collects your contacts",
-        "summary": "Friends with Habits collects your contact list — your contacts' names, phone numbers and email addresses — and sends it to Therr servers at api.therr.com to find which of your contacts already use the app.",
+        "title": "Find friends faster",
+        "summary": "{appName} collects your contact list — your contacts' names, phone numbers and email addresses — and sends it to Therr servers at api.therr.com to find which of your contacts already use the app.",
         "detail": "Every contact in your address book is included, not only the ones you pick. We use these details to look for matching accounts and to send any invites you choose to send. Contacts with no matching account are not stored, apart from anyone you explicitly invite — we keep their phone number or email address to deliver that invite and to avoid inviting them twice. We never sell your contacts or share them with advertisers.",
-        "optOut": "This is optional. You can skip it and keep using Friends with Habits, and you can turn off contact access at any time in your device settings."
+        "optOut": "This is optional. You can skip it and keep using {appName}, and you can turn off contact access at any time in your device settings."
       }
     }
   },
