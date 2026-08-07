@@ -142,6 +142,19 @@ append new items here rather than only printing them once.
 
 <!-- skill-followups:start -->
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
+- [ ] (2026-08-07, push-notifications-debug) **Seven HABITS notification types have no
+  sender.** `dailyHabitReminder`, `morningMotivation`, `eveningCheckIn`, `streakBroken`,
+  `newPersonalRecord`, `partnerCelebrated` and `pactCompleted` have copy in all three
+  locales, Android channel routing, per-brand intent actions and test coverage — and
+  nothing in this repo ever calls them. They are not scheduled on-device either
+  (`sendTriggerNotification` is used only by Moments/Events). The daily-reminder loop,
+  which `docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md` treats as the core HABITS
+  retention mechanic, is therefore delivery-half-only. Decide per type: wire a trigger
+  (the digest at `habitsDigest.ts` is the natural home for the daily three, but note it
+  has no server-side dedup and runs from a single Cloud Scheduler job), schedule them
+  locally via Notifee, or delete the dead copy. Verify with:
+  `grep -rn "Types.dailyHabitReminder" --include=*.ts therr-services/ | grep -v push-notifications-service`
+
 - [ ] (2026-08-07, push-notifications-debug) **Verify the iOS APNS-topic fix on a real
   Habits handset after this deploys.** `apns-topic` for HABITS/TEEM was
   `com.therr.mobile.habits` / `com.therr.mobile.Teem` — bundle ids no Xcode target

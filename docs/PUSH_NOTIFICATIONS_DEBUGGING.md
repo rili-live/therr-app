@@ -6,6 +6,48 @@ Read this before changing Firebase configuration. The most common instinct —
 "our Firebase setup must be wrong, let's make a new project" — is usually the
 wrong move, and § Do we need a separate Firebase project? explains why.
 
+## Link 0: did anything actually try to send?
+
+Before debugging delivery, rule this out — on HABITS it is the most likely
+answer, and it looks identical to a broken pipeline.
+
+**A solo tester with no pact partner can trigger almost nothing.** Every HABITS
+notification needs either a second human or the daily digest:
+
+| Type | Goes to | Triggered by |
+|---|---|---|
+| `streakMilestone` | yourself | a check-in landing on **exactly** 3, 7, 14, 30, 60, 90, 180 or 365 consecutive days (`STREAK_MILESTONES`) — so day 3 at the earliest, on 3 separate calendar days |
+| `leaderboardRankMilestone` | yourself | weekly rank crossing a milestone |
+| `partnerCheckedIn`, `partnerMissedDay` | pact partners | someone *else* acting |
+| `pactInvitation`, `pactAccepted`, `pactDeclined`, `pactNudge` | the other party | someone *else* acting |
+| `streakAtRisk`, `partnerMissedDay`, `pactExpiring` | members | the **daily digest only** — and it iterates `activePacts`, so no pact means no sends at all |
+
+So on a fresh single-user account with no pact: check in once, twice — nothing
+fires. That is correct behavior, not a bug.
+
+The digest (`POST /v1/habits/pacts/digest/run-daily`) is not on a k8s CronJob;
+it is called by the `therr-messaging-automator` Cloud Function via Cloud
+Scheduler, over the internal LB (see `k8s/prod/users-service-network-policy.yaml`).
+It is deliberately unreachable from the public internet, and has **no
+server-side dedup** — a second trigger path re-sends every notification.
+
+### Types with no sender at all
+
+These have copy in all three locales, channel routing, brand intent actions and
+tests — and **nothing in this repo ever sends them**:
+
+`dailyHabitReminder`, `morningMotivation`, `eveningCheckIn`, `streakBroken`,
+`newPersonalRecord`, `partnerCelebrated`, `pactCompleted`
+
+They are not scheduled locally on-device either (`sendTriggerNotification` is
+used only by Moments and Events). If you expected a daily habit reminder, that
+loop is not wired up — the delivery half exists and the trigger half does not.
+Verify with:
+
+```bash
+grep -rn "Types.dailyHabitReminder" --include=*.ts therr-services/ | grep -v push-notifications-service
+```
+
 ## The delivery chain
 
 A push crosses five links. Only one of them used to produce any signal.
@@ -95,9 +137,32 @@ it must equal the `PRODUCT_BUNDLE_IDENTIFIER` of the build receiving the push.
 
 ### 3. Send a real test push
 
+This is the fastest way to separate "delivery is broken" from "nothing ever
+fired" — it bypasses every trigger condition above and puts a real notification
+on the handset.
+
 `dryRun` defaults to `true`: FCM validates the token and credentials without
 delivering. Set it to `false` once the dry run is clean and you want the handset
 to buzz.
+
+**By user id** (resolves the device token server-side — no adb, no token
+wrangling; this is the one to reach for):
+
+```bash
+curl -sS -X POST \
+  "https://api.therr.com/v1/users-service/users/$USER_ID/push-diagnostics/send-test" \
+  -H "authorization: Bearer $TOKEN" \
+  -H "x-brand-variation: habits" \
+  -H "content-type: application/json" \
+  -d '{"type":"pact-invitation","dryRun":false}' | jq
+```
+
+A `{"sent": false, "reason": "no-device-token"}` response *is* the diagnosis:
+the app never completed FCM registration for that brand. It resolves the token
+through the same `resolveDeviceTokenForBrand` the real notification path uses,
+so a token this can't find is one production can't find either.
+
+**By raw token**, when a user has several devices and you need a specific one:
 
 ```bash
 curl -sS -X POST \
@@ -178,6 +243,30 @@ Within the single shared project:
 - The **Android app entry exists** for each `applicationId`
   (`app.therrmobile`, `com.therr.habits`) and the SHA-1 fingerprints are
   registered — see `_bin/firebase/README.md`.
+
+## Platform notes
+
+**Android** is unaffected by the `apns-topic` class of bug entirely — it ignores
+the `apns` block. Its own link-5 failure modes, and where each is handled:
+
+| Requirement | Where | Status |
+|---|---|---|
+| `POST_NOTIFICATIONS` declared and requested (API 33+) | `AndroidManifest.xml`; `requestNotificationsOS()` in `permissionsOrchestrator.ts` | wired |
+| Channels exist before a display push names one | `createAndroidNotificationChannels()` at app start | wired |
+| `ic_notification_icon` drawable present | `res/drawable-*/` (all densities) | present |
+| Data-only pushes converted to a visible notification | `setBackgroundMessageHandler` in `TherrMobile/index.js` | wired |
+| Fallback channel for pushes naming an unknown channel | `default_notification_channel_id` = `reminders` | wired |
+
+So when nothing arrives on Android, suspect link 0 (nothing fired) or link 2
+(token filed under the wrong brand) before suspecting delivery. Confirm with a
+`send-test` — if the handset buzzes, delivery is fine and the question is what
+was supposed to trigger.
+
+Two things `send-test` cannot rule out, both user-side: notifications disabled
+for the app or for one channel in Android Settings (a channel's importance is
+locked at first creation and only the user can raise it afterwards), and
+aggressive OEM battery optimization on Samsung/Xiaomi/OnePlus, which can delay
+or drop FCM for a backgrounded app.
 
 ## Known sharp edges
 

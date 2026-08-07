@@ -14,7 +14,9 @@ import {
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { verifyPhoneVerificationToken } from 'therr-js-utilities/phone-verification-token';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import handleHttpError from '../utilities/handleHttpError';
+import * as globalConfig from '../../../../global-config';
 import Store from '../store';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
@@ -1619,6 +1621,74 @@ const getUserPushDiagnostics: RequestHandler = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
+// Diagnostics (SUPER_ADMIN at the gateway): send a real test push to a user by id.
+//
+// The push-notifications-service test endpoint takes a raw FCM device token, which
+// nothing in the system hands you — the diagnostics endpoints deliberately return
+// only a fingerprint, and reading one off a handset means adb/Xcode. This variant
+// resolves the brand-scoped token server-side, so verifying delivery needs only a
+// user id and takes seconds.
+//
+// It resolves the token through the same `resolveDeviceTokenForBrand` the real
+// notification path uses, so a token this can't find is a token production can't
+// find either — a negative result here is itself the diagnosis.
+const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
+    const { id } = req.params;
+    const {
+        authorization,
+        brandVariation,
+        locale,
+    } = parseHeaders(req.headers);
+
+    const { type, dryRun = true } = req.body || {};
+
+    return Store.users.findUser({ id }, ['id', 'deviceMobileFirebaseToken'])
+        .then(async (userResults: any[]) => {
+            const user = userResults?.[0];
+            if (!user) {
+                return handleHttpError({ res, message: 'User not found', statusCode: 404 });
+            }
+
+            const deviceToken = await resolveDeviceTokenForBrand(
+                brandVariation as string,
+                id,
+                user.deviceMobileFirebaseToken,
+            );
+
+            if (!deviceToken) {
+                // Not an error condition to paper over — this IS the answer when a
+                // user reports missing pushes, and it stops the caller chasing FCM.
+                return res.status(200).send({
+                    sent: false,
+                    reason: 'no-device-token',
+                    message: `No device token is registered for user ${id} under brand `
+                        + `"${brandVariation}". The app has never completed FCM registration for `
+                        + 'this brand — check OS notification permission and that the build\'s '
+                        + 'CURRENT_BRAND_VARIATION matches. Nothing would reach this device.',
+                });
+            }
+
+            return internalRestRequest({ headers: req.headers as any }, {
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}`
+                    + '/notifications/diagnostics/send-test',
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': id,
+                },
+                data: { deviceToken, type, dryRun },
+            })
+                .then((response: any) => res.status(200).send({ sent: true, ...response.data }))
+                // A non-2xx from the push service is a real diagnostic result, not a
+                // gateway failure — forward its body verbatim so the FCM error code survives.
+                .catch((err: any) => res.status(err?.response?.status || 502).send(
+                    err?.response?.data || { sent: false, reason: 'push-service-unreachable', message: err?.message },
+                ));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
 export {
     createUser,
     getMe,
@@ -1626,6 +1696,7 @@ export {
     getUserByPhoneNumber,
     getUserByUserName,
     getUserPushDiagnostics,
+    sendUserPushDiagnosticsTest,
     getUsers,
     findUsers,
     searchUsers,

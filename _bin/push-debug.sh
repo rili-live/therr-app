@@ -8,7 +8,7 @@
 #
 # Usage:
 #   ./_bin/push-debug.sh --user <userId> --token <jwt> [--brand habits] [--send] [--type <type>]
-#   ./_bin/push-debug.sh --user <userId> --token <jwt> --device-token <fcmToken>
+#   ./_bin/push-debug.sh --user <userId> --token <jwt> --device-token <fcmToken>   # target one handset
 #
 # By default the test send is a DRY RUN: FCM validates the token and credentials
 # without delivering anything. Pass --send to make the handset actually buzz.
@@ -84,20 +84,29 @@ if [[ -n "$USER_ID" ]]; then
 fi
 
 # ---------------------------------------------------------------- links 4-5
-if [[ -z "$DEVICE_TOKEN" ]]; then
-    echo "==> [4/5] Skipping test send — pass --device-token <fcmToken> to exercise FCM."
-    echo "    (Token values are never returned by the endpoints above, by design.)"
-    echo "    Read it off the device: adb logcat | grep -i 'x-user-device-token', or"
-    echo "    from the app's Redux user.details.deviceMobileFirebaseToken in a debug build."
-    exit 0
-fi
-
 echo "==> [4/5] Test send (dryRun=${DRY_RUN}, type=${TYPE})"
-RESULT="$(curl -sS -X POST \
-    "${API_HOST}/v1/push-notifications-service/notifications/diagnostics/send-test" \
-    "${HDRS[@]}" \
-    -H "content-type: application/json" \
-    -d "{\"deviceToken\":\"${DEVICE_TOKEN}\",\"type\":\"${TYPE}\",\"dryRun\":${DRY_RUN}}")"
+
+if [[ -n "$DEVICE_TOKEN" ]]; then
+    # Explicit token: addresses a specific handset, useful when a user has several.
+    RESULT="$(curl -sS -X POST \
+        "${API_HOST}/v1/push-notifications-service/notifications/diagnostics/send-test" \
+        "${HDRS[@]}" \
+        -H "content-type: application/json" \
+        -d "{\"deviceToken\":\"${DEVICE_TOKEN}\",\"type\":\"${TYPE}\",\"dryRun\":${DRY_RUN}}")"
+else
+    # By user id: users-service resolves the brand-scoped token the same way the
+    # real notification path does, so no token wrangling off the device.
+    RESULT="$(curl -sS -X POST \
+        "${API_HOST}/v1/users-service/users/${USER_ID}/push-diagnostics/send-test" \
+        "${HDRS[@]}" \
+        -H "content-type: application/json" \
+        -d "{\"type\":\"${TYPE}\",\"dryRun\":${DRY_RUN}}")"
+
+    if [[ "$(echo "$RESULT" | jq -r '.reason // ""')" == "no-device-token" ]]; then
+        echo "$RESULT" | jq -r '"    " + .message'
+        exit 0
+    fi
+fi
 
 echo "$RESULT" | jq '{ result, apnsTopic: .envelope.apns.headers["apns-topic"], androidChannel: .envelope.android.notification.channelId }'
 echo
