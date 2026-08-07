@@ -386,6 +386,21 @@ usersServiceRouter.get('/users/me', handleServiceRequest({
     method: 'get',
 }));
 
+// Push-delivery diagnostics. Declared before '/users/:id' so the more specific
+// path is matched first, and gated to SUPER_ADMIN — it reports another user's
+// device-registration state. See docs/PUSH_NOTIFICATIONS_DEBUGGING.md.
+usersServiceRouter.get('/users/:id/push-diagnostics', authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',

@@ -1552,12 +1552,80 @@ const clearUserDeviceToken: RequestHandler = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
+// Diagnostics (SUPER_ADMIN at the gateway): does this user have a device token
+// registered, and under which brand?
+//
+// This is the link in the push chain that fails most quietly. `syncDeviceTokenForBrand`
+// is fire-and-forget by design, so a failed write leaves no trace in the user-facing
+// response; and the brand it files under comes from the client's `x-brand-variation`
+// header, so a mismatched build registers a perfectly valid token that push routing
+// will never look up.
+//
+// Token values are never returned — only a fingerprint (prefix + length), which is
+// enough to confirm the device the user is holding matches the row, and useless to
+// anyone who intercepts the response.
+const getUserPushDiagnostics: RequestHandler = (req, res) => {
+    const { id } = req.params;
+    const { brandVariation } = getBrandContext(req.headers);
+
+    return Promise.all([
+        Store.users.findUser({ id }, ['id', 'deviceMobileFirebaseToken', 'settingsLocale']),
+        Store.userDeviceTokens.getAllTokensForUserAcrossBrands(id),
+    ])
+        .then(([userResults, tokenRows]) => {
+            const user = userResults?.[0];
+            if (!user) {
+                return handleHttpError({
+                    res,
+                    message: 'User not found',
+                    statusCode: 404,
+                });
+            }
+
+            const fingerprint = (token?: string | null) => (token
+                ? { prefix: String(token).slice(0, 12), length: String(token).length }
+                : null);
+
+            const rows = (tokenRows || []).map((row: any) => ({
+                brandVariation: row.brandVariation,
+                platform: row.platform,
+                updatedAt: row.updatedAt,
+                createdAt: row.createdAt,
+                token: fingerprint(row.token),
+            }));
+
+            const brandsRegistered = Array.from(new Set(rows.map((r) => r.brandVariation)));
+
+            return res.status(200).send({
+                userId: id,
+                // The brand this request was made under, for comparison against
+                // brandsRegistered — a user who only appears under 'therr' will
+                // never receive a 'habits' push, and vice versa.
+                requestedBrand: String(brandVariation || ''),
+                isRegisteredForRequestedBrand: brandsRegistered.includes(String(brandVariation)),
+                brandsRegistered,
+                deviceTokens: rows,
+                legacy: {
+                    // Pre-Phase-2 column. Push routing falls back to it when no
+                    // brand-scoped row exists, which means a user can receive
+                    // pushes for the *wrong* brand while looking correctly
+                    // unregistered above.
+                    hasDeviceMobileFirebaseToken: !!user.deviceMobileFirebaseToken,
+                    token: fingerprint(user.deviceMobileFirebaseToken),
+                },
+                settingsLocale: user.settingsLocale || null,
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
 export {
     createUser,
     getMe,
     getUser,
     getUserByPhoneNumber,
     getUserByUserName,
+    getUserPushDiagnostics,
     getUsers,
     findUsers,
     searchUsers,

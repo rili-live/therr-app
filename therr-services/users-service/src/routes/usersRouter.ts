@@ -23,6 +23,7 @@ import {
     approveSpaceRequest,
     updateLastKnownLocation,
     clearUserDeviceToken,
+    getUserPushDiagnostics,
 } from '../handlers/users';
 import { getInviteByToken } from '../handlers/userConnections';
 
@@ -35,6 +36,9 @@ router.post('/', createUser);
 router.get('/me', getMe);
 // PUBLIC: resolve a magic invite-link token to pre-fill signup data
 router.get('/invites/:token', getInviteByToken);
+// Push-delivery diagnostics (SUPER_ADMIN at the gateway).
+// See docs/PUSH_NOTIFICATIONS_DEBUGGING.md.
+router.get('/:id/push-diagnostics', getUserPushDiagnostics);
 router.get('/:id', getUser);
 router.get('/', getUsers);
 router.get('/by-phone/:phoneNumber', getUserByPhoneNumber);

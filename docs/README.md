@@ -56,6 +56,7 @@ went unread.
 
 ### Operations & debugging
 - [PROD_DEBUG_CLAUDE.md](./PROD_DEBUG_CLAUDE.md) — production debugging runbook
+- [PUSH_NOTIFICATIONS_DEBUGGING.md](./PUSH_NOTIFICATIONS_DEBUGGING.md) — why a push didn't arrive; the diagnostics endpoints, and why a separate Firebase project per brand is usually the wrong fix
 - [CLOUDFLARE_CDN.md](./CLOUDFLARE_CDN.md) — CDN configuration
 - [AUTOMATION_ROADMAP.md](./AUTOMATION_ROADMAP.md) — cross-repo automation priorities, ranked
 
