@@ -29,6 +29,8 @@ import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
+import AreaScrollerCard from './AreaScrollerCard';
+import HorizontalCardScroller, { getScrollerCardWidth } from './HorizontalCardScroller';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
 import SpaceRating from '../../components/Input/SpaceRating';
 import { buildSpaceUrl } from '../../utilities/shareUrls';
@@ -39,6 +41,7 @@ import { SheetManager } from 'react-native-actions-sheet';
 
 const envConfig = getConfig();
 const { width: viewportWidth } = Dimensions.get('window');
+const scrollerCardWidth = getScrollerCardWidth(viewportWidth);
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -221,97 +224,71 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }
     };
 
-    renderEventItem = (event) => {
-        const { goToViewEvent, themeViewArea } = this.props;
+    renderEventCard = ({ item: event }: { item: any }) => {
+        const { goToViewEvent, isDarkMode, theme } = this.props;
         const onViewEvent = () => {
             if (goToViewEvent) {
                 goToViewEvent(event);
             }
         };
+        const eventMedia = event.medias?.length > 0
+            ? getUserContentUri(event.medias[0], scrollerCardWidth, scrollerCardWidth)
+            : undefined;
+        const start = formatDate(event.scheduleStartAt, 'short');
+        const stop = formatDate(event.scheduleStopAt, 'short');
 
         return (
-            <View key={event.id} style={[
-                { width: viewportWidth },
-                spacingStyles.marginBotMd,
-                spacingStyles.flex,
-                spacingStyles.justifyCenter,
-                spacingStyles.padHorizMd,
-            ]}>
-                <Text style={themeViewArea.styles.eventText}>
-                    {/* eslint-disable-next-line max-len */}
-                    {formatDate(event.scheduleStartAt, 'short').date} {formatDate(event.scheduleStartAt).time} - {formatDate(event.scheduleStopAt, 'short').date} {formatDate(event.scheduleStopAt).time}
-                </Text>
-                <Text onPress={onViewEvent} numberOfLines={2} style={[
-                    themeViewArea.styles.eventText,
-                    themeViewArea.styles.flexShrinkOne]}>
-                    {event?.notificationMsg}
-                </Text>
-            </View>
+            <AreaScrollerCard
+                width={scrollerCardWidth}
+                seed={event.id}
+                imageUri={eventMedia}
+                category={event.category}
+                areaType="events"
+                title={event?.notificationMsg}
+                metaLines={[
+                    start.date && `${start.date} • ${formatDate(event.scheduleStartAt).time}`,
+                    stop.date && `${stop.date} • ${formatDate(event.scheduleStopAt).time}`,
+                ]}
+                onPress={onViewEvent}
+                isDarkMode={isDarkMode}
+                theme={theme}
+            />
         );
     };
 
-    renderMomentItem = (moment) => {
-        const { goToViewMoment, goToViewUser, theme, themeViewArea } = this.props;
+    renderMomentCard = ({ item: moment }: { item: any }) => {
+        const { goToViewMoment, isDarkMode, theme } = this.props;
         const onViewMoment = () => {
             if (goToViewMoment) {
                 goToViewMoment(moment);
             }
         };
+        const momentMedia = moment.medias?.length > 0
+            ? getUserContentUri(moment.medias[0], scrollerCardWidth, scrollerCardWidth)
+            : undefined;
 
         return (
-            <View key={moment.id} style={[
-                { width: viewportWidth },
-                spacingStyles.marginBotMd,
-                spacingStyles.flexRow,
-                spacingStyles.justifyCenter,
-                spacingStyles.padHorizMd,
-            ]}>
-                <Pressable
-                    onPress={() => goToViewUser(moment.fromUserId)}
-                >
-                    <Image
-                        source={{
-                            uri: getUserImageUri({
-                                details: {
-                                    media: moment.fromUserMedia,
-                                    id: moment.fromUserId,
-                                },
-                            }, 52),
-                        }}
-                        style={themeViewArea.styles.areaUserAvatarImg}
-                        containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
-                        height={themeViewArea.styles.areaUserAvatarImg.height}
-                        width={themeViewArea.styles.areaUserAvatarImg.width}
-                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen} />}
-                        transition={false}
-                    />
-                </Pressable>
-                <View style={[
-                    spacingStyles.flexOne,
-                    spacingStyles.marginLtSm,
-                ]}>
-                    <Text onPress={() => goToViewUser(moment.fromUserId)}>
-                        {moment.fromUserName}
-                    </Text>
-                    <Text onPress={onViewMoment} numberOfLines={2} style={[
-                        themeViewArea.styles.eventText,
-                        themeViewArea.styles.flexShrinkOne]}>
-                        {moment?.notificationMsg}
-                    </Text>
-                </View>
-                {
-                    moment.medias?.length > 0 &&
-                    <Image
-                        onPress={onViewMoment}
-                        source={{
-                            uri: getUserContentUri(moment.medias[0], 100, 100),
-                        }}
-                        style={localStyles.momentThumbnail}
-                        resizeMode="contain"
-                        PlaceholderContent={<ActivityIndicator />}
-                    />
-                }
-            </View>
+            <AreaScrollerCard
+                width={scrollerCardWidth}
+                seed={moment.id}
+                imageUri={momentMedia}
+                category={moment.category}
+                areaType="moments"
+                title={moment?.notificationMsg}
+                onPress={onViewMoment}
+                avatars={[{
+                    key: String(moment.fromUserId ?? moment.id),
+                    uri: getUserImageUri({
+                        details: {
+                            media: moment.fromUserMedia,
+                            id: moment.fromUserId,
+                        },
+                    }, 52),
+                }]}
+                footerLabel={moment.fromUserName}
+                isDarkMode={isDarkMode}
+                theme={theme}
+            />
         );
     };
 
@@ -567,6 +544,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 /> :
                                 placeholderMediaType && <MissingImagePlaceholder
                                     area={area}
+                                    theme={theme}
                                     themeViewArea={themeViewArea}
                                     placeholderMediaType={placeholderMediaType}
                                     dimensions={{
@@ -1029,29 +1007,27 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 }
                 {
                     isSpace && isExpanded && area.events?.length > 0
-                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
-                        <Text style={theme.styles.sectionTitleCenter}>
-                            {translate('pages.viewSpace.h2.events')}
-                        </Text>
-                        <View style={[spacingStyles.fullWidth]}>
-                            {
-                                area.events?.map((event) => this.renderEventItem(event))
-                            }
-                        </View>
-                    </View>
+                    && <HorizontalCardScroller
+                        title={translate('pages.viewSpace.h2.events')}
+                        data={area.events}
+                        renderCard={this.renderEventCard}
+                        keyExtractor={(event: any, index: number) => String(event?.id ?? index)}
+                        itemWidth={scrollerCardWidth}
+                        theme={theme}
+                        testID="space-events-scroller"
+                    />
                 }
                 {
                     isSpace && isExpanded && area.associatedMoments?.length > 0
-                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
-                        <Text style={theme.styles.sectionTitleCenter}>
-                            {translate('pages.viewSpace.h2.moments')}
-                        </Text>
-                        <View style={[spacingStyles.fullWidth]}>
-                            {
-                                area.associatedMoments?.map((moment) => this.renderMomentItem(moment))
-                            }
-                        </View>
-                    </View>
+                    && <HorizontalCardScroller
+                        title={translate('pages.viewSpace.h2.moments')}
+                        data={area.associatedMoments}
+                        renderCard={this.renderMomentCard}
+                        keyExtractor={(moment: any, index: number) => String(moment?.id ?? index)}
+                        itemWidth={scrollerCardWidth}
+                        theme={theme}
+                        testID="space-moments-scroller"
+                    />
                 }
                 {
                     isSpace
@@ -1082,11 +1058,6 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 }
 
 const localStyles = StyleSheet.create({
-    momentThumbnail: {
-        width: 100,
-        height: 100,
-        borderRadius: 5,
-    },
     actionLinkTitle: {
         fontSize: 12,
     },
