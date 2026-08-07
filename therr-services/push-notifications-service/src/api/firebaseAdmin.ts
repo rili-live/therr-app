@@ -70,6 +70,23 @@ const defaultApp = admin.initializeApp({
 const brandAppCache = new Map<BrandVariations, admin.app.App>();
 brandAppCache.set(BrandVariations.THERR, defaultApp);
 
+// Which Firebase project each brand's sends actually resolve to. Populated
+// alongside brandAppCache purely so the diagnostics endpoint can answer "is this
+// brand sending through its own project, or falling back to Therr's?" without
+// re-reading (and re-parsing) credentials. `admin.app.App.options.credential`
+// does not expose project_id, so it has to be captured at parse time.
+interface IBrandCredentialResolution {
+    projectId: string;
+    clientEmail: string;
+    isFallbackToTherr: boolean;
+}
+const brandCredentialResolution = new Map<BrandVariations, IBrandCredentialResolution>();
+brandCredentialResolution.set(BrandVariations.THERR, {
+    projectId: (therrServiceAccount as any).project_id,
+    clientEmail: (therrServiceAccount as any).client_email,
+    isFallbackToTherr: false,
+});
+
 // Tracks brands we've already warned about falling back to the default app,
 // so we don't spam the logs on every send to a brand whose env var is unset.
 const brandsWithLoggedFallback = new Set<BrandVariations>();
@@ -98,6 +115,11 @@ const getAdminAppForBrand = (brandVariation: BrandVariations): admin.app.App => 
         }
         // Cache the fallback so subsequent sends skip the env lookup.
         brandAppCache.set(brandVariation, defaultApp);
+        brandCredentialResolution.set(brandVariation, {
+            projectId: (therrServiceAccount as any).project_id,
+            clientEmail: (therrServiceAccount as any).client_email,
+            isFallbackToTherr: true,
+        });
         return defaultApp;
     }
 
@@ -106,6 +128,11 @@ const getAdminAppForBrand = (brandVariation: BrandVariations): admin.app.App => 
         String(brandVariation), // name this admin app uniquely per brand
     );
     brandAppCache.set(brandVariation, app);
+    brandCredentialResolution.set(brandVariation, {
+        projectId: (serviceAccount as any).project_id,
+        clientEmail: (serviceAccount as any).client_email,
+        isFallbackToTherr: false,
+    });
     return app;
 };
 
@@ -180,9 +207,23 @@ const getPostActionId = (postType?: string) => {
 };
 
 interface IBrandAppIdentity {
+    // The `apns-topic` header value for this brand's iOS pushes.
+    //
     // APNS rejects any push whose `apns-topic` is not the receiving app's own
-    // bundle id, and does so silently — FCM still accepts the send.
-    bundleId: string;
+    // bundle id, and does so silently — FCM still accepts the send and
+    // `messaging.send()` resolves with a message id, so nothing in our logs
+    // distinguishes "delivered" from "dropped at APNS".
+    //
+    // CRITICAL: this must be a bundle id that an actual iOS target in
+    // TherrMobile/ios/TherrMobile.xcodeproj builds, NOT the brand's Android
+    // `applicationId` and not an aspirational id for an app that hasn't
+    // shipped. A niche brand with no iOS target of its own runs as the Therr
+    // binary (the niche branch only changes JS/brandConfig, not
+    // PRODUCT_BUNDLE_IDENTIFIER), so its device tokens belong to
+    // `com.therr.mobile.Therr` and its pushes must be addressed there.
+    // `apnsTopicMatchesShippedIosTarget` in tests/unit/api/brandRouting.test.ts
+    // pins every value here against the Xcode project.
+    iosApnsTopic: string;
     // Android notification small-icon tint. Mirrors each app's primary accent
     // (see TherrMobile/main/styles/themes/brandConstants.ts on the
     // corresponding niche branch).
@@ -192,8 +233,12 @@ interface IBrandAppIdentity {
     intentActions: Record<string, string>;
 }
 
+// The only iOS bundle id this repo actually builds today — TherrMobile.xcodeproj
+// has a single app target and every niche branch inherits it unchanged.
+const THERR_IOS_BUNDLE_ID = 'com.therr.mobile.Therr';
+
 const THERR_APP_IDENTITY: IBrandAppIdentity = {
-    bundleId: 'com.therr.mobile.Therr',
+    iosApnsTopic: THERR_IOS_BUNDLE_ID,
     accentColor: '#0f7b82',
     intentActions: PushNotifications.AndroidIntentActions.Therr,
 };
@@ -205,13 +250,30 @@ const THERR_APP_IDENTITY: IBrandAppIdentity = {
 const BRAND_APP_IDENTITIES: Record<BrandVariations, IBrandAppIdentity> = {
     [BrandVariations.THERR]: THERR_APP_IDENTITY,
     [BrandVariations.TEEM]: {
-        bundleId: 'com.therr.mobile.Teem',
+        // No `com.therr.mobile.Teem` iOS target exists (Teem is shelved), so its
+        // iOS pushes must be addressed to the binary that actually receives them.
+        iosApnsTopic: THERR_IOS_BUNDLE_ID,
         // Same value as Therr's: Teem's accent matches it. Intentional, not a placeholder.
         accentColor: '#0f7b82',
         intentActions: PushNotifications.AndroidIntentActions.Teem,
     },
     [BrandVariations.HABITS]: {
-        bundleId: 'com.therr.mobile.habits',
+        // Friends with Habits ships its own *Android* app (applicationId
+        // com.therr.habits) but has no iOS target: niche/HABITS-general changes
+        // brandConfig.ts, app.json and build.gradle, and leaves
+        // PRODUCT_BUNDLE_IDENTIFIER as com.therr.mobile.Therr. An iOS Habits
+        // build is therefore the Therr binary running Habits JS, and its FCM
+        // tokens are registered against the Therr iOS app.
+        //
+        // This previously read 'com.therr.mobile.habits' — a bundle id nothing
+        // builds — which made APNS silently drop every data-only push to an iOS
+        // Habits install while FCM still reported success. Android was
+        // unaffected (it ignores the apns block), which is why the failure
+        // looked like "iOS gets nothing, Android is fine".
+        //
+        // When Habits does ship an iOS target, change this in the same commit
+        // that adds the target and registers the app in Firebase.
+        iosApnsTopic: THERR_IOS_BUNDLE_ID,
         accentColor: '#1C7F8A',
         intentActions: PushNotifications.AndroidIntentActions.Habits,
     },
@@ -229,7 +291,7 @@ const BRAND_APP_IDENTITIES: Record<BrandVariations, IBrandAppIdentity> = {
 const getBrandAppIdentity = (brandVariation: BrandVariations): IBrandAppIdentity => BRAND_APP_IDENTITIES[brandVariation]
     || THERR_APP_IDENTITY;
 
-const getAppBundleIdentifier = (brandVariation: BrandVariations) => getBrandAppIdentity(brandVariation).bundleId;
+const getApnsTopic = (brandVariation: BrandVariations) => getBrandAppIdentity(brandVariation).iosApnsTopic;
 
 const getBrandAccentColor = (brandVariation: BrandVariations): string => getBrandAppIdentity(brandVariation).accentColor;
 
@@ -237,6 +299,90 @@ const getAppBrandingClickAction = (
     brandVariation: BrandVariations,
     clickActionKey: string,
 ) => getBrandAppIdentity(brandVariation).intentActions[clickActionKey];
+
+export interface IBrandPushDiagnostics {
+    brandVariation: string;
+    credentialEnvKey: string;
+    isCredentialEnvKeySet: boolean;
+    // The Firebase project this brand's pushes are actually sent through.
+    firebaseProjectId: string;
+    // Masked — enough to tell two service accounts apart in a report, never enough to use.
+    firebaseClientEmail: string;
+    // True when the brand has no credentials of its own and rides the Therr app.
+    // With a single shared Firebase project this is the *expected* state, not an error:
+    // one service account can address every app registered in its own project.
+    isFallbackToTherr: boolean;
+    // What an iOS push for this brand would be addressed to. Must equal the
+    // receiving build's PRODUCT_BUNDLE_IDENTIFIER or APNS drops it silently.
+    iosApnsTopic: string;
+    androidAccentColor: string;
+    androidIntentActionSample: string;
+}
+
+const maskEmail = (email: string | undefined): string => {
+    if (!email) return '';
+    const [local, domain] = String(email).split('@');
+    if (!domain) return '***';
+    const head = local.slice(0, 6);
+    return `${head}***@${domain}`;
+};
+
+// Describes how a brand's push would be routed, without sending anything.
+// Initializing the admin app is idempotent and already cached, so this is safe
+// to call repeatedly from a diagnostics endpoint.
+const describeBrandPushRouting = (brandVariation: BrandVariations): IBrandPushDiagnostics => {
+    const credentialEnvKey = getCredentialEnvKey(brandVariation);
+    // Force resolution so the cache is populated for brands not yet used this process.
+    getAdminAppForBrand(brandVariation);
+    const resolution = brandCredentialResolution.get(brandVariation);
+    const identity = getBrandAppIdentity(brandVariation);
+
+    return {
+        brandVariation: String(brandVariation),
+        credentialEnvKey,
+        isCredentialEnvKeySet: !!process.env[credentialEnvKey],
+        firebaseProjectId: resolution?.projectId || '',
+        firebaseClientEmail: maskEmail(resolution?.clientEmail),
+        isFallbackToTherr: !!resolution?.isFallbackToTherr,
+        iosApnsTopic: identity.iosApnsTopic,
+        androidAccentColor: identity.accentColor,
+        androidIntentActionSample: Object.values(identity.intentActions)[0] || '',
+    };
+};
+
+export interface IRawSendResult {
+    ok: boolean;
+    messageId?: string;
+    errorCode?: string;
+    errorMessage?: string;
+}
+
+// Sends a message and *surfaces* the FCM outcome instead of swallowing it.
+//
+// predictAndSendNotification deliberately catches everything so a bad token can
+// never fail the caller's request. That is right for production traffic and
+// useless for debugging: the only signal it leaves is a log line. This variant
+// exists for the diagnostics endpoint, which needs the raw FCM error code
+// (`messaging/registration-token-not-registered`, `messaging/mismatched-credential`,
+// `messaging/third-party-auth-error`, …) in the HTTP response.
+//
+// Note the limit of *any* FCM-level check: a successful messageId means FCM
+// accepted the message, not that APNS or the device accepted it. An
+// `apns-topic` that doesn't match the app is dropped after this point with no
+// error, which is why describeBrandPushRouting reports the topic too.
+const sendMessageForBrandRaw = (
+    brandVariation: BrandVariations,
+    message: admin.messaging.Message,
+    dryRun = false,
+): Promise<IRawSendResult> => getAdminAppForBrand(brandVariation)
+    .messaging()
+    .send(message, dryRun)
+    .then((messageId) => ({ ok: true, messageId }))
+    .catch((error) => ({
+        ok: false,
+        errorCode: error?.code || error?.errorInfo?.code || 'unknown',
+        errorMessage: error?.message || String(error),
+    }));
 
 const createBaseMessage = (
     {
@@ -320,7 +466,7 @@ const createDataOnlyMessage = (
         headers: {
             'apns-push-type': 'alert',
             'apns-priority': '10',
-            'apns-topic': getAppBundleIdentifier(brandVariation), // your app bundle identifier
+            'apns-topic': getApnsTopic(brandVariation),
         },
     };
 
@@ -1169,4 +1315,6 @@ export default admin;
 export {
     createMessage,
     predictAndSendNotification,
+    describeBrandPushRouting,
+    sendMessageForBrandRaw,
 };
