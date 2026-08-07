@@ -377,6 +377,7 @@ const ViewEvent = ({
                                 isSuperUser: eventUserIsSuperUser,
                             }}
                             areaMedia={eventMedia}
+                            placeholderMediaType="autoplay"
                             theme={theme}
                             themeForms={themeForms}
                             themeViewArea={themeArea}
