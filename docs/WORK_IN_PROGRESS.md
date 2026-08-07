@@ -18,6 +18,13 @@
 >   enforce flips, mobile tsc baseline payoff). Use that file when the work
 >   originated from a specific review's residue; use this file for
 >   long-standing code TODOs and for post-deploy manual steps.
+> - `therr-workspace/docs/MARKETING_ATTRIBUTION_PLAN.md` — **cross-repo**
+>   (therr-app + therr-landing + GA4 config). Phased plan to make the B2B funnel
+>   measurable: UTM tagging and capture, a real `purchase` event, claim-funnel
+>   instrumentation, GA4 property consolidation, then the Google Analytics MCP.
+>   Audited 2026-08-07; it is the concrete build-out of `docs/AUTOMATION_ROADMAP.md`
+>   #7. Its Phase 2 is the same missing post-checkout hop as § 1.5 below — build
+>   the two together.
 
 ---
 
@@ -486,6 +493,16 @@ is a privacy-policy violation and an Apple/Google review risk.
 - `therr-services/users-service/src/handlers/auth.ts:67` — Same path on auth
 - `therr-services/users-service/src/handlers/payments.ts:53` — Only update
   user if subscription has started free trial or paid
+
+The analytics half of this same gap is tracked in
+`therr-workspace/docs/MARKETING_ATTRIBUTION_PLAN.md` Phase 2: checkout is a Stripe
+**Payment Link** opened with `target="_blank"` (`therr-client-web-dashboard`:
+`PricingCards.tsx:97,134,172`, `Sidebar.tsx:280,283`, and the four `*Menu.tsx`
+components), so the GA4 session ends at the click and **no `purchase` event exists in
+any property**. Moving to a Checkout Session with a `success_url` back into the
+dashboard closes both problems at once — the redirect is what lets the account get
+upgraded *and* what keeps the session alive for attribution. Doing only the
+`paymentSessionId` half leaves revenue permanently unattributable to a campaign.
 
 ### 1.6 Unscoped user / connection endpoints (cross-brand leakage)
 
