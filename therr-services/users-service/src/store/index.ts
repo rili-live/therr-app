@@ -12,6 +12,7 @@ import NotificationsStore from './NotificationsStore';
 import OrganizationsStore from './OrganizationsStore';
 import SocialSyncsStore from './SocialSyncsStore';
 import SubscribersStore from './SubscribersStore';
+import NotificationQueueStore from './NotificationQueueStore';
 import ThoughtsStore from './ThoughtsStore';
 import UserAchievementsStore from './UserAchievementsStore';
 import UserConnectionsStore from './UserConnectionsStore';
@@ -57,6 +58,8 @@ class Store {
     users: UsersStore;
 
     userAchievements: UserAchievementsStore;
+
+    notificationQueue: NotificationQueueStore;
 
     userConnections: UserConnectionsStore;
 
@@ -112,6 +115,7 @@ class Store {
         this.config = new ConfigStore(this.db);
         this.users = new UsersStore(this.db);
         this.userAchievements = new UserAchievementsStore(this.db);
+        this.notificationQueue = new NotificationQueueStore(this.db);
         this.userConnections = new UserConnectionsStore(this.db);
         this.userLeaderboardScores = new UserLeaderboardScoresStore(this.db);
         this.userDeviceTokens = new UserDeviceTokensStore(this.db);

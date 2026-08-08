@@ -142,6 +142,31 @@ append new items here rather than only printing them once.
 
 <!-- skill-followups:start -->
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
+- [ ] (2026-08-08, notification-queue) **Enable the notification queue worker and migrate
+  the digest onto it.** `main.notificationQueue` + `NotificationQueueStore` +
+  `startNotificationQueueWorker` are deployed but inert: nothing enqueues, and the worker
+  no-ops unless `NOTIFICATION_QUEUE_WORKER_ENABLED=true` on users-service. Next step is to
+  move the digest's three types (`streakAtRisk`, `partnerMissedDay`, `pactExpiring`) to
+  `enqueueNotification`, turn the worker on, and confirm dedup by running the digest twice
+  — which retires the standing "never add a second trigger path" rule in root CLAUDE.md,
+  since dedup becomes a UNIQUE constraint rather than a convention. Also wire
+  `deleteCompletedBefore` to something before the table grows. Design and sequencing:
+  `docs/NOTIFICATION_QUEUE_DESIGN.md`.
+- [ ] (2026-08-08, notification-queue) **No push preference is honored server-side — fix
+  before raising send frequency.** `settingsPushMarketing`, `settingsPushBackground`,
+  `settingsPushInvites`, `settingsPushLikes`, `settingsPushMentions` and
+  `settingsPushTopics` are real columns, settable through the API and carried by
+  `therr-react`, and `sendEmailAndOrPushNotification` reads none of them (it checks only
+  `isUnclaimed`). `TherrMobile/main/routes/Settings/ManageNotifications.tsx` renders email
+  toggles only. So a user's sole control over push is the OS switch, which is
+  all-or-nothing. The queue worker is the natural enforcement point — mark such rows
+  `skipped`, not `failed`, so suppression stays measurable.
+- [ ] (2026-08-08, notification-queue) **Add a user timezone column.** Nothing in the
+  schema records one, so the daily digest's "run it in the evening" is evening in exactly
+  one timezone worldwide. `notificationQueue.scheduledFor` exists and cannot mean anything
+  but "now" until this lands. Prerequisite for roadmap item #2 (send-time personalization,
+  15-40% on opens).
+
 - [ ] (2026-08-07, push-notifications-debug) **Seven HABITS notification types have no
   sender.** `dailyHabitReminder`, `morningMotivation`, `eveningCheckIn`, `streakBroken`,
   `newPersonalRecord`, `partnerCelebrated` and `pactCompleted` have copy in all three

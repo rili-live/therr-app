@@ -10,6 +10,7 @@ import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
 import config, { validateEnv } from './config';
 import { drainPools } from './store/connection';
+import { startNotificationQueueWorker } from './utilities/notificationQueueWorker';
 
 validateEnv();
 tracing.start();
@@ -90,6 +91,12 @@ const server = app.listen(config.port, () => {
 server.keepAliveTimeout = 30000;
 server.headersTimeout = 35000;
 
+// Background drain of main.notificationQueue. Started after listen() so a slow
+// first tick can never delay readiness, and no-ops unless
+// NOTIFICATION_QUEUE_WORKER_ENABLED=true so the queue can deploy dark and be
+// observed filling before it is allowed to send.
+const stopNotificationQueueWorker = startNotificationQueueWorker();
+
 // Graceful shutdown on pod eviction.
 //
 // k8s removes the pod from Service endpoints and sends SIGTERM concurrently, so
@@ -136,6 +143,9 @@ const gracefulShutdown = (signal: string) => {
 
     server.close(() => {
         clearInterval(sweepIdle);
+        // Stop claiming new work before the pools go away, so an in-flight tick
+        // is the only thing racing the drain rather than a fresh batch.
+        stopNotificationQueueWorker();
         drainPools()
             .then(() => process.exit(0))
             .catch(() => process.exit(1));
