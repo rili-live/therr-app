@@ -283,6 +283,13 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
+    '/logout': {
+        view: 'habits/logout',
+        title: 'Sign out — Friends with Habits',
+        description: 'Sign out of your Friends with Habits account.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
     '/emails/unsubscribe': {
         view: 'habits/unsubscribe',
         title: 'Email preferences — Friends with Habits',
@@ -436,6 +443,7 @@ app.use(async (req, res, next) => {
             'Disallow: /claim-pact/',
             'Disallow: /verify-account',
             'Disallow: /login',
+            'Disallow: /logout',
             'Disallow: /emails/',
             '',
             'Sitemap: https://habits.therr.com/sitemap.xml',

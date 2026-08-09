@@ -106,6 +106,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                 /> :
                                 <MissingImagePlaceholder
                                     area={area}
+                                    theme={theme}
                                     themeViewArea={themeViewArea}
                                 />
                         }

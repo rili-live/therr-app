@@ -150,3 +150,14 @@ export const createNotificationValidation = [
     body('messageLocaleKey').optional().isString().isLength({ max: 200 }),
     body('messageParams').optional().isObject(),
 ];
+
+// The user id comes from the path, and the device token is resolved server-side,
+// so the only things worth constraining are the two optional body fields. `dryRun`
+// is validated as a boolean specifically so a stray string ("false") is rejected
+// at the gateway rather than reaching the handler, where anything other than the
+// literal `false` correctly means "dry run".
+export const sendUserPushDiagnosticsTestValidation = [
+    param('id').exists().isUUID(4),
+    body('type').optional().isString().isLength({ max: 100 }),
+    body('dryRun').optional().isBoolean(),
+];

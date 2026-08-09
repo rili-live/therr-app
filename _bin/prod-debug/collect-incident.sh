@@ -24,10 +24,23 @@
 #   _bin/prod-debug/collect-incident.sh 2h              # widen the time window
 #   _bin/prod-debug/collect-incident.sh 15m --live      # add live pod log tails
 #   _bin/prod-debug/collect-incident.sh 1h --deploy     # focus on latest rollout
+#   _bin/prod-debug/collect-incident.sh --cloud-run     # ALSO digest the GCP
+#                                                       # Cloud Run functions
+#   _bin/prod-debug/collect-incident.sh 6h --cloud-run=messaging-automator
+#
+# Cloud Run functions (--cloud-run)
+#   The two automators (ai-automator, messaging-automator) run OUTSIDE the GKE
+#   cluster, fired by Cloud Scheduler — daily-ish, not continuously. So the
+#   default 30m window almost never contains an invocation. This section
+#   therefore does NOT go quiet when the window is empty: it falls back to the
+#   most recent invocation within THERR_CLOUD_RUN_LOOKBACK (default 30d, the
+#   Cloud Logging _Default retention) and says how long ago that was. A missing
+#   run is itself the signal you usually came looking for.
 #
 # Backends (auto-detected, degrades gracefully)
 #   - gcloud   -> Google Cloud Logging (history survives pod restarts; preferred
-#                 for post-deploy debugging where the crashed pod is already gone)
+#                 for post-deploy debugging where the crashed pod is already gone),
+#                 plus Cloud Run function logs and Cloud Scheduler job state
 #   - kubectl  -> live cluster state, pod status, rollout events, log tails
 #
 set -uo pipefail
@@ -36,17 +49,34 @@ set -uo pipefail
 # Config (override via env)
 # ----------------------------------------------------------------------------
 GCP_PROJECT="${THERR_GCP_PROJECT:-therr-app}"
+GCP_REGION="${THERR_GCP_REGION:-us-central1}"
 NAMESPACE="${THERR_K8S_NAMESPACE:-default}"
 MAX_LOG_LINES="${THERR_MAX_LOG_LINES:-120}"   # cap on deduped error lines emitted
 OUT_DIR="${THERR_PROD_DEBUG_DIR:-.prod-debug}"
 
+# Cloud Run functions (--cloud-run). These are scheduled, not continuous, so
+# they get their own lookback: how far back to hunt for the LAST invocation when
+# the incident window turns up nothing.
+CLOUD_RUN_FUNCTIONS="${THERR_CLOUD_RUN_FUNCTIONS:-ai-automator messaging-automator}"
+CLOUD_RUN_LOOKBACK="${THERR_CLOUD_RUN_LOOKBACK:-30d}"  # _Default log bucket retention
+CLOUD_RUN_TAIL="${THERR_CLOUD_RUN_TAIL:-80}"           # log lines kept per invocation
+
 WINDOW="30m"
 MODE="incident"   # incident | live | deploy
+INCLUDE_CLOUD_RUN=false
 
 for arg in "$@"; do
   case "$arg" in
     --live)   MODE="live" ;;
     --deploy) MODE="deploy" ;;
+    # --cloud-run is ADDITIVE — it appends a section, it does not replace the
+    # cluster ones, so one digest can correlate a function failure with what the
+    # in-cluster services were doing at the same moment.
+    --cloud-run|--cloud-functions|--gcf) INCLUDE_CLOUD_RUN=true ;;
+    --cloud-run=*|--cloud-functions=*|--gcf=*)
+      INCLUDE_CLOUD_RUN=true
+      CLOUD_RUN_FUNCTIONS="${arg#*=}"
+      CLOUD_RUN_FUNCTIONS="${CLOUD_RUN_FUNCTIONS//,/ }" ;;
     --*)      echo "Unknown flag: $arg" >&2; exit 2 ;;
     *)        WINDOW="$arg" ;;   # first bare arg is the time window (e.g. 30m, 2h)
   esac
@@ -94,8 +124,58 @@ dedup_top() {
 }
 
 section() { printf '\n## %s\n\n' "$1" >>"$OUT"; }
+subsection() { printf '\n### %s\n\n' "$1" >>"$OUT"; }
 codeblock_start() { printf '```%s\n' "${1:-}" >>"$OUT"; }
 codeblock_end()   { printf '```\n' >>"$OUT"; }
+
+# `gcloud logging read --order=desc` gives newest-first, which is right for a
+# dedup roll-up but backwards for reading a single invocation start-to-finish.
+# `tac` is GNU-only and `tail -r` is BSD-only; awk is neither.
+reverse_lines() { awk '{ a[NR] = $0 } END { for (i = NR; i > 0; i--) print a[i] }'; }
+
+# RFC3339 (2026-08-07T12:34:56.789Z) -> epoch seconds. GNU date first, then BSD
+# date (macOS, where most operators run this). Empty on failure; callers degrade.
+epoch_of() {
+  local ts="${1%%.*}"; ts="${ts%Z}"
+  date -u -d "${ts}Z" +%s 2>/dev/null \
+    || date -u -j -f '%Y-%m-%dT%H:%M:%S' "$ts" +%s 2>/dev/null \
+    || echo ""
+}
+
+human_age() {
+  local secs="${1:-}"
+  [ -z "$secs" ] && { echo "age unknown"; return; }
+  local d=$(( secs / 86400 )) h=$(( (secs % 86400) / 3600 )) m=$(( (secs % 3600) / 60 ))
+  if   [ "$d" -gt 0 ]; then echo "${d}d ${h}h ago"
+  elif [ "$h" -gt 0 ]; then echo "${h}h ${m}m ago"
+  else                      echo "${m}m ago"
+  fi
+}
+
+# One filter matching a function under BOTH resource types: Gen-1 Cloud Functions
+# log as `cloud_function`, while Gen-2 / "Cloud Run functions" log as
+# `cloud_run_revision`. Ours are Gen-1 today; this keeps the script working
+# through a migration without an edit.
+cf_filter() {
+  printf '(resource.type="cloud_function" AND resource.labels.function_name="%s") OR (resource.type="cloud_run_revision" AND resource.labels.service_name="%s")' "$1" "$1"
+}
+
+# cf_read <filter> <freshness> <limit>  ->  "timestamp | severity | message" lines, newest-first
+cf_read() {
+  if $HAS_JQ; then
+    gcloud logging read "$1" \
+        --project="$GCP_PROJECT" --freshness="$2" --order=desc --limit="$3" --format=json 2>/dev/null \
+      | jq -r '.[] | [ (.timestamp // "?"), (.severity // "?"),
+                       ( .textPayload // .jsonPayload.message // (.jsonPayload|tostring) // "" ) ]
+                     | @tsv' 2>/dev/null \
+      | sed -E 's/\t/ | /g'
+  else
+    gcloud logging read "$1" \
+        --project="$GCP_PROJECT" --freshness="$2" --order=desc --limit="$3" \
+        --format='value(timestamp, severity, textPayload)' 2>/dev/null \
+      | sed -E 's/\t/ | /g'
+  fi
+}
 
 # ----------------------------------------------------------------------------
 # Header
@@ -110,6 +190,11 @@ KCTX="$($HAS_KUBECTL && kubectl config current-context 2>/dev/null || echo 'n/a'
   echo "- GCP project: $GCP_PROJECT"
   echo "- kube-context: $KCTX (namespace: $NAMESPACE)"
   echo "- Backends: gcloud=$HAS_GCLOUD kubectl=$HAS_KUBECTL jq=$HAS_JQ"
+  if $INCLUDE_CLOUD_RUN; then
+    echo "- Cloud Run functions: $CLOUD_RUN_FUNCTIONS (region $GCP_REGION, lookback $CLOUD_RUN_LOOKBACK)"
+  else
+    echo "- Cloud Run functions: not included (re-run with --cloud-run)"
+  fi
   echo
   echo "> All content below is redacted. Hand this file to Claude:"
   echo "> \"Here is a prod incident digest — $OUT — tell me the likely root cause.\""
@@ -226,6 +311,99 @@ if [ "$MODE" = "live" ] && $HAS_KUBECTL; then
     kubectl logs "$p" -n "$NAMESPACE" --tail=40 2>/dev/null | redact >>"$OUT"
     codeblock_end
   done
+fi
+
+# ----------------------------------------------------------------------------
+# 6. Cloud Run functions (--cloud-run): the scheduled work outside the cluster
+#    ai-automator and messaging-automator are fired by Cloud Scheduler, so a
+#    30m window is almost always empty for them. Rather than emitting nothing,
+#    each function falls back to its most recent invocation within
+#    CLOUD_RUN_LOOKBACK and reports how stale that is — "last ran 3d ago" is
+#    the answer to most "why did the digest not send?" questions.
+# ----------------------------------------------------------------------------
+if $INCLUDE_CLOUD_RUN; then
+  section "Cloud Run functions (GCP, outside the GKE cluster)"
+
+  if ! $HAS_GCLOUD; then
+    echo "_Skipped: \`gcloud\` is not on PATH, and these functions have no kubectl equivalent._" >>"$OUT"
+  else
+    # Scheduler state first: it says whether the trigger even fired, which
+    # separates "the function broke" from "nothing invoked it".
+    subsection "Cloud Scheduler jobs (triggers)"
+    codeblock_start
+    gcloud scheduler jobs list \
+        --project="$GCP_PROJECT" --location="$GCP_REGION" \
+        --format='table(name.basename(), schedule, timeZone, state, status.code, lastAttemptTime)' 2>&1 \
+      | redact >>"$OUT"
+    codeblock_end
+
+    for FN in $CLOUD_RUN_FUNCTIONS; do
+      subsection "$FN"
+      FN_FILTER="$(cf_filter "$FN")"
+
+      # Prefer an invocation inside the incident window; otherwise widen to the
+      # lookback so a scheduled function is never silently absent from the digest.
+      SCOPE="$WINDOW"
+      SCOPE_NOTE="within the $WINDOW incident window"
+      LAST_TS="$(gcloud logging read "$FN_FILTER" --project="$GCP_PROJECT" \
+                   --freshness="$WINDOW" --order=desc --limit=1 \
+                   --format='value(timestamp)' 2>/dev/null | head -n 1)"
+      if [ -z "$LAST_TS" ]; then
+        SCOPE="$CLOUD_RUN_LOOKBACK"
+        SCOPE_NOTE="**no activity in the last $WINDOW** — widened to $CLOUD_RUN_LOOKBACK to find the last invocation"
+        LAST_TS="$(gcloud logging read "$FN_FILTER" --project="$GCP_PROJECT" \
+                     --freshness="$CLOUD_RUN_LOOKBACK" --order=desc --limit=1 \
+                     --format='value(timestamp)' 2>/dev/null | head -n 1)"
+      fi
+
+      if [ -z "$LAST_TS" ]; then
+        {
+          echo "- No log entries at all within $CLOUD_RUN_LOOKBACK."
+          echo "- That means the function never ran in the retention period, or was renamed/deleted."
+          echo "  Cross-check the scheduler table above and \`therr-infra-terraform\`."
+        } >>"$OUT"
+        continue
+      fi
+
+      NOW_EPOCH="$(date -u +%s)"
+      LAST_EPOCH="$(epoch_of "$LAST_TS")"
+      AGE="unknown"
+      [ -n "$LAST_EPOCH" ] && AGE="$(human_age "$(( NOW_EPOCH - LAST_EPOCH ))")"
+      {
+        echo "- Last invocation: \`$LAST_TS\` ($AGE)"
+        echo "- Scope: $SCOPE_NOTE"
+      } >>"$OUT"
+
+      # Gen-1 tags every line of one run with the same labels.execution_id, so
+      # this isolates a single invocation start-to-finish. Gen-2 has no such
+      # label; there we fall back to the most recent CLOUD_RUN_TAIL lines.
+      EXEC_ID="$(gcloud logging read "$FN_FILTER" --project="$GCP_PROJECT" \
+                   --freshness="$SCOPE" --order=desc --limit=1 \
+                   --format='value(labels.execution_id)' 2>/dev/null | head -n 1)"
+      if [ -n "$EXEC_ID" ]; then
+        echo "- Execution id: \`$EXEC_ID\`" >>"$OUT"
+        EXEC_FILTER="($FN_FILTER) AND labels.execution_id=\"$EXEC_ID\""
+      else
+        EXEC_FILTER="$FN_FILTER"
+      fi
+
+      printf '\n_Most recent invocation (chronological, capped at %s lines):_\n' "$CLOUD_RUN_TAIL" >>"$OUT"
+      codeblock_start
+      cf_read "$EXEC_FILTER" "$SCOPE" "$CLOUD_RUN_TAIL" | reverse_lines | redact >>"$OUT"
+      codeblock_end
+
+      printf '\n_Error / warning lines across the last %s (deduplicated, newest-first):_\n' "$SCOPE" >>"$OUT"
+      codeblock_start
+      ERR_FILTER="($FN_FILTER) AND (severity>=WARNING OR textPayload=~\"$ERR_REGEX_REMOTE\" OR jsonPayload.message=~\"$ERR_REGEX_REMOTE\")"
+      CF_ERRORS="$(cf_read "$ERR_FILTER" "$SCOPE" 1000 | redact | dedup_top)"
+      if [ -n "$CF_ERRORS" ]; then
+        echo "$CF_ERRORS" >>"$OUT"
+      else
+        echo "(no error/warning entries in the last $SCOPE)" >>"$OUT"
+      fi
+      codeblock_end
+    done
+  fi
 fi
 
 # ----------------------------------------------------------------------------
