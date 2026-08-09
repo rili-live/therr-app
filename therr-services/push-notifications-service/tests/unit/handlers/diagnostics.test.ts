@@ -87,6 +87,28 @@ describe('push diagnostics handlers', () => {
             // without being usable.
             expect(serialized).to.not.have.string('@therr-app.iam.gserviceaccount.com');
         });
+
+        it('masks the project label out of the service account address', () => {
+            // Asserted against the fixture credentials rather than only against the
+            // real project's domain, so the guarantee holds on a machine with no
+            // secrets on disk too. A service account address is
+            // `<name>@<project-id>.iam.gserviceaccount.com`; echoing the domain
+            // verbatim would reproduce a complete, real-looking address in a
+            // response whose whole contract is that it never returns credentials.
+            const req: any = buildReq();
+            const res = buildRes();
+
+            getPushDiagnostics(req, res, () => undefined);
+            const payload = res.send.firstCall.args[0];
+            const emails = payload.byBrand.map((b: any) => b.firebaseClientEmail);
+
+            emails.forEach((email: string) => {
+                expect(email).to.not.have.string('test-project.iam');
+                expect(email).to.have.string('.iam.gserviceaccount.com');
+                // Still enough to tell two service accounts apart in a report.
+                expect(email.split('@')[0]).to.have.string('***');
+            });
+        });
     });
 
     describe('sendTestPushNotification', () => {

@@ -324,7 +324,19 @@ const maskEmail = (email: string | undefined): string => {
     const [local, domain] = String(email).split('@');
     if (!domain) return '***';
     const head = local.slice(0, 6);
-    return `${head}***@${domain}`;
+    // The domain is masked too, not just the local part. A Google service account
+    // address is `<name>@<project-id>.iam.gserviceaccount.com`, so echoing the
+    // domain verbatim reproduced a real, complete-looking service-account address
+    // in the response — the one thing this endpoint promises never to return.
+    // The suffix is kept because it is what identifies the value as a service
+    // account at all; the leading label (the project id) is what gets dropped.
+    // `firebaseProjectId` already reports the project deliberately and in the
+    // clear, so nothing diagnostic is lost here.
+    const domainLabels = domain.split('.');
+    const maskedDomain = domainLabels.length > 1
+        ? `***.${domainLabels.slice(1).join('.')}`
+        : '***';
+    return `${head}***@${maskedDomain}`;
 };
 
 // Describes how a brand's push would be routed, without sending anything.
