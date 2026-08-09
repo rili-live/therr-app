@@ -50,8 +50,23 @@ const REQUEUE_BATCH_SIZE = 25;
 const MAX_SENDS_PER_USER_PER_DAY = 5;
 const RATE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+// Retention. Sweeping on its own slow cadence rather than every tick: this is
+// housekeeping, and running it 120 times an hour would spend far more write-pool
+// time on DELETEs than on sends.
+const RETENTION_INTERVAL_MS = 60 * 60 * 1000;
+const RETENTION_BATCH_SIZE = 500;
+// Must stay comfortably longer than RATE_WINDOW_MS — `countSentSince` reads
+// 'sent' rows to enforce the daily cap, so deleting them inside that window
+// would hand a user back their budget early.
+const COMPLETED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+// Failed rows outlive completed ones. They are the only record that a send was
+// attempted and lost, and they are the ones worth finding when someone asks why
+// a notification never arrived.
+const FAILED_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
+
 let timer: NodeJS.Timeout | undefined;
 let isTicking = false;
+let lastRetentionSweepAt = 0;
 
 const sendOne = async (row: INotificationQueueRow): Promise<void> => {
     const since = new Date(Date.now() - RATE_WINDOW_MS);
@@ -105,10 +120,18 @@ const sendOne = async (row: INotificationQueueRow): Promise<void> => {
             whiteLabelOrigin: payload.whiteLabelOrigin || '',
             brandVariation: row.brandVariation,
         },
-        // Queue entries are push-only. The retention emails have their own
-        // triggers and their own unsubscribe semantics; routing them through
-        // here too would double-send.
-        { shouldSendPushNotification: true, shouldSendEmail: false },
+        {
+            // Queue entries are push-only. The retention emails have their own
+            // triggers and their own unsubscribe semantics; routing them through
+            // here too would double-send.
+            shouldSendPushNotification: true,
+            shouldSendEmail: false,
+            // Unlike the inline callers, this one needs to know. Without it the
+            // send failure is logged and swallowed, `markSent` runs anyway, and
+            // the row records a delivery that never happened — which also means
+            // it is never retried.
+            shouldThrowOnError: true,
+        },
     );
 
     await Store.notificationQueue.markSent(row.id);
@@ -157,10 +180,52 @@ const drainBrand = async (brand: BrandVariations): Promise<number> => {
     return rows.length;
 };
 
+/**
+ * Drops rows that have outlived their usefulness. Bounded per sweep so a table
+ * that has gone untended for a while is worked down over several hours rather
+ * than in one long-running DELETE that sits on the write pool.
+ *
+ * Never touches 'pending' — only terminal states, and only well past the window
+ * anything still reads them for.
+ */
+const sweepRetention = async (): Promise<void> => {
+    const now = Date.now();
+    if (now - lastRetentionSweepAt < RETENTION_INTERVAL_MS) return;
+    lastRetentionSweepAt = now;
+
+    const deletedCompleted = await Store.notificationQueue
+        .deleteCompletedBefore(new Date(now - COMPLETED_RETENTION_MS), RETENTION_BATCH_SIZE)
+        .catch(() => 0);
+    const deletedFailed = await Store.notificationQueue
+        .deleteExhaustedFailedBefore(MAX_ATTEMPTS, new Date(now - FAILED_RETENTION_MS), RETENTION_BATCH_SIZE)
+        .catch(() => 0);
+
+    if (deletedCompleted || deletedFailed) {
+        logSpan({
+            level: 'info',
+            messageOrigin: 'API_SERVER',
+            messages: ['Notification queue: retention sweep'],
+            traceArgs: {
+                'notificationQueue.deletedCompleted': deletedCompleted,
+                'notificationQueue.deletedFailed': deletedFailed,
+                source: 'users-service',
+            },
+        });
+    }
+};
+
+const resetRetentionThrottleForTests = (): void => {
+    lastRetentionSweepAt = 0;
+};
+
 const tick = async (): Promise<void> => {
     if (isTicking) return;
     isTicking = true;
     try {
+        // Housekeeping first, and self-throttled, so it can never crowd out a
+        // send: it no-ops on all but roughly one tick in 120.
+        await sweepRetention();
+
         const brands = Object.values(BrandVariations) as BrandVariations[];
         // eslint-disable-next-line no-restricted-syntax
         for (const brand of brands) {
@@ -230,6 +295,10 @@ export {
     // Exported for tests — lets a single tick be driven deterministically
     // instead of waiting on the interval.
     tick as runNotificationQueueTick,
+    // Also test-only. The retention throttle is module state that outlives an
+    // individual test, so without a reset the first tick in a process consumes
+    // the sweep and every later assertion about it sees a no-op.
+    resetRetentionThrottleForTests,
     MAX_SENDS_PER_USER_PER_DAY,
     MAX_ATTEMPTS,
 };

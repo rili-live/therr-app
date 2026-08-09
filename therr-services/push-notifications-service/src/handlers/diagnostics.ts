@@ -77,12 +77,19 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
     const {
         deviceToken,
         type,
-        dryRun = true,
+        dryRun,
         fromUserName = 'Diagnostics',
         habitName = 'Morning run',
         partnerName = 'Diagnostics',
         streakCount = 3,
     } = req.body || {};
+
+    // Opt *out* of the dry run explicitly, rather than defaulting the destructure.
+    // A default only fills in for `undefined`, so `{"dryRun": null}` — which a
+    // client that always serializes the field will send — would fall through to
+    // `!!null` and deliver a real push to a real handset from what reads like the
+    // safe default call.
+    const isDryRun = dryRun !== false;
 
     if (!deviceToken) {
         return handleHttpError({
@@ -134,7 +141,7 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
     const envelope = { ...(message as any) };
     delete envelope.token;
 
-    return sendMessageForBrandRaw(resolvedBrand, message, !!dryRun)
+    return sendMessageForBrandRaw(resolvedBrand, message, isDryRun)
         .then((result) => {
             logSpan({
                 level: result.ok ? 'info' : 'warn',
@@ -143,7 +150,7 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
                 traceArgs: {
                     'pushNotification.brandVariation': String(resolvedBrand),
                     'pushNotification.type': String(resolvedType),
-                    'pushNotification.dryRun': !!dryRun,
+                    'pushNotification.dryRun': isDryRun,
                     'pushNotification.ok': result.ok,
                     'error.code': result.errorCode,
                 },
@@ -152,7 +159,7 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
             return res.status(result.ok ? 200 : 502).send({
                 brandVariation: String(resolvedBrand),
                 type: String(resolvedType),
-                dryRun: !!dryRun,
+                dryRun: isDryRun,
                 result,
                 routing,
                 envelope,

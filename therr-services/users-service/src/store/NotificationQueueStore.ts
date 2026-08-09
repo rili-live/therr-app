@@ -213,4 +213,42 @@ export default class NotificationQueueStore extends BrandScopedStore {
             .toString();
         return this.db.write.query(queryString).then((response) => response.rowCount ?? 0);
     }
+
+    /**
+     * Retention for rows that failed their way out of the retry budget.
+     *
+     * `deleteCompletedBefore` deliberately only touches 'sent' and 'skipped', so
+     * without this a row that exhausted `maxAttempts` lives forever — and
+     * because the dedupe constraint is on (brandVariation, userId, dedupeKey),
+     * it also holds that key's slot forever. For a period-stamped key that is
+     * harmless (tomorrow's key differs), but for a once-per-event key
+     * (`pact-accepted:<pactId>:<memberId>`) it means the notification can never
+     * be queued again, even after whatever broke the send is fixed.
+     *
+     * Kept separate from `deleteCompletedBefore` rather than folded into it so
+     * each method keeps one meaning: "drop old history" vs "give up on rows that
+     * will never send". A failed row is also worth keeping longer — it is the
+     * only record that a send was attempted and lost.
+     */
+    deleteExhaustedFailedBefore(maxAttempts: number, before: Date, limit: number): Promise<number> {
+        const queryString = knexBuilder
+            .raw(
+                `DELETE FROM ?? WHERE "id" IN (
+                     SELECT "id" FROM ??
+                     WHERE "status" = 'failed'
+                       AND "attempts" >= ?
+                       AND "updatedAt" < ?::timestamptz
+                     LIMIT ?
+                 )`,
+                [
+                    NOTIFICATION_QUEUE_TABLE_NAME,
+                    NOTIFICATION_QUEUE_TABLE_NAME,
+                    maxAttempts,
+                    before.toISOString(),
+                    limit,
+                ],
+            )
+            .toString();
+        return this.db.write.query(queryString).then((response) => response.rowCount ?? 0);
+    }
 }

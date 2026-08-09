@@ -194,4 +194,27 @@ describe('NotificationQueueStore', () => {
             expect(sql).to.not.have.string("'pending'");
         });
     });
+
+    describe('deleteExhaustedFailedBefore', () => {
+        it('only removes failed rows that are out of retry budget', async () => {
+            const { store, last } = buildStore();
+
+            await store.deleteExhaustedFailedBefore(3, new Date('2026-05-01T00:00:00.000Z'), 500);
+
+            const sql = last();
+            expect(sql).to.have.string(`"status" = 'failed'`);
+            // The attempts floor is the whole point: a row still inside its retry
+            // budget is work in progress, and deleting it would drop the send.
+            expect(sql).to.have.string('"attempts" >= 3');
+            expect(sql).to.not.have.string("'pending'");
+        });
+
+        it('is bounded so an untended table is worked down over several sweeps', async () => {
+            const { store, last } = buildStore();
+
+            await store.deleteExhaustedFailedBefore(3, new Date('2026-05-01T00:00:00.000Z'), 500);
+
+            expect(last()).to.have.string('LIMIT 500');
+        });
+    });
 });

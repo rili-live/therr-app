@@ -1640,7 +1640,11 @@ const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
         locale,
     } = parseHeaders(req.headers);
 
-    const { type, dryRun = true } = req.body || {};
+    const { type, dryRun } = req.body || {};
+    // Normalized here rather than relying on a destructure default, which only
+    // fills in for `undefined` — an explicit `null` would otherwise be forwarded
+    // as a falsy value and turn the safe default into a real push to a handset.
+    const isDryRun = dryRun !== false;
 
     return Store.users.findUser({ id }, ['id', 'deviceMobileFirebaseToken'])
         .then(async (userResults: any[]) => {
@@ -1677,7 +1681,7 @@ const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
                     'x-localecode': locale,
                     'x-userid': id,
                 },
-                data: { deviceToken, type, dryRun },
+                data: { deviceToken, type, dryRun: isDryRun },
             })
                 .then((response: any) => res.status(200).send({ sent: true, ...response.data }))
                 // A non-2xx from the push service is a real diagnostic result, not a

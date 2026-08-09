@@ -202,8 +202,19 @@ the frequency cap by hitting it.
 - Sends are sequential within a batch. A burst of 25 concurrent sends from a
   `replicas: 1` pod is a good way to exhaust the write pool, and throughput is
   not the constraint: 30s × 25 is ~3,000/hour/brand.
-- **Retention is not scheduled yet.** `deleteCompletedBefore` exists and nothing
-  calls it. Wire it before the table gets large.
+- **Retention runs on the worker's own slow cadence** — `sweepRetention` self-throttles
+  to roughly hourly (one tick in 120) and deletes in bounded batches, so an untended
+  table is worked down over hours rather than in one long DELETE holding the write pool.
+  'sent'/'skipped' rows go at 30 days, comfortably outside the 24h rate-limit window that
+  `countSentSince` reads. Rows that exhausted `MAX_ATTEMPTS` go at 90 days via
+  `deleteExhaustedFailedBefore` — they are the only record of a send that was attempted
+  and lost, and leaving them forever would also pin their `(brandVariation, userId,
+  dedupeKey)` slot, permanently blocking re-enqueue of a once-per-event key.
+- **Send failures reach the row.** `sendEmailAndOrPushNotification` swallows errors by
+  default, which is right for inline callers inside a user-facing request but would mark
+  every queued row 'sent' regardless of outcome. The worker opts into
+  `shouldThrowOnError`, so a failed send lands in `markFailed` and becomes eligible for
+  `requeueFailed` — without it the retry budget only ever covered crashes.
 - If the automator ever needs to *read* this table, mirror the entry into its
   `src/store/brandScoped.ts` — the lint rule cannot see across repos
   ([`CROSS_REPO_INTEGRATION.md`](./CROSS_REPO_INTEGRATION.md) rule 2). Under this

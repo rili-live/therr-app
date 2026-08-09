@@ -33,6 +33,7 @@ import {
     reportUserValidation,
     resendVerificationValidation,
     searchUsersValidation,
+    sendUserPushDiagnosticsTestValidation,
     updateUserValidation,
     verifyUserAccountValidation,
 } from './validation/users';
@@ -410,7 +411,7 @@ usersServiceRouter.post('/users/:id/push-diagnostics/send-test', authorize(
             AccessLevels.SUPER_ADMIN,
         ],
     },
-), handleServiceRequest({
+), sendUserPushDiagnosticsTestValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

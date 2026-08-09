@@ -76,6 +76,20 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
 interface ISendPushNotificationAndOrEmailConfig {
     shouldSendPushNotification?: boolean;
     shouldSendEmail?: boolean;
+    /**
+     * Re-throw after logging instead of resolving.
+     *
+     * Defaults to false, which is right for every inline caller: they run inside
+     * a user-facing request that must succeed whether or not a notification got
+     * out, so a dead device token can never fail someone's check-in.
+     *
+     * The notification queue worker is the exception. It records a per-row
+     * outcome and retries, and a swallowed error there means every row is marked
+     * 'sent' regardless — which would make `markFailed`, `requeueFailed` and
+     * `MAX_ATTEMPTS` unreachable for real send failures and quietly reduce the
+     * queue's retry story to "crash recovery only".
+     */
+    shouldThrowOnError?: boolean;
 }
 
 export default (
@@ -260,4 +274,10 @@ export default (
                 issue: 'error with sendEmailAndOrPushNotification',
             },
         });
+
+        // Opt-in only. See shouldThrowOnError above: swallowing is the correct
+        // default for request-path callers and the wrong one for the queue.
+        if (config.shouldThrowOnError) {
+            throw error;
+        }
     });

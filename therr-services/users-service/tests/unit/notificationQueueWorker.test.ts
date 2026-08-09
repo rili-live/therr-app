@@ -29,7 +29,11 @@ import sinon from 'sinon';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import * as internalRestRequestModule from 'therr-js-utilities/internal-rest-request';
 import Store from '../../src/store';
-import { runNotificationQueueTick } from '../../src/utilities/notificationQueueWorker';
+import {
+    MAX_ATTEMPTS,
+    resetRetentionThrottleForTests,
+    runNotificationQueueTick,
+} from '../../src/utilities/notificationQueueWorker';
 
 const ROW_USER_ID = 'aaaaaaaa-0000-4000-8000-000000000001';
 const PAYLOAD_USER_ID = 'bbbbbbbb-0000-4000-8000-000000000002';
@@ -61,6 +65,20 @@ const buildPoisonedRow = () => ({
     updatedAt: new Date(),
 });
 
+/**
+ * The retention sweep is module-throttled and fires on the first tick of a
+ * process, so every block has to neutralize it — otherwise the first test to run
+ * issues two real DELETEs against a connection these unit tests never stand up,
+ * and the retention block's own assertions see an already-consumed throttle.
+ */
+const stubRetention = () => {
+    resetRetentionThrottleForTests();
+    return {
+        deleteCompleted: sinon.stub(Store.notificationQueue, 'deleteCompletedBefore').resolves(0),
+        deleteFailed: sinon.stub(Store.notificationQueue, 'deleteExhaustedFailedBefore').resolves(0),
+    };
+};
+
 describe('notificationQueueWorker — queue row overrides payload', () => {
     let getTokensForUser: sinon.SinonStub;
     let findUser: sinon.SinonStub;
@@ -70,6 +88,7 @@ describe('notificationQueueWorker — queue row overrides payload', () => {
     beforeEach(() => {
         const row = buildPoisonedRow();
 
+        stubRetention();
         sinon.stub(Store.notificationQueue, 'requeueFailed').resolves(0);
         // Only the Habits pass returns work; every other brand drains empty.
         sinon.stub(Store.notificationQueue, 'claimDue')
@@ -140,6 +159,87 @@ describe('notificationQueueWorker — queue row overrides payload', () => {
     });
 });
 
+describe('notificationQueueWorker — a failed send must not be recorded as sent', () => {
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    /**
+     * `sendEmailAndOrPushNotification` swallows errors by default so a dead device
+     * token can never fail a user-facing request. The worker opts out of that via
+     * `shouldThrowOnError`. Without the opt-out every row is marked 'sent' whatever
+     * happens, which silently reduces `markFailed` / `requeueFailed` / MAX_ATTEMPTS
+     * to crash recovery and loses the delivery failure entirely.
+     */
+    it('marks the row failed, not sent, when the push service rejects', async () => {
+        const row = buildPoisonedRow();
+
+        stubRetention();
+        sinon.stub(Store.notificationQueue, 'requeueFailed').resolves(0);
+        sinon.stub(Store.notificationQueue, 'claimDue')
+            .callsFake((brand: any) => Promise.resolve(brand === BrandVariations.HABITS ? [row as any] : []));
+        sinon.stub(Store.notificationQueue, 'countSentSince').resolves(0);
+        const markSent = sinon.stub(Store.notificationQueue, 'markSent').resolves(1);
+        const markFailed = sinon.stub(Store.notificationQueue, 'markFailed').resolves(1);
+        sinon.stub(Store.users, 'findUser').resolves([{
+            deviceMobileFirebaseToken: 'legacy-therr-token',
+            email: 'streakqueen@example.com',
+            isUnclaimed: false,
+            settingsEmailInvites: true,
+        }] as any);
+        sinon.stub(Store.userDeviceTokens, 'getTokensForUser').resolves([{ token: 'habits-device-token' } as any]);
+        sinon.stub(internalRestRequestModule, 'internalRestRequest')
+            .rejects(new Error('push-notifications-service unreachable'));
+
+        await runNotificationQueueTick();
+
+        expect(markSent.called).to.equal(false);
+        expect(markFailed.calledOnce).to.equal(true);
+        expect(markFailed.firstCall.args[1]).to.have.string('push-notifications-service unreachable');
+    });
+});
+
+describe('notificationQueueWorker — retention', () => {
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('sweeps both completed and terminally-failed rows, bounded and never pending', async () => {
+        const { deleteCompleted, deleteFailed } = stubRetention();
+        sinon.stub(Store.notificationQueue, 'requeueFailed').resolves(0);
+        sinon.stub(Store.notificationQueue, 'claimDue').resolves([]);
+
+        await runNotificationQueueTick();
+
+        expect(deleteCompleted.calledOnce).to.equal(true);
+        expect(deleteFailed.calledOnce).to.equal(true);
+
+        // Completed rows must survive well past the 24h window countSentSince reads,
+        // or deleting them hands a user their daily budget back early.
+        const completedCutoff: Date = deleteCompleted.firstCall.args[0];
+        const completedAgeMs = Date.now() - completedCutoff.getTime();
+        expect(completedAgeMs).to.be.greaterThan(24 * 60 * 60 * 1000);
+
+        // Failed rows are the only record of a lost send, so they outlive completed ones.
+        const failedCutoff: Date = deleteFailed.firstCall.args[1];
+        expect(failedCutoff.getTime()).to.be.lessThan(completedCutoff.getTime());
+        expect(deleteFailed.firstCall.args[0]).to.equal(MAX_ATTEMPTS);
+    });
+
+    it('self-throttles so it does not run on every 30s tick', async () => {
+        const { deleteCompleted } = stubRetention();
+        sinon.stub(Store.notificationQueue, 'requeueFailed').resolves(0);
+        sinon.stub(Store.notificationQueue, 'claimDue').resolves([]);
+
+        await runNotificationQueueTick();
+        await runNotificationQueueTick();
+        await runNotificationQueueTick();
+
+        // Housekeeping is not worth a DELETE round trip 120 times an hour.
+        expect(deleteCompleted.callCount).to.equal(1);
+    });
+});
+
 describe('notificationQueueWorker — per-user daily cap', () => {
     afterEach(() => {
         sinon.restore();
@@ -148,6 +248,7 @@ describe('notificationQueueWorker — per-user daily cap', () => {
     it('skips rather than sends once the user is at the cap, and records why', async () => {
         const row = buildPoisonedRow();
 
+        stubRetention();
         sinon.stub(Store.notificationQueue, 'requeueFailed').resolves(0);
         sinon.stub(Store.notificationQueue, 'claimDue')
             .callsFake((brand: any) => Promise.resolve(brand === BrandVariations.HABITS ? [row as any] : []));
