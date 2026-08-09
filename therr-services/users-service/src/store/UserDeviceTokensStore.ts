@@ -64,6 +64,27 @@ export default class UserDeviceTokensStore extends BrandScopedStore {
         return this.db.read.query(queryString).then((response) => response.rows as IUserDeviceTokenRow[]);
     }
 
+    // Diagnostics only: every row for this user across *all* brands.
+    //
+    // Deliberately not brand-scoped. The failure this is built to expose is a
+    // token filed under the wrong brand — a device that registered as 'therr'
+    // while the app sends `x-brand-variation: habits` gets no pushes, and a
+    // brand-scoped read returns an empty set for both brands, which looks
+    // identical to "never registered at all". Reading across brands is what
+    // makes those two cases distinguishable.
+    //
+    // Callers must not use this for delivery routing; getTokensForUser is the
+    // routing path and stays scoped.
+    getAllTokensForUserAcrossBrands(userId: string) {
+        const queryString = knexBuilder
+            .from(USER_DEVICE_TOKENS_TABLE_NAME)
+            .select('*')
+            .where('userId', '=', userId)
+            .orderBy('updatedAt', 'desc')
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows as IUserDeviceTokenRow[]);
+    }
+
     // Removes any (any-brand) token row matching this exact token string. Used during invalid-token
     // cleanup when FCM tells us a token has been invalidated. The token value is globally unique to
     // a device install regardless of brand, so we wipe all matching rows defensively. Brand is not
