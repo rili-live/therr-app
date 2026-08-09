@@ -447,6 +447,32 @@ append new items here rather than only printing them once.
   ~52 "Therr" mentions are the company, `api.therr.com` and TherrCoin, and are correct
   for every variant. While in `en-us`, fix the typo "acces" → "access" in
   `permissions.accessFineLocation.message`.
+- [ ] (2026-08-09, /quality-peer-review) Run `npm run migrations:run` on production for
+  `20260808000001_main.notificationQueue.js` (users-service). Creates `main.notificationQueue`
+  plus its UNIQUE dedupe constraint and two indexes. Nothing reads the table until the
+  worker is enabled, so this is safe to land ahead of the flag below.
+- [ ] (2026-08-09, /quality-peer-review) Leave `NOTIFICATION_QUEUE_WORKER_ENABLED` **unset**
+  on the first users-service deploy — the queue is designed to go out dark so it can be
+  observed filling before it is allowed to send. Turn it to `'true'` only after confirming
+  rows accumulate with the expected `brandVariation` / `dedupeKey` and no producer is
+  writing a `dedupeKey` containing a timestamp (which would silently disable dedup).
+  Introduced by 66e3d8fd8.
+- [ ] (2026-08-09, /quality-peer-review) Before enabling that worker, decide how send
+  failures should be recorded. `sendEmailAndOrPushNotification` ends in a `.catch` that
+  logs and resolves, so `sendOne` reaches `markSent` even when the push actually failed —
+  which means `markFailed`, `requeueFailed` and `MAX_ATTEMPTS` only ever catch a crash
+  between claim and mark, never a real FCM or push-service failure. The retry story in
+  docs/NOTIFICATION_QUEUE_DESIGN.md does not hold until this is addressed. Not fixed in
+  review because the swallow is in a shared function with many inline callers.
+- [ ] (2026-08-09, /quality-peer-review) Wire up `NotificationQueueStore.deleteCompletedBefore`
+  — it is implemented but has no caller, so queue retention never runs and the table grows
+  without bound. Note it deletes only `sent`/`skipped`, so rows exhausted at `MAX_ATTEMPTS`
+  stay `failed` forever and permanently hold their `(brandVariation, userId, dedupeKey)`
+  slot, blocking any re-enqueue of that key.
+- [ ] (2026-08-09, /quality-peer-review) After the push-diagnostics endpoints deploy, re-run
+  `_bin/push-debug.sh` against production to confirm the iOS Habits fix (13e0e4058) actually
+  lands — the `apns-topic` for HABITS and TEEM now resolves to `com.therr.mobile.Therr`, and
+  APNS drops a wrong topic silently, so only a real device test closes this out.
 <!-- skill-followups:end -->
 
 ---

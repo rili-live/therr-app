@@ -86,13 +86,24 @@ const sendOne = async (row: INotificationQueueRow): Promise<void> => {
         Store.users.findUser,
         headers,
         {
+            // `payload` is spread FIRST so the queue row always wins. It carries
+            // whatever a producer chose to store, and `ISendPushNotification`
+            // itself declares `toUserId`, `type` and `brandVariation` — so a
+            // producer that copies the shape of an existing inline
+            // sendEmailAndOrPushNotification call into `payload` is doing the
+            // natural thing. Spreading it last let those keys override the row:
+            // `toUserId` selects the recipient, and `brandVariation` selects
+            // which brand's device token is resolved, so a stale or copied value
+            // would send the wrong person a push through the wrong Firebase
+            // project — the exact failure the brand scoping on this table exists
+            // to prevent. The row is the authority; the payload is decoration.
+            ...payload,
             authorization: '',
             locale: payload.locale || 'en-us',
             toUserId: row.userId,
             type: row.type as any,
             whiteLabelOrigin: payload.whiteLabelOrigin || '',
             brandVariation: row.brandVariation,
-            ...payload,
         },
         // Queue entries are push-only. The retention emails have their own
         // triggers and their own unsubscribe semantics; routing them through
