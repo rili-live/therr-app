@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { expect } from 'chai';
 import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
 import { createMessage } from '../../../src/api/firebaseAdmin';
@@ -31,7 +33,10 @@ const config = {
     rank: 4,
 };
 
-const HABITS_BUNDLE_ID = 'com.therr.mobile.habits';
+// The only iOS bundle id TherrMobile.xcodeproj builds. Niche branches change
+// brandConfig.ts / app.json / build.gradle and leave PRODUCT_BUNDLE_IDENTIFIER
+// alone, so an iOS build of any brand is this binary — and every brand's
+// apns-topic must therefore be this value until a brand adds its own iOS target.
 const THERR_BUNDLE_ID = 'com.therr.mobile.Therr';
 const HABITS_ACCENT_COLOR = '#1C7F8A';
 
@@ -85,11 +90,16 @@ const DISPLAY_TYPES = [
 describe('firebaseAdmin brand routing', () => {
     describe('createDataOnlyMessage — apns-topic', () => {
         DATA_ONLY_TYPES.forEach((type) => {
-            it(`addresses "${type}" to the HABITS bundle id`, () => {
+            // Regression: this used to assert 'com.therr.mobile.habits' — a bundle id
+            // no target in TherrMobile.xcodeproj builds. APNS silently dropped every
+            // data-only push to an iOS Habits install while FCM still returned a
+            // message id, so the service logged "Push successfully sent" for
+            // notifications no one ever received.
+            it(`addresses "${type}" for HABITS to the bundle id that actually ships`, () => {
                 const message: any = createMessage(type, {}, config, BrandVariations.HABITS);
 
                 expect(message, `${type} produced no message`).to.not.equal(false);
-                expect(message.apns.headers['apns-topic']).to.equal(HABITS_BUNDLE_ID);
+                expect(message.apns.headers['apns-topic']).to.equal(THERR_BUNDLE_ID);
             });
         });
 
@@ -162,6 +172,56 @@ describe('firebaseAdmin brand routing', () => {
 
             expect(message.data.clickActionId)
                 .to.equal(PushNotifications.AndroidIntentActions.Habits.PACT_INVITATION);
+        });
+    });
+
+    // The assertions above pin apns-topic to a constant. This one pins that constant
+    // to reality: it reads the Xcode project and fails if the topic we address every
+    // brand's iOS pushes to is not a bundle id the project actually builds.
+    //
+    // Without this, the previous bug is fully reproducible — someone adds a brand,
+    // writes the "obvious" bundle id for it, every unit test agrees with them, and
+    // APNS silently discards that brand's pushes in production.
+    describe('apns-topic matches a shipped iOS target', () => {
+        const pbxprojPath = path.resolve(
+            __dirname,
+            '../../../../../TherrMobile/ios/Therr.xcodeproj/project.pbxproj',
+        );
+
+        it('addresses every brand to a PRODUCT_BUNDLE_IDENTIFIER declared in Therr.xcodeproj', function test() {
+            if (!fs.existsSync(pbxprojPath)) {
+                // The service is also built and tested in a container that only
+                // copies therr-services/ — skip rather than fail on a missing peer package.
+                // `this.skip()` throws, so nothing below runs.
+                this.skip();
+            }
+
+            const pbxproj = fs.readFileSync(pbxprojPath, 'utf8');
+            const declaredBundleIds = new Set(
+                Array.from(pbxproj.matchAll(/PRODUCT_BUNDLE_IDENTIFIER = "?([\w.$()<>:]+)"?;/g))
+                    .map((match) => match[1])
+                    // The RN template leaves a placeholder on the test target.
+                    .filter((id) => !id.includes('org.reactjs.native.example')),
+            );
+
+            expect(declaredBundleIds.size, 'found no bundle ids — the pbxproj regex needs updating').to.be.greaterThan(0);
+
+            (Object.values(BrandVariations) as BrandVariations[]).forEach((brand) => {
+                const message: any = createMessage(
+                    PushNotifications.Types.newDirectMessage,
+                    {},
+                    config,
+                    brand,
+                );
+                const topic = message.apns.headers['apns-topic'];
+
+                expect(
+                    Array.from(declaredBundleIds),
+                    `apns-topic "${topic}" for brand "${brand}" is not built by any iOS target. `
+                    + 'APNS drops such pushes silently. Either point the brand at the bundle id its '
+                    + 'iOS build actually uses, or add the iOS target in the same change.',
+                ).to.include(topic);
+            });
         });
     });
 

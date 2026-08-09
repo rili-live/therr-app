@@ -386,6 +386,35 @@ usersServiceRouter.get('/users/me', handleServiceRequest({
     method: 'get',
 }));
 
+// Push-delivery diagnostics. Declared before '/users/:id' so the more specific
+// path is matched first, and gated to SUPER_ADMIN — it reports another user's
+// device-registration state. See docs/PUSH_NOTIFICATIONS_DEBUGGING.md.
+usersServiceRouter.get('/users/:id/push-diagnostics', authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+// Sends a real push by user id — resolves the device token server-side so
+// verifying delivery never requires reading an FCM token off a handset.
+usersServiceRouter.post('/users/:id/push-diagnostics/send-test', authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
 usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',

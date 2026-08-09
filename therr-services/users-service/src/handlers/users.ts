@@ -14,7 +14,9 @@ import {
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { verifyPhoneVerificationToken } from 'therr-js-utilities/phone-verification-token';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import handleHttpError from '../utilities/handleHttpError';
+import * as globalConfig from '../../../../global-config';
 import Store from '../store';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
@@ -1552,12 +1554,149 @@ const clearUserDeviceToken: RequestHandler = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
+// Diagnostics (SUPER_ADMIN at the gateway): does this user have a device token
+// registered, and under which brand?
+//
+// This is the link in the push chain that fails most quietly. `syncDeviceTokenForBrand`
+// is fire-and-forget by design, so a failed write leaves no trace in the user-facing
+// response; and the brand it files under comes from the client's `x-brand-variation`
+// header, so a mismatched build registers a perfectly valid token that push routing
+// will never look up.
+//
+// Token values are never returned — only a fingerprint (prefix + length), which is
+// enough to confirm the device the user is holding matches the row, and useless to
+// anyone who intercepts the response.
+const getUserPushDiagnostics: RequestHandler = (req, res) => {
+    const { id } = req.params;
+    const { brandVariation } = getBrandContext(req.headers);
+
+    return Promise.all([
+        Store.users.findUser({ id }, ['id', 'deviceMobileFirebaseToken', 'settingsLocale']),
+        Store.userDeviceTokens.getAllTokensForUserAcrossBrands(id),
+    ])
+        .then(([userResults, tokenRows]) => {
+            const user = userResults?.[0];
+            if (!user) {
+                return handleHttpError({
+                    res,
+                    message: 'User not found',
+                    statusCode: 404,
+                });
+            }
+
+            const fingerprint = (token?: string | null) => (token
+                ? { prefix: String(token).slice(0, 12), length: String(token).length }
+                : null);
+
+            const rows = (tokenRows || []).map((row: any) => ({
+                brandVariation: row.brandVariation,
+                platform: row.platform,
+                updatedAt: row.updatedAt,
+                createdAt: row.createdAt,
+                token: fingerprint(row.token),
+            }));
+
+            const brandsRegistered = Array.from(new Set(rows.map((r) => r.brandVariation)));
+
+            return res.status(200).send({
+                userId: id,
+                // The brand this request was made under, for comparison against
+                // brandsRegistered — a user who only appears under 'therr' will
+                // never receive a 'habits' push, and vice versa.
+                requestedBrand: String(brandVariation || ''),
+                isRegisteredForRequestedBrand: brandsRegistered.includes(String(brandVariation)),
+                brandsRegistered,
+                deviceTokens: rows,
+                legacy: {
+                    // Pre-Phase-2 column. Push routing falls back to it when no
+                    // brand-scoped row exists, which means a user can receive
+                    // pushes for the *wrong* brand while looking correctly
+                    // unregistered above.
+                    hasDeviceMobileFirebaseToken: !!user.deviceMobileFirebaseToken,
+                    token: fingerprint(user.deviceMobileFirebaseToken),
+                },
+                settingsLocale: user.settingsLocale || null,
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
+// Diagnostics (SUPER_ADMIN at the gateway): send a real test push to a user by id.
+//
+// The push-notifications-service test endpoint takes a raw FCM device token, which
+// nothing in the system hands you — the diagnostics endpoints deliberately return
+// only a fingerprint, and reading one off a handset means adb/Xcode. This variant
+// resolves the brand-scoped token server-side, so verifying delivery needs only a
+// user id and takes seconds.
+//
+// It resolves the token through the same `resolveDeviceTokenForBrand` the real
+// notification path uses, so a token this can't find is a token production can't
+// find either — a negative result here is itself the diagnosis.
+const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
+    const { id } = req.params;
+    const {
+        authorization,
+        brandVariation,
+        locale,
+    } = parseHeaders(req.headers);
+
+    const { type, dryRun = true } = req.body || {};
+
+    return Store.users.findUser({ id }, ['id', 'deviceMobileFirebaseToken'])
+        .then(async (userResults: any[]) => {
+            const user = userResults?.[0];
+            if (!user) {
+                return handleHttpError({ res, message: 'User not found', statusCode: 404 });
+            }
+
+            const deviceToken = await resolveDeviceTokenForBrand(
+                brandVariation as string,
+                id,
+                user.deviceMobileFirebaseToken,
+            );
+
+            if (!deviceToken) {
+                // Not an error condition to paper over — this IS the answer when a
+                // user reports missing pushes, and it stops the caller chasing FCM.
+                return res.status(200).send({
+                    sent: false,
+                    reason: 'no-device-token',
+                    message: `No device token is registered for user ${id} under brand `
+                        + `"${brandVariation}". The app has never completed FCM registration for `
+                        + 'this brand — check OS notification permission and that the build\'s '
+                        + 'CURRENT_BRAND_VARIATION matches. Nothing would reach this device.',
+                });
+            }
+
+            return internalRestRequest({ headers: req.headers as any }, {
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}`
+                    + '/notifications/diagnostics/send-test',
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': id,
+                },
+                data: { deviceToken, type, dryRun },
+            })
+                .then((response: any) => res.status(200).send({ sent: true, ...response.data }))
+                // A non-2xx from the push service is a real diagnostic result, not a
+                // gateway failure — forward its body verbatim so the FCM error code survives.
+                .catch((err: any) => res.status(err?.response?.status || 502).send(
+                    err?.response?.data || { sent: false, reason: 'push-service-unreachable', message: err?.message },
+                ));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
 export {
     createUser,
     getMe,
     getUser,
     getUserByPhoneNumber,
     getUserByUserName,
+    getUserPushDiagnostics,
+    sendUserPushDiagnosticsTest,
     getUsers,
     findUsers,
     searchUsers,

@@ -76,7 +76,10 @@ append new items here rather than only printing them once.
 - [ ] **Confirm Firebase / FCM credentials match the brand variation being
   deployed** (`therr-services/push-notifications-service/src/api/firebaseAdmin.ts`).
   Per-brand Firebase apps are loaded by env var; a stale value will silently
-  send pushes from the wrong project.
+  send pushes from the wrong project. Verify without guessing:
+  `GET /v1/push-notifications-service/notifications/diagnostics` (SUPER_ADMIN)
+  reports the resolved project id and apns topic per brand — see
+  `docs/PUSH_NOTIFICATIONS_DEBUGGING.md`.
 - [ ] **Run unconsumed migrations** on each service after any change under
   `therr-services/<service>/src/migrations/**` lands on `main`.
   **Now automated for `main` deploys** via `_bin/cicd/run-migrations.sh`
@@ -139,6 +142,57 @@ append new items here rather than only printing them once.
 
 <!-- skill-followups:start -->
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
+- [ ] (2026-08-08, notification-queue) **Enable the notification queue worker and migrate
+  the digest onto it.** `main.notificationQueue` + `NotificationQueueStore` +
+  `startNotificationQueueWorker` are deployed but inert: nothing enqueues, and the worker
+  no-ops unless `NOTIFICATION_QUEUE_WORKER_ENABLED=true` on users-service. Next step is to
+  move the digest's three types (`streakAtRisk`, `partnerMissedDay`, `pactExpiring`) to
+  `enqueueNotification`, turn the worker on, and confirm dedup by running the digest twice
+  — which retires the standing "never add a second trigger path" rule in root CLAUDE.md,
+  since dedup becomes a UNIQUE constraint rather than a convention. Also wire
+  `deleteCompletedBefore` to something before the table grows. Design and sequencing:
+  `docs/NOTIFICATION_QUEUE_DESIGN.md`.
+- [ ] (2026-08-08, notification-queue) **No push preference is honored server-side — fix
+  before raising send frequency.** `settingsPushMarketing`, `settingsPushBackground`,
+  `settingsPushInvites`, `settingsPushLikes`, `settingsPushMentions` and
+  `settingsPushTopics` are real columns, settable through the API and carried by
+  `therr-react`, and `sendEmailAndOrPushNotification` reads none of them (it checks only
+  `isUnclaimed`). `TherrMobile/main/routes/Settings/ManageNotifications.tsx` renders email
+  toggles only. So a user's sole control over push is the OS switch, which is
+  all-or-nothing. The queue worker is the natural enforcement point — mark such rows
+  `skipped`, not `failed`, so suppression stays measurable.
+- [ ] (2026-08-08, notification-queue) **Add a user timezone column.** Nothing in the
+  schema records one, so the daily digest's "run it in the evening" is evening in exactly
+  one timezone worldwide. `notificationQueue.scheduledFor` exists and cannot mean anything
+  but "now" until this lands. Prerequisite for roadmap item #2 (send-time personalization,
+  15-40% on opens).
+
+- [ ] (2026-08-07, push-notifications-debug) **Seven HABITS notification types have no
+  sender.** `dailyHabitReminder`, `morningMotivation`, `eveningCheckIn`, `streakBroken`,
+  `newPersonalRecord`, `partnerCelebrated` and `pactCompleted` have copy in all three
+  locales, Android channel routing, per-brand intent actions and test coverage — and
+  nothing in this repo ever calls them. They are not scheduled on-device either
+  (`sendTriggerNotification` is used only by Moments/Events). The daily-reminder loop,
+  which `docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md` treats as the core HABITS
+  retention mechanic, is therefore delivery-half-only. Decide per type: wire a trigger
+  (the digest at `habitsDigest.ts` is the natural home for the daily three, but note it
+  has no server-side dedup and runs from a single Cloud Scheduler job), schedule them
+  locally via Notifee, or delete the dead copy. Verify with:
+  `grep -rn "Types.dailyHabitReminder" --include=*.ts therr-services/ | grep -v push-notifications-service`
+
+- [ ] (2026-08-07, push-notifications-debug) **Verify the iOS APNS-topic fix on a real
+  Habits handset after this deploys.** `apns-topic` for HABITS/TEEM was
+  `com.therr.mobile.habits` / `com.therr.mobile.Teem` — bundle ids no Xcode target
+  builds — so APNS silently dropped every *data-only* push to an iOS Habits install
+  (streakAtRisk, partnerCheckedIn, all 21 pact/partner types) while FCM reported
+  success and the service logged "Push successfully sent". Display-type pushes
+  (dailyHabitReminder, morningMotivation, eveningCheckIn, streakBroken, pactDeclined)
+  set no apns block and were unaffected, as was all of Android. Now addressed to
+  `com.therr.mobile.Therr`, which is what an iOS Habits build actually is.
+  Confirm with `./_bin/push-debug.sh --user <id> --brand habits --device-token <t> --send`
+  and a `pact-invitation`. If Habits later ships its own iOS target, change
+  `iosApnsTopic` in the same commit — the pbxproj-reading test in
+  `brandRouting.test.ts` will fail until you do.
 - [ ] (2026-08-03, /quality-peer-review) **Habits partner push volume will rise after this deploy — expected, watch it anyway.** `createCheckin` now resolves the active pacts backing a check-in's habit goal (`PactsStore.getActiveByUserAndHabitGoal`) instead of relying on a `pactId` no client has ever sent. Three code paths behind the old `if (pactId)` guard were dead and go live at once: the `partnerCheckedIn` push, mid-pact Wing Person achievement credit, and writes to `habit_checkins.pactId`. A per-pact mute already applies to the push (`shouldMuteNotifs` / `celebratePartnerCheckins`, honored via `selectPactPartnerIds({ onlyCelebrating: true })`) and recipients are deduplicated across pacts, so the ceiling is one push per check-in per active pact-mate — but nobody has ever received one, so treat the first days' volume as the real baseline rather than a regression. No migration, no env var.
 - [ ] (2026-08-03, /quality-peer-review) Optional one-off backfill of `habits.habit_checkins."pactId"`. Every check-in row written before the deploy above has a NULL `pactId`, so `GET /pacts/:pactId/checkins` stays empty for all historical activity even though new check-ins populate it. `HabitCheckinsStore.createOrUpdate` backfills the column on conflict, so a row self-heals only if that user re-submits the same (habitGoalId, scheduledDate). A backfill would set `pactId` from the earliest-started active pact on each row's `habitGoalId` for that user — the same attribution rule the handler uses. Purely cosmetic for pact history views; derived progress stats do not read this column (see `utilities/pactMemberStats`), so nothing is blocked on it.
 - [ ] (2026-08-03, /quality-peer-review) Web/mobile users carry one stale `user.userInView` through the first load after the persistConfig transform deploys. `stripUserInView` drops the key on the way *into* storage only — the outbound transform is deliberately identity (`persistConfig.test.ts`: "rehydrates whatever is in storage without alteration") — so a blob already in localStorage/AsyncStorage rehydrates its old `userInView` once, and is clean from the next persist write onward. This is the same one-launch window the `version` bump in the 2026-08-02 entry above would close for every persisted slice at once; decide the two together rather than adding an outbound strip just for this key.
@@ -178,12 +232,18 @@ append new items here rather than only printing them once.
   deliberately not exposed through the API gateway. Running it more than once
   a day duplicates streakAtRisk/partnerMissedDay/pactExpiring pushes.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
-- [ ] (2026-04-27, /quality-peer-review) Configure per-brand Firebase service
-  account env vars on push-notifications-service production
-  (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`,
-  `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_TEEM`) — until set, HABITS/TEEM
-  pushes fall back to the THERR Firebase project, which is wrong for token
-  routing once niche apps go live.
+- [ ] (2026-04-27, /quality-peer-review; corrected 2026-08-07) Per-brand Firebase
+  service account env vars
+  (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS`, `..._TEEM`) on
+  push-notifications-service production. **Only needed if the brand moves to its
+  own Firebase project** — the original wording ("the THERR fallback is wrong for
+  token routing once niche apps go live") was mistaken. Every brand is an app
+  inside the single `therr-app` project, and one service account can address
+  every app in its own project, so the fallback is correct today. Setting these
+  to a service account from `therr-app` changes nothing; setting them to one from
+  a *different* project without also re-registering every device breaks delivery
+  outright. See `docs/PUSH_NOTIFICATIONS_DEBUGGING.md` → "Do we need a separate
+  Firebase project per brand?".
 - [ ] (2026-04-27, /quality-peer-review) After one release cycle with clean
   shadow logs, flip `BrandScopedStore` mode from `'shadow'` to `'enforce'` in
   `NotificationsStore`, `UserAchievementsStore`, `UserDeviceTokensStore`,
@@ -345,16 +405,6 @@ append new items here rather than only printing them once.
   it is tunable without a mobile release only on the server — the client compiles the
   defaults in (`ALGO_*` env overrides are deliberately server-side), so a client-side
   correction needs a new build. Introduced by 787472c3e.
-- [ ] (2026-08-04, /quality-peer-review) Confirm the HABITS iOS app's real bundle
-  identifier matches `getAppBundleIdentifier(BrandVariations.HABITS)` —
-  `com.therr.mobile.habits` in `push-notifications-service/src/api/firebaseAdmin.ts`.
-  `TherrMobile/ios` pbxproj still carries `com.therr.mobile.Therr`, so the Habits iOS
-  target may not exist yet. APNS rejects any push whose `apns-topic` is not the
-  receiving app's own bundle id, and the rejection is silent — FCM accepts the send.
-  6453beb9c made `leaderboardRankMilestone` the last of 21 data-only types to address
-  its topic per brand, so if the Habits iOS app ships under a different bundle id,
-  every data-only iOS push to it is dropped with no error anywhere. Verify before
-  the first Habits iOS release; Android is unaffected either way.
 - [ ] (2026-08-05, /quality-peer-review) Re-submit `sitemap-static.xml` in Google Search
   Console after the web deploy. f3b1556a7 adds `/api-access` to the static sitemap and to
   `publicRoutePatterns` in `therr-client-web/src/server-client.tsx`; it is the SEO landing
