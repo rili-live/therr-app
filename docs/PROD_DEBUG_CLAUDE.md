@@ -67,6 +67,11 @@ Two signatures worth memorizing:
 - **Feeds go empty platform-wide with no 5xx spike** — suspect a future-dated
   `main.thoughts` row breaking a candidate query (the ai-automator writes them ahead of
   `NOW()` on purpose). This mode failed silently for 8 days in July 2026.
+- **Digest ran clean and nobody got a push** — it queues rather than sends, so a green
+  invocation only proves rows were written. Check `NOTIFICATION_QUEUE_WORKER_ENABLED` on
+  users-service and the row statuses in `main."notificationQueue"`: all `pending` means the
+  worker is off, climbing `attempts` means the send is failing, `skipped` means the 5/day
+  per-user cap with the reason in `lastError`.
 
 ---
 

@@ -41,15 +41,23 @@ export interface IEnqueueNotificationArgs {
 }
 
 /**
- * Returns true when a new row was queued, false when an identical one already
- * existed for this period. `false` is a normal outcome, not an error — it is
- * what makes a producer safe to re-run.
+ * Why three outcomes and not a boolean.
  *
+ * `duplicate` is a healthy result — it is what makes a producer safe to re-run —
+ * while `failed` means the notification is simply gone. Collapsing both into
+ * `false` makes a total queue outage (missing table, dead write pool) look
+ * exactly like a successful second run of the day, which is the one thing a
+ * producer's counters are relied on to tell apart.
+ */
+export type EnqueueOutcome = 'queued' | 'duplicate' | 'failed';
+
+/**
  * Never throws. A producer is typically inside a request that must succeed
  * whether or not a notification gets scheduled, so failures are logged and
- * swallowed — matching how the existing inline send path already behaves.
+ * reported as `failed` rather than propagated — matching how the existing
+ * inline send path already behaves.
  */
-const enqueueNotification = async (args: IEnqueueNotificationArgs): Promise<boolean> => {
+const enqueueNotification = async (args: IEnqueueNotificationArgs): Promise<EnqueueOutcome> => {
     try {
         const row = await Store.notificationQueue.enqueue(args.brandVariation, {
             userId: args.toUserId,
@@ -58,7 +66,7 @@ const enqueueNotification = async (args: IEnqueueNotificationArgs): Promise<bool
             payload: args.payload,
             scheduledFor: args.scheduledFor,
         });
-        return !!row;
+        return row ? 'queued' : 'duplicate';
     } catch (err: any) {
         logSpan({
             level: 'error',
@@ -73,7 +81,7 @@ const enqueueNotification = async (args: IEnqueueNotificationArgs): Promise<bool
                 source: 'users-service',
             },
         });
-        return false;
+        return 'failed';
     }
 };
 

@@ -149,10 +149,23 @@ requires switching to `externalTrafficPolicy: Local`.
 NetworkPolicy `ipBlock` is missing — packets are dropped, not refused. `ECONNREFUSED` means
 something else (wrong port, pod down). The ~2-minute hang is the Linux SYN-retry budget.
 
-**The digest has no server-side dedup.** At-most-once-per-day is a property of there being a
-single Cloud Scheduler job (`0 9 * * *` America/Chicago), not of the code. Never add a second
-firing, never wire it into a default task path or a timeout continuation — a retry
-double-sends to real users.
+**The digest now dedups server-side.** It queues into `main.notificationQueue` with
+period-stamped dedupe keys (`streak-at-risk:<pactId>:<YYYY-MM-DD>`) behind a UNIQUE
+(brandVariation, userId, dedupeKey) constraint, so a retry, an overlapping firing or a
+timeout continuation costs a wasted read pass rather than a double-send to real users.
+The single Cloud Scheduler job (`0 9 * * *` America/Chicago) is still the intended trigger,
+but it is no longer the *only* thing standing between a retry and duplicate pushes.
+
+Two consequences for the automator side:
+
+- `triggerHabitsDailyDigest`'s "do NOT retry" comment and its `dispatched-pending` status
+  predate this. A retry after a timeout is now safe; whatever the first call already queued
+  will conflict rather than re-send.
+- Delivery is asynchronous. The counters in the response say what was *queued*, not what was
+  sent — `deduped` is the new field, and a run that queued nothing because everything was
+  already queued looks identical to a run with nothing to do apart from that counter. The
+  actual send happens on the users-service worker, which only runs when
+  `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
 
 ---
 

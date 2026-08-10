@@ -1,6 +1,7 @@
 # Notification queue — design
 
-**Status:** scaffolded, deploys dark (`NOTIFICATION_QUEUE_WORKER_ENABLED` unset)
+**Status:** live — the habits digest is the first producer, and the worker is enabled
+(`NOTIFICATION_QUEUE_WORKER_ENABLED=true` in `k8s/prod` and `k8s/test`)
 **Scope:** all brands; the immediate driver is HABITS send frequency
 **Companion docs:** [`PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md`](./PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md) (what to send), [`PUSH_NOTIFICATIONS_DEBUGGING.md`](./PUSH_NOTIFICATIONS_DEBUGGING.md) (why one didn't arrive)
 
@@ -129,11 +130,52 @@ its own reaper. The happy path overwrites with `sent` moments later;
 
 ---
 
-## What is NOT built yet
+## Producers
 
-The scaffold is deliberately inert. Nothing enqueues, and the worker no-ops
-unless `NOTIFICATION_QUEUE_WORKER_ENABLED=true`, so this can deploy, be observed,
-and only then be allowed to send.
+### The habits digest (live)
+
+`habitsDigest.ts` queues all three of its types instead of sending inline:
+
+| Type | dedupeKey |
+|---|---|
+| `pactExpiring` | `pact-expiring:<pactId>:<YYYY-MM-DD>` |
+| `streakAtRisk` | `streak-at-risk:<pactId>:<YYYY-MM-DD>` |
+| `partnerMissedDay` | `partner-missed-day:<pactId>:<missingMemberId>:<YYYY-MM-DD>` |
+
+Two things in that table are load-bearing and neither is obvious:
+
+- **`pactExpiring` is keyed on the date, not on `daysRemaining`**, even though
+  `daysRemaining` also changes once a day. A run either side of midnight would
+  compute a different `daysRemaining` for the same calendar day and queue a
+  second warning.
+- **`partnerMissedDay` names the member who slipped, not the recipient.** The
+  recipient is already half of the unique constraint, so leaving it out of the
+  key costs nothing — but leaving out the *slipping* member means a pact where
+  two partners both missed yesterday notifies the third member about only the
+  first of them.
+
+The handler still evaluates every pact on a re-run; dedup is the queue's job,
+not a short-circuit in the producer. So a second run of the same day does the
+same reads, attempts the same enqueues, inserts nothing, and reports the whole
+lot under a new `deduped` counter. `tests/unit/handlers-habits-digest.test.ts`
+runs the handler twice against a fake queue that enforces the same constraint
+Postgres does, and asserts on the keys — including that none of them carries a
+clock reading.
+
+The digest's `*Sent` counters keep their names because
+`therr-messaging-automator` logs that exact shape, but they now count rows
+*queued*. What was actually delivered is in the table.
+
+`enqueueNotification` returns `'queued' | 'duplicate' | 'failed'` rather than a
+boolean for one reason: a producer must be able to separate "already queued for
+this period" from "the queue is broken". Both insert nothing, but only the first
+is healthy — and since the automator reads *"all `*Sent` zero + `deduped` > 0"*
+as *"already ran today"*, a failed enqueue counted as a dedup would make a
+missing table or an exhausted write pool report as a clean re-run while
+notifying nobody. Failures land in `errors`. Any new producer should map the
+three outcomes the same way.
+
+## What is NOT built yet
 
 ### Blockers to clear before raising frequency
 
@@ -150,10 +192,10 @@ natural enforcement point (mark `skipped`, don't drop silently).
 **2. No user timezone.** No timezone or UTC-offset column exists. Needed before
 `scheduledFor` can mean anything but "now".
 
-**3. Producers.** Nothing calls `enqueueNotification` yet. Migrating the digest's
-three types (`streakAtRisk`, `partnerMissedDay`, `pactExpiring`) is the natural
-first move — it is the path that most needs dedup, and it retires the "never add
-a second trigger path" rule.
+**3. More producers.** The digest is the only one. Everything still sending
+inline through `sendEmailAndOrPushNotification` is uncapped and undeduped, and
+none of it is counted against the 5/day budget the worker enforces — so the cap
+is currently a cap on queued notifications, not on notifications.
 
 ### Where the frequency actually is
 
@@ -180,7 +222,7 @@ so an account with no pact generates zero sends. The only self-triggered push is
 
 1. Queue + worker land dark. **(done)**
 2. Migrate the digest's three types to `enqueueNotification`; enable the worker;
-   confirm dedup by running the digest twice.
+   confirm dedup by running the digest twice. **(done)**
 3. Honor `settingsPush*` in the worker; add the push category UI.
 4. Add user timezone; start setting `scheduledFor` per user.
 5. Wire the seven orphaned types and the silent reward moments.
@@ -194,7 +236,10 @@ the frequency cap by hitting it.
 ## Operational notes
 
 - **`NOTIFICATION_QUEUE_WORKER_ENABLED=true`** on users-service turns the worker
-  on. Absent = inert.
+  on. Absent = inert. It is set in `k8s/prod` and `k8s/test`, and in both `.env`
+  templates for local runs. Note that unsetting it is no longer a way back to
+  the old behavior: the digest queues rather than sends, so with the flag off it
+  fills the table and delivers nothing.
 - Tunables (`TICK_INTERVAL_MS` 30s, `CLAIM_BATCH_SIZE` 25, `MAX_ATTEMPTS` 3,
   `MAX_SENDS_PER_USER_PER_DAY` 5) are module constants, not env vars — there is
   no production experience to configure against yet, and an env var implies a
