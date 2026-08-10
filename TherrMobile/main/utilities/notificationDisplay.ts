@@ -38,6 +38,7 @@ const DISPLAY_BY_TYPE: { [key: string]: INotificationDisplay } = {
     [NotificationEnums.Types.DISCOVERED_UNIQUE_MOMENT]: { icon: 'gem', tone: 'discovery' },
     [NotificationEnums.Types.DISCOVERED_UNIQUE_SPACE]: { icon: 'map-pin', tone: 'discovery' },
     [NotificationEnums.Types.THOUGHT_REPLY]: { icon: 'reply', tone: 'message' },
+    [NotificationEnums.Types.THOUGHT_REPOST]: { icon: 'retweet', tone: 'engagement' },
     [NotificationEnums.Types.INVITE_FRIENDS_REMINDER]: { icon: 'paper-plane', tone: 'social' },
 };
 

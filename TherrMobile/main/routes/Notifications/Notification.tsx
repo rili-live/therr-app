@@ -46,6 +46,11 @@ const getHighlightValues = (notification: any): string[] => {
         values.push('your post', 'tu publicación', 'ta publication');
     } else if (type === NotificationEnums.Types.THOUGHT_REPLY) {
         values.push('new replies', 'nuevas respuestas', 'a répondu à ta publication');
+    } else if (type === NotificationEnums.Types.THOUGHT_REPOST) {
+        // Must match the wording in each users-service dictionary's
+        // `notifications.newThoughtRepostReceived`, or the highlight silently
+        // does nothing for non-English users.
+        values.push('reposted your post', 'republicó tu publicación', 'a republié ta publication');
     } else if (type === NotificationEnums.Types.NEW_DM_RECEIVED) {
         values.push('direct message', 'mensaje directo', 'Nouveau message');
     } else if (type === NotificationEnums.Types.NEW_GROUP_INVITE) {
