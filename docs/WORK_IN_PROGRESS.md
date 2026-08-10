@@ -142,16 +142,15 @@ append new items here rather than only printing them once.
 
 <!-- skill-followups:start -->
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
-- [ ] (2026-08-08, notification-queue) **Enable the notification queue worker and migrate
-  the digest onto it.** `main.notificationQueue` + `NotificationQueueStore` +
-  `startNotificationQueueWorker` are deployed but inert: nothing enqueues, and the worker
-  no-ops unless `NOTIFICATION_QUEUE_WORKER_ENABLED=true` on users-service. Next step is to
-  move the digest's three types (`streakAtRisk`, `partnerMissedDay`, `pactExpiring`) to
-  `enqueueNotification`, turn the worker on, and confirm dedup by running the digest twice
-  — which retires the standing "never add a second trigger path" rule in root CLAUDE.md,
-  since dedup becomes a UNIQUE constraint rather than a convention. Also wire
-  `deleteCompletedBefore` to something before the table grows. Design and sequencing:
-  `docs/NOTIFICATION_QUEUE_DESIGN.md`.
+- [ ] (2026-08-10, notification-queue) **Update `therr-messaging-automator` now that the
+  digest dedups.** Sibling repo, separate PR. `src/api/habitsDigest.ts` still documents the
+  endpoint as having "NO internal dedup" and treats an `ECONNABORTED` timeout as
+  `dispatched-pending` explicitly to avoid a retry that would double-send. Both are now
+  false: a retry conflicts on the UNIQUE (brandVariation, userId, dedupeKey) constraint.
+  Fix the comments, and consider retrying on timeout. Also add `deduped` to
+  `IHabitsDigestCounters` — the existing `*Sent` fields kept their names for compatibility
+  but now count rows *queued*, and `deduped` is the only field that distinguishes a second
+  run of the day from a quiet one.
 - [ ] (2026-08-08, notification-queue) **No push preference is honored server-side — fix
   before raising send frequency.** `settingsPushMarketing`, `settingsPushBackground`,
   `settingsPushInvites`, `settingsPushLikes`, `settingsPushMentions` and
@@ -175,8 +174,9 @@ append new items here rather than only printing them once.
   (`sendTriggerNotification` is used only by Moments/Events). The daily-reminder loop,
   which `docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md` treats as the core HABITS
   retention mechanic, is therefore delivery-half-only. Decide per type: wire a trigger
-  (the digest at `habitsDigest.ts` is the natural home for the daily three, but note it
-  has no server-side dedup and runs from a single Cloud Scheduler job), schedule them
+  (the digest at `habitsDigest.ts` is the natural home for the daily three, and it now
+  queues through `enqueueNotification`, so a new type there gets dedup and the 5/day cap
+  for free — give it a period-stamped `dedupeKey`), schedule them
   locally via Notifee, or delete the dead copy. Verify with:
   `grep -rn "Types.dailyHabitReminder" --include=*.ts therr-services/ | grep -v push-notifications-service`
 
@@ -449,14 +449,22 @@ append new items here rather than only printing them once.
   `permissions.accessFineLocation.message`.
 - [ ] (2026-08-09, /quality-peer-review) Run `npm run migrations:run` on production for
   `20260808000001_main.notificationQueue.js` (users-service). Creates `main.notificationQueue`
-  plus its UNIQUE dedupe constraint and two indexes. Nothing reads the table until the
-  worker is enabled, so this is safe to land ahead of the flag below.
-- [ ] (2026-08-09, /quality-peer-review) Leave `NOTIFICATION_QUEUE_WORKER_ENABLED` **unset**
-  on the first users-service deploy — the queue is designed to go out dark so it can be
-  observed filling before it is allowed to send. Turn it to `'true'` only after confirming
-  rows accumulate with the expected `brandVariation` / `dedupeKey` and no producer is
-  writing a `dedupeKey` containing a timestamp (which would silently disable dedup).
-  Introduced by 66e3d8fd8.
+  plus its UNIQUE dedupe constraint and two indexes. **Now a hard prerequisite for the
+  digest, not just for the worker** — the digest queues instead of sending, and a missing
+  table makes every enqueue fail silently.
+- [ ] (2026-08-10, notification-queue) **Verify the first real digest run in production.**
+  `NOTIFICATION_QUEUE_WORKER_ENABLED=true` is now in `k8s/prod`, so the next digest firing
+  (`0 9 * * *` America/Chicago) both queues and sends. The migration above must be run
+  first — with no table every enqueue fails, and while `enqueueNotification` swallows the
+  exception rather than aborting the run, the digest now reports those as `errors` (not as
+  `deduped`), so a non-zero `errors` with all `*Sent` at zero is the signature of exactly
+  this. After the run, confirm in
+  `main."notificationQueue"`: rows carry `brandVariation = 'habits'`, every `dedupeKey`
+  ends in a `YYYY-MM-DD` (a timestamp in one silently disables dedup), and rows reach
+  `sent` within a couple of minutes rather than sitting `pending` (worker off) or
+  accumulating `attempts` (send failing). Then re-run the digest by hand and confirm the
+  response reports `deduped` equal to the previous run's total with all `*Sent` at zero —
+  that is the end-to-end proof, and it is now a safe thing to do.
 - [ ] (2026-08-09, /quality-peer-review) After the push-diagnostics endpoints deploy, re-run
   `_bin/push-debug.sh` against production to confirm the iOS Habits fix (13e0e4058) actually
   lands — the `apns-topic` for HABITS and TEEM now resolves to `com.therr.mobile.Therr`, and
