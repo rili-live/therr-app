@@ -95,6 +95,14 @@ const unauthenticatedPaths: IUnauthenticatedPath[] = [
 /**
  * Mirrors `express-unless`' own matching so callers and tests can ask the question
  * it actually answers: would `authenticate` be skipped for this request?
+ *
+ * This is a REIMPLEMENTATION — production calls `authenticate.unless()`, never this.
+ * The two are held together by the "drift guardrail" block in
+ * `tests/unit/config/unauthenticatedPaths.test.ts`, which runs the real middleware
+ * over the real list and fails if the two ever disagree. Without it, a patch release
+ * inside the `^0.5.0` range (or the 2.x rewrite, which changes the API) would leave
+ * every test here green while the gateway authenticated a different set of routes.
+ * If you change this function, that block is what proves you got it right.
  */
 export const isUnauthenticatedPath = (pathname: string, method: string): boolean => unauthenticatedPaths.some((p) => {
     if (!p.methods.includes(method)) {

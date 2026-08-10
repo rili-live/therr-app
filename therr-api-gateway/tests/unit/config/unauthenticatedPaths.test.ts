@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import unless from 'express-unless';
 import unauthenticatedPaths, { isUnauthenticatedPath } from '../../../src/config/unauthenticatedPaths';
 
 /**
@@ -85,6 +86,103 @@ describe('unauthenticatedPaths', () => {
                 });
 
             expect(offenders, `unanchored: ${offenders.map((o) => String(o.url)).join(', ')}`).to.have.lengthOf(0);
+        });
+    });
+
+    /**
+     * The drift guardrail.
+     *
+     * Every assertion above this point is made against `isUnauthenticatedPath`, which
+     * is a *reimplementation* of how `express-unless` matches — production never calls
+     * it. So on its own this file proves the list is correct about a function nothing
+     * runs, and a change in `express-unless` (a patch release inside the `^0.5.0`
+     * range, or the 2.x rewrite) would leave every test green while the gateway
+     * quietly authenticates a different set of routes.
+     *
+     * These tests close that gap by driving the REAL middleware over the REAL list and
+     * asserting the two agree everywhere. Anything that changes the dependency's
+     * matching semantics fails here, in a test that names the divergent path.
+     */
+    describe('agrees with the real express-unless (drift guardrail)', () => {
+        /** Returns true when `authenticate` would be SKIPPED, per the actual dependency. */
+        const realUnlessSkips = (pathname: string, method: string): boolean => {
+            let authRan = false;
+            const inner: any = (req: any, res: any, next: any) => {
+                authRan = true;
+                next();
+            };
+            inner.unless = unless;
+            const wrapped = inner.unless({ path: unauthenticatedPaths });
+            wrapped({ originalUrl: pathname, url: pathname, method }, {}, () => undefined);
+            return !authRan;
+        };
+
+        // Derived from the list itself, so it keeps covering entries added later:
+        // the exact path (skips), a sub-path (must not), and the wrong method.
+        const derivedCases: Array<[string, string]> = [];
+        unauthenticatedPaths.forEach((p) => {
+            if (typeof p.url !== 'string') {
+                return;
+            }
+            p.methods.forEach((method) => {
+                derivedCases.push([p.url as string, method]);
+                derivedCases.push([`${p.url}/sub-resource`, method]);
+                derivedCases.push([p.url as string, method === 'GET' ? 'POST' : 'GET']);
+            });
+        });
+
+        // The regex entries, which is where the semantics actually bite.
+        const regexCases: Array<[string, string]> = [
+            [`/v1/users-service/users/${USER_ID}`, 'GET'],
+            [`/v1/users-service/users/${USER_ID}/`, 'GET'],
+            [`/v1/users-service/users/${USER_ID}/push-diagnostics`, 'GET'],
+            [`/v1/users-service/users/${USER_ID}/anything-else`, 'GET'],
+            [`/v1/users-service/users/${USER_ID}`, 'POST'],
+            [`/v1/users-service/users/achievements/${USER_ID}/public`, 'GET'],
+            [`/v1/users-service/users/achievements/${USER_ID}/public/extra`, 'GET'],
+            [`/v1/users-service/users/invites/${USER_ID}`, 'GET'],
+            ['/v1/users-service/users/verify/some-token', 'POST'],
+            ['/v1/users-service/users/by-username/zack', 'GET'],
+            ['/v1/users-service/users/me', 'GET'],
+            ['/v1/user-files/nested/dir/image.png', 'GET'],
+            ['/v1/maps-service/place/details', 'GET'],
+            ['/v1/maps-service/moments/abc/details', 'POST'],
+            ['/v1/maps-service/spaces/abc/details', 'POST'],
+            ['/v1/maps-service/events/abc/details', 'POST'],
+            ['/v1/maps-service/events/search', 'POST'],
+            ['/v1/maps-service/spaces/abc/pairings', 'GET'],
+            ['/v1/maps-service/spaces/abc/pairings/feedback', 'POST'],
+            ['/v1/maps-service/spaces/abc/corrections', 'POST'],
+            ['/v1/maps-service/cities/austin/pulse', 'GET'],
+            ['/v1/messages-service/forums/abc-123', 'GET'],
+            ['/v1/reactions-service/user-lists/public/abc-123/my-list', 'GET'],
+            ['/v1/habits/pacts', 'GET'],
+            ['/v1/users-service/users/connections', 'GET'],
+        ];
+
+        const allCases = derivedCases.concat(regexCases);
+
+        it('proves the harness is live before trusting it to agree', () => {
+            // Without this, a dependency that stopped skipping anything (or started
+            // skipping everything) could still be "agreed with" by a mirror that broke
+            // the same way — or the assertions below could pass over an empty set.
+            expect(allCases.length).to.be.greaterThan(20);
+            expect(realUnlessSkips('/healthcheck', 'GET'), 'a public route must skip').to.equal(true);
+            expect(
+                realUnlessSkips(`/v1/users-service/users/${USER_ID}/push-diagnostics`, 'GET'),
+                'a protected route must NOT skip',
+            ).to.equal(false);
+        });
+
+        it('matches isUnauthenticatedPath on every case, for every entry in the list', () => {
+            const divergences = allCases
+                .filter(([pathname, method]) => realUnlessSkips(pathname, method) !== isUnauthenticatedPath(pathname, method))
+                .map(([pathname, method]) => `${method} ${pathname}`);
+
+            expect(
+                divergences,
+                `isUnauthenticatedPath no longer mirrors express-unless for: ${divergences.join(', ')}`,
+            ).to.have.lengthOf(0);
         });
     });
 });
