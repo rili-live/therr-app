@@ -28,8 +28,30 @@ fires. That is correct behavior, not a bug.
 The digest (`POST /v1/habits/pacts/digest/run-daily`) is not on a k8s CronJob;
 it is called by the `therr-messaging-automator` Cloud Function via Cloud
 Scheduler, over the internal LB (see `k8s/prod/users-service-network-policy.yaml`).
-It is deliberately unreachable from the public internet, and has **no
-server-side dedup** — a second trigger path re-sends every notification.
+It is deliberately unreachable from the public internet.
+
+**The digest does not send — it queues.** Its three types go into
+`main.notificationQueue` via `enqueueNotification`, and the users-service worker
+drains the queue every 30s. Two failure modes are specific to this path:
+
+- **Nothing arrives and nothing errored.** Check that
+  `NOTIFICATION_QUEUE_WORKER_ENABLED=true` on users-service. With the flag off the
+  digest still reports queued counters and the rows sit `pending` forever.
+- **One user got fewer than expected.** The worker enforces 5 sends per user per
+  24h across all types; suppressed rows are marked `skipped` with the reason in
+  `lastError`, not `failed`.
+
+Start any digest investigation in the table, which records every decision:
+
+```sql
+SELECT "type", "status", "dedupeKey", "attempts", "lastError", "scheduledFor", "sentAt"
+FROM main."notificationQueue"
+WHERE "userId" = '<id>' AND "brandVariation" = 'habits'
+ORDER BY "createdAt" DESC LIMIT 20;
+```
+
+Re-running the digest is safe: dedupe keys are period-stamped and the UNIQUE
+(brandVariation, userId, dedupeKey) constraint drops the repeat.
 
 ### Types with no sender at all
 
