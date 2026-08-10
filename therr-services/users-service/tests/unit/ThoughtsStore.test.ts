@@ -505,5 +505,159 @@ describe('ThoughtsStore brand filtering', () => {
             const sql = readStub.args[0][0] as string;
             expect(sql).to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
         });
+
+        it('requires a null repostThoughtId for an ordinary post', () => {
+            // Without this, a plain repost (empty message, no parentId) would collide with an
+            // ordinary empty-message post by the same author and be rejected as a duplicate.
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.get(BrandVariations.THERR, {
+                fromUserId: 1,
+                message: 'hi',
+            });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include(`"repostThoughtId" is null`);
+        });
+
+        it('keys the duplicate check on repostThoughtId for a repost', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.get(BrandVariations.THERR, {
+                fromUserId: 1,
+                message: '',
+                repostThoughtId: 'original-1',
+            });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include(`"repostThoughtId" = 'original-1'`);
+            expect(sql).to.not.include(`"repostThoughtId" is null`);
+        });
+    });
+});
+
+describe('ThoughtsStore reposts', () => {
+    describe('create', () => {
+        it('persists repostThoughtId and derives isRepost from it', () => {
+            const { connection, writeStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.create(BrandVariations.THERR, {
+                fromUserId: 1 as any,
+                locale: 'en-us',
+                message: '',
+                repostThoughtId: 'original-1',
+            });
+
+            const sql = writeStub.args[0][0] as string;
+            expect(sql).to.include(`'original-1'`);
+            expect(sql).to.include(`"isRepost"`);
+            expect(sql).to.include('true');
+        });
+
+        it('ignores a client-supplied isRepost when nothing is being reposted', () => {
+            // `isRepost` shipped years before reposts did, so a client can set it on an ordinary
+            // post. Deriving it keeps "isRepost with nothing reposted" out of the table entirely.
+            const { connection, writeStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.create(BrandVariations.THERR, {
+                fromUserId: 1 as any,
+                locale: 'en-us',
+                message: 'not actually a repost',
+                isRepost: true,
+            });
+
+            const sql = writeStub.args[0][0] as string;
+            expect(sql).to.include('false');
+        });
+    });
+
+    describe('attachRepostDetails', () => {
+        it('is a no-op on an empty page and issues no queries', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, []);
+
+            expect(readStub.callCount).to.equal(0);
+        });
+
+        it('skips the originals lookup when the page contains no reposts', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, [{ id: 't1' }]);
+
+            // Only the repost-count aggregate should run.
+            expect(readStub.callCount).to.equal(1);
+            expect(readStub.args[0][0] as string).to.include('group by "repostThoughtId"');
+        });
+
+        it('scopes the originals lookup to the caller brand', async () => {
+            // The repost and its original are separate rows, so a Therr user (who reads 'all')
+            // can repost something a HABITS reader must not see. The embed has to re-filter.
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.HABITS, [
+                { id: 't1', repostThoughtId: 'original-1' },
+            ]);
+
+            const originalsSql = readStub.args.map((args) => args[0] as string)
+                .find((sql) => sql.includes('"id" in'));
+            expect(originalsSql).to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
+            expect(originalsSql).to.include('"isMatureContent" = false');
+        });
+
+        it('attaches a null repostOf when the original is not readable', async () => {
+            const { connection } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'gone' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf).to.equal(null);
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('hydrates repostOf with the original author and coerces repostCount to a number', async () => {
+            const readStub = sinon.stub();
+            // Originals lookup (has the id IN filter) vs the count aggregate (has GROUP BY).
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    // pg returns COUNT(*) as a bigint string.
+                    return Promise.resolve({ rows: [{ repostThoughtId: 't1', count: '3' }] });
+                }
+                return Promise.resolve({
+                    rows: [{ id: 'original-1', fromUserId: 'u9', message: 'hello' }],
+                });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const usersStore: any = {
+                findUsers: () => Promise.resolve([{ id: 'u9', userName: 'author', isSuperUser: true }]),
+            };
+            const store = new ThoughtsStore(connection, usersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'original-1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf.message).to.equal('hello');
+            expect(thoughts[0].repostOf.fromUserName).to.equal('author');
+            expect(thoughts[0].repostOf.fromUserIsSuperUser).to.equal(true);
+            expect(thoughts[0].repostCount).to.equal(3);
+        });
+
+        it('leaves repostOf unset on a non-repost row', async () => {
+            const { connection } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0]).to.not.have.property('repostOf');
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
     });
 });

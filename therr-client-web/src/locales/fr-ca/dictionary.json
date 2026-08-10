@@ -476,7 +476,16 @@
       "viewAllReplies": "Voir les {count} réponses",
       "viewReplies": "Voir {count} réponses",
       "viewReply": "Voir 1 réponse",
-      "reply": "Répondre"
+      "reply": "Répondre",
+      "repostedBy": "{userName} a republié",
+      "repostThought": "Republier",
+      "repostUnavailable": "Cette publication n'est plus disponible",
+      "repostModalTitle": "Republier",
+      "repostPlaceholder": "Ajoute un commentaire (optionnel)",
+      "repostConfirm": "Republier",
+      "repostCancel": "Annuler",
+      "repostError": "Nous n'avons pas pu republier ceci. Réessaie.",
+      "repostDuplicate": "Tu as déjà republié cette publication"
     },
     "explorePeople": {
       "pageTitle": "Rechercher des personnes",

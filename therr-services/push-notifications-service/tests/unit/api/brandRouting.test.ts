@@ -51,6 +51,7 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.newSuperLikeReceived,
     PushNotifications.Types.nudgeSpaceEngagement,
     PushNotifications.Types.newThoughtReplyReceived,
+    PushNotifications.Types.newThoughtRepostReceived,
     PushNotifications.Types.leaderboardRankMilestone,
     PushNotifications.Types.streakAtRisk,
     PushNotifications.Types.streakMilestone,

@@ -34,6 +34,8 @@ interface IAreaCarouselProps {
     onEndReached?: any;
     toggleAreaOptions: any;
     toggleThoughtOptions?: any;
+    /** Opens the repost composer. Optional — carousels without one simply hide the control. */
+    onRepostPress?: (thought: any) => void;
     translate: any;
     updateEventReaction: any;
     updateMomentReaction: any;
@@ -54,6 +56,7 @@ const renderItem = ({ item: post }, {
     displaySize,
     inspectContent,
     toggleContentOptions,
+    onRepostPress,
     goToViewMap,
     goToViewUser,
     translate,
@@ -103,6 +106,7 @@ const renderItem = ({ item: post }, {
                     topReply={topReply}
                     replyCount={getReplyCount(post)}
                     inspectThought={inspectContent} // TODO
+                    onRepostPress={onRepostPress}
                     // TODO: Get username from response
                     user={user}
                     contentUserDetails={userDetails}
@@ -187,6 +191,7 @@ const AreaCarousel = ({
     onEndReached,
     toggleAreaOptions,
     toggleThoughtOptions,
+    onRepostPress,
     translate,
     updateEventReaction,
     updateMomentReaction,
@@ -243,6 +248,7 @@ const AreaCarousel = ({
             goToViewMap,
             goToViewUser,
             toggleContentOptions,
+            onRepostPress,
             translate,
             theme,
             themeViewPost: itemObj.item.areaType ? themeArea : themeThought,
@@ -253,7 +259,7 @@ const AreaCarousel = ({
         });
     }, [
         media, displaySize, inspectContent, goToViewMap, goToViewUser,
-        toggleAreaOptions, toggleThoughtOptions, translate,
+        toggleAreaOptions, toggleThoughtOptions, onRepostPress, translate,
         theme, themeArea, themeThought, themeForms,
         updateEventReaction, updateMomentReaction, updateSpaceReaction, updateThoughtReaction,
         user, isDarkMode,

@@ -170,7 +170,10 @@ class Notifications extends React.Component<
             }
         } else if (notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED
-            || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY) {
+            || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY
+            // A repost notification's associationId is the *original*, which belongs to the
+            // recipient — so it lands on their own post, same as a like or a reply does.
+            || notification.type === NotificationsEmuns.Types.THOUGHT_REPOST) {
             if (notification.messageParams?.thoughtId) {
                 navigation.navigate('ViewThought', {
                     isMyContent: true,

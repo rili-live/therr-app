@@ -26,6 +26,7 @@ import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confi
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import RepostModal from '../../components/Modals/RepostModal';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { isMyContent as checkIsMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -113,6 +114,14 @@ const ViewThought = ({
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
     const [fetchedThought, setFetchedThought] = useState<any>({});
+    // The thought the repost composer is open for (null when closed). Held rather than derived
+    // because the composer can be opened from the root thought or from any reply on screen.
+    const [repostTarget, setRepostTarget] = useState<any>(null);
+    const [isReposting, setIsReposting] = useState(false);
+    // Locally applied repost-count bumps, keyed by thought id. The details endpoint is not
+    // re-fetched after a repost, so without this the count the user just incremented would keep
+    // rendering its pre-repost value until they leave and come back.
+    const [repostCountBumps, setRepostCountBumps] = useState<{ [thoughtId: string]: number }>({});
 
     // Refs
     const scrollViewRef = useRef<any>(null);
@@ -139,6 +148,11 @@ const ViewThought = ({
         [thought.hashTags]
     );
     const isFormDisabled = !inputMessage || isSubmitting;
+    // Applies any repost the user made in this session on top of the server's count.
+    const withRepostBump = useCallback((target: any) => {
+        const bump = repostCountBumps[target?.id];
+        return bump ? { ...target, repostCount: (target.repostCount || 0) + bump } : target;
+    }, [repostCountBumps]);
     const brandColor = isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen;
 
     // Fetch thought details and set up nav listener
@@ -221,6 +235,16 @@ const ViewThought = ({
         navToViewContent(content, user, navigation.push, 'ViewThought');
     }, [user, navigation]);
 
+    // The thought in view is already open, so its card body must not navigate to itself — but
+    // the repost embed nested inside it still has to be able to open the original. Routing both
+    // through one guarded handler keeps that distinction in one place.
+    const handleInspectFromDetails = useCallback((content: any) => {
+        if (!content?.id || content.id === thought.id) {
+            return;
+        }
+        handleGoToContent(content);
+    }, [thought.id, handleGoToContent]);
+
     const handleUpdateThoughtReaction = useCallback((thoughtId, data, contentUserId) => {
         if (thoughtId === thought.id) {
             navigation.setParams({
@@ -295,6 +319,68 @@ const ViewThought = ({
                 });
         }
     }, [thought, user, deleteThought, navigation]);
+
+    const handleRepostPress = useCallback((selectedThought: any) => {
+        setRepostTarget(selectedThought);
+    }, []);
+
+    const handleRepostConfirm = useCallback((message: string) => {
+        if (!repostTarget?.id) {
+            return;
+        }
+
+        const targetId = repostTarget.id;
+        // Hashtags come from the user's own quote only. Carrying the original's tags over would
+        // put the reposter's account in feeds they never chose to post into.
+        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
+        const hashTagsString = [
+            ...new Set(hashTags.map((t) => t.replace(/#/g, ''))),
+        ].join(',');
+
+        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+        setIsReposting(true);
+
+        createThought({
+            fromUserId: user.details.id,
+            // Reposting is a public act by definition — it surfaces the original to the
+            // reposter's audience, so a private repost would be a no-op with a side effect.
+            isPublic: true,
+            message,
+            hashTags: hashTagsString,
+            repostThoughtId: targetId,
+            isDraft: false,
+        })
+            .then(() => {
+                setRepostCountBumps((prev) => ({
+                    ...prev,
+                    [targetId]: (prev[targetId] || 0) + 1,
+                }));
+                setRepostTarget(null);
+                showToast.success({
+                    text1: translate('alertTitles.repostSuccess'),
+                    text2: translate('alertMessages.repostSuccess'),
+                });
+
+                logEvent(getAnalytics(), 'thought_repost_create', {
+                    repostThoughtId: targetId,
+                    fromUserId: user.details.id,
+                    hasQuote: !!message,
+                }).catch((err) => console.log(err));
+            })
+            .catch((error: any) => {
+                showToast.error({
+                    text1: translate('alertTitles.backendErrorMessage'),
+                    // 400 here is the server's "you already reposted this" duplicate guard,
+                    // which is a distinct and actionable thing to say.
+                    text2: error?.statusCode === 400
+                        ? translate('alertMessages.repostDuplicate')
+                        : translate('alertMessages.repostFailed'),
+                });
+            })
+            .finally(() => {
+                setIsReposting(false);
+            });
+    }, [repostTarget, user.details.id, createThought, translate]);
 
     const handleSubmitReply = useCallback(() => {
         if (isFormDisabled) {
@@ -389,8 +475,9 @@ const ViewThought = ({
                             isDarkMode={isDarkMode}
                             isExpanded={true}
                             isRepliable={true}
-                            inspectThought={() => null}
-                            thought={thoughtInView}
+                            inspectThought={handleInspectFromDetails}
+                            onRepostPress={handleRepostPress}
+                            thought={withRepostBump(thoughtInView)}
                             goToViewUser={handleGoToViewUser}
                             updateThoughtReaction={handleUpdateThoughtReaction}
                             user={user}
@@ -430,7 +517,8 @@ const ViewThought = ({
                                     isExpanded={false}
                                     inspectThought={handleGoToContent}
                                     showThreadActions={true}
-                                    thought={reply}
+                                    onRepostPress={handleRepostPress}
+                                    thought={withRepostBump(reply)}
                                     goToViewUser={handleGoToViewUser}
                                     updateThoughtReaction={handleUpdateThoughtReaction}
                                     user={user}
@@ -501,6 +589,16 @@ const ViewThought = ({
                     )}
                 </View>
             </SafeAreaView>
+
+            <RepostModal
+                isVisible={!!repostTarget}
+                isSubmitting={isReposting}
+                onCancel={() => setRepostTarget(null)}
+                onConfirm={handleRepostConfirm}
+                thought={repostTarget}
+                translate={translate}
+                themeButtons={themeButtons}
+            />
 
             {/* Delete confirmation modal */}
             <ConfirmModal
