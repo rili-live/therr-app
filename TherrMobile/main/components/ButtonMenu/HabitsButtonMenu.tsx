@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { IHabitsState } from 'therr-react/types';
 import { Button } from '../BaseButton';
@@ -24,6 +24,15 @@ const { width: screenWidth } = Dimensions.get('window');
 const HABITS_TAB_COUNT = 4;
 const buttonWidth = screenWidth / HABITS_TAB_COUNT;
 
+const localStyles = StyleSheet.create({
+    // Unlike the icon-font tabs, the avatar is a bitmap that fills its box
+    // edge-to-edge with no side bearing, so it needs an explicit gap to sit
+    // the same distance from its label as the other tabs' glyphs do.
+    profileIconContainer: {
+        marginRight: 6,
+    },
+});
+
 const ViewProfileButton = ({
     activeRoute,
     goToMyProfile,
@@ -43,7 +52,7 @@ const ViewProfileButton = ({
         <Button
             buttonStyle={themeMenu.styles.buttons}
             containerStyle={themeMenu.styles.buttonContainerUserProfile}
-            iconContainerStyle={{ marginRight: 6 }}
+            iconContainerStyle={localStyles.profileIconContainer}
             titleStyle={themeMenu.styles.buttonsTitle}
             icon={
                 isUserAuthenticated(user) ?
