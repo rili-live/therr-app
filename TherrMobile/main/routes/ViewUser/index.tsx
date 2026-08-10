@@ -2,6 +2,7 @@ import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Dimensions,
+    StyleSheet,
     Text,
     View} from 'react-native';
 import { FAB } from 'react-native-paper';
@@ -66,30 +67,32 @@ const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 const { width: viewportWidth } = Dimensions.get('window');
 const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
 
-// The TherrFont "idea" glyph sits ~14% below the em-box center
-// (visual cy ≈ 651 in a 1024 grid), so it renders visibly low inside the
-// circular FAB. Wrap it in a square box and nudge it upward so the
-// lightbulb appears optically centered.
+const localStyles = StyleSheet.create({
+    fabIconBox: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    fabIcon: {
+        textAlign: 'center',
+        includeFontPadding: false,
+    },
+});
+
+// In the shipped TherrFont the "idea" glyph is already centered on both axes:
+// it spans x 167..857 against a 1024 advance (dead center) and y -21..875
+// against ascender 960 / descender -64, i.e. only 2% of an em below the line
+// box center — under half a pixel at the FAB's 24px icon size. An earlier
+// revision assumed a ~14% drop and applied an 8% upward translate, which
+// over-corrected and left the lightbulb visibly high inside the circle.
+// Keep the square wrapper so the glyph centers in a deterministic 1:1 box,
+// and drop Android's asymmetric font padding, but do not nudge it.
 const renderIdeaIcon = (props: { size: number; color: string }) => (
-    <View
-        style={{
-            width: props.size,
-            height: props.size,
-            alignItems: 'center',
-            justifyContent: 'center',
-        }}
-    >
+    <View style={[localStyles.fabIconBox, { width: props.size, height: props.size }]}>
         <TherrIcon
             name="idea"
             size={props.size}
             color={props.color}
-            style={{
-                lineHeight: props.size,
-                textAlign: 'center',
-                textAlignVertical: 'center',
-                includeFontPadding: false,
-                transform: [{ translateY: -Math.round(props.size * 0.08) }],
-            }}
+            style={localStyles.fabIcon}
         />
     </View>
 );
