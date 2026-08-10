@@ -205,6 +205,55 @@ export default class HabitCheckinsStore {
         ));
     }
 
+    /**
+     * Earliest completed check-in date per (user, habit goal), in one query.
+     *
+     * This is how the lifecycle engine knows a habit's age, and it is
+     * deliberately the *first completion* rather than the pact join date or the
+     * goal's creation date. A user can join a pact and not start for a week, and
+     * can hold one goal across several pacts; dating the habit from anything
+     * other than the day they actually first did it would let someone reach the
+     * 21-day establish floor without 21 days of habit behind them.
+     *
+     * Returns a map keyed `${userId}:${habitGoalId}`. A pair with no completed
+     * check-ins is absent rather than zero-valued — it has no age yet.
+     */
+    getFirstCompletedDates(pairs: { userId: string; habitGoalId: string }[]): Promise<Record<string, string>> {
+        if (!pairs.length) {
+            return Promise.resolve({});
+        }
+
+        const values = pairs.map(() => '(?::uuid, ?::uuid)').join(', ');
+        const bindings = pairs.reduce(
+            (acc: string[], pair) => acc.concat([pair.userId, pair.habitGoalId]),
+            [],
+        );
+
+        const queryString = knexBuilder.raw(
+            `WITH pairs("userId", "habitGoalId") AS (VALUES ${values})
+            SELECT p."userId" AS "userId",
+                   p."habitGoalId" AS "habitGoalId",
+                   MIN(c."scheduledDate")::text AS "firstDate"
+            FROM pairs p
+            JOIN ${HABIT_CHECKINS_TABLE_NAME} c
+                ON c."userId" = p."userId"
+                AND c."habitGoalId" = p."habitGoalId"
+                AND c.status = 'completed'
+            GROUP BY p."userId", p."habitGoalId"`,
+            bindings,
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.reduce(
+            (acc: Record<string, string>, row: any) => {
+                if (row.firstDate) {
+                    acc[`${row.userId}:${row.habitGoalId}`] = String(row.firstDate).slice(0, 10);
+                }
+                return acc;
+            },
+            {},
+        ));
+    }
+
     create(params: ICreateHabitCheckinParams) {
         const queryString = knexBuilder
             .insert({
