@@ -11,7 +11,8 @@
             "invalidPassword": "La contraseña no es válida"
         },
         "posts": {
-            "duplicatePost": "No se permiten publicaciones duplicadas"
+            "duplicatePost": "No se permiten publicaciones duplicadas",
+            "duplicateRepost": "Ya republicaste esta publicación"
         },
         "pacts": {
             "habitGoalRequired": "Se requiere una meta de hábito para crear un pacto",
@@ -50,6 +51,7 @@
         "reactionLikeReceived": "A {userName} le gustó tu publicación",
         "reactionSuperLikeReceived": "¡{userName} le dio super me gusta a tu publicación!",
         "newThoughtReplyReceived": "{userName} respondió a tu publicación",
+        "newThoughtRepostReceived": "{userName} republicó tu publicación",
         "newDmReceived": "Nuevo mensaje de {userName} mientras estabas ausente",
         "newGroupMembers": "{members} se unió a tu grupo, {groupName}",
         "newGroupInvite": "{inviterUserName} te invitó a unirte a {groupName}",
@@ -65,7 +67,8 @@
         }
     },
     "thoughts": {
-        "notFound": "Pensamiento no encontrado"
+        "notFound": "Pensamiento no encontrado",
+        "repostRestricted": "Esta publicación no se puede republicar"
     },
     "thoughtReactions": {
         "thoughtNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el pensamiento"
