@@ -63,6 +63,10 @@ spec:
           value: "grpc"
         - name: LOG_LEVEL
           value: "info"
+        # See the prod manifest for the full note. Enabled here too so the queue
+        # is exercised in test before a digest run in production depends on it.
+        - name: NOTIFICATION_QUEUE_WORKER_ENABLED
+          value: "true"
         - name: MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64
           valueFrom:
             secretKeyRef:

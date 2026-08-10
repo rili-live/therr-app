@@ -156,6 +156,16 @@ spec:
               key: INSTAGRAMAPPSECRET
         - name: LOG_LEVEL
           value: "info"
+        # Drains main.notificationQueue on a 30s interval and sends what is due
+        # (src/utilities/notificationQueueWorker.ts). Absent or anything other
+        # than "true" leaves the worker inert, which is how the table shipped —
+        # the queue was deployed dark so it could be observed filling before it
+        # was allowed to send. Now that the habits digest queues instead of
+        # sending inline, unsetting this stops those notifications entirely
+        # rather than reverting to the old path. Only ever one replica runs this,
+        # but the claim uses SKIP LOCKED, so a scale-up would not double-send.
+        - name: NOTIFICATION_QUEUE_WORKER_ENABLED
+          value: "true"
         - name: REDIS_PUB_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT
