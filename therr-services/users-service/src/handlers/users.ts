@@ -1342,13 +1342,31 @@ const deleteUser = (req, res) => {
 
     return Store.users.deleteUsers({ id: req.params.id })
         .then(([deletedUser]) => {
-            // TODO: Delete notifications in users service
-            // TODO: Delete messages in messages service
-            // TODO: Delete forums, forumMessages in messages service
-            requestToDeleteUserData(req.headers);
+            // Notifications live in this service, so they are deleted directly rather than
+            // over the internal fan-out. Both are unscoped by brand — the identity row is
+            // gone, so there is no brand under which the rows should survive.
+            const localDeletes = Promise.all([
+                Store.notifications.deleteByUserId(userId),
+                Store.notificationQueue.deleteByUserId(userId),
+            ]).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to delete user notifications'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'error.origin': 'deleteUser',
+                        'user.deletedId': userId,
+                    },
+                });
+            });
 
-            // TODO: Delete user session from redis in websocket-service
+            // Deliberately not awaited before responding: the account row is already gone,
+            // so the user's deletion has taken effect regardless of how long the fan-out
+            // takes. Failures are logged per-service rather than surfaced to the client.
             // TODO: Delete user media data from cloud storage
+            localDeletes.then(() => requestToDeleteUserData(req.headers));
+
             sendUserDeletedEmail({
                 subject: '😞 User Account Deleted',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],

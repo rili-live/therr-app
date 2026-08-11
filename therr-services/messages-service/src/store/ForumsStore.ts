@@ -319,4 +319,27 @@ export default class ForumsStore extends BrandScopedStore {
 
         return this.db.write.query(forumQueryString).then((response) => response.rows);
     }
+
+    /**
+     * Hands every forum authored by the user to the super admin, across all brands.
+     *
+     * Reassign rather than delete: a forum is shared space, and deleting one because its
+     * creator left would destroy the messages every other member wrote in it. This mirrors
+     * how maps-service already treats spaces on account deletion (SpacesStore.reassign).
+     *
+     * Unscoped by brand — see DirectMessagesStore.deleteByUserId for why.
+     */
+    reassignByAuthorId(userId: string, newAuthorId: string) {
+        const forumQueryString = knexBuilder
+            .from(FORUMS_TABLE_NAME)
+            .where({ authorId: userId })
+            .update({
+                authorId: newAuthorId,
+                updatedAt: new Date(),
+            })
+            .returning(['id'])
+            .toString();
+
+        return this.db.write.query(forumQueryString).then((response) => response.rows);
+    }
 }
