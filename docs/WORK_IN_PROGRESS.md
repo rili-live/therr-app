@@ -141,6 +141,23 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-11, /work-plan) **Deploy order for the account-deletion fan-out: messages-service
+  and websocket-service before users-service.** users-service now issues
+  `DELETE /delete-user-data` to both, and neither endpoint existed before this change. If
+  users-service rolls out first, every account deletion in the window logs
+  `Failed to delete user data` with `service.name` of the lagging service and leaves that
+  service's rows behind — the user row is already gone by then, so there is nothing to retry
+  from afterwards. The fan-out is `allSettled`, so this degrades rather than 500s, which is
+  exactly why it needs watching rather than alerting. No migration and no new env var:
+  `baseWebsocketServiceRoute` is derived in `global-config.js` from the existing
+  `websocket-service-cluster-ip-service` (port 7743), which is already deployed.
+- [ ] (2026-08-11, /work-plan) After the deploy, confirm one real account deletion end to end:
+  the response is still 200, and `main."notifications"`, `main."notificationQueue"`,
+  `main."directMessages"`, `main."forumMessages"` hold zero rows for that user id **under every
+  brand**, while `main."forums"` they authored now show `authorId` = the environment's
+  `SUPER_ADMIN_ID` rather than having disappeared. The brand half is the part worth checking by
+  hand — these deletes are intentionally unscoped, and a regression that re-scopes them would
+  look correct for a single-brand test user.
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
 - [ ] (2026-08-10, notification-queue) **Update `therr-messaging-automator` now that the
   digest dedups.** Sibling repo, separate PR. `src/api/habitsDigest.ts` still documents the
@@ -526,20 +543,29 @@ Still open in this area:
 
 ### 1.3 User deletion completeness (GDPR / app-store compliance)
 
-The user-deletion path drops the row in users-service but leaves orphans in
+The user-deletion path drops the row in users-service but left orphans in
 notifications, messages, forums, websocket sessions, and cloud media. This
 is a privacy-policy violation and an Apple/Google review risk.
 
-- `therr-services/users-service/src/handlers/users.ts:1041` — Delete
-  notifications in users service
-- `therr-services/users-service/src/handlers/users.ts:1042` — Delete messages
-  in messages service
-- `therr-services/users-service/src/handlers/users.ts:1043` — Delete forums
-  / forumMessages
-- `therr-services/users-service/src/handlers/users.ts:1046` — Delete user
-  session from websocket-service redis
-- `therr-services/users-service/src/handlers/users.ts:1047` — Delete user
-  media from cloud storage
+Closed 2026-08-11 (/work-plan): the `requestToDeleteUserData` fan-out now reaches
+messages-service and websocket-service alongside maps and reactions, and
+users-service deletes its own `main.notifications` and `main.notificationQueue`
+rows. Direct messages and the user's own forum messages are deleted; forums they
+created are reassigned to `SUPER_ADMIN_ID` so other members' conversations survive
+(the same trade-off maps-service already makes for spaces). All of these deletes
+are deliberately **unscoped by brand** — the identity row is gone, so there is no
+brand under which the rows should survive. The fan-out moved from `Promise.all` +
+`console.log` to `Promise.allSettled` with a per-service error span carrying the
+deleted user id, since one unreachable service must not cancel erasure at the rest
+and the row cannot be re-derived afterwards.
+
+Still open:
+
+- `therr-services/users-service/src/handlers/users.ts:1367` — Delete user
+  media from cloud storage. Greenfield: no `deleteObject` / `DeleteObjectCommand`
+  call exists anywhere in the monorepo, so this needs both an S3 delete path and a
+  decision on how to enumerate a user's media keys (uploads are named from the
+  message text, not from a per-user prefix). Deferred as its own batch
 
 ### 1.4 Auth / billing-email integrity
 
@@ -1139,6 +1165,13 @@ component trees. Hoist to Redux for a single source of truth.
   `UsersService.ts:19, 27` — Centralize cache invalidation in a base class
 - `therr-api-gateway/src/store/index.ts:7` — Move shared store code to
   `therr-public-library`
+- `SUPER_ADMIN_ID` is now defined identically in three services
+  (`users-service`, `maps-service`, `messages-service/src/constants/index.ts` —
+  the third added 2026-08-11 with the account-deletion fan-out, following the
+  existing per-service convention rather than deviating from it mid-batch). Three
+  copies of an env-keyed UUID map is one too many; hoist to
+  `therr-js-utilities/constants` and re-export from each service so the existing
+  import paths keep working
 
 ### 5.5 Mobile UX polish
 
