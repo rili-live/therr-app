@@ -141,6 +141,25 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-12, /work-plan) **After the reactions-service deploy, confirm event RSVP still
+  persists.** Reaction write columns are now allow-listed
+  (`reactions-service/src/utilities/pickReactionWriteFields.ts`) instead of spread from
+  `req.body`, so any client field not on a list is silently dropped. `attendingCount` is the one
+  that would not have been found by reading the validators — mobile's ViewEvent attending modal
+  sends it on `POST /event-reactions/:eventId`, and the gateway's
+  `createOrUpdateEventReactionValidation` does not declare it. It **is** on the event allow-list,
+  but it is the field to check by hand: set an RSVP with a guest count on a real device and
+  confirm `main."eventReactions"."attendingCount"` holds the value after a reload. If any other
+  undeclared field turns out to be in use, its symptom is the same — the write 200s and the value
+  quietly does not persist, with nothing in the logs. No migration, no env var.
+- [ ] (2026-08-12, /work-plan) Optional one-off audit of rows written before the allow-list, all
+  of which were client-settable: `SELECT count(*) FROM main."thoughtReactions" WHERE
+  "relevanceScore" IS NOT NULL AND "algorithmKey" IS NULL;` — a scored row with no algorithm
+  recorded cannot have come from the distributor, which always sends the two together. Also
+  `SELECT count(*) FROM main."momentReactions" WHERE "contentLatitude" IS NOT NULL;` (same for
+  `spaceReactions` / `eventReactions`): nothing in the monorepo has ever written those columns, so
+  any non-zero result is client-supplied geo. Expect zero on both. The allow-list only stops new
+  writes; it does not repair history.
 - [ ] (2026-08-12, /work-plan) **TherrCoin rewards start being awarded after this deploy —
   expected, watch the balances.** `updateUserCoins` passed
   `userSearchResults[0] + req.body.settingsTherrCoinTotal` to the store: the whole user row
@@ -564,15 +583,38 @@ via `therr-js-utilities/constants` → `Reactions` so the two cannot drift.
 `rating` mattered most: `SpaceReactionsStore` averages it into the rating shown
 on public space pages, so one out-of-range write permanently skewed it.
 
+Closed 2026-08-12 (/work-plan): reaction write columns are now allow-listed. The four
+handlers spread `...req.body` straight into the store, and the store passes its params
+object to `knex.insert()`/`knex.update()` unfiltered — the `ICreate*Params` interfaces
+are compile-time only and the handlers are untyped `(req, res)`. express-validator at
+the gateway validates the fields it lists but does not strip the ones it does not, so
+every column on every reaction table was writable by any authenticated user. All 13
+spread sites now go through `reactions-service/src/utilities/pickReactionWriteFields.ts`.
+
+The column that mattered most was `main."thoughtReactions"."relevanceScore"` — the feed
+ordering key (`ORDER BY "relevanceScore" DESC NULLS LAST`). A client could pin any
+activated thought to the top of its own stream and stamp an `algorithmKey` naming a
+profile that never scored the row, which is the one invariant that column exists to make
+observable. Also closed: client-writable `contentLatitude`/`contentLongitude`/
+`contentLocation`/`contentAuthorId` on moment/space/event reactions, the space visit
+columns (`visitCount`, `visitedAt`, `lastVisitedAt`) that are derived server-side from
+`recordVisit`, and `updateCount`/`createdAt`/`updatedAt`/`isArchived`. The
+`/create-update/multiple-users` event route matters separately: it writes rows for every
+member of an event's group, so the unfiltered spread let its caller set any column on
+*other users'* reactions.
+
+Unlisted fields are dropped silently rather than rejected with a 400. `attendingCount`
+is why: mobile's ViewEvent RSVP modal sends it on `POST /event-reactions/:eventId`, the
+gateway validator does not declare it, and it only ever reached the table through the
+spread — so a 400 would have broken RSVP for installs that cannot be force-updated. It
+is on the event allow-list. The real client field set is wider than any validator
+declares, which is the general reason to drop rather than reject here.
+
 Still open in this area:
 
 - Reaction handlers force `userHasActivated: true` regardless of the request
   body, so an authenticated user can still mark any addressable content as
   activated. Closing this needs proximity/view verification, not a bounds check
-- The reaction handlers spread `...req.body` straight into the store, and
-  express-validator only validates listed fields rather than stripping unlisted
-  ones — so any column on the table is mass-assignable. Prefer an explicit
-  allow-list at the store boundary
 - `therr-api-gateway/src/services/maps/router.ts:144` — Backend logic to
   prevent location spoofing (rapid-change detection)
 

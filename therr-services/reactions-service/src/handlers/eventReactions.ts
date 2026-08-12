@@ -5,6 +5,7 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 import validateReactionMetrics from '../utilities/validateReactionMetrics';
+import pickReactionWriteFields from '../utilities/pickReactionWriteFields';
 
 // CREATE/UPDATE
 const createOrUpdateEventReaction = (req, res) => {
@@ -31,7 +32,7 @@ const createOrUpdateEventReaction = (req, res) => {
                 userId,
                 eventId: req.params.eventId,
             }, {
-                ...req.body,
+                ...pickReactionWriteFields('event', req.body),
                 userLocale: locale,
                 // Number() is load-bearing: a JSON body may carry "1" as a string, and
                 // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
@@ -50,7 +51,7 @@ const createOrUpdateEventReaction = (req, res) => {
         return Store.eventReactions.create({
             userId,
             eventId: req.params.eventId,
-            ...req.body,
+            ...pickReactionWriteFields('event', req.body),
             userLocale: locale,
         }).then(([reaction]) => res.status(200).send(reaction));
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' }));
@@ -78,8 +79,9 @@ const createOrUpdateMultiEventReactions = (req, res) => {
 
     const validEventIds = eventIds.filter((id) => !!id);
 
-    const params = { ...req.body };
-    delete params.eventIds;
+    // Allow-listed rather than `{ ...req.body }` minus deletes: `eventIds` is excluded by the
+    // allow-list, as is every server-derived column the spread used to carry through.
+    const params = pickReactionWriteFields('event', req.body);
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -139,8 +141,11 @@ const createOrUpdateMultiUserReactions = (req, res) => {
 
     const validUserIds = userIds.filter((id) => !!id);
 
-    const params = { ...req.body };
-    delete params.userIds;
+    // Allow-listed rather than `{ ...req.body }` minus deletes. This route writes rows for *other*
+    // users (every member of the event's group), so an unfiltered spread let its caller set any
+    // column on someone else's reaction. `userIds` and `eventId` are excluded by the allow-list;
+    // `eventId` is applied explicitly per row below.
+    const params = pickReactionWriteFields('event', req.body);
 
     return Store.eventReactions.get({
         eventId,

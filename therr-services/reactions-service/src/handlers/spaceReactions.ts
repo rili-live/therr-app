@@ -6,6 +6,7 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 import validateReactionMetrics from '../utilities/validateReactionMetrics';
+import pickReactionWriteFields from '../utilities/pickReactionWriteFields';
 import { ensureDefaultList } from './userLists';
 // import * as globalConfig from '../../../../global-config';
 
@@ -78,7 +79,7 @@ const createOrUpdateSpaceReaction = (req, res) => {
                 userId,
                 spaceId: req.params.spaceId,
             }, {
-                ...req.body,
+                ...pickReactionWriteFields('space', req.body),
                 userLocale: locale,
                 // Number() is load-bearing: a JSON body may carry "1" as a string, and
                 // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
@@ -110,7 +111,7 @@ const createOrUpdateSpaceReaction = (req, res) => {
         return Store.spaceReactions.create({
             userId,
             spaceId: req.params.spaceId,
-            ...req.body,
+            ...pickReactionWriteFields('space', req.body),
             userLocale: locale,
         }).then(async ([reaction]) => {
             try {
@@ -151,9 +152,10 @@ const createOrUpdateMultiSpaceReactions = async (req, res) => {
 
     const validSpaceIds = spaceIds.filter((id) => !!id);
 
-    const params = { ...req.body };
-    delete params.spaceIds;
-    delete params.recordVisit;
+    // Allow-listed rather than `{ ...req.body }` minus deletes. `spaceIds` and `recordVisit` are
+    // excluded by the allow-list, as are the visit columns below — those are server-derived from
+    // `recordVisit` and must not be settable directly.
+    const params = pickReactionWriteFields('space', req.body);
 
     const now = new Date();
 
