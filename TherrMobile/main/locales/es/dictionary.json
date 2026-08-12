@@ -1764,7 +1764,7 @@
         "noContactInfo": "Este contacto no tiene un número de teléfono ni un correo electrónico al que enviar la invitación",
         "tooManySelected": "Solo se invitó a los primeros {count} contactos. Selecciona menos para invitar al resto.",
         "inviteFailed": "No pudimos enviar tus invitaciones. Inténtalo de nuevo.",
-        "phoneVerificationRequired": "Verifica tu número de teléfono en tu perfil antes de enviar invitaciones"
+        "phoneVerificationRequired": "Toca aquí para verificar tu número de teléfono y vuelve a enviar las invitaciones"
       }
     },
     "register": {

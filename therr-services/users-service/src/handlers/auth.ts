@@ -193,12 +193,46 @@ const issueUserSession = async (req: any, res: any, {
         integrationsAccess: user.integrations,
     };
 
+    // `billingEmail` is accepted from the login body and no client sends it today, so an
+    // attacker was free to claim any address here. That matters because `payments.ts`
+    // attributes an incoming Stripe checkout to an account via `getUserByEmail(billingEmail)`
+    // and falls back to `user.billingEmail` when emailing receipts — claiming someone else's
+    // address redirects their subscription and their billing mail.
+    //
+    // Own address: always allowed. Any other address: only if no other account already holds
+    // it as either its login email or its billing email. The write is dropped rather than
+    // failing the login, since a caller who never meant to set it should still get a session.
     if (req.body.billingEmail) {
-        if (req.body.billingEmail !== user.email) {
-            // TODO: Improve security so users cannot claim the same billing email as another user
-            // Send verification e-mail before updating param
+        const requestedBillingEmail = normalizeEmail(`${req.body.billingEmail}`.trim());
+
+        if (requestedBillingEmail === user.email) {
+            updateArgs.billingEmail = requestedBillingEmail;
+        } else {
+            const conflictingUsers = await Store.users.getUserByConditions(
+                { email: requestedBillingEmail },
+                { billingEmail: requestedBillingEmail },
+                undefined,
+                ['id'],
+            ).catch(() => [{ id: 'unknown' }]); // Fail closed: a lookup error must not grant the claim
+
+            const conflict = conflictingUsers.find((u) => `${u.id}` !== `${user.id}`);
+
+            if (conflict) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Rejected billingEmail claim already held by another account'],
+                    traceArgs: {
+                        'user.id': user.id,
+                        'user.conflictingId': conflict.id,
+                        port: process.env.USERS_SERVICE_API_PORT,
+                        'process.id': process.pid,
+                    },
+                });
+            } else {
+                updateArgs.billingEmail = requestedBillingEmail;
+            }
         }
-        updateArgs.billingEmail = req.body.billingEmail;
     }
 
     return Store.users.updateUser(updateArgs, {

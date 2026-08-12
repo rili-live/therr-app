@@ -271,6 +271,14 @@
                     persistSession(out.body);
                     var userName = out.body && out.body.userName;
                     var dest = userName ? '/u/' + encodeURIComponent(userName) : '/';
+                    // Pages that need a session (e.g. /verify-phone) send the user here with
+                    // ?returnTo=. Only same-origin relative paths are honored: a lone leading
+                    // '/' with no second '/' or '\', which rejects '//evil.com' and
+                    // 'https://evil.com' rather than turning this into an open redirect.
+                    var returnTo = qs.get('returnTo');
+                    if (returnTo && /^\/(?![/\\])/.test(returnTo)) {
+                        dest = returnTo;
+                    }
                     window.location.assign(dest);
                 }).catch(function () {
                     showError('Network error. Try again in a moment.');

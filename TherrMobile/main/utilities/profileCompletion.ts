@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
@@ -147,6 +148,15 @@ const hasRealName = (details: any) => {
     return !(firstName === DEFAULT_FIRSTNAME && details?.lastName === DEFAULT_LASTNAME);
 };
 
+/**
+ * True only when the user holds a number *and* MOBILE_VERIFIED for it.
+ *
+ * Exported because the phone-gated screens need the same answer the checklist gives —
+ * a second, subtly different definition of "verified" is how the two drift apart.
+ */
+export const isPhoneVerified = (details: any) => !!details?.phoneNumber
+    && !!details?.accessLevels?.includes(AccessLevels.MOBILE_VERIFIED);
+
 export const getProfileCompletionSummary = (
     user: IUserState,
     flags: IProfileCompletionFlags = DEFAULT_PROFILE_COMPLETION_FLAGS,
@@ -187,7 +197,12 @@ export const getProfileCompletionSummary = (
             icon: 'shield-alt',
             labelKey: 'pages.profileCompletion.steps.phone.label',
             descriptionKey: 'pages.profileCompletion.steps.phone.description',
-            isComplete: !!details?.phoneNumber,
+            // Presence of a number is not the same as a *verified* number. The server revokes
+            // MOBILE_VERIFIED when a profile save changes the number, so checking only
+            // `phoneNumber` would leave the checklist claiming this step was done while the
+            // phone-gated actions it unlocks (bulk invites) kept returning 403 — and the
+            // checklist is the only permanent in-app route back to verification.
+            isComplete: isPhoneVerified(details),
             isSkipped: false,
         },
         {

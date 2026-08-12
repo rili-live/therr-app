@@ -13,6 +13,7 @@ import {
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { internalRestRequest, IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import * as socketHandlers from './handlers';
+import deleteUserData from './handlers/deleteUserData';
 import * as globalConfig from '../../../global-config';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
 import redisAdapter from './store/redisAdapter';
@@ -77,6 +78,14 @@ const startExpressSocketIOServer = () => {
     // Healthcheck
     app.get('/', (req, res) => { res.status(200).json('OK'); });
     app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); });
+
+    // Called by the users-service account-deletion fan-out. NOT internal-only: unlike the
+    // maps/reactions/messages services, this one has its own ingress host
+    // (websocket-service.therr.com, catch-all path) so browsers can open sockets against it,
+    // which makes every route here internet-facing. The handler therefore verifies the
+    // forwarded bearer token and requires it to match `x-userid` rather than trusting the
+    // header the way the internal-only services can.
+    app.delete('/delete-user-data', deleteUserData);
 
     const server = http.createServer(app);
     serverObj = server.listen(config.port, () => {

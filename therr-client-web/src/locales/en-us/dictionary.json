@@ -725,6 +725,27 @@
       "infoTitle": "Why We Verify Your Phone Number",
       "info": "Your security matters to us. Phone verification helps us keep the community authentic and free from fake accounts. Combined with email and location-based safeguards, it ensures you're connecting with real people in a trusted environment."
     },
+    "verifyPhone": {
+      "pageTitle": "Verify Your Phone",
+      "pageTitleVerify": "Verify Your Phone: Enter Code",
+      "description": "We'll text you a code to confirm this number belongs to you.",
+      "labels": {
+        "mobilePhone": "Mobile phone"
+      },
+      "buttons": {
+        "sendCode": "Send Code"
+      },
+      "validationErrors": {
+        "phoneNumber": "Please enter a valid phone number"
+      },
+      "verifyPhoneSuccess": "Phone number verified!",
+      "verifyPhoneError": "Failed to send verification code. Please try again.",
+      "updateProfileError": "Failed to save your phone number. Please try again.",
+      "authError": "Your session has expired. Please log in again.",
+      "invalidCode": "Code is invalid or expired. Try again or resend.",
+      "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
+      "phoneRegionNotSupportedError": "SMS verification is not available for your region. Please use a different phone number."
+    },
     "login": {
       "pageTitle": "Sign In",
       "buttons": {
