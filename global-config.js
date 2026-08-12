@@ -35,6 +35,20 @@ module.exports = {
         baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/dev/',
         googleAnalyticsKey: 'G-WNB4XQ8W1Z',
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
+        // The consolidated GA4 property (Phase 4 of docs/MARKETING_ATTRIBUTION_PLAN.md).
+        // While empty, each client reports only into its existing property. Set it to a
+        // new property's measurement id and every client sends to BOTH — the parallel run
+        // the migration needs, since GA4 cannot backfill history across properties.
+        // Remove the old keys only after the new property has a usable window of data.
+        // TODO(zack): create the property and paste its id here.
+        googleAnalyticsKeyUnified: '',
+        // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
+        // instead of the hardcoded Payment Links. Off in production until the
+        // plan -> product id map in
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts is
+        // confirmed against the Stripe dashboard: a wrong id there charges a
+        // customer for a plan they did not pick.
+        isStripeCheckoutSessionsEnabled: true,
         googleOAuth2WebClientId,
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
@@ -62,6 +76,20 @@ module.exports = {
         baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/',
         googleAnalyticsKey: 'G-WNB4XQ8W1Z',
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
+        // The consolidated GA4 property (Phase 4 of docs/MARKETING_ATTRIBUTION_PLAN.md).
+        // While empty, each client reports only into its existing property. Set it to a
+        // new property's measurement id and every client sends to BOTH — the parallel run
+        // the migration needs, since GA4 cannot backfill history across properties.
+        // Remove the old keys only after the new property has a usable window of data.
+        // TODO(zack): create the property and paste its id here.
+        googleAnalyticsKeyUnified: '',
+        // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
+        // instead of the hardcoded Payment Links. Off in production until the
+        // plan -> product id map in
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts is
+        // confirmed against the Stripe dashboard: a wrong id there charges a
+        // customer for a plan they did not pick.
+        isStripeCheckoutSessionsEnabled: true,
         googleOAuth2WebClientId,
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
@@ -89,6 +117,20 @@ module.exports = {
         baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/',
         googleAnalyticsKey: 'G-WNB4XQ8W1Z',
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
+        // The consolidated GA4 property (Phase 4 of docs/MARKETING_ATTRIBUTION_PLAN.md).
+        // While empty, each client reports only into its existing property. Set it to a
+        // new property's measurement id and every client sends to BOTH — the parallel run
+        // the migration needs, since GA4 cannot backfill history across properties.
+        // Remove the old keys only after the new property has a usable window of data.
+        // TODO(zack): create the property and paste its id here.
+        googleAnalyticsKeyUnified: '',
+        // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
+        // instead of the hardcoded Payment Links. Off in production until the
+        // plan -> product id map in
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts is
+        // confirmed against the Stripe dashboard: a wrong id there charges a
+        // customer for a plan they did not pick.
+        isStripeCheckoutSessionsEnabled: false,
         googleOAuth2WebClientId,
         // Implement these along with server side logic to select the corresponding "audience" (ie. android, ios, web client_id)
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',

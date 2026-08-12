@@ -321,6 +321,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         inviteToken: req.body.inviteToken,
                         isPreVerified: isPreVerifiedByPactClaim,
                         isPhoneVerified: !!verifiedPhoneNumber,
+                        userAcquisition: req.body.userAcquisition,
                     },
                 );
             }).then(async (user) => {

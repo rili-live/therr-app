@@ -34,7 +34,55 @@ export interface ICheckoutSessionGrant {
     mode?: string;
     paymentStatus?: string;
     status?: string;
+    /**
+     * Order value in major units (dollars, not cents) and its currency — what
+     * the GA4 `purchase` event needs for `value`/`currency`.
+     *
+     * Read from `amount_total` when Stripe has one, falling back to the
+     * subscription's own line items. A session that only starts a free trial
+     * has `amount_total: 0`, and reporting a $0 purchase would make every plan
+     * look worthless in GA4; the fallback reports what the subscription will
+     * actually bill once the trial ends.
+     */
+    value?: number;
+    currency?: string;
+    /** Plan slug and billing period, as recorded by `createCheckoutSession`. */
+    plan?: string;
+    billingPeriod?: string;
 }
+
+/**
+ * What this purchase is worth, in major units.
+ *
+ * Stripe reports amounts in the currency's minor unit (cents), so everything
+ * is divided by 100 before it leaves here — a GA4 `purchase` reporting 1499
+ * instead of 14.99 inflates revenue a hundredfold and there is no way to tell
+ * afterwards which figures were wrong.
+ *
+ * Zero-decimal currencies (JPY, KRW) would be divided wrongly by that rule.
+ * Not handled, because every price is USD today; revisit if that changes.
+ */
+const resolveOrderValue = (
+    session: Stripe.Checkout.Session,
+    subscription: Stripe.Subscription | null,
+): { value?: number; currency?: string } => {
+    const currency = (session.currency || subscription?.currency || undefined)?.toUpperCase();
+
+    if (session.amount_total) {
+        return { value: session.amount_total / 100, currency };
+    }
+
+    // A trial-only checkout totals zero. Report the recurring amount instead,
+    // so the plan's value is visible in GA4 from the moment it is sold.
+    const recurringTotal = (subscription?.items?.data || []).reduce(
+        (sum, item) => sum + ((item.price?.unit_amount || 0) * (item.quantity || 1)),
+        0,
+    );
+
+    return recurringTotal
+        ? { value: recurringTotal / 100, currency }
+        : { value: undefined, currency };
+};
 
 /**
  * Retrieve a Checkout Session and reduce it to "what, if anything, does this entitle an
@@ -87,6 +135,9 @@ export const resolveCheckoutSessionGrant = (paymentSessionId: string): Promise<I
             mode: session.mode || undefined,
             paymentStatus: session.payment_status,
             status: session.status || undefined,
+            ...resolveOrderValue(session, subscription),
+            plan: session.metadata?.plan || undefined,
+            billingPeriod: session.metadata?.billingPeriod || undefined,
         };
     });
 

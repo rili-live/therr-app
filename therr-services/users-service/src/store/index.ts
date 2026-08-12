@@ -14,6 +14,7 @@ import SocialSyncsStore from './SocialSyncsStore';
 import SubscribersStore from './SubscribersStore';
 import NotificationQueueStore from './NotificationQueueStore';
 import ThoughtsStore from './ThoughtsStore';
+import UserAcquisitionStore from './UserAcquisitionStore';
 import UserAchievementsStore from './UserAchievementsStore';
 import UserConnectionsStore from './UserConnectionsStore';
 import UserLeaderboardScoresStore from './UserLeaderboardScoresStore';
@@ -56,6 +57,8 @@ class Store {
     thoughts: ThoughtsStore;
 
     users: UsersStore;
+
+    userAcquisition: UserAcquisitionStore;
 
     userAchievements: UserAchievementsStore;
 
@@ -114,6 +117,7 @@ class Store {
         this.campaignAssets = new CampaignAssetsStore(this.db);
         this.config = new ConfigStore(this.db);
         this.users = new UsersStore(this.db);
+        this.userAcquisition = new UserAcquisitionStore(this.db);
         this.userAchievements = new UserAchievementsStore(this.db);
         this.notificationQueue = new NotificationQueueStore(this.db);
         this.userConnections = new UserConnectionsStore(this.db);

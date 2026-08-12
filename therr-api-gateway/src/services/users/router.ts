@@ -64,6 +64,7 @@ import {
     handoffMintLimiter,
 } from './limitation/auth';
 import { createApiKeyValidation, revokeApiKeyValidation } from './validation/apiKeys';
+import { createCheckoutSessionValidation } from './validation/payments';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 import {
     createThoughtValidation,
@@ -308,6 +309,12 @@ usersServiceRouter.post('/users/interests/me', validate, handleServiceRequest({
 }));
 
 // Payments
+// Registered before the `:id` route below — Express matches in registration
+// order, and `sessions` would otherwise be read as an id.
+usersServiceRouter.post('/payments/checkout/sessions', createCheckoutSessionValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
 usersServiceRouter.post('/payments/checkout/sessions/:id', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',

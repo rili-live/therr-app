@@ -126,6 +126,40 @@ append new items here rather than only printing them once.
   ephemeral Redis` (and no `REDIS_EPHEMERAL_CONNECTION_ERROR`), then exercise
   one handoff.
 
+## Marketing attribution (docs plan: `therr-workspace/docs/MARKETING_ATTRIBUTION_PLAN.md`)
+
+Phases 1–4 have shipped in code. These are the steps code cannot do — external
+console configuration, and one verification that gates a payments change.
+
+- [ ] **Verify the plan → Stripe product mapping before enabling Checkout Sessions.**
+  `isStripeCheckoutSessionsEnabled` is `false` in production on purpose. Confirm each id in
+  `therr-services/users-service/src/handlers/helpers/checkoutSessionPlans.ts` against the
+  Stripe dashboard (the Pro id already carried an unverified note in `productIdMap`), then
+  run one **test-mode** purchase per plan and confirm the amount, the 14-day trial, and that
+  `/payment-complete/:sessionId` grants the right access level. Only then flip the flag.
+  Until it is flipped, every upgrade button still uses the original Payment Links.
+- [ ] **Add `stripe.com` to the GA4 referral exclusion list** (Admin → Data Streams → the
+  stream → Configure tag settings → List unwanted referrals). Checkout redirects off-site
+  and back, so without this the return is attributed to `stripe.com / referral` and the
+  `purchase` event is severed from the campaign that produced it — which defeats the point
+  of moving off Payment Links.
+- [ ] **Configure cross-domain measurement in GA4 admin** for therr.app, therr.com,
+  business.therr.com, dashboard.therr.com, habits.therr.com (Admin → Data Streams →
+  Configure tag settings → Configure your domains). The tag-side `linker` config is now
+  deployed on all surfaces, but it only decorates outbound links — the receiving property
+  honours `_gl` only when the admin list includes the domain.
+- [ ] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
+  carries it (`landing` / `web` / `dashboard`); without registration it is collected but
+  not reportable, and the three surfaces cannot be separated after consolidation.
+- [ ] **Create the consolidated GA4 property** and set its measurement id in
+  `global-config.js` → `googleAnalyticsKeyUnified` (all three env blocks) and in the
+  commented block in `therr-landing/index.html`. Both then collect in parallel — GA4 cannot
+  backfill across properties, so leave the old properties running for at least a month
+  before retiring them.
+- [ ] **Set up the Google Analytics MCP** and run the loop —
+  `therr-landing/.claude/commands/marketing-loop.md` has the analysis; the plan doc's
+  Phase 5 has the three setup commands. Client-side config, not a repo artifact.
+
 ## Pending campaign / outreach actions
 
 - [ ] **Run the first unclaimed-space email batch** (`scripts/import-spaces/send-unclaimed-emails`,
