@@ -297,6 +297,17 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
+    // Habits counterpart of the React /verify-phone route on www.therr.com. Both are the
+    // no-app fallback for the therr.com/verify-phone link, which opens the mobile app when
+    // it is installed — and this host is a verified App Link for com.therr.habits, so
+    // without this entry a HABITS user without the app hit the allowlist 404 instead.
+    '/verify-phone': {
+        view: 'habits/verify-phone',
+        title: 'Verify your phone — Friends with Habits',
+        description: 'Confirm your phone number for Friends with Habits.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
 };
 // Public profile path on the Habits subdomain — used by user-profile QR codes.
 // Format: /u/:userName  (alphanumeric, dot, dash, underscore — keep tight to avoid abuse)

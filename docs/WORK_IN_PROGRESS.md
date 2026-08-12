@@ -141,6 +141,67 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-12, /work-plan) **TherrCoin rewards start being awarded after this deploy —
+  expected, watch the balances.** `updateUserCoins` passed
+  `userSearchResults[0] + req.body.settingsTherrCoinTotal` to the store: the whole user row
+  rather than the column, so the value stringified to `"[object Object]<delta>"`, failed
+  `UsersStore.updateUser`'s `settingsTherrCoinTotal > 0` guard, and **no reaction has ever
+  awarded a coin through this path**. It now passes the delta the store expects. Volume is
+  bounded by `getReactionValuation` and still gated on `settingsPushBackground`, but the
+  baseline is zero, so treat the first days as the real baseline rather than a regression.
+  Note negative valuations remain dropped by that same store-side `> 0` guard — deliberately
+  left alone, since fixing it would start applying penalties that have never applied. No
+  migration, no env var; the route (`PUT /users/:id/coins`) is internal-only and unchanged.
+- [ ] (2026-08-12, /work-plan) After the users-service deploy, watch for users landing in a
+  re-verify-phone state they did not expect. A profile save that changes `phoneNumber` now
+  revokes `MOBILE_VERIFIED`, which gates bulk `multi-invite` at the gateway. This is correct
+  — the level attested to the *old* number — and the recovery routes now exist (tappable
+  toast, profile checklist, `therr.com/verify-phone` deep link, `/verify-phone` on web). The
+  caveat that remains is version skew: **the already-deployed app has none of them**, so an
+  existing install that hits this sees only the old dead-end toast. Until a mobile release
+  ships, the web route is the only recovery path for those users — worth knowing before
+  answering a support ticket. Verify after deploy that `/verify-phone` renders for a signed-in
+  user whose profile is already complete (it is gated `ANY` on EMAIL_VERIFIED /
+  EMAIL_VERIFIED_MISSING_PROPERTIES precisely so that user is not bounced to `/create-profile`).
+- [ ] (2026-08-12, /work-plan) Smoke-test `habits.therr.com/verify-phone` after the web deploy,
+  end to end on a real handset: sign in, request a code, enter it, then confirm
+  `main."users"` shows the new number **and** `MOBILE_VERIFIED` in `accessLevels` for that row.
+  New `habits/verify-phone.hbs` — the habits-subdomain counterpart of the React
+  `/verify-phone` route, since that host short-circuits React SSR and hard-404s anything
+  outside its allowlist. Two things are worth watching specifically. (1) It calls
+  `POST /phone/verify` then `POST /phone/validate-code` and makes **no** follow-up write —
+  `validate-code` already persists the number and grants MOBILE_VERIFIED server-side via
+  `PUT /users/:id/verify-phone`, so a second write would be redundant here (the React routes
+  still make one, but only to refresh their Redux store). (2) It reads `therrUser` from
+  storage in the **flat** shape `habits/login.hbs` writes and `store.tsx` wraps in `details`;
+  a change to either side breaks the session handoff silently, showing the signed-out state
+  to a signed-in user. `habits/login.hbs` also gained `?returnTo=` support (same-origin
+  relative paths only) so the signed-out state can round-trip back here.
+- [ ] (2026-08-12, /work-plan) Optional one-off audit: `SELECT count(*) FROM main."users" u
+  WHERE u."billingEmail" IS NOT NULL AND EXISTS (SELECT 1 FROM main."users" o WHERE o.id <>
+  u.id AND (o.email = u."billingEmail" OR o."billingEmail" = u."billingEmail"));` The new
+  guard only stops *new* claims. Any pre-existing row where one account's `billingEmail`
+  matches another account's login email is currently able to capture that other user's Stripe
+  checkout attribution (`payments.ts` resolves via `getUserByEmail(billingEmail)`) and
+  receives their billing mail. Expect zero — no client has ever sent the field — but it is
+  cheap to confirm rather than assume.
+- [ ] (2026-08-11, /work-plan) **Deploy order for the account-deletion fan-out: messages-service
+  and websocket-service before users-service.** users-service now issues
+  `DELETE /delete-user-data` to both, and neither endpoint existed before this change. If
+  users-service rolls out first, every account deletion in the window logs
+  `Failed to delete user data` with `service.name` of the lagging service and leaves that
+  service's rows behind — the user row is already gone by then, so there is nothing to retry
+  from afterwards. The fan-out is `allSettled`, so this degrades rather than 500s, which is
+  exactly why it needs watching rather than alerting. No migration and no new env var:
+  `baseWebsocketServiceRoute` is derived in `global-config.js` from the existing
+  `websocket-service-cluster-ip-service` (port 7743), which is already deployed.
+- [ ] (2026-08-11, /work-plan) After the deploy, confirm one real account deletion end to end:
+  the response is still 200, and `main."notifications"`, `main."notificationQueue"`,
+  `main."directMessages"`, `main."forumMessages"` hold zero rows for that user id **under every
+  brand**, while `main."forums"` they authored now show `authorId` = the environment's
+  `SUPER_ADMIN_ID` rather than having disappeared. The brand half is the part worth checking by
+  hand — these deletes are intentionally unscoped, and a regression that re-scopes them would
+  look correct for a single-brand test user.
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
 - [ ] (2026-08-10, notification-queue) **Update `therr-messaging-automator` now that the
   digest dedups.** Sibling repo, separate PR. `src/api/habitsDigest.ts` still documents the
@@ -223,7 +284,7 @@ append new items here rather than only printing them once.
   release notes. Until it is set, the release-notes step logs a skip and the
   pipeline still succeeds — notes just won't update. See
   `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`.
-- [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Partially resolved 2026-08-01:** `TherrMobile/main/routes/Invite/PhoneContacts.tsx` no longer swallows the 403 — it surfaces a "Verify Your Phone" toast, and the SMS/email composer opens regardless, so the button is never a silent no-op. Still open: turn that toast into a prompt that deep-links to phone verification (verification currently only exists inside the `CreateProfile` onboarding stack, so it needs a reachable entry point first), and audit any other action that assumes phone presence. Note this still hits the *already-deployed* app, which cannot be force-updated.
+- [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Resolved 2026-08-12** for the reachable-entry-point half — four routes into verification now exist: the `PhoneContacts` 403 toast is tappable and resumes `CreateProfile` at its `phone` stage; the profile checklist treats an *unverified* number as an unfinished step (`isPhoneVerified` in `TherrMobile/main/utilities/profileCompletion.ts`) so it permanently surfaces the same entry point; `therr.com/verify-phone` is handled in `Layout.handleAppUniversalLinkURL` and deep-links to that stage; and `/verify-phone` on therr-client-web is the standalone web equivalent for users without the app. **Still open:** audit any other action that assumes phone presence — `multi-invite` is the only one that 403s today, so any *new* `MOBILE_VERIFIED` gate needs the same treatment. Note this still hits the *already-deployed* app, which cannot be force-updated, so the web route is the only path that reaches existing installs.
 - [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
   digest: an internal cron (k8s CronJob or equivalent) must POST once daily —
   ideally early evening US time (~23:00 UTC) — to
@@ -306,20 +367,6 @@ append new items here rather than only printing them once.
   `INTEREST_ENGAGEMENT_FLUSH_INTERVAL_MS` and
   `INTEREST_ENGAGEMENT_MAX_BUFFERED_USERS` (maps-service and reactions-service,
   defaults 10000ms / 1000 users).
-- [ ] (2026-07-28, /quality-peer-review) Apply the
-  `20260727000000_main.userInterests.affinityScore` columns on production
-  **before** the users-service image rolls out. `run-migrations.sh` runs
-  migrations *after* `kubectl set image` and after `kubectl rollout status`
-  returns, but the new `incrementUserInterestsByKey` names `affinityScore` /
-  `lastEngagedAt` / `source` in its INSERT column list, so against the
-  pre-migration schema every interest-engagement flush raises
-  `column "affinityScore" ... does not exist` for the whole rollout window.
-  Failures are caught and logged by the maps/reactions flush buffers (dropped
-  increments + `Failed to flush interest engagement` error spans), so this is
-  lost preference-learning data and alert noise rather than user-facing 500s —
-  but it is avoidable. The migration is written `IF NOT EXISTS` specifically so
-  the columns can be added by hand ahead of the deploy and the automated run
-  becomes a no-op. Reads are unaffected (`getByUserIds` selects `*`).
 - [ ] (2026-07-28, /quality-peer-review) Before flipping the interest read path
   (ALGORITHM_AUDIT phase 5), review the sampled `INTEREST_RANKING_SHADOW` spans
   emitted by `getTopRankedConnections` — `interest.shadowFootrule` and
@@ -367,19 +414,6 @@ append new items here rather than only printing them once.
   `https://habits.therr.com/.well-known/assetlinks.json` still returns the
   `com.therr.habits` file (App Links verification silently fails if that host
   ever serves the default `app.therrmobile` one).
-- [ ] (2026-08-03, /quality-peer-review) Run the reactions-service migration
-  `20260803000002_main.thoughtReactions.algorithmKey` BEFORE (or in the same
-  window as) the users-service deploy. users-service now sends `algorithmKey` in
-  the `createReactions` body, and reactions-service's
-  `createOrUpdateMultiThoughtReactions` spreads the whole body into the INSERT
-  and UPDATE. If the column is missing, every thought-activation batch fails with
-  `column "algorithmKey" does not exist` — the error is caught and logged by
-  `createReactions`, so the feed silently stops seeding rather than erroring
-  visibly. Introduced by c15466695.
-- [ ] (2026-08-03, /quality-peer-review) Run the users-service migration
-  `20260803000001_main.users.settingsContentAlgorithm` before the mobile release
-  that ships the Settings picker. It backfills every row to `'pulse'`, which
-  reproduces the pre-abstraction ranker exactly, so no existing feed changes.
 - [ ] (2026-08-03, /quality-peer-review) Make the maps-service surfaces
   profile-aware so WANDER can be released. It is fully implemented in
   `content-ranking` but stays out of `SELECTABLE_CONTENT_ALGORITHMS` because it is
@@ -447,16 +481,12 @@ append new items here rather than only printing them once.
   ~52 "Therr" mentions are the company, `api.therr.com` and TherrCoin, and are correct
   for every variant. While in `en-us`, fix the typo "acces" → "access" in
   `permissions.accessFineLocation.message`.
-- [ ] (2026-08-09, /quality-peer-review) Run `npm run migrations:run` on production for
-  `20260808000001_main.notificationQueue.js` (users-service). Creates `main.notificationQueue`
-  plus its UNIQUE dedupe constraint and two indexes. **Now a hard prerequisite for the
-  digest, not just for the worker** — the digest queues instead of sending, and a missing
-  table makes every enqueue fail silently.
 - [ ] (2026-08-10, notification-queue) **Verify the first real digest run in production.**
   `NOTIFICATION_QUEUE_WORKER_ENABLED=true` is now in `k8s/prod`, so the next digest firing
-  (`0 9 * * *` America/Chicago) both queues and sends. The migration above must be run
-  first — with no table every enqueue fails, and while `enqueueNotification` swallows the
-  exception rather than aborting the run, the digest now reports those as `errors` (not as
+  (`0 9 * * *` America/Chicago) both queues and sends. `20260808000001_main.notificationQueue.js`
+  was run on 2026-08-12, so the table now exists and enqueues should succeed. If they don't:
+  `enqueueNotification` swallows the exception rather than aborting the run, and the digest
+  reports those as `errors` (not as
   `deduped`), so a non-zero `errors` with all `*Sent` at zero is the signature of exactly
   this. After the run, confirm in
   `main."notificationQueue"`: rows carry `brandVariation = 'habits'`, every `dedupeKey`
@@ -469,6 +499,28 @@ append new items here rather than only printing them once.
   `_bin/push-debug.sh` against production to confirm the iOS Habits fix (13e0e4058) actually
   lands — the `apns-topic` for HABITS and TEEM now resolves to `com.therr.mobile.Therr`, and
   APNS drops a wrong topic silently, so only a real device test closes this out.
+- [ ] (2026-08-12, /quality-peer-review) **Confirm the websocket leg of account deletion
+  actually reaches the service in production.** `requestToDeleteUserData` gained a fourth
+  target built from the new `baseWebsocketServiceRoute`
+  (`http://websocket-service-cluster-ip-service:7743`, no `/v1` prefix — this service serves
+  off the container root). The fan-out is `Promise.allSettled` and its failures are only
+  logged, never surfaced, so a wrong service name or port looks identical to success from the
+  client. After deploy, delete a throwaway account with a socket open and confirm no
+  `Failed to delete user data` span with `service.name: websocket-service` appears, and that
+  the redis keys `users:<id>` / `userSockets:<socketId>` are gone.
+- [ ] (2026-08-12, /quality-peer-review) **Consider denying `/delete-user-data` at the
+  `websocket-service.therr.com` ingress rule.** That host maps `/?(.*)` to the websocket
+  cluster-ip service so browsers can open sockets, which makes every express route on the
+  service internet-facing — including the new delete endpoint. The handler now verifies the
+  forwarded bearer token and requires it to match `x-userid`, so the endpoint is no longer a
+  remote "log any user out" button, but the internal caller reaches it over the cluster IP and
+  never needs the public host. Blocking the path at the ingress would remove the public
+  attack surface entirely. Lives in `therr-infra-terraform` / `k8s/prod/ingress-service.yaml`.
+- [ ] (2026-08-12, /quality-peer-review) **Android 3.14.0 (versionCode 447) needs Play
+  release notes before rollout.** The bump ships the phone-verification entry points
+  (deep link, profile checklist, tappable invite toast); the checklist step now keys on
+  MOBILE_VERIFIED rather than mere presence of a number, so users who changed their number
+  will see the phone step reopen — worth a line in the notes so it does not read as a bug.
 <!-- skill-followups:end -->
 
 ---
@@ -526,35 +578,71 @@ Still open in this area:
 
 ### 1.3 User deletion completeness (GDPR / app-store compliance)
 
-The user-deletion path drops the row in users-service but leaves orphans in
+The user-deletion path drops the row in users-service but left orphans in
 notifications, messages, forums, websocket sessions, and cloud media. This
 is a privacy-policy violation and an Apple/Google review risk.
 
-- `therr-services/users-service/src/handlers/users.ts:1041` — Delete
-  notifications in users service
-- `therr-services/users-service/src/handlers/users.ts:1042` — Delete messages
-  in messages service
-- `therr-services/users-service/src/handlers/users.ts:1043` — Delete forums
-  / forumMessages
-- `therr-services/users-service/src/handlers/users.ts:1046` — Delete user
-  session from websocket-service redis
-- `therr-services/users-service/src/handlers/users.ts:1047` — Delete user
-  media from cloud storage
+Closed 2026-08-11 (/work-plan): the `requestToDeleteUserData` fan-out now reaches
+messages-service and websocket-service alongside maps and reactions, and
+users-service deletes its own `main.notifications` and `main.notificationQueue`
+rows. Direct messages and the user's own forum messages are deleted; forums they
+created are reassigned to `SUPER_ADMIN_ID` so other members' conversations survive
+(the same trade-off maps-service already makes for spaces). All of these deletes
+are deliberately **unscoped by brand** — the identity row is gone, so there is no
+brand under which the rows should survive. The fan-out moved from `Promise.all` +
+`console.log` to `Promise.allSettled` with a per-service error span carrying the
+deleted user id, since one unreachable service must not cancel erasure at the rest
+and the row cannot be re-derived afterwards.
+
+Still open:
+
+- `therr-services/users-service/src/handlers/users.ts:1367` — Delete user
+  media from cloud storage. Greenfield: no `deleteObject` / `DeleteObjectCommand`
+  call exists anywhere in the monorepo, so this needs both an S3 delete path and a
+  decision on how to enumerate a user's media keys (uploads are named from the
+  message text, not from a per-user prefix). Deferred as its own batch
 
 ### 1.4 Auth / billing-email integrity
 
-- `therr-services/users-service/src/handlers/auth.ts:279` — Prevent users
-  claiming the same billing email as another user (duplicate-charge / refund
-  dispute risk)
-- `therr-services/users-service/src/handlers/auth.ts:69` — Mitigate user
-  with multiple accounts attached to same phone number
-- `therr-services/users-service/src/handlers/users.ts:619` — Don't allow
-  updating phone number unless already verified
-- `therr-services/users-service/src/handlers/userConnections.ts:44` —
-  RSERV-24: Get requestingUserId from header token, not request body
-  (impersonation vector)
-- `therr-services/users-service/src/handlers/users.ts:703, 911` — Investigate
-  flagged security issue (open as of audit date)
+Closed 2026-08-12 (/work-plan), four items:
+
+- **Duplicate billing-email claim.** `billingEmail` was accepted verbatim from the
+  login body — a field no client sends, so it was pure attacker surface. It now
+  writes only when the address is the caller's own or is held by no other account
+  (checked against both `email` and `billingEmail`, fail-closed on lookup error).
+  The exposure was worse than the original wording: `payments.ts` attributes an
+  incoming Stripe checkout to an account via `getUserByEmail(billingEmail)` and
+  falls back to `user.billingEmail` for receipts, so claiming another user's
+  address redirected their subscription, not just a refund dispute.
+- **Phone change no longer keeps its old verification.** A profile save could move
+  `phoneNumber` to any value while the account kept the `MOBILE_VERIFIED` level the
+  *old* number earned. `computeAccessLevelsAfterProfileUpdate` now revokes it when
+  the number actually changes (dialect-insensitive, so a reformatted-but-identical
+  number is not treated as a change). The save still succeeds; only the trust is
+  withdrawn, and the user re-earns it through the normal SMS flow.
+- **RSERV-24 was already fixed** — `createUserConnection` has carried a
+  `requestingUserId !== userId` guard for some time; only the TODO comment was
+  stale. Replaced with a note explaining why the body field still exists (the
+  deployed app sends it and cannot be force-updated).
+- **"Investigate security issue / Lockdown updateUser"** resolved: the flagged code
+  was `updateUserCoins`, which built the same broad `updateArgs` as `updateUser` —
+  `phoneNumber`, `userName`, `media`, `deviceMobileFirebaseToken`, `accessLevels` —
+  with none of `updateUser`'s guards (no accounts-per-phone cap, no media-safety
+  check, no username-uniqueness handling). Severity is bounded by the route not
+  being registered in the api-gateway: `PUT /users/:id/coins` is internal-only and
+  its sole caller is reactions-service's `sendUserCoinUpdateRequest`, which sends
+  `settingsTherrCoinTotal` and nothing else. The handler is now scoped to that one
+  field, so there is no broad path left to lock down. Its dead password branch went
+  too — `updateUserPassword` is the real, gateway-registered path.
+
+Still open:
+
+- `therr-services/users-service/src/handlers/auth.ts:69` — Mitigate user with
+  multiple accounts attached to same phone number. The *write* half is enforced
+  (accounts-per-phone cap in `createUser` and `updateUser`); what remains is login
+  resolution — password login still resolves to whichever row the OR-lookup returns
+  first, as the NOTE above `userNameOrEmailOrPhone` in `login` records. The
+  passwordless flow already lets the user pick
 
 ### 1.5 Payment / subscription closure
 
@@ -591,12 +679,14 @@ Audited 2026-07-20 (handler-level, users-service). Each needs a judgment call
 on whether brand scoping is correct — direct-link profile views may legitimately
 be brand-agnostic, but discovery and contact-matching paths are not.
 
-- `therr-services/users-service/src/handlers/userConnections.ts:661` —
-  `getUserConnection` has no brand filter. Needs a judgment call first: it reads a
-  single connection by `(requestingUserId, acceptingUserId)`, so it is a targeted
-  lookup rather than discovery. Separately, `requestingUserId` comes from the route
-  param and is never checked against the caller's token — the IDOR question is
-  probably the more valuable one here
+- `therr-services/users-service/src/handlers/userConnections.ts` —
+  `getUserConnection` has no brand filter. Still a judgment call: it reads a single
+  connection by `(requestingUserId, acceptingUserId)`, so it is a targeted lookup
+  rather than discovery. **The IDOR half is closed (2026-08-12, /work-plan)** — the
+  route param is now compared against the caller's `x-userid` and mismatches 403
+  before the row is read, so an authenticated user can no longer walk ids to read
+  any pair's connection. No client called this route at all, so the guard is
+  behaviour-preserving for real traffic
 - `therr-services/users-service/src/handlers/users.ts:841` —
   `updateLastKnownLocation` is not brand-aware (lower risk — a mutation on the
   caller's own row, listed for completeness)
@@ -1139,6 +1229,13 @@ component trees. Hoist to Redux for a single source of truth.
   `UsersService.ts:19, 27` — Centralize cache invalidation in a base class
 - `therr-api-gateway/src/store/index.ts:7` — Move shared store code to
   `therr-public-library`
+- `SUPER_ADMIN_ID` is now defined identically in three services
+  (`users-service`, `maps-service`, `messages-service/src/constants/index.ts` —
+  the third added 2026-08-11 with the account-deletion fan-out, following the
+  existing per-service convention rather than deviating from it mid-batch). Three
+  copies of an env-keyed UUID map is one too many; hoist to
+  `therr-js-utilities/constants` and re-export from each service so the existing
+  import paths keep working
 
 ### 5.5 Mobile UX polish
 

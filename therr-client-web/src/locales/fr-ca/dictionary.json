@@ -725,6 +725,27 @@
       "infoTitle": "Pourquoi exiger un numéro de téléphone?",
       "info": "Nous nous engageons à prévenir les faux utilisateurs, donc l'authentification multifacteur est essentielle. Exiger un courriel et un numéro de téléphone, combiné aux exigences de géolocalisation des publications, limite considérablement le potentiel de faux utilisateurs."
     },
+    "verifyPhone": {
+      "pageTitle": "Vérifiez votre téléphone",
+      "pageTitleVerify": "Vérifiez votre téléphone : saisissez le code",
+      "description": "Nous vous enverrons un code par texto pour confirmer que ce numéro vous appartient.",
+      "labels": {
+        "mobilePhone": "Téléphone mobile"
+      },
+      "buttons": {
+        "sendCode": "Envoyer le code"
+      },
+      "validationErrors": {
+        "phoneNumber": "Veuillez saisir un numéro de téléphone valide"
+      },
+      "verifyPhoneSuccess": "Numéro de téléphone vérifié!",
+      "verifyPhoneError": "Échec de l'envoi du code de vérification. Veuillez réessayer.",
+      "updateProfileError": "Échec de l'enregistrement de votre numéro de téléphone. Veuillez réessayer.",
+      "authError": "Votre session a expiré. Veuillez vous reconnecter.",
+      "invalidCode": "Le code est invalide ou expiré. Réessayez ou demandez-en un autre.",
+      "phoneNumberAlreadyInUseError": "Ce numéro de téléphone est déjà utilisé pour ce type de compte",
+      "phoneRegionNotSupportedError": "La vérification par SMS n'est pas offerte dans votre région. Veuillez utiliser un autre numéro de téléphone."
+    },
     "login": {
       "pageTitle": "Connexion",
       "buttons": {

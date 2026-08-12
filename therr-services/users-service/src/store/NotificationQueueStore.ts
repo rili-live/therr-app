@@ -251,4 +251,24 @@ export default class NotificationQueueStore extends BrandScopedStore {
             .toString();
         return this.db.write.query(queryString).then((response) => response.rowCount ?? 0);
     }
+
+    /**
+     * Drops every queued notification for a user, across all brands and every status.
+     *
+     * Called from account deletion. Pending rows matter most: the worker claims by
+     * status and brand, not by whether the recipient still exists, so a row left behind
+     * here is a push addressed to a deleted account. Sent/skipped rows go too — their
+     * only remaining purpose is the rate-limit window and the "why did this user get
+     * that?" audit trail, neither of which outlives the user.
+     *
+     * Not brand-scoped, for the same reason as the retention sweeps above.
+     */
+    deleteByUserId(userId: string): Promise<number> {
+        const queryString = knexBuilder
+            .from(NOTIFICATION_QUEUE_TABLE_NAME)
+            .where({ userId })
+            .delete()
+            .toString();
+        return this.db.write.query(queryString).then((response) => response.rowCount ?? 0);
+    }
 }
