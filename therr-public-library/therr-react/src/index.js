@@ -43,6 +43,8 @@ const types = [
 // Utilities
 const utilities = [
     'utilities/cacheHelpers',
+    'utilities/attribution',
+    'utilities/analytics',
 ];
 
 module.exports = {
