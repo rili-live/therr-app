@@ -141,6 +141,34 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-12, /work-plan) **Subscription upgrades now require the Stripe billing email to
+  match the account — watch for legitimate purchases that stop upgrading.** `register`, `login`
+  and `activateUserSubscription` all grant a plan's access level only when the Checkout
+  Session's billing email normalizes to the claiming account's email. Previously
+  `activateUserSubscription` granted to whoever presented the session id, so a customer who
+  paid Stripe with a *different* address than their Therr account (a personal card on a work
+  account, or vice versa) was upgraded then and will not be now. They fail closed and silently:
+  the response still 200s with `isAccessLevelUpdated: false`. The signal is the warn span
+  `Checkout session billing email does not match the account claiming it` — if it fires for
+  real customers rather than probes, the fix is an explicit "link this purchase" confirmation,
+  not widening the match. Note the subscription webhook has always keyed off the same billing
+  email, so those customers were already relying on manual rectification.
+- [ ] (2026-08-12, /work-plan) **Free-trial signups will start upgrading on the redirect
+  instead of on the webhook — expected, watch the volume.** `activateUserSubscription` gated on
+  `payment_status === 'paid'`, which a trial-only Checkout Session never satisfies
+  (`no_payment_required`), so trials were upgraded solely by `customer.subscription.*`. Both
+  paths now grant, and both are idempotent (the levels are unioned, not replaced), so a double
+  grant is a no-op. If trial conversions look like they jumped, this is why — the upgrade was
+  always meant to happen, it just used to depend on the webhook arriving.
+- [ ] (2026-08-12, /work-plan) Optional one-off audit for accounts damaged by the
+  `getUserByEmail` bug fixed in this batch: an `activateUserSubscription` call with no
+  `x-userid` used a lookup that omits `accessLevels`, so the update **replaced** the account's
+  levels with just the subscription level. Symptom is an account holding a
+  `DASHBOARD_SUBSCRIBER_*` level and nothing else — login rejects it for lacking
+  `EMAIL_VERIFIED`, which reads to the user as "my password stopped working" right after
+  paying. Query: `SELECT id, email, "accessLevels" FROM main.users WHERE "accessLevels"::text
+  LIKE '%DASHBOARD_SUBSCRIBER%' AND "accessLevels"::text NOT LIKE '%EMAIL_VERIFIED%';` Repair
+  by re-adding the missing levels; the fix only stops new occurrences.
 - [ ] (2026-08-12, /work-plan) **After the reactions-service deploy, confirm event RSVP still
   persists.** Reaction write columns are now allow-listed
   (`reactions-service/src/utilities/pickReactionWriteFields.ts`) instead of spread from
@@ -540,6 +568,21 @@ append new items here rather than only printing them once.
   (deep link, profile checklist, tappable invite toast); the checklist step now keys on
   MOBILE_VERIFIED rather than mere presence of a number, so users who changed their number
   will see the phone step reopen — worth a line in the notes so it does not read as a bug.
+- [ ] (2026-08-12, /quality-peer-review) **Confirm a real checkout still upgrades on the
+  redirect now that grants are gated on live subscription status.** Peer review found that
+  `resolveCheckoutSessionGrant` accepted `payment_status === 'paid'` as an alternative to the
+  subscription being `trialing`/`active`. That field is frozen at `paid` for the life of a
+  session object, so a subscriber who cancelled (and was revoked by `handleSubscriptionDeleted`)
+  could replay the session id still in their browser history against
+  `/login?paymentSessionId=` and re-grant themselves the plan, indefinitely and for free — a
+  hole this batch widened from one redirect endpoint to every login and registration. The
+  disjunct is gone; `GRANTING_SUBSCRIPTION_STATUSES` is now the sole gate, matching
+  `handleSubscriptionCreateUpdate`. The one case this narrows is a redirect that beats Stripe's
+  own flip to `active`: the session path then grants nothing and `activateUserSubscription`
+  returns `isAccessLevelUpdated: false`, with the subscription webhook granting a beat later.
+  Buy a real plan against the live keys and confirm the level lands on the redirect rather than
+  only on the webhook; if the race turns out to be common, poll or retry rather than restoring
+  the `payment_status` check. No migration, no env var.
 <!-- skill-followups:end -->
 
 ---
@@ -688,23 +731,57 @@ Still open:
 
 ### 1.5 Payment / subscription closure
 
-- `therr-services/users-service/src/handlers/users.ts:148` — Use
-  paymentSessionId to fetch subscription details and add accessLevels (the
-  Stripe checkout completes but the user account is not upgraded with tier
-  metadata)
-- `therr-services/users-service/src/handlers/auth.ts:67` — Same path on auth
-- `therr-services/users-service/src/handlers/payments.ts:53` — Only update
-  user if subscription has started free trial or paid
+Closed 2026-08-12 (/work-plan), all three items. A completed Stripe checkout now
+upgrades the account on the redirect rather than only via the subscription webhook.
+`register` and `login` both received `paymentSessionId` already — the dashboard's
+`PaymentComplete.tsx` redirects to `/register?paymentSessionId=` and
+`/login?paymentSessionId=`, and the gateway validates the field — but `createUser`
+had an empty `else if (paymentSessionId)` branch and `login` had the read commented
+out entirely. Both now resolve the session through a shared helper,
+`users-service/src/handlers/helpers/checkoutSessionAccessLevels.ts`.
 
-The analytics half of this same gap is tracked in
+The `payments.ts` item was a live bug, not a hardening task: `activateUserSubscription`
+gated on `payment_status === 'paid' && status === 'complete'`, but a Checkout Session
+that only starts a **free trial** completes with `payment_status: 'no_payment_required'`.
+That session granted nothing, so a trial signup was upgraded only when the
+`customer.subscription.*` webhook arrived — making the upgrade silently dependent on
+`STRIPE_WEBHOOK_SIGNING_SECRET` being configured (still an unchecked standing item
+above). The helper now grants on subscription status `trialing` or `active`, the same
+two `handleSubscriptionCreateUpdate` branches on, so the session and webhook paths agree.
+
+A session id is a bearer token for a *purchase*, not for an account, and nothing in the
+session ties it to the caller presenting it. All three paths therefore require the
+session's billing email to match the account claiming it (normalized, the same key the
+webhook grants on) and fail closed — otherwise any registration or login quoting a
+leaked session id would inherit that subscription's plan. Grants fail **open** in the
+other direction: a Stripe outage or a mismatch returns no levels rather than throwing,
+so registration and sign-in are never blocked by the upgrade path.
+
+Also fixed while refactoring: `activateUserSubscription`'s no-`userId` branch looked the
+account up with `Store.users.getUserByEmail`, which selects only `id`/`email`/
+`isUnclaimed`. The subsequent `updateUser` unions the grant with `existingUser.accessLevels`
+— `undefined` on that path — so an email-matched activation **replaced** the account's
+access levels with just the subscription level, stripping `EMAIL_VERIFIED` and locking the
+user out of login (which rejects accounts without it). That path now selects
+`accessLevels` explicitly via `getUsers`.
+
+Still open — the analytics half of this same gap, tracked in
 `therr-workspace/docs/MARKETING_ATTRIBUTION_PLAN.md` Phase 2: checkout is a Stripe
 **Payment Link** opened with `target="_blank"` (`therr-client-web-dashboard`:
 `PricingCards.tsx:97,134,172`, `Sidebar.tsx:280,283`, and the four `*Menu.tsx`
 components), so the GA4 session ends at the click and **no `purchase` event exists in
 any property**. Moving to a Checkout Session with a `success_url` back into the
 dashboard closes both problems at once — the redirect is what lets the account get
-upgraded *and* what keeps the session alive for attribution. Doing only the
-`paymentSessionId` half leaves revenue permanently unattributable to a campaign.
+upgraded *and* what keeps the session alive for attribution. The upgrade half is now
+done (above), so what remains here is purely the attribution half.
+
+Re-verify that premise before acting on it (noted 2026-08-12, /work-plan): a return
+path into the dashboard **does** already exist — `therr-client-web-dashboard/src/routes/
+PaymentComplete.tsx` reads a session id and forwards it to `/register` and `/login` —
+which is what made the upgrade half fixable without touching checkout at all. Whether
+the `target="_blank"` Payment Link is still how every plan is purchased, and whether
+GA4 genuinely sees no `purchase` event, should be checked against the current dashboard
+rather than inherited from this entry.
 
 ### 1.6 Unscoped user / connection endpoints (cross-brand leakage)
 

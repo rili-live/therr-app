@@ -1,6 +1,6 @@
-import Stripe from 'stripe';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { parseHeaders } from 'therr-js-utilities/http';
+import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
 import sendAdminUrgentErrorEmail from '../api/email/admin/sendAdminUrgentErrorEmail';
 import {
@@ -9,8 +9,12 @@ import {
     handleSubscriptionPaused,
     handleSubscriptionResumed,
     handleSubscriptionTrialWillEnd,
-    productIdMap,
 } from './helpers/payment-webhook-handlers';
+import {
+    doesSessionEmailMatchAccount,
+    mergeAccessLevels,
+    resolveCheckoutSessionGrant,
+} from './helpers/checkoutSessionAccessLevels';
 import stripe from '../api/stripe';
 import Store from '../store';
 import * as globalConfig from '../../../../global-config';
@@ -23,37 +27,48 @@ const activateUserSubscription = (req, res) => {
         brandVariation,
     } = parseHeaders(req.headers);
 
-    return stripe.checkout.sessions.retrieve(id, {
-        expand: ['subscription'],
-    }).then((response) => {
+    return resolveCheckoutSessionGrant(id).then((grant) => {
         let isAccessLevelUpdated = false;
-        const billingEmail = response.customer_details?.email || response.customer_email;
-        const productIds: any = [];
-        const accessLevels: any = [];
 
-        const fetchUserByEmail = (!userId && billingEmail) ? Store.users.getUserByEmail(billingEmail) : Promise.resolve([]);
-        const fetchUserPromise = userId ? Store.users.getUserById(userId) : fetchUserByEmail;
+        // `accessLevels` is load-bearing in the returning columns: the update below unions the
+        // grant with what the account already holds, so a lookup that omits the column reads
+        // as "no existing levels" and the write replaces them. `getUserByEmail` selects only
+        // id/email/isUnclaimed, which is why this path goes through `getUsers` instead — via
+        // that helper an email-matched activation used to strip EMAIL_VERIFIED off the
+        // account and lock the user out of login.
+        const normedBillingEmail = grant.billingEmail ? normalizeEmail(grant.billingEmail) : undefined;
+        const fetchUserByEmail = (!userId && normedBillingEmail)
+            ? Store.users.getUsers({ email: normedBillingEmail }, {}, {}, ['id', 'email', 'accessLevels'])
+            : Promise.resolve([]);
+        const fetchUserPromise = userId
+            ? Store.users.getUserById(userId, ['id', 'email', 'accessLevels'])
+            : fetchUserByEmail;
 
         return fetchUserPromise.then(([existingUser]) => {
-            if (response.mode === 'subscription' && response.payment_status === 'paid' && response.status === 'complete') {
-                (response.subscription as Stripe.Subscription)?.items.data.forEach((item) => {
-                    const accessLevel = productIdMap[(item.price.product as string)]?.accessLevel;
-                    if (productIdMap[(item.price.product as string)]?.accessLevel) {
-                        accessLevels.push(accessLevel);
-                    }
-                    productIds.push(item.price.product);
+            // A session id identifies a purchase, not a purchaser. On the `userId` path the
+            // caller is authenticated but the session is still just a string they supplied, so
+            // without this the header alone would redeem any session id against the caller's
+            // own account. Matching on billing email is also what the subscription webhook
+            // does, so both paths now upgrade the same account for a given purchase.
+            const isClaimableByAccount = !!existingUser && doesSessionEmailMatchAccount(grant, existingUser.email);
+
+            if (existingUser && grant.accessLevels.length && !isClaimableByAccount) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Checkout session billing email does not match the account claiming it'],
+                    traceArgs: {
+                        'user.id': existingUser.id,
+                        'stripe.sessionId': id,
+                        'subscription.status': grant.subscriptionStatus,
+                        handler: 'activateUserSubscription',
+                    },
                 });
             }
 
-            const userAccessLevels = new Set(
-                existingUser?.accessLevels || [],
-            );
-            accessLevels.forEach((level) => userAccessLevels.add(level));
-
-            // TODO: Only update user if subscription has started free trial or paid
-            const updateUserPromise = (existingUser && accessLevels.length)
+            const updateUserPromise = (isClaimableByAccount && grant.accessLevels.length)
                 ? Store.users.updateUser({
-                    accessLevels: JSON.stringify([...userAccessLevels]),
+                    accessLevels: JSON.stringify(mergeAccessLevels(existingUser.accessLevels, grant.accessLevels)),
                 }, { id: existingUser.id })
                 : Promise.resolve([]);
 
@@ -63,11 +78,11 @@ const activateUserSubscription = (req, res) => {
                 }
 
                 return res.status(200).send({
-                    billingEmail,
-                    mode: response.mode,
-                    paymentStatus: response.payment_status,
-                    productIds,
-                    status: response.status,
+                    billingEmail: grant.billingEmail,
+                    mode: grant.mode,
+                    paymentStatus: grant.paymentStatus,
+                    productIds: grant.productIds,
+                    status: grant.status,
                     isAccessLevelUpdated,
                 });
             });

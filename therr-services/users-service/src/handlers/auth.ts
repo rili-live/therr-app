@@ -14,6 +14,7 @@ import Store from '../store';
 import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
+import { applyCheckoutSessionAccessLevels } from './helpers/checkoutSessionAccessLevels';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { acceptInvitesOnFirstLogin } from './helpers/inviteAcceptance';
 import TherrEventEmitter from '../api/TherrEventEmitter';
@@ -289,8 +290,10 @@ const login: RequestHandler = (req: any, res: any) => {
         platform,
     } = parseHeaders(req.headers);
 
-    // const { paymentSessionId } = req.body;
-    // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+    // Sent by the dashboard when an existing account completes a Stripe checkout
+    // (`PaymentComplete.tsx` redirects to `/login?paymentSessionId=`). Applied below, once
+    // credentials have actually been proven — never off the unauthenticated lookup.
+    const { paymentSessionId } = req.body;
 
     // NOTE: When a phone number is attached to more than one account, password login still
     // resolves to whichever row the OR-lookup returns first. The passwordless flow below
@@ -383,8 +386,12 @@ const login: RequestHandler = (req: any, res: any) => {
                 },
             }, res).then(async ([isValid, userDetails, oauthResponseData]) => {
                 if (isValid) {
+                    const subscribedUserDetails = paymentSessionId
+                        ? await applyCheckoutSessionAccessLevels(paymentSessionId, userDetails)
+                        : userDetails;
+
                     return issueUserSession(req, res, {
-                        userDetails,
+                        userDetails: subscribedUserDetails,
                         userSearchResults,
                         oauthResponseData,
                         brandVariation,
