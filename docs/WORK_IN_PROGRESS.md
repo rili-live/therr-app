@@ -163,17 +163,20 @@ append new items here rather than only printing them once.
   answering a support ticket. Verify after deploy that `/verify-phone` renders for a signed-in
   user whose profile is already complete (it is gated `ANY` on EMAIL_VERIFIED /
   EMAIL_VERIFIED_MISSING_PROPERTIES precisely so that user is not bounced to `/create-profile`).
-- [ ] (2026-08-12, /work-plan) `habits.therr.com/verify-phone` will 404. The habits subdomain
-  middleware in `server-client.tsx` short-circuits React SSR and hard-404s anything outside
-  its allowlist (`utilities/habitsSubdomainRoutes.ts` plus the `.hbs` view list), so the new
-  `/verify-phone` React route is reachable on www.therr.com only. The *mobile* deep link is
-  unaffected — `Layout` matches the `therr.com/verify-phone` substring, which
-  `habits.therr.com/verify-phone` also contains, and that host is a verified App Link for
-  `com.therr.habits` — so a HABITS user with the app installed lands correctly and only the
-  no-app browser fallback dead-ends. Closing it means either admitting this path into the
-  habits allowlist and letting React SSR serve it, or adding a `habits/verify-phone.hbs`
-  alongside the existing `habits/login` and `habits/verify-account` views. Decide which when
-  HABITS actually gates something on MOBILE_VERIFIED; today only bulk `multi-invite` does.
+- [ ] (2026-08-12, /work-plan) Smoke-test `habits.therr.com/verify-phone` after the web deploy,
+  end to end on a real handset: sign in, request a code, enter it, then confirm
+  `main."users"` shows the new number **and** `MOBILE_VERIFIED` in `accessLevels` for that row.
+  New `habits/verify-phone.hbs` — the habits-subdomain counterpart of the React
+  `/verify-phone` route, since that host short-circuits React SSR and hard-404s anything
+  outside its allowlist. Two things are worth watching specifically. (1) It calls
+  `POST /phone/verify` then `POST /phone/validate-code` and makes **no** follow-up write —
+  `validate-code` already persists the number and grants MOBILE_VERIFIED server-side via
+  `PUT /users/:id/verify-phone`, so a second write would be redundant here (the React routes
+  still make one, but only to refresh their Redux store). (2) It reads `therrUser` from
+  storage in the **flat** shape `habits/login.hbs` writes and `store.tsx` wraps in `details`;
+  a change to either side breaks the session handoff silently, showing the signed-out state
+  to a signed-in user. `habits/login.hbs` also gained `?returnTo=` support (same-origin
+  relative paths only) so the signed-out state can round-trip back here.
 - [ ] (2026-08-12, /work-plan) Optional one-off audit: `SELECT count(*) FROM main."users" u
   WHERE u."billingEmail" IS NOT NULL AND EXISTS (SELECT 1 FROM main."users" o WHERE o.id <>
   u.id AND (o.email = u."billingEmail" OR o."billingEmail" = u."billingEmail"));` The new
