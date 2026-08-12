@@ -14,6 +14,7 @@ import {
     doesSessionEmailMatchAccount,
     mergeAccessLevels,
     resolveCheckoutSessionGrant,
+    SubscriptionNotGrantedReason,
 } from './helpers/checkoutSessionAccessLevels';
 import stripe from '../api/stripe';
 import Store from '../store';
@@ -38,7 +39,7 @@ const activateUserSubscription = (req, res) => {
         // account and lock the user out of login.
         const normedBillingEmail = grant.billingEmail ? normalizeEmail(grant.billingEmail) : undefined;
         const fetchUserByEmail = (!userId && normedBillingEmail)
-            ? Store.users.getUsers({ email: normedBillingEmail }, {}, {}, ['id', 'email', 'accessLevels'])
+            ? Store.users.getUserByConditions({ email: normedBillingEmail }, undefined, undefined, ['id', 'email', 'accessLevels'])
             : Promise.resolve([]);
         const fetchUserPromise = userId
             ? Store.users.getUserById(userId, ['id', 'email', 'accessLevels'])
@@ -52,7 +53,21 @@ const activateUserSubscription = (req, res) => {
             // does, so both paths now upgrade the same account for a given purchase.
             const isClaimableByAccount = !!existingUser && doesSessionEmailMatchAccount(grant, existingUser.email);
 
-            if (existingUser && grant.accessLevels.length && !isClaimableByAccount) {
+            // Ordered root-cause-first, so the reason names the earliest thing that went wrong
+            // rather than a symptom of it: a session that is not grantable also has no access
+            // levels, and an account that was never found also cannot match a billing email.
+            let notGrantedReason: SubscriptionNotGrantedReason | undefined;
+            if (!grant.isGrantable) {
+                notGrantedReason = 'session-not-grantable';
+            } else if (!grant.accessLevels.length) {
+                notGrantedReason = 'no-mapped-access-level';
+            } else if (!existingUser) {
+                notGrantedReason = 'account-not-found';
+            } else if (!isClaimableByAccount) {
+                notGrantedReason = 'billing-email-mismatch';
+            }
+
+            if (notGrantedReason === 'billing-email-mismatch') {
                 logSpan({
                     level: 'warn',
                     messageOrigin: 'API_SERVER',
@@ -84,6 +99,7 @@ const activateUserSubscription = (req, res) => {
                     productIds: grant.productIds,
                     status: grant.status,
                     isAccessLevelUpdated,
+                    notGrantedReason: isAccessLevelUpdated ? undefined : notGrantedReason,
                 });
             });
         });

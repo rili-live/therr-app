@@ -91,6 +91,24 @@ export const resolveCheckoutSessionGrant = (paymentSessionId: string): Promise<I
     });
 
 /**
+ * Why an activation that otherwise succeeded granted no access level.
+ *
+ * `activateUserSubscription` answers 200 in every one of these cases — the purchase is real and
+ * the dashboard still needs the session details to render a receipt — so without a reason code a
+ * refusal is indistinguishable from "there was nothing to grant". The case that matters is
+ * `billing-email-mismatch`: a customer who paid Stripe with a different address than their Therr
+ * account is refused silently today, and the UI has no way to tell them which address to use.
+ *
+ * Advisory only. Never widen a grant on the strength of one of these — they exist so the client
+ * can explain a refusal, not so it can work around it.
+ */
+export type SubscriptionNotGrantedReason =
+    | 'session-not-grantable'
+    | 'no-mapped-access-level'
+    | 'account-not-found'
+    | 'billing-email-mismatch';
+
+/**
  * A Checkout Session id is a bearer token for a *purchase*, not for an *account*. Nothing in
  * the session ties it to the caller presenting it, so the only identity it carries is the
  * address the customer paid with — the same field `handleSubscriptionCreateUpdate` keys its
