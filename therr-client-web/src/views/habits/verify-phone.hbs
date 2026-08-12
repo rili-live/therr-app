@@ -415,9 +415,20 @@
                     // server-side (via PUT /users/:id/verify-phone), so there is no follow-up
                     // write to make — only the local copy of the session to refresh, so the
                     // React surface does not read a stale accessLevels array.
-                    if (out.body && out.body.id) {
-                        writeStoredUser(Object.assign({}, storedUser, out.body, { idToken: storedUser.idToken }));
+                    //
+                    // The gateway answers 201 with an EMPTY body, so there is no user object
+                    // to copy from the response. Apply the same two changes the server just
+                    // made to the stored session directly. The access level string mirrors
+                    // AccessLevels.MOBILE_VERIFIED in therr-js-utilities — inlined for the
+                    // same reason the ErrorCodes above are: this template ships no bundle.
+                    var levels = Array.isArray(storedUser.accessLevels) ? storedUser.accessLevels.slice() : [];
+                    if (levels.indexOf('user.verified.mobile') === -1) {
+                        levels.push('user.verified.mobile');
                     }
+                    writeStoredUser(Object.assign({}, storedUser, {
+                        accessLevels: levels,
+                        phoneNumber: pendingPhoneNumber,
+                    }));
 
                     codeForm.hidden = true;
                     doneBox.hidden = false;

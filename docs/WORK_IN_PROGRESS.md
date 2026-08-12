@@ -499,6 +499,28 @@ append new items here rather than only printing them once.
   `_bin/push-debug.sh` against production to confirm the iOS Habits fix (13e0e4058) actually
   lands — the `apns-topic` for HABITS and TEEM now resolves to `com.therr.mobile.Therr`, and
   APNS drops a wrong topic silently, so only a real device test closes this out.
+- [ ] (2026-08-12, /quality-peer-review) **Confirm the websocket leg of account deletion
+  actually reaches the service in production.** `requestToDeleteUserData` gained a fourth
+  target built from the new `baseWebsocketServiceRoute`
+  (`http://websocket-service-cluster-ip-service:7743`, no `/v1` prefix — this service serves
+  off the container root). The fan-out is `Promise.allSettled` and its failures are only
+  logged, never surfaced, so a wrong service name or port looks identical to success from the
+  client. After deploy, delete a throwaway account with a socket open and confirm no
+  `Failed to delete user data` span with `service.name: websocket-service` appears, and that
+  the redis keys `users:<id>` / `userSockets:<socketId>` are gone.
+- [ ] (2026-08-12, /quality-peer-review) **Consider denying `/delete-user-data` at the
+  `websocket-service.therr.com` ingress rule.** That host maps `/?(.*)` to the websocket
+  cluster-ip service so browsers can open sockets, which makes every express route on the
+  service internet-facing — including the new delete endpoint. The handler now verifies the
+  forwarded bearer token and requires it to match `x-userid`, so the endpoint is no longer a
+  remote "log any user out" button, but the internal caller reaches it over the cluster IP and
+  never needs the public host. Blocking the path at the ingress would remove the public
+  attack surface entirely. Lives in `therr-infra-terraform` / `k8s/prod/ingress-service.yaml`.
+- [ ] (2026-08-12, /quality-peer-review) **Android 3.14.0 (versionCode 447) needs Play
+  release notes before rollout.** The bump ships the phone-verification entry points
+  (deep link, profile checklist, tappable invite toast); the checklist step now keys on
+  MOBILE_VERIFIED rather than mere presence of a number, so users who changed their number
+  will see the phone step reopen — worth a line in the notes so it does not read as a bug.
 <!-- skill-followups:end -->
 
 ---

@@ -79,9 +79,12 @@ const startExpressSocketIOServer = () => {
     app.get('/', (req, res) => { res.status(200).json('OK'); });
     app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); });
 
-    // Internal only — reachable on the cluster-ip service, never through the api-gateway.
-    // Identifies the user by the x-userid header the calling service forwards, exactly as
-    // the maps/reactions/messages delete-user-data endpoints do.
+    // Called by the users-service account-deletion fan-out. NOT internal-only: unlike the
+    // maps/reactions/messages services, this one has its own ingress host
+    // (websocket-service.therr.com, catch-all path) so browsers can open sockets against it,
+    // which makes every route here internet-facing. The handler therefore verifies the
+    // forwarded bearer token and requires it to match `x-userid` rather than trusting the
+    // header the way the internal-only services can.
     app.delete('/delete-user-data', deleteUserData);
 
     const server = http.createServer(app);
