@@ -1883,7 +1883,12 @@
       "headerTitle": "Pensamientos",
       "reply": "Responder",
       "replies": "Respuestas",
-      "repliesFailed": "No pudimos cargar las respuestas. Inténtalo de nuevo en un momento."
+      "repliesFailed": "No pudimos cargar las respuestas. Inténtalo de nuevo en un momento.",
+      "headerTitleReply": "Respuesta",
+      "partOfThread": "Parte de una conversación",
+      "replyingTo": "Respondiendo a {userName}",
+      "viewParentThought": "Ver la publicación a la que responde",
+      "backToParent": "Volver a la conversación"
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
