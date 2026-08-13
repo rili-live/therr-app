@@ -490,7 +490,13 @@
       "loginToReply": "Inicia sesión para responder",
       "loginToView": "Inicia sesión para ver esta publicación y unirte a la conversación",
       "backToThoughts": "Volver a Pensamientos",
-      "viewReplies": "Ver {count} respuestas"
+      "viewReplies": "Ver {count} respuestas",
+      "headerTitleReply": "Respuesta",
+      "parentThread": "Conversación",
+      "partOfThread": "Parte de una conversación",
+      "replyingTo": "Respondiendo a {userName}",
+      "viewParentThought": "Ver la publicación a la que responde",
+      "backToParent": "Volver a la conversación"
     },
     "explorePeople": {
       "pageTitle": "Buscar personas",

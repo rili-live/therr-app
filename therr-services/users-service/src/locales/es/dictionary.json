@@ -65,7 +65,8 @@
         }
     },
     "thoughts": {
-        "notFound": "Pensamiento no encontrado"
+        "notFound": "Pensamiento no encontrado",
+        "parentAccessRestricted": "Este usuario no tiene permiso para responder a un pensamiento al que no puede acceder"
     },
     "thoughtReactions": {
         "thoughtNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el pensamiento"
