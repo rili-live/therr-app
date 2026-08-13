@@ -24,6 +24,13 @@ export interface IHabitPhaseRow {
     maintenanceStage: number;
     lapsedAt: string | null;
     lastComebackAt: string | null;
+    // Email watermarks, written by therr-messaging-automator's
+    // `habits-milestone-emails` task — deliberately NOT the same columns as the
+    // push side, so neither channel suppresses the other. Nothing in this
+    // service writes them; they are declared here so the shape of a row read
+    // back from this table is complete and honest.
+    maintenanceEmailedStage: number;
+    lastComebackEmailedAt: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
