@@ -28,6 +28,7 @@ import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequest
 import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
+import { resolveAccessLevelsForAccountEmail } from './helpers/checkoutSessionAccessLevels';
 import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
@@ -209,7 +210,20 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     return [];
                 });
             } else if (paymentSessionId) {
-                // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+                // The dashboard sends this after a completed Stripe checkout
+                // (`PaymentComplete.tsx` redirects to `/register?paymentSessionId=`), so the
+                // plan the user just bought becomes an access level on the account being
+                // created rather than waiting on the subscription webhook.
+                //
+                // Scoped to the address they paid with: a session id is a bearer token for a
+                // purchase, not for an account, so without the match any registration quoting
+                // a leaked id would inherit that subscription's plan. Mismatches resolve to
+                // no levels and the registration still succeeds — see
+                // `resolveAccessLevelsForAccountEmail`.
+                getSubsAccessLvlsPromise = resolveAccessLevelsForAccountEmail(paymentSessionId, req.body.email, {
+                    'user.email': req.body.email,
+                    handler: 'createUser',
+                });
             }
 
             // PACT-XXXX codes are pact-invite claims, not username referrals.
@@ -307,6 +321,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         inviteToken: req.body.inviteToken,
                         isPreVerified: isPreVerifiedByPactClaim,
                         isPhoneVerified: !!verifiedPhoneNumber,
+                        userAcquisition: req.body.userAcquisition,
                     },
                 );
             }).then(async (user) => {

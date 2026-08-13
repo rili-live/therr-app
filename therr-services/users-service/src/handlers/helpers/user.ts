@@ -12,6 +12,7 @@ import normalizeEmail from 'normalize-email';
 import { getBrandContext } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
+import { sanitizeUserAcquisition } from '../../store/UserAcquisitionStore';
 import { hashPassword } from '../../utilities/userHelpers';
 import { validatePassword } from '../../utilities/passwordUtils';
 import generateCode from '../../utilities/generateCode';
@@ -85,6 +86,15 @@ export interface ICreateUserOptions {
      * verification email is sent as usual.
      */
     isPhoneVerified?: boolean;
+    /**
+     * Where this signup came from — the `utm_*` / referrer record the web
+     * clients captured on first landing (therr-react/utilities/attribution).
+     *
+     * Untrusted and advisory. It is sanitized by `sanitizeUserAcquisition`,
+     * written fire-and-forget after the account exists, and grants nothing. A
+     * bad or absent value costs a row of telemetry, never a registration.
+     */
+    userAcquisition?: any;
 }
 
 interface IGetUserHelperArgs {
@@ -357,6 +367,7 @@ const createUserHelper = (
         inviteToken,
         isPreVerified = false,
         isPhoneVerified = false,
+        userAcquisition,
     } = options;
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -479,6 +490,25 @@ const createUserHelper = (
             user = results[0];
             // Remove credentials from object
             redactUserCreds(user);
+
+            // Marketing attribution. Fire-and-forget, and deliberately not
+            // awaited: this row is the only place the campaign that produced a
+            // signup is recorded, but it is still telemetry, and a failed
+            // INSERT must never turn a successful registration into an error
+            // the user sees.
+            if (userAcquisition) {
+                Store.userAcquisition.createAcquisition(sanitizeUserAcquisition(userAcquisition, {
+                    userId: user.id,
+                    brandVariation: headers['x-brand-variation'],
+                })).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while recording user acquisition'],
+                        traceArgs: { 'error.message': err?.message, 'user.id': user.id },
+                    });
+                });
+            }
 
             // Magic invite-link acceptance: mark the invite accepted, connect
             // the two users so the invitee lands in-app already connected, and

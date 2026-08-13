@@ -6,6 +6,7 @@ import {
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import ReactGA from 'react-ga4';
 import { CampaignStatuses } from 'therr-js-utilities/constants';
 import { CampaignsService, MapsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
@@ -130,6 +131,15 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
 
         MapsService.approveClaim(space.id)
             .then(() => {
+                // Funnel step 6 — the last step before the business reaches
+                // pricing. A different actor (an admin) on a different surface
+                // than the claimant, so it can never join the claimant's own
+                // GA4 session; it is a standalone count of approvals, and the
+                // claim → approval rate is derived from the two totals rather
+                // than from a session-scoped funnel.
+                ReactGA.event('claim_approved', {
+                    spaceId: space.id,
+                });
                 this.setState({
                     spacesPendingApproval: modifiedSpaces,
                 });

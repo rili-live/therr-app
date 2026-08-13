@@ -20,6 +20,8 @@ export interface IAccountTypeParams {
     webhookCustomerId?: string,
     activationCode?: string;
     userEmail?: string;
+    /** Plan slug, when a checkout session could not be created. */
+    plan?: string;
 }
 
 export default (emailParams: ISendAdminUrgentErrorEmailConfig, templateParams: ITemplateParams, errorDetails: IAccountTypeParams) => {
