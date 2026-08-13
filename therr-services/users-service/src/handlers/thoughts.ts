@@ -347,14 +347,28 @@ const getThoughtDetails = (req, res) => {
                 const replyIds = (thought.replies || []).map((reply) => reply.id).filter((id) => !!id);
                 // Activating this thought too (when it is itself a reply) keeps a reply reachable
                 // on its own after it was first opened via the parent's access. The parent is
-                // activated alongside it because the details view now offers a link up to it —
-                // without this, walking up from a reply reached by deep link 400s on a
-                // non-public parent the reader is plainly allowed to see.
-                const idsToActivate = thought.parentId ? [thought.id, thought.parentId, ...replyIds] : replyIds;
+                // deliberately NOT activated here: every legitimate way to reach a reply already
+                // implies activation on the parent (a private parent can only be opened by a user
+                // who has activated it, and viewing it is what activates the replies), so adding
+                // it would only ever hand out access the caller did not already have.
+                const idsToActivate = thought.parentId ? [thought.id, ...replyIds] : replyIds;
 
                 // Activate child thoughts otherwise
                 if (idsToActivate.length) {
                     createReactionsPromise = createReactions(idsToActivate, req.headers);
+                }
+
+                // Access to a reply is not access to the thought it replies to. `createThought`
+                // never verifies the caller can see `parentId`, so any user can attach their own
+                // reply to any thought id they know and reach this handler as its owner. The thread
+                // context is therefore gated on the caller being able to open the parent in its own
+                // right — public, authored by them, or already activated. Only reached when the
+                // client asked for `withParent`, so the extra lookup stays off the default path.
+                let parentAccessPromise = Promise.resolve(false);
+                if (thought.parent) {
+                    parentAccessPromise = thought.parent.isPublic || thought.parent.fromUserId === userId
+                        ? Promise.resolve(true)
+                        : hasUserReacted(thought.parentId, req.headers);
                 }
 
                 // Replies render their own like control, so they need the same reaction state the
@@ -367,7 +381,8 @@ const getThoughtDetails = (req, res) => {
                     createReactionsPromise,
                     replyCountsPromise,
                     replyReactionsPromise,
-                ]).then(([thoughtCounts, , replyLikeCounts, replyReactions]) => {
+                    parentAccessPromise,
+                ]).then(([thoughtCounts, , replyLikeCounts, replyReactions, hasParentAccess]) => {
                     const thoughtResult = {
                         ...thought,
                     };
@@ -379,6 +394,12 @@ const getThoughtDetails = (req, res) => {
                         likeCount: replyLikeCounts[reply.id] || 0,
                         reaction: replyReactions[reply.id],
                     }));
+
+                    if (thoughtResult.parent && !hasParentAccess) {
+                        // Clients treat a missing `parent` as "this is a reply, but the thread is
+                        // not reachable" and fall back to the generic wording without a link.
+                        delete thoughtResult.parent;
+                    }
 
                     if (userId && userId !== thought.fromUserId) {
                         Store.userConnections.incrementUserConnection(userId, thought.fromUserId, 1)
@@ -455,7 +476,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
         }));
         fromUserIds = connectionsResponse.data.results
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
-            .filter((id) => !!id); // eslint-disable-line eqeqeq
+            .filter((id) => !!id);
         searchArgs[0].filterBy = 'fromUserIds';
     }
     const searchPromise = Store.thoughts.search(brand, searchArgs[0], searchArgs[1], fromUserIds, {}, query !== 'me');
