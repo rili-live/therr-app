@@ -1148,6 +1148,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
             case PushNotifications.Types.eveningCheckIn:
+            // Habit lifecycle milestones and check-ins
+            // (docs/HABIT_LIFECYCLE_MESSAGING.md). Listed here rather than left
+            // to `default` because that returns null — the notification would
+            // render, be tappable, and open nothing.
+            case PushNotifications.Types.habitEstablished:
+            case PushNotifications.Types.habitAutomaticity:
+            case PushNotifications.Types.habitMaintenanceCheckIn:
+            case PushNotifications.Types.habitComeback:
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
 
             default:
