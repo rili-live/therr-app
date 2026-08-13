@@ -1,4 +1,3 @@
-import ReactGA from 'react-ga4';
 import {
     faPencilRuler,
     faPlus, faRocket, faTasks, faUserShield,
@@ -9,6 +8,7 @@ import { Button, Dropdown } from 'react-bootstrap';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IUserState } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import { startCheckout } from '../utilities/startCheckout';
 
 interface IManageSpacesMenuProps {
     className?: string;
@@ -21,12 +21,11 @@ const ManageSpacesMenu = ({
     navigateHandler,
     user,
 }: IManageSpacesMenuProps) => {
-    const onClickUpgrade = () => {
-        ReactGA.event('clicked_upgrade_btn', {
-            source: 'manage-spaces-menu',
-            plan: 'basic',
-        });
-    };
+    // Labelled "Upgrade to Pro" but has always sold the *basic* plan — this
+    // menu's Payment Link and its `clicked_upgrade_btn` event both said basic.
+    // Preserved rather than corrected: changing it changes what a customer is
+    // charged, which is a pricing decision, not an attribution one.
+    const onClickUpgrade = () => startCheckout({ plan: 'basic', eventSource: 'manage-spaces-menu' });
 
     const isSubscribed = UsersService.isAuthorized(
         {
@@ -60,7 +59,7 @@ const ManageSpacesMenu = ({
                     !isSubscribed
                     && <>
                         <Dropdown.Divider />
-                        <Dropdown.Item onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" className="fw-bold">
+                        <Dropdown.Item onClick={onClickUpgrade} className="fw-bold">
                             <FontAwesomeIcon icon={faRocket} className="text-danger me-2" /> Upgrade to Pro
                         </Dropdown.Item>
                     </>

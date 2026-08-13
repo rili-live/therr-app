@@ -15,6 +15,7 @@ import { faFacebookF } from '@fortawesome/free-brands-svg-icons';
 import Toast from 'react-bootstrap/Toast';
 import { v4 as uuidv4 } from 'uuid';
 import { IUserState } from 'therr-react/types';
+import { getStoredAttribution } from 'therr-react/utilities/attribution';
 import translator from '../../services/translator';
 import RegisterForm from './RegisterForm';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -117,6 +118,9 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             isDashboardRegistration: true,
             activationCode,
             paymentSessionId,
+            // Captured on first landing by Layout. Advisory telemetry — the
+            // server drops anything malformed rather than failing the signup.
+            userAcquisition: getStoredAttribution() || undefined,
         }).then((response: any) => {
             // Keep the inbound destination attached through the login step so a business
             // account created from the /api-access flow lands on API keys, not the overview.

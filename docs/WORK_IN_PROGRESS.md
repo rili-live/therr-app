@@ -111,6 +111,10 @@ append new items here rather than only printing them once.
   runs somewhere it can be preempted. Either accept that, or free ~150Mi on
   main-pool before the deploy. Check with
   `kubectl describe node <main-pool-node> | grep -A5 'Allocated resources'`.
+  Deploys are now staggered into waves (`_bin/lib/rollout-waves.sh`), so at most
+  one surge pod per node pool exists at a time — that removes the *contention*
+  between concurrent surges seen on 2026-08-12, but not this shortfall: one
+  144Mi surge pod still does not fit in ~103Mi. The capacity fix is still owed.
 - [ ] **Verify users-service reaches the ephemeral Redis after deploy.**
   `REDIS_EPHEMERAL_HOST`/`REDIS_EPHEMERAL_PORT` were missing from
   `k8s/prod/users-service-deployment.yaml` while `src/store/redisClient.ts`
@@ -121,6 +125,44 @@ append new items here rather than only printing them once.
   never worked in production. Confirm the pod logs `users-service connected to
   ephemeral Redis` (and no `REDIS_EPHEMERAL_CONNECTION_ERROR`), then exercise
   one handoff.
+
+## Marketing attribution (docs plan: `therr-workspace/docs/MARKETING_ATTRIBUTION_PLAN.md`)
+
+Phases 1–4 have shipped in code. These are the steps code cannot do — external
+console configuration, and one verification that gates a payments change.
+
+- [x] **Verify the plan → Stripe product mapping before enabling Checkout Sessions.**
+  Done 2026-08-12: the ids in
+  `therr-services/users-service/src/handlers/helpers/checkoutSessionPlans.ts` were confirmed
+  against the Stripe dashboard and `isStripeCheckoutSessionsEnabled` is now `true` in every
+  env block. Checkout Sessions therefore serve **production** buyers; the legacy Payment
+  Links remain only as the in-code fallback when session creation fails.
+- [ ] **Run one live-mode purchase per plan now that the flag is on.** Confirm the amount,
+  the 14-day trial, and that `/payment-complete/:sessionId` grants the right access level for
+  basic, advanced and pro. The flag is armed in production, so a wrong price or a missed
+  grant now affects real customers rather than falling back to a Payment Link.
+- [ ] **Add `stripe.com` to the GA4 referral exclusion list** (Admin → Data Streams → the
+  stream → Configure tag settings → List unwanted referrals). Checkout redirects off-site
+  and back, so without this the return is attributed to `stripe.com / referral` and the
+  `purchase` event is severed from the campaign that produced it — which defeats the point
+  of moving off Payment Links.
+- [ ] **Configure cross-domain measurement in GA4 admin** for therr.app, therr.com,
+  business.therr.com, dashboard.therr.com, habits.therr.com (Admin → Data Streams →
+  Configure tag settings → Configure your domains). The tag-side `linker` config is now
+  deployed on all surfaces, but it only decorates outbound links — the receiving property
+  honours `_gl` only when the admin list includes the domain.
+- [ ] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
+  carries it (`landing` / `web` / `dashboard`); without registration it is collected but
+  not reportable, and the three surfaces cannot be separated after consolidation.
+- [ ] **Mirror the consolidated GA4 measurement id into `therr-landing`.** The property exists
+  and `global-config.js` → `googleAnalyticsKeyUnified` is set to `G-R7CY0Z1ZRM` in all three
+  env blocks, so this repo's clients already dual-report. Still owed: the commented block in
+  `therr-landing/index.html` (a sibling repo — no CI here covers it), or the landing page
+  keeps reporting into the old property alone. GA4 cannot backfill across properties, so
+  leave the old properties running for at least a month before retiring them.
+- [ ] **Set up the Google Analytics MCP** and run the loop —
+  `therr-landing/.claude/commands/marketing-loop.md` has the analysis; the plan doc's
+  Phase 5 has the three setup commands. Client-side config, not a repo artifact.
 
 ## Pending campaign / outreach actions
 
@@ -141,6 +183,53 @@ append new items here rather than only printing them once.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-12, /work-plan) **Subscription upgrades now require the Stripe billing email to
+  match the account — watch for legitimate purchases that stop upgrading.** `register`, `login`
+  and `activateUserSubscription` all grant a plan's access level only when the Checkout
+  Session's billing email normalizes to the claiming account's email. Previously
+  `activateUserSubscription` granted to whoever presented the session id, so a customer who
+  paid Stripe with a *different* address than their Therr account (a personal card on a work
+  account, or vice versa) was upgraded then and will not be now. They fail closed and silently:
+  the response still 200s with `isAccessLevelUpdated: false`. The signal is the warn span
+  `Checkout session billing email does not match the account claiming it` — if it fires for
+  real customers rather than probes, the fix is an explicit "link this purchase" confirmation,
+  not widening the match. Note the subscription webhook has always keyed off the same billing
+  email, so those customers were already relying on manual rectification.
+- [ ] (2026-08-12, /work-plan) **Free-trial signups will start upgrading on the redirect
+  instead of on the webhook — expected, watch the volume.** `activateUserSubscription` gated on
+  `payment_status === 'paid'`, which a trial-only Checkout Session never satisfies
+  (`no_payment_required`), so trials were upgraded solely by `customer.subscription.*`. Both
+  paths now grant, and both are idempotent (the levels are unioned, not replaced), so a double
+  grant is a no-op. If trial conversions look like they jumped, this is why — the upgrade was
+  always meant to happen, it just used to depend on the webhook arriving.
+- [ ] (2026-08-12, /work-plan) Optional one-off audit for accounts damaged by the
+  `getUserByEmail` bug fixed in this batch: an `activateUserSubscription` call with no
+  `x-userid` used a lookup that omits `accessLevels`, so the update **replaced** the account's
+  levels with just the subscription level. Symptom is an account holding a
+  `DASHBOARD_SUBSCRIBER_*` level and nothing else — login rejects it for lacking
+  `EMAIL_VERIFIED`, which reads to the user as "my password stopped working" right after
+  paying. Query: `SELECT id, email, "accessLevels" FROM main.users WHERE "accessLevels"::text
+  LIKE '%DASHBOARD_SUBSCRIBER%' AND "accessLevels"::text NOT LIKE '%EMAIL_VERIFIED%';` Repair
+  by re-adding the missing levels; the fix only stops new occurrences.
+- [ ] (2026-08-12, /work-plan) **After the reactions-service deploy, confirm event RSVP still
+  persists.** Reaction write columns are now allow-listed
+  (`reactions-service/src/utilities/pickReactionWriteFields.ts`) instead of spread from
+  `req.body`, so any client field not on a list is silently dropped. `attendingCount` is the one
+  that would not have been found by reading the validators — mobile's ViewEvent attending modal
+  sends it on `POST /event-reactions/:eventId`, and the gateway's
+  `createOrUpdateEventReactionValidation` does not declare it. It **is** on the event allow-list,
+  but it is the field to check by hand: set an RSVP with a guest count on a real device and
+  confirm `main."eventReactions"."attendingCount"` holds the value after a reload. If any other
+  undeclared field turns out to be in use, its symptom is the same — the write 200s and the value
+  quietly does not persist, with nothing in the logs. No migration, no env var.
+- [ ] (2026-08-12, /work-plan) Optional one-off audit of rows written before the allow-list, all
+  of which were client-settable: `SELECT count(*) FROM main."thoughtReactions" WHERE
+  "relevanceScore" IS NOT NULL AND "algorithmKey" IS NULL;` — a scored row with no algorithm
+  recorded cannot have come from the distributor, which always sends the two together. Also
+  `SELECT count(*) FROM main."momentReactions" WHERE "contentLatitude" IS NOT NULL;` (same for
+  `spaceReactions` / `eventReactions`): nothing in the monorepo has ever written those columns, so
+  any non-zero result is client-supplied geo. Expect zero on both. The allow-list only stops new
+  writes; it does not repair history.
 - [ ] (2026-08-12, /work-plan) **TherrCoin rewards start being awarded after this deploy —
   expected, watch the balances.** `updateUserCoins` passed
   `userSearchResults[0] + req.body.settingsTherrCoinTotal` to the store: the whole user row
@@ -521,6 +610,33 @@ append new items here rather than only printing them once.
   (deep link, profile checklist, tappable invite toast); the checklist step now keys on
   MOBILE_VERIFIED rather than mere presence of a number, so users who changed their number
   will see the phone step reopen — worth a line in the notes so it does not read as a bug.
+- [ ] (2026-08-12, /quality-peer-review) **Confirm a real checkout still upgrades on the
+  redirect now that grants are gated on live subscription status.** Peer review found that
+  `resolveCheckoutSessionGrant` accepted `payment_status === 'paid'` as an alternative to the
+  subscription being `trialing`/`active`. That field is frozen at `paid` for the life of a
+  session object, so a subscriber who cancelled (and was revoked by `handleSubscriptionDeleted`)
+  could replay the session id still in their browser history against
+  `/login?paymentSessionId=` and re-grant themselves the plan, indefinitely and for free — a
+  hole this batch widened from one redirect endpoint to every login and registration. The
+  disjunct is gone; `GRANTING_SUBSCRIPTION_STATUSES` is now the sole gate, matching
+  `handleSubscriptionCreateUpdate`. The one case this narrows is a redirect that beats Stripe's
+  own flip to `active`: the session path then grants nothing and `activateUserSubscription`
+  returns `isAccessLevelUpdated: false`, with the subscription webhook granting a beat later.
+  Buy a real plan against the live keys and confirm the level lands on the redirect rather than
+  only on the webhook; if the race turns out to be common, poll or retry rather than restoring
+  the `payment_status` check. No migration, no env var.
+- [ ] (2026-08-12, /quality-peer-review) **Smoke-test the anonymous buy-then-register path once
+  Checkout Sessions reach production.** Both `POST /payments/checkout/sessions` and
+  `POST /payments/checkout/sessions/:id` were added without a matching entry in
+  `therr-api-gateway/src/config/unauthenticatedPaths.ts`, so every signed-out caller got a 401
+  from `authenticate`. On the dashboard that 401 is not inert: `interceptors.ts` dispatches
+  `logout()` and navigates to `/login`, which bounced a buyer returning from Stripe off
+  `/payment-complete/:sessionId` before the GA4 `purchase` event could fire — the one conversion
+  event the whole Checkout Sessions change exists to produce. Fixed in this review (both paths
+  exempted, both routes now use `authenticateOptional`), covered by unit tests. Verify on stage
+  with a signed-out browser: complete a checkout, confirm `/payment-complete/:sessionId` renders
+  its sign-up/sign-in links instead of redirecting, and confirm one `purchase` hit in GA4
+  Realtime. No migration, no env var.
 <!-- skill-followups:end -->
 
 ---
@@ -564,15 +680,38 @@ via `therr-js-utilities/constants` → `Reactions` so the two cannot drift.
 `rating` mattered most: `SpaceReactionsStore` averages it into the rating shown
 on public space pages, so one out-of-range write permanently skewed it.
 
+Closed 2026-08-12 (/work-plan): reaction write columns are now allow-listed. The four
+handlers spread `...req.body` straight into the store, and the store passes its params
+object to `knex.insert()`/`knex.update()` unfiltered — the `ICreate*Params` interfaces
+are compile-time only and the handlers are untyped `(req, res)`. express-validator at
+the gateway validates the fields it lists but does not strip the ones it does not, so
+every column on every reaction table was writable by any authenticated user. All 13
+spread sites now go through `reactions-service/src/utilities/pickReactionWriteFields.ts`.
+
+The column that mattered most was `main."thoughtReactions"."relevanceScore"` — the feed
+ordering key (`ORDER BY "relevanceScore" DESC NULLS LAST`). A client could pin any
+activated thought to the top of its own stream and stamp an `algorithmKey` naming a
+profile that never scored the row, which is the one invariant that column exists to make
+observable. Also closed: client-writable `contentLatitude`/`contentLongitude`/
+`contentLocation`/`contentAuthorId` on moment/space/event reactions, the space visit
+columns (`visitCount`, `visitedAt`, `lastVisitedAt`) that are derived server-side from
+`recordVisit`, and `updateCount`/`createdAt`/`updatedAt`/`isArchived`. The
+`/create-update/multiple-users` event route matters separately: it writes rows for every
+member of an event's group, so the unfiltered spread let its caller set any column on
+*other users'* reactions.
+
+Unlisted fields are dropped silently rather than rejected with a 400. `attendingCount`
+is why: mobile's ViewEvent RSVP modal sends it on `POST /event-reactions/:eventId`, the
+gateway validator does not declare it, and it only ever reached the table through the
+spread — so a 400 would have broken RSVP for installs that cannot be force-updated. It
+is on the event allow-list. The real client field set is wider than any validator
+declares, which is the general reason to drop rather than reject here.
+
 Still open in this area:
 
 - Reaction handlers force `userHasActivated: true` regardless of the request
   body, so an authenticated user can still mark any addressable content as
   activated. Closing this needs proximity/view verification, not a bounds check
-- The reaction handlers spread `...req.body` straight into the store, and
-  express-validator only validates listed fields rather than stripping unlisted
-  ones — so any column on the table is mass-assignable. Prefer an explicit
-  allow-list at the store boundary
 - `therr-api-gateway/src/services/maps/router.ts:144` — Backend logic to
   prevent location spoofing (rapid-change detection)
 
@@ -646,23 +785,57 @@ Still open:
 
 ### 1.5 Payment / subscription closure
 
-- `therr-services/users-service/src/handlers/users.ts:148` — Use
-  paymentSessionId to fetch subscription details and add accessLevels (the
-  Stripe checkout completes but the user account is not upgraded with tier
-  metadata)
-- `therr-services/users-service/src/handlers/auth.ts:67` — Same path on auth
-- `therr-services/users-service/src/handlers/payments.ts:53` — Only update
-  user if subscription has started free trial or paid
+Closed 2026-08-12 (/work-plan), all three items. A completed Stripe checkout now
+upgrades the account on the redirect rather than only via the subscription webhook.
+`register` and `login` both received `paymentSessionId` already — the dashboard's
+`PaymentComplete.tsx` redirects to `/register?paymentSessionId=` and
+`/login?paymentSessionId=`, and the gateway validates the field — but `createUser`
+had an empty `else if (paymentSessionId)` branch and `login` had the read commented
+out entirely. Both now resolve the session through a shared helper,
+`users-service/src/handlers/helpers/checkoutSessionAccessLevels.ts`.
 
-The analytics half of this same gap is tracked in
+The `payments.ts` item was a live bug, not a hardening task: `activateUserSubscription`
+gated on `payment_status === 'paid' && status === 'complete'`, but a Checkout Session
+that only starts a **free trial** completes with `payment_status: 'no_payment_required'`.
+That session granted nothing, so a trial signup was upgraded only when the
+`customer.subscription.*` webhook arrived — making the upgrade silently dependent on
+`STRIPE_WEBHOOK_SIGNING_SECRET` being configured (still an unchecked standing item
+above). The helper now grants on subscription status `trialing` or `active`, the same
+two `handleSubscriptionCreateUpdate` branches on, so the session and webhook paths agree.
+
+A session id is a bearer token for a *purchase*, not for an account, and nothing in the
+session ties it to the caller presenting it. All three paths therefore require the
+session's billing email to match the account claiming it (normalized, the same key the
+webhook grants on) and fail closed — otherwise any registration or login quoting a
+leaked session id would inherit that subscription's plan. Grants fail **open** in the
+other direction: a Stripe outage or a mismatch returns no levels rather than throwing,
+so registration and sign-in are never blocked by the upgrade path.
+
+Also fixed while refactoring: `activateUserSubscription`'s no-`userId` branch looked the
+account up with `Store.users.getUserByEmail`, which selects only `id`/`email`/
+`isUnclaimed`. The subsequent `updateUser` unions the grant with `existingUser.accessLevels`
+— `undefined` on that path — so an email-matched activation **replaced** the account's
+access levels with just the subscription level, stripping `EMAIL_VERIFIED` and locking the
+user out of login (which rejects accounts without it). That path now selects
+`accessLevels` explicitly via `getUsers`.
+
+Still open — the analytics half of this same gap, tracked in
 `therr-workspace/docs/MARKETING_ATTRIBUTION_PLAN.md` Phase 2: checkout is a Stripe
 **Payment Link** opened with `target="_blank"` (`therr-client-web-dashboard`:
 `PricingCards.tsx:97,134,172`, `Sidebar.tsx:280,283`, and the four `*Menu.tsx`
 components), so the GA4 session ends at the click and **no `purchase` event exists in
 any property**. Moving to a Checkout Session with a `success_url` back into the
 dashboard closes both problems at once — the redirect is what lets the account get
-upgraded *and* what keeps the session alive for attribution. Doing only the
-`paymentSessionId` half leaves revenue permanently unattributable to a campaign.
+upgraded *and* what keeps the session alive for attribution. The upgrade half is now
+done (above), so what remains here is purely the attribution half.
+
+Re-verify that premise before acting on it (noted 2026-08-12, /work-plan): a return
+path into the dashboard **does** already exist — `therr-client-web-dashboard/src/routes/
+PaymentComplete.tsx` reads a session id and forwards it to `/register` and `/login` —
+which is what made the upgrade half fixable without touching checkout at all. Whether
+the `target="_blank"` Payment Link is still how every plan is purchased, and whether
+GA4 genuinely sees no `purchase` event, should be checked against the current dashboard
+rather than inherited from this entry.
 
 ### 1.6 Unscoped user / connection endpoints (cross-brand leakage)
 
