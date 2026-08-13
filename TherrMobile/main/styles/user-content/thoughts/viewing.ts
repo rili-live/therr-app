@@ -229,8 +229,6 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingVertical: 8,
             paddingHorizontal: 10,
             borderRadius: 8,
-            borderLeftWidth: 3,
-            borderLeftColor: therrTheme.colors.brand,
             backgroundColor: isDarkMode ? therrTheme.colors.accent1 : therrTheme.colorVariations.backgroundNeutral,
         },
         parentThoughtTextContainer: {
