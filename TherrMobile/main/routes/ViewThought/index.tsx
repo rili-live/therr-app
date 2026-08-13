@@ -232,10 +232,6 @@ const ViewThought = ({
             });
         });
 
-        navigation.setOptions({
-            title: translate('pages.viewThought.headerTitle'),
-        });
-
         const unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
             // Placeholder for future nav bar color changes
         });
@@ -247,13 +243,16 @@ const ViewThought = ({
     }, []);
 
     // The parent is only known once the details fetch resolves, so the header title is corrected
-    // afterwards — "Reply" is the first signal that this post is part of a bigger thread.
+    // afterwards — "Reply" is the first signal that this post is part of a bigger thread. Both
+    // branches are set rather than only the reply one, so the title stays a function of the
+    // thought on screen: this screen is reused via `navigation.replace` when walking up out of a
+    // reply, and a one-way override would leave the parent's own view still titled "Reply".
     useEffect(() => {
-        if (parentThought?.id) {
-            navigation.setOptions({
-                title: translate('pages.viewThought.headerTitleReply'),
-            });
-        }
+        navigation.setOptions({
+            title: parentThought?.id
+                ? translate('pages.viewThought.headerTitleReply')
+                : translate('pages.viewThought.headerTitle'),
+        });
     }, [parentThought?.id, navigation, translate]);
 
     // Handlers
