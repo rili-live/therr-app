@@ -250,15 +250,18 @@ const getThoughtDetails = (req, res) => {
     const {
         withUser,
         withReplies,
+        withParent,
     } = req.body;
 
     const shouldFetchUser = !!withUser;
     const shouldFetchReplies = !!withReplies;
+    const shouldFetchParent = !!withParent;
 
     return Promise.all([
         Store.thoughts.getById(brand, thoughtId, {}, {
             withUser: shouldFetchUser,
             withReplies: shouldFetchReplies,
+            withParent: shouldFetchParent,
             shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
         }),
         Store.userMetrics.countWhere('thoughtId', thoughtId),
@@ -343,8 +346,11 @@ const getThoughtDetails = (req, res) => {
 
                 const replyIds = (thought.replies || []).map((reply) => reply.id).filter((id) => !!id);
                 // Activating this thought too (when it is itself a reply) keeps a reply reachable
-                // on its own after it was first opened via the parent's access.
-                const idsToActivate = thought.parentId ? [thought.id, ...replyIds] : replyIds;
+                // on its own after it was first opened via the parent's access. The parent is
+                // activated alongside it because the details view now offers a link up to it —
+                // without this, walking up from a reply reached by deep link 400s on a
+                // non-public parent the reader is plainly allowed to see.
+                const idsToActivate = thought.parentId ? [thought.id, thought.parentId, ...replyIds] : replyIds;
 
                 // Activate child thoughts otherwise
                 if (idsToActivate.length) {
