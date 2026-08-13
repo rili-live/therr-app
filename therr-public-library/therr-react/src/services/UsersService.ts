@@ -101,6 +101,11 @@ interface ICreateThoughtBody {
 interface IGetThoughtDetailsArgs {
     withUser?: boolean;
     withReplies?: boolean;
+    /**
+     * Attaches `thought.parent` (author + message snippet) when the thought is a reply, so the
+     * details view can show it belongs to a thread and link back up to it.
+     */
+    withParent?: boolean;
 }
 
 interface IDeleteThoughtsBody {
