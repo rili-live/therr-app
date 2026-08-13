@@ -182,8 +182,15 @@ export const persistPhaseDecision = async (
     const row = await Store.habitPhases.getOrCreate(userId, habitGoalId);
     if (!row) return;
 
+    // Refreshed on every write, so the number the maintenance *email* quotes is
+    // the one this run computed. The automator reads it rather than recomputing
+    // consistency from habits.habit_checkins with its own copy of the window
+    // length — two repos deriving the same statistic independently is how the
+    // push comes to say 92% and the email 85% for the same user on the same day.
+    const update: Record<string, any> = { lastConsistencyPercent: decision.consistencyPercent };
+
     if (decision.transitioned) {
-        const update: Record<string, any> = { phase: decision.nextPhase };
+        update.phase = decision.nextPhase;
 
         if (decision.milestone === 'established') {
             // The taper anchor, and a fresh maintenance cycle. Resetting the
@@ -205,14 +212,20 @@ export const persistPhaseDecision = async (
             // re-establishment is not read as still-lapsed.
             update.lapsedAt = null;
         }
-
-        await Store.habitPhases.update(row.id, update);
     }
 
     if (delivered.comeback) {
-        await Store.habitPhases.update(row.id, { lastComebackAt: today });
+        update.lastComebackAt = today;
     }
 
+    // One write rather than one per concern: a transition, a comeback and the
+    // consistency refresh can all land on the same run, and three sequential
+    // UPDATEs against the same row would be three round-trips for one logical
+    // change.
+    await Store.habitPhases.update(row.id, update);
+
+    // Separate because it is a guarded, monotonic advance rather than a plain
+    // set — `advanceMaintenanceStage` refuses to move the stage backwards.
     if (delivered.maintenanceStage !== undefined) {
         await Store.habitPhases.advanceMaintenanceStage(row.id, delivered.maintenanceStage);
     }

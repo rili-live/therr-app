@@ -239,6 +239,19 @@ describe('Habits digest — lifecycle engine', () => {
             });
         });
 
+        it('persists the consistency number the email will quote', async () => {
+            // Cross-repo contract: therr-messaging-automator reads
+            // `lastConsistencyPercent` off this row rather than recomputing it
+            // from habits.habit_checkins. If this stops being written, the
+            // maintenance email quietly starts quoting 0%.
+            buildFakeQueue();
+            stubDigest({ firstCheckinDaysAgo: 21, shortWindowCompletions: 13 });
+
+            await runDigest();
+
+            expect(phaseWrites[0].update.lastConsistencyPercent).to.equal(93);
+        });
+
         it('carries the consistency that earned it into the payload', async () => {
             const queue = buildFakeQueue();
             stubDigest({ firstCheckinDaysAgo: 21, shortWindowCompletions: 14 });

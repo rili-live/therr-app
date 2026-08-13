@@ -31,6 +31,9 @@ export interface IHabitPhaseRow {
     // back from this table is complete and honest.
     maintenanceEmailedStage: number;
     lastComebackEmailedAt: string | null;
+    // Written by this service on every evaluated run; read by the automator so
+    // both channels quote the same number.
+    lastConsistencyPercent: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -42,6 +45,7 @@ export interface IUpdateHabitPhaseParams {
     maintenanceStage?: number;
     lapsedAt?: string | null;
     lastComebackAt?: string | null;
+    lastConsistencyPercent?: number;
 }
 
 export default class HabitPhasesStore {

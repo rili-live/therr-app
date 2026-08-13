@@ -42,6 +42,15 @@ exports.up = async (knex) => {
     await knex.raw(`ALTER TABLE ${TABLE} ADD COLUMN IF NOT EXISTS "maintenanceEmailedStage" INTEGER NOT NULL DEFAULT 0`);
     await knex.raw(`ALTER TABLE ${TABLE} ADD COLUMN IF NOT EXISTS "lastComebackEmailedAt" DATE`);
 
+    // The trailing-window consistency the digest computed on its last pass,
+    // 0-100. Denormalized on purpose: the email needs this number, and the
+    // alternative is the automator recomputing it from habits.habit_checkins
+    // with its own copy of the window length and the age-capped denominator.
+    // Two repos deriving "consistency" independently is how the push comes to
+    // say 92% and the email 85% for the same user on the same day, with no test
+    // anywhere able to see the disagreement. One writer, one number.
+    await knex.raw(`ALTER TABLE ${TABLE} ADD COLUMN IF NOT EXISTS "lastConsistencyPercent" INTEGER NOT NULL DEFAULT 0`);
+
     // Serves the automator's "which rows owe an email?" sweep. Partial on the
     // two phases that can owe one at all: a `forming` habit never does, and
     // those are the bulk of the table.
@@ -59,4 +68,5 @@ exports.down = async (knex) => {
     await knex.raw('DROP INDEX IF EXISTS habits."habit_phases_email_sweep_idx"');
     await knex.raw(`ALTER TABLE ${TABLE} DROP COLUMN IF EXISTS "maintenanceEmailedStage"`);
     await knex.raw(`ALTER TABLE ${TABLE} DROP COLUMN IF EXISTS "lastComebackEmailedAt"`);
+    await knex.raw(`ALTER TABLE ${TABLE} DROP COLUMN IF EXISTS "lastConsistencyPercent"`);
 };
