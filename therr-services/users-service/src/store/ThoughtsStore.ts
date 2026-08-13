@@ -383,6 +383,13 @@ export default class ThoughtsStore {
                 const parentIds: string[] = [...new Set<string>(thoughts.map((thought) => thought.parentId).filter((id) => !!id))];
 
                 if (parentIds.length) {
+                    // This query is deliberately NOT an authorization boundary — it filters on
+                    // brand and mature content only, and will happily return a private parent.
+                    // `isPublic` and `fromUserId` are selected because the caller is what decides
+                    // whether the row may be shown: getThoughtDetails drops `parent` unless the
+                    // requesting user could open it in its own right. Any new consumer of
+                    // `withParent` has to make that same decision — returning these rows straight
+                    // to a client leaks the message of a thought the reader cannot access.
                     let parentQuery = knexBuilder
                         .select([
                             'id',

@@ -637,22 +637,17 @@ console configuration, and one verification that gates a payments change.
   with a signed-out browser: complete a checkout, confirm `/payment-complete/:sessionId` renders
   its sign-up/sign-in links instead of redirecting, and confirm one `purchase` hit in GA4
   Realtime. No migration, no env var.
-- [ ] (2026-08-13, /quality-peer-review) **`createThought` never checks that the caller may see
-  `parentId`.** `createThoughtValidation` declares `body('parentId').optional()` and the handler
-  spreads `...req.body` into `Store.thoughts.create`, so any authenticated user can attach a reply
-  to any thought id they know and become its owner. That is the reason the new `withParent` thread
-  context had to be gated in `getThoughtDetails` rather than trusted — an attacker-authored reply
-  reaches the handler on the own-content path, which skips the activation check entirely. Fix at
-  the source: reject a `parentId` the caller cannot read (public, own, or activated) at create
-  time. Until then, treat "is a reply of X" as an unauthenticated claim everywhere it is consumed.
+- [ ] (2026-08-13, /quality-peer-review) **Verify parent-thread context and reply creation on
+  stage with a real private thread.** Three gates changed and none is observable end-to-end from
+  unit tests: the banner is gated on the reader being able to open the parent, the parent is no
+  longer activated as a side effect of viewing a reply, and `createThought` now rejects a
+  `parentId` the caller cannot read. Walk it: (1) open a reply on a *non-public* thread as a user
+  who reached it through the parent, and confirm the "Replying to @user" banner and "Back to
+  Thread" still render; (2) post a reply from that same thread and confirm it still succeeds;
+  (3) confirm a reply on someone else's private thought you have never activated shows no banner
+  rather than linking to a 400. Watch users-service logs for unexpected 403s on `POST /thoughts` —
+  that would mean a legitimate reply path does not activate the parent the way the gate assumes.
   No migration, no env var.
-- [ ] (2026-08-13, /quality-peer-review) **Verify parent-thread context on stage with a real
-  private thread.** The banner is now gated on the reader being able to open the parent in its own
-  right, and the parent is no longer activated as a side effect of viewing a reply. Both are
-  invisible to unit tests end-to-end: open a reply on a *non-public* thread as a user who reached
-  it through the parent and confirm the "Replying to @user" banner and "Back to Thread" still
-  render; then open a reply on someone else's private thread that you have never activated and
-  confirm the banner is absent rather than linking to a 400. No migration, no env var.
 <!-- skill-followups:end -->
 
 ---

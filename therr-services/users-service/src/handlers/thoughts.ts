@@ -41,6 +41,43 @@ const createThought = async (req, res) => {
     } = parseHeaders(req.headers);
     const { brandVariation: brand } = getBrandContext(req.headers);
 
+    // A reply names its parent, and "is a reply of X" is what every downstream consumer trusts
+    // to decide what the author may see of X. Nothing else validates that claim, so it is
+    // checked here at the only point where it is minted: without this, any user could attach a
+    // reply to any thought id they know and then reach it through the details handler's
+    // own-content path, which skips the activation check entirely.
+    if (req.body.parentId) {
+        const parentThought = await Store.thoughts.getById(brand, req.body.parentId, {})
+            .then(({ thoughts }) => thoughts[0]);
+
+        if (!parentThought) {
+            // Also the cross-brand answer: getById is brand-scoped, so a habits user naming a
+            // therr thought sees "not found" rather than a confirmation that the id exists.
+            return handleHttpError({
+                res,
+                message: translate(locale, 'thoughts.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        // Mirrors the read gate in getThoughtDetails: public, authored by them, or activated.
+        // Every legitimate way to reach a reply box satisfies one of these — viewing a private
+        // thought requires activating it, and opening a thread activates all of its replies.
+        const canReplyToParent = parentThought.isPublic
+            || parentThought.fromUserId === userId
+            || await hasUserReacted(req.body.parentId, req.headers);
+
+        if (!canReplyToParent) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'thoughts.parentAccessRestricted'),
+                statusCode: 403,
+                errorCode: ErrorCodes.THOUGHT_ACCESS_RESTRICTED,
+            });
+        }
+    }
+
     const isDuplicate = await Store.thoughts.get(brand, {
         fromUserId: userId,
         message: req.body.message,
