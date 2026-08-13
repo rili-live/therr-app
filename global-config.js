@@ -49,11 +49,12 @@ module.exports = {
         // someone checks Realtime and finds it empty.
         googleAnalyticsKeyUnified: 'G-R7CY0Z1ZRM',
         // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
-        // instead of the hardcoded Payment Links. Off in production until the
+        // instead of the hardcoded Payment Links. Enabled 2026-08-12, once the
         // plan -> product id map in
-        // users-service/src/handlers/helpers/checkoutSessionPlans.ts is
-        // confirmed against the Stripe dashboard: a wrong id there charges a
-        // customer for a plan they did not pick.
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts was
+        // confirmed against the Stripe dashboard — a wrong id there charges a
+        // customer for a plan they did not pick, which is what gated this flag.
+        // Turning it off falls back to the legacy Payment Links, which still work.
         isStripeCheckoutSessionsEnabled: true,
         googleOAuth2WebClientId,
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
@@ -96,11 +97,12 @@ module.exports = {
         // someone checks Realtime and finds it empty.
         googleAnalyticsKeyUnified: 'G-R7CY0Z1ZRM',
         // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
-        // instead of the hardcoded Payment Links. Off in production until the
+        // instead of the hardcoded Payment Links. Enabled 2026-08-12, once the
         // plan -> product id map in
-        // users-service/src/handlers/helpers/checkoutSessionPlans.ts is
-        // confirmed against the Stripe dashboard: a wrong id there charges a
-        // customer for a plan they did not pick.
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts was
+        // confirmed against the Stripe dashboard — a wrong id there charges a
+        // customer for a plan they did not pick, which is what gated this flag.
+        // Turning it off falls back to the legacy Payment Links, which still work.
         isStripeCheckoutSessionsEnabled: true,
         googleOAuth2WebClientId,
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
@@ -143,11 +145,12 @@ module.exports = {
         // someone checks Realtime and finds it empty.
         googleAnalyticsKeyUnified: 'G-R7CY0Z1ZRM',
         // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
-        // instead of the hardcoded Payment Links. Off in production until the
+        // instead of the hardcoded Payment Links. Enabled 2026-08-12, once the
         // plan -> product id map in
-        // users-service/src/handlers/helpers/checkoutSessionPlans.ts is
-        // confirmed against the Stripe dashboard: a wrong id there charges a
-        // customer for a plan they did not pick.
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts was
+        // confirmed against the Stripe dashboard — a wrong id there charges a
+        // customer for a plan they did not pick, which is what gated this flag.
+        // Turning it off falls back to the legacy Payment Links, which still work.
         isStripeCheckoutSessionsEnabled: true,
         googleOAuth2WebClientId,
         // Implement these along with server side logic to select the corresponding "audience" (ie. android, ios, web client_id)

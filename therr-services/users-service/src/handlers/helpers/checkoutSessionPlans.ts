@@ -15,12 +15,11 @@ import { productIdMap } from './payment-webhook-handlers';
  * directions therefore agree by construction — a plan buys the product whose
  * access level the webhook will later grant.
  *
- * > **TODO(zack): confirm these three product ids in the Stripe dashboard
- * > before enabling `isStripeCheckoutSessionsEnabled` in production.**
- * > `productIdMap` already carries an unverified note on the Pro id, and a
- * > wrong mapping here charges a customer for a plan they did not choose. The
- * > flag exists so this code can ship un-armed until that check is done; the
- * > Payment Links keep serving checkout in the meantime.
+ * These three ids were confirmed against the Stripe dashboard on 2026-08-12,
+ * which is what `isStripeCheckoutSessionsEnabled` was gating — a wrong mapping
+ * here charges a customer for a plan they did not choose. Re-verify before
+ * changing any id: the flag is now on in every environment, so a bad value
+ * reaches real buyers rather than falling back to the Payment Links.
  */
 export const PLAN_PRODUCT_IDS: { [plan: string]: string } = {
     basic: 'prod_OK9dEHmueTGDZ1',

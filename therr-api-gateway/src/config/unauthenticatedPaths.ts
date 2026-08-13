@@ -44,6 +44,20 @@ const unauthenticatedPaths: IUnauthenticatedPath[] = [
     { url: '/v1/users-service/subscribers/send-feedback', methods: ['POST'] }, // send feedback
     { url: '/v1/users-service/auth', methods: ['POST'] }, // login
     { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
+    // Stripe Checkout. Pre-account by design: buy-then-register means the buyer may hold no
+    // session when they start checkout, and none when Stripe returns them to
+    // /payment-complete/:sessionId — a public route. Requiring a JWT 401s that visitor, and
+    // the dashboard's 401 interceptor then logs them out and navigates to /login, off the very
+    // page that fires the GA4 `purchase` event.
+    //
+    // Neither handler grants anything on the strength of being reached: `activateUserSubscription`
+    // requires the session's Stripe billing email to match the account's before any access level
+    // moves, and `createCheckoutSession` only mints a Stripe session. Both use authenticateOptional
+    // (services/users/router.ts) so a signed-in buyer still arrives with x-userid, and both sit
+    // behind serviceRateLimiter in routes/index.ts.
+    { url: '/v1/users-service/payments/checkout/sessions', methods: ['POST'] }, // start checkout
+    // ANCHORED to a single path segment so it cannot swallow a future sub-path under a session id.
+    { url: /\/v1\/users-service\/payments\/checkout\/sessions\/[^/]+$/, methods: ['POST'] }, // activate a completed checkout
     { url: '/v1/users-service/users', methods: ['POST'] }, // register
     // Public profile by id. ANCHORED: unanchored, this also matched every sub-path under
     // /users/:id — which is what made /users/:id/push-diagnostics 403 for a SUPER_ADMIN.

@@ -309,13 +309,19 @@ usersServiceRouter.post('/users/interests/me', validate, handleServiceRequest({
 }));
 
 // Payments
+// Both checkout routes use authenticateOptional and are exempted from `authenticate` in
+// config/unauthenticatedPaths.ts. Buy-then-register is a supported path, so the buyer may
+// hold no session either when starting checkout or when Stripe returns them to
+// /payment-complete. Optional (not absent) auth so a signed-in buyer still arrives with
+// x-userid, which both handlers prefer over the session's billing email.
+//
 // Registered before the `:id` route below — Express matches in registration
 // order, and `sessions` would otherwise be read as an id.
-usersServiceRouter.post('/payments/checkout/sessions', createCheckoutSessionValidation, validate, handleServiceRequest({
+usersServiceRouter.post('/payments/checkout/sessions', authenticateOptional, createCheckoutSessionValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
-usersServiceRouter.post('/payments/checkout/sessions/:id', validate, handleServiceRequest({
+usersServiceRouter.post('/payments/checkout/sessions/:id', authenticateOptional, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

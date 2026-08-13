@@ -71,6 +71,36 @@ describe('unauthenticatedPaths', () => {
         });
     });
 
+    /**
+     * Regression: both routes were added without a matching exemption here, so every
+     * anonymous caller got a 401 from `authenticate`. The dashboard's 401 interceptor turns
+     * that into `logout()` + `navigate('/login')`, which bounced a buyer returning from
+     * Stripe off /payment-complete/:sessionId before the GA4 `purchase` event could fire —
+     * the one conversion event the whole Checkout Sessions change exists to produce.
+     */
+    describe('Stripe checkout is reachable without a session (buy-then-register)', () => {
+        const SESSION_ID = 'cs_test_a1b2C3d4E5f6G7h8I9j0';
+
+        it('skips auth for starting a checkout session', () => {
+            expect(isUnauthenticatedPath('/v1/users-service/payments/checkout/sessions', 'POST')).to.equal(true);
+        });
+
+        it('skips auth for activating a completed checkout session', () => {
+            expect(isUnauthenticatedPath(`/v1/users-service/payments/checkout/sessions/${SESSION_ID}`, 'POST')).to.equal(true);
+        });
+
+        it('does NOT skip auth for sub-paths under a session id', () => {
+            expect(isUnauthenticatedPath(`/v1/users-service/payments/checkout/sessions/${SESSION_ID}/refund`, 'POST')).to.equal(false);
+        });
+
+        it('does not skip auth for other methods, or for the customer portal', () => {
+            expect(isUnauthenticatedPath('/v1/users-service/payments/checkout/sessions', 'GET')).to.equal(false);
+            expect(isUnauthenticatedPath(`/v1/users-service/payments/checkout/sessions/${SESSION_ID}`, 'DELETE')).to.equal(false);
+            // The portal acts on the caller's own subscription and has no billing-email gate.
+            expect(isUnauthenticatedPath('/v1/users-service/payments/customer-portal/sessions', 'POST')).to.equal(false);
+        });
+    });
+
     describe('list hygiene', () => {
         it('anchors every regex that targets a specific resource under /users/:id', () => {
             // A pattern matching a bare user id must not also match a longer path.
@@ -154,6 +184,9 @@ describe('unauthenticatedPaths', () => {
             ['/v1/maps-service/spaces/abc/pairings/feedback', 'POST'],
             ['/v1/maps-service/spaces/abc/corrections', 'POST'],
             ['/v1/maps-service/cities/austin/pulse', 'GET'],
+            ['/v1/users-service/payments/checkout/sessions/cs_test_a1b2C3d4E5f6G7h8I9j0', 'POST'],
+            ['/v1/users-service/payments/checkout/sessions/cs_test_a1b2C3d4E5f6G7h8I9j0/refund', 'POST'],
+            ['/v1/users-service/payments/customer-portal/sessions', 'POST'],
             ['/v1/messages-service/forums/abc-123', 'GET'],
             ['/v1/reactions-service/user-lists/public/abc-123/my-list', 'GET'],
             ['/v1/habits/pacts', 'GET'],

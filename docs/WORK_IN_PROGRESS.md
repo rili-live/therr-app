@@ -131,13 +131,16 @@ append new items here rather than only printing them once.
 Phases 1–4 have shipped in code. These are the steps code cannot do — external
 console configuration, and one verification that gates a payments change.
 
-- [ ] **Verify the plan → Stripe product mapping before enabling Checkout Sessions.**
-  `isStripeCheckoutSessionsEnabled` is `false` in production on purpose. Confirm each id in
-  `therr-services/users-service/src/handlers/helpers/checkoutSessionPlans.ts` against the
-  Stripe dashboard (the Pro id already carried an unverified note in `productIdMap`), then
-  run one **test-mode** purchase per plan and confirm the amount, the 14-day trial, and that
-  `/payment-complete/:sessionId` grants the right access level. Only then flip the flag.
-  Until it is flipped, every upgrade button still uses the original Payment Links.
+- [x] **Verify the plan → Stripe product mapping before enabling Checkout Sessions.**
+  Done 2026-08-12: the ids in
+  `therr-services/users-service/src/handlers/helpers/checkoutSessionPlans.ts` were confirmed
+  against the Stripe dashboard and `isStripeCheckoutSessionsEnabled` is now `true` in every
+  env block. Checkout Sessions therefore serve **production** buyers; the legacy Payment
+  Links remain only as the in-code fallback when session creation fails.
+- [ ] **Run one live-mode purchase per plan now that the flag is on.** Confirm the amount,
+  the 14-day trial, and that `/payment-complete/:sessionId` grants the right access level for
+  basic, advanced and pro. The flag is armed in production, so a wrong price or a missed
+  grant now affects real customers rather than falling back to a Payment Link.
 - [ ] **Add `stripe.com` to the GA4 referral exclusion list** (Admin → Data Streams → the
   stream → Configure tag settings → List unwanted referrals). Checkout redirects off-site
   and back, so without this the return is attributed to `stripe.com / referral` and the
@@ -151,11 +154,12 @@ console configuration, and one verification that gates a payments change.
 - [ ] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
   carries it (`landing` / `web` / `dashboard`); without registration it is collected but
   not reportable, and the three surfaces cannot be separated after consolidation.
-- [ ] **Create the consolidated GA4 property** and set its measurement id in
-  `global-config.js` → `googleAnalyticsKeyUnified` (all three env blocks) and in the
-  commented block in `therr-landing/index.html`. Both then collect in parallel — GA4 cannot
-  backfill across properties, so leave the old properties running for at least a month
-  before retiring them.
+- [ ] **Mirror the consolidated GA4 measurement id into `therr-landing`.** The property exists
+  and `global-config.js` → `googleAnalyticsKeyUnified` is set to `G-R7CY0Z1ZRM` in all three
+  env blocks, so this repo's clients already dual-report. Still owed: the commented block in
+  `therr-landing/index.html` (a sibling repo — no CI here covers it), or the landing page
+  keeps reporting into the old property alone. GA4 cannot backfill across properties, so
+  leave the old properties running for at least a month before retiring them.
 - [ ] **Set up the Google Analytics MCP** and run the loop —
   `therr-landing/.claude/commands/marketing-loop.md` has the analysis; the plan doc's
   Phase 5 has the three setup commands. Client-side config, not a repo artifact.
@@ -621,6 +625,18 @@ console configuration, and one verification that gates a payments change.
   Buy a real plan against the live keys and confirm the level lands on the redirect rather than
   only on the webhook; if the race turns out to be common, poll or retry rather than restoring
   the `payment_status` check. No migration, no env var.
+- [ ] (2026-08-12, /quality-peer-review) **Smoke-test the anonymous buy-then-register path once
+  Checkout Sessions reach production.** Both `POST /payments/checkout/sessions` and
+  `POST /payments/checkout/sessions/:id` were added without a matching entry in
+  `therr-api-gateway/src/config/unauthenticatedPaths.ts`, so every signed-out caller got a 401
+  from `authenticate`. On the dashboard that 401 is not inert: `interceptors.ts` dispatches
+  `logout()` and navigates to `/login`, which bounced a buyer returning from Stripe off
+  `/payment-complete/:sessionId` before the GA4 `purchase` event could fire — the one conversion
+  event the whole Checkout Sessions change exists to produce. Fixed in this review (both paths
+  exempted, both routes now use `authenticateOptional`), covered by unit tests. Verify on stage
+  with a signed-out browser: complete a checkout, confirm `/payment-complete/:sessionId` renders
+  its sign-up/sign-in links instead of redirecting, and confirm one `purchase` hit in GA4
+  Realtime. No migration, no env var.
 <!-- skill-followups:end -->
 
 ---
