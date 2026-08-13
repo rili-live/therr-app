@@ -219,6 +219,34 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             borderTopColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colors.tertiary,
             backgroundColor: therrTheme.colors.accent1,
         },
+        // "This post is a reply" banner, rendered above the post in the details view. Styled as a
+        // quoted block (left rule + muted text) so it reads as context rather than as the post.
+        parentThoughtContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 10,
+            marginHorizontal: 2,
+            paddingVertical: 8,
+            paddingHorizontal: 10,
+            borderRadius: 8,
+            borderLeftWidth: 3,
+            borderLeftColor: therrTheme.colors.brand,
+            backgroundColor: isDarkMode ? therrTheme.colors.accent1 : therrTheme.colorVariations.backgroundNeutral,
+        },
+        parentThoughtTextContainer: {
+            flex: 1,
+            paddingHorizontal: 8,
+        },
+        parentThoughtLabel: {
+            fontSize: 12,
+            fontWeight: '600',
+            paddingBottom: 2,
+            color: therrTheme.colors.brand,
+        },
+        parentThoughtMessage: {
+            fontSize: 14,
+            color: isDarkMode ? therrTheme.colorVariations.accentTextWhiteFade : therrTheme.colors.tertiary,
+        },
         repliesDivider: {
             width: '100%',
             marginVertical: 12,

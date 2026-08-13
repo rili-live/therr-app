@@ -1883,7 +1883,12 @@
       "headerTitle": "Thoughts",
       "reply": "Reply",
       "replies": "Replies",
-      "repliesFailed": "We couldn't load the replies. Try again in a moment."
+      "repliesFailed": "We couldn't load the replies. Try again in a moment.",
+      "headerTitleReply": "Reply",
+      "partOfThread": "Part of a thread",
+      "replyingTo": "Replying to {userName}",
+      "viewParentThought": "View the post this replies to",
+      "backToParent": "Back to Thread"
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",

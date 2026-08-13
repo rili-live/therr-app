@@ -1883,7 +1883,12 @@
       "headerTitle": "Pensées",
       "reply": "Répondre",
       "replies": "Réponses",
-      "repliesFailed": "Impossible de charger les réponses. Réessayez dans un instant."
+      "repliesFailed": "Impossible de charger les réponses. Réessayez dans un instant.",
+      "headerTitleReply": "Réponse",
+      "partOfThread": "Fait partie d'un fil",
+      "replyingTo": "En réponse à {userName}",
+      "viewParentThought": "Voir la publication à laquelle ceci répond",
+      "backToParent": "Retour au fil"
     },
     "manageSpaces": {
       "headerTitle": "Mes Commerces",
