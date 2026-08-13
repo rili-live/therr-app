@@ -374,6 +374,62 @@ export default class ThoughtsStore {
                 });
             }
 
+            if (options.withParent) {
+                // A reply has no visible thread context of its own, so the details view renders a
+                // banner linking up to the parent — that needs the parent's author and a snippet
+                // of its message. Deliberately its own bounded query rather than a second
+                // self-join: joined onto the replies join it would multiply (parent rows x reply
+                // rows) and formatSQLJoinAsJSON would have to de-dupe the product.
+                const parentIds: string[] = [...new Set<string>(thoughts.map((thought) => thought.parentId).filter((id) => !!id))];
+
+                if (parentIds.length) {
+                    // This query is deliberately NOT an authorization boundary — it filters on
+                    // brand and mature content only, and will happily return a private parent.
+                    // `isPublic` and `fromUserId` are selected because the caller is what decides
+                    // whether the row may be shown: getThoughtDetails drops `parent` unless the
+                    // requesting user could open it in its own right. Any new consumer of
+                    // `withParent` has to make that same decision — returning these rows straight
+                    // to a client leaks the message of a thought the reader cannot access.
+                    let parentQuery = knexBuilder
+                        .select([
+                            'id',
+                            'parentId',
+                            'fromUserId',
+                            'message',
+                            'isPublic',
+                            'isMatureContent',
+                            'createdAt',
+                        ])
+                        .from(THOUGHTS_TABLE_NAME)
+                        .whereIn('id', parentIds);
+
+                    // Mirrors the reply join's restriction: a habits reader must never be handed a
+                    // therr-brand parent, since the banner links to a thought they cannot open.
+                    if (readable !== 'all') {
+                        parentQuery = parentQuery.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+                    }
+
+                    if (options?.shouldHideMatureContent) {
+                        parentQuery = parentQuery.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
+                    }
+
+                    const parentRows = await this.db.read.query(parentQuery.toString()).then(({ rows: pRows }) => pRows);
+                    const parentsMap = parentRows.reduce((acc, parent) => {
+                        acc[parent.id] = parent;
+                        return acc;
+                    }, {});
+
+                    thoughts.forEach((thought) => {
+                        const modifiedThought = thought;
+                        // Left undefined (not null) when the parent is filtered out or deleted, so
+                        // clients fall back to "this is a reply" without a broken link target.
+                        if (modifiedThought.parentId && parentsMap[modifiedThought.parentId]) {
+                            modifiedThought.parent = parentsMap[modifiedThought.parentId];
+                        }
+                    });
+                }
+            }
+
             if (options.withUser) {
                 const userIds: string[] = [];
                 const thoughtDetailsPromises: Promise<any>[] = [];
@@ -385,6 +441,10 @@ export default class ThoughtsStore {
                         thought.replies.forEach((reply) => {
                             userIds.push(reply.fromUserId);
                         });
+                    }
+
+                    if (thought.parent) {
+                        userIds.push(thought.parent.fromUserId);
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
@@ -427,6 +487,23 @@ export default class ThoughtsStore {
 
                                 return modifiedReply;
                             });
+                        }
+                    }
+
+                    // Parent author, hydrated outside the `matchingUser` branch above: the banner
+                    // names the *parent's* author, so it must not go unnamed just because the
+                    // reply's own author row is missing.
+                    if (modifiedThought.parent) {
+                        const matchingParentUser = usersMap[modifiedThought.parent.fromUserId];
+                        if (matchingParentUser) {
+                            modifiedThought.parent = {
+                                ...modifiedThought.parent,
+                                fromUserName: matchingParentUser.userName,
+                                fromUserFirstName: matchingParentUser.firstName,
+                                fromUserLastName: matchingParentUser.lastName,
+                                fromUserMedia: matchingParentUser.media,
+                                fromUserIsSuperUser: matchingParentUser.isSuperUser,
+                            };
                         }
                     }
 

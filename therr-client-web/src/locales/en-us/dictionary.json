@@ -490,7 +490,13 @@
       "loginToReply": "Log in to reply",
       "loginToView": "Log in to view this post and join the conversation",
       "backToThoughts": "Back to Thoughts",
-      "viewReplies": "View {count} replies"
+      "viewReplies": "View {count} replies",
+      "headerTitleReply": "Reply",
+      "parentThread": "Thread",
+      "partOfThread": "Part of a thread",
+      "replyingTo": "Replying to {userName}",
+      "viewParentThought": "View the post this replies to",
+      "backToParent": "Back to Thread"
     },
     "explorePeople": {
       "pageTitle": "Search People",

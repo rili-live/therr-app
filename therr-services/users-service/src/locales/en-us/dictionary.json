@@ -65,7 +65,8 @@
         }
     },
     "thoughts": {
-        "notFound": "Thought not found"
+        "notFound": "Thought not found",
+        "parentAccessRestricted": "This user is not permitted to reply to a thought they cannot access"
     },
     "thoughtReactions": {
         "thoughtNotActivated": "This user is not permitted to access content without first activating the thought"
