@@ -18,3 +18,4 @@ export const STREAKS_TABLE_NAME = 'habits.streaks';
 export const STREAK_HISTORY_TABLE_NAME = 'habits.streak_history';
 export const PROOFS_TABLE_NAME = 'habits.proofs';
 export const PACT_ACTIVITIES_TABLE_NAME = 'habits.pact_activities';
+export const HABIT_PHASES_TABLE_NAME = 'habits.habit_phases';

@@ -1,4 +1,3 @@
-/* eslint-disable no-case-declarations */
 import * as admin from 'firebase-admin';
 import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
@@ -161,6 +160,15 @@ interface ICreateMessageConfig {
     habitId?: string;
     habitName?: string;
     daysRemaining?: number;
+    // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Mirrors the
+    // fields users-service puts on the queue row in
+    // `sendEmailAndOrPushNotification.ts` — age of the habit in days,
+    // trailing-window consistency as a whole percent, and the user's best-ever
+    // streak, which the comeback copy cites so it references a past success
+    // rather than the present lapse.
+    dayCount?: number;
+    consistencyPercent?: number;
+    bestStreakCount?: number;
     // Leaderboards: new weekly rank for rank-milestone copy
     rank?: number;
 }
@@ -940,6 +948,81 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'STREAK_MILESTONE'), brandVariation);
             return baseMessage;
+        // HABITS — Lifecycle transitions (docs/HABIT_LIFECYCLE_MESSAGING.md).
+        //
+        // These deliberately reuse the STREAK_MILESTONE / STREAK_BROKEN intent
+        // actions rather than declaring four of their own. A new IntentActionKey
+        // is only half a deep link — the other half is an <intent-filter> in the
+        // mobile AndroidManifest, which lives on `niche/HABITS-general` and can
+        // never ship from here. Declaring keys with no manifest entry would give
+        // Android a clickAction it cannot resolve, so the notification would open
+        // nothing. The destinations are already right: the three celebrations
+        // want the streak view, and the comeback wants the same "start a new
+        // one" surface `streakBroken` already opens.
+        case PushNotifications.Types.habitEstablished:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.habitEstablished.title', {
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationBody: translate(config.userLocale, 'notifications.habitEstablished.body', {
+                        consistencyPercent: Number(config.consistencyPercent || 0),
+                        dayCount: Number(config.dayCount || 0),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.streakView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'STREAK_MILESTONE'), brandVariation);
+            return baseMessage;
+        case PushNotifications.Types.habitAutomaticity:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.habitAutomaticity.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.habitAutomaticity.body', {
+                        dayCount: Number(config.dayCount || 0),
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.streakView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'STREAK_MILESTONE'), brandVariation);
+            return baseMessage;
+        case PushNotifications.Types.habitMaintenanceCheckIn:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.habitMaintenanceCheckIn.title', {
+                        dayCount: Number(config.dayCount || 0),
+                    }),
+                    notificationBody: translate(config.userLocale, 'notifications.habitMaintenanceCheckIn.body', {
+                        habitName: String(config.habitName || ''),
+                        consistencyPercent: Number(config.consistencyPercent || 0),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.streakView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'STREAK_MILESTONE'), brandVariation);
+            return baseMessage;
+        case PushNotifications.Types.habitComeback:
+            // A notification, not data-only: the comeback is the one lifecycle
+            // message aimed at someone who has stopped opening the app, so it
+            // has to render even when the app never wakes to handle it.
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.habitComeback.title', {
+                    habitName: String(config.habitName || ''),
+                }),
+                notificationBody: translate(config.userLocale, 'notifications.habitComeback.body', {
+                    bestStreakCount: Number(config.bestStreakCount || 0),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'STREAK_BROKEN');
+            return baseMessage;
         case PushNotifications.Types.newPersonalRecord:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -1146,7 +1229,6 @@ const predictAndSendNotification = (
     type: PushNotifications.Types,
     data: PushNotifications.INotificationData,
     config: ICreateMessageConfig,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     metrics: INotificationMetrics | undefined,
     brandVariation: BrandVariations,
     headers?: InternalConfigHeaders,
@@ -1265,7 +1347,11 @@ const predictAndSendNotification = (
                 || type === PushNotifications.Types.pactExpiring
                 || type === PushNotifications.Types.dailyHabitReminder
                 || type === PushNotifications.Types.morningMotivation
-                || type === PushNotifications.Types.eveningCheckIn) {
+                || type === PushNotifications.Types.eveningCheckIn
+                || type === PushNotifications.Types.habitEstablished
+                || type === PushNotifications.Types.habitAutomaticity
+                || type === PushNotifications.Types.habitMaintenanceCheckIn
+                || type === PushNotifications.Types.habitComeback) {
                 return messaging.send(message);
             }
 
