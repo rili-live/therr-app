@@ -69,6 +69,13 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     habitId?: string;
     habitName?: string;
     daysRemaining?: number;
+    // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Age of the
+    // habit in days, trailing-window consistency as a whole percent, and the
+    // user's best-ever streak — the comeback copy leans on that last one to
+    // reference a past success rather than a present failure.
+    dayCount?: number;
+    consistencyPercent?: number;
+    bestStreakCount?: number;
     // Leaderboards: the user's new weekly rank, for rank-milestone copy
     rank?: number;
 }
@@ -123,6 +130,9 @@ export default (
         habitId,
         habitName,
         daysRemaining,
+        dayCount,
+        consistencyPercent,
+        bestStreakCount,
         rank,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
@@ -254,6 +264,9 @@ export default (
                     habitId,
                     habitName,
                     daysRemaining,
+                    dayCount,
+                    consistencyPercent,
+                    bestStreakCount,
                     rank,
                     // achievementsCount,
                     // likeCount,

@@ -58,6 +58,8 @@ Coupling surface, regenerated 2026-07-30:
 | `main.notifications` | ✅ | — |
 | `main.userAchievements` | ✅ | — |
 | `main.thoughts` / `main.thoughtReactions` | — | ✅ (writes) |
+| `habits.habit_phases` | ✅ (**writes**) | — |
+| `habits.habit_goals` / `habits.streaks` | ✅ | — |
 
 Regenerate it — do this rather than trusting the table above, it ages:
 
@@ -181,6 +183,12 @@ Cloud Scheduler's free tier is **3 jobs per billing account and all 3 are in use
 still bill). New scheduled backend work should multiplex onto an existing function via the
 request-body `task` field rather than assuming a 4th job can be added for free.
 
+The habit lifecycle emails (`{"task":"habits-milestone-emails"}`) are the worked example.
+The task exists and is independently invocable, but rather than assume a 4th job it can also
+be chained onto the existing digest firing with `HABITS_MILESTONE_EMAILS_ON_DIGEST=true` —
+which is the better order regardless, since the digest is what advances the maintenance
+stages the emails mail on. Enable the chained path *or* a dedicated job, never both.
+
 ---
 
 ## 5. Checklist: does my change need a sibling repo?
@@ -191,6 +199,8 @@ request-body `task` field rather than assuming a 4th job can be added for free.
 | Adding a table to `BRAND_SCOPED_TABLES` | Grep both automators; mirror into `src/store/brandScoped.ts` if read there |
 | SQL doing date math on `thoughts."createdAt"` | Clamp for future-dated rows (§2) |
 | Changing the shape or auth of `/v1/habits/pacts/digest/run-daily` | Update `therr-messaging-automator/src/api/habitsDigest.ts` |
+| Renaming/dropping any `habits.habit_phases` column | Grep `therr-messaging-automator/src/store/HabitPhasesStore.ts`; it reads the row and **writes** `maintenanceEmailedStage` / `lastComebackEmailedAt` |
+| Changing how `lastConsistencyPercent` is computed | It is read, not recomputed, by the automator's maintenance email — the number users see in both channels comes from this repo alone |
 | Changing `k8s/prod` users-service ports, selector, or NetworkPolicy | Re-check the internal LB path in §3 |
 | Needing a new scheduled backend job | Multiplex onto an existing Cloud Function (§4), or budget for a paid job |
 | Adding a public API route the marketing site consumes | Coordinate with `therr-landing`; it pins absolute `api.therr.com/v1/...` URLs |
