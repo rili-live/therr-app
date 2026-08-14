@@ -111,10 +111,11 @@ append new items here rather than only printing them once.
   runs somewhere it can be preempted. Either accept that, or free ~150Mi on
   main-pool before the deploy. Check with
   `kubectl describe node <main-pool-node> | grep -A5 'Allocated resources'`.
-  Deploys are now staggered into waves (`_bin/lib/rollout-waves.sh`), so at most
-  one surge pod per node pool exists at a time — that removes the *contention*
-  between concurrent surges seen on 2026-08-12, but not this shortfall: one
-  144Mi surge pod still does not fit in ~103Mi. The capacity fix is still owed.
+  The wave plan (`_bin/lib/rollout-waves.sh`) no longer packs one surge pod per
+  node pool — the new cluster's bigger nodes were the capacity fix, so confirm
+  this shortfall is actually gone on the new node sizes before closing this item.
+  If main-pool still has less headroom than the 144Mi surge pod, the packing rule
+  removed from `assert_rollout_waves` needs to come back with it.
 - [ ] **Verify users-service reaches the ephemeral Redis after deploy.**
   `REDIS_EPHEMERAL_HOST`/`REDIS_EPHEMERAL_PORT` were missing from
   `k8s/prod/users-service-deployment.yaml` while `src/store/redisClient.ts`
