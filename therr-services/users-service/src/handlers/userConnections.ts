@@ -43,7 +43,9 @@ const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
 });
 
 // CREATE
-// TODO:RSERV-24: Security, get requestingUserId from user header token
+// RSERV-24 closed: `requestingUserId` still arrives in the body (the deployed mobile
+// app sends it and cannot be force-updated), but it is rejected below unless it matches
+// the `x-userid` header, so the body value can no longer be used to impersonate.
 const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const {
         requestingUserId,
@@ -676,21 +678,47 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
 };
 
 // READ
-const getUserConnection = (req, res) => Store.userConnections.getUserConnections({
-    requestingUserId: req.params.requestingUserId,
-    acceptingUserId: Number(req.query.acceptingUserId),
-})
-    .then((results) => {
-        if (!results.length) {
-            return handleHttpError({
-                res,
-                message: `No user connection found with id, ${req.params.id}.`,
-                statusCode: 404,
-            });
-        }
-        return res.status(200).send(results[0]);
+// `requestingUserId` is a route param, so without this guard any authenticated user could
+// read the connection row of any other pair. Matches the check in `createUserConnection`.
+/**
+ * Deliberately NOT brand-scoped. This reads a single connection by its
+ * (requestingUserId, acceptingUserId) pair — a targeted lookup, not discovery — and the
+ * guard below restricts it to pairs the caller is themselves a member of, so there is no
+ * id-walking path to another user's connections.
+ *
+ * Scoping it would break the case it exists for: a connection formed in one app is a fact
+ * about two identities, and `main.userConnections` records no brand. A user signed into
+ * Habits who is also a Therr user would get a 404 for a connection that demonstrably
+ * exists. Brand scoping belongs on discovery (searchUsers, searchUserPairings,
+ * findUsersByContactInfo), which is where a cross-brand result actually leaks accounts.
+ */
+const getUserConnection = (req, res) => {
+    const { locale, userId } = parseHeaders(req.headers);
+
+    if (`${req.params.requestingUserId}` !== `${userId}`) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.userConnections.mismatchTokenUserId'),
+            statusCode: 403,
+        });
+    }
+
+    return Store.userConnections.getUserConnections({
+        requestingUserId: req.params.requestingUserId,
+        acceptingUserId: Number(req.query.acceptingUserId),
     })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+        .then((results) => {
+            if (!results.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user connection found with id, ${req.params.requestingUserId}.`,
+                    statusCode: 404,
+                });
+            }
+            return res.status(200).send(results[0]);
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
 
 const getTopRankedConnections = (req, res) => {
     const {

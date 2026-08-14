@@ -337,7 +337,7 @@ async function enrichSpace(
 
       if (!args.dryRun) {
         await db.query(
-          `UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2`,
+          'UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2',
           [websiteUrl, space.id],
         );
         markProcessed(ProcessedType.WEBSITE_FOUND, space.id, space.notificationMsg);
@@ -371,7 +371,7 @@ async function enrichSpace(
 
       if (!args.dryRun) {
         await db.query(
-          `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
+          'UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2',
           [bestEmail.email, space.id],
         );
         markProcessed(ProcessedType.EMAIL_FOUND, space.id, space.notificationMsg);
@@ -392,7 +392,7 @@ async function enrichSpace(
 
       if (!args.dryRun) {
         await db.query(
-          `UPDATE main.spaces SET message = $1, "updatedAt" = NOW() WHERE id = $2`,
+          'UPDATE main.spaces SET message = $1, "updatedAt" = NOW() WHERE id = $2',
           [newMessage, space.id],
         );
       }
@@ -410,7 +410,7 @@ async function enrichSpace(
 
       if (!args.dryRun) {
         await db.query(
-          `UPDATE main.spaces SET "openingHours" = $1::jsonb, "updatedAt" = NOW() WHERE id = $2`,
+          'UPDATE main.spaces SET "openingHours" = $1::jsonb, "updatedAt" = NOW() WHERE id = $2',
           [hoursJson, space.id],
         );
       }
@@ -422,7 +422,7 @@ async function enrichSpace(
 
       if (!args.dryRun) {
         await db.query(
-          `UPDATE main.spaces SET "phoneNumber" = $1, "updatedAt" = NOW() WHERE id = $2`,
+          'UPDATE main.spaces SET "phoneNumber" = $1, "updatedAt" = NOW() WHERE id = $2',
           [details.phoneNumber, space.id],
         );
       }
@@ -530,7 +530,9 @@ async function runImport(db: Pool, args: ICliArgs, counters: ICounters): Promise
     // Insert
     if (spaces.length > 0) {
       console.log(`  Inserting ${spaces.length} spaces...`);
-      const { inserted, ids, skipped, failed } = await insertSpacesBatch(db, spaces);
+      const {
+        inserted, ids, skipped, failed,
+      } = await insertSpacesBatch(db, spaces);
       counters.imported += inserted;
       counters.skippedDuplicate += skipped;
       remaining -= inserted;

@@ -84,4 +84,22 @@ export default class ForumMessagesStore extends BrandScopedStore {
 
         return this.db.write.query(queryString).then((response) => response.rows);
     }
+
+    /**
+     * Deletes every forum message authored by the user, across all brands.
+     *
+     * Unscoped by brand for the same reason as DirectMessagesStore.deleteByUserId —
+     * see the comment there. Other members' messages in the same forums are untouched;
+     * only rows this user wrote are removed.
+     */
+    deleteByUserId(userId: string) {
+        const queryString = knexBuilder
+            .from(FORUM_MESSAGES_TABLE_NAME)
+            .where({ fromUserId: userId })
+            .delete()
+            .returning('id')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
 }

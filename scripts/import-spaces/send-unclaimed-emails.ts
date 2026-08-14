@@ -132,12 +132,12 @@ async function queryUnclaimedSpaces(mapsPool: Pool, args: ICliArgs): Promise<ISp
   // listings.
   const params: (string | number)[] = [SUPER_ADMIN_ID];
   const conditions = [
-    `"businessEmail" IS NOT NULL`,
-    `"businessEmail" != ''`,
-    `"fromUserId" = $1`,
-    `"requestedByUserId" IS NULL`,
-    `"isClaimPending" = false`,
-    `"isPublic" = true`,
+    '"businessEmail" IS NOT NULL',
+    '"businessEmail" != \'\'',
+    '"fromUserId" = $1',
+    '"requestedByUserId" IS NULL',
+    '"isClaimPending" = false',
+    '"isPublic" = true',
   ];
   let paramIdx = 2;
 
@@ -182,7 +182,7 @@ async function hasAlreadySentEmail(usersPool: Pool, spaceId: string): Promise<bo
 // ── Blacklist check ───────────────────────────────────────────────────────────
 async function isEmailBlacklisted(usersPool: Pool, email: string): Promise<boolean> {
   const result = await usersPool.query(
-    `SELECT id FROM main."blacklistedEmails" WHERE email ILIKE $1 LIMIT 1`,
+    'SELECT id FROM main."blacklistedEmails" WHERE email ILIKE $1 LIMIT 1',
     [email],
   ).catch(() => ({ rows: [] })); // table may not exist in dev
   return result.rows.length > 0;

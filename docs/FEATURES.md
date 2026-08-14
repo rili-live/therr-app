@@ -50,6 +50,7 @@
 - **Auto-expanded thread previews (mobile & web)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style); each post card also carries a reply-count control. Auto-expand criteria are shared: 2+ replies always expand, single-reply threads need a like signal on the parent or the reply
 - **Nested reply counts (mobile & web)** — in the thought details view only, each reply renders a reply icon with its own nested reply count; tapping it opens that reply's details view so threads can be walked one level at a time
 - **Inline reply likes (mobile)** — replies in the thought details view carry their own like control with an optimistic toggle (reverted if the request fails), so a reply can be liked without opening it. `getThoughtDetails` returns each reply's like count and the requesting user's reaction
+- **Parent thread context (mobile & web)** — a thought that is itself a reply opens with a quoted "Replying to @user" banner above it, linking up to the post it answers, plus a "Back to Thread" action and a breadcrumb/header that reads "Reply". `getThoughtDetails` takes `withParent` and returns `thought.parent` (author + message). The parent is only returned when the caller could open it in its own right — public, authored by them, or already activated — and is never activated as a side effect of viewing a reply. `createThought` applies the same test to `parentId` before minting a reply, so "is a reply of X" cannot be used to reach an X the author was never allowed to see
 - **Content categories** — 20+ categories (food, music, nature, art, gaming, etc.)
 - **Media uploads** — image upload with CDN (ImageKit), YouTube video embedding
 
@@ -181,6 +182,7 @@ These flags control which features are enabled per brand variant. Set in `TherrM
 - **Real-time pact updates** — WebSocket events for partner check-ins, celebrations, encouragement
 - **Pact status management** — pending, active, completed, abandoned, completed lifecycle
 - **HABITS achievements** — 8 brand-scoped achievement classes (habitBuilder, cleanBreak, treasureBuilder, consistency, accountability, resilience, socialEnergizer, pactPioneer) plus reused `socialite` for invite virality. Filtered per-brand via `getAchievementsForBrand()`. **Follow-up TODOs** (multi-habit consistency, partner-streak attribution, brand-header audit, lottie cards, etc.) — see `docs/niche-sub-apps/habits/HABITS_STREAKS_DESIGN.md` § "Follow-up TODOs"
+- **Habit lifecycle messaging** — per-habit phases (`forming` → `established` → `maintaining`, plus `lapsed`) that decide how often the app may nudge about a habit. Adaptive gates pair a day floor with the user's own trailing consistency (21 days + 90%/14d to taper nudging to every third day; 66 days + 85%/28d to stop it), then 30/60/90-day maintenance check-ins verify the habit held after support was withdrawn, and a self-compassion-framed comeback offer proposes a fresh streak when it didn't. Push side in the users-service digest, long-form email side in `therr-messaging-automator`. Off by default behind `HABIT_PHASE_ENGINE_ENABLED` — see `docs/HABIT_LIFECYCLE_MESSAGING.md`
 
 ---
 

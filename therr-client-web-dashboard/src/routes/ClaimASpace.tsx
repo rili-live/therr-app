@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
+import ReactGA from 'react-ga4';
 import {
     Col,
     Row,
@@ -108,6 +109,14 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             userConnections,
         } = this.props;
         document.title = `${getWebsiteName()} | ${this.translate('pages.claimASpace.pageTitle')}`;
+
+        // Funnel step 4: the business reached the claim form. Paired with the
+        // `claim_submit` below, the gap between the two is the form's own
+        // abandonment rate, isolated from everything upstream of it.
+        ReactGA.event('claim_start', {
+            source: 'dashboard_form',
+            isAuthenticated: !!user?.isAuthenticated,
+        });
     }
 
     componentWillUnmount = () => {
@@ -216,6 +225,16 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
 
         this.setState({
             isSubmitting: true,
+        });
+
+        // Funnel step 5. Fired at the attempt rather than on the response, so
+        // a claim lost to a server error still counts as a submission — the
+        // business did everything asked of it, and hiding those would make the
+        // form look healthier than it is.
+        ReactGA.event('claim_submit', {
+            source: 'dashboard_form',
+            category,
+            outcome: 'submitted',
         });
 
         MapsService.requestClaim({

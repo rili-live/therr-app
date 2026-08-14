@@ -75,6 +75,7 @@ const ViewThought: React.FC = () => {
         const detailsPromise = dispatch(UsersActions.getThoughtDetails(tId, {
             withUser: true,
             withReplies: true,
+            withParent: true,
         }) as any);
         const reactionPromise = cachedThought?.reaction
             ? Promise.resolve(cachedThought.reaction)
@@ -192,10 +193,24 @@ const ViewThought: React.FC = () => {
         navigate(`/thoughts/${replyId}`);
     }, [navigate]);
 
+    // Present only when the post being viewed is a reply
+    const parentThought = thought?.parent;
+
     const breadcrumbs = [
         <Anchor component={Link} to="/" key="home" size="sm">{translate('pages.navigation.home')}</Anchor>,
         <Anchor component={Link} to="/posts/thoughts" key="thoughts" size="sm">{translate('pages.navigation.thoughts')}</Anchor>,
-        <Text size="sm" key="thought">{translate('pages.viewThought.headerTitle')}</Text>,
+        ...(parentThought?.id
+            ? [
+                <Anchor component={Link} to={`/thoughts/${parentThought.id}`} key="parent" size="sm">
+                    {translate('pages.viewThought.parentThread')}
+                </Anchor>,
+            ]
+            : []),
+        <Text size="sm" key="thought">
+            {parentThought?.id
+                ? translate('pages.viewThought.headerTitleReply')
+                : translate('pages.viewThought.headerTitle')}
+        </Text>,
     ];
 
     if (isLoading) {
@@ -238,6 +253,34 @@ const ViewThought: React.FC = () => {
         <Container id="page_view_thought" size="sm" py="xl">
             <Stack gap="lg">
                 <Breadcrumbs>{breadcrumbs}</Breadcrumbs>
+
+                {/*
+                    Thread context. Without it a reply renders exactly like a top-level thought,
+                    so the post it answers — and the rest of the conversation — is invisible.
+                */}
+                {parentThought?.id && (
+                    <Anchor
+                        component={Link}
+                        to={`/thoughts/${parentThought.id}`}
+                        className="view-thought-parent"
+                        underline="never"
+                        aria-label={translate('pages.viewThought.viewParentThought')}
+                    >
+                        <Group gap="xs" align="center" mb={4} wrap="nowrap">
+                            <InlineSvg name="forum" className="discovered-tile-icon" />
+                            <Text size="xs" fw={700}>
+                                {parentThought.fromUserName
+                                    ? translate('pages.viewThought.replyingTo', { userName: parentThought.fromUserName })
+                                    : translate('pages.viewThought.partOfThread')}
+                            </Text>
+                        </Group>
+                        {parentThought.message && (
+                            <Text size="sm" c="dimmed" lineClamp={2}>
+                                {parentThought.message}
+                            </Text>
+                        )}
+                    </Anchor>
+                )}
 
                 {/* Main thought */}
                 <div className="view-thought-main">
@@ -429,14 +472,25 @@ const ViewThought: React.FC = () => {
                     </Text>
                 )}
 
-                {/* Back button */}
-                <Button
-                    variant="outline"
-                    onClick={() => navigate('/posts/thoughts')}
-                    size="sm"
-                >
-                    {translate('pages.viewThought.backToThoughts')}
-                </Button>
+                {/* Back buttons */}
+                <Group gap="sm">
+                    {parentThought?.id && (
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate(`/thoughts/${parentThought.id}`)}
+                            size="sm"
+                        >
+                            {translate('pages.viewThought.backToParent')}
+                        </Button>
+                    )}
+                    <Button
+                        variant={parentThought?.id ? 'subtle' : 'outline'}
+                        onClick={() => navigate('/posts/thoughts')}
+                        size="sm"
+                    >
+                        {translate('pages.viewThought.backToThoughts')}
+                    </Button>
+                </Group>
             </Stack>
         </Container>
     );

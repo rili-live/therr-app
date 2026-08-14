@@ -490,7 +490,13 @@
       "loginToReply": "Inicia sesión para responder",
       "loginToView": "Inicia sesión para ver esta publicación y unirte a la conversación",
       "backToThoughts": "Volver a Pensamientos",
-      "viewReplies": "Ver {count} respuestas"
+      "viewReplies": "Ver {count} respuestas",
+      "headerTitleReply": "Respuesta",
+      "parentThread": "Conversación",
+      "partOfThread": "Parte de una conversación",
+      "replyingTo": "Respondiendo a {userName}",
+      "viewParentThought": "Ver la publicación a la que responde",
+      "backToParent": "Volver a la conversación"
     },
     "explorePeople": {
       "pageTitle": "Buscar personas",
@@ -725,6 +731,27 @@
       "infoTitle": "¿Por qué verificamos tu número de teléfono?",
       "info": "Tu seguridad es nuestra prioridad. La verificación telefónica nos ayuda a mantener una comunidad auténtica y libre de cuentas falsas. Junto con el correo electrónico y las protecciones basadas en ubicación, garantizamos que te conectes con personas reales en un entorno de confianza."
     },
+    "verifyPhone": {
+      "pageTitle": "Verifica tu teléfono",
+      "pageTitleVerify": "Verifica tu teléfono: ingresa el código",
+      "description": "Te enviaremos un código por SMS para confirmar que este número es tuyo.",
+      "labels": {
+        "mobilePhone": "Teléfono móvil"
+      },
+      "buttons": {
+        "sendCode": "Enviar código"
+      },
+      "validationErrors": {
+        "phoneNumber": "Ingresa un número de teléfono válido"
+      },
+      "verifyPhoneSuccess": "¡Número de teléfono verificado!",
+      "verifyPhoneError": "No se pudo enviar el código de verificación. Inténtalo de nuevo.",
+      "updateProfileError": "No se pudo guardar tu número de teléfono. Inténtalo de nuevo.",
+      "authError": "Tu sesión ha expirado. Inicia sesión de nuevo.",
+      "invalidCode": "El código no es válido o ha expirado. Inténtalo de nuevo o solicita otro.",
+      "phoneNumberAlreadyInUseError": "El número de teléfono ya está en uso para este tipo de cuenta",
+      "phoneRegionNotSupportedError": "La verificación por SMS no está disponible en tu región. Usa otro número de teléfono."
+    },
     "login": {
       "pageTitle": "Iniciar sesión",
       "buttons": {
@@ -930,6 +957,9 @@
       "joinButton": "Únete ahora y gana 5 monedas",
       "appStoreText": "También disponible en móvil",
       "returnHome": "Volver a la página de inicio"
+    },
+    "inviteLinkLanding": {
+      "appStoreText": "Termina de unirte en {appName}"
     },
     "claimPactLanding": {
       "title": "Acepta tu pacto",

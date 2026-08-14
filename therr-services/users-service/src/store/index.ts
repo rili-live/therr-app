@@ -12,7 +12,9 @@ import NotificationsStore from './NotificationsStore';
 import OrganizationsStore from './OrganizationsStore';
 import SocialSyncsStore from './SocialSyncsStore';
 import SubscribersStore from './SubscribersStore';
+import NotificationQueueStore from './NotificationQueueStore';
 import ThoughtsStore from './ThoughtsStore';
+import UserAcquisitionStore from './UserAcquisitionStore';
 import UserAchievementsStore from './UserAchievementsStore';
 import UserConnectionsStore from './UserConnectionsStore';
 import UserLeaderboardScoresStore from './UserLeaderboardScoresStore';
@@ -30,6 +32,7 @@ import PactsStore from './PactsStore';
 import PactMembersStore from './PactMembersStore';
 import HabitCheckinsStore from './HabitCheckinsStore';
 import StreaksStore from './StreaksStore';
+import HabitPhasesStore from './HabitPhasesStore';
 import ProofsStore from './ProofsStore';
 import PactActivitiesStore from './PactActivitiesStore';
 
@@ -56,7 +59,11 @@ class Store {
 
     users: UsersStore;
 
+    userAcquisition: UserAcquisitionStore;
+
     userAchievements: UserAchievementsStore;
+
+    notificationQueue: NotificationQueueStore;
 
     userConnections: UserConnectionsStore;
 
@@ -97,6 +104,8 @@ class Store {
 
     streaks: StreaksStore;
 
+    habitPhases: HabitPhasesStore;
+
     proofs: ProofsStore;
 
     pactActivities: PactActivitiesStore;
@@ -111,7 +120,9 @@ class Store {
         this.campaignAssets = new CampaignAssetsStore(this.db);
         this.config = new ConfigStore(this.db);
         this.users = new UsersStore(this.db);
+        this.userAcquisition = new UserAcquisitionStore(this.db);
         this.userAchievements = new UserAchievementsStore(this.db);
+        this.notificationQueue = new NotificationQueueStore(this.db);
         this.userConnections = new UserConnectionsStore(this.db);
         this.userLeaderboardScores = new UserLeaderboardScoresStore(this.db);
         this.userDeviceTokens = new UserDeviceTokensStore(this.db);
@@ -136,6 +147,7 @@ class Store {
         this.pactMembers = new PactMembersStore(this.db);
         this.habitCheckins = new HabitCheckinsStore(this.db);
         this.streaks = new StreaksStore(this.db);
+        this.habitPhases = new HabitPhasesStore(this.db);
         this.proofs = new ProofsStore(this.db);
         this.pactActivities = new PactActivitiesStore(this.db);
     }

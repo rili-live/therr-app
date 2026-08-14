@@ -6,7 +6,6 @@ import { IUserState } from 'therr-react/types';
 import {
     Col,
     Row,
-    Card,
     Container,
     Toast,
     ToastContainer,
@@ -15,12 +14,13 @@ import {
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebookF, faGithub, faTwitter } from '@fortawesome/free-brands-svg-icons';
+import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { v4 as uuidv4 } from 'uuid';
 import LoginForm from './LoginForm';
 import translator from '../../services/translator';
 import UsersActions from '../../redux/actions/UsersActions';
 import withNavigation from '../../wrappers/withNavigation';
-import { getWebsiteName } from '../../utilities/getHostContext';
+import { getBrandContext, getWebsiteName } from '../../utilities/getHostContext';
 import { onFBLoginPress, shouldRenderLoginForm } from '../../api/login';
 import getReturnTo from '../../utilities/getReturnTo';
 import LoginWith from '../../components/LoginWith';
@@ -155,26 +155,58 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         // from /api-access usually has no dashboard account yet, so registration is their path.
         const returnTo = getReturnTo(this.props.location?.search, '');
         const registerPath = returnTo ? `/register?returnTo=${encodeURIComponent(returnTo)}` : '/register';
+        // Unauthenticated visitors are redirected here from anywhere in the app, so the page has
+        // to explain what the product is before it asks for credentials.
+        const brandContext = getBrandContext();
+        const brandParams = {
+            websiteName: brandContext.websiteName,
+            parentAppName: brandContext.parentAppName,
+        };
+        const benefits = [
+            this.translate('pages.login.valuePropBenefit1'),
+            this.translate('pages.login.valuePropBenefit2'),
+            this.translate('pages.login.valuePropBenefit3'),
+            this.translate('pages.login.valuePropBenefit4'),
+        ];
 
         return (
             <div id="page_login" className="flex-box center space-evenly row">
-                <main>
+                <main className='w-100'>
                     <section className='d-flex align-items-center my-5 mt-lg-7 mb-lg-5'>
-                        <Container className="mw-100">
+                        <Container>
                             {/* <p className='text-center'>
                                 <Card.Link as={Link} to={'/'} className='text-gray-700'>
                                     <FontAwesomeIcon icon={faAngleLeft} className='me-2' /> Back to homepage
                                 </Card.Link>
                             </p> */}
-                            <Row className='justify-content-center form-bg-image' style={{ backgroundImage: `url(${BgImage})` }}>
-                                <Col xs={12} className='d-flex align-items-center justify-content-center'>
+                            <Row className='justify-content-center align-items-center form-bg-image' style={{ backgroundImage: `url(${BgImage})` }}>
+                                <Col xs={12} lg={6} xl={5} className='d-flex align-items-center justify-content-center mb-4 mb-lg-0'>
+                                    {/* Same card treatment as the sign-in form — the background illustration
+                                        sits directly behind this column and swallows unbacked text. */}
+                                    <div
+                                        className='bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-500 text-start'
+                                        style={{ minHeight: '510px' }}
+                                    >
+                                        <h2 className='h3 mb-3'>{this.translate('pages.login.valuePropHeading')}</h2>
+                                        <p className='text-gray-700 mb-4'>{this.translate('pages.login.valuePropBody', brandParams)}</p>
+                                        <ul className='list-unstyled mb-0'>
+                                            {benefits.map((benefit) => (
+                                                <li key={benefit} className='d-flex align-items-start mb-3'>
+                                                    <FontAwesomeIcon icon={faCircleCheck} className='text-success me-2 mt-1' />
+                                                    <span className='fw-normal text-gray-700'>{benefit}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </Col>
+                                <Col xs={12} lg={6} xl={5} className='d-flex align-items-center justify-content-center'>
                                     <div className='bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-500' style={{ minHeight: '510px' }}>
                                         <div className='text-center text-md-center mb-2 mt-md-0'>
                                             <h3 className='mb-0'>{this.translate('pages.login.pageHeader')}</h3>
                                         </div>
-                                        {/* <div className='text-center text-md-center mb-4 mt-md-0'>
-                                            <h3 className='mb-0'>{this.translate('pages.login.pageSubheader')}</h3>
-                                        </div> */}
+                                        <div className='text-center text-md-center mt-2'>
+                                            <p className='text-gray-600 mb-0'>{this.translate('pages.login.pageSubheader')}</p>
+                                        </div>
                                         <LoginForm
                                             login={this.login}
                                             alert={alertMessage}
@@ -186,15 +218,16 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                         <LoginWith
                                             onClick={this.onOauth2Press}
                                         />
-                                        <div className='d-flex justify-content-center align-items-center mt-4'>
-                                            <span className='fw-normal'>
-                                                {/* eslint-disable-next-line no-trailing-spaces */}
-                                                Not registered? 
-                                                <Card.Link as={Link} to={registerPath} className='fw-bolder' style={{ paddingLeft: '.5rem' }}>
-                                                    {'Create account'}
-                                                </Card.Link>
-                                            </span>
+                                        <hr className='my-4' />
+                                        <div className='text-center'>
+                                            <span className='fw-normal'>{this.translate('pages.login.newHere', brandParams)}</span>
                                         </div>
+                                        <Link to={registerPath} className='btn btn-outline-primary w-100 mt-2'>
+                                            {this.translate('pages.login.createAccount')}
+                                        </Link>
+                                        <p className='text-center text-gray-600 small mt-3 mb-0'>
+                                            {this.translate('pages.login.freeTrialNote')}
+                                        </p>
                                     </div>
                                 </Col>
                             </Row>

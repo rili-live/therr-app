@@ -2,7 +2,6 @@
 import React, {
     useState,
 } from 'react';
-import ReactGA from 'react-ga4';
 import SimpleBar from 'simplebar-react';
 import {
     Link,
@@ -55,6 +54,7 @@ import {
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import { startCheckout } from '../utilities/startCheckout';
 import getUserImageUri from '../utilities/getUserImageUri';
 import { getBrandContext } from '../utilities/getHostContext';
 import * as globalConfig from '../../../global-config';
@@ -79,12 +79,11 @@ const Sidebar = (props: ISidebarProps) => {
     const [show, setShow] = useState(false);
     const contractClass = isContracted ? 'contracted' : '';
     const showClass = show ? 'show' : '';
-    const onClickUpgrade = () => {
-        ReactGA.event('clicked_upgrade_btn', {
-            source: 'sidebar-nav',
-            plan: 'basic',
-        });
-    };
+    // Labelled "Upgrade to Pro" but has always sold the *basic* plan — this
+    // nav's Payment Link and its `clicked_upgrade_btn` event both said basic.
+    // Preserved rather than corrected: changing it changes what a customer is
+    // charged, which is a pricing decision, not an attribution one.
+    const onClickUpgrade = () => startCheckout({ plan: 'basic', eventSource: 'sidebar-nav' });
 
     const isProSubscribed = UsersService.isAuthorized(
         {
@@ -277,10 +276,10 @@ const Sidebar = (props: ISidebarProps) => {
                             />
                             {
                                 !isProSubscribed
-                                    ? <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}>
+                                    ? <Button onClick={onClickUpgrade} variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}>
                                         <FontAwesomeIcon icon={faRocket} className="me-1" /> {isContracted ? '' : 'Upgrade to Pro'}
                                     </Button>
-                                    : <Button disabled onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}>
+                                    : <Button disabled onClick={onClickUpgrade} variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}>
                                         {isContracted ? '' : 'Pro Subscriber'}
                                     </Button>
                             }

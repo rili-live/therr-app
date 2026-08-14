@@ -352,6 +352,15 @@ This is **fine for MVP** but becomes painful once any brand needs:
 
 ### Migration path: when to split into per-brand Firebase projects
 
+> **Not receiving push notifications is not a trigger.** A shared project
+> delivers to every app registered in it, and splitting makes the existing
+> service account a stranger to the brand's tokens — every send then fails with
+> `messaging/mismatched-credential`, and the invalid-token cleanup path deletes
+> the registrations on its way out. Diagnose first with
+> [`PUSH_NOTIFICATIONS_DEBUGGING.md`](./PUSH_NOTIFICATIONS_DEBUGGING.md); the
+> cause is usually `apns-topic`, a wrong-brand device-token row, or a missing
+> APNS auth key — none of which a new project fixes.
+
 Triggers that warrant splitting:
 - A brand variant reaches its first 1k+ MAU and analytics signal noise
   becomes a real obstacle to product decisions

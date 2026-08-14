@@ -315,7 +315,7 @@ npm run dev             # Start individual service (from service dir)
 
 ### Kubernetes Architecture
 
-Manifests in `k8s/prod/` and `k8s/test/`:
+Manifests in `k8s/prod/` (the only deployed environment):
 - Each service: Deployment + ClusterIP Service
 - API Gateway: Deployment + LoadBalancer Service
 - Ingress: nginx with cert-manager for TLS
@@ -323,7 +323,44 @@ Manifests in `k8s/prod/` and `k8s/test/`:
 
 Internal service discovery: `{service-name}-cluster-ip-service:{port}`
 
-**Key File**: [_bin/cicd/deploy.sh](_bin/cicd/deploy.sh)
+### Ordered rollouts
+
+Deploys roll in three waves, not one shot: **backing stores + internal services
+→ API gateway → public web app**. `_bin/cicd/deploy.sh` walks the plan in
+[`_bin/lib/rollout-waves.sh`](../_bin/lib/rollout-waves.sh), waiting on each
+wave's `kubectl rollout status` before starting the next, and aborting the deploy
+on the first failed wave.
+
+The only rule shaping the plan is **skew direction**. Every Deployment is
+`replicas: 1` with `maxUnavailable: 0`, so ordering is not needed to keep
+anything *available* — it controls which version-skew window is open during the
+deploy. Old-client→new-backend is safe under the same expand/contract discipline
+the migrations follow; new-client→old-backend is what breaks users, so the
+browser bundle flips dead last and the gateway leads it.
+`assert_rollout_waves` pins those last two waves by name.
+
+> **History.** Until the cluster move this was a *seven*-wave plan enforcing a
+> second rule — at most one surge Pod per node pool per wave — because each
+> rolling Deployment transiently needs two Pods and the old two-node cluster had
+> no headroom for ten of them at once. That is the 2026-08-12 incident: four
+> Deployments hard-pinned to the preemptible pool stuck in `FailedScheduling` on
+> Insufficient memory, while three surge Pods on the main-pool node starved each
+> other's Node boots past their startup probes. The new cluster's nodes absorb
+> the full surge footprint, so the packing rule and the six intermediate drain
+> waits are gone. If the cluster is ever shrunk again, that constraint comes back.
+
+Adding a service means placing it in a wave — wave 1 unless it serves browsers
+directly. `assert_rollout_waves` fails the deploy if any
+`k8s/prod/*-deployment.yaml` is not claimed by exactly one wave. Check the plan
+locally with `npm run k8s:check-waves`.
+
+Knobs: `DEPLOY_ROLLOUT_TIMEOUT` (default `360s`, per Deployment) and
+`DEPLOY_DRAIN_TIMEOUT` (per wave — default `0`, i.e. the deploy no longer waits
+for superseded Pods to finish terminating between waves; set it to a positive
+number of seconds to restore that gate).
+
+**Key Files**: [_bin/cicd/deploy.sh](../_bin/cicd/deploy.sh),
+[_bin/lib/rollout-waves.sh](../_bin/lib/rollout-waves.sh)
 
 ---
 
@@ -412,7 +449,7 @@ This pattern allows niche features to be deployed without affecting core app fun
 | Shared components | `therr-public-library/therr-react/src/components/` |
 | Environment config | `global-config.js`, `.env.template` |
 | CI/CD pipeline | `.circleci/config.yml` |
-| K8s manifests | `k8s/prod/`, `k8s/test/` |
+| K8s manifests | `k8s/prod/` |
 
 ### Adding a New Service
 
@@ -420,7 +457,7 @@ This pattern allows niche features to be deployed without affecting core app fun
 2. Update `package.json` with name and port
 3. Add to `_bin/apply-to-changed.sh` package arrays
 4. Add route in `therr-api-gateway/src/routes/index.ts`
-5. Create K8s manifests in `k8s/prod/` and `k8s/test/`
+5. Create K8s manifests in `k8s/prod/`
 6. Add service URL to `global-config.js`
 
 ---

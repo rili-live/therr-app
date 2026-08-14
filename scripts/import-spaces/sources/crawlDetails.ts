@@ -90,8 +90,8 @@ const TIME_PATTERN = /\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM)/;
 /**
  * Flatten JSON-LD data, handling @graph arrays and top-level arrays.
  */
-function flattenJsonLd(data: any): any[] { // eslint-disable-line @typescript-eslint/no-explicit-any
-  const items: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+function flattenJsonLd(data: any): any[] {
+  const items: any[] = [];
 
   if (Array.isArray(data)) {
     for (const item of data) {

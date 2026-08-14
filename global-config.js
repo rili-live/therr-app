@@ -30,10 +30,32 @@ module.exports = {
         basePushNotificationsServiceRoute: isDockerDev ? `http://push-notifications-service:${apiPushNotificationsPort}/v1` : `http://${hostDev}:${apiPushNotificationsPort}/v1`,
         baseReactionsServiceRoute: isDockerDev ? `http://reactions-service:${apiReactionsPort}/v1` : `http://${hostDev}:${apiReactionsPort}/v1`,
         baseSocketUrl: `http://${hostDev}:${websocketPort}`,
+        baseWebsocketServiceRoute: isDockerDev ? `http://websocket-service:${websocketPort}` : `http://${hostDev}:${websocketPort}`,
         baseUsersServiceRoute: isDockerDev ? `http://users-service:${apiUsersPort}/v1` : `http://${hostDev}:${apiUsersPort}/v1`,
         baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/dev/',
         googleAnalyticsKey: 'G-WNB4XQ8W1Z',
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
+        // The consolidated GA4 property (Phase 4 of docs/MARKETING_ATTRIBUTION_PLAN.md).
+        // While empty, each client reports only into its existing property. Set it and every
+        // client sends to BOTH — the parallel run the migration needs, since GA4 cannot
+        // backfill history across properties. Remove the old keys only after the new
+        // property has a usable window of data.
+        //
+        // This must be the **Measurement ID** — `G-` followed by 10 alphanumerics, found at
+        // Admin -> Data streams -> (the web stream) -> Measurement ID. It is NOT the numeric
+        // Property ID on the property settings page (that one is for the Data API and the
+        // analytics MCP). gtag accepts any string here and silently collects nothing for an
+        // id it does not recognize, so a wrong value looks identical to a working one until
+        // someone checks Realtime and finds it empty.
+        googleAnalyticsKeyUnified: 'G-R7CY0Z1ZRM',
+        // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
+        // instead of the hardcoded Payment Links. Enabled 2026-08-12, once the
+        // plan -> product id map in
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts was
+        // confirmed against the Stripe dashboard — a wrong id there charges a
+        // customer for a plan they did not pick, which is what gated this flag.
+        // Turning it off falls back to the legacy Payment Links, which still work.
+        isStripeCheckoutSessionsEnabled: true,
         googleOAuth2WebClientId,
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
@@ -56,10 +78,32 @@ module.exports = {
         basePushNotificationsServiceRoute: `http://push-notifications-service-cluster-ip-service:${apiPushNotificationsPort}/v1`,
         baseReactionsServiceRoute: `http://reactions-service-cluster-ip-service:${apiReactionsPort}/v1`,
         baseSocketUrl: `https://websocket-service.${hostStage}`,
+        baseWebsocketServiceRoute: `http://websocket-service-cluster-ip-service:${websocketPort}`,
         baseUsersServiceRoute: `http://users-service-cluster-ip-service:${apiUsersPort}/v1`,
         baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/',
         googleAnalyticsKey: 'G-WNB4XQ8W1Z',
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
+        // The consolidated GA4 property (Phase 4 of docs/MARKETING_ATTRIBUTION_PLAN.md).
+        // While empty, each client reports only into its existing property. Set it and every
+        // client sends to BOTH — the parallel run the migration needs, since GA4 cannot
+        // backfill history across properties. Remove the old keys only after the new
+        // property has a usable window of data.
+        //
+        // This must be the **Measurement ID** — `G-` followed by 10 alphanumerics, found at
+        // Admin -> Data streams -> (the web stream) -> Measurement ID. It is NOT the numeric
+        // Property ID on the property settings page (that one is for the Data API and the
+        // analytics MCP). gtag accepts any string here and silently collects nothing for an
+        // id it does not recognize, so a wrong value looks identical to a working one until
+        // someone checks Realtime and finds it empty.
+        googleAnalyticsKeyUnified: 'G-R7CY0Z1ZRM',
+        // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
+        // instead of the hardcoded Payment Links. Enabled 2026-08-12, once the
+        // plan -> product id map in
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts was
+        // confirmed against the Stripe dashboard — a wrong id there charges a
+        // customer for a plan they did not pick, which is what gated this flag.
+        // Turning it off falls back to the legacy Payment Links, which still work.
+        isStripeCheckoutSessionsEnabled: true,
         googleOAuth2WebClientId,
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
@@ -82,10 +126,32 @@ module.exports = {
         basePushNotificationsServiceRoute: `http://push-notifications-service-cluster-ip-service:${apiPushNotificationsPort}/v1`,
         baseReactionsServiceRoute: `http://reactions-service-cluster-ip-service:${apiReactionsPort}/v1`,
         baseSocketUrl: `https://websocket-service.${hostProd}`,
+        baseWebsocketServiceRoute: `http://websocket-service-cluster-ip-service:${websocketPort}`,
         baseUsersServiceRoute: `http://users-service-cluster-ip-service:${apiUsersPort}/v1`,
         baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/',
         googleAnalyticsKey: 'G-WNB4XQ8W1Z',
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
+        // The consolidated GA4 property (Phase 4 of docs/MARKETING_ATTRIBUTION_PLAN.md).
+        // While empty, each client reports only into its existing property. Set it and every
+        // client sends to BOTH — the parallel run the migration needs, since GA4 cannot
+        // backfill history across properties. Remove the old keys only after the new
+        // property has a usable window of data.
+        //
+        // This must be the **Measurement ID** — `G-` followed by 10 alphanumerics, found at
+        // Admin -> Data streams -> (the web stream) -> Measurement ID. It is NOT the numeric
+        // Property ID on the property settings page (that one is for the Data API and the
+        // analytics MCP). gtag accepts any string here and silently collects nothing for an
+        // id it does not recognize, so a wrong value looks identical to a working one until
+        // someone checks Realtime and finds it empty.
+        googleAnalyticsKeyUnified: 'G-R7CY0Z1ZRM',
+        // Stripe Checkout Sessions (POST /v1/users-service/payments/checkout/sessions)
+        // instead of the hardcoded Payment Links. Enabled 2026-08-12, once the
+        // plan -> product id map in
+        // users-service/src/handlers/helpers/checkoutSessionPlans.ts was
+        // confirmed against the Stripe dashboard — a wrong id there charges a
+        // customer for a plan they did not pick, which is what gated this flag.
+        // Turning it off falls back to the legacy Payment Links, which still work.
+        isStripeCheckoutSessionsEnabled: true,
         googleOAuth2WebClientId,
         // Implement these along with server side logic to select the corresponding "audience" (ie. android, ios, web client_id)
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',

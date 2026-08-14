@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
+import { getUserConnection } from '../../src/handlers/userConnections';
 
 describe('UserConnections Handler', () => {
     afterEach(() => {
@@ -387,6 +388,100 @@ describe('UserConnections Handler', () => {
 
             expect(requestingUserId).to.not.equal(tokenUserId);
             // Handler should return 400 error
+        });
+    });
+
+    describe('getUserConnection authorization', () => {
+        // `requestingUserId` is a route param on GET /users/connections/:requestingUserId.
+        // Without a token check, any authenticated user could read the connection row of any
+        // other pair by walking ids.
+        const makeRes = () => {
+            const res: any = { sendCount: 0 };
+            res.status = (code: number) => {
+                res.statusCode = code;
+                return res;
+            };
+            res.send = (payload: any) => {
+                res.sendCount += 1;
+                res.body = payload;
+                return res;
+            };
+            return res;
+        };
+
+        it('refuses to read another user\'s connection row', async () => {
+            const getConnectionsStub = sinon.stub(Store.userConnections, 'getUserConnections').resolves([{
+                id: 'conn-123',
+                requestingUserId: 'user-2',
+                acceptingUserId: 'user-3',
+            }] as any);
+
+            const req: any = {
+                headers: { 'x-userid': 'user-1', 'x-localecode': 'en-us' },
+                params: { requestingUserId: 'user-2' },
+                query: { acceptingUserId: '3' },
+            };
+            const res = makeRes();
+
+            await getUserConnection(req, res);
+
+            expect(res.statusCode).to.equal(403);
+            // The guard must short-circuit before the row is ever read.
+            expect(getConnectionsStub.called).to.equal(false);
+        });
+
+        it('reads the caller\'s own connection row', async () => {
+            const getConnectionsStub = sinon.stub(Store.userConnections, 'getUserConnections').resolves([{
+                id: 'conn-123',
+                requestingUserId: 'user-1',
+                acceptingUserId: 'user-2',
+            }] as any);
+
+            const req: any = {
+                headers: { 'x-userid': 'user-1', 'x-localecode': 'en-us' },
+                params: { requestingUserId: 'user-1' },
+                query: { acceptingUserId: '2' },
+            };
+            const res = makeRes();
+
+            await getUserConnection(req, res);
+
+            expect(res.statusCode).to.equal(200);
+            expect(res.body.id).to.equal('conn-123');
+            expect(getConnectionsStub.calledOnce).to.equal(true);
+        });
+
+        it('compares ids by value, not by type', async () => {
+            // The header arrives as a string and the param is a string, but ids are numeric
+            // in some environments — a strict === on mixed types would 403 a legitimate read.
+            sinon.stub(Store.userConnections, 'getUserConnections').resolves([{ id: 'conn-123' }] as any);
+
+            const req: any = {
+                headers: { 'x-userid': 7, 'x-localecode': 'en-us' },
+                params: { requestingUserId: '7' },
+                query: { acceptingUserId: '2' },
+            };
+            const res = makeRes();
+
+            await getUserConnection(req, res);
+
+            expect(res.statusCode).to.equal(200);
+        });
+
+        it('responds 404 when the caller has no such connection', async () => {
+            sinon.stub(Store.userConnections, 'getUserConnections').resolves([] as any);
+
+            const req: any = {
+                headers: { 'x-userid': 'user-1', 'x-localecode': 'en-us' },
+                params: { requestingUserId: 'user-1' },
+                query: { acceptingUserId: '2' },
+            };
+            const res = makeRes();
+
+            await getUserConnection(req, res);
+
+            expect(res.statusCode).to.equal(404);
+            expect(res.sendCount).to.equal(1);
         });
     });
 });

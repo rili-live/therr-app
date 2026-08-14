@@ -12,6 +12,7 @@ import normalizeEmail from 'normalize-email';
 import { getBrandContext } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
+import { sanitizeUserAcquisition } from '../../store/UserAcquisitionStore';
 import { hashPassword } from '../../utilities/userHelpers';
 import { validatePassword } from '../../utilities/passwordUtils';
 import generateCode from '../../utilities/generateCode';
@@ -85,6 +86,15 @@ export interface ICreateUserOptions {
      * verification email is sent as usual.
      */
     isPhoneVerified?: boolean;
+    /**
+     * Where this signup came from — the `utm_*` / referrer record the web
+     * clients captured on first landing (therr-react/utilities/attribution).
+     *
+     * Untrusted and advisory. It is sanitized by `sanitizeUserAcquisition`,
+     * written fire-and-forget after the account exists, and grants nothing. A
+     * bad or absent value costs a row of telemetry, never a registration.
+     */
+    userAcquisition?: any;
 }
 
 interface IGetUserHelperArgs {
@@ -288,25 +298,45 @@ const getUserHelper = ({
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
-// Upgrade-only access-level transition for profile/settings saves.
-// Returns a JSON-stringified accessLevels array when the user has just
-// completed their profile and should move EMAIL_VERIFIED_MISSING_PROPERTIES
-// → EMAIL_VERIFIED. Returns undefined when no transition applies.
+// Access-level transitions for profile/settings saves.
+// Returns a JSON-stringified accessLevels array when a transition applies, or
+// undefined when the caller should leave accessLevels untouched.
 //
-// The reverse demotion (EMAIL_VERIFIED → EMAIL_VERIFIED_MISSING_PROPERTIES)
-// was intentionally removed in commit f89e98805: a routine settings save
-// (e.g. theme change) round-trips name/phone fields and would re-evaluate
-// as "incomplete" against any existing-user row with a falsy required
-// field, demoting the user and bouncing them back to CreateProfile.
+// Two transitions, and they are independent:
+//
+// 1. Profile completion — EMAIL_VERIFIED_MISSING_PROPERTIES → EMAIL_VERIFIED.
+//    The reverse demotion (EMAIL_VERIFIED → EMAIL_VERIFIED_MISSING_PROPERTIES)
+//    was intentionally removed in commit f89e98805: a routine settings save
+//    (e.g. theme change) round-trips name/phone fields and would re-evaluate
+//    as "incomplete" against any existing-user row with a falsy required
+//    field, demoting the user and bouncing them back to CreateProfile.
+//
+// 2. Phone change — revokes MOBILE_VERIFIED. That access level is evidence that
+//    a *specific* number was verified via the SMS flow, so it cannot survive the
+//    number being edited to an arbitrary new one through a plain profile save.
+//    The save itself still succeeds; only the trust attached to the old number is
+//    withdrawn, and the user re-earns it through the normal phone-verification
+//    flow. Phone-gated actions (currently bulk `multi-invite`, gated on
+//    MOBILE_VERIFIED at the gateway) return 403 until they do — which the mobile
+//    PhoneContacts screen already surfaces as a "Verify Your Phone" toast.
 const computeAccessLevelsAfterProfileUpdate = (
     existingAccessLevels: string[] | undefined,
     isMissingUserProps: boolean,
+    isChangingPhoneNumber = false,
 ): string | undefined => {
-    if (isMissingUserProps) return undefined;
-    if (!existingAccessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) return undefined;
-    const next = new Set(existingAccessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES));
-    next.add(AccessLevels.EMAIL_VERIFIED);
-    return JSON.stringify([...next]);
+    const next = new Set(existingAccessLevels || []);
+    let hasChanged = false;
+
+    if (isChangingPhoneNumber && next.delete(AccessLevels.MOBILE_VERIFIED)) {
+        hasChanged = true;
+    }
+
+    if (!isMissingUserProps && next.delete(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+        next.add(AccessLevels.EMAIL_VERIFIED);
+        hasChanged = true;
+    }
+
+    return hasChanged ? JSON.stringify([...next]) : undefined;
 };
 
 // A profile is considered "complete" (eligible for EMAIL_VERIFIED) once it has a
@@ -337,6 +367,7 @@ const createUserHelper = (
         inviteToken,
         isPreVerified = false,
         isPhoneVerified = false,
+        userAcquisition,
     } = options;
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -459,6 +490,25 @@ const createUserHelper = (
             user = results[0];
             // Remove credentials from object
             redactUserCreds(user);
+
+            // Marketing attribution. Fire-and-forget, and deliberately not
+            // awaited: this row is the only place the campaign that produced a
+            // signup is recorded, but it is still telemetry, and a failed
+            // INSERT must never turn a successful registration into an error
+            // the user sees.
+            if (userAcquisition) {
+                Store.userAcquisition.createAcquisition(sanitizeUserAcquisition(userAcquisition, {
+                    userId: user.id,
+                    brandVariation: headers['x-brand-variation'],
+                })).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while recording user acquisition'],
+                        traceArgs: { 'error.message': err?.message, 'user.id': user.id },
+                    });
+                });
+            }
 
             // Magic invite-link acceptance: mark the invite accepted, connect
             // the two users so the invitee lands in-app already connected, and

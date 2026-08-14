@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-    ActivityIndicator,
     Dimensions,
     Platform,
     Pressable,
@@ -35,8 +34,9 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import userContentStyles from '../../styles/user-content';
 import spacingStyles from '../../styles/layouts/spacing';
 import { youtubeLinkRegex, MAX_DISTANCE_TO_NEARBY_SPACE } from '../../constants';
-import { Image } from '../../components/BaseImage';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
+import AreaScrollerCard from '../../components/UserContent/AreaScrollerCard';
+import HorizontalCardScroller, { getScrollerCardWidth } from '../../components/UserContent/HorizontalCardScroller';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { isMyContent as checkIsMySpace, getUserContentUri } from '../../utilities/content';
@@ -50,6 +50,7 @@ import getNearbySpaces from '../../utilities/getNearbySpaces';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 
 const { width: screenWidth } = Dimensions.get('window');
+const pairingCardWidth = getScrollerCardWidth(screenWidth);
 
 const localStyles = StyleSheet.create({
     footer: {
@@ -64,53 +65,7 @@ const localStyles = StyleSheet.create({
         marginTop: 8,
     },
     pairingsSection: {
-        paddingHorizontal: 16,
-        paddingTop: 16,
         paddingBottom: 80,
-    },
-    pairingsTitle: {
-        marginBottom: 4,
-    },
-    pairingsDescription: {
-        textAlign: 'center',
-        marginBottom: 12,
-        fontSize: 13,
-    },
-    pairingsLoader: {
-        marginVertical: 20,
-    },
-    pairingCard: {
-        borderWidth: 1,
-        borderRadius: 10,
-        marginBottom: 12,
-        overflow: 'hidden',
-    },
-    pairingImage: {
-        width: '100%',
-        height: 120,
-    },
-    pairingContent: {
-        padding: 12,
-    },
-    pairingTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        marginBottom: 4,
-    },
-    pairingBadge: {
-        alignSelf: 'flex-start',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        marginTop: 4,
-    },
-    pairingBadgeText: {
-        fontSize: 11,
-        fontWeight: '500',
-    },
-    pairingAddress: {
-        fontSize: 12,
-        marginTop: 4,
     },
     pairingFeedbackRow: {
         flexDirection: 'row',
@@ -118,15 +73,15 @@ const localStyles = StyleSheet.create({
         marginTop: 8,
     },
     pairingFeedbackLink: {
-        fontSize: 12,
-        fontWeight: '500',
+        fontSize: 13,
+        fontWeight: '600',
     },
     pairingFeedbackSeparator: {
-        fontSize: 12,
-        marginHorizontal: 6,
+        fontSize: 13,
+        marginHorizontal: 8,
     },
     pairingFeedbackText: {
-        fontSize: 12,
+        fontSize: 13,
     },
 });
 
@@ -543,99 +498,102 @@ const ViewSpace = ({
         return label.charAt(0).toUpperCase() + label.slice(1);
     }, []);
 
+    const handleSharePairing = useCallback((pairing: any) => {
+        const shareUrl = buildSpaceUrl(user.settings?.locale || 'en-us', pairing.id);
+        Share.share({
+            message: translate('modals.contentOptions.shareLink.message', { spaceId: pairing.id, shareUrl }),
+            url: shareUrl,
+            title: translate('modals.contentOptions.shareLink.title', { spaceTitle: pairing.notificationMsg }),
+        }).catch((err) => console.error(err));
+    }, [translate, user.settings?.locale]);
+
+    const renderPairingCard = useCallback(({ item: pairing }: { item: any }) => {
+        const pairingMediaPath = pairing.medias?.[0]?.path;
+        const pairingMediaType = pairing.medias?.[0]?.type;
+        const pairingMedia = pairingMediaPath && pairingMediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(pairing.medias[0], pairingCardWidth, pairingCardWidth)
+            : undefined;
+        const hasFeedback = pairingFeedback[pairing.id] !== undefined;
+
+        return (
+            <AreaScrollerCard
+                width={pairingCardWidth}
+                seed={pairing.id}
+                imageUri={pairingMedia}
+                category={pairing.category}
+                areaType="spaces"
+                title={pairing.notificationMsg}
+                badgeLabel={formatCategoryLabel(pairing.category) || undefined}
+                metaLines={[pairing.addressReadable]}
+                rating={pairing.rating?.avgRating}
+                ratingCount={pairing.rating?.totalRatings}
+                onPress={() => handleGoToViewSpace(pairing)}
+                onSharePress={() => handleSharePairing(pairing)}
+                shareAccessibilityLabel={translate('pages.viewSpace.actionLinks.share')}
+                isDarkMode={isDarkMode}
+                theme={theme}
+                footerContent={(
+                    <View style={localStyles.pairingFeedbackRow}>
+                        {hasFeedback ? (
+                            <Text style={[localStyles.pairingFeedbackText, { color: theme.colors.textGray }]}>
+                                {pairingFeedback[pairing.id]
+                                    ? translate('pages.viewSpace.pairings.helpful')
+                                    : translate('pages.viewSpace.pairings.notHelpful')}
+                            </Text>
+                        ) : (
+                            <>
+                                <Pressable onPress={() => handlePairingFeedback(pairing.id, true)} hitSlop={8}>
+                                    <Text style={[localStyles.pairingFeedbackLink, { color: brandColor }]}>
+                                        {translate('pages.viewSpace.pairings.helpful')}
+                                    </Text>
+                                </Pressable>
+                                <Text style={[localStyles.pairingFeedbackSeparator, { color: theme.colors.textGray }]}>|</Text>
+                                <Pressable onPress={() => handlePairingFeedback(pairing.id, false)} hitSlop={8}>
+                                    <Text style={[localStyles.pairingFeedbackLink, { color: brandColor }]}>
+                                        {translate('pages.viewSpace.pairings.notHelpful')}
+                                    </Text>
+                                </Pressable>
+                            </>
+                        )}
+                    </View>
+                )}
+            />
+        );
+    }, [
+        pairingFeedback,
+        handleGoToViewSpace,
+        handlePairingFeedback,
+        handleSharePairing,
+        formatCategoryLabel,
+        translate,
+        isDarkMode,
+        theme,
+        brandColor,
+    ]);
+
     const renderPairings = () => {
-        const spaceName = spaceInView.notificationMsg || '';
-
-        if (isPairingsLoading) {
-            return (
-                <View style={localStyles.pairingsSection}>
-                    <Text style={[theme.styles.sectionTitleCenter, localStyles.pairingsTitle]}>
-                        {translate('pages.viewSpace.pairings.youMightAlsoLike')}
-                    </Text>
-                    <Text style={[theme.styles.sectionDescription, localStyles.pairingsDescription]}>
-                        {translate('pages.viewSpace.pairings.pairingsDescription', { spaceName })}
-                    </Text>
-                    <ActivityIndicator size="small" color={brandColor} style={localStyles.pairingsLoader} />
-                </View>
-            );
+        // The wrapper carries the scroll view's bottom padding, so it must not
+        // render at all when there is nothing to pad — most spaces have no
+        // pairings and would otherwise end in 80px of dead space.
+        if (!isPairingsLoading && !spacePairings.length) {
+            return null;
         }
-
-        if (!spacePairings.length) return null;
 
         return (
             <View style={localStyles.pairingsSection}>
-                <Text style={[theme.styles.sectionTitleCenter, localStyles.pairingsTitle]}>
-                    {translate('pages.viewSpace.pairings.youMightAlsoLike')}
-                </Text>
-                <Text style={[theme.styles.sectionDescription, localStyles.pairingsDescription]}>
-                    {translate('pages.viewSpace.pairings.pairingsDescription', { spaceName })}
-                </Text>
-                {spacePairings.map((pairing: any) => {
-                    const pairingMediaPath = pairing.medias?.[0]?.path;
-                    const pairingMediaType = pairing.medias?.[0]?.type;
-                    const pairingMedia = pairingMediaPath && pairingMediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-                        ? getUserContentUri(pairing.medias[0], 200, 200)
-                        : undefined;
-                    const catLabel = formatCategoryLabel(pairing.category);
-                    const hasFeedback = pairingFeedback[pairing.id] !== undefined;
-
-                    return (
-                        <View key={pairing.id} style={[localStyles.pairingCard, { borderColor: theme.colors.primary3 }]}>
-                            {pairingMedia && (
-                                <Pressable onPress={() => handleGoToViewSpace(pairing)}>
-                                    <Image
-                                        source={{ uri: pairingMedia }}
-                                        style={localStyles.pairingImage}
-                                        height={120}
-                                        resizeMode="cover"
-                                    />
-                                </Pressable>
-                            )}
-                            <View style={localStyles.pairingContent}>
-                                <Pressable onPress={() => handleGoToViewSpace(pairing)}>
-                                    <Text style={[localStyles.pairingTitle, { color: isDarkMode ? theme.colors.textWhite : brandColor }]} numberOfLines={2}>
-                                        {pairing.notificationMsg}
-                                    </Text>
-                                </Pressable>
-                                {catLabel ? (
-                                    <View style={[localStyles.pairingBadge, { backgroundColor: theme.colors.primary3 }]}>
-                                        <Text style={[localStyles.pairingBadgeText, {
-                                            color: isDarkMode ? theme.colors.textWhite : theme.colors.primary4,
-                                        }]}>{catLabel}</Text>
-                                    </View>
-                                ) : null}
-                                {pairing.addressReadable ? (
-                                    <Text style={[localStyles.pairingAddress, { color: theme.colors.textGray }]} numberOfLines={1}>
-                                        {pairing.addressReadable}
-                                    </Text>
-                                ) : null}
-                                <View style={localStyles.pairingFeedbackRow}>
-                                    {hasFeedback ? (
-                                        <Text style={[localStyles.pairingFeedbackText, { color: theme.colors.textGray }]}>
-                                            {pairingFeedback[pairing.id]
-                                                ? translate('pages.viewSpace.pairings.helpful')
-                                                : translate('pages.viewSpace.pairings.notHelpful')}
-                                        </Text>
-                                    ) : (
-                                        <>
-                                            <Pressable onPress={() => handlePairingFeedback(pairing.id, true)}>
-                                                <Text style={[localStyles.pairingFeedbackLink, { color: isDarkMode ? theme.colors.textWhite : brandColor }]}>
-                                                    {translate('pages.viewSpace.pairings.helpful')}
-                                                </Text>
-                                            </Pressable>
-                                            <Text style={[localStyles.pairingFeedbackSeparator, { color: theme.colors.textGray }]}>|</Text>
-                                            <Pressable onPress={() => handlePairingFeedback(pairing.id, false)}>
-                                                <Text style={[localStyles.pairingFeedbackLink, { color: isDarkMode ? theme.colors.textWhite : brandColor }]}>
-                                                    {translate('pages.viewSpace.pairings.notHelpful')}
-                                                </Text>
-                                            </Pressable>
-                                        </>
-                                    )}
-                                </View>
-                            </View>
-                        </View>
-                    );
-                })}
+                <HorizontalCardScroller
+                    title={translate('pages.viewSpace.pairings.youMightAlsoLike')}
+                    description={translate('pages.viewSpace.pairings.pairingsDescription', {
+                        spaceName: spaceInView.notificationMsg || '',
+                    })}
+                    data={spacePairings}
+                    isLoading={isPairingsLoading}
+                    renderCard={renderPairingCard}
+                    keyExtractor={(pairing: any, index: number) => String(pairing?.id ?? index)}
+                    itemWidth={pairingCardWidth}
+                    theme={theme}
+                    testID="space-pairings-scroller"
+                />
             </View>
         );
     };

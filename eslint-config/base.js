@@ -13,6 +13,12 @@ module.exports = {
         'plugin:@typescript-eslint/recommended',
     ],
     ignorePatterns: ['**/.eslintrc.js'],
+    // Surface `eslint-disable` comments that no longer suppress anything. A blanket
+    // `/* eslint-disable max-len */` at the top of a file routinely outlives the one long line it
+    // was added for, and then silently exempts everything written after it. Deliberately a
+    // warning, not an error: there are ~200 stale directives across the repo today, and nothing
+    // in CI passes --max-warnings, so this reports the debt without failing a build on it.
+    reportUnusedDisableDirectives: true,
     rules: {
         indent: [2, 4, { SwitchCase: 1 }],
         'max-len': [2, { code: 160 }],

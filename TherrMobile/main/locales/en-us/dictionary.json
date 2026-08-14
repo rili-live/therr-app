@@ -1781,7 +1781,7 @@
         "noContactInfo": "This contact has no phone number or email address to send an invite to",
         "tooManySelected": "Only the first {count} contacts were invited. Select fewer to invite the rest.",
         "inviteFailed": "We could not send your invites. Please try again.",
-        "phoneVerificationRequired": "Verify your phone number in your profile before sending invites"
+        "phoneVerificationRequired": "Tap here to verify your phone number, then try sending invites again"
       }
     },
     "register": {
@@ -1901,7 +1901,12 @@
       "headerTitleGoal": "Goal",
       "reply": "Reply",
       "replies": "Replies",
-      "repliesFailed": "We couldn't load the replies. Try again in a moment."
+      "repliesFailed": "We couldn't load the replies. Try again in a moment.",
+      "headerTitleReply": "Reply",
+      "partOfThread": "Part of a thread",
+      "replyingTo": "Replying to {userName}",
+      "viewParentThought": "View the post this replies to",
+      "backToParent": "Back to Thread"
     },
     "habits": {
       "headerTitle": "My Habits",
