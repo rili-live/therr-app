@@ -70,11 +70,12 @@ should_deploy_service()
 # the rollout sat wedged. Every Deployment this run touches is verified with
 # `kubectl rollout status` before the deploy moves on.
 #
-# Rollouts are staggered rather than fired all at once. Each Deployment is
-# `replicas: 1` with `maxSurge: 1 / maxUnavailable: 0`, so rolling all of them
-# together transiently doubles the Pod footprint of a two-node cluster that has
-# no headroom — which is exactly how the 2026-08-12 deploy wedged for 10+
-# minutes. _bin/lib/rollout-waves.sh holds the wave plan and the reasoning.
+# Rollouts still go out in waves, but only three of them, and only to control
+# version skew — everything internal, then the API gateway, then the browser
+# bundle last. The seven-wave plan that predated the cluster move existed to keep
+# at most one surge Pod per node pool; the new cluster's nodes absorb the whole
+# surge footprint, so that constraint is gone. _bin/lib/rollout-waves.sh holds the
+# plan and the reasoning.
 #
 # Deliberately longer than the manifests' progressDeadlineSeconds (300s) so the
 # Deployment controller is the one to give up first. It marks the rollout
@@ -83,12 +84,17 @@ should_deploy_service()
 # get from losing that race.
 ROLLOUT_TIMEOUT="${DEPLOY_ROLLOUT_TIMEOUT:-360s}"
 # How long to let a wave's superseded Pods finish terminating before the next
-# wave surges. `rollout status` returns as soon as the new ReplicaSet is
-# complete, but the old Pod is still holding its memory reservation through
-# terminationGracePeriodSeconds (30s) — starting the next wave before it is gone
-# would hand the scheduler the same over-subscribed node the staggering is meant
-# to avoid.
-DRAIN_TIMEOUT="${DEPLOY_DRAIN_TIMEOUT:-90}"
+# wave surges. This was a capacity gate: `rollout status` returns as soon as the
+# new ReplicaSet is complete, but the old Pod holds its memory reservation
+# through terminationGracePeriodSeconds (30s, 45s for users-service), and on the
+# old cluster starting the next wave before it was gone handed the scheduler an
+# over-subscribed node.
+#
+# Defaults to 0 (skip the wait) now that there is headroom to spare — it bought
+# nothing but ~30-45s per wave boundary. Set DEPLOY_DRAIN_TIMEOUT to a positive
+# number of seconds to bring the gate back, e.g. while draining a node pool or
+# after shrinking the cluster.
+DRAIN_TIMEOUT="${DEPLOY_DRAIN_TIMEOUT:-0}"
 
 # Image bumps are queued here instead of applied inline, so that the wave walker
 # below — not the order these service blocks happen to be written in — decides
@@ -166,8 +172,14 @@ wait_for_rollouts()
 # Blocks until each Deployment's superseded Pods are actually gone. Best effort:
 # a Pod stuck Terminating is worth a warning, not a failed deploy, since the
 # rollout it belongs to has already been confirmed complete.
+#
+# A DRAIN_TIMEOUT of 0 (the default) skips the wait entirely.
 wait_for_drain()
 {
+  if [ "$DRAIN_TIMEOUT" -le 0 ]; then
+    return 0
+  fi
+
   local DEADLINE=$((SECONDS + DRAIN_TIMEOUT))
   local PENDING
 
@@ -206,7 +218,7 @@ wait_for_drain()
 # Both kinds of change are applied here: a manifest edit (probes, env, strategy,
 # resources) rolls a Deployment just as an image bump does, so applying the
 # Deployment manifests wave by wave — rather than in one directory-wide apply —
-# is what keeps a manifest-only deploy staggered too.
+# is what keeps a manifest-only deploy ordered too.
 deploy_waves()
 {
   local WAVE_INDEX=0
@@ -254,9 +266,9 @@ deploy_waves()
 
     if ! wait_for_rollouts "${ROLLING[@]}"; then
       printMessageError "Aborting deploy at $WAVE_LABEL."
-      # Stopping here is the point of staggering: piling later waves onto a
-      # cluster that could not absorb this one is how a single wedged rollout
-      # became a cluster-wide one.
+      # Stopping here keeps the skew window closed in the safe direction: if the
+      # backend never came up, the last thing we want is to hand browsers a new
+      # bundle that calls it.
       local REMAINING
       REMAINING=()
       local LATER
