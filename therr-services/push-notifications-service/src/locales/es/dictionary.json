@@ -171,6 +171,22 @@
     "eveningCheckIn": {
       "title": "¿Cómo te fue hoy?",
       "body": "Toca para registrar tu día y asegurar uno más en tu racha."
+    },
+    "habitEstablished": {
+      "title": "{habitName} se está afianzando",
+      "body": "{consistencyPercent}% de constancia en {dayCount} días. Bajaremos el ritmo de los recordatorios diarios — este ya lo dominas."
+    },
+    "habitAutomaticity": {
+      "title": "Este ya es automático",
+      "body": "{dayCount} días de {habitName}. Los estudios sitúan aquí el punto en que un hábito deja de exigir fuerza de voluntad. Recordatorios diarios desactivados — solo te escribiremos de vez en cuando."
+    },
+    "habitMaintenanceCheckIn": {
+      "title": "Revisión de {dayCount} días",
+      "body": "¿Sigues con {habitName}? Llevas un {consistencyPercent}% de constancia desde que bajamos el ritmo. Toca para confirmar que vas bien."
+    },
+    "habitComeback": {
+      "title": "¿Quieres retomar {habitName}?",
+      "body": "Una vez lo mantuviste {bestStreakCount} días — eso no se borra. ¿Empezamos una racha nueva?"
     }
   },
   "validation": "No se proporcionaron los parámetros requeridos."

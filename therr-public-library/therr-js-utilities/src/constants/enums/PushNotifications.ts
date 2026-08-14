@@ -55,6 +55,18 @@ export enum Types {
     dailyHabitReminder = 'daily-habit-reminder',
     morningMotivation = 'morning-motivation',
     eveningCheckIn = 'evening-check-in',
+
+    // HABITS: Lifecycle (see docs/HABIT_LIFECYCLE_MESSAGING.md)
+    //
+    // These mark transitions in how hard the app is *allowed to push*, not just
+    // things to celebrate. `habitEstablished` is the point daily nudging tapers
+    // and `habitAutomaticity` is the point it stops, so adding a sender for one
+    // of these without going through habitPhaseEngine will desynchronize the
+    // celebration from the cadence change it is supposed to announce.
+    habitEstablished = 'habit-established',
+    habitAutomaticity = 'habit-automaticity',
+    habitMaintenanceCheckIn = 'habit-maintenance-check-in',
+    habitComeback = 'habit-comeback',
 }
 
 export enum PressActionIds {

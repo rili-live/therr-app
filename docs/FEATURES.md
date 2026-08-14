@@ -182,6 +182,7 @@ These flags control which features are enabled per brand variant. Set in `TherrM
 - **Real-time pact updates** — WebSocket events for partner check-ins, celebrations, encouragement
 - **Pact status management** — pending, active, completed, abandoned, completed lifecycle
 - **HABITS achievements** — 8 brand-scoped achievement classes (habitBuilder, cleanBreak, treasureBuilder, consistency, accountability, resilience, socialEnergizer, pactPioneer) plus reused `socialite` for invite virality. Filtered per-brand via `getAchievementsForBrand()`. **Follow-up TODOs** (multi-habit consistency, partner-streak attribution, brand-header audit, lottie cards, etc.) — see `docs/niche-sub-apps/habits/HABITS_STREAKS_DESIGN.md` § "Follow-up TODOs"
+- **Habit lifecycle messaging** — per-habit phases (`forming` → `established` → `maintaining`, plus `lapsed`) that decide how often the app may nudge about a habit. Adaptive gates pair a day floor with the user's own trailing consistency (21 days + 90%/14d to taper nudging to every third day; 66 days + 85%/28d to stop it), then 30/60/90-day maintenance check-ins verify the habit held after support was withdrawn, and a self-compassion-framed comeback offer proposes a fresh streak when it didn't. Push side in the users-service digest, long-form email side in `therr-messaging-automator`. Off by default behind `HABIT_PHASE_ENGINE_ENABLED` — see `docs/HABIT_LIFECYCLE_MESSAGING.md`
 
 ---
 
