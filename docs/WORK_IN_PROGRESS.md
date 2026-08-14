@@ -657,15 +657,19 @@ console configuration, and one verification that gates a payments change.
   `HABITS_MILESTONE_EMAILS_ON_DIGEST=true`) before these run, it fails on a missing relation at
   its next scheduler firing with no alert — the failure mode §1 of docs/CROSS_REPO_INTEGRATION.md
   describes. Order: migrate here first, then enable the automator task.
-- [ ] (2026-08-13, /quality-peer-review) **Decide and set `HABIT_PHASE_ENGINE_ENABLED` on
-  users-service.** The lifecycle engine deploys dark (`habitLifecycleContext.isPhaseEngineEnabled`
-  requires the literal string `'true'`), so until the var is set on the users-service deployment
-  the whole feature is inert and every new counter reports 0. This flag is the mirror image of
-  the queue worker's: turning it on *removes* daily reminders from users who currently get them,
-  so flip it for a watched cohort and check the digest's `nudgesTapered` counter — that number
-  rising is the only direct evidence the taper is cutting send volume rather than just adding
-  four new message types on top. Note it also depends on `NOTIFICATION_QUEUE_WORKER_ENABLED=true`;
-  with the worker off, the lifecycle pushes queue and nothing is delivered.
+- [ ] (2026-08-13, /quality-peer-review) **Watch the first digest runs after
+  `HABIT_PHASE_ENGINE_ENABLED=true` reaches prod.** The flag is now set in
+  `k8s/prod/users-service-deployment.yaml`, so the engine goes live with the next
+  `general → stage → main` deploy rather than on a deliberate cohort flip — there is no
+  ramp, every habit is evaluated on the first run. Two things to check: (1) the backfill
+  burst of `habitEstablished` / `habitAutomaticity` messages, bounded but not eliminated by
+  the queue worker's per-user daily cap of 5 — look for `status='skipped'` rows on
+  `main.notificationQueue`; (2) the digest's `nudgesTapered` counter, which rising is the
+  only direct evidence the taper is cutting send volume rather than just adding four new
+  message types on top. If the burst is unacceptable, set the value back to `"false"` —
+  phase rows are left in place and re-enabling resumes from recorded state. It also depends
+  on `NOTIFICATION_QUEUE_WORKER_ENABLED=true` (already set in prod and test); with the
+  worker off, the lifecycle pushes queue and nothing is delivered.
 - [ ] (2026-08-13, /quality-peer-review) **Create the `cloudflare-api-token` secret in the
   `cert-manager` namespace of every cluster before applying `k8s/prod/issuer.yaml`.** The
   ClusterIssuer moved from HTTP-01 to DNS-01, and `deploy.sh` runs `kubectl apply -f k8s/prod`
