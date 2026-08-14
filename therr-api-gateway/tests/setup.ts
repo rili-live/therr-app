@@ -26,6 +26,23 @@ if (!process.env.TWILIO_AUTH_TOKEN) {
     process.env.TWILIO_AUTH_TOKEN = 'test-auth-token';
 }
 
+// Seeded for the suites that import the real routers (see
+// tests/unit/utilities/routeOrdering.test.ts). `middleware/authenticate` throws
+// at import if these are unset — deliberately, so a missing secret crash-loops
+// the service instead of silently verifying against an empty one. The values
+// are never used to sign or verify anything under test.
+if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = 'test-jwt-secret';
+}
+if (!process.env.JWT_EMAIL_SECRET) {
+    process.env.JWT_EMAIL_SECRET = 'test-jwt-email-secret';
+}
+// The routers read `globalConfig[process.env.NODE_ENV]` at module load and
+// would dereference undefined without a key that exists in global-config.
+if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = 'development';
+}
+
 // Nothing under tests/ may reach Twilio: the phone routes send an SMS on every
 // start/verify call, and a developer shell carrying real credentials would
 // bill (and deliver) them for real. See tests/helpers/outboundStubs.ts.

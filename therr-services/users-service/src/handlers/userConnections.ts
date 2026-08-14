@@ -680,6 +680,18 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
 // READ
 // `requestingUserId` is a route param, so without this guard any authenticated user could
 // read the connection row of any other pair. Matches the check in `createUserConnection`.
+/**
+ * Deliberately NOT brand-scoped. This reads a single connection by its
+ * (requestingUserId, acceptingUserId) pair — a targeted lookup, not discovery — and the
+ * guard below restricts it to pairs the caller is themselves a member of, so there is no
+ * id-walking path to another user's connections.
+ *
+ * Scoping it would break the case it exists for: a connection formed in one app is a fact
+ * about two identities, and `main.userConnections` records no brand. A user signed into
+ * Habits who is also a Therr user would get a 404 for a connection that demonstrably
+ * exists. Brand scoping belongs on discovery (searchUsers, searchUserPairings,
+ * findUsersByContactInfo), which is where a cross-brand result actually leaks accounts.
+ */
 const getUserConnection = (req, res) => {
     const { locale, userId } = parseHeaders(req.headers);
 

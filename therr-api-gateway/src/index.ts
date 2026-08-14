@@ -17,6 +17,7 @@ import restrictApiKeyAccess from './middleware/restrictApiKeyAccess';
 import { apiKeyRequestLimiter } from './services/users/limitation/apiKeys';
 import openapiSpec from './docs/openapi.json';
 import getRedocHtml from './docs/redocPage';
+import { assertNoShadowedRoutes } from './utilities/routeOrdering';
 
 tracing.start();
 
@@ -127,6 +128,16 @@ app.get(`${API_BASE_ROUTE}/docs/openapi.json`, (req, res) => { res.json(openapiS
 app.get(`${API_BASE_ROUTE}/docs`, (req, res) => { res.send(getRedocHtml()); });
 
 app.use(API_BASE_ROUTE, router);
+
+// Fail the boot rather than serve a router where a literal route is claimed by an
+// earlier :param sibling. Eight routes were shadowed this way before the check
+// existed; because handleServiceRequest forwards req.url verbatim, seven of them
+// still proxied correctly and only ran the wrong middleware, while
+// PUT /users/change-password 400'd on the other route's isUUID(4) param check.
+// That asymmetry is why this is an assertion and not a code review item -- the
+// latent ones are invisible until one day the middleware differs enough to reject.
+// The same check runs in CI (tests/unit/utilities/routeOrdering.test.ts).
+assertNoShadowedRoutes(router);
 
 const { API_GATEWAY_PORT } = process.env;
 

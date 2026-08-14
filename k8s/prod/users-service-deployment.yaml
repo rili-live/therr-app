@@ -166,6 +166,20 @@ spec:
         # but the claim uses SKIP LOCKED, so a scale-up would not double-send.
         - name: NOTIFICATION_QUEUE_WORKER_ENABLED
           value: "true"
+        # Turns on the habit lifecycle engine in the digest
+        # (src/utilities/habitLifecycleContext.ts) — must be exactly "true".
+        # This is the mirror image of the flag above: that one guards against
+        # sending too much, this one against sending too little, because
+        # enabling it *removes* daily reminders from users who currently get
+        # them. It depends on the queue worker above; with that off the
+        # lifecycle pushes queue and nothing is delivered. Expect a backfill
+        # burst on the first digest run after this lands — every existing
+        # long-running habit is evaluated against the gates at once. Watch
+        # `nudgesTapered` in the digest response; that number rising is the
+        # only direct evidence the taper is cutting volume rather than adding
+        # four new message types on top. See docs/HABIT_LIFECYCLE_MESSAGING.md.
+        - name: HABIT_PHASE_ENGINE_ENABLED
+          value: "true"
         - name: REDIS_PUB_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT

@@ -323,38 +323,41 @@ Manifests in `k8s/prod/` and `k8s/test/`:
 
 Internal service discovery: `{service-name}-cluster-ip-service:{port}`
 
-### Staggered rollouts
+### Ordered rollouts
 
-Deploys do **not** roll every Deployment at once. Each one is `replicas: 1` with
-`maxSurge: 1 / maxUnavailable: 0`, so a rolling Deployment transiently needs two
-Pods instead of one — and the cluster is two nodes with no headroom. Rolling all
-ten together doubles the cluster's Pod footprint and wedges the deploy (see the
-2026-08-12 incident: four Deployments hard-pinned to the preemptible pool stuck
-in `FailedScheduling` on Insufficient memory, while three surge Pods on the
-main-pool node starved each other's Node boots past their startup probes).
+Deploys roll in three waves, not one shot: **backing stores + internal services
+→ API gateway → public web app**. `_bin/cicd/deploy.sh` walks the plan in
+[`_bin/lib/rollout-waves.sh`](../_bin/lib/rollout-waves.sh), waiting on each
+wave's `kubectl rollout status` before starting the next, and aborting the deploy
+on the first failed wave.
 
-`_bin/cicd/deploy.sh` therefore walks the wave plan in
-[`_bin/lib/rollout-waves.sh`](../_bin/lib/rollout-waves.sh), waiting for each
-wave's `kubectl rollout status` **and** for its superseded Pods to finish
-terminating before starting the next. A failed wave aborts the deploy rather
-than piling later waves onto a cluster that could not absorb this one.
+The only rule shaping the plan is **skew direction**. Every Deployment is
+`replicas: 1` with `maxUnavailable: 0`, so ordering is not needed to keep
+anything *available* — it controls which version-skew window is open during the
+deploy. Old-client→new-backend is safe under the same expand/contract discipline
+the migrations follow; new-client→old-backend is what breaks users, so the
+browser bundle flips dead last and the gateway leads it.
+`assert_rollout_waves` pins those last two waves by name.
 
-Two rules shape the plan:
+> **History.** Until the cluster move this was a *seven*-wave plan enforcing a
+> second rule — at most one surge Pod per node pool per wave — because each
+> rolling Deployment transiently needs two Pods and the old two-node cluster had
+> no headroom for ten of them at once. That is the 2026-08-12 incident: four
+> Deployments hard-pinned to the preemptible pool stuck in `FailedScheduling` on
+> Insufficient memory, while three surge Pods on the main-pool node starved each
+> other's Node boots past their startup probes. The new cluster's nodes absorb
+> the full surge footprint, so the packing rule and the six intermediate drain
+> waits are gone. If the cluster is ever shrunk again, that constraint comes back.
 
-1. **Node-pool safety** — a wave surges at most one Pod onto each node pool, so
-   the scheduler is never asked to fit two extra Pods on one node.
-2. **Skew direction** — waves run inside-out (backing stores → services →
-   API gateway → public web app last). `maxUnavailable: 0` already keeps
-   everything *available*; ordering controls which version-skew window is open.
-   Old-client→new-backend is safe under expand/contract; new-client→old-backend
-   is what breaks users, so the browser bundle flips last.
-
-Adding a service means placing it in a wave — `assert_rollout_waves` fails the
-deploy if any `k8s/prod/*-deployment.yaml` is not claimed by exactly one wave.
-Check the plan locally with `npm run k8s:check-waves`.
+Adding a service means placing it in a wave — wave 1 unless it serves browsers
+directly. `assert_rollout_waves` fails the deploy if any
+`k8s/prod/*-deployment.yaml` is not claimed by exactly one wave. Check the plan
+locally with `npm run k8s:check-waves`.
 
 Knobs: `DEPLOY_ROLLOUT_TIMEOUT` (default `360s`, per Deployment) and
-`DEPLOY_DRAIN_TIMEOUT` (default `90` seconds, per wave).
+`DEPLOY_DRAIN_TIMEOUT` (per wave — default `0`, i.e. the deploy no longer waits
+for superseded Pods to finish terminating between waves; set it to a positive
+number of seconds to restore that gate).
 
 **Key Files**: [_bin/cicd/deploy.sh](../_bin/cicd/deploy.sh),
 [_bin/lib/rollout-waves.sh](../_bin/lib/rollout-waves.sh)
