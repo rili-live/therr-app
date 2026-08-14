@@ -26,6 +26,7 @@
 ### User Profiles
 - **Guided profile completion (mobile)** — a single-row "Finish your profile" link on the user's own profile summarizes how many steps are left and opens the dedicated `ProfileCompletion` screen, which lists the remaining steps (name, interests, photo, phone, contact sync) with a progress bar; each row hands off to the matching stage of the guided `CreateProfile` flow, which carries a Duolingo-style step progress bar and per-stage back navigation. The home-feed nudge banner reads the same step model. The link disappears once every step is resolved
 - **Contact sync step (mobile)** — a first-class onboarding stage that asks to match phone contacts against existing accounts, with an explicit "Not Now". A completed sync is recorded per user, which collapses the sync prompt on the people list to a single "sync again" link
+- **Collapsing profile header (mobile)** — the profile photo, bio, socials and action buttons scroll away as the user moves down a content tab and slide back in on the way up, leaving the tab bar pinned to the top. Every tab shares one header position, so switching tabs never makes it jump
 - **Profile editing** — name, bio, profile picture, privacy settings
 - **View other users** — public profile with content tabs (spaces, events, thoughts)
 - **User search & discovery** — search by username, "people you may know" suggestions
