@@ -21,6 +21,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'column',
             alignItems: 'center',
         },
+        // Collapsible header overlay. Opaque, since list content scrolls underneath it.
+        profileHeaderCollapsible: {
+            alignItems: 'center',
+            backgroundColor: therrTheme.colors.primary,
+        },
         profileInfoContainer: {
             display: 'flex',
             flexDirection: 'row',
