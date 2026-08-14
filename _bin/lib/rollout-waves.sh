@@ -22,6 +22,14 @@
 # which is what forced seven waves — no longer applies and is no longer enforced.
 # Fitting the surge is now the scheduler's problem, as it should be.
 #
+# Confirmed 2026-08-14: main-pool has ample headroom on the new node sizes. That
+# retires the old shortfall (~103Mi uncommitted against a 144Mi users-service surge
+# Pod), which is what would have forced users-service onto a preemptible node —
+# node affinity there is `preferred`, not `required`, so it would have scheduled
+# rather than sat Pending, and the rollout would have "succeeded" onto a node that
+# can be preempted. If node sizes are ever reduced, re-measure before trusting this:
+# the packing rule removed from `assert_rollout_waves` is what compensated for it.
+#
 # What survives the capacity increase is the reason that was never about capacity:
 #
 #   Skew direction. Waves run inside-out — everything internal, then the API
