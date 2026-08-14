@@ -161,6 +161,15 @@ interface ICreateMessageConfig {
     habitId?: string;
     habitName?: string;
     daysRemaining?: number;
+    // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Mirrors the
+    // fields users-service puts on the queue row in
+    // `sendEmailAndOrPushNotification.ts` — age of the habit in days,
+    // trailing-window consistency as a whole percent, and the user's best-ever
+    // streak, which the comeback copy cites so it references a past success
+    // rather than the present lapse.
+    dayCount?: number;
+    consistencyPercent?: number;
+    bestStreakCount?: number;
     // Leaderboards: new weekly rank for rank-milestone copy
     rank?: number;
 }

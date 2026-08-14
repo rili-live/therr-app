@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import Store from '../../src/store';
 import runDailyHabitsDigest from '../../src/handlers/habitsDigest';
-import { getTodayDateString, normalizeDateString } from '../../src/utilities/streakHelpers';
+import { getTodayDateString } from '../../src/utilities/streakHelpers';
 
 /**
  * Habits digest — the lifecycle engine's integration surface.
@@ -28,9 +28,17 @@ const PACT_ID = 'pact-1';
 const SECOND_PACT_ID = 'pact-2';
 const USER = 'aaaaaaaa-0000-4000-8000-00000000000a';
 
-const daysBefore = (days: number): string => normalizeDateString(
-    new Date(Date.parse(`${TODAY}T00:00:00.000Z`) - (days * 24 * 60 * 60 * 1000)),
-);
+/**
+ * UTC end to end, deliberately. `TODAY` comes from `getTodayDateString`, which
+ * is `toISOString()`-based, and the engine's `daysBetween` parses at UTC
+ * midnight — so formatting these fixtures through `normalizeDateString` (which
+ * renders the *local* calendar date) put every fixture a day early on any host
+ * west of UTC once the clock passed local evening. The suite then failed only
+ * after ~19:00 CDT, and never in CI, which runs UTC.
+ */
+const daysBefore = (days: number): string => new Date(
+    Date.parse(`${TODAY}T00:00:00.000Z`) - (days * 24 * 60 * 60 * 1000),
+).toISOString().slice(0, 10);
 
 interface IEnqueueCall {
     userId: string;
@@ -460,6 +468,46 @@ describe('Habits digest — lifecycle engine', () => {
 
             expect(counters.phasesEvaluated).to.equal(2);
             expect(queue.ofType('habit-established')).to.have.length(2);
+        });
+    });
+
+    describe('the trailing windows', () => {
+        // Regression: the window bounds were parsed as UTC midnight but
+        // formatted as a *local* calendar date, so on any host west of UTC the
+        // start dates came back a day early — 15- and 29-day windows counted
+        // against 14- and 28-day denominators. That silently lowers the
+        // establish gate, which is the one gate that spends the user's daily
+        // reminders. The TZ is forced here so the test fails on the old code
+        // regardless of the ambient timezone (CI runs UTC, where the bug is
+        // invisible).
+        const originalTz = process.env.TZ;
+
+        afterEach(() => {
+            if (originalTz === undefined) {
+                delete process.env.TZ;
+            } else {
+                process.env.TZ = originalTz;
+            }
+        });
+
+        ['UTC', 'America/Chicago', 'Asia/Tokyo'].forEach((tz) => {
+            it(`spans exactly 14 and 28 days in ${tz}`, async () => {
+                process.env.TZ = tz;
+                buildFakeQueue();
+                stubDigest();
+
+                await runDigest();
+
+                const targets = (Store.habitCheckins.getCompletedCountsForWindows as any).firstCall.args[0];
+                const short = targets.find((t: any) => t.key.startsWith('s:'));
+                const long = targets.find((t: any) => t.key.startsWith('l:'));
+
+                // Inclusive bounds, so a 14-day window starts 13 days back.
+                expect(short.startDate).to.equal(daysBefore(13));
+                expect(short.endDate).to.equal(TODAY);
+                expect(long.startDate).to.equal(daysBefore(27));
+                expect(long.endDate).to.equal(TODAY);
+            });
         });
     });
 

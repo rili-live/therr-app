@@ -65,9 +65,20 @@ export const pairKey = (userId: string, habitGoalId: string): string => `${userI
  */
 export const isPhaseEngineEnabled = (): boolean => process.env.HABIT_PHASE_ENGINE_ENABLED === 'true';
 
-const shiftDate = (date: string, days: number): string => normalizeDateString(
-    new Date(Date.parse(`${date}T00:00:00.000Z`) + (days * 24 * 60 * 60 * 1000)),
-);
+/**
+ * Shift a YYYY-MM-DD date by whole days, staying in UTC end to end.
+ *
+ * Formatting back through `normalizeDateString` would be wrong here: it renders
+ * the *local* calendar date, and the input was parsed as UTC midnight. On any
+ * host west of UTC that pair re-reads UTC midnight as the previous evening and
+ * returns a date one day early, silently widening the trailing windows to 15
+ * and 29 days while the engine still divides by 14 and 28 — which lets a habit
+ * clear the establish gate on evidence it does not have. `daysBetween` and
+ * `getTodayDateString` are both UTC, so this stays UTC to match them.
+ */
+const shiftDate = (date: string, days: number): string => new Date(
+    Date.parse(`${String(date).slice(0, 10)}T00:00:00.000Z`) + (days * 24 * 60 * 60 * 1000),
+).toISOString().slice(0, 10);
 
 /**
  * Load and evaluate every pair. Never throws: a lifecycle lookup that fails

@@ -293,7 +293,7 @@ export const evaluateHabitPhase = (input: IPhaseEvaluationInput): IPhaseDecision
     const allowsDailyNudge = !milestone
         && !comebackDue
         && maintenanceDue === undefined
-        && allowsNudgeToday(nextPhase, nextPhase === 'established' && milestone ? today : establishedAt, today);
+        && allowsNudgeToday(nextPhase, establishedAt, today);
 
     return {
         nextPhase,
