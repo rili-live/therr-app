@@ -3,11 +3,12 @@
  * Extracts business email addresses from a website by checking mailto links,
  * plaintext patterns, and optionally following a contact page.
  */
-import { withRetry, isTransientNetworkError } from '../utils/withRetry';
+import { fetchHtml, normalizeUrl } from '../utils/httpFetch';
+import { extractStructuredBusiness } from './jsonLd';
 
 export interface IEmailCrawlResult {
   email: string;
-  source: 'mailto' | 'text' | 'contact-page-mailto' | 'contact-page-text';
+  source: 'json-ld' | 'mailto' | 'text' | 'contact-page-mailto' | 'contact-page-text';
 }
 
 // Generic/junk email domains to reject
@@ -141,45 +142,6 @@ function findContactPageUrl(html: string, baseUrl: string): string | null {
 }
 
 /**
- * Fetch a page and return its HTML, or null on failure.
- */
-async function fetchPage(url: string): Promise<string | null> {
-  try {
-    const response = await withRetry(
-      () => fetch(url, {
-        signal: AbortSignal.timeout(10000),
-        redirect: 'follow',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
-      }),
-      {
-        retries: 1,
-        baseDelayMs: 2000,
-        shouldRetry: isTransientNetworkError,
-        label: `crawlEmails ${url}`,
-        log: console.warn,
-      },
-    );
-
-    if (!response.ok) {
-      console.warn(`  [crawlEmails] HTTP ${response.status} for ${url}`);
-      return null;
-    }
-
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) return null;
-
-    return response.text();
-  } catch (err: any) {
-    console.warn(`  [crawlEmails] Error fetching ${url}: ${err.message}`);
-    return null;
-  }
-}
-
-/**
  * Deduplicate emails (case-insensitive) and prioritize those matching the website domain.
  */
 function rankEmails(
@@ -197,12 +159,15 @@ function rankEmails(
     }
   }
 
-  // Sort: domain-matching emails first, then by source priority (mailto > text)
+  // Sort: domain-matching emails first, then by source priority.
+  // JSON-LD outranks everything — it is the business's own declared address,
+  // not something inferred from page text.
   const sourcePriority: Record<string, number> = {
-    mailto: 0,
-    'contact-page-mailto': 1,
-    text: 2,
-    'contact-page-text': 3,
+    'json-ld': 0,
+    mailto: 1,
+    'contact-page-mailto': 2,
+    text: 3,
+    'contact-page-text': 4,
   };
 
   unique.sort((a, b) => {
@@ -221,10 +186,7 @@ function rankEmails(
  */
 export async function crawlForEmails(url: string): Promise<IEmailCrawlResult[]> {
   try {
-    let normalizedUrl = url;
-    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
-      normalizedUrl = `https://${normalizedUrl}`;
-    }
+    const normalizedUrl = normalizeUrl(url);
 
     let websiteDomain = '';
     try {
@@ -233,31 +195,38 @@ export async function crawlForEmails(url: string): Promise<IEmailCrawlResult[]> 
       return [];
     }
 
-    const html = await fetchPage(normalizedUrl);
-    if (!html) return [];
+    const page = await fetchHtml(normalizedUrl, { label: 'crawlEmails' });
+    if (!page) return [];
+    const { html } = page;
 
     const allEmails: { email: string; source: IEmailCrawlResult['source'] }[] = [];
 
-    // Step 1: mailto links on homepage
+    // Step 1: schema.org JSON-LD email — declared by the business itself.
+    const structuredEmail = extractStructuredBusiness(html)?.email?.toLowerCase();
+    if (structuredEmail && structuredEmail.includes('@') && !isJunkEmail(structuredEmail)) {
+      allEmails.push({ email: structuredEmail, source: 'json-ld' });
+    }
+
+    // Step 2: mailto links on homepage
     for (const email of extractMailtoEmails(html)) {
       allEmails.push({ email, source: 'mailto' });
     }
 
-    // Step 2: plaintext emails on homepage
+    // Step 3: plaintext emails on homepage
     for (const email of extractTextEmails(html)) {
       allEmails.push({ email, source: 'text' });
     }
 
-    // Step 3: If no emails found, try the contact/about page
+    // Step 4: If no emails found, try the contact/about page
     if (allEmails.length === 0) {
-      const contactUrl = findContactPageUrl(html, normalizedUrl);
+      const contactUrl = findContactPageUrl(html, page.finalUrl);
       if (contactUrl) {
-        const contactHtml = await fetchPage(contactUrl);
-        if (contactHtml) {
-          for (const email of extractMailtoEmails(contactHtml)) {
+        const contactPage = await fetchHtml(contactUrl, { label: 'crawlEmails', quiet: true });
+        if (contactPage) {
+          for (const email of extractMailtoEmails(contactPage.html)) {
             allEmails.push({ email, source: 'contact-page-mailto' });
           }
-          for (const email of extractTextEmails(contactHtml)) {
+          for (const email of extractTextEmails(contactPage.html)) {
             allEmails.push({ email, source: 'contact-page-text' });
           }
         }

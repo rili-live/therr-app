@@ -51,7 +51,7 @@ export async function withRetry<T>(
       if (attempt >= retries || !shouldRetry(err, attempt)) {
         throw err;
       }
-      const delay = Math.min(baseDelayMs * Math.pow(2, attempt), maxDelayMs);
+      const delay = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs);
       if (log) {
         const prefix = label ? `[${label}] ` : '';
         const message = err instanceof Error ? err.message : String(err);

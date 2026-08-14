@@ -171,6 +171,22 @@
     "eveningCheckIn": {
       "title": "How Did Today Go?",
       "body": "Tap to log your check-in and lock in another day on your streak."
+    },
+    "habitEstablished": {
+      "title": "{habitName} Is Sticking",
+      "body": "{consistencyPercent}% consistent over {dayCount} days. We'll ease off the daily reminders — you've got this one."
+    },
+    "habitAutomaticity": {
+      "title": "This One's Automatic",
+      "body": "{dayCount} days of {habitName}. Research puts habits around here when they stop taking willpower. Daily reminders off — we'll just check in now and then."
+    },
+    "habitMaintenanceCheckIn": {
+      "title": "{dayCount}-Day Check-In",
+      "body": "Still going with {habitName}? You're {consistencyPercent}% consistent since we backed off. Tap to confirm you're on track."
+    },
+    "habitComeback": {
+      "title": "Want to Restart {habitName}?",
+      "body": "You held this {bestStreakCount} days once — that doesn't go away. Ready to start a fresh streak?"
     }
   },
   "validation": "The required parameters were not provided."

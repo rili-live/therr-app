@@ -648,6 +648,39 @@ console configuration, and one verification that gates a payments change.
   rather than linking to a 400. Watch users-service logs for unexpected 403s on `POST /thoughts` —
   that would mean a legitimate reply path does not activate the parent the way the gate assumes.
   No migration, no env var.
+- [ ] (2026-08-13, /quality-peer-review) **Run the two `habits.habit_phases` migrations before
+  the messaging automator's next firing.** `20260810000001_habits.habit_phases.js` creates the
+  table and `20260810000002_...emailTracking.js` adds `maintenanceEmailedStage`,
+  `lastComebackEmailedAt` and `lastConsistencyPercent`. `therr-messaging-automator`'s
+  `habits-milestone-emails` task reads that row and **writes** the first two over a direct Knex
+  connection, so if the automator ships (or is chained on via
+  `HABITS_MILESTONE_EMAILS_ON_DIGEST=true`) before these run, it fails on a missing relation at
+  its next scheduler firing with no alert — the failure mode §1 of docs/CROSS_REPO_INTEGRATION.md
+  describes. Order: migrate here first, then enable the automator task.
+- [ ] (2026-08-13, /quality-peer-review) **Decide and set `HABIT_PHASE_ENGINE_ENABLED` on
+  users-service.** The lifecycle engine deploys dark (`habitLifecycleContext.isPhaseEngineEnabled`
+  requires the literal string `'true'`), so until the var is set on the users-service deployment
+  the whole feature is inert and every new counter reports 0. This flag is the mirror image of
+  the queue worker's: turning it on *removes* daily reminders from users who currently get them,
+  so flip it for a watched cohort and check the digest's `nudgesTapered` counter — that number
+  rising is the only direct evidence the taper is cutting send volume rather than just adding
+  four new message types on top. Note it also depends on `NOTIFICATION_QUEUE_WORKER_ENABLED=true`;
+  with the worker off, the lifecycle pushes queue and nothing is delivered.
+- [ ] (2026-08-13, /quality-peer-review) **Create the `cloudflare-api-token` secret in the
+  `cert-manager` namespace of every cluster before applying `k8s/prod/issuer.yaml`.** The
+  ClusterIssuer moved from HTTP-01 to DNS-01, and `deploy.sh` runs `kubectl apply -f k8s/prod`
+  wholesale, so this issuer lands on *every* cluster. A cluster missing the secret (key
+  `api-token`, scope Zone → DNS → Edit on the therr.com zone) goes NotReady and silently stops
+  renewing certificates — existing certs keep serving until they expire, so there is no
+  immediate signal. Verify with `kubectl describe clusterissuer letsencrypt-prod` on each
+  cluster after the apply.
+- [ ] (2026-08-13, /quality-peer-review) **Consider `use-gzip: "true"` in the ingress-nginx
+  controller ConfigMap.** The dead `server-snippet` gzip block was removed from
+  `k8s/prod/ingress-rewrite-service.yaml` (it was already being dropped as a risky annotation —
+  the live nginx.conf reads `gzip off;`). Removing it is behavior-neutral and unblocks the apply
+  on a new cluster, but it also means gzip is still genuinely off at the ingress. If compression
+  is wanted, the supported route is the controller ConfigMap Helm value, applied deliberately to
+  both clusters. No migration, no env var.
 <!-- skill-followups:end -->
 
 ---
