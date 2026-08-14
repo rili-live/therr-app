@@ -958,6 +958,9 @@
       "appStoreText": "Also available on mobile",
       "returnHome": "Return to home page"
     },
+    "inviteLinkLanding": {
+      "appStoreText": "Finish joining on {appName}"
+    },
     "claimPactLanding": {
       "title": "Accept Your Pact",
       "description": "A friend invited you to a habit pact on Friends with Habits. Install the app to accept and start the streak together.",

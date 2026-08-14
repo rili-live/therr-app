@@ -958,6 +958,9 @@
       "appStoreText": "Aussi disponible sur mobile",
       "returnHome": "Retour à la page d'accueil"
     },
+    "inviteLinkLanding": {
+      "appStoreText": "Terminez votre inscription sur {appName}"
+    },
     "claimPactLanding": {
       "title": "Accepte ton pacte",
       "description": "Un ami t'a invité à un pacte d'habitude sur Friends with Habits. Installe l'appli pour accepter et démarrer la série ensemble.",
