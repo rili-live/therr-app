@@ -1061,6 +1061,17 @@ const updateUser = (req, res) => {
         });
 };
 
+/**
+ * Deliberately NOT brand-scoped, and it should stay that way. The handler already 403s
+ * unless the route param equals the caller's own id, so the update is keyed on the single
+ * identity row of the person making the request — `main.users` has no brand column, and
+ * membership lives in the `brandVariations` JSONB array.
+ *
+ * Adding a brandContainment predicate here would be actively wrong: a user whose
+ * `brandVariations` array has not yet picked up the brand they are signed in under would
+ * match zero rows, and this update reports success without reading rowCount, so their
+ * location would silently stop being recorded. There is no cross-brand read to leak.
+ */
 const updateLastKnownLocation = (req, res) => {
     const {
         locale,

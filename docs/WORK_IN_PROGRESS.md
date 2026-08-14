@@ -101,21 +101,6 @@ append new items here rather than only printing them once.
   applying, confirm the env is live on the running pod rather than just in the
   image: `kubectl set env deployment/api-gateway-service --list | grep URI_WHITELIST`.
   Mobile is unaffected (it sends no Origin header).
-- [ ] **Expect users-service to land on a preemptible node after its next
-  deploy.** The strategy moved `Recreate` → `RollingUpdate` with
-  `maxUnavailable: 0`, so a deploy now briefly runs two pods. main-pool has
-  ~103Mi of its 1358Mi allocatable memory uncommitted, and the surge pod
-  requests 144Mi, so it cannot fit alongside the outgoing pod. Node affinity is
-  `preferred`, not `required`, so it will schedule onto a preemptible node
-  instead of sitting `Pending` — the rollout succeeds, but users-service then
-  runs somewhere it can be preempted. Either accept that, or free ~150Mi on
-  main-pool before the deploy. Check with
-  `kubectl describe node <main-pool-node> | grep -A5 'Allocated resources'`.
-  The wave plan (`_bin/lib/rollout-waves.sh`) no longer packs one surge pod per
-  node pool — the new cluster's bigger nodes were the capacity fix, so confirm
-  this shortfall is actually gone on the new node sizes before closing this item.
-  If main-pool still has less headroom than the 144Mi surge pod, the packing rule
-  removed from `assert_rollout_waves` needs to come back with it.
 - [ ] **Verify users-service reaches the ephemeral Redis after deploy.**
   `REDIS_EPHEMERAL_HOST`/`REDIS_EPHEMERAL_PORT` were missing from
   `k8s/prod/users-service-deployment.yaml` while `src/store/redisClient.ts`
@@ -184,6 +169,32 @@ console configuration, and one verification that gates a payments change.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-14, /work-plan) **Password change from web and dashboard starts working
+  after this api-gateway deploy — it has been returning 400.** `PUT /users-service/users/change-password`
+  was registered after `PUT /users/:id`, so express matched the param route and
+  `updateUserValidation`'s leading `param('id').exists().isUUID(4)` rejected the literal
+  segment `change-password` before the proxy ran. Both surfaces reach it through
+  `therr-react`'s `UsersService`, so nobody could change a password from the web; the error
+  reads as a client payload problem, which is why it survived. Confirm one real password
+  change end to end after deploy. Note the request never reached users-service, so there is
+  no bad data to repair — but if support tickets exist for "the password form is broken",
+  this is them.
+- [ ] (2026-08-14, /work-plan) **api-gateway now refuses to boot if a route is shadowed.**
+  `assertNoShadowedRoutes` (`src/utilities/routeOrdering.ts`) runs after the router mounts
+  in `src/index.ts` and throws, so a bad route ordering crash-loops the pod rather than
+  serving a broken chain. The same check runs in CI over the real router
+  (`tests/unit/utilities/routeOrdering.test.ts`), so this should never be how you find out —
+  but if api-gateway ever crash-loops right after a deploy that added a route, read the
+  boot log: the error names both the unreachable route and the one claiming it, and the fix
+  is to register the literal route before its `:param` sibling.
+- [ ] (2026-08-14, /work-plan) Seven previously-shadowed routes now run their own middleware
+  chain for the first time — expected, no action unless something regresses. They already
+  proxied to the right downstream path (`handleServiceRequest` forwards `req.url` verbatim),
+  so this changes only which gateway middleware they pass through:
+  `GET /users/notifications` and `GET /users/organizations` no longer run `GET /users/:id`'s
+  `authenticateOptional`; the four `social-sync/oauth2-*` callbacks no longer run
+  `/social-sync/:userId`'s chain; `GET /forums/categories` no longer runs
+  `GET /forums/:forumId`'s. Watch for auth-shaped 401s on those six read paths after deploy.
 - [ ] (2026-08-12, /work-plan) **Subscription upgrades now require the Stripe billing email to
   match the account — watch for legitimate purchases that stop upgrading.** `register`, `login`
   and `activateUserSubscription` all grant a plan's access level only when the Checkout
@@ -686,6 +697,25 @@ console configuration, and one verification that gates a payments change.
   on a new cluster, but it also means gzip is still genuinely off at the ingress. If compression
   is wanted, the supported route is the controller ConfigMap Helm value, applied deliberately to
   both clusters. No migration, no env var.
+- [ ] (2026-08-14, /quality-peer-review) **Watch the first prod deploy under the new
+  three-wave plan with `DEPLOY_DRAIN_TIMEOUT` defaulted to 0.** `_bin/cicd/deploy.sh` dropped
+  from seven waves to three and no longer waits for superseded Pods to finish terminating
+  between waves. Both changes assume the new cluster's nodes can absorb the whole surge
+  footprint at once — the assumption the old seven-wave plan existed to avoid testing. The
+  failure mode is the 2026-08-12 one: a rollout wedged on an over-subscribed node, which
+  `wait_for_rollouts` surfaces as a timeout rather than anything subtler. If it recurs, the
+  gate is still there — set `DEPLOY_DRAIN_TIMEOUT=90` to restore the old behavior without a
+  code change. No migration, no env var required for the default path.
+- [ ] (2026-08-14, /quality-peer-review) **Wire `validate` into the 14 gateway routes that
+  declare express-validator chains without it.** Listed as `KNOWN_UNENFORCED` in
+  `therr-api-gateway/tests/unit/routes/validationWiring.test.ts`, which now fails on any
+  *new* one. Each declares a body contract that never runs — the chain populates the error
+  bag and nothing reads it, so malformed bodies proxy straight through to the service.
+  Deliberately not fixed in bulk: enforcing a chain that has never run is a live behavior
+  change for clients that cannot be force-updated (`POST /users/search` and
+  `PUT /users/connections` are both on deployed mobile paths). Each needs its shipped-client
+  payload checked against the chain before `validate` is added, then its line deleted from
+  the list. No migration, no env var.
 <!-- skill-followups:end -->
 
 ---
@@ -901,17 +931,22 @@ Audited 2026-07-20 (handler-level, users-service). Each needs a judgment call
 on whether brand scoping is correct — direct-link profile views may legitimately
 be brand-agnostic, but discovery and contact-matching paths are not.
 
-- `therr-services/users-service/src/handlers/userConnections.ts` —
-  `getUserConnection` has no brand filter. Still a judgment call: it reads a single
-  connection by `(requestingUserId, acceptingUserId)`, so it is a targeted lookup
-  rather than discovery. **The IDOR half is closed (2026-08-12, /work-plan)** — the
-  route param is now compared against the caller's `x-userid` and mismatches 403
-  before the row is read, so an authenticated user can no longer walk ids to read
-  any pair's connection. No client called this route at all, so the guard is
-  behaviour-preserving for real traffic
-- `therr-services/users-service/src/handlers/users.ts:841` —
-  `updateLastKnownLocation` is not brand-aware (lower risk — a mutation on the
-  caller's own row, listed for completeness)
+Closed 2026-08-14 (/work-plan) — both remaining entries were resolved as *decisions*,
+not as missing scoping, and each is now recorded in a comment on the handler so the
+question is not re-derived:
+
+- `getUserConnection` stays brand-agnostic. It reads one connection by its
+  `(requestingUserId, acceptingUserId)` pair — a targeted lookup, not discovery — and
+  the IDOR guard added 2026-08-12 already restricts it to pairs the caller belongs to.
+  `main.userConnections` records no brand, and a connection is a fact about two
+  identities, so scoping it would 404 a connection that demonstrably exists for a user
+  who is in both apps
+- `updateLastKnownLocation` stays brand-agnostic, and scoping it would be a live bug:
+  it already 403s unless the route param is the caller's own id, so it writes exactly
+  one identity row. A `brandContainment` predicate would match zero rows for a user
+  whose `brandVariations` array had not yet picked up the brand they are signed in
+  under, and the handler reports success without reading `rowCount` — so their location
+  would silently stop being recorded
 
 Re-audited 2026-07-20 (/work-plan) — three entries in the original audit were
 misdiagnosed and are **not** bugs. Recording the findings so they are not
@@ -928,11 +963,13 @@ re-flagged:
   brand-agnostic: both back direct-link and SEO-indexed profile views, so scoping
   them would 404 valid cross-brand profile links. Decision is now recorded in a
   comment on each handler
-- `clearUserDeviceToken` (users.ts:1321) looks correct as written — it deletes via
-  `deleteByToken`, and FCM token strings are unique per device *install*, so each
-  brand's app holds a distinct token and deletion by token cannot hit the wrong
-  app. Worth a confirming read of `UserDeviceTokensStore.deleteByToken` before
-  deleting this note outright
+- `clearUserDeviceToken` (users.ts:1321) is correct as written — **confirmed
+  2026-08-14 (/work-plan)**, this note is now closed. `UserDeviceTokensStore.deleteByToken`
+  deletes on the token string alone, and the store already carries a comment stating the
+  reasoning: a token value is globally unique to a device install regardless of brand, so
+  the input identifies the row(s) without a brand predicate. The migration
+  (`20260425000003_main.userDeviceTokens`) indexes `token` for exactly this
+  invalid-token cleanup path
 
 Closed 2026-07-20 (/work-plan): `searchUserPairings` is now brand-scoped via a new
 `brandVariation` arg on `UsersStore.searchUserSocials` (regression tests added).
@@ -940,13 +977,15 @@ Closed 2026-07-20 (/work-plan): `searchUserPairings` is now brand-scoped via a n
 origin `brandVariation` (new `20260720000001_main.invites.brandVariation` migration)
 so the landing page can route the invitee to the right app.
 
-Frontend follow-up for the invite change (therr-client-web, separate commit — the
-backend half only makes the field available):
-
-- Invite-landing page — consume the new `brandVariation` field from
-  `GET /users/invites/:token` and deep-link the invitee to the app the invite was
-  minted in. Until this lands, a Habits invite opened on a Therr-branded landing
-  page still points the user at the Therr install
+Closed 2026-08-14 (/work-plan): the frontend half of the invite change shipped.
+`therr-client-web/src/routes/InviteLinkLanding.tsx` now reads `brandVariation` off
+`GET /users/invites/:token` and resolves install links through a new
+`src/utilities/brandAppStores.ts`, so a Habits invite offers the
+`com.therr.habits` listing instead of the Therr one. HABITS deliberately gets no App
+Store badge — no HABITS iOS target exists, so that badge would install the Therr app,
+which cannot see the invite. Unknown, missing and shelved brands fall back to Therr.
+The username-based `/invite/:username` landing is unchanged: it has no token, so no
+`brandVariation` is available to it.
 
 Related routing hygiene, found while fixing the `POST /users/search` 400 on
 2026-07-20 (gateway `/users/:id` was registered before the literal routes and
@@ -956,10 +995,37 @@ for the same param-before-literal ordering bug. A shadowed route fails with a
 validation 400 that looks like a client payload bug, so these are expensive to
 diagnose.
 
-- `therr-api-gateway/src/services/*/router.ts` — Audit every router for
-  `:param` routes registered before literal sibling routes on the same method
-  and path prefix. Prefer a startup assertion or lint rule over a one-time
-  sweep, since new routes reintroduce the bug
+Closed 2026-08-14 (/work-plan): all 8 gateway routers are audited, and the audit is now
+enforced rather than one-time. `therr-api-gateway/src/utilities/routeOrdering.ts` walks
+the live Express stack (not the source) and `assertNoShadowedRoutes` runs at boot in
+`src/index.ts`, with the same check over the real router in
+`tests/unit/utilities/routeOrdering.test.ts` so CI fails first.
+
+The sweep found **8 shadowed routes**. One of them was a live user-facing outage; the
+other seven were latent. The distinction is worth keeping, because it is not obvious:
+`handleServiceRequest` proxies to `` `${basePath}${req.url}` ``, forwarding the original
+URL verbatim. A shadowed route therefore still reaches the *correct* downstream path — it
+just runs the **wrong middleware chain** on the way. It only breaks when the shadowing
+route's middleware rejects the request.
+
+**Live bug, now fixed: `PUT /users-service/users/change-password` returned 400 for every
+caller.** It matched `PUT /users/:id`, whose `updateUserValidation` leads with
+`param('id').exists().isUUID(4)`; `change-password` is not a UUID, so `validate`
+short-circuited with a 400 before the proxy ran. Both web and dashboard reach this route
+through `therr-react`'s `UsersService` (`src/services/UsersService.ts:155`), so
+password change from the web was failing with what looked like a client payload error.
+This is the same failure mode as the 2026-07-20 `/users/search` incident.
+
+Latent (each proxied correctly, but under another route's middleware):
+
+- `GET /users-service/users/notifications`, `GET /users-service/users/organizations` —
+  behind `GET /users/:id`, so they ran its `authenticateOptional` rather than their own
+  chain. Note the *`POST`* siblings were fixed on 2026-07-20 by moving the param route to
+  the bottom of the file with a comment — but only for `POST`. `GET` and `PUT` kept theirs
+  mid-file and have now joined it there
+- all four `GET /users-service/social-sync/oauth2-{facebook,dashboard-facebook,instagram,tiktok}`
+  callbacks — behind `GET /social-sync/:userId`
+- `GET /messages-service/forums/categories` — behind `GET /forums/:forumId`
 
 ---
 

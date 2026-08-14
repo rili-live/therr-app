@@ -429,11 +429,6 @@ usersServiceRouter.post('/users/:id/push-diagnostics/send-test', authorize(
     method: 'post',
 }));
 
-usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'get',
-}));
-
 usersServiceRouter.get('/users/by-phone/:phoneNumber', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
@@ -450,11 +445,6 @@ usersServiceRouter.get('/users/invites/:token', emailPrecheckLimiter, [param('to
     method: 'get',
 }));
 
-usersServiceRouter.put('/users/:id', updateUserValidation, validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'put',
-}));
-
 usersServiceRouter.put('/users/:id/block', blockUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
@@ -465,7 +455,12 @@ usersServiceRouter.put('/users/:id/report', reportUserValidation, validate, hand
     method: 'put',
 }));
 
-usersServiceRouter.put('/users/change-password', changePasswordValidation, handleServiceRequest({
+// `validate` is what turns the chain above into a 400 -- without it express-validator
+// collects the errors and nothing ever reads them. Latent until 2026-08-14, because the
+// route was shadowed by `PUT /users/:id` and never ran; un-shadowing it made the missing
+// check live, so it is fixed here rather than left as the one route in this file that
+// declares a body contract it does not enforce.
+usersServiceRouter.put('/users/change-password', changePasswordValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
@@ -562,10 +557,8 @@ usersServiceRouter.post('/social-sync', createUpdateSocialSyncsValidation, handl
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
-usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'get',
-}));
+// The four oauth2 callback routes must precede '/social-sync/:userId' -- they are
+// literal siblings on the same method, and the param route matched all four first.
 usersServiceRouter.get('/social-sync/oauth2-facebook', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
@@ -579,6 +572,10 @@ usersServiceRouter.get('/social-sync/oauth2-instagram', handleServiceRequest({
     method: 'get',
 }));
 usersServiceRouter.get('/social-sync/oauth2-tiktok', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
@@ -810,8 +807,25 @@ usersServiceRouter.put('/habits/streaks/:id/grace', handleServiceRequest({
     method: 'put',
 }));
 
-// Catch-all param route -- MUST stay last. Any literal `POST /users/<name>` route
-// registered below this line will be shadowed by it and rejected with a 400.
+// Catch-all `/users/:id` param routes -- MUST stay last, one per method. Any
+// literal `/users/<name>` route registered below this line is shadowed by its
+// same-method catch-all and rejected with a 400 that reads like a client bug.
+//
+// GET and PUT were moved down here on 2026-08-14; before that they sat with the
+// rest of the /users block and were silently swallowing four literal routes:
+// GET /users/notifications, GET /users/organizations, PUT /users/change-password.
+// `assertNoShadowedRoutes` (src/utilities/routeOrdering.ts) now fails the boot
+// if this ordering regresses, so this comment is enforced rather than advisory.
+usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.put('/users/:id', updateUserValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
 usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
