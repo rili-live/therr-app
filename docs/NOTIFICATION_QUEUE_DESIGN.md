@@ -1,7 +1,7 @@
 # Notification queue — design
 
 **Status:** live — the habits digest is the first producer, and the worker is enabled
-(`NOTIFICATION_QUEUE_WORKER_ENABLED=true` in `k8s/prod` and `k8s/test`)
+(`NOTIFICATION_QUEUE_WORKER_ENABLED=true` in `k8s/prod`)
 **Scope:** all brands; the immediate driver is HABITS send frequency
 **Companion docs:** [`PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md`](./PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md) (what to send), [`PUSH_NOTIFICATIONS_DEBUGGING.md`](./PUSH_NOTIFICATIONS_DEBUGGING.md) (why one didn't arrive)
 
@@ -236,7 +236,7 @@ the frequency cap by hitting it.
 ## Operational notes
 
 - **`NOTIFICATION_QUEUE_WORKER_ENABLED=true`** on users-service turns the worker
-  on. Absent = inert. It is set in `k8s/prod` and `k8s/test`, and in both `.env`
+  on. Absent = inert. It is set in `k8s/prod`, and in both `.env`
   templates for local runs. Note that unsetting it is no longer a way back to
   the old behavior: the digest queues rather than sends, so with the flag off it
   fills the table and delivers nothing.
