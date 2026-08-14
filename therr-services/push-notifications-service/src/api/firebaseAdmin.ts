@@ -1,4 +1,3 @@
-/* eslint-disable no-case-declarations */
 import * as admin from 'firebase-admin';
 import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
@@ -1230,7 +1229,6 @@ const predictAndSendNotification = (
     type: PushNotifications.Types,
     data: PushNotifications.INotificationData,
     config: ICreateMessageConfig,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     metrics: INotificationMetrics | undefined,
     brandVariation: BrandVariations,
     headers?: InternalConfigHeaders,

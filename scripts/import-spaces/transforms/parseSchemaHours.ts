@@ -40,7 +40,15 @@ function normalizeTime(value: unknown): string | null {
   const match = value.trim().match(/^(\d{1,2}):(\d{2})/);
   if (!match) return null;
   const hours = parseInt(match[1], 10);
-  if (Number.isNaN(hours) || hours > 24) return null;
+  const minutes = parseInt(match[2], 10);
+  // 24 is allowed as an end-of-day close ("24:00"), but only on the hour.
+  // Minutes are validated too: the regex only guarantees two digits, so
+  // without this "08:99" was written straight into main.spaces."openingHours"
+  // as if it were a real time. Rejecting is the right failure here — the
+  // caller skips the rule rather than persisting a garbage window.
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+  if (hours > 24 || minutes > 59) return null;
+  if (hours === 24 && minutes !== 0) return null;
   return `${String(hours).padStart(2, '0')}:${match[2]}`;
 }
 
