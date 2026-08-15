@@ -64,6 +64,7 @@ went unread.
 ### Growth & marketing
 - [GROWTH_STRATEGY.md](./GROWTH_STRATEGY.md) — B2B-first funnel; the active growth strategy
 - [TARGET_MARKETS.md](./TARGET_MARKETS.md) — consumer and business target markets
+- [PHOTO_CHALLENGE_VIABILITY.md](./PHOTO_CHALLENGE_VIABILITY.md) — assessment of host-funded photo contests; staged path and kill criteria
 - [QR_CODE_MAIL_CAMPAIGN.md](./QR_CODE_MAIL_CAMPAIGN.md) — direct mail campaign
 - [PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md](./PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md) — push engagement plan
 
