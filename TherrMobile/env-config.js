@@ -50,6 +50,9 @@ const baseFeatureFlags = {
     ENABLE_HABITS: false,
     ENABLE_PACTS: false,
     REQUIRE_PACT_ONBOARDING: false,
+    ENABLE_HABITS_JOURNAL: false,
+    ENABLE_HABITS_SOLO: false,
+    ENABLE_HABITS_LIFETIME_OFFER: false,
 
     // Device / OS Permissions
     ENABLE_LOCATION_SERVICES: true,
@@ -89,6 +92,15 @@ const brandFeatureFlagOverrides = {
         ENABLE_HABITS: true,
         ENABLE_PACTS: true,
         REQUIRE_PACT_ONBOARDING: true,
+        ENABLE_HABITS_JOURNAL: true,
+        // Solo habits still require the user to have sent a pact invite first;
+        // this flag only controls whether the affordance exists at all. The
+        // server enforces the onboarding gate independently.
+        ENABLE_HABITS_SOLO: true,
+        // The paywall additionally hides itself when the server reports no Play
+        // credentials configured, so this flag being on is necessary but not
+        // sufficient for the CTA to appear.
+        ENABLE_HABITS_LIFETIME_OFFER: true,
     },
 };
 

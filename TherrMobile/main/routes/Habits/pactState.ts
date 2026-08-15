@@ -44,6 +44,25 @@ export const getPartnerNames = (
 }, []);
 
 /**
+ * Has this user sent a pact invite that is still waiting on the invitee?
+ *
+ * This is what releases the onboarding gate alongside an active pact. Gating
+ * purely on acceptance made the user's own progress depend on someone else's
+ * action: a friend who installed the app a week later — or never — left the
+ * inviter parked on the overlay indefinitely with nothing they could do.
+ *
+ * Reads `pacts` (everything the user is party to) rather than `pendingInvites`,
+ * which holds invitations *received*. The predicate is creator-side on purpose:
+ * being invited by someone else is not evidence that this user did the inviting.
+ */
+export const hasSentPactInvite = (
+    pacts: IPact[],
+    currentUserId?: string,
+): boolean => (pacts || []).some(
+    (pact) => pact.status === 'pending' && !!currentUserId && pact.creatorUserId === currentUserId,
+);
+
+/**
  * Splits the habit list by whether its pact has started. Goals with no pact at
  * all are treated as live so a habit can never become un-checkin-able through
  * missing pact data.

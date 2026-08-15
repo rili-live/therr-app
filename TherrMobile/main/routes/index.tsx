@@ -59,7 +59,8 @@ import MyHabits from './MyHabits';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 // HABITS routes
-import { HabitsDashboard, HabitDetail } from './Habits';
+import { HabitsDashboard, HabitDetail, UpgradePaywall } from './Habits';
+import Journal from './Journal';
 import { PactsList, PactDetail, CreatePactInvite, HabitsPushOptIn } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
@@ -557,6 +558,24 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Habit Details',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'Journal',
+        component: Journal,
+        options: () => ({
+            title: 'Journal',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS_JOURNAL],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'UpgradePaywall',
+        component: UpgradePaywall,
+        options: () => ({
+            title: 'Free For Life',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },

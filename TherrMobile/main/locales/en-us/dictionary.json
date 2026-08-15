@@ -117,7 +117,21 @@
     "lessThanHours": "< 1h",
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}d",
-    "yearsSinceDate": "{count}y"
+    "yearsSinceDate": "{count}y",
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    }
   },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [
@@ -1129,7 +1143,8 @@
         "habits": "Habits",
         "pacts": "Pacts",
         "partners": "Friends",
-        "profile": "Profile"
+        "profile": "Profile",
+        "journal": "Journal"
       }
     },
     "connections": {
@@ -2077,7 +2092,12 @@
         "noPeopleFound": "No people found",
         "searchHelp": "Type a name to find someone, or share an invite link.",
         "friendBadge": "Friend",
-        "habitDefaultEmoji": "🎯"
+        "habitDefaultEmoji": "🎯",
+        "soloHint": "Waiting on a friend? You can start this one on your own.",
+        "soloCta": "Track this on my own",
+        "soloStarting": "Starting…",
+        "soloSuccess": "Habit started",
+        "soloError": "We could not start that habit."
       },
       "status": {
         "pending": "Pending",
@@ -2234,6 +2254,62 @@
       },
       "messages": {
         "noHabits": "No active habits yet. Start by creating a habit to build your streak!"
+      }
+    },
+    "journal": {
+      "headerTitle": "Journal",
+      "empty": {
+        "title": "Nothing here yet",
+        "subtitle": "Your check-ins, milestones and notes will show up here as you go."
+      },
+      "composer": {
+        "title": "New entry",
+        "placeholder": "What happened today?",
+        "save": "Save",
+        "cancel": "Cancel"
+      },
+      "entry": {
+        "achievementEarned": "Earned a new achievement",
+        "milestoneReached": "{days}-day streak!",
+        "habitStarted": "Started tracking {habit}",
+        "checkinCompleted": "Completed {habit}",
+        "checkinSkipped": "Skipped {habit}",
+        "editAccessibility": "Edit this entry"
+      },
+      "errors": {
+        "loadFailed": "We could not load your journal.",
+        "saveFailed": "We could not save that entry."
+      }
+    },
+    "upgrade": {
+      "title": "Free for life",
+      "subtitle": "One payment. Every feature, forever. No subscription.",
+      "limitTitle": "You have reached your habit limit",
+      "limitSubtitle": "Free accounts track {limit} habits at a time. Archive one, or unlock everything for life.",
+      "benefitsTitle": "What you get",
+      "benefits": {
+        "unlimitedHabits": "Track as many habits as you want",
+        "unlimitedPacts": "Unlimited pacts with unlimited friends",
+        "allFutureFeatures": "Every premium feature we add, forever",
+        "foundersBadge": "A founder number on your profile",
+        "noSubscription": "No subscription, ever"
+      },
+      "seatsRemaining": "{remaining} of {total} founder spots left",
+      "buyCta": "Unlock for life {price}",
+      "purchasing": "Completing purchase…",
+      "notNow": "Not now",
+      "owned": "You already have lifetime access.",
+      "ownedWithNumber": "You are founder #{number}.",
+      "soldOut": "All founder spots have been claimed.",
+      "unavailable": "This offer is not available on your device right now.",
+      "success": {
+        "title": "You are all set",
+        "message": "Lifetime access unlocked. Thank you for backing us early."
+      },
+      "errors": {
+        "verifyFailed": "We could not confirm that purchase. It will be restored the next time you open this screen.",
+        "purchaseFailed": "That purchase did not go through.",
+        "storeUnavailable": "The store is unavailable right now."
       }
     }
   },

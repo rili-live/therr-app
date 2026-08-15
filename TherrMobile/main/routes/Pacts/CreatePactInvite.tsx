@@ -43,6 +43,8 @@ interface IDispatchProps {
     getTemplates: Function;
     createGoal: Function;
     bulkInvitePact: Function;
+    startUserHabit: Function;
+    getUserHabitEligibility: Function;
     searchUsers: Function;
 }
 
@@ -66,6 +68,7 @@ interface ICreatePactInviteState {
     isSearching: boolean;
     isSending: boolean;
     isLoadingTemplates: boolean;
+    isStartingSolo: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -78,6 +81,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getTemplates: HabitActions.getTemplates,
     createGoal: HabitActions.createGoal,
     bulkInvitePact: HabitActions.bulkInvitePact,
+    startUserHabit: HabitActions.startUserHabit,
+    getUserHabitEligibility: HabitActions.getUserHabitEligibility,
     searchUsers: UsersActions.search,
 }, dispatch);
 
@@ -121,6 +126,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             isSearching: false,
             isSending: false,
             isLoadingTemplates: false,
+            isStartingSolo: false,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -140,6 +146,11 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                 .catch(() => {})
                 .finally(() => this.setState({ isLoadingTemplates: false }));
         }
+
+        // Decides whether step 2 offers the "track this on my own" branch. A
+        // failure leaves `canCreateSolo` false, which hides the affordance —
+        // the safe direction, since the server would refuse the call anyway.
+        this.props.getUserHabitEligibility().catch(() => {});
     }
 
     componentWillUnmount() {
@@ -268,41 +279,116 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         }).catch(() => {});
     };
 
+    /**
+     * Resolve the habit the user composed in step 1 into a real habit goal.
+     *
+     * Shared by the pact path and the solo path so the two cannot drift on how
+     * a template is cloned — cloning matters because per-user stats (streaks,
+     * completion rate) must not share rows across users.
+     */
+    resolveHabitGoalId = async (): Promise<string | null> => {
+        const { habits, createGoal } = this.props;
+        const { selectedTemplateId, customHabitName } = this.state;
+
+        if (selectedTemplateId) {
+            const template = habits.templates?.find((t) => t.id === selectedTemplateId);
+
+            if (!template) {
+                return selectedTemplateId;
+            }
+
+            const userGoal = await createGoal({
+                name: template.name,
+                description: template.description,
+                category: template.category,
+                emoji: template.emoji,
+                frequencyType: template.frequencyType,
+                frequencyCount: template.frequencyCount,
+                targetDaysOfWeek: template.targetDaysOfWeek,
+            });
+
+            return userGoal?.id || selectedTemplateId;
+        }
+
+        if (customHabitName.trim()) {
+            const newGoal = await createGoal({
+                name: customHabitName.trim(),
+                frequencyType: 'daily',
+                frequencyCount: 1,
+            });
+
+            return newGoal?.id || null;
+        }
+
+        return null;
+    };
+
+    /**
+     * The free-tier cap answers with 402 and paywall metadata rather than a
+     * generic error, so route to the offer instead of showing "something went
+     * wrong" for something the user can actually act on.
+     *
+     * Returns true when it handled the error.
+     */
+    handlePossiblePaywall = (err: any): boolean => {
+        const response = err?.response;
+
+        if (response?.status !== 402) {
+            return false;
+        }
+
+        this.props.navigation.navigate('UpgradePaywall', {
+            reason: response.data?.error || 'habit-limit-reached',
+            limit: response.data?.limit,
+        });
+
+        return true;
+    };
+
+    /**
+     * "Track this on my own" — available only after the user has sent at least
+     * one pact invite, which the server verifies independently.
+     */
+    handleStartSolo = async () => {
+        const { navigation, startUserHabit } = this.props;
+
+        this.setState({ isStartingSolo: true });
+
+        try {
+            const habitGoalId = await this.resolveHabitGoalId();
+
+            if (!habitGoalId) {
+                throw new Error('missing habitGoalId');
+            }
+
+            await startUserHabit({ habitGoalId });
+
+            Toast.show({
+                type: 'success',
+                text1: this.translate('pages.pacts.wizard.soloSuccess'),
+            });
+
+            navigation.navigate('HabitsDashboard');
+        } catch (err: any) {
+            if (!this.handlePossiblePaywall(err)) {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.wizard.soloError'),
+                });
+            }
+        } finally {
+            this.setState({ isStartingSolo: false });
+        }
+    };
+
     handleSend = async () => {
-        const { habits, createGoal, bulkInvitePact, navigation } = this.props;
-        const { selectedTemplateId, customHabitName, selectedPartnerIds } = this.state;
+        const { bulkInvitePact, navigation } = this.props;
+        const { selectedPartnerIds } = this.state;
 
         this.setState({ isSending: true });
 
         try {
-            let habitGoalId: string | null = null;
-
-            if (selectedTemplateId) {
-                // Clone the template into a user-owned goal so per-user stats
-                // (streaks, completion rate) don't share rows across users.
-                const template = habits.templates?.find((t) => t.id === selectedTemplateId);
-                if (template) {
-                    const userGoal = await createGoal({
-                        name: template.name,
-                        description: template.description,
-                        category: template.category,
-                        emoji: template.emoji,
-                        frequencyType: template.frequencyType,
-                        frequencyCount: template.frequencyCount,
-                        targetDaysOfWeek: template.targetDaysOfWeek,
-                    });
-                    habitGoalId = userGoal?.id || selectedTemplateId;
-                } else {
-                    habitGoalId = selectedTemplateId;
-                }
-            } else if (customHabitName.trim()) {
-                const newGoal = await createGoal({
-                    name: customHabitName.trim(),
-                    frequencyType: 'daily',
-                    frequencyCount: 1,
-                });
-                habitGoalId = newGoal?.id;
-            }
+            const habitGoalId = await this.resolveHabitGoalId();
 
             if (!habitGoalId) throw new Error('missing habitGoalId');
 
@@ -327,11 +413,15 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             permissions.requestIfAppropriate('notifications', { trigger: 'pactCreate' });
 
             navigation.navigate('HabitsDashboard');
-        } catch {
-            Toast.show({
-                type: 'error',
-                text1: this.translate('pages.pacts.wizard.sendingError'),
-            });
+        } catch (err: any) {
+            // A 402 means the free-tier habit cap, not a failure — send the
+            // user somewhere they can do something about it.
+            if (!this.handlePossiblePaywall(err)) {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.wizard.sendingError'),
+                });
+            }
         } finally {
             this.setState({ isSending: false });
         }
@@ -443,8 +533,14 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     };
 
     renderStep2 = () => {
-        const { user, userConnections } = this.props;
-        const { selectedPartnerIds, searchQuery, isSearching } = this.state;
+        const { habits, user, userConnections } = this.props;
+        const {
+            selectedPartnerIds, searchQuery, isSearching, isStartingSolo,
+        } = this.state;
+        // Non-default by design: the app is called Friends with Habits, so the
+        // solo route sits below the partner list as a way out rather than as a
+        // peer choice. It appears only once the user has already sent an invite.
+        const canCreateSolo = !!habits.userHabitEligibility?.canCreateSolo;
         const currentUserId = user.details?.id || '';
         const connections = (userConnections?.activeConnections || userConnections?.connections || []) as any[];
 
@@ -546,6 +642,27 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         {this.translate('forms.createConnection.shareLink.title')}
                     </Text>
                 </Pressable>
+
+                {canCreateSolo && (
+                    <View style={{ paddingHorizontal: 20, marginTop: 8, paddingBottom: 16 }}>
+                        <Text style={[this.themeHabits.styles.habitCardSubtitle, { textAlign: 'center' }]}>
+                            {this.translate('pages.pacts.wizard.soloHint')}
+                        </Text>
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityState={{ disabled: isStartingSolo }}
+                            disabled={isStartingSolo}
+                            onPress={this.handleStartSolo}
+                            style={{ marginTop: 8, paddingVertical: 12, opacity: isStartingSolo ? 0.6 : 1 }}
+                        >
+                            <Text style={[this.themeButtons.styles.btnTitleBlack, { textAlign: 'center' }]}>
+                                {isStartingSolo
+                                    ? this.translate('pages.pacts.wizard.soloStarting')
+                                    : this.translate('pages.pacts.wizard.soloCta')}
+                            </Text>
+                        </Pressable>
+                    </View>
+                )}
             </View>
         );
     };

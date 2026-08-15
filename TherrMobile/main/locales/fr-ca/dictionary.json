@@ -117,7 +117,21 @@
     "lessThanHours": "< 1h",
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}j",
-    "yearsSinceDate": "{count}a"
+    "yearsSinceDate": "{count}a",
+    "months": {
+      "january": "Janvier",
+      "february": "Février",
+      "march": "Mars",
+      "april": "Avril",
+      "may": "Mai",
+      "june": "Juin",
+      "july": "Juillet",
+      "august": "Août",
+      "september": "Septembre",
+      "october": "Octobre",
+      "november": "Novembre",
+      "december": "Décembre"
+    }
   },
   "quoteOfTheDay": "Citation du jour",
   "dailyQuotes": [
@@ -1129,7 +1143,8 @@
         "habits": "Habitudes",
         "pacts": "Pactes",
         "partners": "Amis",
-        "profile": "Profil"
+        "profile": "Profil",
+        "journal": "Journal"
       }
     },
     "connections": {
@@ -2077,7 +2092,12 @@
         "noPeopleFound": "Aucune personne trouvée",
         "searchHelp": "Tape un nom pour trouver quelqu'un, ou partage un lien d'invitation.",
         "friendBadge": "Ami",
-        "habitDefaultEmoji": "🎯"
+        "habitDefaultEmoji": "🎯",
+        "soloHint": "Tu attends un ami? Tu peux commencer celle-ci seul.",
+        "soloCta": "La suivre seul",
+        "soloStarting": "Démarrage…",
+        "soloSuccess": "Habitude démarrée",
+        "soloError": "Nous n'avons pas pu démarrer cette habitude."
       },
       "status": {
         "pending": "En attente",
@@ -2234,6 +2254,62 @@
       },
       "messages": {
         "noHabits": "Aucune habitude active pour l'instant. Commencez par créer une habitude pour développer votre série !"
+      }
+    },
+    "journal": {
+      "headerTitle": "Journal",
+      "empty": {
+        "title": "Rien pour l'instant",
+        "subtitle": "Tes suivis, tes jalons et tes notes apparaîtront ici au fil du temps."
+      },
+      "composer": {
+        "title": "Nouvelle entrée",
+        "placeholder": "Qu'est-ce qui s'est passé aujourd'hui?",
+        "save": "Enregistrer",
+        "cancel": "Annuler"
+      },
+      "entry": {
+        "achievementEarned": "Nouvelle réalisation obtenue",
+        "milestoneReached": "Série de {days} jours!",
+        "habitStarted": "Tu as commencé à suivre {habit}",
+        "checkinCompleted": "Tu as complété {habit}",
+        "checkinSkipped": "Tu as sauté {habit}",
+        "editAccessibility": "Modifier cette entrée"
+      },
+      "errors": {
+        "loadFailed": "Nous n'avons pas pu charger ton journal.",
+        "saveFailed": "Nous n'avons pas pu enregistrer cette entrée."
+      }
+    },
+    "upgrade": {
+      "title": "Gratuit à vie",
+      "subtitle": "Un seul paiement. Toutes les fonctionnalités, pour toujours. Sans abonnement.",
+      "limitTitle": "Tu as atteint ta limite d'habitudes",
+      "limitSubtitle": "Les comptes gratuits suivent {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
+      "benefitsTitle": "Ce que tu obtiens",
+      "benefits": {
+        "unlimitedHabits": "Suis autant d'habitudes que tu veux",
+        "unlimitedPacts": "Pactes illimités avec un nombre illimité d'amis",
+        "allFutureFeatures": "Toutes les fonctionnalités premium à venir, pour toujours",
+        "foundersBadge": "Un numéro de fondateur sur ton profil",
+        "noSubscription": "Jamais d'abonnement"
+      },
+      "seatsRemaining": "Il reste {remaining} places de fondateur sur {total}",
+      "buyCta": "Débloquer à vie {price}",
+      "purchasing": "Achat en cours…",
+      "notNow": "Pas maintenant",
+      "owned": "Tu as déjà l'accès à vie.",
+      "ownedWithNumber": "Tu es le fondateur nº {number}.",
+      "soldOut": "Toutes les places de fondateur ont été réclamées.",
+      "unavailable": "Cette offre n'est pas disponible sur ton appareil pour le moment.",
+      "success": {
+        "title": "Tout est prêt",
+        "message": "Accès à vie débloqué. Merci de nous soutenir dès le début."
+      },
+      "errors": {
+        "verifyFailed": "Nous n'avons pas pu confirmer cet achat. Il sera restauré la prochaine fois que tu ouvriras cet écran.",
+        "purchaseFailed": "Cet achat n'a pas abouti.",
+        "storeUnavailable": "La boutique est indisponible pour le moment."
       }
     }
   },

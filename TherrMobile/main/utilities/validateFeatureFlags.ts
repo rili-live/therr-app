@@ -13,6 +13,7 @@ const NAVIGATION_TAB_FLAGS = [
     FeatureFlags.ENABLE_CONNECT,
     FeatureFlags.ENABLE_HABITS,
     FeatureFlags.ENABLE_PACTS,
+    FeatureFlags.ENABLE_HABITS_JOURNAL,
 ];
 
 // Define dependencies (feature X requires feature Y)
@@ -20,6 +21,12 @@ const FEATURE_DEPENDENCIES: IFeatureDependency[] = [
     { feature: FeatureFlags.ENABLE_EVENTS, requires: [FeatureFlags.ENABLE_MAP] },
     { feature: FeatureFlags.ENABLE_ACTIVITY_SCHEDULER, requires: [FeatureFlags.ENABLE_GROUPS] },
     { feature: FeatureFlags.ENABLE_FORUMS, requires: [FeatureFlags.ENABLE_GROUPS] },
+    // The journal reads check-ins, streak milestones and habit starts; without
+    // habits there is nothing for it to show.
+    { feature: FeatureFlags.ENABLE_HABITS_JOURNAL, requires: [FeatureFlags.ENABLE_HABITS] },
+    { feature: FeatureFlags.ENABLE_HABITS_SOLO, requires: [FeatureFlags.ENABLE_HABITS] },
+    // The offer exists to lift the habit cap, which only the habits flow has.
+    { feature: FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER, requires: [FeatureFlags.ENABLE_HABITS] },
 ];
 
 export const validateFeatureFlags = (flags: Record<string, boolean>): string[] => {

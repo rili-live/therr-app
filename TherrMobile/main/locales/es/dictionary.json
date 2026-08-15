@@ -117,7 +117,21 @@
     "lessThanHours": "< 1h",
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}d",
-    "yearsSinceDate": "{count}a"
+    "yearsSinceDate": "{count}a",
+    "months": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo",
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    }
   },
   "quoteOfTheDay": "Frase del día",
   "dailyQuotes": [
@@ -1129,7 +1143,8 @@
         "habits": "Hábitos",
         "pacts": "Pactos",
         "partners": "Amigos",
-        "profile": "Perfil"
+        "profile": "Perfil",
+        "journal": "Diario"
       }
     },
     "connections": {
@@ -2077,7 +2092,12 @@
         "noPeopleFound": "No se encontraron personas",
         "searchHelp": "Escribe un nombre para encontrar a alguien, o comparte un enlace de invitación.",
         "friendBadge": "Amigo",
-        "habitDefaultEmoji": "🎯"
+        "habitDefaultEmoji": "🎯",
+        "soloHint": "¿Esperando a un amigo? Puedes empezar este por tu cuenta.",
+        "soloCta": "Seguirlo por mi cuenta",
+        "soloStarting": "Comenzando…",
+        "soloSuccess": "Hábito iniciado",
+        "soloError": "No pudimos iniciar ese hábito."
       },
       "status": {
         "pending": "Pendiente",
@@ -2234,6 +2254,62 @@
       },
       "messages": {
         "noHabits": "Aún no hay hábitos activos. ¡Empieza creando un hábito para construir tu racha!"
+      }
+    },
+    "journal": {
+      "headerTitle": "Diario",
+      "empty": {
+        "title": "Aún no hay nada",
+        "subtitle": "Tus registros, logros y notas aparecerán aquí a medida que avances."
+      },
+      "composer": {
+        "title": "Nueva entrada",
+        "placeholder": "¿Qué pasó hoy?",
+        "save": "Guardar",
+        "cancel": "Cancelar"
+      },
+      "entry": {
+        "achievementEarned": "Obtuviste un nuevo logro",
+        "milestoneReached": "¡Racha de {days} días!",
+        "habitStarted": "Comenzaste a seguir {habit}",
+        "checkinCompleted": "Completaste {habit}",
+        "checkinSkipped": "Omitiste {habit}",
+        "editAccessibility": "Editar esta entrada"
+      },
+      "errors": {
+        "loadFailed": "No pudimos cargar tu diario.",
+        "saveFailed": "No pudimos guardar esa entrada."
+      }
+    },
+    "upgrade": {
+      "title": "Gratis de por vida",
+      "subtitle": "Un solo pago. Todas las funciones, para siempre. Sin suscripción.",
+      "limitTitle": "Alcanzaste tu límite de hábitos",
+      "limitSubtitle": "Las cuentas gratuitas siguen {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
+      "benefitsTitle": "Qué incluye",
+      "benefits": {
+        "unlimitedHabits": "Sigue todos los hábitos que quieras",
+        "unlimitedPacts": "Pactos ilimitados con amigos ilimitados",
+        "allFutureFeatures": "Todas las funciones premium que agreguemos, para siempre",
+        "foundersBadge": "Un número de fundador en tu perfil",
+        "noSubscription": "Sin suscripción, nunca"
+      },
+      "seatsRemaining": "Quedan {remaining} de {total} lugares de fundador",
+      "buyCta": "Desbloquear de por vida {price}",
+      "purchasing": "Completando la compra…",
+      "notNow": "Ahora no",
+      "owned": "Ya tienes acceso de por vida.",
+      "ownedWithNumber": "Eres el fundador n.º {number}.",
+      "soldOut": "Todos los lugares de fundador ya fueron reclamados.",
+      "unavailable": "Esta oferta no está disponible en tu dispositivo en este momento.",
+      "success": {
+        "title": "Todo listo",
+        "message": "Acceso de por vida desbloqueado. Gracias por apoyarnos desde el principio."
+      },
+      "errors": {
+        "verifyFailed": "No pudimos confirmar esa compra. Se restaurará la próxima vez que abras esta pantalla.",
+        "purchaseFailed": "Esa compra no se completó.",
+        "storeUnavailable": "La tienda no está disponible en este momento."
       }
     }
   },

@@ -20,8 +20,12 @@ interface IHabitsButtonMenuProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// HABITS app has 4 tabs: Habits, Pacts, Connect, Profile
-const HABITS_TAB_COUNT = 4;
+// HABITS app has 5 tabs: Habits, Journal, Pacts, Connect, Profile.
+//
+// This is the maximum `validateFeatureFlags` allows, and the check is not
+// cosmetic — every tab is `screenWidth / HABITS_TAB_COUNT` wide, so a sixth
+// would push the labels past their glyphs on a small device.
+const HABITS_TAB_COUNT = 5;
 const buttonWidth = screenWidth / HABITS_TAB_COUNT;
 
 const localStyles = StyleSheet.create({
@@ -166,6 +170,7 @@ class HabitsButtonMenu extends ButtonMenu {
         } = (this.props as unknown as IHabitsButtonMenuProps);
         const activeRoute = this.getActiveRoute();
         const isHabitsActive = ['HabitsDashboard', 'HabitDetail'].includes(activeRoute);
+        const isJournalActive = activeRoute === 'Journal';
         const isPactsActive = ['PactsList', 'PactDetail', 'CreatePact', 'CreatePactInvite'].includes(activeRoute);
         const isConnectActive = activeRoute === 'Connect';
         const currentUserId = user?.details?.id;
@@ -218,6 +223,41 @@ class HabitsButtonMenu extends ButtonMenu {
                         />
                     }
                     onPress={() => this.onNavPressDynamic('HabitsDashboard')}
+                />
+
+                {/* Journal Tab */}
+                <Button
+                    title={!isCompact ? translate('menus.habits.buttons.journal') : null}
+                    buttonStyle={
+                        isJournalActive
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
+                    }
+                    containerStyle={[
+                        (isJournalActive
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer),
+                        {
+                            width: buttonWidth,
+                        },
+                    ]}
+                    titleStyle={
+                        isJournalActive
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
+                    }
+                    icon={
+                        <MaterialIcon
+                            name="menu-book"
+                            size={24}
+                            style={
+                                isJournalActive
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.onNavPressDynamic('Journal')}
                 />
 
                 {/* Pacts Tab */}

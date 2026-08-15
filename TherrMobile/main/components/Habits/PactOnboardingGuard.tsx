@@ -6,6 +6,7 @@ import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { useFeatureFlags } from '../../context/FeatureFlagContext';
 import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
+import { hasSentPactInvite } from '../../routes/Habits/pactState';
 
 interface IPactOnboardingGuardProps {
     user: IUserState;
@@ -20,11 +21,25 @@ const mapStateToProps = (state: any) => ({
 });
 
 /**
- * Soft-gates the Habits dashboard for HABITS users without an active pact.
+ * Soft-gates the Habits dashboard for HABITS users who have not yet started.
+ *
  * Renders <PactPreviewOverlay/> in place of children to show what's behind the
  * gate (sample habit + partner row + benefits) and route the user into the
- * pact-invite wizard. Once activePacts becomes non-empty, the gate releases
- * and any client-side pre-staged template marker is cleared.
+ * pact-invite wizard.
+ *
+ * WHAT RELEASES THE GATE
+ *
+ * Either an active pact, OR an invite the user has sent that nobody has
+ * accepted yet. The second condition was added with solo habits: gating purely
+ * on acceptance made a user's own progress depend on someone else's action, and
+ * a friend who installed the app a week later — or never — left the inviter
+ * parked here indefinitely with nothing they could do about it.
+ *
+ * The invite requirement itself is unchanged: the user still has to pick a
+ * habit, pick a person and send the invitation. What changed is that the friend
+ * saying yes is no longer the thing standing between them and their own habits.
+ * The server enforces the same rule on `POST /habits/user-habits`, so this is
+ * the UI half of a gate rather than the gate itself.
  */
 const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     user,
@@ -40,6 +55,8 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         && isEnabled(FeatureFlags.REQUIRE_PACT_ONBOARDING)
         && user.isAuthenticated;
     const hasActivePact = activePactCount > 0;
+    const hasSentInvite = hasSentPactInvite(habits.pacts || [], user.details?.id);
+    const hasStarted = hasActivePact || hasSentInvite;
 
     // Depend on the length, not the array reference, so unrelated Redux
     // dispatches that recreate `activePacts` don't re-run this effect.
@@ -51,7 +68,7 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         previousActivePactCount.current = activePactCount;
     }, [activePactCount]);
 
-    if (!guardActive || hasActivePact) {
+    if (!guardActive || hasStarted) {
         return <>{children}</>;
     }
 
