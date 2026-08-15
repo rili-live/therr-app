@@ -14,8 +14,18 @@
             "duplicatePost": "No se permiten publicaciones duplicadas"
         },
         "pacts": {
-            "habitGoalRequired": "Se requiere una meta de hábito para crear un pacto",
-            "freeTierLimitReached": "El nivel gratuito está limitado a {limit} pacto(s) activo(s). Actualiza a premium para tener pactos ilimitados."
+            "habitGoalRequired": "Se requiere una meta de hábito para crear un pacto"
+        },
+        "habits": {
+            "habitGoalRequired": "Se requiere una meta de hábito",
+            "freeTierHabitLimitReached": "Las cuentas gratuitas pueden seguir {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
+            "soloLocked": "Primero invita a un amigo a un pacto; después también podrás seguir hábitos por tu cuenta.",
+            "journalBodyRequired": "Escribe algo antes de guardar esta entrada",
+            "journalEntryNotFound": "Entrada del diario no encontrada",
+            "lifetimeVerificationFailed": "No pudimos verificar esa compra en este momento. Inténtalo de nuevo en unos instantes.",
+            "lifetimePurchaseNotFound": "No se encontró esa compra",
+            "lifetimePurchaseNotCompleted": "Esa compra aún no se ha completado",
+            "lifetimeAlreadyClaimed": "Otra cuenta ya reclamó esa compra"
         },
         "user": {
             "invalidUserNamePassword": "La combinación de usuario/contraseña es incorrecta",

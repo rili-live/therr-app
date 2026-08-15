@@ -14,8 +14,18 @@
             "duplicatePost": "Duplicate posts are not allowed"
         },
         "pacts": {
-            "habitGoalRequired": "A habit goal is required to create a pact",
-            "freeTierLimitReached": "Free tier is limited to {limit} active pact(s). Upgrade to premium for unlimited pacts."
+            "habitGoalRequired": "A habit goal is required to create a pact"
+        },
+        "habits": {
+            "habitGoalRequired": "A habit goal is required",
+            "freeTierHabitLimitReached": "Free accounts can track {limit} habits at a time. Archive one, or unlock everything for life.",
+            "soloLocked": "Invite a friend to a pact first — then you can track habits on your own too.",
+            "journalBodyRequired": "Write something before saving this entry",
+            "journalEntryNotFound": "Journal entry not found",
+            "lifetimeVerificationFailed": "We could not verify that purchase right now. Please try again shortly.",
+            "lifetimePurchaseNotFound": "That purchase could not be found",
+            "lifetimePurchaseNotCompleted": "That purchase has not completed yet",
+            "lifetimeAlreadyClaimed": "That purchase has already been claimed by another account"
         },
         "user": {
             "invalidUserNamePassword": "User/password combination is incorrect",
