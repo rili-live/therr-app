@@ -27,7 +27,7 @@ import {
     IPact,
 } from 'therr-react/types';
 import { BrandVariations } from 'therr-js-utilities/constants';
-import { TabBar, TabView } from 'react-native-tab-view';
+import { TabBar } from 'react-native-tab-view';
 import { showToast } from '../../utilities/toasts';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -50,6 +50,7 @@ import ProfileCompletionLink from '../../components/ProfileCompletionLink';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
+import CollapsibleHeaderTabView, { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { PactCard } from '../../components/Habits';
 import AchievementTile from '../Achievements/AchievementTile';
@@ -60,6 +61,7 @@ import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../
 import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
 import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
+import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 
 const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
@@ -719,14 +721,10 @@ class ViewUser extends React.Component<
         }
     };
 
+    // NOTE: Tab switches deliberately do NOT reset scroll position. CollapsibleHeaderTabView
+    // keeps every tab aligned with the header, so resetting here would fight that sync and
+    // yank the header back open on each swipe.
     onTabSelect = (index: number) => {
-        const { tabRoutes } = this.state;
-        const key = tabRoutes[index]?.key;
-        if (key === PROFILE_CAROUSEL_TABS.MOMENTS) {
-            this.carouselMomentsRef?.scrollToOffset({ animated: true, offset: 0 });
-        } else if (key === PROFILE_CAROUSEL_TABS.THOUGHTS || key === PROFILE_CAROUSEL_TABS.GOALS) {
-            this.carouselThoughtsRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
         this.setState({
             activeTabIndex: index,
         });
@@ -740,6 +738,43 @@ class ViewUser extends React.Component<
         if (width > 0 && height > 0) {
             this.setState({ isTabViewLaidOut: true });
         }
+    };
+
+    // The collapsible part of the screen: everything above the tab bar.
+    renderProfileHeader = () => {
+        const { habits, navigation, user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
+
+        return (
+            <>
+                <UserDisplayHeader
+                    goToConnections={this.goToConnections}
+                    navigation={navigation}
+                    isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
+                    onProfilePicturePress={this.onProfilePicturePress}
+                    onBlockUser={this.onBlockUser}
+                    onConnectionRequest={this.onConnectionRequest}
+                    onMessageUser={this.onMessageUser}
+                    onReportUser={this.onReportUser}
+                    themeForms={this.themeForms}
+                    themeUser={this.themeUser}
+                    themeHabits={this.themeHabits}
+                    translate={this.translate}
+                    user={user}
+                    userInView={user.userInView || {}}
+                    activeStreaks={habits?.activeStreaks || []}
+                />
+                {
+                    isMe &&
+                    <ProfileCompletionLink
+                        navigation={navigation}
+                        translate={this.translate as any}
+                        user={user}
+                        themeName={user.settings?.mobileThemeName}
+                    />
+                }
+            </>
+        );
     };
 
     renderTabBar = props => {
@@ -761,7 +796,19 @@ class ViewUser extends React.Component<
         );
     };
 
-    renderThoughtsScene = (emptyMessageKey: string) => {
+    // Scroll wiring a scene must forward for the collapsible header to track it.
+    // Empty when the scene renders outside CollapsibleHeaderTabView.
+    getCollapsibleScrollProps = (collapsible?: ICollapsibleSceneProps) => (collapsible ? {
+        ref: collapsible.registerRef,
+        onScroll: collapsible.onScroll,
+        onScrollEndDrag: collapsible.onScrollEndDrag,
+        onMomentumScrollEnd: collapsible.onMomentumScrollEnd,
+        onContentSizeChange: collapsible.onContentSizeChange,
+        scrollEventThrottle: collapsible.scrollEventThrottle,
+        scrollIndicatorInsets: collapsible.scrollIndicatorInsets,
+    } : {});
+
+    renderThoughtsScene = (emptyMessageKey: string, collapsible?: ICollapsibleSceneProps) => {
         const { isRefreshingUserMedia, userInViewsThoughts } = this.state;
         const { content, user } = this.props;
         const fetchMedia = () => {};
@@ -769,6 +816,7 @@ class ViewUser extends React.Component<
         return (
             <AreaCarousel
                 activeData={userInViewsThoughts}
+                collapsible={collapsible}
                 content={content}
                 inspectContent={this.goToContent}
                 isLoading={isRefreshingUserMedia}
@@ -853,9 +901,10 @@ class ViewUser extends React.Component<
         );
     };
 
-    renderHabitsPactsScene = () => {
+    renderHabitsPactsScene = (collapsible?: ICollapsibleSceneProps) => {
         const { habits } = this.props;
         const { isRefreshingHabitsData } = this.state;
+        const ListComponent: any = collapsible?.ScrollComponent || FlatList;
         // Show active pacts first, then completed pacts beneath. Filter out other lifecycle states
         // (pending, abandoned, expired) — those belong on the dedicated PactsList screen.
         const allPacts = habits.pacts || [];
@@ -863,23 +912,25 @@ class ViewUser extends React.Component<
         const completedPacts = allPacts.filter((p) => p.status === 'completed');
         const data: IPact[] = [...activePacts, ...completedPacts];
         return (
-            <FlatList
+            <ListComponent
                 data={data}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item: IPact) => item.id}
                 renderItem={this.renderPactItem}
                 refreshControl={
                     <RefreshControl
                         refreshing={isRefreshingHabitsData}
                         onRefresh={this.handleHabitsRefresh}
+                        progressViewOffset={collapsible?.progressViewOffset}
                     />
                 }
                 ListEmptyComponent={this.renderEmptyPacts}
-                contentContainerStyle={HABITS_TAB_LIST_CONTENT_STYLE}
+                contentContainerStyle={[HABITS_TAB_LIST_CONTENT_STYLE, collapsible?.contentContainerStyle]}
+                {...this.getCollapsibleScrollProps(collapsible)}
             />
         );
     };
 
-    renderHabitsAchievementsScene = () => {
+    renderHabitsAchievementsScene = (collapsible?: ICollapsibleSceneProps) => {
         const { user } = this.props;
         const { isRefreshingHabitsData, userInViewsAchievements } = this.state;
         const isMe = user.userInView?.id === user.details.id;
@@ -889,8 +940,9 @@ class ViewUser extends React.Component<
         const achievements = isMe
             ? Object.values(user.achievements || {})
             : userInViewsAchievements;
+        const ListComponent: any = collapsible?.ScrollComponent || FlatList;
         return (
-            <FlatList
+            <ListComponent
                 data={achievements}
                 keyExtractor={(item: any) => item.id}
                 renderItem={this.renderAchievementItem}
@@ -898,15 +950,17 @@ class ViewUser extends React.Component<
                     <RefreshControl
                         refreshing={isRefreshingHabitsData}
                         onRefresh={this.handleHabitsRefresh}
+                        progressViewOffset={collapsible?.progressViewOffset}
                     />
                 }
                 ListEmptyComponent={this.renderEmptyAchievements}
-                contentContainerStyle={HABITS_TAB_LIST_CONTENT_STYLE}
+                contentContainerStyle={[HABITS_TAB_LIST_CONTENT_STYLE, collapsible?.contentContainerStyle]}
+                {...this.getCollapsibleScrollProps(collapsible)}
             />
         );
     };
 
-    renderSceneMap = ({ route }) => {
+    renderSceneMap = ({ route, collapsible }: { route: any; collapsible: ICollapsibleSceneProps }) => {
         const { isRefreshingUserMedia, userInViewsMoments } = this.state;
         const {
             content,
@@ -923,6 +977,7 @@ class ViewUser extends React.Component<
                 return (
                     <AreaCarousel
                         activeData={userInViewsMoments}
+                        collapsible={collapsible}
                         content={content}
                         inspectContent={this.goToContent}
                         isLoading={isRefreshingUserMedia}
@@ -949,23 +1004,25 @@ class ViewUser extends React.Component<
             case PROFILE_CAROUSEL_TABS.THOUGHTS:
                 return this.renderThoughtsScene(
                     isMe ? 'user.profile.text.noMeThoughts' : 'user.profile.text.noThoughts',
+                    collapsible,
                 );
             case PROFILE_CAROUSEL_TABS.GOALS:
                 // HABITS reuses the thoughts data path; backend filters to habits-tagged thoughts.
                 return this.renderThoughtsScene(
                     isMe ? 'user.profile.text.noMeGoals' : 'user.profile.text.noGoals',
+                    collapsible,
                 );
             case PROFILE_CAROUSEL_TABS.PACTS:
-                return this.renderHabitsPactsScene();
+                return this.renderHabitsPactsScene(collapsible);
             case PROFILE_CAROUSEL_TABS.ACHIEVEMENTS:
-                return this.renderHabitsAchievementsScene();
+                return this.renderHabitsAchievementsScene(collapsible);
             default:
                 return null;
         }
     };
 
     render() {
-        const { habits, navigation, user } = this.props;
+        const { navigation, user } = this.props;
         const {
             activeTabIndex,
             activeConfirmModal,
@@ -984,60 +1041,36 @@ class ViewUser extends React.Component<
                         isLoading ?
                             <LottieLoader id="therr-black-rolling" theme={this.themeLoader} /> :
                             <View style={this.themeUser.styles.container}>
-                                <UserDisplayHeader
-                                    goToConnections={this.goToConnections}
-                                    navigation={navigation}
-                                    isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
-                                    onProfilePicturePress={this.onProfilePicturePress}
-                                    onBlockUser={this.onBlockUser}
-                                    onConnectionRequest={this.onConnectionRequest}
-                                    onMessageUser={this.onMessageUser}
-                                    onReportUser={this.onReportUser}
-                                    themeForms={this.themeForms}
-                                    themeUser={this.themeUser}
-                                    themeHabits={this.themeHabits}
-                                    translate={this.translate}
-                                    user={user}
-                                    userInView={user.userInView || {}}
-                                    activeStreaks={habits?.activeStreaks || []}
+                                <CollapsibleHeaderTabView
+                                    lazy
+                                    lazyPreloadDistance={0}
+                                    headerStyle={this.themeUser.styles.profileHeaderCollapsible}
+                                    listBottomInset={buttonMenuHeight}
+                                    navigationState={{
+                                        index: activeTabIndex,
+                                        routes: tabRoutes,
+                                    }}
+                                    onIndexChange={this.onTabSelect}
+                                    onLayout={this.handleTabContainerLayout}
+                                    renderHeader={this.renderProfileHeader}
+                                    renderTabBar={this.renderTabBar}
+                                    renderScene={this.renderSceneMap}
+                                    renderLazyPlaceholder={() => (
+                                        <View style={this.theme.styles.sectionContainer}>
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                        </View>
+                                    )}
+                                    initialLayout={{ width: viewportWidth }}
+                                    style={this.theme.styles.tabviewContainer}
                                 />
-                                {
-                                    user.userInView?.id === user.details.id &&
-                                    <ProfileCompletionLink
-                                        navigation={navigation}
-                                        translate={this.translate as any}
-                                        user={user}
-                                        themeName={user.settings?.mobileThemeName}
-                                    />
-                                }
-                                <View style={this.theme.styles.tabviewContainer} onLayout={this.handleTabContainerLayout}>
-                                    <TabView
-                                        lazy
-                                        lazyPreloadDistance={0}
-                                        navigationState={{
-                                            index: activeTabIndex,
-                                            routes: tabRoutes,
-                                        }}
-                                        renderTabBar={this.renderTabBar}
-                                        renderScene={this.renderSceneMap}
-                                        renderLazyPlaceholder={() => (
-                                            <View style={this.theme.styles.sectionContainer}>
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                            </View>
-                                        )}
-                                        onIndexChange={this.onTabSelect}
-                                        initialLayout={{ width: viewportWidth }}
-                                        style={this.theme.styles.tabviewContainer}
-                                    />
-                                    {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
-                                </View>
+                                {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
                             </View>
                     }
                 </SafeAreaView>

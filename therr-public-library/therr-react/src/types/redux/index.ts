@@ -22,6 +22,12 @@ import {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 } from './habits';
 import {
     IMapState,
@@ -90,6 +96,12 @@ export {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 
     // Maps
     IMapState,

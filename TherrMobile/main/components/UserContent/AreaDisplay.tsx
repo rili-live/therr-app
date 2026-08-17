@@ -83,6 +83,12 @@ interface IAreaDisplayProps {
     goToViewMoment?: (area: any) => any;
     goToViewSpace?: (area: any) => any;
     inspectContent: () => any;
+    /**
+     * Opens the crowdsourced "suggest an edit" flow for this space. When
+     * provided (spaces only), the contact section renders even for a space
+     * with no contact details yet — that's exactly where a correction helps most.
+     */
+    onSuggestEditPress?: (fieldName?: 'phoneNumber' | 'websiteUrl') => void;
     myReaction?: any;
     updateAreaReaction: Function;
     user: IUserState;
@@ -367,6 +373,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             areaMediaPadding,
             goToViewUser,
             inspectContent,
+            onSuggestEditPress,
             myReaction,
             areaUserDetails,
             placeholderMediaType,
@@ -963,7 +970,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     </View>
                 }
                 {
-                    isSpace && isExpanded && (area.addressStreetAddress || area.addressLocality || area.addressRegion || area.phoneNumber)
+                    isSpace && isExpanded
+                    && (area.addressStreetAddress || area.addressLocality || area.addressRegion || area.phoneNumber || onSuggestEditPress)
                     && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertSm]}>
                         <Text style={theme.styles.sectionTitleCenter}>
                             {translate('pages.viewSpace.h2.contactAndLocation')}
@@ -1001,6 +1009,29 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 }]}>
                                     {translate('pages.viewSpace.labels.viewOnGoogleMaps')}
                                 </Text>
+                            </Pressable>
+                        ) : null}
+                        {onSuggestEditPress ? (
+                            <Pressable
+                                // Pre-select whichever field is still missing, so the
+                                // common case needs one fewer tap. Phone is the modal's
+                                // default, so only the website case needs steering.
+                                onPress={() => onSuggestEditPress(
+                                    area.phoneNumber && !area.websiteUrl ? 'websiteUrl' : undefined,
+                                )}
+                                hitSlop={8}
+                            >
+                                <View style={localStyles.suggestEditRow}>
+                                    <Icon
+                                        name="edit"
+                                        size={14}
+                                        color={theme.colors.textGray}
+                                        style={localStyles.suggestEditIcon}
+                                    />
+                                    <Text style={[localStyles.suggestEditText, { color: theme.colors.textGray }]}>
+                                        {translate('pages.viewSpace.suggestEdit.trigger')}
+                                    </Text>
+                                </View>
                             </Pressable>
                         ) : null}
                     </View>
@@ -1129,6 +1160,19 @@ const localStyles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         marginTop: 8,
+    },
+    suggestEditRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 12,
+    },
+    suggestEditIcon: {
+        marginRight: 4,
+    },
+    suggestEditText: {
+        fontSize: 13,
+        textDecorationLine: 'underline',
     },
     titleWithBadge: {
         flexDirection: 'row',

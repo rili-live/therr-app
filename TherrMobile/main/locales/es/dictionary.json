@@ -1559,6 +1559,35 @@
         "pairingsDescription": "Lugares perfectos cerca para completar tu salida en {spaceName}",
         "helpful": "Útil",
         "notHelpful": "No útil"
+      },
+      "suggestEdit": {
+        "trigger": "Sugerir una edición",
+        "title": "Sugerir una edición",
+        "description": "¿Viste información incorrecta? Sugiere una corrección. La aplicaremos cuando varias personas estén de acuerdo.",
+        "fieldLabel": "¿Qué necesita actualización?",
+        "valueLabel": "Valor correcto",
+        "phoneOption": "Teléfono",
+        "websiteOption": "Sitio web",
+        "phonePlaceholder": "+34 600 000 000",
+        "websitePlaceholder": "https://ejemplo.com",
+        "normalizedPreview": "Se guardará como",
+        "submit": "Enviar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "appliedMessage": "¡Gracias! Tu corrección ha sido aplicada.",
+        "pendingMessage": "¡Gracias! Necesitamos {remaining} confirmación(es) más antes de aplicar este cambio.",
+        "ownerClaimedMessage": "¡Gracias! Este negocio tiene un propietario — le hemos reenviado tu sugerencia.",
+        "errorMessage": "Algo salió mal al enviar tu sugerencia. Por favor, intenta de nuevo.",
+        "rateLimited": "Has enviado muchas sugerencias recientemente. Por favor, inténtalo de nuevo más tarde.",
+        "errors": {
+          "EMPTY_PHONE": "Por favor, introduce un número de teléfono.",
+          "INVALID_PHONE": "Eso no parece un número de teléfono válido.",
+          "EMPTY_URL": "Por favor, introduce un sitio web.",
+          "INVALID_URL": "Eso no parece una URL válida.",
+          "INVALID_FIELD_NAME": "Ese campo no se puede editar.",
+          "UNSUPPORTED_FIELD": "Ese campo no se puede editar.",
+          "SPACE_NOT_FOUND": "Este lugar ya no está disponible."
+        }
       }
     },
     "viewMoment": {

@@ -116,6 +116,14 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     // orders by startDate); every pact is still credited below.
     const attributedPactId = pactId || pacts[0]?.id;
 
+    // Make sure the habit is registered as tracked. Every deliberate entry
+    // point already does this, so in practice the row exists — but a check-in
+    // is proof the user is tracking the habit, and a habit that is being
+    // checked into while missing from `user_habits` would be invisible on the
+    // dashboard and uncounted by the free-tier cap. getOrCreate will not
+    // resurrect a row the user archived.
+    await Store.userHabits.getOrCreate(userId, habitGoalId);
+
     // Create or update the checkin
     return Store.habitCheckins.createOrUpdate({
         userId,

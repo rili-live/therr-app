@@ -169,6 +169,40 @@ console configuration, and one verification that gates a payments change.
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-08-15, habits-production-readiness) **Create the Google Play in-app product before
+  the paywall can work.** Product id `habits_lifetime_founder` on `com.therr.habits`, one-time
+  **non-consumable**, $20 USD, active. In-app products do not resolve until the app is published
+  on a track, so this must happen on the same release that ships the paywall. If the id differs
+  from the default, set `HABITS_LIFETIME_PRODUCT_ID` to match — the server validates the id on
+  every verification and will reject a token bought under a different SKU.
+- [ ] (2026-08-15, habits-production-readiness) **Create a Play Console service account and set
+  `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` + `GOOGLE_PLAY_PACKAGE_NAME` in the prod users-service
+  secrets.** The account needs "View financial data, orders, and cancellation survey responses"
+  — that is the permission `purchases.products.get` checks. The value may be raw JSON or base64.
+  Until it is set, `GET /habits/lifetime` reports `isStoreConfigured: false` and the client hides
+  the CTA, so the failure mode is a missing offer rather than a broken purchase.
+- [ ] (2026-08-15, habits-production-readiness) **Re-answer the Play Data Safety form for
+  `com.therr.habits`.** `docs/niche-sub-apps/HABITS_PLAY_LISTING.md` currently declares Financial
+  info "No" and Purchase history "No", justified by there being no payment path. Adding Play
+  Billing changes that answer, and the listing doc's own note says to re-evaluate if a payment
+  path is added. Update the doc and the console together.
+- [ ] (2026-08-15, habits-production-readiness) **Add license testers in Play Console** before
+  QAing the purchase flow — a test purchase comes back with `purchaseType: 1` and is the only way
+  to exercise verification end to end without spending real money.
+- [ ] (2026-08-15, habits-production-readiness) **Unset `HABITS_FREE_PACT_LIMIT` on the prod
+  users-service** after this deploy. Nothing reads it any more; the cap is now
+  `HABITS_FREE_HABIT_LIMIT` (default 5, on habits tracked rather than pacts created). Harmless if
+  left, but it will mislead the next person who greps for it.
+- [ ] (2026-08-15, habits-production-readiness) **Run the three new migrations** on users-service
+  (`20260815000001` user_habits, `20260815000002` lifetime_purchases, `20260815000003`
+  journal_entries). The first backfills `habits.user_habits` from existing streaks and active pact
+  memberships — verify it produced rows before the mobile release ships, or every existing user
+  sees an empty dashboard and can re-add habits past the cap:
+  `SELECT count(*) FROM habits.user_habits;`
+- [ ] (2026-08-15, habits-production-readiness) **Play refunds are not yet handled.** A refunded
+  or charged-back buyer keeps `HABITS_LIFETIME` indefinitely — `habits.lifetime_purchases.status`
+  and `LifetimePurchasesStore.setStatus` exist for it, but nothing consumes Play's Real-Time
+  Developer Notifications. Until a Pub/Sub subscriber lands, revocations have to be done by hand.
 - [ ] (2026-08-14, /work-plan) **Password change from web and dashboard starts working
   after this api-gateway deploy — it has been returning 400.** `PUT /users-service/users/change-password`
   was registered after `PUT /users/:id`, so express matched the param route and
@@ -426,12 +460,6 @@ console configuration, and one verification that gates a payments change.
   (mobile clients have re-registered against `main.userDeviceTokens`), drop the
   legacy `users.deviceMobileFirebaseToken` column in a follow-up migration —
   documented in `20260425000003_main.userDeviceTokens` migration header.
-- [ ] (2026-05-07, /quality-peer-review) (Optional) Set
-  `HABITS_FREE_PACT_LIMIT` env var on production users-service if you want to
-  override the default of 5. Project brief target is 1 once HABITS payment
-  workflow is live and users can actually upgrade — see
-  `docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md`. Lowering before
-  payments ship will block early HABITS adopters from creating pacts.
 - [ ] (2026-05-07, /quality-peer-review) Add new SSR routes to
   `habits.therr.com` sitemap if applicable (`/login`, `/verify-account`,
   `/emails/unsubscribe` — these are `noindex` so likely skip, but the
@@ -1111,23 +1139,30 @@ saw the message.
 
 ### 2.5 HABITS payment workflow (Phase 4 monetization)
 
-The free-tier pact gate is wired (`isPactCapExempt` in `pacts.ts`, env var
-`HABITS_FREE_PACT_LIMIT`, default 5; pact-create returns HTTP 402 when
-exceeded). The actual purchase flow is documented in
-`docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md` — 4 components still
-to build:
+Backend shipped 2026-08-15. The plan changed on two axes and the doc
+(`docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md`) was rewritten to
+match:
 
-- Stripe Product + webhook handler that grants `AccessLevels.HABITS_PREMIUM`
-  on subscription activation and removes it on cancellation.
-- Web checkout page on `habits.therr.com` (Stripe Checkout, hosted) gated
-  by a short-lived JWT minted by the mobile app.
-- Mobile paywall UI (`UpgradePaywall.tsx`) that opens the web URL in the
-  external browser on the 402 response.
-- `habits://upgrade-complete` deeplink handler that refreshes the user's
-  access levels.
+- **Google Play Billing, not Stripe web checkout.** The web-checkout plan
+  avoided Play's 15% but added a policy question to a production submission
+  that is already carrying a User Data rejection, and it only works if the app
+  never advertises the purchase — untenable for a headline founder offer.
+- **The free tier caps active habits, not pacts created.** Counting pacts
+  punished the social behaviour the app exists to encourage.
 
-Once shipped, lower `HABITS_FREE_PACT_LIMIT` env var on prod from 5 to 1 to
-match the project brief target.
+What shipped: `habits.lifetime_purchases` with atomic founder-slot allocation,
+`GET/POST /habits/lifetime[/verify]` with server-side Play verification and
+acknowledgement, `AccessLevels.HABITS_LIFETIME`, and `assertHabitCapacity` as
+the single enforcement point for the 5-habit cap (402 with paywall metadata).
+
+Still open:
+
+- Play Console setup — create the `habits_lifetime_founder` product, the
+  service account, and license testers (see Manual Operational Follow-ups).
+- Refund / revocation: `LifetimePurchasesStore.setStatus` exists but nothing
+  consumes Play's Real-Time Developer Notifications, so a refunded buyer keeps
+  the entitlement.
+- iOS StoreKit verification — the `platform` column is ready, the code is not.
 
 ---
 

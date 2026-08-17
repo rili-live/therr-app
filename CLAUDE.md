@@ -108,6 +108,7 @@ npm run lint:changed     # lint changed packages
 npm run test:changed     # test changed packages
 npm run locales:check    # locale dictionary parity across all packages
 npm run test:lint-rules  # unit tests for the custom ESLint rules
+npm run test:bin-scripts # unit tests for decision logic in _bin gate scripts
 ```
 
 Type-check and lint a specific package:
@@ -116,7 +117,7 @@ Type-check and lint a specific package:
 npx eslint <path> --fix
 npm run pr:typecheck:<pkg>       # gateway|users|maps|messages|reactions|push|
                                  # websocket|js-utils|therr-react|web|dashboard
-npm run pr:tsc-baseline:mobile   # mobile gates on "no NEW errors" vs a 104-error baseline
+npm run pr:tsc-baseline:mobile   # mobile gates on "no NEW errors" vs TherrMobile/.tsc-baseline
 ```
 
 Or just run `/quality-check`, which groups changed files by package and does both.

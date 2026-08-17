@@ -14,7 +14,7 @@
     "dev": "npx concurrently \"npm run build:watch\" \"npm start\"",
     "dev:habits": "npx concurrently \"npm run build:watch\" \"npm start\" \"npm run proxy:habits\"",
     "proxy:habits": "node --require=../node_modules/dotenv/config ./dev-habits-proxy.js dotenv_config_path=../.env",
-    "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
+    "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix-type problem,suggestion,layout --fix ./",
     "lint": "../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
     "start": "../node_modules/.bin/nodemon --require=../node_modules/dotenv/config ./build/server-client.js dotenv_config_path=../.env",
     "test": "../node_modules/.bin/jest --no-cache",

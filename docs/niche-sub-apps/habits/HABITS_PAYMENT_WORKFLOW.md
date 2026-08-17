@@ -1,152 +1,202 @@
-# HABITS — Payment Workflow Plan
+# HABITS — Payment Workflow
 
-**Status:** Not yet implemented (Phase 4 of HABITS_PROJECT_BRIEF.md)
+**Status:** Backend shipped (founder lifetime unlock via Google Play Billing)
 **Owner:** Solo founder
-**Last Updated:** 2026-05
+**Last Updated:** 2026-08-15
 
-> **Why this doc exists:** Phase 4 of the HABITS roadmap calls for monetization
-> via a $6.99/mo premium tier. The free-tier *gate* (HABITS_FREE_PACT_LIMIT,
-> default 5; pact-create returns HTTP 402 when exceeded) shipped first so the
-> server-side enforcement is in place. The actual purchase flow is below — it
-> needs to be built before the gate value is reduced to 1 (per the project
-> brief target).
-
----
-
-## Strategy: web-based purchase, deeplink back to mobile
-
-To avoid Apple's 30% in-app purchase tax (and Google's 15-30%), HABITS will
-sell the premium subscription on **the HABITS web app** (`habits.therr.com`)
-rather than via App Store / Play Store IAP. Mobile users tap "Upgrade" → we
-open the web checkout URL in the system browser → they pay via Stripe → we
-mark the user premium → they return to the app and the paywall lifts.
-
-This is **legal and explicitly allowed** under Apple's App Review
-Guidelines 3.1.3(b) "reader" / "multiplatform service" provisions, but
-critically: the mobile app **must not advertise, link to, or even imply**
-the existence of an external purchase mechanism. The cleanest pattern is:
-
-- Mobile shows the paywall ("Upgrade for unlimited pacts")
-- The CTA opens an external browser (Linking.openURL) to a URL that does NOT
-  appear in the app binary at submission time. Configure it via remote config
-  or env variable so the literal string is fetched at runtime.
-- The web checkout page is the only thing that knows the price ($6.99/mo).
-
-A safer alternative that requires no obfuscation is to use Apple's
-**External Link Account** entitlement (US/EU only). Either path works; pick
-based on regulatory comfort.
+> **What changed.** This document previously described a Stripe web-checkout
+> flow — mobile opens `habits.therr.com` in the system browser, user pays,
+> deeplink back. That plan was replaced before implementation. The reasoning is
+> in § Why Play Billing. The free-tier gate also changed: it caps **active
+> habits**, not pacts created.
 
 ---
 
-## Components needed
+## The offer
 
-### 1. Stripe products + webhooks (backend)
+| | |
+|---|---|
+| Product | "Free for life" — one payment, premium forever |
+| Price | $20 USD, one time |
+| Availability | The first **5,000** accounts (`HABITS_LIFETIME_FOUNDER_LIMIT`) |
+| Rail | Google Play Billing, one-time non-consumable |
+| Play product id | `habits_lifetime_founder` (`HABITS_LIFETIME_PRODUCT_ID`) |
+| Free tier | 5 active habits (`HABITS_FREE_HABIT_LIMIT`) |
 
-- Stripe Product: "Friends with Habits Premium", recurring monthly at $6.99
-  USD with localized prices for ES/CA per Stripe's automatic FX.
-- New `users-service` handler: `/payments/webhook` already exists for the
-  Therr B2B subscriptions. Add a switch for the HABITS Premium product:
-  - `customer.subscription.created` / `.updated` with `status='active'` →
-    add `AccessLevels.HABITS_PREMIUM` to the user's `accessLevels`.
-  - `customer.subscription.deleted` / `status='past_due'` → remove
-    `HABITS_PREMIUM`.
-  - Verify webhook signature (`stripe.webhooks.constructEvent`) with the
-    secret from env. The current Stripe webhook secret env var is reused —
-    no new infra needed.
-- Map the user to a Stripe customer via the existing `stripeCustomerId` field
-  on `main.users`. Create the customer at first checkout if absent.
-
-### 2. Web checkout page (`habits.therr.com`)
-
-- New SSR route in `therr-client-web` (or a HABITS-only carve-out if web is
-  fully brand-isolated): `/habits/upgrade?userId=<id>&token=<short-lived>`.
-  - The `userId` + `token` come from the mobile app via deeplink — token is a
-    short-lived JWT (5-minute TTL) signed with a server secret, asserting
-    that the requester is the authenticated user.
-  - The page renders Stripe's hosted Checkout (`mode: 'subscription'`) and
-    pre-fills the customer email.
-  - On success, Stripe redirects to `/habits/upgrade/success?session_id=...`
-    which closes itself and pings a deeplink back to the app
-    (`habits://upgrade-complete`) so the mobile UI can refresh user state.
-
-### 3. Mobile: paywall UI + deeplink trigger
-
-- New screen `TherrMobile/main/routes/Habits/UpgradePaywall.tsx`. Shows the
-  benefits (Unlimited pacts, Video proof, Custom consequences, Analytics,
-  Health integrations), tap "Continue" → opens external browser via
-  `Linking.openURL(getUpgradeUrl(user))` where `getUpgradeUrl` reads from
-  env-config and appends a short-lived JWT.
-- Wire the paywall as the response handler for HTTP 402 from
-  `Pacts.create`. The 402 already includes `upgradeRequired: true` and
-  `limit` so the screen renders the right copy.
-- On `habits://upgrade-complete` deeplink, call
-  `UserActions.refreshUserDetails` to pull the fresh `accessLevels`.
-
-### 4. Premium feature gating (mobile + backend)
-
-The `PREMIUM_*` flags in `FeatureFlags.ts` are the source of truth. The
-mobile FeatureFlagContext should AND the flag with
-`user.details.accessLevels.includes(AccessLevels.HABITS_PREMIUM)`. Backend
-handlers for premium-only features (video proof upload, analytics endpoint,
-custom consequences) check the same access level. Examples:
-- `PREMIUM_VIDEO_PROOF` — gates the video upload flow in `EditCheckin`
-- `PREMIUM_ANALYTICS` — gates `/streaks/:userId/analytics`
-- `PREMIUM_CUSTOM_CONSEQUENCES` — gates non-default consequence types in
-  `validatePactParams`
-- `PREMIUM_HEALTH_INTEGRATIONS` — gates Apple Health / Google Fit settings
-- `PREMIUM_UNLIMITED_PACTS` — already wired via `isPactCapExempt` in
-  `pacts.ts` reading `accessLevels.includes(HABITS_PREMIUM)`
+Accounts that buy it get `AccessLevels.HABITS_LIFETIME`, which lifts the habit
+cap and every future `PREMIUM_*` gate.
 
 ---
 
-## Order of implementation
+## Why Play Billing, not Stripe web checkout
 
-1. Stripe Product + webhook handler + `HABITS_PREMIUM` access level write
-   path. Test end-to-end in stripe CLI.
-2. Web checkout page on `habits.therr.com`. Manual test: paste userId+token
-   into the URL, complete checkout, verify access level updates.
-3. Mobile paywall UI + 402 response handling.
-4. Reduce `HABITS_FREE_PACT_LIMIT` env var from 5 → 1. No code change
-   needed; just bump the env var on prod after #1-3 are stable.
-5. Wire individual `PREMIUM_*` flags into the corresponding feature
-   gates as those features are built.
+The earlier plan sold the subscription on the web to avoid Google's 15% cut. It
+was legally defensible, but it carried two costs that the founder offer cannot
+absorb:
+
+1. **Policy risk on the release we are trying to promote.** Selling in-app
+   digital content outside Play Billing is the kind of thing that gets a
+   production submission rejected, and Friends with Habits is *already* carrying
+   one User Data policy rejection (`docs/WORK_IN_PROGRESS.md`). Stacking a
+   second, avoidable policy question on the same submission is a bad trade for
+   15% of a $20 sale.
+2. **It requires hiding the offer.** The external-purchase pattern only works if
+   the app does not advertise, link to, or imply that an external purchase
+   exists — the URL is supposed to be fetched at runtime so the literal string
+   is not in the binary. That is a workable arrangement for a renewal link. It
+   is a terrible one for a headline, limited-availability founder offer whose
+   entire job is to be seen.
+
+The 15% is real. It is the cheaper of the two costs.
+
+---
+
+## Architecture
+
+```
+Mobile                     users-service                    Google Play
+──────                     ─────────────                    ───────────
+requestPurchase()  ────────────────────────────────────────▶  charges the user
+   │                                                              │
+   │◀───────────────────── purchaseToken ─────────────────────────┘
+   │
+   └── POST /habits/lifetime/verify ──▶ 1. purchases.products.get ──▶ verify
+                                        2. record + allocate founder slot
+                                        3. grant HABITS_LIFETIME
+                                        4. purchases.products:acknowledge ──▶
+                                    ◀── { purchase, accessLevels }
+```
+
+Nothing the client says about a purchase is trusted. It sends a token; the
+server asks Play what that token actually is.
+
+### Endpoints
+
+| Route | Purpose |
+|---|---|
+| `GET /users-service/habits/lifetime` | Seats remaining, sold-out flag, this account's purchase and entitlement, and whether the server has Play credentials at all |
+| `POST /users-service/habits/lifetime/verify` | Verify a completed purchase, record it, grant the entitlement, acknowledge with Play |
+
+### Code
+
+| Concern | File |
+|---|---|
+| Play Developer API client | `therr-services/users-service/src/api/googlePlay.ts` |
+| Handler | `therr-services/users-service/src/handlers/habitsLifetime.ts` |
+| Purchase ledger + founder slots | `therr-services/users-service/src/store/LifetimePurchasesStore.ts` |
+| Table | `20260815000002_habits.lifetime_purchases.js` |
+| Entitlement check (single source of truth) | `therr-js-utilities/src/constants/habitsEntitlements.ts` → `hasHabitsPremiumEntitlement` |
+| Client service | `therr-react/src/services/HabitsLifetimeService.ts` |
+
+### Ordering, and why it is not interchangeable
+
+1. **Verify with Play** — never trust the client's claim.
+2. **Record the purchase** — allocates the founder slot inside a transaction
+   holding `pg_advisory_xact_lock`, so two simultaneous buyers cannot claim the
+   same number. A `UNIQUE (purchaseToken)` index makes a replayed token fail
+   loudly rather than granting twice.
+3. **Grant `HABITS_LIFETIME`** — merged into `accessLevels`, never assigned
+   over it. The user record is read with `accessLevels` explicitly selected; a
+   partial select makes the merge see `undefined` and wipe `EMAIL_VERIFIED`,
+   which locks the buyer out of login. See `WORK_IN_PROGRESS.md` § 1.5.
+4. **Acknowledge with Play** — last. Play auto-refunds anything unacknowledged
+   after three days, so a failure here is worth alerting on, but it leaves an
+   entitled user and a retryable acknowledgement. Acknowledging first would risk
+   the reverse: a consumed purchase we never honoured.
+
+### Selling past 5,000
+
+A purchase that completes after the last slot is **still honoured**, with a null
+founder number and a warn span. They paid; refusing to record a completed Play
+transaction would leave them charged and unentitled. The client hides the CTA
+once `remaining <= 0`, so this is the narrow render-to-purchase race, not a
+routine path.
+
+Refunds do **not** return a slot. The offer is a fixed number of seats, and
+reclaiming them would let a refund-repurchase loop churn the counter.
+
+---
+
+## The free-tier gate
+
+`assertHabitCapacity` (`handlers/helpers/habitCapacity.ts`) is the only place
+the rule lives. It is enforced at four entry points:
+
+- `POST /habits/pacts` — create a pact
+- `POST /habits/pacts/bulk-invite`
+- `PUT /habits/pacts/:id/accept` — and therefore the claim path
+- `POST /habits/user-habits` and `PUT /habits/user-habits/:id/restore`
+
+All return **HTTP 402** with `{ error: 'habit-limit-reached', limit,
+activeHabitCount, upgradeRequired: true }`.
+
+**Why habits and not pacts.** The old cap counted pacts the user created, which
+punished exactly the behaviour the app exists to encourage — a user with one
+habit and four accountability partners was at the limit, while a user with five
+solo habits and no friends was not.
+
+**Accepting an invite is capped too.** A friend's invitation can hit the
+paywall. That is deliberate: an uncapped accept path makes the limit meaningless
+for anyone with friends. The escape hatch is free — archiving a habit keeps all
+its check-ins, streaks and journal entries — and the client offers it inline
+next to the upgrade.
+
+**It fails open.** A database error lets the request through. The cap is a
+commercial limit with no integrity stake; the worst case is one extra free
+habit.
+
+---
+
+## Configuration
+
+| Env var | Default | Notes |
+|---|---|---|
+| `GOOGLE_PLAY_PACKAGE_NAME` | — | `com.therr.habits` |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | — | Raw JSON or base64. Needs Play Console access with "View financial data, orders, and cancellation survey responses" |
+| `HABITS_LIFETIME_PRODUCT_ID` | `habits_lifetime_founder` | |
+| `HABITS_LIFETIME_FOUNDER_LIMIT` | `5000` | |
+| `HABITS_FREE_HABIT_LIMIT` | `5` | |
+
+With no credentials configured the endpoints return 503 and the client hides the
+CTA (`isStoreConfigured: false`) rather than showing a button that cannot work.
+
+---
+
+## Still to do
+
+- **Play Console setup.** Create the `habits_lifetime_founder` product, create
+  the service account, add license testers. IAP does not function until the app
+  is published on a track.
+- **Data Safety form.** `HABITS_PLAY_LISTING.md` currently declares Financial
+  info "No" and Purchase history "No" on the grounds that there is no payment
+  path. Adding IAP changes that answer.
+- **Refund / revocation handling.** `habits.lifetime_purchases.status` and
+  `LifetimePurchasesStore.setStatus` support it, but nothing consumes Play's
+  Real-Time Developer Notifications yet, so a refunded buyer keeps the
+  entitlement. Needs a Pub/Sub subscriber.
+- **iOS.** The `platform` column and the client's `platform` field are in place;
+  StoreKit verification is not.
 
 ---
 
 ## Testing
 
-- Stripe test cards: `4242 4242 4242 4242` (success), `4000 0000 0000 9995`
-  (card declined) — these come from Stripe's standard test card list.
-- Webhook end-to-end: `stripe trigger customer.subscription.created` against
-  a test secret pointed at the local users-service.
-- Mobile + web deeplink: requires manual round-trip on a real device because
-  `habits://` URI scheme registration is build-time on iOS.
-- Gate enforcement: create N pacts as a free-tier test user (N =
-  HABITS_FREE_PACT_LIMIT); verify the (N+1)th request returns 402 with the
-  `upgradeRequired: true` flag.
-
----
-
-## Open questions (decide before building)
-
-- **Annual plan?** $6.99/mo × 12 = $83.88; competitors like Habitify charge
-  $39.99/yr ($3.33/mo effective). Adding an annual tier at ~$59.99/yr would
-  match Streaks/Way of Life economics.
-- **Free trial?** Stripe supports `trial_period_days: 7` natively. Worth
-  testing — many habit apps see meaningful conversion uplift from a trial
-  vs. paywall.
-- **Gift / family plan?** Out of scope for Phase 4 launch.
+- **Unit:** `tests/unit/handlers-habits-lifetime.test.ts` (verification,
+  replay, sold-out, access-level merge), `tests/unit/habitCapacity.test.ts`
+  (exemptions, fail-open).
+- **On device:** requires a license tester and a build on a Play track.
+  `purchaseType: 1` in the Play response marks a test purchase.
+- **Gate:** create habits up to `HABITS_FREE_HABIT_LIMIT`; the next request
+  returns 402. Archive one and it succeeds.
+- **Replay:** submit the same `purchaseToken` from a second account — expect
+  409 `purchase-already-claimed`.
 
 ---
 
 ## References
 
 - `docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md` § Phase 4
-- `docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md` § Revenue Model & Projections
-- `therr-public-library/therr-js-utilities/src/constants/enums/FeatureFlags.ts`
-  — `HABITS_FREE_PACT_LIMIT`, `PREMIUM_*` flags
-- `therr-public-library/therr-js-utilities/src/constants/enums/AccessLevels.ts`
-  — `HABITS_PREMIUM`
-- `therr-services/users-service/src/handlers/pacts.ts` — `isPactCapExempt`,
-  the 402 response shape
-- Apple guideline 3.1.3 — multiplatform / external link entitlement
+- `therr-js-utilities/src/constants/enums/AccessLevels.ts` — `HABITS_LIFETIME`
+- `therr-js-utilities/src/constants/enums/FeatureFlags.ts` — the limits
+- Play Billing one-time products:
+  https://developer.android.com/google/play/billing/integrate
