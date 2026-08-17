@@ -2291,6 +2291,13 @@
         "title": "Aún no hay nada",
         "subtitle": "Tus registros, logros y notas aparecerán aquí a medida que avances."
       },
+      "create": {
+        "title": "¿Qué quieres agregar?",
+        "entryTitle": "Entrada de diario",
+        "entrySubtitle": "Una nota privada, solo para ti.",
+        "goalTitle": "Meta",
+        "goalSubtitle": "Comparte lo que quieres lograr."
+      },
       "composer": {
         "title": "Nueva entrada",
         "placeholder": "¿Qué pasó hoy?",

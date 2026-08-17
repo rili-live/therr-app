@@ -23,6 +23,7 @@ import { buildStyles as buildJournalStyles } from '../../styles/habits/journal';
 import { groupFeedByDay, IJournalDaySection } from './journalGrouping';
 import JournalEntryRow from './JournalEntryRow';
 import JournalComposer from './JournalComposer';
+import JournalCreateMenu from './JournalCreateMenu';
 
 interface IJournalDispatchProps {
     getJournalFeed: Function;
@@ -43,6 +44,7 @@ export interface IJournalProps extends IStoreProps {
 interface IJournalState {
     isRefreshing: boolean;
     isLoadingMore: boolean;
+    isCreateMenuVisible: boolean;
     isComposerVisible: boolean;
     isSaving: boolean;
     editingEntry: IJournalFeedItem | null;
@@ -86,6 +88,7 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
         this.state = {
             isRefreshing: false,
             isLoadingMore: false,
+            isCreateMenuVisible: false,
             isComposerVisible: false,
             isSaving: false,
             editingEntry: null,
@@ -157,8 +160,36 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
             });
     };
 
+    openCreateMenu = () => {
+        this.setState({ isCreateMenuVisible: true });
+    };
+
+    closeCreateMenu = () => {
+        this.setState({ isCreateMenuVisible: false });
+    };
+
+    /**
+     * "Share a goal" hands off to the shared `EditThought` screen — the same
+     * workflow the profile's Goals tab uses, deliberately not a second composer.
+     * A goal is a thought, so it gets the thought form's public/private toggle,
+     * category, hashtags and image, and lands in every feed that reads thoughts.
+     *
+     * `returnToRoute` sends the user back here after posting instead of to the
+     * profile, and the screen's `focus` listener refetches on arrival.
+     */
+    handleCreateGoal = () => {
+        const { navigation } = this.props;
+
+        this.setState({ isCreateMenuVisible: false });
+        navigation.navigate('EditThought', { returnToRoute: 'Journal' });
+    };
+
     openComposer = (entry?: IJournalFeedItem) => {
-        this.setState({ isComposerVisible: true, editingEntry: entry || null });
+        this.setState({
+            isCreateMenuVisible: false,
+            isComposerVisible: true,
+            editingEntry: entry || null,
+        });
     };
 
     closeComposer = () => {
@@ -214,6 +245,7 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
         const {
             isRefreshing,
             isLoadingMore,
+            isCreateMenuVisible,
             isComposerVisible,
             isSaving,
             editingEntry,
@@ -241,9 +273,9 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
                                     </Text>
                                     <Pressable
                                         accessibilityRole="button"
-                                        accessibilityLabel={this.translate('pages.journal.composer.title')}
+                                        accessibilityLabel={this.translate('pages.journal.create.title')}
                                         style={this.themeJournal.styles.headerAction}
-                                        onPress={() => this.openComposer()}
+                                        onPress={this.openCreateMenu}
                                     >
                                         <MaterialIcon
                                             name="add"
@@ -308,6 +340,14 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
                         />
                     </View>
                 </SafeAreaView>
+                <JournalCreateMenu
+                    isVisible={isCreateMenuVisible}
+                    themeJournal={this.themeJournal}
+                    translate={this.translate as (key: string, params?: any) => string}
+                    onCancel={this.closeCreateMenu}
+                    onSelectEntry={() => this.openComposer()}
+                    onSelectGoal={this.handleCreateGoal}
+                />
                 <JournalComposer
                     isVisible={isComposerVisible}
                     isSaving={isSaving}

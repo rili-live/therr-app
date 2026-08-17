@@ -166,6 +166,43 @@ const buildStyles = (themeName?: IMobileThemeName) => {
                 alignItems: 'center',
             },
 
+            // Create picker — "journal entry or goal?"
+            createOptionRow: {
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: space.md,
+                paddingHorizontal: space.sm,
+                borderRadius: radius.md,
+                gap: space.md,
+            },
+            createOptionRowPressed: {
+                backgroundColor: tint(therrTheme.colors.onSurfaceMuted, 0.12),
+            },
+            createOptionIconCircle: {
+                width: 44,
+                height: 44,
+                borderRadius: radius.circle,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: tint(therrTheme.colors.primary, 0.15),
+            },
+            createOptionTextGroup: {
+                flex: 1,
+            },
+            createOptionTitle: {
+                fontFamily: therrFontFamily,
+                fontSize: fontSizes.md,
+                fontWeight: fontWeights.semibold,
+                color: therrTheme.colors.onSurface,
+            },
+            createOptionSubtitle: {
+                fontFamily: therrFontFamily,
+                fontSize: fontSizes.xs,
+                lineHeight: fontSizes.xs * lineHeights.normal,
+                color: therrTheme.colors.onSurfaceMuted,
+                marginTop: 2,
+            },
+
             // Composer
             composerBackdrop: {
                 flex: 1,

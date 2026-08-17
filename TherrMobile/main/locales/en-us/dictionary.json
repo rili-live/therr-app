@@ -2291,6 +2291,13 @@
         "title": "Nothing here yet",
         "subtitle": "Your check-ins, milestones and notes will show up here as you go."
       },
+      "create": {
+        "title": "What would you like to add?",
+        "entryTitle": "Journal entry",
+        "entrySubtitle": "A private note, just for you.",
+        "goalTitle": "Goal",
+        "goalSubtitle": "Share what you're working toward."
+      },
       "composer": {
         "title": "New entry",
         "placeholder": "What happened today?",

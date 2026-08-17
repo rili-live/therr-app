@@ -2291,6 +2291,13 @@
         "title": "Rien pour l'instant",
         "subtitle": "Tes suivis, tes jalons et tes notes apparaîtront ici au fil du temps."
       },
+      "create": {
+        "title": "Qu'aimerais-tu ajouter?",
+        "entryTitle": "Entrée de journal",
+        "entrySubtitle": "Une note privée, juste pour toi.",
+        "goalTitle": "Objectif",
+        "goalSubtitle": "Partage ce que tu veux accomplir."
+      },
       "composer": {
         "title": "Nouvelle entrée",
         "placeholder": "Qu'est-ce qui s'est passé aujourd'hui?",
