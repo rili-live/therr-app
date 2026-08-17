@@ -16,11 +16,17 @@ import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
 import { getUserContentUri } from '../../utilities/content';
 import { getReplyCount, getTopReply, shouldAutoExpandThread } from '../../utilities/feedRanking';
+import { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface IAreaCarouselProps {
     activeData: any;
+    /**
+     * Supplied by CollapsibleHeaderTabView when this carousel is a tab whose scroll
+     * position drives a collapsing header. Omitted everywhere else.
+     */
+    collapsible?: ICollapsibleSceneProps;
     content: any;
     displaySize?: any;
     emptyIconName?: string;
@@ -175,6 +181,7 @@ const renderItem = ({ item: post }, {
 
 const AreaCarousel = ({
     activeData,
+    collapsible,
     content,
     displaySize,
     emptyIconName,
@@ -217,7 +224,8 @@ const AreaCarousel = ({
     }, [mobileThemeName]);
 
     const isUsingBottomSheet = (displaySize === 'small' || displaySize === 'medium');
-    const FlatListComponent = isUsingBottomSheet ? BottomSheetFlatList : FlatList;
+    const FlatListComponent = collapsible?.ScrollComponent
+        || (isUsingBottomSheet ? BottomSheetFlatList : FlatList);
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -279,8 +287,14 @@ const AreaCarousel = ({
     );
 
     const refreshControl = React.useMemo(
-        () => <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />,
-        [refreshing, onRefresh]
+        () => (
+            <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                progressViewOffset={collapsible?.progressViewOffset}
+            />
+        ),
+        [refreshing, onRefresh, collapsible?.progressViewOffset]
     );
 
     const listStyle = React.useMemo(
@@ -292,8 +306,19 @@ const AreaCarousel = ({
 
     const setListRef = React.useCallback((component) => {
         containerRef && containerRef(component);
+        collapsible?.registerRef(component);
         return component;
-    }, [containerRef]);
+    }, [containerRef, collapsible]);
+
+    const scrollProps = React.useMemo(() => (collapsible ? {
+        onScroll: collapsible.onScroll,
+        onScrollEndDrag: collapsible.onScrollEndDrag,
+        onMomentumScrollEnd: collapsible.onMomentumScrollEnd,
+        onContentSizeChange: collapsible.onContentSizeChange,
+        scrollEventThrottle: collapsible.scrollEventThrottle,
+        scrollIndicatorInsets: collapsible.scrollIndicatorInsets,
+        contentContainerStyle: collapsible.contentContainerStyle,
+    } : {}), [collapsible]);
 
     // if (Platform.OS === 'ios') {
     //     return (
@@ -346,6 +371,7 @@ const AreaCarousel = ({
                 style={listStyle}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.65}
+                {...scrollProps}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />
         </>

@@ -48,6 +48,7 @@
         "locales:check": "node scripts/locale-check/index.js",
         "mirrors:check": "node scripts/mirrored-files/index.js",
         "test:lint-rules": "for f in eslint-config/plugin/tests/*.test.js; do node \"$f\" || exit 1; done",
+        "test:bin-scripts": "for f in _bin/lib/tests/*.test.js; do node \"$f\" || exit 1; done",
         "test:all": "_bin/apply-to-all.sh 'npm test'",
         "test:unit:all": "_bin/apply-to-all.sh 'npm run test:unit'",
         "test:integration:all": "_bin/apply-to-all.sh 'npm run test:integration'",

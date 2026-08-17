@@ -1,8 +1,5 @@
 import { RequestHandler } from 'express';
 import {
-    AccessLevels,
-    BrandVariations,
-    HABITS_FREE_PACT_LIMIT,
     MetricNames,
     PushNotifications,
 } from 'therr-js-utilities/constants';
@@ -14,6 +11,7 @@ import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import { dispatchPactInvitation } from '../utilities/dispatchPactInvitation';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { checkHabitCapacity } from './helpers/habitCapacity';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMemberStats';
 import {
@@ -34,32 +32,6 @@ import {
 const MAX_BULK_INVITEES = 5;
 
 const dedupeUserIds = (ids: string[]): string[] => Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0)));
-
-/**
- * Decides whether a pact-create request is exempt from the HABITS free-tier
- * pact cap. Premium subscribers (HABITS_PREMIUM access level) bypass it.
- * Non-HABITS brands also bypass it — the cap is a HABITS monetization
- * mechanic, not a platform-wide policy.
- *
- * The actual free-tier limit is HABITS_FREE_PACT_LIMIT (configurable via env
- * var; default 5). Lower it to 1 once the payment workflow ships and users
- * can actually upgrade — see docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md.
- */
-const isPactCapExempt = (
-    brandVariation: string | undefined,
-    accessLevels: string[] | undefined,
-): boolean => {
-    if (brandVariation !== BrandVariations.HABITS) {
-        return true;
-    }
-    if (Array.isArray(accessLevels) && accessLevels.includes(AccessLevels.HABITS_PREMIUM)) {
-        return true;
-    }
-    if (Array.isArray(accessLevels) && accessLevels.includes(AccessLevels.SUPER_ADMIN)) {
-        return true;
-    }
-    return false;
-};
 
 // CREATE
 const createPact: RequestHandler = async (req: any, res: any) => {
@@ -109,37 +81,14 @@ const createPact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    // HABITS free-tier cap. Counts pacts the user *created* (pending or active)
-    // — pacts they were invited to don't consume their cap. Premium users and
-    // non-HABITS brands bypass entirely. Returns 402 with paywall metadata so
-    // the client can route to the upgrade flow rather than swallow as a
-    // generic error.
-    const requesterUser = await Store.users.findUser({ id: userId }, ['accessLevels']);
-    const requesterAccessLevels: string[] = (requesterUser?.[0]?.accessLevels as string[]) || [];
-    if (!isPactCapExempt(brandVariation, requesterAccessLevels)) {
-        const openPactCount = await Store.pacts.countOpenByCreator(userId).catch((err) => {
-            logSpan({
-                level: 'warn',
-                messageOrigin: 'API_SERVER',
-                messages: ['Failed to count open pacts; allowing creation'],
-                traceArgs: { 'error.message': err?.message },
-            });
-            // Fail-open: better to let a legitimate user create a pact than to
-            // hard-block on a transient query error. The cap is a soft limit
-            // (no hard data integrity issue at stake).
-            return 0;
-        });
-        if (openPactCount >= HABITS_FREE_PACT_LIMIT) {
-            return res.status(402).send({
-                error: 'pact-limit-reached',
-                message: translate(locale, 'errorMessages.pacts.freeTierLimitReached', {
-                    limit: HABITS_FREE_PACT_LIMIT,
-                }) || `Free tier is limited to ${HABITS_FREE_PACT_LIMIT} active pact(s). Upgrade to premium for unlimited pacts.`,
-                limit: HABITS_FREE_PACT_LIMIT,
-                openPactCount,
-                upgradeRequired: true,
-            });
-        }
+    // HABITS free-tier cap — on habits tracked, not pacts created. Checked
+    // before anything is written, because the tracking row this creates would
+    // otherwise be counted against its own limit. Returns 402 with paywall
+    // metadata so the client can route to the upgrade flow rather than swallow
+    // it as a generic error.
+    const capacityDenial = await checkHabitCapacity({ userId, brandVariation, locale });
+    if (capacityDenial) {
+        return res.status(402).send(capacityDenial);
     }
 
     // Create the pact
@@ -160,6 +109,12 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                 role: 'creator',
                 status: 'active',
             });
+
+            // Register the habit against the creator. Creating a pact is one of
+            // the ways a habit starts being tracked, so it has to produce a
+            // tracking row or the cap would only ever count solo habits and the
+            // dashboard would miss the habit entirely.
+            await Store.userHabits.getOrCreate(userId, habitGoalId);
 
             recordFunnelMetric(MetricNames.FUNNEL_PACT_CREATED, userId, {
                 brandVariation: brandVariation || '',
@@ -308,6 +263,13 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // Same free-tier habit cap as createPact. Checked before the write so the
+    // tracking row created below is not counted against its own limit.
+    const capacityDenial = await checkHabitCapacity({ userId, brandVariation, locale });
+    if (capacityDenial) {
+        return res.status(402).send(capacityDenial);
+    }
+
     return Store.pacts.create({
         creatorUserId: userId,
         habitGoalId,
@@ -330,6 +292,11 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
                 role: 'partner' as const,
                 status: 'pending',
             })));
+
+            // Register the habit against the creator — see createPact. Invitees
+            // get their own tracking row when they accept, not now: a pending
+            // invite must not consume the invitee's habit slot.
+            await Store.userHabits.getOrCreate(userId, habitGoalId);
 
             recordFunnelMetric(MetricNames.FUNNEL_PACT_CREATED, userId, {
                 brandVariation: brandVariation || '',
@@ -540,6 +507,16 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // Accepting an invite starts tracking a habit, so it consumes a free-tier
+    // slot like any other way of starting one. A user at their limit gets the
+    // same 402 the create paths return, and the client offers archiving an
+    // existing habit as the free way through — the alternative, an uncapped
+    // accept path, would make the limit meaningless for anyone with friends.
+    const capacityDenial = await checkHabitCapacity({ userId, brandVariation, locale });
+    if (capacityDenial) {
+        return res.status(402).send(capacityDenial);
+    }
+
     // Activate the pact only on the first acceptance (status=pending);
     // subsequent group acceptances just join an already-active pact.
     const activationPromise = pact.status === 'pending'
@@ -568,6 +545,18 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
                 streakPromises.push(Store.streaks.getOrCreate(pact.creatorUserId, pact.habitGoalId, id));
             }
             await Promise.all(streakPromises);
+
+            // Tracking rows, mirroring the streak logic above: always for the
+            // accepter, and for the creator only on first acceptance (their row
+            // already exists from createPact — getOrCreate makes the repeat a
+            // no-op, and notably will not resurrect a row they have archived).
+            const trackingPromises: Promise<any>[] = [
+                Store.userHabits.getOrCreate(userId, pact.habitGoalId),
+            ];
+            if (pact.status === 'pending') {
+                trackingPromises.push(Store.userHabits.getOrCreate(pact.creatorUserId, pact.habitGoalId));
+            }
+            await Promise.all(trackingPromises);
 
             recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_ACCEPTED, userId, {
                 brandVariation: brandVariation || '',

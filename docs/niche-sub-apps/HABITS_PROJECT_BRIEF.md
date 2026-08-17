@@ -98,16 +98,30 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ## PRODUCT FEATURES
 
 ### MVP (Weeks 3-6) - FREE TIER
-- ✅ Create **1 active pact** at a time
-- ✅ Invite friends to be accountability partners (REQUIRED)
+- ✅ Track **5 active habits** at a time (revised 2026-08 — see the note below)
+- ✅ Invite friends to be accountability partners (REQUIRED to get started)
+- ✅ Track habits solo once the first invite has been sent
 - ✅ Daily check-in system with photo/note proof
+- ✅ Journal — day-grouped feed of check-ins, achievements, milestones and notes
 - ✅ Activity feed showing partner progress
 - ✅ Push notifications when partner completes/misses
 - ✅ Basic streak tracking
 - ✅ Weekly summary email
 
-### PREMIUM TIER ($6.99/month)
-- ✅ **Unlimited active pacts**
+> **The free-tier limit changed from "1 active pact" to "5 active habits" in
+> August 2026.** Capping pacts penalised the exact behaviour the app exists to
+> encourage: a user with one habit and four accountability partners hit the
+> limit, while a user with five solo habits and no friends did not. The limit
+> now counts habits tracked, which is also the number a user can see on their
+> own dashboard. Archiving a habit frees a slot and loses nothing.
+
+### FOUNDER UNLOCK ($20 once, first 5,000 accounts)
+One payment, premium forever. Sold through Google Play Billing and granted as
+`AccessLevels.HABITS_LIFETIME`. Lifts the habit cap and every current and
+future premium gate. See `habits/HABITS_PAYMENT_WORKFLOW.md`.
+
+### PREMIUM TIER ($6.99/month — not yet built)
+- ✅ **Unlimited active habits and pacts**
 - ✅ Custom consequences with auto-enforcement
 - ✅ Video proof of habit completion
 - ✅ Advanced analytics and insights
@@ -243,16 +257,19 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ---
 
-### Phase 4: Monetization — PENDING
+### Phase 4: Monetization — IN PROGRESS
 **Goal:** Implement freemium model and revenue generation
 
-- [ ] Freemium paywall (1 pact free, unlimited premium)
-- [ ] In-app purchase flows (iOS & Android)
+- [x] Freemium paywall (5 habits free; 402 with paywall metadata past that)
+- [x] Founder "free for life" unlock — $20 once, first 5,000 accounts
+- [x] In-app purchase flow (Android / Google Play Billing, server-verified)
+- [ ] iOS in-app purchase (StoreKit verification)
+- [ ] Refund handling via Play Real-Time Developer Notifications
 - [ ] Premium analytics dashboard
 - [ ] Video proof uploads (premium feature)
 - [ ] Custom consequences builder
 - [ ] Apple Health / Google Fit integration
-- [ ] Subscription management
+- [ ] Recurring subscription management
 
 **Deliverable:** Revenue-generating premium tier
 
