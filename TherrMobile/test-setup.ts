@@ -17,6 +17,10 @@ RNNativeModules.RNGestureHandlerModule = RNNativeModules.RNGestureHandlerModule 
     createGestureHandler: jest.fn(),
     dropGestureHandler: jest.fn(),
     updateGestureHandler: jest.fn(),
+    // Called when a gesture-handler component (e.g. its ScrollView, which
+    // BaseModal renders) commits. Absent here, any suite that mounts one throws
+    // "flushOperations is not a function" on the first render pass.
+    flushOperations: jest.fn(),
 };
 RNNativeModules.PlatformConstants = RNNativeModules.PlatformConstants || {
     forceTouchAvailable: false,

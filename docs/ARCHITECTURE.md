@@ -315,7 +315,7 @@ npm run dev             # Start individual service (from service dir)
 
 ### Kubernetes Architecture
 
-Manifests in `k8s/prod/` and `k8s/test/`:
+Manifests in `k8s/prod/` (the only deployed environment):
 - Each service: Deployment + ClusterIP Service
 - API Gateway: Deployment + LoadBalancer Service
 - Ingress: nginx with cert-manager for TLS
@@ -449,7 +449,7 @@ This pattern allows niche features to be deployed without affecting core app fun
 | Shared components | `therr-public-library/therr-react/src/components/` |
 | Environment config | `global-config.js`, `.env.template` |
 | CI/CD pipeline | `.circleci/config.yml` |
-| K8s manifests | `k8s/prod/`, `k8s/test/` |
+| K8s manifests | `k8s/prod/` |
 
 ### Adding a New Service
 
@@ -457,7 +457,7 @@ This pattern allows niche features to be deployed without affecting core app fun
 2. Update `package.json` with name and port
 3. Add to `_bin/apply-to-changed.sh` package arrays
 4. Add route in `therr-api-gateway/src/routes/index.ts`
-5. Create K8s manifests in `k8s/prod/` and `k8s/test/`
+5. Create K8s manifests in `k8s/prod/`
 6. Add service URL to `global-config.js`
 
 ---

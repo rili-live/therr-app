@@ -429,10 +429,24 @@ That wrapper builds `therr-js-utilities` then `therr-react` in the correct order
 ### Lint
 
 ```bash
-npx eslint <file1> <file2> ... --fix --no-error-on-unmatched-pattern 2>&1
+npx eslint <file1> <file2> ... --fix-type problem,suggestion,layout --fix --no-error-on-unmatched-pattern 2>&1
 ```
 
-Group files by package and pass each package's files in a single invocation. Omit `--fix` when `--dry-run`.
+Group files by package and pass each package's files in a single invocation. Omit both fix flags when `--dry-run`.
+
+**`--fix-type` is not optional here.** `eslint-config/base.js` sets
+`reportUnusedDisableDirectives`, which makes every stale `eslint-disable` comment
+auto-fixable. A bare `--fix` therefore deletes directives anywhere in the files you
+pass — including parts of the diff the review never looked at — and reports it as
+nothing, because the removal *is* the fix. There are ~200 stale directives in the
+repo, so this fires constantly. `--fix-type problem,suggestion,layout` excludes the
+`directive` type and leaves them alone while still applying real fixes.
+
+After linting, run `git status --short` and confirm the only modified files are ones
+you deliberately edited. If `--fix` touched anything else, revert those paths rather
+than committing them — an unexplained hunk in a file you were only reviewing is out
+of scope for this skill, and removing a directive that a package-level config still
+needs breaks CI somewhere your invocation could not see.
 
 ### Type-check
 

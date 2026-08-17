@@ -50,9 +50,15 @@ import {
 } from './phoneAccounts';
 import {
     FeatureFlags,
-    HABITS_FREE_PACT_LIMIT,
-    DEFAULT_HABITS_FREE_PACT_LIMIT,
+    HABITS_FREE_HABIT_LIMIT,
+    DEFAULT_HABITS_FREE_HABIT_LIMIT,
+    HABITS_LIFETIME_FOUNDER_LIMIT,
+    DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
 } from './enums/FeatureFlags';
+import {
+    HABITS_PREMIUM_ACCESS_LEVELS,
+    hasHabitsPremiumEntitlement,
+} from './habitsEntitlements';
 import {
     HabitGoalTypes,
     HabitGoalType,
@@ -88,8 +94,12 @@ export {
     BRAND_THOUGHTS_VISIBILITY,
     getReadableBrands,
     FeatureFlags,
-    HABITS_FREE_PACT_LIMIT,
-    DEFAULT_HABITS_FREE_PACT_LIMIT,
+    HABITS_FREE_HABIT_LIMIT,
+    DEFAULT_HABITS_FREE_HABIT_LIMIT,
+    HABITS_LIFETIME_FOUNDER_LIMIT,
+    DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
+    HABITS_PREMIUM_ACCESS_LEVELS,
+    hasHabitsPremiumEntitlement,
     HabitGoalTypes,
     HabitGoalType,
     CampaignTypes,

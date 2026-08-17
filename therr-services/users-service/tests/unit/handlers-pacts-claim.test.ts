@@ -551,6 +551,9 @@ describe('Pacts handler — claimPactInvite endpoint', () => {
         sinon.stub(Store.pacts, 'activate').resolves({ id: 'pact-42', status: 'active' });
         sinon.stub(Store.pactMembers, 'activate').resolves({} as any);
         sinon.stub(Store.streaks, 'getOrCreate').resolves({} as any);
+        // Accepting a pact now also registers the habit as tracked, which is
+        // what the free-tier cap counts.
+        sinon.stub(Store.userHabits, 'getOrCreate').resolves({} as any);
 
         const req = buildReq({ token: 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa' });
         const res = buildRes();
