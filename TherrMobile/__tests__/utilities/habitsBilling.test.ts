@@ -93,6 +93,37 @@ describe('habitsBilling', () => {
         await expect(pending).resolves.toMatchObject({ purchaseToken: 'token-abc' });
     });
 
+    it('ignores an update for a product we did not ask to buy', async () => {
+        // The update listener is global and the library replays already-owned
+        // and pending purchases through it when the connection opens. Resolving
+        // on one of those would send an unrelated token to the verify endpoint.
+        const pending = requestFounderPurchase('habits_lifetime_founder');
+
+        __emitPurchaseUpdate({ purchaseToken: 'token-other', id: 'some_other_sku' });
+        expect(__getListenerCounts()).toEqual({ updated: 1, error: 1 });
+
+        __emitPurchaseUpdate({ purchaseToken: 'token-abc', id: 'habits_lifetime_founder' });
+        await expect(pending).resolves.toMatchObject({ purchaseToken: 'token-abc' });
+    });
+
+    it('matches a multi-SKU Android purchase that carries `ids`', async () => {
+        const pending = requestFounderPurchase('habits_lifetime_founder');
+
+        __emitPurchaseUpdate({ purchaseToken: 'token-abc', ids: ['habits_lifetime_founder'] });
+
+        await expect(pending).resolves.toMatchObject({ purchaseToken: 'token-abc' });
+    });
+
+    it('still settles on a purchase payload carrying no product id at all', async () => {
+        // Asymmetric on purpose: an unrecognised shape must not hang the
+        // promise forever. A token the server rejects is the lesser failure.
+        const pending = requestFounderPurchase('habits_lifetime_founder');
+
+        __emitPurchaseUpdate({ purchaseToken: 'token-abc' });
+
+        await expect(pending).resolves.toMatchObject({ purchaseToken: 'token-abc' });
+    });
+
     it('does NOT finish the transaction as part of the purchase', async () => {
         const pending = requestFounderPurchase('habits_lifetime_founder');
         __emitPurchaseUpdate({ purchaseToken: 'token-abc' });

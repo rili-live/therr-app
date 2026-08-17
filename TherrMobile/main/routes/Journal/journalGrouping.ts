@@ -67,7 +67,11 @@ export const groupFeedByDay = (
     translate: (key: string, params?: any) => string,
 ): IJournalDaySection[] => {
     const sections: IJournalDaySection[] = [];
-    let lastMonthKey: string | null = null;
+    // Tracked as year+month, not as the month name. A journal that runs longer
+    // than a year eventually puts (say) August 2025 directly below August 2026,
+    // and comparing names alone would suppress the second heading — leaving a
+    // year's worth of entries filed under the wrong visible month.
+    let lastMonthOfYear: string | null = null;
 
     items.forEach((item) => {
         const existing = sections[sections.length - 1];
@@ -79,8 +83,9 @@ export const groupFeedByDay = (
 
         const parsed = parseEntryDate(item.entryDate);
         const monthKey = MONTH_KEYS[parsed.getMonth()];
-        const isFirstOfMonth = monthKey !== lastMonthKey;
-        lastMonthKey = monthKey;
+        const monthOfYear = `${parsed.getFullYear()}-${parsed.getMonth()}`;
+        const isFirstOfMonth = monthOfYear !== lastMonthOfYear;
+        lastMonthOfYear = monthOfYear;
 
         sections.push({
             entryDate: item.entryDate,

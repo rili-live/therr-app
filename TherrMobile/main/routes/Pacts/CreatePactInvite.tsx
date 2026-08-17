@@ -14,6 +14,8 @@ import { bindActionCreators } from 'redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
+import { FeatureFlags } from 'therr-js-utilities/constants';
+import getConfig from '../../utilities/getConfig';
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -329,11 +331,19 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
      * wrong" for something the user can actually act on.
      *
      * Returns true when it handled the error.
+     *
+     * The flag check is not redundant with the 402: `UpgradePaywall` is
+     * registered conditionally on ENABLE_HABITS_LIFETIME_OFFER (see
+     * `routes/index.tsx`), so with the offer switched off `navigate` finds no
+     * matching screen and does nothing. Claiming to have handled the error
+     * would then swallow the toast too, and the button would look inert.
      */
     handlePossiblePaywall = (err: any): boolean => {
         const response = err?.response;
+        const isPaywallRouteAvailable = getConfig()
+            .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
 
-        if (response?.status !== 402) {
+        if (response?.status !== 402 || !isPaywallRouteAvailable) {
             return false;
         }
 

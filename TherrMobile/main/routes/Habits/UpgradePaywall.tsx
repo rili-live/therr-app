@@ -275,6 +275,28 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                             </View>
                         )}
 
+                        {/* The offer call can fail — offline, or an app build
+                            that reached Play ahead of the backend that serves
+                            `/habits/lifetime`. Without this branch the screen
+                            renders a title and nothing else, including no way
+                            back, which strands anyone the 402 sent here. */}
+                        {!isLoading && !offer && (
+                            <View style={this.themeHabits.styles.dashboardSection}>
+                                <Text style={this.themeHabits.styles.dashboardSubtitle}>
+                                    {this.translate('pages.upgrade.unavailable')}
+                                </Text>
+                                <Pressable
+                                    accessibilityRole="button"
+                                    style={this.themeHabits.styles.emptyStateActionButton}
+                                    onPress={() => navigation.goBack()}
+                                >
+                                    <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                                        {this.translate('pages.upgrade.notNow')}
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        )}
+
                         {!isLoading && !!offer && (
                             <View style={this.themeHabits.styles.dashboardSection}>
                                 <Text style={this.themeHabits.styles.dashboardSectionTitle}>

@@ -43,7 +43,6 @@ const getIap = (): any | null => {
     hasResolvedModule = true;
 
     try {
-        // eslint-disable-next-line global-require
         iapModule = require('react-native-iap');
     } catch {
         iapModule = null;
@@ -156,8 +155,10 @@ export const requestFounderPurchase = (productId: string): Promise<IHabitsPurcha
             const token = purchase?.purchaseToken || purchase?.purchaseTokenAndroid;
 
             // Ignore updates for anything that is not the product we asked for;
-            // the listener is global and a restored subscription could land here.
-            if (!token || isSettled) {
+            // the listener is global, and the library replays already-owned and
+            // pending purchases through it when the connection opens. Resolving
+            // on one of those would send the wrong token to the verify endpoint.
+            if (!token || isSettled || isDifferentProduct(purchase, productId)) {
                 return;
             }
 
@@ -222,6 +223,34 @@ export const finishPurchase = async (rawPurchase: any): Promise<void> => {
 };
 
 /**
+ * Which product a purchase payload refers to.
+ *
+ * The field is not stable across the library's own shapes — `fetchProducts`
+ * returns `id`, restored purchases have been seen with `productId`, and a
+ * multi-SKU Android purchase carries `ids`. Read all three rather than picking
+ * one and hoping.
+ */
+const getPurchaseProductIds = (purchase: any): string[] => [
+    purchase?.id,
+    purchase?.productId,
+    ...(Array.isArray(purchase?.ids) ? purchase.ids : []),
+].filter((id) => typeof id === 'string' && !!id);
+
+/**
+ * Does this purchase payload positively identify a *different* product?
+ *
+ * Deliberately asymmetric. A payload carrying no product identifier at all is
+ * NOT treated as a mismatch: dropping it would hang `requestFounderPurchase`
+ * forever on a shape we failed to anticipate, which is strictly worse than
+ * verifying a token the server will reject anyway.
+ */
+const isDifferentProduct = (purchase: any, productId: string): boolean => {
+    const ids = getPurchaseProductIds(purchase);
+
+    return ids.length > 0 && !ids.includes(productId);
+};
+
+/**
  * Purchases the user already owns — the "restore" path, and the recovery path
  * for a purchase whose verification call failed after the money was taken.
  */
@@ -234,9 +263,9 @@ export const getOwnedFounderPurchase = async (productId: string): Promise<IHabit
 
     try {
         const purchases = await iap.getAvailablePurchases();
-        const match = (purchases || []).find((purchase: any) => (
-            purchase?.id === productId || purchase?.productId === productId
-        ));
+        const match = (purchases || []).find(
+            (purchase: any) => getPurchaseProductIds(purchase).includes(productId),
+        );
 
         if (!match) {
             return null;

@@ -81,6 +81,19 @@ describe('groupFeedByDay', () => {
         expect(sections.map((s) => s.isFirstOfMonth)).toEqual([true, false, true]);
     });
 
+    it('renders a heading for the same month in a different year', () => {
+        // Reachable from a correctly-sorted feed: a journal older than a year
+        // eventually puts August 2025 directly below August 2026. Comparing
+        // month *names* alone suppressed the second heading, filing a year of
+        // entries under the wrong visible month.
+        const sections = groupFeedByDay([
+            item('a', '2026-08-14'),
+            item('b', '2025-08-30'),
+        ], translate);
+
+        expect(sections.map((s) => s.isFirstOfMonth)).toEqual([true, true]);
+    });
+
     it('re-flags a month that the feed returns to after leaving it', () => {
         // Not reachable from a correctly-sorted feed, but the guard is cheap
         // and the alternative — a silently missing heading — is invisible.
