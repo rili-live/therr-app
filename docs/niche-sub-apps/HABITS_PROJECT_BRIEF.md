@@ -21,7 +21,17 @@ Core Therr App is pursuing a B2B-first strategy (local business directory → em
 These niche apps are a branch and/or child app of Therr App. The general idea is for a niche app to inherit the core foundations of Therr with unique, niche branding, content filtering specific to that branding, and some simple customizations that are controlled by feature flags.
 
 **Core Innovation:**  
-Unlike traditional habit trackers (solo experience), 'Therr: Friends With Habits' makes accountability partners mandatory. You literally cannot use the app without inviting at least one friend. This creates exponential organic growth.
+Unlike traditional habit trackers, where partners are an afterthought, 'Therr: Friends With Habits' is built around accountability pacts: inviting someone is the first thing the app asks you to do, and every surface leads with partner progress. That is the organic growth loop.
+
+> **Revised August 2026 — the invite is a prompt, not a requirement.** It used to
+> be literally mandatory: you could not track anything without inviting someone.
+> That made the funnel a cliff rather than a loop. The pact wizard was the only
+> way to create a habit, it refused to advance without a partner selected, and
+> the "track this on my own" escape hatch was itself gated on having already
+> sent an invite — a closed circle. Anyone unwilling to involve a friend on day
+> one had no usable app, and churned before ever seeing what they would have
+> been inviting a friend *to*. Personal habits are now unconditional (subject
+> only to the free-tier cap) and the wizard still leads with partners.
 
 ---
 
@@ -99,8 +109,8 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ### MVP (Weeks 3-6) - FREE TIER
 - ✅ Track **5 active habits** at a time (revised 2026-08 — see the note below)
-- ✅ Invite friends to be accountability partners (REQUIRED to get started)
-- ✅ Track habits solo once the first invite has been sent
+- ✅ Invite friends to be accountability partners (the flow the app leads with)
+- ✅ Track a habit on your own, with no invite and no pact required
 - ✅ Daily check-in system with photo/note proof
 - ✅ Journal — day-grouped feed of check-ins, achievements, milestones and notes
 - ✅ Activity feed showing partner progress
