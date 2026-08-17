@@ -194,13 +194,17 @@ export interface IJournalEntry {
 }
 
 /**
- * One row of the merged journal feed. Five sources share this shape so the
+ * One row of the merged journal feed. Six sources share this shape so the
  * client renders a single list; `meta` carries the per-type extras rather than
  * widening the item with fields that are null for most types.
+ *
+ * `goal` is a `main.thoughts` row the user posted — its `id` is a thought id,
+ * so a client may open it in the thought view. Note that `goalName`/`goalEmoji`
+ * describe the tagged *habit* goal and are null on a `goal` item.
  */
 export interface IJournalFeedItem {
     id: string;
-    type: 'note' | 'checkin' | 'achievement' | 'milestone' | 'habit_started';
+    type: 'note' | 'checkin' | 'achievement' | 'milestone' | 'habit_started' | 'goal';
     occurredAt: string;
     /** The user's local calendar day, which is what day-grouping keys on. */
     entryDate: string;

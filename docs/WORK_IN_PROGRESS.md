@@ -193,8 +193,8 @@ console configuration, and one verification that gates a payments change.
   Billing changes that answer, and the listing doc's own note says to re-evaluate if a payment
   path is added. Update the doc and the console together.
 - [ ] (2026-08-15, habits-production-readiness) **Add license testers in Play Console** before
-  QAing the purchase flow — a test purchase comes back with `purchaseType: 1` and is the only way
-  to exercise verification end to end without spending real money.
+  QAing the purchase flow — a test purchase comes back with `purchaseType: 0` (`1` is promo, `2` is
+  rewarded) and is the only way to exercise verification end to end without spending real money.
 - [ ] (2026-08-15, habits-production-readiness) **Unset `HABITS_FREE_PACT_LIMIT` on the prod
   users-service** after this deploy. Nothing reads it any more; the cap is now
   `HABITS_FREE_HABIT_LIMIT` (default 5, on habits tracked rather than pacts created). Harmless if
@@ -772,6 +772,25 @@ console configuration, and one verification that gates a payments change.
   `PUT /users/connections` are both on deployed mobile paths). Each needs its shipped-client
   payload checked against the chain before `validate` is added, then its line deleted from
   the list. No migration, no env var.
+- [ ] (2026-08-17, /quality-peer-review-niche) **Reconcile `docs/WORK_IN_PROGRESS.md` between
+  `general` and `niche/HABITS-general`.** Four unchecked blocks live only on the niche branch
+  and are therefore invisible to anyone working on `general`: the 2026-08-06 Play Console +
+  privacy-policy steps for the contacts rejection, the 2026-07-22 automator daily-digest
+  scheduling item, the two 2026-08-06 `/quality-peer-review` items (brand-identity merge-down,
+  mobile tsc baseline growth), and the HABITS-only `react-native-maps` removal. They were not
+  bulk-copied because at least one adjacent niche-side block — the 2026-07-28
+  `userLocations.dwelling` migration — was **deliberately deleted from `general`** as completed
+  (`55d2c0478`) and still survives on the niche branch, so copying the file diff wholesale
+  would resurrect finished operational work. Each block needs a done/not-done call before it
+  moves. The file is owned by `general`; the niche copy should end up a subset, never a
+  superset.
+- [ ] (2026-08-17, /quality-peer-review-niche) **Verify `com.android.vending.BILLING` survives
+  into the built artifact**, not just the source manifest. `react-native-iap` ships an empty
+  `AndroidManifest.xml`, so the permission arrives either from our explicit declaration or
+  transitively from the Play Billing AAR. Check the merged manifest
+  (`TherrMobile/android/app/build/intermediates/merged_manifests/release/AndroidManifest.xml`)
+  or `aapt dump permissions` on the AAB before uploading — this is the gate on the in-app
+  product item above, and a dependency change could silently drop it.
 <!-- skill-followups:end -->
 
 ---
