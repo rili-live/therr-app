@@ -27,6 +27,13 @@ printMessageNeutral "=== Verifying custom ESLint rules ==="
 npm run test:lint-rules
 printMessageSuccess "Custom ESLint rules verified"
 
+# Same reasoning, same reused install: these cover decision logic inside _bin gate scripts.
+# A bug in a gate's own filtering is silent in the direction that matters — it stops failing
+# on real problems while still printing success — so the logic is tested rather than trusted.
+printMessageNeutral "=== Verifying _bin script logic ==="
+npm run test:bin-scripts
+printMessageSuccess "_bin script logic verified"
+
 # Consumers import from the compiled lib/ output, which is gitignored. Without this the
 # type-check fails on unresolved therr-react/* and therr-js-utilities/* imports rather
 # than on anything real.
