@@ -13,6 +13,12 @@ const initialState: IHabitsState = {
     streaks: [],
     activeStreaks: [],
     milestones: [],
+    userHabits: [],
+    userHabitEligibility: null,
+    journalFeed: [],
+    journalCursor: null,
+    journalHasMore: false,
+    lifetimeOffer: null,
     isLoading: false,
 };
 
@@ -162,6 +168,93 @@ const habits = produce((draft: IHabitsState, action: any) => {
             }
             break;
         }
+
+        // Tracked habits (solo/personal)
+        case HabitsActionTypes.GET_USER_HABITS:
+            draft.userHabits = action.data?.userHabits || [];
+            break;
+        case HabitsActionTypes.GET_USER_HABIT_ELIGIBILITY:
+            draft.userHabitEligibility = action.data || null;
+            break;
+        case HabitsActionTypes.CREATE_USER_HABIT: {
+            const existingIdx = draft.userHabits.findIndex((h) => h.id === action.data?.id);
+            if (existingIdx > -1) {
+                draft.userHabits[existingIdx] = action.data;
+            } else {
+                draft.userHabits.unshift(action.data);
+            }
+            break;
+        }
+        case HabitsActionTypes.ARCHIVE_USER_HABIT:
+        case HabitsActionTypes.RESTORE_USER_HABIT: {
+            const habitIdx = draft.userHabits.findIndex((h) => h.id === action.data?.id);
+            if (habitIdx > -1) {
+                // The archive/restore endpoints return the bare tracking row
+                // rather than the joined detail shape, so merge instead of
+                // replacing — otherwise the list loses the goal name and streak
+                // and the row renders blank until the next full fetch.
+                draft.userHabits[habitIdx] = { ...draft.userHabits[habitIdx], ...action.data };
+            }
+            break;
+        }
+
+        // Journal
+        case HabitsActionTypes.GET_JOURNAL_FEED:
+            draft.journalFeed = action.data?.items || [];
+            draft.journalCursor = action.data?.nextCursor || null;
+            draft.journalHasMore = !!action.data?.hasMore;
+            break;
+        case HabitsActionTypes.APPEND_JOURNAL_FEED:
+            draft.journalFeed.push(...(action.data?.items || []));
+            draft.journalCursor = action.data?.nextCursor || null;
+            draft.journalHasMore = !!action.data?.hasMore;
+            break;
+        case HabitsActionTypes.CREATE_JOURNAL_ENTRY:
+            // Prepended optimistically in feed shape so a new note appears at
+            // the top of today without waiting for a refetch.
+            draft.journalFeed.unshift({
+                id: action.data.id,
+                type: 'note',
+                occurredAt: action.data.occurredAt,
+                entryDate: action.data.entryDate,
+                body: action.data.body,
+                habitGoalId: action.data.habitGoalId,
+            });
+            break;
+        case HabitsActionTypes.UPDATE_JOURNAL_ENTRY: {
+            const entryIdx = draft.journalFeed.findIndex(
+                (item) => item.type === 'note' && item.id === action.data?.id,
+            );
+            if (entryIdx > -1) {
+                draft.journalFeed[entryIdx] = {
+                    ...draft.journalFeed[entryIdx],
+                    body: action.data.body,
+                    habitGoalId: action.data.habitGoalId,
+                };
+            }
+            break;
+        }
+        case HabitsActionTypes.DELETE_JOURNAL_ENTRY:
+            draft.journalFeed = draft.journalFeed.filter(
+                (item) => !(item.type === 'note' && item.id === action.data?.id),
+            );
+            break;
+
+        // Lifetime founder offer
+        case HabitsActionTypes.GET_LIFETIME_OFFER:
+            draft.lifetimeOffer = action.data || null;
+            break;
+        case HabitsActionTypes.VERIFY_LIFETIME_PURCHASE:
+            if (draft.lifetimeOffer) {
+                draft.lifetimeOffer.purchase = action.data?.purchase || null;
+                draft.lifetimeOffer.isEntitled = true;
+            }
+            // The habit cap is lifted from here on, so the cached eligibility
+            // snapshot would otherwise keep the paywall showing until refetch.
+            if (draft.userHabitEligibility) {
+                draft.userHabitEligibility.isAtHabitLimit = false;
+            }
+            break;
 
         // Reset
         case HabitsActionTypes.RESET_HABITS:
