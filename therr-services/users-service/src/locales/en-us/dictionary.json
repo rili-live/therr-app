@@ -19,6 +19,7 @@
         "habits": {
             "habitGoalRequired": "A habit goal is required",
             "freeTierHabitLimitReached": "Free accounts can track {limit} habits at a time. Archive one, or unlock everything for life.",
+            "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total.",
             "journalBodyRequired": "Write something before saving this entry",
             "journalEntryNotFound": "Journal entry not found",
             "lifetimeVerificationFailed": "We could not verify that purchase right now. Please try again shortly.",

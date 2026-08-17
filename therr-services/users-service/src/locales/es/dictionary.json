@@ -19,6 +19,7 @@
         "habits": {
             "habitGoalRequired": "Se requiere una meta de hábito",
             "freeTierHabitLimitReached": "Las cuentas gratuitas pueden seguir {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
+            "soloLocked": "Invita a {remaining} amigo(s) más para desbloquear los hábitos que sigues por tu cuenta: {required} invitaciones en total.",
             "journalBodyRequired": "Escribe algo antes de guardar esta entrada",
             "journalEntryNotFound": "Entrada del diario no encontrada",
             "lifetimeVerificationFailed": "No pudimos verificar esa compra en este momento. Inténtalo de nuevo en unos instantes.",

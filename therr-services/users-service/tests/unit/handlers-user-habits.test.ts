@@ -1,19 +1,21 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { BrandVariations, HABITS_FREE_HABIT_LIMIT } from 'therr-js-utilities/constants';
+import { BrandVariations, HABITS_FREE_HABIT_LIMIT, HABITS_SOLO_UNLOCK_INVITE_COUNT } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
 import { createUserHabit, restoreUserHabit, archiveUserHabit } from '../../src/handlers/userHabits';
 
 /**
  * Personal ("solo") habits.
  *
- * Two rules matter and neither is obvious from the code alone:
- *   1. Starting one needs no pact and no invite. It used to require an invite
- *      to have been sent first, which — the pact wizard being the only way to
- *      create a habit, and it refusing to advance without a partner — meant a
- *      user unwilling to involve a friend could not track anything at all.
- *   2. Starting one consumes a free-tier slot exactly like a pact does. That
- *      cap is now the *only* thing that can refuse a personal habit.
+ * Three rules matter and none is obvious from the code alone:
+ *   1. Starting one unlocks at HABITS_SOLO_UNLOCK_INVITE_COUNT distinct people
+ *      invited — invites *sent*, not accepted, so a friend who never installs
+ *      the app cannot strand the inviter.
+ *   2. The denial carries the progress numbers, because the requirement only
+ *      works as a growth lever if the client can show how close the user is.
+ *   3. Starting one consumes a free-tier slot exactly like a pact does, and the
+ *      unlock is checked before the cap — being short of invites is not a
+ *      paywall, and must not be answered with one.
  */
 const makeRes = () => {
     const res: any = {
@@ -52,7 +54,8 @@ describe('Solo habits', () => {
     let getByUserAndHabitStub: sinon.SinonStub;
 
     beforeEach(() => {
-        countInvitedStub = sinon.stub(Store.pactMembers, 'countInvitedByCreator').resolves(1);
+        countInvitedStub = sinon.stub(Store.pactMembers, 'countDistinctInvitedByCreator')
+            .resolves(HABITS_SOLO_UNLOCK_INVITE_COUNT);
         findUserStub = sinon.stub(Store.users, 'findUser').resolves([{ accessLevels: [] }]);
         countActiveStub = sinon.stub(Store.userHabits, 'countActiveByUser').resolves(0);
         // Default: the caller is not tracking this habit yet, so a start is a
@@ -75,13 +78,33 @@ describe('Solo habits', () => {
         sinon.restore();
     });
 
-    describe('no invite prerequisite', () => {
-        it('starts a habit for a user who has never invited anyone', async () => {
-            // The regression this exists to prevent. This call used to answer
-            // 403 solo-locked, which left a brand-new user with no way to
-            // track anything: the pact wizard was the only creation flow and
-            // it would not advance without a partner selected.
+    describe('the invite unlock', () => {
+        it('blocks a user who has never invited anyone', async () => {
             countInvitedStub.resolves(0);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(res.body.error).to.equal('solo-locked');
+            expect(getOrCreateStub.called).to.equal(false);
+        });
+
+        it('blocks a user who is one invite short', async () => {
+            // The boundary is the whole rule. An off-by-one here either gives
+            // the feature away a friend early or moves the goalposts after the
+            // user has done what the UI told them to.
+            countInvitedStub.resolves(HABITS_SOLO_UNLOCK_INVITE_COUNT - 1);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(getOrCreateStub.called).to.equal(false);
+        });
+
+        it('unlocks exactly at the threshold', async () => {
+            countInvitedStub.resolves(HABITS_SOLO_UNLOCK_INVITE_COUNT);
 
             const res = makeRes();
             await createUserHabit(makeReq() as any, res, (() => {}) as any);
@@ -90,15 +113,67 @@ describe('Solo habits', () => {
             expect(getOrCreateStub.calledOnce).to.equal(true);
         });
 
-        it('does not consult pact membership at all', async () => {
-            // Not merely permissive — the invite question is no longer asked,
-            // so a slow or broken pact_members query cannot deny a habit that
-            // has nothing to do with pacts.
+        it('unlocks on invites SENT, without waiting for anyone to accept', async () => {
+            // The dead end this avoids: gating on acceptance makes the user's
+            // own progress depend on a friend who may never install the app.
+            // The stub counts partner rows in any status by construction.
+            countInvitedStub.resolves(HABITS_SOLO_UNLOCK_INVITE_COUNT);
+
             const res = makeRes();
             await createUserHabit(makeReq() as any, res, (() => {}) as any);
 
             expect(res.statusCode).to.equal(201);
-            expect(countInvitedStub.called).to.equal(false);
+        });
+
+        it('returns the progress numbers on the denial', async () => {
+            // The client draws "invite N more friends" from this response, so a
+            // bare 403 would force a second round trip to say anything useful.
+            countInvitedStub.resolves(1);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.body.invitedCount).to.equal(1);
+            expect(res.body.requiredCount).to.equal(HABITS_SOLO_UNLOCK_INVITE_COUNT);
+        });
+
+        it('counts people, not invitations', async () => {
+            // Guards the store method the gate reads. Counting membership rows
+            // would let one friend invited to three pacts clear a bar that
+            // exists to put the app in front of three people.
+            countInvitedStub.resolves(0);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(countInvitedStub.calledOnceWithExactly('user-1')).to.equal(true);
+        });
+
+        it('fails CLOSED when eligibility cannot be determined', async () => {
+            // Unlike the habit cap: wrongly allowing solo habits skips the
+            // onboarding the growth loop depends on and cannot be undone.
+            countInvitedStub.rejects(new Error('connection terminated'));
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(getOrCreateStub.called).to.equal(false);
+        });
+
+        it('answers 403, not 402, when locked AND at the habit cap', async () => {
+            // Order matters. Being short of invites is not a paywall, and
+            // selling a habit slot to someone who could unlock the feature for
+            // free by inviting a friend is the wrong answer to give.
+            countInvitedStub.resolves(0);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(res.body.error).to.equal('solo-locked');
         });
     });
 
