@@ -3,7 +3,7 @@ import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
-import { IJournalFeedRow } from '../store/JournalEntriesStore';
+import { IJournalEntryRow, IJournalFeedRow } from '../store/JournalEntriesStore';
 
 /**
  * The Journal: a day-grouped record of everything the user did, plus anything
@@ -76,6 +76,25 @@ const normalizeRow = (row: IJournalFeedRow): IJournalFeedItem => ({
     goalName: row.goalName,
     goalEmoji: row.goalEmoji,
     meta: row.meta,
+});
+
+/**
+ * Serialize a stored entry row for the write endpoints.
+ *
+ * Without this, create and update return `entryDate` as a full ISO instant
+ * while the feed returns YYYY-MM-DD, because `entryDate` is a `date` column and
+ * Express serializes the Date node-pg builds from it via `toISOString()`. The
+ * same local-midnight problem `toEntryDate` exists to solve applies here: a row
+ * stored as 2026-08-17 comes back as "2026-08-17T05:00:00.000Z" on a UTC-05:00
+ * server and as "2026-08-16T15:00:00.000Z" on a UTC+09:00 one, so a client that
+ * splits on "T" still lands on the wrong day. Clients key day-grouping on
+ * `entryDate`, so the two shapes must agree — an optimistically-inserted note
+ * would otherwise sit in its own phantom day group until the next refetch.
+ */
+const normalizeEntry = (row: IJournalEntryRow) => ({
+    ...row,
+    entryDate: toEntryDate(row.entryDate),
+    occurredAt: toIsoDate(row.occurredAt),
 });
 
 // READ
@@ -197,7 +216,7 @@ const createJournalEntry: RequestHandler = async (req: any, res: any) => {
         entryDate: resolvedEntryDate,
         occurredAt: occurredAt || null,
     })
-        .then((entry) => res.status(201).send(entry))
+        .then((entry) => res.status(201).send(normalizeEntry(entry)))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:JOURNAL_ROUTES:ERROR' }));
 };
 
@@ -246,7 +265,7 @@ const updateJournalEntry: RequestHandler = async (req: any, res: any) => {
                 });
             }
 
-            return res.status(200).send(entry);
+            return res.status(200).send(normalizeEntry(entry));
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:JOURNAL_ROUTES:ERROR' }));
 };

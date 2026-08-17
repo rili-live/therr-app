@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
-import { getJournalFeed } from '../../src/handlers/journal';
+import { createJournalEntry, getJournalFeed, updateJournalEntry } from '../../src/handlers/journal';
 
 /**
  * The journal feed merge.
@@ -209,5 +209,75 @@ describe('Journal feed', () => {
 
         expect(res.statusCode).to.equal(400);
         expect(getFeedStub.called).to.equal(false);
+    });
+});
+
+/**
+ * The write endpoints have to return the same `entryDate` shape the feed does.
+ *
+ * `entryDate` is a `date` column, so node-pg hands back a Date at LOCAL
+ * midnight and Express serializes it with toISOString(). Returned raw, a row
+ * stored as 2026-08-17 goes out as "2026-08-17T05:00:00.000Z" on a UTC-05:00
+ * server and "2026-08-16T15:00:00.000Z" on a UTC+09:00 one — the wrong day
+ * outright, even for a client that splits on "T". Clients key day-grouping on
+ * this field, so a mismatch files a freshly-written note under a phantom day.
+ */
+describe('Journal entry writes', () => {
+    const storedRow = () => ({
+        id: 'entry-1',
+        userId: 'user-1',
+        habitGoalId: null,
+        checkinId: null,
+        body: 'I woke up before the alarm',
+        // What node-pg actually produces for a `date` column holding 2026-08-17.
+        entryDate: new Date(2026, 7, 17, 0, 0, 0),
+        occurredAt: new Date('2026-08-17T14:30:00.000Z'),
+        createdAt: new Date('2026-08-17T14:30:00.000Z'),
+        updatedAt: new Date('2026-08-17T14:30:00.000Z'),
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('returns entryDate as a bare calendar day when creating an entry', async () => {
+        const createStub = sinon.stub(Store.journalEntries, 'create').resolves(storedRow() as any);
+        const res = makeRes();
+        const req: any = makeReq();
+        req.body = { body: 'I woke up before the alarm', entryDate: '2026-08-17' };
+
+        await createJournalEntry(req, res, (() => {}) as any);
+
+        expect(createStub.calledOnce).to.equal(true);
+        expect(res.statusCode).to.equal(201);
+        expect(res.body.entryDate).to.equal('2026-08-17');
+        expect(res.body.occurredAt).to.equal('2026-08-17T14:30:00.000Z');
+    });
+
+    it('returns entryDate as a bare calendar day when updating an entry', async () => {
+        sinon.stub(Store.journalEntries, 'update').resolves(storedRow() as any);
+        const res = makeRes();
+        const req: any = makeReq();
+        req.params = { id: 'entry-1' };
+        req.body = { body: 'edited' };
+
+        await updateJournalEntry(req, res, (() => {}) as any);
+
+        expect(res.statusCode).to.equal(200);
+        expect(res.body.entryDate).to.equal('2026-08-17');
+    });
+
+    it('does not roll the day back for a positive-offset server timezone', async () => {
+        // The pre-fix code returned toISOString() of local midnight, which in
+        // UTC+09:00 is the previous day at 15:00Z.
+        sinon.stub(Store.journalEntries, 'create').resolves(storedRow() as any);
+        const res = makeRes();
+        const req: any = makeReq();
+        req.body = { body: 'note', entryDate: '2026-08-17' };
+
+        await createJournalEntry(req, res, (() => {}) as any);
+
+        expect(res.body.entryDate.startsWith('2026-08-17')).to.equal(true);
+        expect(res.body.entryDate).to.not.contain('T');
     });
 });
