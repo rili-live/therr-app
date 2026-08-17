@@ -9,19 +9,30 @@ import { IJournalEntryRow, IJournalFeedCursor, IJournalFeedRow } from '../store/
  * The Journal: a day-grouped record of everything the user did, plus anything
  * they chose to write about it.
  *
- * FIVE SOURCES, TWO QUERIES
+ * SIX SOURCES, THREE QUERIES
  *
  * Four of the sources (notes, check-ins, streak milestones, habit starts) live
  * in `habits.*` and are unioned, ordered and limited in a single query — see
  * `JournalEntriesStore.getFeed` for why merging in JS would break pagination.
  *
- * Achievements are the fifth and are fetched separately, because
- * `main.userAchievements` is brand-scoped. It has to be read through
- * `UserAchievementsStore` with an explicit brand, both because
- * `therr/no-direct-brand-scoped-table` forbids touching it directly and because
- * joining it unscoped would spill a user's Therr achievements into their
- * Friends with Habits journal. So it is merged here, in the handler, which is
- * the one place that has the brand context.
+ * The other two need brand context, which is why they are fetched separately
+ * and merged here — the handler is the one place that has it:
+ *
+ *   - Achievements, because `main.userAchievements` is brand-scoped. It has to
+ *     be read through `UserAchievementsStore` with an explicit brand, both
+ *     because `therr/no-direct-brand-scoped-table` forbids touching it directly
+ *     and because joining it unscoped would spill a user's Therr achievements
+ *     into their Friends with Habits journal.
+ *   - Goals, which are the user's own `main.thoughts` rows. In the HABITS app a
+ *     thought is a goal (the profile's Goals tab and the journal's "Share a
+ *     goal" both write there), and reading them requires the per-brand
+ *     visibility allowlist — see `ThoughtsStore.getForJournal`.
+ *
+ * Merging in the handler is only safe because each of the three queries returns
+ * `limit + 1` rows under the SAME total order and the SAME cursor comparison.
+ * The merged top `limit` therefore cannot contain an item that fell outside its
+ * own source's window, and `nextCursor` is exclusive on the pair, so no page
+ * boundary repeats or skips a row.
  */
 
 const DEFAULT_LIMIT = 50;
@@ -210,9 +221,13 @@ const getJournalFeed: RequestHandler = async (req: any, res: any) => {
     try {
         // limit + 1 from each side so the merged slice can tell "there is more"
         // from "this is the end" without a second count query.
-        const [habitsRows, achievements] = await Promise.all([
+        const [habitsRows, achievements, goals] = await Promise.all([
             Store.journalEntries.getFeed(userId, cursor, limit + 1),
             Store.userAchievements.getCompleted(brandVariation, { userId }),
+            // Cursor-filtered and limited in SQL, unlike achievements: a user's
+            // post count is unbounded, so fetching them all to filter in memory
+            // would grow with the account.
+            Store.thoughts.getForJournal(brandVariation, userId, cursor, limit + 1),
         ]);
 
         const achievementItems: IJournalFeedItem[] = (achievements || [])
@@ -240,7 +255,29 @@ const getJournalFeed: RequestHandler = async (req: any, res: any) => {
             .filter((item: IJournalFeedItem) => !cursor || isBeforeCursor(item, cursor))
             .slice(0, limit + 1);
 
-        const merged = [...habitsRows.map(normalizeRow), ...achievementItems]
+        // A goal carries the user's own words, so `body` is the post itself and
+        // there is nothing for the client to generate. `goalName`/`goalEmoji`
+        // stay null — on this row shape they name the tagged *habit* goal, which
+        // a thought does not have.
+        const goalItems: IJournalFeedItem[] = (goals || []).map((goal) => ({
+            id: goal.id,
+            type: 'goal',
+            occurredAt: toIsoDate(goal.occurredAt),
+            // `createdAt` is a timestamptz, not a `date` column — see
+            // `toUtcEntryDate` on why this does not go through `toEntryDate`.
+            entryDate: toUtcEntryDate(goal.occurredAt),
+            body: goal.message,
+            habitGoalId: null,
+            goalName: null,
+            goalEmoji: null,
+            meta: {
+                category: goal.category,
+                isPublic: goal.isPublic,
+                hashTags: goal.hashTags,
+            },
+        }));
+
+        const merged = [...habitsRows.map(normalizeRow), ...achievementItems, ...goalItems]
             // Same total order the SQL side and the cursor use: instant first,
             // then id by code point. The cursor carries both, so an item sharing
             // the boundary instant is paged past rather than skipped.
