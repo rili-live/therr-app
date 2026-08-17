@@ -2055,6 +2055,7 @@
         "bannerHelper": "Touche ci-dessous pour envoyer ta première invitation",
         "bannerCTA": "Inviter un ami",
         "bannerSecondaryCTA": "Voir les invitations envoyées",
+        "soloCTA": "Ou suis une habitude de ton côté",
         "sampleHabitTitle": "Commence avec une habitude/un objectif",
         "sampleHabitSubtitle": "Bâtis une bonne habitude, brise-en une mauvaise ou épargne vers un objectif commun — on l'activera dès que ton ami se joint.",
         "samplePartnerName": "Responsabilité amicale",
@@ -2109,7 +2110,6 @@
         "back": "Retour",
         "cancel": "Annuler",
         "pickTemplateFirst": "Choisis une habitude pour continuer",
-        "pickPartnerFirst": "Choisis au moins un ami",
         "templatesEmpty": "Aucun modèle disponible — crée ta propre habitude",
         "addPartnerByEmail": "Inviter par courriel",
         "addPartnerEmailPlaceholder": "ami@exemple.com",
@@ -2122,11 +2122,15 @@
         "searchHelp": "Tape un nom pour trouver quelqu'un, ou partage un lien d'invitation.",
         "friendBadge": "Ami",
         "habitDefaultEmoji": "🎯",
-        "soloHint": "Tu attends un ami? Tu peux commencer celle-ci seul.",
+        "soloHint": "Tu préfères garder celle-ci pour toi? Commence en solo et ajoute des partenaires quand tu veux.",
         "soloCta": "La suivre seul",
         "soloStarting": "Démarrage…",
         "soloSuccess": "Habitude démarrée",
-        "soloError": "Nous n'avons pas pu démarrer cette habitude."
+        "soloError": "Nous n'avons pas pu démarrer cette habitude.",
+        "soloReviewTitle": "Révise ton habitude",
+        "soloReviewSubtitle": "Tu commences celle-ci de ton côté.",
+        "soloJustYou": "Seulement toi",
+        "soloAddPartnersLater": "Tu peux inviter un ami à cette habitude quand tu veux."
       },
       "status": {
         "pending": "En attente",

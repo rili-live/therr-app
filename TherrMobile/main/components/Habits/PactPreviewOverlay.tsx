@@ -217,6 +217,14 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
         navigation.navigate('CreatePactInvite');
     };
 
+    // This overlay is the whole of onboarding, so whatever it does not offer is
+    // effectively not in the app. Without this the only route out was the pact
+    // CTA, and a user who did not want to involve anyone had nothing to press.
+    // `mode: 'solo'` takes them through the same wizard minus the partner step.
+    const handleStartSolo = () => {
+        navigation.navigate('CreatePactInvite', { mode: 'solo' });
+    };
+
     const handleViewSent = () => {
         navigation.navigate('PactsList', { initialTab: 'outgoing' });
     };
@@ -351,6 +359,15 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                             </Text>
                         </Pressable>
                     )}
+                    <Pressable
+                        accessibilityRole="button"
+                        onPress={handleStartSolo}
+                        style={themeHabits.styles.onboardingFooterSecondary}
+                    >
+                        <Text style={themeHabits.styles.onboardingFooterSecondaryText}>
+                            {translate('pages.pacts.preview.soloCTA')}
+                        </Text>
+                    </Pressable>
                 </View>
             </SafeAreaView>
         </>

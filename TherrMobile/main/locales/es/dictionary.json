@@ -2055,6 +2055,7 @@
         "bannerHelper": "Toca abajo para enviar tu primera invitación",
         "bannerCTA": "Invitar a un amigo",
         "bannerSecondaryCTA": "Ver invitaciones enviadas",
+        "soloCTA": "O sigue un hábito por tu cuenta",
         "sampleHabitTitle": "Empieza con un hábito/meta",
         "sampleHabitSubtitle": "Construye un hábito saludable, rompe uno malo, o ahorra hacia una meta compartida — lo activaremos cuando tu amigo se una.",
         "samplePartnerName": "Responsabilidad amistosa",
@@ -2109,7 +2110,6 @@
         "back": "Atrás",
         "cancel": "Cancelar",
         "pickTemplateFirst": "Elige un hábito para continuar",
-        "pickPartnerFirst": "Elige al menos un amigo",
         "templatesEmpty": "No hay plantillas disponibles — crea tu propio hábito",
         "addPartnerByEmail": "Invitar por correo",
         "addPartnerEmailPlaceholder": "amigo@ejemplo.com",
@@ -2122,11 +2122,15 @@
         "searchHelp": "Escribe un nombre para encontrar a alguien, o comparte un enlace de invitación.",
         "friendBadge": "Amigo",
         "habitDefaultEmoji": "🎯",
-        "soloHint": "¿Esperando a un amigo? Puedes empezar este por tu cuenta.",
+        "soloHint": "¿Prefieres guardar este para ti? Empiézalo por tu cuenta y añade compañeros cuando quieras.",
         "soloCta": "Seguirlo por mi cuenta",
         "soloStarting": "Comenzando…",
         "soloSuccess": "Hábito iniciado",
-        "soloError": "No pudimos iniciar ese hábito."
+        "soloError": "No pudimos iniciar ese hábito.",
+        "soloReviewTitle": "Revisa tu hábito",
+        "soloReviewSubtitle": "Vas a empezar este por tu cuenta.",
+        "soloJustYou": "Solo tú",
+        "soloAddPartnersLater": "Puedes invitar a un amigo a este hábito cuando quieras."
       },
       "status": {
         "pending": "Pendiente",

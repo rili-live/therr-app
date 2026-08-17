@@ -2,16 +2,20 @@ import { it, describe, expect } from '@jest/globals';
 import { hasSentPactInvite } from '../../main/routes/Habits/pactState';
 
 /**
- * The solo-habit onboarding gate.
+ * One of the three conditions that release the habits onboarding overlay.
  *
- * Friends with Habits requires you to invite someone before you can start. The
- * problem that gate created is that it measured the *friend's* action: gating
- * on an accepted pact meant a user whose friend never installed the app sat on
- * the onboarding overlay forever, unable to track anything at all.
+ * The overlay clears on an active pact, on an invite the user has sent that
+ * nobody has answered yet, or on the user having a habit of their own. This
+ * predicate is the middle one. Gating on an *accepted* pact alone measured the
+ * friend's action rather than the user's: someone whose friend never installed
+ * the app sat on the overlay forever, unable to track anything.
  *
- * `hasSentPactInvite` moves the test back onto something the user controls —
- * did they send the invitation. These cases pin that distinction, since the two
+ * `hasSentPactInvite` puts the test back on something the user controls — did
+ * they send the invitation. These cases pin that distinction, since the two
  * conditions look interchangeable until you hit the case where they aren't.
+ *
+ * Note this is no longer a gate on creating a habit; a personal habit needs no
+ * invite at all. See `routes/Pacts/wizardSteps.ts`.
  */
 const pact = (overrides: any = {}): any => ({
     id: 'pact-1',

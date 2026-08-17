@@ -2055,6 +2055,7 @@
         "bannerHelper": "Tap below to send your first invite",
         "bannerCTA": "Invite a friend",
         "bannerSecondaryCTA": "View sent invites",
+        "soloCTA": "Or track a habit on your own",
         "sampleHabitTitle": "Start with a habit/goal",
         "sampleHabitSubtitle": "Build a healthy habit, break a bad one, or save toward a shared goal — we'll lock it in once your friend joins.",
         "samplePartnerName": "Friendly accountability",
@@ -2109,7 +2110,6 @@
         "back": "Back",
         "cancel": "Cancel",
         "pickTemplateFirst": "Pick a habit to continue",
-        "pickPartnerFirst": "Choose at least one friend",
         "templatesEmpty": "No templates available — create your own habit",
         "addPartnerByEmail": "Invite by email",
         "addPartnerEmailPlaceholder": "friend@example.com",
@@ -2122,11 +2122,15 @@
         "searchHelp": "Type a name to find someone, or share an invite link.",
         "friendBadge": "Friend",
         "habitDefaultEmoji": "🎯",
-        "soloHint": "Waiting on a friend? You can start this one on your own.",
+        "soloHint": "Prefer to keep this one to yourself? Start it solo and add partners whenever you like.",
         "soloCta": "Track this on my own",
         "soloStarting": "Starting…",
         "soloSuccess": "Habit started",
-        "soloError": "We could not start that habit."
+        "soloError": "We could not start that habit.",
+        "soloReviewTitle": "Review your habit",
+        "soloReviewSubtitle": "You are starting this one on your own.",
+        "soloJustYou": "Just you",
+        "soloAddPartnersLater": "You can invite a friend to this habit any time."
       },
       "status": {
         "pending": "Pending",

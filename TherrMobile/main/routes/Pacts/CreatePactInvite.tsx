@@ -28,11 +28,16 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { Button } from '../../components/BaseButton';
 import { HABITS_PRESTAGED_TEMPLATE_ID } from '../../components/Habits/PactPreviewOverlay';
 import { buildInviteUrl } from '../../utilities/shareUrls';
+import {
+    WizardStep as Step,
+    getBackTarget,
+    getFinalAction,
+    getNextStep,
+    isSoloReview,
+} from './wizardSteps';
 
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
-
-type Step = 1 | 2 | 3;
 
 interface IConnectionDetails {
     id: string;
@@ -58,6 +63,7 @@ interface IStoreProps extends IDispatchProps {
 
 interface ICreatePactInviteProps extends IStoreProps {
     navigation: any;
+    route: any;
 }
 
 interface ICreatePactInviteState {
@@ -142,7 +148,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
 
     componentDidMount() {
         this.props.navigation.setOptions({
-            title: this.translate('pages.pacts.wizard.step1Title'),
+            title: this.getStepTitle(1),
         });
 
         if (!this.props.habits.templates?.length) {
@@ -152,9 +158,10 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                 .finally(() => this.setState({ isLoadingTemplates: false }));
         }
 
-        // Decides whether step 2 offers the "track this on my own" branch. A
-        // failure leaves `canCreateSolo` false, which hides the affordance —
-        // the safe direction, since the server would refuse the call anyway.
+        // Only for the habit-cap standing it reports: a 402 on the final step
+        // routes to the paywall either way, but knowing in advance lets the
+        // wizard avoid walking the user to a dead end. Solo availability is no
+        // longer part of this answer — starting a habit alone is unconditional.
         this.props.getUserHabitEligibility().catch(() => {});
     }
 
@@ -165,9 +172,32 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         }
     }
 
+    /**
+     * Entered from a "track a habit on my own" affordance rather than from the
+     * pact CTA, which means step 2 (choose partners) is skipped outright rather
+     * than merely being skippable. The wizard is otherwise identical — same
+     * habit picker, same review, same goal creation.
+     */
+    isSoloMode = (): boolean => this.props.route?.params?.mode === 'solo';
+
+    /**
+     * Step 3 reviews whatever the user actually assembled. With nobody selected
+     * it is a personal habit, whether they arrived via solo mode or simply
+     * moved past the partner step without picking anyone.
+     */
+    isSoloReview = (): boolean => isSoloReview(this.state.selectedPartnerIds.length);
+
+    getStepTitle = (step: Step): string => {
+        if (step === 3 && this.isSoloReview()) {
+            return this.translate('pages.pacts.wizard.soloReviewTitle');
+        }
+
+        return this.translate(`pages.pacts.wizard.step${step}Title`);
+    };
+
     setStep = (step: Step) => {
         this.props.navigation.setOptions({
-            title: this.translate(`pages.pacts.wizard.step${step}Title`),
+            title: this.getStepTitle(step),
         });
         this.setState({ step });
         if (step === 2) {
@@ -237,8 +267,6 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         this.state.selectedTemplateId || this.state.customHabitName.trim().length > 0,
     );
 
-    canAdvanceFromStep2 = (): boolean => this.state.selectedPartnerIds.length > 0;
-
     handleNext = () => {
         const { step } = this.state;
         if (step === 1) {
@@ -249,25 +277,22 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             if (this.state.selectedTemplateId) {
                 AsyncStorage.setItem(HABITS_PRESTAGED_TEMPLATE_ID, this.state.selectedTemplateId).catch(() => {});
             }
-            this.setStep(2);
-            return;
         }
-        if (step === 2) {
-            if (!this.canAdvanceFromStep2()) {
-                Toast.show({ type: 'info', text1: this.translate('pages.pacts.wizard.pickPartnerFirst') });
-                return;
-            }
-            this.setStep(3);
-        }
+
+        // Step 2 is deliberately not gated on having picked someone; see
+        // `wizardSteps` for why the partner step has to stay optional.
+        this.setStep(getNextStep(step, { isSoloMode: this.isSoloMode() }));
     };
 
     handleBack = () => {
-        const { step } = this.state;
-        if (step === 1) {
+        const target = getBackTarget(this.state.step, { isSoloMode: this.isSoloMode() });
+
+        if (target === 'exit') {
             this.props.navigation.goBack();
             return;
         }
-        this.setStep((step - 1) as Step);
+
+        this.setStep(target);
     };
 
     onShareLink = () => {
@@ -391,8 +416,10 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     };
 
     /**
-     * "Track this on my own" — available only after the user has sent at least
-     * one pact invite, which the server verifies independently.
+     * "Track this on my own" — creates the habit goal and starts tracking it
+     * with no pact attached. Available unconditionally; the only thing the
+     * server can refuse it for is the free-tier habit cap, which comes back as
+     * a 402 and routes to the paywall like the pact path does.
      */
     handleStartSolo = async () => {
         const { navigation, startUserHabit } = this.props;
@@ -578,14 +605,10 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     };
 
     renderStep2 = () => {
-        const { habits, user, userConnections } = this.props;
+        const { user, userConnections } = this.props;
         const {
             selectedPartnerIds, searchQuery, isSearching, isStartingSolo,
         } = this.state;
-        // Non-default by design: the app is called Friends with Habits, so the
-        // solo route sits below the partner list as a way out rather than as a
-        // peer choice. It appears only once the user has already sent an invite.
-        const canCreateSolo = !!habits.userHabitEligibility?.canCreateSolo;
         const currentUserId = user.details?.id || '';
         const connections = (userConnections?.activeConnections || userConnections?.connections || []) as any[];
 
@@ -688,26 +711,30 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                     </Text>
                 </Pressable>
 
-                {canCreateSolo && (
-                    <View style={{ paddingHorizontal: 20, marginTop: 8, paddingBottom: 16 }}>
-                        <Text style={[this.themeHabits.styles.habitCardSubtitle, { textAlign: 'center' }]}>
-                            {this.translate('pages.pacts.wizard.soloHint')}
+                {/*
+                  * Non-default by design: the app is called Friends with Habits,
+                  * so the solo route sits below the partner list rather than
+                  * alongside it. It is always offered, though — a user who does
+                  * not want a partner still has to be able to finish.
+                  */}
+                <View style={{ paddingHorizontal: 20, marginTop: 8, paddingBottom: 16 }}>
+                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { textAlign: 'center' }]}>
+                        {this.translate('pages.pacts.wizard.soloHint')}
+                    </Text>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityState={{ disabled: isStartingSolo }}
+                        disabled={isStartingSolo}
+                        onPress={this.handleStartSolo}
+                        style={{ marginTop: 8, paddingVertical: 12, opacity: isStartingSolo ? 0.6 : 1 }}
+                    >
+                        <Text style={[this.themeButtons.styles.btnTitleBlack, { textAlign: 'center' }]}>
+                            {isStartingSolo
+                                ? this.translate('pages.pacts.wizard.soloStarting')
+                                : this.translate('pages.pacts.wizard.soloCta')}
                         </Text>
-                        <Pressable
-                            accessibilityRole="button"
-                            accessibilityState={{ disabled: isStartingSolo }}
-                            disabled={isStartingSolo}
-                            onPress={this.handleStartSolo}
-                            style={{ marginTop: 8, paddingVertical: 12, opacity: isStartingSolo ? 0.6 : 1 }}
-                        >
-                            <Text style={[this.themeButtons.styles.btnTitleBlack, { textAlign: 'center' }]}>
-                                {isStartingSolo
-                                    ? this.translate('pages.pacts.wizard.soloStarting')
-                                    : this.translate('pages.pacts.wizard.soloCta')}
-                            </Text>
-                        </Pressable>
-                    </View>
-                )}
+                    </Pressable>
+                </View>
             </View>
         );
     };
@@ -721,11 +748,14 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         const habitName = template?.name || customHabitName.trim();
         const habitEmoji = template?.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji');
         const partnerCount = selectedPartnerIds.length;
+        const isSolo = this.isSoloReview();
 
         return (
             <View>
                 <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20 }]}>
-                    {this.translate('pages.pacts.wizard.step3Subtitle')}
+                    {isSolo
+                        ? this.translate('pages.pacts.wizard.soloReviewSubtitle')
+                        : this.translate('pages.pacts.wizard.step3Subtitle')}
                 </Text>
                 <View style={this.themeHabits.styles.habitCardContainer}>
                     <View style={this.themeHabits.styles.habitCardHeader}>
@@ -733,11 +763,18 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         <View style={this.themeHabits.styles.habitCardTitleContainer}>
                             <Text style={this.themeHabits.styles.habitCardTitle}>{habitName}</Text>
                             <Text style={this.themeHabits.styles.habitCardSubtitle}>
-                                {this.translate('pages.pacts.wizard.multiSelectCounter', { count: partnerCount })}
+                                {isSolo
+                                    ? this.translate('pages.pacts.wizard.soloJustYou')
+                                    : this.translate('pages.pacts.wizard.multiSelectCounter', { count: partnerCount })}
                             </Text>
                         </View>
                     </View>
                 </View>
+                {isSolo && (
+                    <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
+                        {this.translate('pages.pacts.wizard.soloAddPartnersLater')}
+                    </Text>
+                )}
             </View>
         );
     };
@@ -752,14 +789,27 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     };
 
     renderFooter = () => {
-        const { step, isSending, selectedPartnerIds } = this.state;
+        const { step, isSending, isStartingSolo, selectedPartnerIds } = this.state;
         const isFinalStep = step === 3;
+        // With nobody selected the final action starts a personal habit rather
+        // than sending invites, so the label and the handler move together —
+        // a "Send invite" button that sends none reads as a broken button.
+        const isSolo = getFinalAction(selectedPartnerIds.length) === 'startSolo';
         const sendKey = selectedPartnerIds.length > 1
             ? 'pages.pacts.wizard.sendMultiple'
             : 'pages.pacts.wizard.send';
-        const primaryTitle = isFinalStep
-            ? this.translate(sendKey, { count: selectedPartnerIds.length })
-            : this.translate('pages.pacts.wizard.next');
+        let primaryTitle = this.translate('pages.pacts.wizard.next');
+        if (isFinalStep) {
+            primaryTitle = isSolo
+                ? this.translate('pages.pacts.wizard.soloCta')
+                : this.translate(sendKey, { count: selectedPartnerIds.length });
+        }
+        const isBusy = isSending || isStartingSolo;
+
+        let onPrimaryPress = this.handleNext;
+        if (isFinalStep) {
+            onPrimaryPress = isSolo ? this.handleStartSolo : this.handleSend;
+        }
 
         return (
             <SafeAreaInsetsContext.Consumer>
@@ -786,7 +836,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         >
                             <Pressable
                                 onPress={this.handleBack}
-                                disabled={isSending}
+                                disabled={isBusy}
                                 style={{ paddingVertical: 12, paddingHorizontal: 16 }}
                             >
                                 <Text style={this.themeButtons.styles.btnTitleBlack}>
@@ -800,8 +850,8 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                                     buttonStyle={[this.themeButtons.styles.btnLargeWithText, { width: '100%' }]}
                                     titleStyle={this.themeButtons.styles.btnLargeTitle}
                                     title={primaryTitle}
-                                    onPress={isFinalStep ? this.handleSend : this.handleNext}
-                                    disabled={isSending}
+                                    onPress={onPrimaryPress}
+                                    disabled={isBusy}
                                 />
                             </View>
                         </View>

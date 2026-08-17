@@ -29,17 +29,18 @@ const mapStateToProps = (state: any) => ({
  *
  * WHAT RELEASES THE GATE
  *
- * Either an active pact, OR an invite the user has sent that nobody has
- * accepted yet. The second condition was added with solo habits: gating purely
- * on acceptance made a user's own progress depend on someone else's action, and
- * a friend who installed the app a week later — or never — left the inviter
- * parked here indefinitely with nothing they could do about it.
+ * Any of: an active pact, an invite the user has sent that nobody has accepted
+ * yet, or a habit of their own.
  *
- * The invite requirement itself is unchanged: the user still has to pick a
- * habit, pick a person and send the invitation. What changed is that the friend
- * saying yes is no longer the thing standing between them and their own habits.
- * The server enforces the same rule on `POST /habits/user-habits`, so this is
- * the UI half of a gate rather than the gate itself.
+ * The last condition is what makes personal habits usable at all. Starting one
+ * navigates straight back here, so a gate that only knew about pacts would drop
+ * the user onto this overlay holding a habit it refused to show them — the exact
+ * dead end the solo path exists to remove. `habitGoals` is the right signal
+ * because the dashboard beneath already loads it on every focus, and a goal only
+ * comes into existence once the user finishes the wizard one way or the other.
+ *
+ * This is a soft gate, not the enforcement point: the server no longer requires
+ * an invite to start a habit, so nothing here is holding a rule up on its own.
  */
 const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     user,
@@ -56,7 +57,8 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         && user.isAuthenticated;
     const hasActivePact = activePactCount > 0;
     const hasSentInvite = hasSentPactInvite(habits.pacts || [], user.details?.id);
-    const hasStarted = hasActivePact || hasSentInvite;
+    const hasOwnHabit = (habits.habitGoals?.length || 0) > 0;
+    const hasStarted = hasActivePact || hasSentInvite || hasOwnHabit;
 
     // Depend on the length, not the array reference, so unrelated Redux
     // dispatches that recreate `activePacts` don't re-run this effect.
