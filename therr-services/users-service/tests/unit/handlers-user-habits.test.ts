@@ -8,9 +8,12 @@ import { createUserHabit, restoreUserHabit, archiveUserHabit } from '../../src/h
  * Personal ("solo") habits.
  *
  * Two rules matter and neither is obvious from the code alone:
- *   1. Solo tracking unlocks on an invite *sent*, not on a pact going active,
- *      so a friend who never accepts cannot strand the inviter.
- *   2. Starting one consumes a free-tier slot exactly like a pact does.
+ *   1. Starting one needs no pact and no invite. It used to require an invite
+ *      to have been sent first, which — the pact wizard being the only way to
+ *      create a habit, and it refusing to advance without a partner — meant a
+ *      user unwilling to involve a friend could not track anything at all.
+ *   2. Starting one consumes a free-tier slot exactly like a pact does. That
+ *      cap is now the *only* thing that can refuse a personal habit.
  */
 const makeRes = () => {
     const res: any = {
@@ -72,22 +75,13 @@ describe('Solo habits', () => {
         sinon.restore();
     });
 
-    describe('the onboarding gate', () => {
-        it('blocks a user who has never invited anyone', async () => {
+    describe('no invite prerequisite', () => {
+        it('starts a habit for a user who has never invited anyone', async () => {
+            // The regression this exists to prevent. This call used to answer
+            // 403 solo-locked, which left a brand-new user with no way to
+            // track anything: the pact wizard was the only creation flow and
+            // it would not advance without a partner selected.
             countInvitedStub.resolves(0);
-
-            const res = makeRes();
-            await createUserHabit(makeReq() as any, res, (() => {}) as any);
-
-            expect(res.statusCode).to.equal(403);
-            expect(res.body.error).to.equal('solo-locked');
-            expect(getOrCreateStub.called).to.equal(false);
-        });
-
-        it('allows a user who has sent an invite, even if nobody accepted', async () => {
-            // The dead end this feature exists to close: previously this user
-            // was stuck on the onboarding overlay indefinitely.
-            countInvitedStub.resolves(1);
 
             const res = makeRes();
             await createUserHabit(makeReq() as any, res, (() => {}) as any);
@@ -96,16 +90,15 @@ describe('Solo habits', () => {
             expect(getOrCreateStub.calledOnce).to.equal(true);
         });
 
-        it('fails CLOSED when eligibility cannot be determined', async () => {
-            // Unlike the habit cap: wrongly allowing solo habits skips the
-            // onboarding the growth loop depends on and cannot be undone.
-            countInvitedStub.rejects(new Error('connection terminated'));
-
+        it('does not consult pact membership at all', async () => {
+            // Not merely permissive — the invite question is no longer asked,
+            // so a slow or broken pact_members query cannot deny a habit that
+            // has nothing to do with pacts.
             const res = makeRes();
             await createUserHabit(makeReq() as any, res, (() => {}) as any);
 
-            expect(res.statusCode).to.equal(403);
-            expect(getOrCreateStub.called).to.equal(false);
+            expect(res.statusCode).to.equal(201);
+            expect(countInvitedStub.called).to.equal(false);
         });
     });
 
