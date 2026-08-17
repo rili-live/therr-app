@@ -169,17 +169,22 @@ export interface IUserHabit {
 }
 
 /**
- * Where the user stands against the free-tier cap. Fetched as one object so the
- * client never has to re-derive the rule the server is enforcing.
+ * Whether the user has unlocked habits tracked on their own, how close they are
+ * to unlocking them, and where they stand against the free-tier cap. Fetched as
+ * one object so the client never has to re-derive the rule the server enforces.
  */
 export interface IUserHabitEligibility {
-    /**
-     * @deprecated Always true. Starting a habit on your own no longer requires
-     * having sent a pact invite first, so nothing should branch on this. The
-     * field remains only so shipped app builds that hide the solo affordance
-     * unless the server says yes begin offering it without a store release.
-     */
+    /** True once `invitedCount` reaches `soloUnlockInviteCount`. */
     canCreateSolo: boolean;
+    /**
+     * Distinct people the user has invited to a pact they created, in any
+     * state — the numerator of the unlock progress the client renders while
+     * `canCreateSolo` is false. Absent on responses from servers predating the
+     * threshold; treat `undefined` as "no progress to show" rather than zero.
+     */
+    invitedCount?: number;
+    /** Invites needed to unlock solo habits. Server-configurable, so never hardcode it. */
+    soloUnlockInviteCount?: number;
     activeHabitCount: number;
     isAtHabitLimit: boolean;
     habitLimit: number | null;
