@@ -42,6 +42,20 @@ export const PURCHASE_STATE_PENDING = 2;
 /** `acknowledgementState`: 1 means Play already has our acknowledgement. */
 export const ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED = 1;
 
+/**
+ * `purchaseType` values.
+ *
+ * The important and easily-inverted part: Play sets this field ONLY when the
+ * purchase did *not* go through the standard billing flow. A normal paid
+ * purchase omits it entirely, so `purchaseType === undefined` is the money case
+ * and a present value means something other than a customer paying list price.
+ * Testing `=== 0` for "real purchase" gets this exactly backwards — 0 is the
+ * license-tester value.
+ */
+export const PURCHASE_TYPE_TEST = 0;
+export const PURCHASE_TYPE_PROMO = 1;
+export const PURCHASE_TYPE_REWARDED = 2;
+
 export interface IPlayProductPurchase {
     purchaseState: number;
     consumptionState?: number;
@@ -52,7 +66,10 @@ export interface IPlayProductPurchase {
     /** Present only when the caller has financial-data permission. */
     priceAmountMicros?: string;
     priceCurrencyCode?: string;
-    /** Play returns 0 for a real purchase and 1 for a license-tester purchase. */
+    /**
+     * Absent for an ordinary paid purchase; set only for test (0), promo (1) and
+     * rewarded (2) purchases. See the constants above.
+     */
     purchaseType?: number;
     regionCode?: string;
 }

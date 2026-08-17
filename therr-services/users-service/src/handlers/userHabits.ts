@@ -68,15 +68,31 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    // Checked before anything is written — see the note on `checkHabitCapacity`
-    // about why the tracking row must not exist yet when the count is taken.
-    const denial = await checkHabitCapacity({ userId, brandVariation, locale });
-
-    if (denial) {
-        return res.status(402).send(denial);
-    }
-
     try {
+        // The cap counts *active* tracking rows, so a habit already being tracked
+        // actively occupies its slot already and re-starting it consumes nothing.
+        // Checking capacity unconditionally would 402 a user at the limit for
+        // re-tapping a habit they are already doing — a paywall in front of a
+        // no-op. An archived row is a different case: restoring it does take a
+        // slot, so it must still be gated.
+        //
+        // Only meaningful when an existing goal was named. An inline goal is new
+        // by construction, so there is nothing to already be tracking.
+        const existingTracking = habitGoalId
+            ? await Store.userHabits.getByUserAndHabit(userId, habitGoalId)
+            : undefined;
+        const isAlreadyTrackingActively = existingTracking?.status === 'active';
+
+        // Checked before anything is written — see the note on `checkHabitCapacity`
+        // about why the tracking row must not exist yet when the count is taken.
+        if (!isAlreadyTrackingActively) {
+            const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+
+            if (denial) {
+                return res.status(402).send(denial);
+            }
+        }
+
         let resolvedGoalId = habitGoalId;
 
         if (!resolvedGoalId) {

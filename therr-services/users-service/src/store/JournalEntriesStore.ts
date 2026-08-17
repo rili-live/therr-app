@@ -13,6 +13,18 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export type JournalFeedItemType = 'note' | 'checkin' | 'milestone' | 'habit_started';
 
+/**
+ * Where the previous page of the feed stopped.
+ *
+ * The pair is the cursor, not the timestamp — see `getFeed` for why a
+ * timestamp-only cursor drops entries. `id` is nullable so a bare-ISO cursor
+ * minted by an earlier build still pages.
+ */
+export interface IJournalFeedCursor {
+    occurredAt: string;
+    id: string | null;
+}
+
 export interface IJournalEntryRow {
     id: string;
     userId: string;
@@ -134,17 +146,50 @@ export default class JournalEntriesStore {
      * Therr achievements into their Habits journal. The handler fetches that
      * one source separately and merges it; see `handlers/journal.ts`.
      *
-     * `before` is exclusive, so paging cannot repeat the boundary row. Ties on
-     * `occurredAt` are broken by id to keep the order total — without that, two
-     * items sharing a timestamp can swap between pages and one is lost.
+     * PAGINATION IS KEYED ON (occurredAt, id), NOT ON occurredAt ALONE
+     *
+     * A cursor that only carries a timestamp cannot page a feed whose timestamps
+     * are not unique. `occurredAt` collides readily: `now()` is the transaction
+     * timestamp, so anything written by one statement shares it, and a client may
+     * supply its own second-precision `occurredAt` on a note. With a
+     * timestamp-only cursor and a strict `<`, every item sharing the last
+     * returned item's instant is skipped on the next page and never appears
+     * again — silently losing entries the user wrote, which is the one failure a
+     * journal must not have. Ordering alone does not fix this: making the sort
+     * total stops two items *swapping* places, but the cursor still steps past
+     * both of them.
+     *
+     * So the cursor is the pair, the comparison is lexicographic over it, and the
+     * ORDER BY matches it exactly. `before` remains exclusive, so paging cannot
+     * repeat the boundary row either.
+     *
+     * `id` is compared as text under `COLLATE "C"` — byte ordering — rather than
+     * the database's default collation. The handler re-sorts the SQL rows
+     * together with the separately-fetched achievements, and it compares ids with
+     * JavaScript's code-point `<`. A locale collation can treat punctuation as
+     * variable-weight, which would order `-` differently from code-point order
+     * and let the two halves disagree about what "after the cursor" means.
+     * `COLLATE "C"` and code-point ordering agree for ASCII, which uuid text and
+     * integer text both are.
+     *
+     * A cursor with no `id` is accepted and treated as timestamp-exclusive, so a
+     * client still holding a bare-ISO cursor from an earlier build keeps paging
+     * rather than erroring.
      */
-    getFeed(userId: string, before: string | null, limit: number): Promise<IJournalFeedRow[]> {
-        const beforePredicate = before ? 'AND source."occurredAt" < ?::timestamptz' : '';
+    getFeed(userId: string, before: IJournalFeedCursor | null, limit: number): Promise<IJournalFeedRow[]> {
         const bindings: any[] = [userId, userId, userId, userId];
+        let beforePredicate = '';
 
-        if (before) {
-            bindings.push(before);
+        if (before?.id) {
+            beforePredicate = `AND (source."occurredAt" < ?::timestamptz
+                    OR (source."occurredAt" = ?::timestamptz
+                        AND source."id"::text COLLATE "C" < ?))`;
+            bindings.push(before.occurredAt, before.occurredAt, before.id);
+        } else if (before) {
+            beforePredicate = 'AND source."occurredAt" < ?::timestamptz';
+            bindings.push(before.occurredAt);
         }
+
         bindings.push(limit);
 
         const queryString = knexBuilder.raw(
@@ -220,7 +265,7 @@ export default class JournalEntriesStore {
             FROM source
             LEFT JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = source."habitGoalId"
             WHERE true ${beforePredicate}
-            ORDER BY source."occurredAt" DESC, source."id" DESC
+            ORDER BY source."occurredAt" DESC, source."id"::text COLLATE "C" DESC
             LIMIT ?`,
             bindings,
         ).toString();

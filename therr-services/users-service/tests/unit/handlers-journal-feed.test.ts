@@ -140,7 +140,9 @@ describe('Journal feed', () => {
 
         expect(res.body.items).to.have.length(2);
         expect(res.body.hasMore).to.equal(true);
-        expect(res.body.nextCursor).to.equal('2026-08-13T10:00:00.000Z');
+        // The cursor carries the id as well as the instant, so the next page can
+        // resume *within* a group of items sharing a timestamp.
+        expect(res.body.nextCursor).to.equal('2026-08-13T10:00:00.000Z|n2');
     });
 
     it('reports no cursor at the end of the feed', async () => {
@@ -186,14 +188,129 @@ describe('Journal feed', () => {
     it('passes the cursor through to the store', async () => {
         const res = makeRes();
         await getJournalFeed(
-            makeReq({ before: '2026-08-12T00:00:00.000Z', limit: '10' }) as any,
+            makeReq({ before: '2026-08-12T00:00:00.000Z|entry-9', limit: '10' }) as any,
             res,
             (() => {}) as any,
         );
 
-        expect(getFeedStub.firstCall.args[1]).to.equal('2026-08-12T00:00:00.000Z');
+        expect(getFeedStub.firstCall.args[1]).to.deep.equal({
+            occurredAt: '2026-08-12T00:00:00.000Z',
+            id: 'entry-9',
+        });
         // limit + 1, so the handler can tell "more remains" from "that's all".
         expect(getFeedStub.firstCall.args[2]).to.equal(11);
+    });
+
+    it('accepts a bare-ISO cursor from an earlier build', async () => {
+        // A client mid-scroll across a deploy still holds a timestamp-only
+        // cursor. It must keep paging rather than get a 400 — with a null id,
+        // which the store treats as timestamp-exclusive (the old behaviour).
+        const res = makeRes();
+        await getJournalFeed(
+            makeReq({ before: '2026-08-12T00:00:00.000Z' }) as any,
+            res,
+            (() => {}) as any,
+        );
+
+        expect(res.statusCode).to.equal(200);
+        expect(getFeedStub.firstCall.args[1]).to.deep.equal({
+            occurredAt: '2026-08-12T00:00:00.000Z',
+            id: null,
+        });
+    });
+
+    it('does not drop an achievement that shares the cursor instant', async () => {
+        // The regression this pagination exists to prevent. Page 1 ends on a
+        // habits row; an achievement shares its exact instant and sorts after it
+        // by id. A timestamp-only cursor excluded everything at that instant, so
+        // the achievement was skipped on page 2 and never returned again.
+        const sharedInstant = '2026-08-14T10:00:00.000Z';
+
+        getFeedStub.resolves([]);
+        getCompletedStub.resolves([
+            { id: 'aaa', completedAt: sharedInstant, achievementClass: 'consistency' },
+        ]);
+
+        const res = makeRes();
+        await getJournalFeed(
+            // Cursor is the page-1 boundary: same instant, a higher id.
+            makeReq({ before: `${sharedInstant}|bbb` }) as any,
+            res,
+            (() => {}) as any,
+        );
+
+        expect(res.body.items.map((i: any) => i.id)).to.deep.equal(['aaa']);
+    });
+
+    it('still excludes the boundary row itself', async () => {
+        // The cursor is exclusive on the pair, so the item it was minted from
+        // must not come back on the next page.
+        const sharedInstant = '2026-08-14T10:00:00.000Z';
+
+        getFeedStub.resolves([]);
+        getCompletedStub.resolves([
+            { id: 'aaa', completedAt: sharedInstant, achievementClass: 'consistency' },
+        ]);
+
+        const res = makeRes();
+        await getJournalFeed(
+            makeReq({ before: `${sharedInstant}|aaa` }) as any,
+            res,
+            (() => {}) as any,
+        );
+
+        expect(res.body.items).to.have.length(0);
+    });
+
+    it('excludes an achievement that sorts before the cursor at the same instant', async () => {
+        const sharedInstant = '2026-08-14T10:00:00.000Z';
+
+        getFeedStub.resolves([]);
+        getCompletedStub.resolves([
+            { id: 'zzz', completedAt: sharedInstant, achievementClass: 'consistency' },
+        ]);
+
+        const res = makeRes();
+        await getJournalFeed(
+            makeReq({ before: `${sharedInstant}|bbb` }) as any,
+            res,
+            (() => {}) as any,
+        );
+
+        // 'zzz' > 'bbb', so it belongs to the page already served.
+        expect(res.body.items).to.have.length(0);
+    });
+
+    it('round-trips its own cursor across a tie without losing or repeating an item', async () => {
+        // End-to-end over the handler's half of the pagination: three items at
+        // one instant, paged one at a time, must yield each exactly once.
+        const sharedInstant = '2026-08-14T10:00:00.000Z';
+        const ids = ['ccc', 'bbb', 'aaa'];
+
+        getFeedStub.resolves([]);
+        getCompletedStub.resolves(ids.map((id) => ({
+            id,
+            completedAt: sharedInstant,
+            achievementClass: 'consistency',
+        })));
+
+        const seen: string[] = [];
+        let nextCursor: string | null = null;
+
+        for (let page = 0; page < ids.length; page += 1) {
+            const res = makeRes();
+            const query: any = { limit: '1' };
+            if (nextCursor) {
+                query.before = nextCursor;
+            }
+            // eslint-disable-next-line no-await-in-loop
+            await getJournalFeed(makeReq(query) as any, res, (() => {}) as any);
+
+            seen.push(...res.body.items.map((i: any) => i.id));
+            nextCursor = res.body.nextCursor;
+        }
+
+        expect(seen).to.deep.equal(['ccc', 'bbb', 'aaa']);
     });
 
     it('caps an oversized limit', async () => {

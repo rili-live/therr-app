@@ -109,6 +109,11 @@ export default class LifetimePurchasesStore {
      * record it would leave them charged and unentitled, which is far worse
      * than a 5,001st lifetime unlock. The caller logs this case.
      *
+     * `allocateFounderSlot: false` also writes a NULL founder number, but for a
+     * different reason: the purchase is not a sale (a Play license-tester run) and
+     * must not consume one of a fixed number of paid seats. The entitlement is
+     * still granted — the point of a test purchase is to exercise the real path.
+     *
      * Returns the inserted row, or the existing row when the purchase token has
      * already been recorded — verification is retried by the client on a flaky
      * network, and a retry must be idempotent rather than a 500.
@@ -116,6 +121,7 @@ export default class LifetimePurchasesStore {
     createWithFounderSlot(
         params: ICreateLifetimePurchaseParams,
         founderLimit: number,
+        allocateFounderSlot = true,
     ): Promise<{ purchase: ILifetimePurchaseRow; wasAlreadyRecorded: boolean }> {
         return this.db.write.connect().then((client) => client.query('BEGIN')
             .then(() => client.query('SELECT pg_advisory_xact_lock($1)', [FOUNDER_SLOT_LOCK_KEY]))
@@ -140,6 +146,31 @@ export default class LifetimePurchasesStore {
                 // would burn numbers on any rolled-back attempt, so the
                 // "Founder #N" a buyer is shown would not match how many people
                 // actually bought before them.
+                //
+                // `allocateFounderSlot: false` writes the row with a NULL founder
+                // number without consulting the limit at all. Built as a literal
+                // rather than a bound flag so the emitted SQL says plainly which
+                // of the two it is.
+                const founderNumberExpression = allocateFounderSlot
+                    ? 'CASE WHEN next_slot.value <= ? THEN next_slot.value ELSE NULL END'
+                    : 'NULL::integer';
+
+                const insertBindings: any[] = [
+                    params.userId,
+                    params.platform,
+                    params.productId,
+                    params.purchaseToken,
+                    params.orderId ?? null,
+                    params.priceAmountMicros != null ? String(params.priceAmountMicros) : null,
+                    params.priceCurrencyCode ?? null,
+                    params.purchasedAt ? params.purchasedAt.toISOString() : null,
+                    params.verificationPayload ? JSON.stringify(params.verificationPayload) : null,
+                ];
+
+                if (allocateFounderSlot) {
+                    insertBindings.push(founderLimit);
+                }
+
                 const insertQuery = knexBuilder.raw(
                     `INSERT INTO ${LIFETIME_PURCHASES_TABLE_NAME} (
                         "userId", "platform", "productId", "purchaseToken", "orderId",
@@ -150,24 +181,13 @@ export default class LifetimePurchasesStore {
                         ?::uuid, ?, ?, ?, ?,
                         ?::bigint, ?, ?::timestamptz,
                         ?::jsonb,
-                        CASE WHEN next_slot.value <= ? THEN next_slot.value ELSE NULL END
+                        ${founderNumberExpression}
                     FROM (
                         SELECT COALESCE(MAX("founderNumber"), 0) + 1 AS value
                         FROM ${LIFETIME_PURCHASES_TABLE_NAME}
                     ) next_slot
                     RETURNING *`,
-                    [
-                        params.userId,
-                        params.platform,
-                        params.productId,
-                        params.purchaseToken,
-                        params.orderId ?? null,
-                        params.priceAmountMicros != null ? String(params.priceAmountMicros) : null,
-                        params.priceCurrencyCode ?? null,
-                        params.purchasedAt ? params.purchasedAt.toISOString() : null,
-                        params.verificationPayload ? JSON.stringify(params.verificationPayload) : null,
-                        founderLimit,
-                    ],
+                    insertBindings,
                 ).toString();
 
                 return client.query(insertQuery)

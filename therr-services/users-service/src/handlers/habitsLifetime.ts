@@ -13,11 +13,13 @@ import translate from '../utilities/translator';
 import {
     ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED,
     PURCHASE_STATE_PURCHASED,
+    PURCHASE_TYPE_TEST,
     acknowledgeProductPurchase,
     getProductPurchase,
     isGooglePlayConfigured,
 } from '../api/googlePlay';
 import { mergeAccessLevels } from './helpers/checkoutSessionAccessLevels';
+import { ILifetimePurchaseRow } from '../store/LifetimePurchasesStore';
 
 /**
  * The Friends with Habits founder offer: one payment, premium for life, for the
@@ -44,6 +46,41 @@ import { mergeAccessLevels } from './helpers/checkoutSessionAccessLevels';
 const DEFAULT_PRODUCT_ID = 'habits_lifetime_founder';
 
 const getProductId = (): string => process.env.HABITS_LIFETIME_PRODUCT_ID || DEFAULT_PRODUCT_ID;
+
+/**
+ * Project a stored purchase down to the fields a client is allowed to see.
+ *
+ * The row is not safe to return wholesale. `purchaseToken` is a bearer credential
+ * for the purchase — the thing the UNIQUE index and the replay check exist to
+ * protect — and `verificationPayload` is Play's raw response, kept for disputes
+ * rather than for display. Neither appears in `IHabitsLifetimePurchase`, the
+ * shape therr-react declares for this object, so no client needs them and
+ * shipping them only widens where a token can leak from (logs, crash reports,
+ * response caches).
+ *
+ * Written as an explicit allowlist rather than a delete-list so a column added to
+ * the table later is withheld by default instead of being published by omission.
+ */
+const serializePurchase = (purchase: ILifetimePurchaseRow | undefined | null) => {
+    if (!purchase) {
+        return null;
+    }
+
+    return {
+        id: purchase.id,
+        userId: purchase.userId,
+        platform: purchase.platform,
+        productId: purchase.productId,
+        status: purchase.status,
+        founderNumber: purchase.founderNumber,
+        priceAmountMicros: purchase.priceAmountMicros,
+        priceCurrencyCode: purchase.priceCurrencyCode,
+        purchasedAt: purchase.purchasedAt,
+        acknowledgedAt: purchase.acknowledgedAt,
+        createdAt: purchase.createdAt,
+        updatedAt: purchase.updatedAt,
+    };
+};
 
 /**
  * Availability plus the caller's own state, in one call.
@@ -75,7 +112,7 @@ const getLifetimeOffer: RequestHandler = async (req: any, res: any) => {
             // from somewhere else — a SUPER_ADMIN, or a future subscription —
             // and the paywall should stay hidden for those accounts too.
             isEntitled: hasHabitsPremiumEntitlement((user?.accessLevels as string[]) || []),
-            purchase: purchase || null,
+            purchase: serializePurchase(purchase),
             isStoreConfigured: isGooglePlayConfigured(),
         });
     } catch (err: any) {
@@ -194,6 +231,14 @@ const verifyLifetimePurchase: RequestHandler = async (req: any, res: any) => {
             });
         }
 
+        // A license-tester purchase is not a sale, so it must not consume one of a
+        // fixed 5,000 paid founder seats — QA exercising this flow a few dozen
+        // times would otherwise quietly sell out part of the offer. The
+        // entitlement is still granted: testing the real path is the whole point.
+        // Promo and rewarded purchases DO take a slot; those are deliberate grants
+        // to real users.
+        const isTestPurchase = playPurchase.purchaseType === PURCHASE_TYPE_TEST;
+
         const { purchase, wasAlreadyRecorded } = await Store.lifetimePurchases.createWithFounderSlot({
             userId,
             platform: platform || 'android',
@@ -206,9 +251,22 @@ const verifyLifetimePurchase: RequestHandler = async (req: any, res: any) => {
                 ? new Date(Number(playPurchase.purchaseTimeMillis))
                 : null,
             verificationPayload: playPurchase,
-        }, HABITS_LIFETIME_FOUNDER_LIMIT);
+        }, HABITS_LIFETIME_FOUNDER_LIMIT, !isTestPurchase);
 
-        if (!wasAlreadyRecorded && purchase.founderNumber === null) {
+        if (!wasAlreadyRecorded && isTestPurchase) {
+            logSpan({
+                level: 'info',
+                messageOrigin: 'API_SERVER',
+                messages: ['Granted a lifetime entitlement for a Play test purchase; no founder slot consumed'],
+                traceArgs: {
+                    'user.id': userId,
+                    'purchase.id': purchase.id,
+                    'purchase.type': playPurchase.purchaseType,
+                },
+            });
+        }
+
+        if (!wasAlreadyRecorded && !isTestPurchase && purchase.founderNumber === null) {
             logSpan({
                 level: 'warn',
                 messageOrigin: 'API_SERVER',
@@ -266,7 +324,7 @@ const verifyLifetimePurchase: RequestHandler = async (req: any, res: any) => {
         }
 
         return res.status(wasAlreadyRecorded ? 200 : 201).send({
-            purchase,
+            purchase: serializePurchase(purchase),
             accessLevels,
             isEntitled: true,
             brandVariation: brandVariation || BrandVariations.HABITS,

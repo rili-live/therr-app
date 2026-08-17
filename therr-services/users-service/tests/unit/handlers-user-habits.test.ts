@@ -46,11 +46,15 @@ describe('Solo habits', () => {
     let countActiveStub: sinon.SinonStub;
     let getOrCreateStub: sinon.SinonStub;
     let setStatusStub: sinon.SinonStub;
+    let getByUserAndHabitStub: sinon.SinonStub;
 
     beforeEach(() => {
         countInvitedStub = sinon.stub(Store.pactMembers, 'countInvitedByCreator').resolves(1);
         findUserStub = sinon.stub(Store.users, 'findUser').resolves([{ accessLevels: [] }]);
         countActiveStub = sinon.stub(Store.userHabits, 'countActiveByUser').resolves(0);
+        // Default: the caller is not tracking this habit yet, so a start is a
+        // genuinely new habit and the cap applies.
+        getByUserAndHabitStub = sinon.stub(Store.userHabits, 'getByUserAndHabit').resolves(undefined);
         getOrCreateStub = sinon.stub(Store.userHabits, 'getOrCreate').resolves({
             id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'active',
         } as any);
@@ -146,6 +150,50 @@ describe('Solo habits', () => {
             await createUserHabit(makeReq() as any, res, (() => {}) as any);
 
             expect(res.statusCode).to.equal(201);
+        });
+
+        it('does not charge a slot for a habit already tracked actively', async () => {
+            // The active row already occupies its slot, so re-starting it consumes
+            // nothing. Charging for it puts a paywall in front of a no-op.
+            getByUserAndHabitStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'active',
+            } as any);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(201);
+            expect(countActiveStub.called).to.equal(false);
+        });
+
+        it('still charges a slot when re-starting an archived habit', async () => {
+            // Restoring an archived habit does take a slot back, so the cap has to
+            // apply on this path even though the tracking row already exists.
+            getByUserAndHabitStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'archived',
+            } as any);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(402);
+            expect(res.body.error).to.equal('habit-limit-reached');
+        });
+
+        it('applies the cap to an inline goal, which cannot already be tracked', async () => {
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+
+            const res = makeRes();
+            await createUserHabit(
+                makeReq({ body: { habitGoalId: undefined, goal: { name: 'Stretch' } } }) as any,
+                res,
+                (() => {}) as any,
+            );
+
+            expect(res.statusCode).to.equal(402);
+            expect(getByUserAndHabitStub.called).to.equal(false);
         });
     });
 

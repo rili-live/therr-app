@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import { AccessLevels, HABITS_LIFETIME_FOUNDER_LIMIT } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
 import * as googlePlay from '../../src/api/googlePlay';
-import { verifyLifetimePurchase } from '../../src/handlers/habitsLifetime';
+import { getLifetimeOffer, verifyLifetimePurchase } from '../../src/handlers/habitsLifetime';
 
 /**
  * The founder "free for life" purchase.
@@ -187,6 +187,95 @@ describe('HABITS lifetime purchase verification', () => {
         await verifyLifetimePurchase(makeReq() as any, res, (() => {}) as any);
 
         expect(createWithSlotStub.firstCall.args[1]).to.equal(HABITS_LIFETIME_FOUNDER_LIMIT);
+    });
+
+    it('allocates a founder slot for an ordinary paid purchase', async () => {
+        // Play omits `purchaseType` entirely for a standard billing-flow purchase.
+        const res = makeRes();
+        await verifyLifetimePurchase(makeReq() as any, res, (() => {}) as any);
+
+        expect(createWithSlotStub.firstCall.args[2]).to.equal(true);
+    });
+
+    it('withholds a founder slot for a Play license-tester purchase', async () => {
+        // purchaseType 0 is Test — no money changed hands, so it must not consume
+        // one of a fixed number of paid seats. QA runs would sell out the offer.
+        getProductPurchaseStub.resolves({
+            ...purchasedPlayResponse,
+            purchaseType: googlePlay.PURCHASE_TYPE_TEST,
+        } as any);
+
+        const res = makeRes();
+        await verifyLifetimePurchase(makeReq() as any, res, (() => {}) as any);
+
+        expect(createWithSlotStub.firstCall.args[2]).to.equal(false);
+        // Still entitled — exercising the real path is the point of a test buy.
+        expect(res.body.accessLevels).to.include(AccessLevels.HABITS_LIFETIME);
+    });
+
+    it('still allocates a slot for a promo purchase', async () => {
+        // A promo code is a deliberate grant to a real user, not a test artifact.
+        getProductPurchaseStub.resolves({
+            ...purchasedPlayResponse,
+            purchaseType: googlePlay.PURCHASE_TYPE_PROMO,
+        } as any);
+
+        const res = makeRes();
+        await verifyLifetimePurchase(makeReq() as any, res, (() => {}) as any);
+
+        expect(createWithSlotStub.firstCall.args[2]).to.equal(true);
+    });
+
+    it('never returns the purchase token or the raw Play payload', async () => {
+        // `purchaseToken` is a bearer credential for the purchase and
+        // `verificationPayload` is kept for disputes; neither is in the shape
+        // therr-react declares, so no client needs either.
+        createWithSlotStub.resolves({
+            purchase: {
+                id: 'purchase-1',
+                userId: 'user-1',
+                founderNumber: 42,
+                purchaseToken: 'token-abc',
+                verificationPayload: { purchaseState: 0 },
+            } as any,
+            wasAlreadyRecorded: false,
+        });
+
+        const res = makeRes();
+        await verifyLifetimePurchase(makeReq() as any, res, (() => {}) as any);
+
+        expect(res.body.purchase).to.not.have.property('purchaseToken');
+        expect(res.body.purchase).to.not.have.property('verificationPayload');
+        expect(res.body.purchase.founderNumber).to.equal(42);
+    });
+
+    it('redacts the same fields on the offer endpoint', async () => {
+        sinon.stub(Store.lifetimePurchases, 'countClaimedFounderSlots').resolves(10);
+        sinon.stub(Store.lifetimePurchases, 'getByUserId').resolves({
+            id: 'purchase-1',
+            userId: 'user-1',
+            founderNumber: 7,
+            purchaseToken: 'token-abc',
+            verificationPayload: { purchaseState: 0 },
+        } as any);
+
+        const res = makeRes();
+        await getLifetimeOffer(makeReq() as any, res, (() => {}) as any);
+
+        expect(res.statusCode).to.equal(200);
+        expect(res.body.purchase).to.not.have.property('purchaseToken');
+        expect(res.body.purchase).to.not.have.property('verificationPayload');
+        expect(res.body.purchase.founderNumber).to.equal(7);
+    });
+
+    it('reports no purchase as null rather than undefined on the offer endpoint', async () => {
+        sinon.stub(Store.lifetimePurchases, 'countClaimedFounderSlots').resolves(10);
+        sinon.stub(Store.lifetimePurchases, 'getByUserId').resolves(undefined);
+
+        const res = makeRes();
+        await getLifetimeOffer(makeReq() as any, res, (() => {}) as any);
+
+        expect(res.body.purchase).to.equal(null);
     });
 
     it('rejects a token presented for a different product', async () => {
