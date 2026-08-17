@@ -169,11 +169,16 @@ export interface IUserHabit {
 }
 
 /**
- * Whether the user may start habits on their own yet, and where they stand
- * against the free-tier cap. Fetched as one object so the client never has to
- * re-derive the rule the server is enforcing.
+ * Where the user stands against the free-tier cap. Fetched as one object so the
+ * client never has to re-derive the rule the server is enforcing.
  */
 export interface IUserHabitEligibility {
+    /**
+     * @deprecated Always true. Starting a habit on your own no longer requires
+     * having sent a pact invite first, so nothing should branch on this. The
+     * field remains only so shipped app builds that hide the solo affordance
+     * unless the server says yes begin offering it without a store release.
+     */
     canCreateSolo: boolean;
     activeHabitCount: number;
     isAtHabitLimit: boolean;

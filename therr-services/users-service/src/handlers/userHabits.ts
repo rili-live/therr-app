@@ -4,19 +4,23 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { checkHabitCapacity } from './helpers/habitCapacity';
-import { hasSentPactInvite } from './helpers/soloHabitAccess';
 
 /**
  * Personal ("solo") habits — habits tracked without an accountability partner.
  *
- * Friends with Habits is built on the principle that you cannot start a habit
- * alone; that mandatory invite is the app's growth loop. Solo habits do not
- * abandon that, they close a dead end in it: a user whose invited friend never
- * accepts previously had no way forward at all, and the onboarding overlay held
- * them there indefinitely. So solo tracking is available only *after* the user
- * has actually invited someone — the invite requirement stands, and what
- * changes is that a friend's inaction no longer holds the user's own habits
- * hostage. See `hasSentPactInvite` for the gate itself.
+ * Friends with Habits is built around pacts, and inviting someone is still the
+ * flow the product leads with. It is no longer a *precondition* for tracking
+ * anything, though. Solo habits were previously gated on having already sent a
+ * pact invite, which left the app with no way to start a habit at all for
+ * someone who did not want to involve a friend: the only creation flow was the
+ * pact wizard, the wizard refused to advance without an invitee, and solo
+ * tracking refused to unlock without an invite already sent. The invite
+ * requirement was the entirety of the onboarding, so that circle had no exit.
+ *
+ * Starting a habit alone is therefore unconditional now, subject only to the
+ * free-tier habit cap that governs pact habits equally. The growth loop moves
+ * from a gate to a prompt — the wizard still asks for partners first, and the
+ * dashboard still surfaces pacts — which is the trade this makes deliberately.
  */
 
 // READ
@@ -46,6 +50,10 @@ const getUserHabits: RequestHandler = async (req: any, res: any) => {
  * because the mobile flow reaches this from the pact wizard's "track this on my
  * own" branch, where the user has already composed a custom habit and a
  * two-request dance would leave an orphan goal behind if the second call failed.
+ *
+ * The only thing standing between a user and a personal habit is the free-tier
+ * cap. There is deliberately no invite prerequisite — see the note at the top
+ * of this file for why that gate was removed.
  */
 const createUserHabit: RequestHandler = async (req: any, res: any) => {
     const { locale, userId, brandVariation } = parseHeaders(req.headers);
@@ -56,15 +64,6 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
             res,
             message: translate(locale, 'errorMessages.habits.habitGoalRequired'),
             statusCode: 400,
-        });
-    }
-
-    const canCreateSolo = await hasSentPactInvite(userId);
-
-    if (!canCreateSolo) {
-        return res.status(403).send({
-            error: 'solo-locked',
-            message: translate(locale, 'errorMessages.habits.soloLocked'),
         });
     }
 
@@ -210,26 +209,28 @@ const restoreUserHabit: RequestHandler = async (req: any, res: any) => {
 };
 
 /**
- * Whether the caller may start habits on their own yet, and where they stand
- * against the free-tier cap.
+ * Where the caller stands against the free-tier cap.
  *
- * The client needs all of this before it can decide whether to render the
- * "track on my own" affordance at all, and asking for it as three separate
- * derivations from other endpoints is how the mobile and server answers drift
- * apart.
+ * The client needs this before it can decide whether to render the "track on my
+ * own" affordance at all, and deriving it from other endpoints is how the
+ * mobile and server answers drift apart.
+ *
+ * `canCreateSolo` is now always true and is kept only so that app builds
+ * already in the wild — which hide the solo affordance unless the server says
+ * yes — start offering it the moment this deploys, without waiting on a store
+ * release. Treat it as deprecated: nothing should branch on it in new code.
  */
 const getSoloEligibility: RequestHandler = async (req: any, res: any) => {
     const { locale, userId, brandVariation } = parseHeaders(req.headers);
 
     try {
-        const [canCreateSolo, activeHabitCount, denial] = await Promise.all([
-            hasSentPactInvite(userId),
+        const [activeHabitCount, denial] = await Promise.all([
             Store.userHabits.countActiveByUser(userId),
             checkHabitCapacity({ userId, brandVariation, locale }),
         ]);
 
         return res.status(200).send({
-            canCreateSolo,
+            canCreateSolo: true,
             activeHabitCount,
             isAtHabitLimit: !!denial,
             habitLimit: denial?.limit ?? null,
