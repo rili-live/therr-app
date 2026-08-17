@@ -2345,6 +2345,7 @@
       "errors": {
         "verifyFailed": "No pudimos confirmar esa compra. Se restaurará la próxima vez que abras esta pantalla.",
         "purchaseFailed": "Esa compra no se completó.",
+        "purchasePending": "Aún se está procesando. Si se te hizo el cargo, tu acceso aparecerá aquí en breve.",
         "storeUnavailable": "La tienda no está disponible en este momento."
       }
     }

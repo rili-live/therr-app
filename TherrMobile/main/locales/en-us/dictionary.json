@@ -2345,6 +2345,7 @@
       "errors": {
         "verifyFailed": "We could not confirm that purchase. It will be restored the next time you open this screen.",
         "purchaseFailed": "That purchase did not go through.",
+        "purchasePending": "Still processing. If you were charged, your unlock will appear here shortly.",
         "storeUnavailable": "The store is unavailable right now."
       }
     }

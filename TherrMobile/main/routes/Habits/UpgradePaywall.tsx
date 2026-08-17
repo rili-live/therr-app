@@ -25,6 +25,7 @@ import {
     initBilling,
     isBillingSupported,
     requestFounderPurchase,
+    PURCHASE_TIMEOUT_CODE,
 } from '../../utilities/habitsBilling';
 
 interface IUpgradePaywallDispatchProps {
@@ -152,12 +153,28 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         }
 
         if (!offer.purchase && !offer.isEntitled) {
-            const owned = await getOwnedFounderPurchase(offer.productId);
-
-            if (owned) {
-                await this.verifyAndFinish(owned, { isSilent: true });
-            }
+            await this.recoverOwnedPurchase(offer.productId);
         }
+    };
+
+    /**
+     * Verify a purchase the store says the account already owns.
+     *
+     * Two callers, both recovery: opening the screen (a verify that failed
+     * after the money was taken), and a purchase that timed out without the
+     * store ever answering. Returns whether anything was recovered so the
+     * timeout path knows whether it still owes the user a message.
+     */
+    recoverOwnedPurchase = async (productId: string): Promise<boolean> => {
+        const owned = await getOwnedFounderPurchase(productId);
+
+        if (!owned) {
+            return false;
+        }
+
+        await this.verifyAndFinish(owned, { isSilent: true });
+
+        return true;
     };
 
     verifyAndFinish = async (purchase: any, options: { isSilent?: boolean } = {}) => {
@@ -226,7 +243,18 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
             const isCancelled = err?.code === 'E_USER_CANCELLED'
                 || `${err?.message || ''}`.toLowerCase().includes('cancel');
 
-            if (!isCancelled) {
+            if (err?.code === PURCHASE_TIMEOUT_CODE) {
+                // The store went quiet; the purchase may still land. Check
+                // whether it already did before saying anything, and never
+                // claim it failed — the user may well have been charged.
+                const recovered = await this.recoverOwnedPurchase(offer.productId);
+
+                if (!recovered) {
+                    showToast.info({
+                        text1: this.translate('pages.upgrade.errors.purchasePending'),
+                    });
+                }
+            } else if (!isCancelled) {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
                     text2: this.translate('pages.upgrade.errors.purchaseFailed'),

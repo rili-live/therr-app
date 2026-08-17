@@ -2345,6 +2345,7 @@
       "errors": {
         "verifyFailed": "Nous n'avons pas pu confirmer cet achat. Il sera restauré la prochaine fois que tu ouvriras cet écran.",
         "purchaseFailed": "Cet achat n'a pas abouti.",
+        "purchasePending": "Toujours en cours de traitement. Si tu as été facturé, ton accès apparaîtra ici sous peu.",
         "storeUnavailable": "La boutique est indisponible pour le moment."
       }
     }

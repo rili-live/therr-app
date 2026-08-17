@@ -114,6 +114,9 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     private themeButtons = buildButtonStyles();
     private themeHabits = buildHabitStyles();
     private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    // The goal created for the current step-1 selection, so a retry after a
+    // failed invite/start reuses it instead of creating a duplicate.
+    private resolvedGoal: { selectionKey: string; habitGoalId: string } | null = null;
 
     constructor(props: ICreatePactInviteProps) {
         super(props);
@@ -287,8 +290,40 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
      * Shared by the pact path and the solo path so the two cannot drift on how
      * a template is cloned — cloning matters because per-user stats (streaks,
      * completion rate) must not share rows across users.
+     *
+     * WHY THE RESULT IS CACHED
+     *
+     * `createGoal` runs before `bulkInvitePact` / `startUserHabit`, so a
+     * failure in the second call leaves a goal already created. Without a cache
+     * the obvious user response — tap the button again — created a second goal,
+     * and a third, each one counting against the free-tier habit cap. Retries
+     * are now common rather than rare: a 402 sends the user to the paywall and
+     * straight back here. The cache is keyed on the step-1 selection so
+     * changing the habit still creates a new goal.
      */
     resolveHabitGoalId = async (): Promise<string | null> => {
+        const { selectedTemplateId, customHabitName } = this.state;
+
+        const selectionKey = `${selectedTemplateId || ''}|${customHabitName.trim()}`;
+
+        if (this.resolvedGoal && this.resolvedGoal.selectionKey === selectionKey) {
+            return this.resolvedGoal.habitGoalId;
+        }
+
+        const habitGoalId = await this.createHabitGoal();
+
+        if (habitGoalId) {
+            this.resolvedGoal = { selectionKey, habitGoalId };
+        }
+
+        return habitGoalId;
+    };
+
+    /**
+     * The create half of `resolveHabitGoalId`, split out so the caching above
+     * has exactly one thing to wrap.
+     */
+    createHabitGoal = async (): Promise<string | null> => {
         const { habits, createGoal } = this.props;
         const { selectedTemplateId, customHabitName } = this.state;
 

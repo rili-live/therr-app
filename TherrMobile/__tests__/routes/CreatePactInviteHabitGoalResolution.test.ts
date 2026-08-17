@@ -206,3 +206,106 @@ describe('CreatePactInvite habit-goal resolution', () => {
         ).rejects.toThrow('missing habitGoalId');
     });
 });
+
+/**
+ * The goal-reuse cache that sits on top of the resolution above.
+ *
+ * `createGoal` runs before `bulkInvitePact` / `startUserHabit`, so a failure in
+ * the second call leaves a goal already created. The obvious user response —
+ * tap the button again — used to create a second goal, and a third, each one
+ * counting against the free-tier habit cap. Retries stopped being rare once a
+ * 402 started bouncing the user to the paywall and straight back here.
+ *
+ * Mirrors `resolvedGoal` / `resolveHabitGoalId` in
+ * `main/routes/Pacts/CreatePactInvite.tsx`, per this file's convention.
+ */
+const makeCachingResolver = (
+    createGoal: (args: ICreateGoalArgs) => Promise<{ id: string } | null>,
+    templates: ITemplate[],
+) => {
+    let resolvedGoal: { selectionKey: string; habitGoalId: string } | null = null;
+
+    return async (selectedTemplateId: string | null, customHabitName: string) => {
+        const selectionKey = `${selectedTemplateId || ''}|${customHabitName.trim()}`;
+
+        if (resolvedGoal && resolvedGoal.selectionKey === selectionKey) {
+            return resolvedGoal.habitGoalId;
+        }
+
+        const habitGoalId = await resolveHabitGoalId({
+            selectedTemplateId,
+            customHabitName,
+            templates,
+            createGoal,
+        });
+
+        if (habitGoalId) {
+            resolvedGoal = { selectionKey, habitGoalId };
+        }
+
+        return habitGoalId;
+    };
+};
+
+describe('CreatePactInvite goal reuse across retries', () => {
+    let createGoal: jest.Mock<(args: ICreateGoalArgs) => Promise<{ id: string } | null>>;
+
+    const template: ITemplate = {
+        id: 'tmpl-1',
+        name: 'Run 3x/week',
+        frequencyType: 'weekly',
+        frequencyCount: 3,
+    };
+
+    beforeEach(() => {
+        createGoal = jest.fn<(args: ICreateGoalArgs) => Promise<{ id: string } | null>>();
+    });
+
+    it('creates one goal, not two, when the user retries after a failed send', async () => {
+        createGoal
+            .mockResolvedValueOnce({ id: 'user-goal-1' })
+            .mockResolvedValueOnce({ id: 'user-goal-2' });
+        const resolve = makeCachingResolver(createGoal, [template]);
+
+        const first = await resolve(template.id, '');
+        // The invite call failed here; the user taps Send again.
+        const second = await resolve(template.id, '');
+
+        expect(createGoal).toHaveBeenCalledTimes(1);
+        expect(second).toBe(first);
+    });
+
+    it('creates a new goal when the user changes the habit before retrying', async () => {
+        createGoal
+            .mockResolvedValueOnce({ id: 'user-goal-1' })
+            .mockResolvedValueOnce({ id: 'custom-goal-1' });
+        const resolve = makeCachingResolver(createGoal, [template]);
+
+        await resolve(template.id, '');
+        const second = await resolve(null, 'Read 20 minutes');
+
+        expect(createGoal).toHaveBeenCalledTimes(2);
+        expect(second).toBe('custom-goal-1');
+    });
+
+    it('does not cache a failed creation, so a retry can still succeed', async () => {
+        createGoal
+            .mockRejectedValueOnce(new Error('402'))
+            .mockResolvedValueOnce({ id: 'user-goal-1' });
+        const resolve = makeCachingResolver(createGoal, [template]);
+
+        await expect(resolve(template.id, '')).rejects.toThrow('402');
+        await expect(resolve(template.id, '')).resolves.toBe('user-goal-1');
+        expect(createGoal).toHaveBeenCalledTimes(2);
+    });
+
+    it('reuses the goal for a custom habit whose surrounding whitespace changed', async () => {
+        createGoal.mockResolvedValueOnce({ id: 'custom-goal-1' });
+        const resolve = makeCachingResolver(createGoal, []);
+
+        await resolve(null, 'Read 20 minutes');
+        await resolve(null, '  Read 20 minutes  ');
+
+        expect(createGoal).toHaveBeenCalledTimes(1);
+    });
+});

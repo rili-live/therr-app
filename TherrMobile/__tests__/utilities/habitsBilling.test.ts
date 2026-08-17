@@ -1,5 +1,5 @@
 import {
-    it, describe, expect, beforeAll, beforeEach,
+    it, describe, expect, afterEach, beforeAll, beforeEach, jest,
 } from '@jest/globals';
 import { Platform } from 'react-native';
 import {
@@ -8,6 +8,7 @@ import {
     initBilling,
     isBillingSupported,
     requestFounderPurchase,
+    PURCHASE_TIMEOUT_CODE,
 } from '../../main/utilities/habitsBilling';
 import {
     __emitPurchaseError,
@@ -157,5 +158,61 @@ describe('habitsBilling', () => {
         await expect(initBilling()).resolves.toBe(true);
         await expect(initBilling()).resolves.toBe(true);
         await endBilling();
+    });
+});
+
+describe('habitsBilling purchase timeout', () => {
+    beforeAll(() => {
+        (Platform as any).OS = 'android';
+    });
+
+    beforeEach(() => {
+        __resetIapMock();
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    it('rejects with a distinct code when the store never answers', async () => {
+        // Without this the promise never settles: the caller's `finally` never
+        // runs and the buy button sits disabled reading "Purchasing…".
+        const pending = requestFounderPurchase('habits_lifetime_founder');
+
+        jest.advanceTimersByTime(5 * 60 * 1000);
+
+        await expect(pending).rejects.toMatchObject({ code: PURCHASE_TIMEOUT_CODE });
+    });
+
+    it('unsubscribes both listeners on timeout', async () => {
+        const pending = requestFounderPurchase('habits_lifetime_founder');
+
+        jest.advanceTimersByTime(5 * 60 * 1000);
+        await expect(pending).rejects.toBeDefined();
+
+        expect(__getListenerCounts()).toEqual({ updated: 0, error: 0 });
+    });
+
+    it('does not time out a purchase that already settled', async () => {
+        // A surviving timer would reject a promise that resolved minutes
+        // earlier, and an unhandled rejection with it.
+        const pending = requestFounderPurchase('habits_lifetime_founder');
+
+        __emitPurchaseUpdate({ purchaseToken: 'token-abc', id: 'habits_lifetime_founder' });
+        await expect(pending).resolves.toMatchObject({ purchaseToken: 'token-abc' });
+
+        expect(() => jest.advanceTimersByTime(10 * 60 * 1000)).not.toThrow();
+    });
+
+    it('leaves the happy path alone well inside the window', async () => {
+        const pending = requestFounderPurchase('habits_lifetime_founder');
+
+        // The Play sheet is a foreground UI the user drives; a few minutes in
+        // it is normal and must not be reported as a failure.
+        jest.advanceTimersByTime(4 * 60 * 1000);
+        __emitPurchaseUpdate({ purchaseToken: 'token-abc', id: 'habits_lifetime_founder' });
+
+        await expect(pending).resolves.toMatchObject({ purchaseToken: 'token-abc' });
     });
 });

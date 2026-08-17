@@ -8,6 +8,8 @@ import 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps as baseMapStateToProps, mapDispatchToProps } from './';
+import { getHabitsTabLayout } from './habitsTabLayout';
+import getConfig from '../../utilities/getConfig';
 import { getUserImageUri } from '../../utilities/content';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
@@ -20,13 +22,10 @@ interface IHabitsButtonMenuProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// HABITS app has 5 tabs: Habits, Journal, Pacts, Connect, Profile.
-//
-// This is the maximum `validateFeatureFlags` allows, and the check is not
-// cosmetic — every tab is `screenWidth / HABITS_TAB_COUNT` wide, so a sixth
-// would push the labels past their glyphs on a small device.
-const HABITS_TAB_COUNT = 5;
-const buttonWidth = screenWidth / HABITS_TAB_COUNT;
+// HABITS shows 5 tabs — Habits, Journal, Pacts, Connect, Profile — or 4 when
+// the journal is switched off. See `habitsTabLayout.ts` for why the count is
+// derived from the flag rather than constant.
+const getTabLayout = () => getHabitsTabLayout(screenWidth, getConfig().featureFlags || {});
 
 const localStyles = StyleSheet.create({
     // Unlike the icon-font tabs, the avatar is a bitmap that fills its box
@@ -39,6 +38,7 @@ const localStyles = StyleSheet.create({
 
 const ViewProfileButton = ({
     activeRoute,
+    buttonWidth,
     goToMyProfile,
     imageStyle,
     themeMenu,
@@ -168,6 +168,7 @@ class HabitsButtonMenu extends ButtonMenu {
         const {
             isCompact, translate, themeMenu, user, habits,
         } = (this.props as unknown as IHabitsButtonMenuProps);
+        const { isJournalEnabled, buttonWidth } = getTabLayout();
         const activeRoute = this.getActiveRoute();
         const isHabitsActive = ['HabitsDashboard', 'HabitDetail'].includes(activeRoute);
         const isJournalActive = activeRoute === 'Journal';
@@ -225,8 +226,8 @@ class HabitsButtonMenu extends ButtonMenu {
                     onPress={() => this.onNavPressDynamic('HabitsDashboard')}
                 />
 
-                {/* Journal Tab */}
-                <Button
+                {/* Journal Tab — gated on the same flag that registers the route */}
+                {isJournalEnabled && <Button
                     title={!isCompact ? translate('menus.habits.buttons.journal') : null}
                     buttonStyle={
                         isJournalActive
@@ -258,7 +259,7 @@ class HabitsButtonMenu extends ButtonMenu {
                         />
                     }
                     onPress={() => this.onNavPressDynamic('Journal')}
-                />
+                />}
 
                 {/* Pacts Tab */}
                 <View style={{ width: buttonWidth }}>
@@ -360,6 +361,7 @@ class HabitsButtonMenu extends ButtonMenu {
                 {/* Profile Tab (always shown) */}
                 <ViewProfileButton
                     activeRoute={activeRoute}
+                    buttonWidth={buttonWidth}
                     goToMyProfile={this.goToMyProfile}
                     imageStyle={imageStyle}
                     themeMenu={themeMenu}

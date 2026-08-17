@@ -32,6 +32,21 @@ export interface IHabitsPurchaseResult {
 
 export type BillingUnavailableReason = 'unsupported-platform' | 'module-missing' | 'connection-failed';
 
+/**
+ * Rejection code used when the store answers with neither an update nor an
+ * error. Distinct from a failure on purpose: the purchase may still be in
+ * flight, so the caller must not tell the user it did not go through.
+ */
+export const PURCHASE_TIMEOUT_CODE = 'E_PURCHASE_TIMEOUT';
+
+/**
+ * Deliberately generous. The Play sheet is a foreground UI the user drives —
+ * adding a card, completing a bank challenge — and a timeout that fires while
+ * they are still in it would report failure for a purchase that then succeeds.
+ * This exists only to break a permanent hang, not to bound the happy path.
+ */
+const PURCHASE_TIMEOUT_MS = 5 * 60 * 1000;
+
 let iapModule: any;
 let hasResolvedModule = false;
 
@@ -145,11 +160,33 @@ export const requestFounderPurchase = (productId: string): Promise<IHabitsPurcha
         let isSettled = false;
         let updateSub: any;
         let errorSub: any;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
         const cleanup = () => {
             updateSub?.remove?.();
             errorSub?.remove?.();
+
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
         };
+
+        // Without this the promise never settles when the store goes quiet —
+        // the caller's `finally` never runs and the buy button sits disabled
+        // reading "Purchasing…" until the screen unmounts.
+        timeoutId = setTimeout(() => {
+            if (isSettled) {
+                return;
+            }
+
+            isSettled = true;
+            cleanup();
+
+            const timeoutError: any = new Error('purchase-timeout');
+            timeoutError.code = PURCHASE_TIMEOUT_CODE;
+            reject(timeoutError);
+        }, PURCHASE_TIMEOUT_MS);
 
         updateSub = iap.purchaseUpdatedListener((purchase: any) => {
             const token = purchase?.purchaseToken || purchase?.purchaseTokenAndroid;
