@@ -274,12 +274,15 @@ const ViewThought = ({
             navToViewContent(parentThought?.id ? parentThought : {
                 id: fetchedThought.parentId,
             }, user, navigation.replace);
-        } else if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
-            if (previousView === 'Areas') {
-                navigation.goBack();
-            } else if (previousView === 'Notifications') {
-                navigation.navigate('Notifications');
-            }
+        } else if (previousView === 'Areas') {
+            navigation.goBack();
+        } else if (previousView === 'Notifications' || previousView === 'Journal') {
+            // Named routes rather than a pop: both are reached from the button
+            // menu, so the screen the user came from may not be on the stack at
+            // all. Falling through to the default below would send someone who
+            // opened a goal from their journal to the map, which the HABITS app
+            // does not even show.
+            navigation.navigate(previousView);
         } else {
             navigation.navigate('Map', {
                 shouldShowPreview: false,

@@ -8,13 +8,16 @@ interface IJournalEntryRowProps {
     locale: string;
     themeJournal: any;
     translate: (key: string, params?: any) => string;
+    /** Opens the composer to edit a note. */
     onPress?: (item: IJournalFeedItem) => void;
+    /** Opens a posted goal in the thought view. */
+    onPressGoal?: (item: IJournalFeedItem) => void;
 }
 
 /**
  * One line of the journal.
  *
- * Five item types share this row. Only notes and check-ins carry text the user
+ * Six item types share this row. Notes, check-ins and goals carry text the user
  * wrote; achievements, milestones and habit starts are events, so their body is
  * generated from the locale dictionary rather than left blank — an empty row
  * would read as a bug.
@@ -56,14 +59,25 @@ const JournalEntryRow = ({
     themeJournal,
     translate,
     onPress,
+    onPressGoal,
 }: IJournalEntryRowProps) => {
     const time = formatEntryTime(item.occurredAt, locale);
     const habitLabel = item.goalName
         ? `${item.goalName}${item.goalEmoji ? ` ${item.goalEmoji}` : ''}`
         : null;
-    // Only notes are editable — everything else is a record of something that
-    // happened and has no meaningful edit.
-    const isPressable = !!onPress && item.type === 'note';
+    const isGoal = item.type === 'goal';
+    // Notes open the composer; goals open the post they came from. Everything
+    // else is a record of something that happened, with nothing to open or edit.
+    let handlePress: ((pressed: IJournalFeedItem) => void) | undefined;
+    if (isGoal) {
+        handlePress = onPressGoal;
+    } else if (item.type === 'note') {
+        handlePress = onPress;
+    }
+
+    const accessibilityLabel = isGoal
+        ? translate('pages.journal.entry.goalAccessibility')
+        : translate('pages.journal.entry.editAccessibility');
 
     const content = (
         <View style={themeJournal.styles.entry}>
@@ -72,6 +86,13 @@ const JournalEntryRow = ({
                 {!!time && (
                     <View style={[themeJournal.styles.chip, themeJournal.styles.chipTime]}>
                         <Text style={themeJournal.styles.chipLabel}>{time}</Text>
+                    </View>
+                )}
+                {isGoal && (
+                    <View style={[themeJournal.styles.chip, themeJournal.styles.chipGoal]}>
+                        <Text style={themeJournal.styles.chipGoalLabel}>
+                            {translate('pages.journal.entry.goalChip')}
+                        </Text>
                     </View>
                 )}
                 {!!habitLabel && (
@@ -83,15 +104,16 @@ const JournalEntryRow = ({
         </View>
     );
 
-    if (!isPressable) {
+    if (!handlePress) {
         return content;
     }
 
     return (
         <Pressable
             accessibilityRole="button"
-            accessibilityLabel={translate('pages.journal.entry.editAccessibility')}
-            onPress={() => onPress?.(item)}
+            accessibilityLabel={accessibilityLabel}
+            onPress={() => handlePress(item)}
+            style={({ pressed }) => (pressed ? themeJournal.styles.entryPressed : undefined)}
         >
             {content}
         </Pressable>

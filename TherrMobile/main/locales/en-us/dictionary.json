@@ -2289,7 +2289,7 @@
       "headerTitle": "Journal",
       "empty": {
         "title": "Nothing here yet",
-        "subtitle": "Your check-ins, milestones and notes will show up here as you go."
+        "subtitle": "Your check-ins, milestones, goals and notes will show up here as you go."
       },
       "create": {
         "title": "What would you like to add?",
@@ -2310,6 +2310,8 @@
         "habitStarted": "Started tracking {habit}",
         "checkinCompleted": "Completed {habit}",
         "checkinSkipped": "Skipped {habit}",
+        "goalChip": "Goal",
+        "goalAccessibility": "Open this goal",
         "editAccessibility": "Edit this entry"
       },
       "errors": {

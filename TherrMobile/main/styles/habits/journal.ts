@@ -141,6 +141,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
                 fontSize: fontSizes.xs,
                 color: therrTheme.colors.onSurface,
             },
+            // A goal is the one row type that leaves the journal when tapped, so
+            // it is tinted rather than neutral — the chip is what tells the user
+            // this row is a post and not a note.
+            chipGoal: {
+                backgroundColor: tint(therrTheme.colors.primary, 0.14),
+            },
+            chipGoalLabel: {
+                fontFamily: therrFontFamily,
+                fontSize: fontSizes.xs,
+                fontWeight: fontWeights.bold,
+                color: therrTheme.colors.primary,
+            },
+            entryPressed: {
+                opacity: 0.6,
+            },
             emptyContainer: {
                 alignItems: 'center',
                 paddingTop: space.xxxl,

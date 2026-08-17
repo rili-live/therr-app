@@ -184,6 +184,39 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
         navigation.navigate('EditThought', { returnToRoute: 'Journal' });
     };
 
+    /**
+     * A goal row is a thought, so tapping it opens the thought view rather than
+     * the journal's composer — the post has replies, reactions and an image the
+     * composer knows nothing about.
+     *
+     * `previousView` sends the back button here instead of to the profile, which
+     * is where `ViewThought` sends users by default.
+     */
+    handleOpenGoal = (item: IJournalFeedItem) => {
+        const { navigation, user } = this.props;
+
+        navigation.navigate('ViewThought', {
+            // The journal only ever contains the viewer's own posts.
+            isMyContent: true,
+            previousView: 'Journal',
+            // Handed over whole rather than as a bare id: `ViewThought` renders
+            // this immediately and merges its own fetch on top, so passing what
+            // the feed already knows avoids an empty card on every tap. The
+            // feed's `meta` carries the rest of what the card reads.
+            thought: {
+                id: item.id,
+                message: item.body || '',
+                fromUserId: user.details?.id,
+                createdAt: item.occurredAt,
+                updatedAt: item.occurredAt,
+                category: item.meta?.category,
+                isPublic: item.meta?.isPublic,
+                hashTags: item.meta?.hashTags,
+            },
+            thoughtDetails: {},
+        });
+    };
+
     openComposer = (entry?: IJournalFeedItem) => {
         this.setState({
             isCreateMenuVisible: false,
@@ -310,6 +343,7 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
                                             themeJournal={this.themeJournal}
                                             translate={this.translate as (key: string, params?: any) => string}
                                             onPress={this.openComposer}
+                                            onPressGoal={this.handleOpenGoal}
                                         />
                                     </View>
                                 </View>

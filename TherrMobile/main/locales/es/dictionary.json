@@ -2289,7 +2289,7 @@
       "headerTitle": "Diario",
       "empty": {
         "title": "Aún no hay nada",
-        "subtitle": "Tus registros, logros y notas aparecerán aquí a medida que avances."
+        "subtitle": "Tus registros, logros, metas y notas aparecerán aquí a medida que avances."
       },
       "create": {
         "title": "¿Qué quieres agregar?",
@@ -2310,6 +2310,8 @@
         "habitStarted": "Comenzaste a seguir {habit}",
         "checkinCompleted": "Completaste {habit}",
         "checkinSkipped": "Omitiste {habit}",
+        "goalChip": "Meta",
+        "goalAccessibility": "Abrir esta meta",
         "editAccessibility": "Editar esta entrada"
       },
       "errors": {

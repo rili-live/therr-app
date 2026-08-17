@@ -2289,7 +2289,7 @@
       "headerTitle": "Journal",
       "empty": {
         "title": "Rien pour l'instant",
-        "subtitle": "Tes suivis, tes jalons et tes notes apparaîtront ici au fil du temps."
+        "subtitle": "Tes suivis, tes jalons, tes objectifs et tes notes apparaîtront ici au fil du temps."
       },
       "create": {
         "title": "Qu'aimerais-tu ajouter?",
@@ -2310,6 +2310,8 @@
         "habitStarted": "Tu as commencé à suivre {habit}",
         "checkinCompleted": "Tu as complété {habit}",
         "checkinSkipped": "Tu as sauté {habit}",
+        "goalChip": "Objectif",
+        "goalAccessibility": "Ouvrir cet objectif",
         "editAccessibility": "Modifier cette entrée"
       },
       "errors": {
