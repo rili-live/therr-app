@@ -720,6 +720,13 @@ usersServiceRouter.put('/habits/pacts/:id/complete', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
+// The nudge route existed in the service, in PactsService and in the mobile
+// PactsList screen, but was never registered here — so every "nudge" a user
+// sent died at the gateway with nothing in the UI to say so.
+usersServiceRouter.put('/habits/pacts/:id/nudge', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
 usersServiceRouter.delete('/habits/pacts/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
@@ -805,6 +812,58 @@ usersServiceRouter.get('/habits/streaks', handleServiceRequest({
 usersServiceRouter.put('/habits/streaks/:id/grace', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
+}));
+
+// HABITS — Tracked habits (including solo/personal habits)
+// `eligibility` before any `:id` sibling; assertNoShadowedRoutes fails the boot
+// if that ordering regresses.
+usersServiceRouter.get('/habits/user-habits/eligibility', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/user-habits', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/user-habits', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/user-habits/:id/archive', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/user-habits/:id/restore', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
+// HABITS — Lifetime founder purchase (Google Play Billing)
+usersServiceRouter.get('/habits/lifetime', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/lifetime/verify', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// HABITS — Journal
+usersServiceRouter.get('/habits/journal', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/journal', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/journal/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.delete('/habits/journal/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
 }));
 
 // Catch-all `/users/:id` param routes -- MUST stay last, one per method. Any

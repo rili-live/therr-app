@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Mobile tsc baseline check.
 #
-# Why this exists: TherrMobile inherits ~104 pre-existing TypeScript errors from the
-# RN 0.83 upgrade (see ~/.claude memory: rn-0.83-upgrade.md). Until those are paid down,
-# `tsc --noEmit` cannot be a hard gate; CI would always fail. But ignoring tsc entirely
-# means new errors slip in unnoticed.
+# Why this exists: TherrMobile inherits a backlog of pre-existing TypeScript errors from the
+# RN 0.83 upgrade (see ~/.claude memory: rn-0.83-upgrade.md); TherrMobile/.tsc-baseline is the
+# authority on how many. Until those are paid down, `tsc --noEmit` cannot be a hard gate; CI
+# would always fail. But ignoring tsc entirely means new errors slip in unnoticed.
 #
 # This script splits the difference: it fails when an error appears that is not already
 # in the committed baseline.
@@ -59,6 +59,18 @@ current_sigs="$(printf '%s\n' "$tsc_output" \
     | grep -E '^[^[:space:]].*\([0-9]+,[0-9]+\): error TS[0-9]+:' \
     | sed -E 's/^([^(]+)\([0-9]+,[0-9]+\): error (TS[0-9]+): (.*)$/\1'$'\t''\2'$'\t''\3/' \
     | sort)"
+
+# Drop "cannot find module" errors for packages that ARE declared in
+# TherrMobile/package.json but are not installed here. `react-native-background-geolocation`
+# is licensed and will not install without credentials, so on most dev machines it is absent
+# and tsc reports TS2307 for every importer — errors CI never sees, because CI installs it.
+# Left in, they read as new regressions and the tempting fix is `--update`, which erases the
+# whole gate. The filter is narrow enough that a broken relative import, an undeclared
+# package, or a dependency deleted from package.json all still gate; see the header of the
+# filter for the exact conditions. Applied before --update too, so an uninstalled package
+# can never be written into the baseline.
+current_sigs="$(printf '%s\n' "$current_sigs" \
+    | node "$REPO_ROOT/_bin/lib/filter-uninstallable-module-errors.js")"
 
 current_count="$(printf '%s\n' "$current_sigs" | grep -c . || true)"
 

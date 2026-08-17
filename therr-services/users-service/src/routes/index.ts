@@ -25,6 +25,9 @@ import pactsRouter from './pactsRouter';
 import pactActivitiesRouter from './pactActivitiesRouter';
 import habitCheckinsRouter from './habitCheckinsRouter';
 import streaksRouter from './streaksRouter';
+import userHabitsRouter from './userHabitsRouter';
+import habitsLifetimeRouter from './habitsLifetimeRouter';
+import journalRouter from './journalRouter';
 
 const router = express.Router();
 
@@ -55,5 +58,8 @@ router.use('/habits/pacts', pactsRouter);
 router.use('/habits/pacts', pactActivitiesRouter);
 router.use('/habits/checkins', habitCheckinsRouter);
 router.use('/habits/streaks', streaksRouter);
+router.use('/habits/user-habits', userHabitsRouter);
+router.use('/habits/lifetime', habitsLifetimeRouter);
+router.use('/habits/journal', journalRouter);
 
 export default router;
