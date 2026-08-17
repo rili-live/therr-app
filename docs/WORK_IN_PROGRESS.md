@@ -193,8 +193,8 @@ console configuration, and one verification that gates a payments change.
   Billing changes that answer, and the listing doc's own note says to re-evaluate if a payment
   path is added. Update the doc and the console together.
 - [ ] (2026-08-15, habits-production-readiness) **Add license testers in Play Console** before
-  QAing the purchase flow — a test purchase comes back with `purchaseType: 1` and is the only way
-  to exercise verification end to end without spending real money.
+  QAing the purchase flow — a test purchase comes back with `purchaseType: 0` (`1` is promo, `2` is
+  rewarded) and is the only way to exercise verification end to end without spending real money.
 - [ ] (2026-08-15, habits-production-readiness) **Unset `HABITS_FREE_PACT_LIMIT` on the prod
   users-service** after this deploy. Nothing reads it any more; the cap is now
   `HABITS_FREE_HABIT_LIMIT` (default 5, on habits tracked rather than pacts created). Harmless if

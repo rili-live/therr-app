@@ -280,6 +280,13 @@ spec:
             secretKeyRef:
               name: therrjwtemailsecret
               key: THERRJWT_EMAIL_SECRET
+        - name: GOOGLE_PLAY_PACKAGE_NAME
+          value: "com.therr.habits"
+        - name: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
+          valueFrom:
+            secretKeyRef:
+              name: google-play-service-account-json
+              key: GOOGLEPLAYSERVICEACCOUNTJSON
       - name: cloud-sql-proxy
         # It is recommended to use the latest version of the Cloud SQL proxy
         # Make sure to update on a regular schedule!
