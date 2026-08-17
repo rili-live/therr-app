@@ -23,15 +23,20 @@ These niche apps are a branch and/or child app of Therr App. The general idea is
 **Core Innovation:**  
 Unlike traditional habit trackers, where partners are an afterthought, 'Therr: Friends With Habits' is built around accountability pacts: inviting someone is the first thing the app asks you to do, and every surface leads with partner progress. That is the organic growth loop.
 
-> **Revised August 2026 — the invite is a prompt, not a requirement.** It used to
-> be literally mandatory: you could not track anything without inviting someone.
-> That made the funnel a cliff rather than a loop. The pact wizard was the only
-> way to create a habit, it refused to advance without a partner selected, and
-> the "track this on my own" escape hatch was itself gated on having already
-> sent an invite — a closed circle. Anyone unwilling to involve a friend on day
-> one had no usable app, and churned before ever seeing what they would have
-> been inviting a friend *to*. Personal habits are now unconditional (subject
-> only to the free-tier cap) and the wizard still leads with partners.
+> **Revised August 2026 — the invite requirement became a visible threshold.**
+> Pacts still need a partner and always will. What changed is habits tracked
+> *alone*: they used to unlock on a single invite sent, which no UI ever
+> mentioned, so the requirement read as an unexplained wall rather than as
+> something to earn. Solo tracking now unlocks at **three distinct people
+> invited** (`HABITS_SOLO_UNLOCK_INVITE_COUNT`, env-overridable), and every
+> surface that can refuse it shows the progress toward it instead.
+>
+> Raising the bar while making it visible is the trade: three invites is more
+> asked of the user than one, but a target they can watch themselves approach is
+> a reason to invite the next friend, where an invisible one-invite toll was
+> only a reason to leave. Invites *sent* count, in any state, so a friend who
+> never installs the app cannot strand the inviter — and the count is of people,
+> not invitations, so inviting one friend to three pacts unlocks nothing.
 
 ---
 
@@ -109,8 +114,8 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ### MVP (Weeks 3-6) - FREE TIER
 - ✅ Track **5 active habits** at a time (revised 2026-08 — see the note below)
-- ✅ Invite friends to be accountability partners (the flow the app leads with)
-- ✅ Track a habit on your own, with no invite and no pact required
+- ✅ Invite friends to be accountability partners (REQUIRED to get started)
+- ✅ Track habits on your own — unlocked by inviting 3 friends, shown as progress
 - ✅ Daily check-in system with photo/note proof
 - ✅ Journal — day-grouped feed of check-ins, achievements, milestones and notes
 - ✅ Activity feed showing partner progress
