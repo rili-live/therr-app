@@ -175,6 +175,12 @@ console configuration, and one verification that gates a payments change.
   on a track, so this must happen on the same release that ships the paywall. If the id differs
   from the default, set `HABITS_LIFETIME_PRODUCT_ID` to match — the server validates the id on
   every verification and will reject a token bought under a different SKU.
+  **Prerequisite:** Play Console hides the "In-app products" section entirely until a track has an
+  uploaded artifact declaring `com.android.vending.BILLING`. Every `com.therr.habits` build up to
+  versionCode 23 predates `react-native-iap`, so the first upload that unlocks the section is the
+  one built from the manifest change in `TherrMobile/android/app/src/main/AndroidManifest.xml` —
+  bump `versionCode` past whatever is already on the track, `npm run build:release`, and upload to
+  internal testing before trying to create the product.
 - [ ] (2026-08-15, habits-production-readiness) **Create a Play Console service account and set
   `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` + `GOOGLE_PLAY_PACKAGE_NAME` in the prod users-service
   secrets.** The account needs "View financial data, orders, and cancellation survey responses"
