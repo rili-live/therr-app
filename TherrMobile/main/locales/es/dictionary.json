@@ -1959,6 +1959,8 @@
       "greetingAfternoon": "¡Buenas tardes!",
       "greetingEvening": "¡Buenas noches!",
       "dashboardSubtitle": "Sigue tus hábitos diarios",
+      "soloUnlockBannerTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
+      "soloUnlockBannerBody": "{invited} de {required} invitados. Los hábitos en solitario te permiten seguir algo sin compañero.",
       "yourHabits": "Tus hábitos",
       "todayProgress": "Hoy",
       "bestStreak": "Mejor racha",
@@ -2056,6 +2058,7 @@
         "bannerCTA": "Invitar a un amigo",
         "bannerSecondaryCTA": "Ver invitaciones enviadas",
         "soloCTA": "O sigue un hábito por tu cuenta",
+        "soloUnlockProgress": "{invited} de {required} amigos invitados: invita al resto para desbloquear los hábitos en solitario",
         "sampleHabitTitle": "Empieza con un hábito/meta",
         "sampleHabitSubtitle": "Construye un hábito saludable, rompe uno malo, o ahorra hacia una meta compartida — lo activaremos cuando tu amigo se una.",
         "samplePartnerName": "Responsabilidad amistosa",
@@ -2110,6 +2113,7 @@
         "back": "Atrás",
         "cancel": "Cancelar",
         "pickTemplateFirst": "Elige un hábito para continuar",
+        "pickPartnerFirst": "Elige al menos un amigo",
         "templatesEmpty": "No hay plantillas disponibles — crea tu propio hábito",
         "addPartnerByEmail": "Invitar por correo",
         "addPartnerEmailPlaceholder": "amigo@ejemplo.com",
@@ -2130,7 +2134,10 @@
         "soloReviewTitle": "Revisa tu hábito",
         "soloReviewSubtitle": "Vas a empezar este por tu cuenta.",
         "soloJustYou": "Solo tú",
-        "soloAddPartnersLater": "Puedes invitar a un amigo a este hábito cuando quieras."
+        "soloAddPartnersLater": "Puedes invitar a un amigo a este hábito cuando quieras.",
+        "pickPartnerFirstLocked": "Elige un amigo o invita a {remaining} más para desbloquear los hábitos en solitario",
+        "soloLockedTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
+        "soloLockedProgress": "{invited} de {required} amigos invitados"
       },
       "status": {
         "pending": "Pendiente",

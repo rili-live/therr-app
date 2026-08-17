@@ -1959,6 +1959,8 @@
       "greetingAfternoon": "Bon après-midi!",
       "greetingEvening": "Bonsoir!",
       "dashboardSubtitle": "Suivez vos habitudes quotidiennes",
+      "soloUnlockBannerTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
+      "soloUnlockBannerBody": "{invited} sur {required} invités. Les habitudes en solo te permettent de suivre quelque chose sans partenaire.",
       "yourHabits": "Vos habitudes",
       "todayProgress": "Aujourd'hui",
       "bestStreak": "Meilleure série",
@@ -2056,6 +2058,7 @@
         "bannerCTA": "Inviter un ami",
         "bannerSecondaryCTA": "Voir les invitations envoyées",
         "soloCTA": "Ou suis une habitude de ton côté",
+        "soloUnlockProgress": "{invited} amis invités sur {required} — invite les autres pour débloquer les habitudes en solo",
         "sampleHabitTitle": "Commence avec une habitude/un objectif",
         "sampleHabitSubtitle": "Bâtis une bonne habitude, brise-en une mauvaise ou épargne vers un objectif commun — on l'activera dès que ton ami se joint.",
         "samplePartnerName": "Responsabilité amicale",
@@ -2110,6 +2113,7 @@
         "back": "Retour",
         "cancel": "Annuler",
         "pickTemplateFirst": "Choisis une habitude pour continuer",
+        "pickPartnerFirst": "Choisis au moins un ami",
         "templatesEmpty": "Aucun modèle disponible — crée ta propre habitude",
         "addPartnerByEmail": "Inviter par courriel",
         "addPartnerEmailPlaceholder": "ami@exemple.com",
@@ -2130,7 +2134,10 @@
         "soloReviewTitle": "Révise ton habitude",
         "soloReviewSubtitle": "Tu commences celle-ci de ton côté.",
         "soloJustYou": "Seulement toi",
-        "soloAddPartnersLater": "Tu peux inviter un ami à cette habitude quand tu veux."
+        "soloAddPartnersLater": "Tu peux inviter un ami à cette habitude quand tu veux.",
+        "pickPartnerFirstLocked": "Choisis un ami, ou invites-en {remaining} de plus pour débloquer les habitudes en solo",
+        "soloLockedTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
+        "soloLockedProgress": "{invited} amis invités sur {required}"
       },
       "status": {
         "pending": "En attente",

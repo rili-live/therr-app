@@ -11,6 +11,7 @@ import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import { space } from '../../styles/layouts/spacing';
 import translator from '../../utilities/translator';
+import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import BaseStatusBar from '../BaseStatusBar';
 
 export const HABITS_PRESTAGED_TEMPLATE_ID = 'HABITS_PRESTAGED_TEMPLATE_ID';
@@ -217,13 +218,19 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
         navigation.navigate('CreatePactInvite');
     };
 
-    // This overlay is the whole of onboarding, so whatever it does not offer is
-    // effectively not in the app. Without this the only route out was the pact
-    // CTA, and a user who did not want to involve anyone had nothing to press.
-    // `mode: 'solo'` takes them through the same wizard minus the partner step.
+    // `mode: 'solo'` takes the user through the same wizard minus the partner
+    // step. Only offered once unlocked — see the footer, which otherwise shows
+    // how many invites are left instead.
     const handleStartSolo = () => {
         navigation.navigate('CreatePactInvite', { mode: 'solo' });
     };
+
+    // This overlay is the whole of onboarding, which makes it the one place the
+    // invite requirement can be explained before it is enforced. Showing the
+    // remaining count here is what turns "you must invite people" into a target
+    // worth finishing; a user who only meets the rule at the moment it blocks
+    // them has already formed the impression that the app is stonewalling.
+    const soloUnlock = getSoloUnlockProgress(habits.userHabitEligibility);
 
     const handleViewSent = () => {
         navigation.navigate('PactsList', { initialTab: 'outgoing' });
@@ -359,15 +366,27 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                             </Text>
                         </Pressable>
                     )}
-                    <Pressable
-                        accessibilityRole="button"
-                        onPress={handleStartSolo}
-                        style={themeHabits.styles.onboardingFooterSecondary}
-                    >
-                        <Text style={themeHabits.styles.onboardingFooterSecondaryText}>
-                            {translate('pages.pacts.preview.soloCTA')}
-                        </Text>
-                    </Pressable>
+                    {soloUnlock.isUnlocked && (
+                        <Pressable
+                            accessibilityRole="button"
+                            onPress={handleStartSolo}
+                            style={themeHabits.styles.onboardingFooterSecondary}
+                        >
+                            <Text style={themeHabits.styles.onboardingFooterSecondaryText}>
+                                {translate('pages.pacts.preview.soloCTA')}
+                            </Text>
+                        </Pressable>
+                    )}
+                    {!soloUnlock.isUnlocked && soloUnlock.hasProgress && (
+                        <View style={themeHabits.styles.onboardingFooterSecondary}>
+                            <Text style={themeHabits.styles.onboardingFooterSecondaryText}>
+                                {translate('pages.pacts.preview.soloUnlockProgress', {
+                                    invited: soloUnlock.invitedCount,
+                                    required: soloUnlock.requiredCount,
+                                })}
+                            </Text>
+                        </View>
+                    )}
                 </View>
             </SafeAreaView>
         </>

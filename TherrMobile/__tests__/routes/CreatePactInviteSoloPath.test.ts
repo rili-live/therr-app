@@ -1,5 +1,6 @@
 import { it, describe, expect } from '@jest/globals';
 import {
+    canAdvanceFromPartnerStep,
     getBackTarget,
     getFinalAction,
     getNextStep,
@@ -7,39 +8,57 @@ import {
 } from '../../main/routes/Pacts/wizardSteps';
 
 /**
- * The create-habit wizard's solo path.
+ * The create-habit wizard's partner step, locked and unlocked.
  *
- * There was previously no way to create a habit without inviting someone. The
- * pact wizard is the only creation flow in the app; its step 2 refused to
- * advance without at least one partner selected; and the "track this on my own"
- * escape hatch was itself gated on having already sent a pact invite. Each
- * piece looked reasonable alone, and together they formed a closed loop with no
- * exit for a user who simply wanted to track something privately.
+ * Friends with Habits requires you to bring people with you before you can
+ * track a habit alone — that mandatory invite is the growth loop. The wizard is
+ * the only creation flow, so its partner step is where the requirement is
+ * actually enforced on the client.
  *
- * These cases pin the two ways out — entering in solo mode, and walking through
- * the partner step without choosing anyone — and the fact that both end at the
- * same personal habit rather than at an invite send.
+ * The rule has two halves and both are easy to break:
+ *   - Locked, the step must not advance without a partner. Letting it through
+ *     walks the user to a review step whose submit button the server will 403.
+ *   - Unlocked, it must advance with nobody selected, or the unlock the user
+ *     earned by inviting three friends buys them nothing.
  */
+describe('leaving the partner step', () => {
+    it('always advances once a partner is chosen', () => {
+        expect(canAdvanceFromPartnerStep(1, false)).toBe(true);
+        expect(canAdvanceFromPartnerStep(1, true)).toBe(true);
+    });
+
+    it('blocks an empty selection while solo is locked', () => {
+        // The growth loop. Without this the invite requirement is unenforced on
+        // the client and the user only discovers it at the 403.
+        expect(canAdvanceFromPartnerStep(0, false)).toBe(false);
+    });
+
+    it('allows an empty selection once solo is unlocked', () => {
+        expect(canAdvanceFromPartnerStep(0, true)).toBe(true);
+    });
+});
+
 describe('wizard step transitions', () => {
-    const pact = { isSoloMode: false };
-    const solo = { isSoloMode: true };
+    const pact = { isSoloMode: false, canCreateSolo: false };
+    const unlockedPact = { isSoloMode: false, canCreateSolo: true };
+    const solo = { isSoloMode: true, canCreateSolo: true };
+    const lockedSolo = { isSoloMode: true, canCreateSolo: false };
 
     it('walks 1 → 2 → 3 in the normal pact flow', () => {
         expect(getNextStep(1, pact)).toBe(2);
         expect(getNextStep(2, pact)).toBe(3);
     });
 
-    it('skips the partner step entirely in solo mode', () => {
-        // The whole point of the mode: a user who came from "track on my own"
-        // should never be shown a partner picker at all.
+    it('skips the partner step for an unlocked solo entry', () => {
         expect(getNextStep(1, solo)).toBe(3);
     });
 
-    it('advances past the partner step with nobody selected', () => {
-        // The regression this feature exists to prevent. Step 2 used to refuse
-        // here, which — the wizard being the only creation flow — meant no
-        // habit at all for anyone unwilling to involve a friend.
-        expect(getNextStep(2, pact)).toBe(3);
+    it('ignores solo mode while still locked', () => {
+        // Solo mode is a shortcut through a door the user already opened, never
+        // a way around the lock. A stale deep link or an affordance rendered
+        // before eligibility loaded must fall back to the partner step rather
+        // than delivering them to a review they cannot submit.
+        expect(getNextStep(1, lockedSolo)).toBe(2);
     });
 
     it('leaves the wizard when going back from the first step', () => {
@@ -49,14 +68,20 @@ describe('wizard step transitions', () => {
 
     it('steps back through the partner step in the pact flow', () => {
         expect(getBackTarget(3, pact)).toBe(2);
+        expect(getBackTarget(3, unlockedPact)).toBe(2);
         expect(getBackTarget(2, pact)).toBe(1);
     });
 
-    it('skips back over the partner step in solo mode', () => {
+    it('skips back over the partner step for an unlocked solo entry', () => {
         // Symmetry with the forward skip. Landing on step 2 going backwards
-        // would strand the user on the picker they deliberately bypassed, with
-        // no partner selected and no obvious way onward.
+        // would strand the user on the picker they deliberately bypassed.
         expect(getBackTarget(3, solo)).toBe(1);
+    });
+
+    it('steps back into the partner step when solo mode was ignored', () => {
+        // It was rendered on the way forward, so it must be there on the way
+        // back — otherwise back-then-next silently loops.
+        expect(getBackTarget(3, lockedSolo)).toBe(2);
     });
 });
 

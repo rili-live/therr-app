@@ -1959,6 +1959,8 @@
       "greetingAfternoon": "Good afternoon!",
       "greetingEvening": "Good evening!",
       "dashboardSubtitle": "Track your daily habits",
+      "soloUnlockBannerTitle": "Invite {remaining} more friend(s) to unlock solo habits",
+      "soloUnlockBannerBody": "{invited} of {required} invited. Solo habits let you track something without a partner.",
       "yourHabits": "Your Habits",
       "todayProgress": "Today",
       "bestStreak": "Best Streak",
@@ -2056,6 +2058,7 @@
         "bannerCTA": "Invite a friend",
         "bannerSecondaryCTA": "View sent invites",
         "soloCTA": "Or track a habit on your own",
+        "soloUnlockProgress": "{invited} of {required} friends invited — invite the rest to unlock solo habits",
         "sampleHabitTitle": "Start with a habit/goal",
         "sampleHabitSubtitle": "Build a healthy habit, break a bad one, or save toward a shared goal — we'll lock it in once your friend joins.",
         "samplePartnerName": "Friendly accountability",
@@ -2110,6 +2113,7 @@
         "back": "Back",
         "cancel": "Cancel",
         "pickTemplateFirst": "Pick a habit to continue",
+        "pickPartnerFirst": "Choose at least one friend",
         "templatesEmpty": "No templates available — create your own habit",
         "addPartnerByEmail": "Invite by email",
         "addPartnerEmailPlaceholder": "friend@example.com",
@@ -2130,7 +2134,10 @@
         "soloReviewTitle": "Review your habit",
         "soloReviewSubtitle": "You are starting this one on your own.",
         "soloJustYou": "Just you",
-        "soloAddPartnersLater": "You can invite a friend to this habit any time."
+        "soloAddPartnersLater": "You can invite a friend to this habit any time.",
+        "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
+        "soloLockedTitle": "Invite {remaining} more friend(s) to unlock solo habits",
+        "soloLockedProgress": "{invited} of {required} friends invited"
       },
       "status": {
         "pending": "Pending",

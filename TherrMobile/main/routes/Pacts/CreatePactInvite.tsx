@@ -30,11 +30,14 @@ import { HABITS_PRESTAGED_TEMPLATE_ID } from '../../components/Habits/PactPrevie
 import { buildInviteUrl } from '../../utilities/shareUrls';
 import {
     WizardStep as Step,
+    IWizardContext,
+    canAdvanceFromPartnerStep,
     getBackTarget,
     getFinalAction,
     getNextStep,
     isSoloReview,
 } from './wizardSteps';
+import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
@@ -158,10 +161,10 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                 .finally(() => this.setState({ isLoadingTemplates: false }));
         }
 
-        // Only for the habit-cap standing it reports: a 402 on the final step
-        // routes to the paywall either way, but knowing in advance lets the
-        // wizard avoid walking the user to a dead end. Solo availability is no
-        // longer part of this answer — starting a habit alone is unconditional.
+        // Decides whether step 2 may be skipped and what the locked state says.
+        // A failure leaves the wizard locked, which is the safe direction: the
+        // server would refuse the solo call anyway, and the user can still
+        // finish the flow the normal way by choosing a partner.
         this.props.getUserHabitEligibility().catch(() => {});
     }
 
@@ -179,6 +182,13 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
      * habit picker, same review, same goal creation.
      */
     isSoloMode = (): boolean => this.props.route?.params?.mode === 'solo';
+
+    getSoloProgress = () => getSoloUnlockProgress(this.props.habits.userHabitEligibility);
+
+    getWizardContext = (): IWizardContext => ({
+        isSoloMode: this.isSoloMode(),
+        canCreateSolo: this.getSoloProgress().isUnlocked,
+    });
 
     /**
      * Step 3 reviews whatever the user actually assembled. With nobody selected
@@ -279,13 +289,37 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             }
         }
 
-        // Step 2 is deliberately not gated on having picked someone; see
-        // `wizardSteps` for why the partner step has to stay optional.
-        this.setStep(getNextStep(step, { isSoloMode: this.isSoloMode() }));
+        if (step === 2 && !canAdvanceFromPartnerStep(
+            this.state.selectedPartnerIds.length,
+            this.getSoloProgress().isUnlocked,
+        )) {
+            // Locked: choosing someone is the only way on. The toast says how
+            // many invites unlock the solo path so the requirement reads as
+            // finite rather than as the screen simply refusing to respond.
+            Toast.show({ type: 'info', text1: this.getPartnerRequiredMessage() });
+            return;
+        }
+
+        this.setStep(getNextStep(step, this.getWizardContext()));
+    };
+
+    /**
+     * Why the partner step will not advance. Falls back to the plain prompt
+     * when there are no counts to quote — promising an unlock without being
+     * able to say how far away it is is worse than not mentioning it.
+     */
+    getPartnerRequiredMessage = (): string => {
+        const { hasProgress, remaining } = this.getSoloProgress();
+
+        if (!hasProgress) {
+            return this.translate('pages.pacts.wizard.pickPartnerFirst');
+        }
+
+        return this.translate('pages.pacts.wizard.pickPartnerFirstLocked', { remaining });
     };
 
     handleBack = () => {
-        const target = getBackTarget(this.state.step, { isSoloMode: this.isSoloMode() });
+        const target = getBackTarget(this.state.step, this.getWizardContext());
 
         if (target === 'exit') {
             this.props.navigation.goBack();
@@ -416,10 +450,44 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     };
 
     /**
+     * A 403 means the invite threshold, not a failure. The server sends the
+     * progress counts with it, so say how many invites are left rather than
+     * "we could not start that habit" — the user can act on the first and not
+     * the second. Refreshes eligibility so the locked section on step 2 catches
+     * up with whatever the server just told us.
+     *
+     * Returns true when it handled the error.
+     */
+    handlePossibleSoloLock = (err: any): boolean => {
+        const response = err?.response;
+
+        if (response?.status !== 403 || response?.data?.error !== 'solo-locked') {
+            return false;
+        }
+
+        this.props.getUserHabitEligibility().catch(() => {});
+
+        const required = response.data?.requiredCount;
+        const invited = response.data?.invitedCount;
+        const remaining = typeof required === 'number' && typeof invited === 'number'
+            ? Math.max(required - invited, 0)
+            : null;
+
+        Toast.show({
+            type: 'info',
+            text1: remaining === null
+                ? this.translate('pages.pacts.wizard.soloError')
+                : this.translate('pages.pacts.wizard.soloLockedTitle', { remaining }),
+        });
+
+        return true;
+    };
+
+    /**
      * "Track this on my own" — creates the habit goal and starts tracking it
-     * with no pact attached. Available unconditionally; the only thing the
-     * server can refuse it for is the free-tier habit cap, which comes back as
-     * a 402 and routes to the paywall like the pact path does.
+     * with no pact attached. The server can refuse it two ways: 403 while the
+     * user is short of the invite threshold, and 402 at the free-tier habit
+     * cap, which routes to the paywall like the pact path does.
      */
     handleStartSolo = async () => {
         const { navigation, startUserHabit } = this.props;
@@ -442,7 +510,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
 
             navigation.navigate('HabitsDashboard');
         } catch (err: any) {
-            if (!this.handlePossiblePaywall(err)) {
+            if (!this.handlePossibleSoloLock(err) && !this.handlePossiblePaywall(err)) {
                 Toast.show({
                     type: 'error',
                     text1: this.translate('pages.pacts.wizard.soloError'),
@@ -604,6 +672,57 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         );
     };
 
+    /**
+     * The solo branch at the foot of the partner step: an unlocked shortcut, or
+     * the progress that gets the user there.
+     */
+    renderSoloSection = (isStartingSolo: boolean) => {
+        const { isUnlocked, hasProgress, invitedCount, requiredCount, remaining } = this.getSoloProgress();
+
+        if (!isUnlocked) {
+            // Nothing to promise without counts — say nothing rather than
+            // dangling a feature with no stated price.
+            if (!hasProgress) {
+                return null;
+            }
+
+            return (
+                <View style={{ paddingHorizontal: 20, marginTop: 8, paddingBottom: 16 }}>
+                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { textAlign: 'center', fontWeight: '600' }]}>
+                        {this.translate('pages.pacts.wizard.soloLockedTitle', { remaining })}
+                    </Text>
+                    <Text style={[this.themeHabits.styles.streakMilestoneText, { textAlign: 'center', marginTop: 4 }]}>
+                        {this.translate('pages.pacts.wizard.soloLockedProgress', {
+                            invited: invitedCount,
+                            required: requiredCount,
+                        })}
+                    </Text>
+                </View>
+            );
+        }
+
+        return (
+            <View style={{ paddingHorizontal: 20, marginTop: 8, paddingBottom: 16 }}>
+                <Text style={[this.themeHabits.styles.habitCardSubtitle, { textAlign: 'center' }]}>
+                    {this.translate('pages.pacts.wizard.soloHint')}
+                </Text>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: isStartingSolo }}
+                    disabled={isStartingSolo}
+                    onPress={this.handleStartSolo}
+                    style={{ marginTop: 8, paddingVertical: 12, opacity: isStartingSolo ? 0.6 : 1 }}
+                >
+                    <Text style={[this.themeButtons.styles.btnTitleBlack, { textAlign: 'center' }]}>
+                        {isStartingSolo
+                            ? this.translate('pages.pacts.wizard.soloStarting')
+                            : this.translate('pages.pacts.wizard.soloCta')}
+                    </Text>
+                </Pressable>
+            </View>
+        );
+    };
+
     renderStep2 = () => {
         const { user, userConnections } = this.props;
         const {
@@ -714,27 +833,12 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                 {/*
                   * Non-default by design: the app is called Friends with Habits,
                   * so the solo route sits below the partner list rather than
-                  * alongside it. It is always offered, though — a user who does
-                  * not want a partner still has to be able to finish.
+                  * alongside it. While locked this is the one place in the flow
+                  * that explains what the invites are *for*, so it renders the
+                  * progress rather than hiding — a requirement nobody can see is
+                  * indistinguishable from a broken screen.
                   */}
-                <View style={{ paddingHorizontal: 20, marginTop: 8, paddingBottom: 16 }}>
-                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { textAlign: 'center' }]}>
-                        {this.translate('pages.pacts.wizard.soloHint')}
-                    </Text>
-                    <Pressable
-                        accessibilityRole="button"
-                        accessibilityState={{ disabled: isStartingSolo }}
-                        disabled={isStartingSolo}
-                        onPress={this.handleStartSolo}
-                        style={{ marginTop: 8, paddingVertical: 12, opacity: isStartingSolo ? 0.6 : 1 }}
-                    >
-                        <Text style={[this.themeButtons.styles.btnTitleBlack, { textAlign: 'center' }]}>
-                            {isStartingSolo
-                                ? this.translate('pages.pacts.wizard.soloStarting')
-                                : this.translate('pages.pacts.wizard.soloCta')}
-                        </Text>
-                    </Pressable>
-                </View>
+                {this.renderSoloSection(isStartingSolo)}
             </View>
         );
     };
