@@ -781,6 +781,23 @@ console configuration, and one verification that gates a payments change.
   Play build would ship looking finished while the threshold it advertises silently is not in
   effect. Push `general`, then `general → stage → main`, and confirm the new response shape is
   live before cutting the Android build.
+- [ ] (2026-08-18, /quality-peer-review) **Send one real Friends with Habits invite in prod
+  once `general → stage → main` lands.** This is the first release where a niche invite leaves
+  the Therr host: the email subject, the email body pitch, the SMS body and the magic-link host
+  are all now brand-resolved, and the habits link points at `https://habits.therr.com/invite/link/:token`
+  rather than therr.com. The unit tests stub SES and compose the SMS string directly, so nothing
+  in CI exercises Twilio, SES, or the habits subdomain actually resolving that route in prod.
+  Send one invite to each channel from a Habits account and confirm the subject names Friends
+  with Habits, the body reads "be the change" rather than "explore your local community", and
+  the link lands on the invite page instead of bouncing to therr.com.
+- [ ] (2026-08-18, /quality-peer-review) **Android 3.15.1 (versionCode 449) needs Play release
+  notes before rollout.** The bump ships three user-visible fixes: bottom sheets no longer sit
+  for 300ms before animating, the Connect lists stop snapping back to the top mid-scroll, and
+  the sign-in field no longer swaps the keyboard out from under you partway through a phone
+  number (with a new toggle button beside the field for the cases the automatic pick gets
+  wrong). Note the keyboard toggle explicitly — it is a new control, not just a fix. If
+  versionCode 447 never rolled out, the 2026-08-12 item above folds into this one and the notes
+  must cover both bumps.
 <!-- skill-followups:end -->
 
 ---
