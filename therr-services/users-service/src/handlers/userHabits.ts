@@ -4,19 +4,26 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { checkHabitCapacity } from './helpers/habitCapacity';
-import { hasSentPactInvite } from './helpers/soloHabitAccess';
+import { getSoloInviteProgress } from './helpers/soloHabitAccess';
 
 /**
  * Personal ("solo") habits — habits tracked without an accountability partner.
  *
- * Friends with Habits is built on the principle that you cannot start a habit
- * alone; that mandatory invite is the app's growth loop. Solo habits do not
- * abandon that, they close a dead end in it: a user whose invited friend never
- * accepts previously had no way forward at all, and the onboarding overlay held
- * them there indefinitely. So solo tracking is available only *after* the user
- * has actually invited someone — the invite requirement stands, and what
- * changes is that a friend's inaction no longer holds the user's own habits
- * hostage. See `hasSentPactInvite` for the gate itself.
+ * Friends with Habits is built on the principle that you do not start a habit
+ * alone; that mandatory invite is the app's growth loop. Solo habits keep the
+ * requirement and change its shape: rather than one invite acting as a toll on
+ * the way in, it takes `HABITS_SOLO_UNLOCK_INVITE_COUNT` distinct people, and
+ * the client shows progress toward it. A requirement the user can see coming is
+ * something to finish; an invisible one is just a wall.
+ *
+ * Two things this deliberately does NOT do:
+ *
+ *   - It does not wait on acceptance. The bar is invites *sent*, so a friend
+ *     who never installs the app cannot strand the inviter.
+ *   - It does not gate pact habits. Anyone can create a habit with a partner
+ *     from the first minute; the threshold only unlocks tracking *alone*.
+ *
+ * See `getSoloInviteProgress` for what counts and why it fails closed.
  */
 
 // READ
@@ -46,6 +53,11 @@ const getUserHabits: RequestHandler = async (req: any, res: any) => {
  * because the mobile flow reaches this from the pact wizard's "track this on my
  * own" branch, where the user has already composed a custom habit and a
  * two-request dance would leave an orphan goal behind if the second call failed.
+ *
+ * Gated on the solo unlock (see the note at the top of this file) and then on
+ * the free-tier cap. The unlock is checked first: being short of the invite
+ * threshold is not a paywall, and offering to sell a habit slot to someone who
+ * could have the feature for free by inviting a friend is the wrong answer.
  */
 const createUserHabit: RequestHandler = async (req: any, res: any) => {
     const { locale, userId, brandVariation } = parseHeaders(req.headers);
@@ -59,12 +71,20 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    const canCreateSolo = await hasSentPactInvite(userId);
+    const soloProgress = await getSoloInviteProgress(userId);
 
-    if (!canCreateSolo) {
+    if (!soloProgress.canCreateSolo) {
+        // The counts ride along so the client can render how far off the user
+        // is without a second round trip — this response is what it draws the
+        // "invite N more friends" state from.
         return res.status(403).send({
             error: 'solo-locked',
-            message: translate(locale, 'errorMessages.habits.soloLocked'),
+            message: translate(locale, 'errorMessages.habits.soloLocked', {
+                remaining: soloProgress.requiredCount - soloProgress.invitedCount,
+                required: soloProgress.requiredCount,
+            }),
+            invitedCount: soloProgress.invitedCount,
+            requiredCount: soloProgress.requiredCount,
         });
     }
 
@@ -210,11 +230,13 @@ const restoreUserHabit: RequestHandler = async (req: any, res: any) => {
 };
 
 /**
- * Whether the caller may start habits on their own yet, and where they stand
- * against the free-tier cap.
+ * Whether the caller may start habits on their own yet, how close they are to
+ * earning it, and where they stand against the free-tier cap.
  *
- * The client needs all of this before it can decide whether to render the
- * "track on my own" affordance at all, and asking for it as three separate
+ * The client needs all of this before it can decide what to render: not just
+ * whether to show the "track on my own" affordance, but — when it is still
+ * locked — the progress toward unlocking it, which is the thing that turns the
+ * invite requirement into a reason to invite. Asking for it as three separate
  * derivations from other endpoints is how the mobile and server answers drift
  * apart.
  */
@@ -222,14 +244,16 @@ const getSoloEligibility: RequestHandler = async (req: any, res: any) => {
     const { locale, userId, brandVariation } = parseHeaders(req.headers);
 
     try {
-        const [canCreateSolo, activeHabitCount, denial] = await Promise.all([
-            hasSentPactInvite(userId),
+        const [soloProgress, activeHabitCount, denial] = await Promise.all([
+            getSoloInviteProgress(userId),
             Store.userHabits.countActiveByUser(userId),
             checkHabitCapacity({ userId, brandVariation, locale }),
         ]);
 
         return res.status(200).send({
-            canCreateSolo,
+            canCreateSolo: soloProgress.canCreateSolo,
+            invitedCount: soloProgress.invitedCount,
+            soloUnlockInviteCount: soloProgress.requiredCount,
             activeHabitCount,
             isAtHabitLimit: !!denial,
             habitLimit: denial?.limit ?? null,

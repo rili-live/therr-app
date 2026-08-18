@@ -7,11 +7,11 @@ import { createJournalEntry, getJournalFeed, updateJournalEntry } from '../../sr
 /**
  * The journal feed merge.
  *
- * Four of the five sources are unioned in SQL; achievements come from the
- * brand-scoped `main.userAchievements` and are merged in the handler. The
- * risky part is that merge — a mis-ordered or mis-cursored page silently
- * drops entries the user wrote, which is the one kind of bug a journal must
- * not have.
+ * Four of the six sources are unioned in SQL; achievements (brand-scoped
+ * `main.userAchievements`) and goals (the user's own `main.thoughts`) are
+ * merged in the handler. The risky part is that merge — a mis-ordered or
+ * mis-cursored page silently drops entries the user wrote, which is the one
+ * kind of bug a journal must not have.
  */
 const makeRes = () => {
     const res: any = {
@@ -52,13 +52,24 @@ const habitsRow = (id: string, occurredAt: string, type = 'note') => ({
     meta: null,
 });
 
+const goalRow = (id: string, occurredAt: string, message = `goal-${id}`) => ({
+    id,
+    occurredAt: new Date(occurredAt),
+    message,
+    category: 'uncategorized',
+    isPublic: true,
+    hashTags: '',
+});
+
 describe('Journal feed', () => {
     let getFeedStub: sinon.SinonStub;
     let getCompletedStub: sinon.SinonStub;
+    let getGoalsStub: sinon.SinonStub;
 
     beforeEach(() => {
         getFeedStub = sinon.stub(Store.journalEntries, 'getFeed').resolves([]);
         getCompletedStub = sinon.stub(Store.userAchievements, 'getCompleted').resolves([]);
+        getGoalsStub = sinon.stub(Store.thoughts, 'getForJournal').resolves([]);
     });
 
     afterEach(() => {
@@ -89,6 +100,75 @@ describe('Journal feed', () => {
 
         expect(res.body.items.map((i: any) => i.id)).to.deep.equal(['n1', 'a1', 'n2']);
         expect(res.body.items[1].type).to.equal('achievement');
+    });
+
+    it('reads goals with the request brand, cursor and limit + 1', async () => {
+        // Unscoped, a HABITS journal would list the user's Therr posts. The
+        // limit must match the other sources' so the merged page is complete.
+        const res = makeRes();
+        await getJournalFeed(
+            makeReq({ before: '2026-08-12T00:00:00.000Z|entry-9', limit: '10' }) as any,
+            res,
+            (() => {}) as any,
+        );
+
+        expect(getGoalsStub.firstCall.args[0]).to.equal(BrandVariations.HABITS);
+        expect(getGoalsStub.firstCall.args[1]).to.equal('user-1');
+        expect(getGoalsStub.firstCall.args[2]).to.deep.equal({
+            occurredAt: '2026-08-12T00:00:00.000Z',
+            id: 'entry-9',
+        });
+        expect(getGoalsStub.firstCall.args[3]).to.equal(11);
+    });
+
+    it('interleaves goals with the other sources, newest first', async () => {
+        getFeedStub.resolves([
+            habitsRow('n1', '2026-08-14T10:00:00.000Z'),
+            habitsRow('n2', '2026-08-12T10:00:00.000Z'),
+        ]);
+        getGoalsStub.resolves([goalRow('g1', '2026-08-13T10:00:00.000Z')]);
+
+        const res = makeRes();
+        await getJournalFeed(makeReq() as any, res, (() => {}) as any);
+
+        expect(res.body.items.map((i: any) => i.id)).to.deep.equal(['n1', 'g1', 'n2']);
+        expect(res.body.items[1].type).to.equal('goal');
+    });
+
+    it('renders a goal from the post the user wrote', async () => {
+        // The body is the post itself, so unlike a milestone or an achievement
+        // the client has nothing to generate from the locale dictionary.
+        getGoalsStub.resolves([goalRow('g1', '2026-08-14T10:00:00.000Z', 'Run a 5k by October')]);
+
+        const res = makeRes();
+        await getJournalFeed(makeReq() as any, res, (() => {}) as any);
+
+        expect(res.body.items[0]).to.include({
+            id: 'g1',
+            type: 'goal',
+            body: 'Run a 5k by October',
+            entryDate: '2026-08-14',
+        });
+        // `goalName`/`goalEmoji` name the tagged habit goal, which a post has none of.
+        expect(res.body.items[0].goalName).to.equal(null);
+        expect(res.body.items[0].meta).to.deep.equal({
+            category: 'uncategorized',
+            isPublic: true,
+            hashTags: '',
+        });
+    });
+
+    it('pages a goal that shares the cursor instant without losing it', async () => {
+        // The goals query applies `before` in SQL, so this asserts the handler
+        // does not re-order the boundary group differently from the other half.
+        getFeedStub.resolves([habitsRow('nnn', '2026-08-14T10:00:00.000Z')]);
+        getGoalsStub.resolves([goalRow('ggg', '2026-08-14T10:00:00.000Z')]);
+
+        const res = makeRes();
+        await getJournalFeed(makeReq({ limit: '1' }) as any, res, (() => {}) as any);
+
+        expect(res.body.items.map((i: any) => i.id)).to.deep.equal(['nnn']);
+        expect(res.body.nextCursor).to.equal('2026-08-14T10:00:00.000Z|nnn');
     });
 
     it('normalizes entryDate to a bare calendar day', async () => {

@@ -169,12 +169,22 @@ export interface IUserHabit {
 }
 
 /**
- * Whether the user may start habits on their own yet, and where they stand
- * against the free-tier cap. Fetched as one object so the client never has to
- * re-derive the rule the server is enforcing.
+ * Whether the user has unlocked habits tracked on their own, how close they are
+ * to unlocking them, and where they stand against the free-tier cap. Fetched as
+ * one object so the client never has to re-derive the rule the server enforces.
  */
 export interface IUserHabitEligibility {
+    /** True once `invitedCount` reaches `soloUnlockInviteCount`. */
     canCreateSolo: boolean;
+    /**
+     * Distinct people the user has invited to a pact they created, in any
+     * state — the numerator of the unlock progress the client renders while
+     * `canCreateSolo` is false. Absent on responses from servers predating the
+     * threshold; treat `undefined` as "no progress to show" rather than zero.
+     */
+    invitedCount?: number;
+    /** Invites needed to unlock solo habits. Server-configurable, so never hardcode it. */
+    soloUnlockInviteCount?: number;
     activeHabitCount: number;
     isAtHabitLimit: boolean;
     habitLimit: number | null;
@@ -194,13 +204,17 @@ export interface IJournalEntry {
 }
 
 /**
- * One row of the merged journal feed. Five sources share this shape so the
+ * One row of the merged journal feed. Six sources share this shape so the
  * client renders a single list; `meta` carries the per-type extras rather than
  * widening the item with fields that are null for most types.
+ *
+ * `goal` is a `main.thoughts` row the user posted — its `id` is a thought id,
+ * so a client may open it in the thought view. Note that `goalName`/`goalEmoji`
+ * describe the tagged *habit* goal and are null on a `goal` item.
  */
 export interface IJournalFeedItem {
     id: string;
-    type: 'note' | 'checkin' | 'achievement' | 'milestone' | 'habit_started';
+    type: 'note' | 'checkin' | 'achievement' | 'milestone' | 'habit_started' | 'goal';
     occurredAt: string;
     /** The user's local calendar day, which is what day-grouping keys on. */
     entryDate: string;

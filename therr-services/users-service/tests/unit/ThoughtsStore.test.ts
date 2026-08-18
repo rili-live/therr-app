@@ -607,4 +607,69 @@ describe('ThoughtsStore brand filtering', () => {
             expect(sql).to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
         });
     });
+
+    describe('getForJournal', () => {
+        const runQuery = (brand: BrandVariations, before: any = null, limit = 51) => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getForJournal(brand, 'user-1', before, limit);
+
+            return readStub.args[0][0] as string;
+        };
+
+        it('scopes the journal to the caller brand', () => {
+            // Unscoped, a HABITS journal would list the user's Therr posts.
+            expect(runQuery(BrandVariations.HABITS))
+                .to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
+        });
+
+        it('returns only the requesting user\'s own top-level posts', () => {
+            const sql = runQuery(BrandVariations.HABITS);
+
+            expect(sql).to.include(`"main"."thoughts"."fromUserId" = 'user-1'`);
+            // Replies are comments on someone else's post, not goals.
+            expect(sql).to.include(`"main"."thoughts"."parentId" is null`);
+            expect(sql).to.include(`"main"."thoughts"."isMatureContent" = false`);
+        });
+
+        it('excludes future-dated rows', () => {
+            // therr-ai-automator drips a run's output out over ~30h by writing
+            // future-dated thoughts. A journal must not open a section headed
+            // with tomorrow's date.
+            expect(runQuery(BrandVariations.HABITS)).to.include(`main.thoughts."createdAt" <= now()`);
+        });
+
+        it('orders on (createdAt, id) under C collation so it agrees with the handler merge', () => {
+            // The handler re-sorts these rows together with the habits half and
+            // compares ids by code point. A locale collation would order the
+            // dashes in a uuid differently and let the two halves disagree about
+            // what falls after the cursor — silently dropping a row.
+            const sql = runQuery(BrandVariations.HABITS);
+
+            expect(sql).to.include(`order by main.thoughts."createdAt" DESC, main.thoughts."id"::text COLLATE "C" DESC`);
+            expect(sql).to.include('limit 51');
+        });
+
+        it('applies a compound cursor on both legs of the ordering', () => {
+            const sql = runQuery(BrandVariations.HABITS, {
+                occurredAt: '2026-08-12T00:00:00.000Z',
+                id: 'thought-9',
+            });
+
+            expect(sql).to.include(`main.thoughts."createdAt" < '2026-08-12T00:00:00.000Z'::timestamptz`);
+            expect(sql).to.include(`main.thoughts."id"::text COLLATE "C" < 'thought-9'`);
+        });
+
+        it('treats a bare-ISO cursor as timestamp-exclusive', () => {
+            // A client mid-scroll across a deploy still holds one; it must keep
+            // paging rather than compare against a null id.
+            const sql = runQuery(BrandVariations.HABITS, {
+                occurredAt: '2026-08-12T00:00:00.000Z',
+                id: null,
+            });
+
+            expect(sql).to.include(`main.thoughts."createdAt" < '2026-08-12T00:00:00.000Z'::timestamptz`);
+            expect(sql).to.not.include('COLLATE "C" <');
+        });
+    });
 });

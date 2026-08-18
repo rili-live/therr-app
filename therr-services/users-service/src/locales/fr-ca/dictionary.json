@@ -19,7 +19,7 @@
         "habits": {
             "habitGoalRequired": "Un objectif d'habitude est requis",
             "freeTierHabitLimitReached": "Les comptes gratuits peuvent suivre {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
-            "soloLocked": "Invite d'abord un ami à un pacte; ensuite tu pourras aussi suivre des habitudes seul.",
+            "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout.",
             "journalBodyRequired": "Écris quelque chose avant d'enregistrer cette entrée",
             "journalEntryNotFound": "Entrée de journal introuvable",
             "lifetimeVerificationFailed": "Nous n'avons pas pu vérifier cet achat pour le moment. Réessaie dans un instant.",

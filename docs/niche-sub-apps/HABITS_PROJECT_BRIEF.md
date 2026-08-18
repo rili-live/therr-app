@@ -21,7 +21,22 @@ Core Therr App is pursuing a B2B-first strategy (local business directory → em
 These niche apps are a branch and/or child app of Therr App. The general idea is for a niche app to inherit the core foundations of Therr with unique, niche branding, content filtering specific to that branding, and some simple customizations that are controlled by feature flags.
 
 **Core Innovation:**  
-Unlike traditional habit trackers (solo experience), 'Therr: Friends With Habits' makes accountability partners mandatory. You literally cannot use the app without inviting at least one friend. This creates exponential organic growth.
+Unlike traditional habit trackers, where partners are an afterthought, 'Therr: Friends With Habits' is built around accountability pacts: inviting someone is the first thing the app asks you to do, and every surface leads with partner progress. That is the organic growth loop.
+
+> **Revised August 2026 — the invite requirement became a visible threshold.**
+> Pacts still need a partner and always will. What changed is habits tracked
+> *alone*: they used to unlock on a single invite sent, which no UI ever
+> mentioned, so the requirement read as an unexplained wall rather than as
+> something to earn. Solo tracking now unlocks at **three distinct people
+> invited** (`HABITS_SOLO_UNLOCK_INVITE_COUNT`, env-overridable), and every
+> surface that can refuse it shows the progress toward it instead.
+>
+> Raising the bar while making it visible is the trade: three invites is more
+> asked of the user than one, but a target they can watch themselves approach is
+> a reason to invite the next friend, where an invisible one-invite toll was
+> only a reason to leave. Invites *sent* count, in any state, so a friend who
+> never installs the app cannot strand the inviter — and the count is of people,
+> not invitations, so inviting one friend to three pacts unlocks nothing.
 
 ---
 
@@ -100,7 +115,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ### MVP (Weeks 3-6) - FREE TIER
 - ✅ Track **5 active habits** at a time (revised 2026-08 — see the note below)
 - ✅ Invite friends to be accountability partners (REQUIRED to get started)
-- ✅ Track habits solo once the first invite has been sent
+- ✅ Track habits on your own — unlocked by inviting 3 friends, shown as progress
 - ✅ Daily check-in system with photo/note proof
 - ✅ Journal — day-grouped feed of check-ins, achievements, milestones and notes
 - ✅ Activity feed showing partner progress
