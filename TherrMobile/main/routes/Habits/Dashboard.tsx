@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, ScrollView, Pressable } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
-import { FilePaths } from 'therr-js-utilities/constants';
+import { FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
@@ -22,6 +22,7 @@ import { signImageUrl } from '../../utilities/content';
 import { showToast } from '../../utilities/toasts';
 import { IHabitWithPactState, splitHabitsByPactState } from './pactState';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
+import getConfig from '../../utilities/getConfig';
 
 interface IHabitsDashboardDispatchProps {
     getUserGoals: Function;
@@ -268,6 +269,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         const { habits } = this.props;
         const { isUnlocked, hasProgress, invitedCount, requiredCount, remaining } = getSoloUnlockProgress(
             habits.userHabitEligibility,
+            getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
         );
 
         if (isUnlocked || !hasProgress) {

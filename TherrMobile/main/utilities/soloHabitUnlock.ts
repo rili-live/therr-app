@@ -34,9 +34,33 @@ const toCount = (value: unknown): number | null => (
     typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
 );
 
+/** Nothing unlocked and nothing to render — the shape every "no" resolves to. */
+const NO_PROGRESS: ISoloUnlockProgress = {
+    invitedCount: 0,
+    requiredCount: 0,
+    remaining: 0,
+    isUnlocked: false,
+    hasProgress: false,
+};
+
+/**
+ * @param isSoloEnabled `ENABLE_HABITS_SOLO`. Required rather than read here so
+ *   this module keeps its RN-free contract — `getConfig` pulls in `react-native`
+ *   through `env-config`. Passing it in also puts the *meaning* of "disabled" in
+ *   one place: every surface derives its copy from the returned object, so a
+ *   flag that is off must resolve to locked-and-silent here rather than at four
+ *   call sites that could each get it half right. Without that, turning the flag
+ *   off hid the CTA but left the progress banner promising an unlock the app no
+ *   longer offered.
+ */
 export const getSoloUnlockProgress = (
-    eligibility?: IUserHabitEligibility | null,
+    eligibility: IUserHabitEligibility | null | undefined,
+    isSoloEnabled: boolean,
 ): ISoloUnlockProgress => {
+    if (!isSoloEnabled) {
+        return NO_PROGRESS;
+    }
+
     // Unloaded eligibility is treated as locked, which is the safe direction:
     // showing the affordance early only walks the user into a 403 the server
     // was always going to return.
@@ -45,13 +69,7 @@ export const getSoloUnlockProgress = (
     const requiredCount = toCount(eligibility?.soloUnlockInviteCount);
 
     if (invitedCount === null || requiredCount === null || requiredCount === 0) {
-        return {
-            invitedCount: 0,
-            requiredCount: 0,
-            remaining: 0,
-            isUnlocked,
-            hasProgress: false,
-        };
+        return { ...NO_PROGRESS, isUnlocked };
     }
 
     return {

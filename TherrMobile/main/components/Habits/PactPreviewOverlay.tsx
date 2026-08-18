@@ -3,6 +3,7 @@ import { View, Text, SafeAreaView, ScrollView, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import { IUserState, IHabitsState, IHabitGoal, IPact } from 'therr-react/types';
 import { Button } from '../BaseButton';
 import { buildStyles } from '../../styles';
@@ -12,6 +13,7 @@ import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import { space } from '../../styles/layouts/spacing';
 import translator from '../../utilities/translator';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
+import getConfig from '../../utilities/getConfig';
 import BaseStatusBar from '../BaseStatusBar';
 
 export const HABITS_PRESTAGED_TEMPLATE_ID = 'HABITS_PRESTAGED_TEMPLATE_ID';
@@ -230,7 +232,10 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
     // remaining count here is what turns "you must invite people" into a target
     // worth finishing; a user who only meets the rule at the moment it blocks
     // them has already formed the impression that the app is stonewalling.
-    const soloUnlock = getSoloUnlockProgress(habits.userHabitEligibility);
+    const soloUnlock = getSoloUnlockProgress(
+        habits.userHabitEligibility,
+        getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
+    );
 
     const handleViewSent = () => {
         navigation.navigate('PactsList', { initialTab: 'outgoing' });

@@ -183,7 +183,10 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
      */
     isSoloMode = (): boolean => this.props.route?.params?.mode === 'solo';
 
-    getSoloProgress = () => getSoloUnlockProgress(this.props.habits.userHabitEligibility);
+    getSoloProgress = () => getSoloUnlockProgress(
+        this.props.habits.userHabitEligibility,
+        getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
+    );
 
     getWizardContext = (): IWizardContext => ({
         isSoloMode: this.isSoloMode(),

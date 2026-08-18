@@ -23,7 +23,7 @@ const eligibility = (overrides: any = {}): any => ({
 
 describe('getSoloUnlockProgress', () => {
     it('reports how many invites are left', () => {
-        const progress = getSoloUnlockProgress(eligibility());
+        const progress = getSoloUnlockProgress(eligibility(), true);
 
         expect(progress.isUnlocked).toBe(false);
         expect(progress.hasProgress).toBe(true);
@@ -33,7 +33,7 @@ describe('getSoloUnlockProgress', () => {
     });
 
     it('reports unlocked when the server says so', () => {
-        const progress = getSoloUnlockProgress(eligibility({ canCreateSolo: true, invitedCount: 3 }));
+        const progress = getSoloUnlockProgress(eligibility({ canCreateSolo: true, invitedCount: 3 }), true);
 
         expect(progress.isUnlocked).toBe(true);
         expect(progress.remaining).toBe(0);
@@ -43,7 +43,7 @@ describe('getSoloUnlockProgress', () => {
         // The safe direction. Showing the affordance before the answer arrives
         // only walks the user into a 403 the server was always going to send.
         [null, undefined].forEach((value) => {
-            const progress = getSoloUnlockProgress(value);
+            const progress = getSoloUnlockProgress(value, true);
 
             expect(progress.isUnlocked).toBe(false);
             expect(progress.hasProgress).toBe(false);
@@ -57,7 +57,7 @@ describe('getSoloUnlockProgress', () => {
         const progress = getSoloUnlockProgress(eligibility({
             invitedCount: undefined,
             soloUnlockInviteCount: undefined,
-        }));
+        }), true);
 
         expect(progress.isUnlocked).toBe(false);
         expect(progress.hasProgress).toBe(false);
@@ -67,14 +67,41 @@ describe('getSoloUnlockProgress', () => {
         // A user past the threshold who is somehow still locked — a stale
         // eligibility payload, a server-side override — must not be told to
         // invite "-1 more friends".
-        const progress = getSoloUnlockProgress(eligibility({ invitedCount: 5, soloUnlockInviteCount: 3 }));
+        const progress = getSoloUnlockProgress(eligibility({ invitedCount: 5, soloUnlockInviteCount: 3 }), true);
 
         expect(progress.remaining).toBe(0);
     });
 
     it('ignores a nonsensical required count rather than dividing by it', () => {
-        const progress = getSoloUnlockProgress(eligibility({ soloUnlockInviteCount: 0 }));
+        const progress = getSoloUnlockProgress(eligibility({ soloUnlockInviteCount: 0 }), true);
 
         expect(progress.hasProgress).toBe(false);
+    });
+});
+
+describe('getSoloUnlockProgress with ENABLE_HABITS_SOLO off', () => {
+    it('reports locked with nothing to render, however unlocked the server says the user is', () => {
+        // The flag is the kill switch. Before it was consulted here it was
+        // consulted nowhere, so turning it off disabled nothing at all.
+        const progress = getSoloUnlockProgress(
+            eligibility({ canCreateSolo: true, invitedCount: 3 }),
+            false,
+        );
+
+        expect(progress.isUnlocked).toBe(false);
+        expect(progress.hasProgress).toBe(false);
+    });
+
+    it('suppresses the progress numbers as well as the unlock', () => {
+        // Both halves have to go together. A build with solo habits switched
+        // off that still counted down "invite 2 more friends to unlock solo
+        // habits" would be advertising a feature it has no way to deliver —
+        // the failure mode that made a half-wired flag worse than none.
+        const progress = getSoloUnlockProgress(eligibility({ invitedCount: 2 }), false);
+
+        expect(progress.hasProgress).toBe(false);
+        expect(progress.invitedCount).toBe(0);
+        expect(progress.requiredCount).toBe(0);
+        expect(progress.remaining).toBe(0);
     });
 });
