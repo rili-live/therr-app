@@ -6,7 +6,7 @@ import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { useFeatureFlags } from '../../context/FeatureFlagContext';
 import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
-import { hasSentPactInvite } from '../../routes/Habits/pactState';
+import { hasSentPactInvite, hasTrackedHabit } from '../../routes/Habits/pactState';
 
 interface IPactOnboardingGuardProps {
     user: IUserState;
@@ -34,9 +34,10 @@ const mapStateToProps = (state: any) => ({
  *
  * The last condition matters for personal habits. Starting one navigates
  * straight back here, so a guard that only knew about pacts would drop the user
- * onto this overlay holding a habit it refused to show them. `habitGoals` is the
- * right signal because the dashboard beneath already loads it on every focus,
- * and a goal only comes into existence once the user finishes the wizard.
+ * onto this overlay holding a habit it refused to show them. It reads the
+ * server's count of habits actually being tracked rather than the local goal
+ * list — see `hasTrackedHabit` for why a goal on its own is not a start — and
+ * the dashboard beneath already fetches that count on every focus.
  *
  * Note this asks "have you started", which is a different and looser question
  * than "have you unlocked solo habits" — that one takes several invites and is
@@ -59,7 +60,11 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         && user.isAuthenticated;
     const hasActivePact = activePactCount > 0;
     const hasSentInvite = hasSentPactInvite(habits.pacts || [], user.details?.id);
-    const hasOwnHabit = (habits.habitGoals?.length || 0) > 0;
+    const hasOwnHabit = hasTrackedHabit(
+        habits.userHabitEligibility?.activeHabitCount,
+        habits.userHabits?.length || 0,
+        habits.habitGoals?.length || 0,
+    );
     const hasStarted = hasActivePact || hasSentInvite || hasOwnHabit;
 
     // Depend on the length, not the array reference, so unrelated Redux

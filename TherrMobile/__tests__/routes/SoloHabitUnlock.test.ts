@@ -1,5 +1,5 @@
 import { it, describe, expect } from '@jest/globals';
-import { hasSentPactInvite } from '../../main/routes/Habits/pactState';
+import { hasSentPactInvite, hasTrackedHabit } from '../../main/routes/Habits/pactState';
 
 /**
  * One of the three conditions that release the habits onboarding overlay.
@@ -70,5 +70,44 @@ describe('hasSentPactInvite', () => {
         // — an undefined-equals-undefined comparison would unlock the gate for
         // everyone while the user record is still loading.
         expect(hasSentPactInvite([pact({ creatorUserId: undefined })], undefined)).toBe(false);
+    });
+});
+
+describe('hasTrackedHabit', () => {
+    it('is false for a goal the user composed but never started tracking', () => {
+        // The orphan. The wizard writes the goal, then calls the endpoint that
+        // begins tracking it; a 402 at the free-tier cap or a 403 at the solo
+        // threshold lands in between and leaves the goal behind. Counting it
+        // lifted the onboarding overlay for a user holding nothing.
+        expect(hasTrackedHabit(0, 0, 1)).toBe(false);
+    });
+
+    it('is true once the server confirms a habit is being tracked', () => {
+        expect(hasTrackedHabit(1, 0, 1)).toBe(true);
+    });
+
+    it('trusts the server count over a stale local goal list', () => {
+        // Goals can lag or run ahead of what is actually tracked in both
+        // directions; the count is the authority either way.
+        expect(hasTrackedHabit(2, 0, 0)).toBe(true);
+        expect(hasTrackedHabit(0, 0, 5)).toBe(false);
+    });
+
+    it('is true the instant a habit is started, before the server count catches up', () => {
+        // The regression this guards. Starting a habit navigates straight to
+        // the dashboard, and the local list is updated well before the refetch
+        // it races — so a stale zero from the server must not win here, or the
+        // overlay flashes back at the user in the moment they succeeded.
+        expect(hasTrackedHabit(0, 1, 1)).toBe(true);
+    });
+
+    it('falls back to the goal count while eligibility has not loaded', () => {
+        // No count to consult yet. Flashing a full-screen onboarding overlay at
+        // someone who has used the app for months is worse than briefly
+        // trusting a goal that is almost always real.
+        [null, undefined].forEach((notLoaded) => {
+            expect(hasTrackedHabit(notLoaded, 0, 1)).toBe(true);
+            expect(hasTrackedHabit(notLoaded, 0, 0)).toBe(false);
+        });
     });
 });

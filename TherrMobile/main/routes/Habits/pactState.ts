@@ -63,6 +63,48 @@ export const hasSentPactInvite = (
 );
 
 /**
+ * Has this user actually started tracking a habit?
+ *
+ * The third condition that releases the onboarding overlay, and the one that
+ * has to distinguish a habit from the *intent* to have one. The create-habit
+ * wizard writes the habit goal first and only then makes the call that begins
+ * tracking it, so any failure in between — the free-tier cap answering 402, the
+ * solo threshold answering 403, a dropped connection — leaves a goal behind
+ * with nothing tracking it. Counting goals therefore lifted this overlay for a
+ * user holding nothing, dropping them on a dashboard with no habits and no
+ * onboarding to explain it.
+ *
+ * `activeHabitCount` is the server's own count of habits being tracked, and it
+ * covers both routes into one: joining or creating a pact calls
+ * `userHabits.getOrCreate` the same as the solo path does, so a user whose only
+ * pact has since completed still counts here.
+ *
+ * `trackedHabitCount` is the locally held list, checked first because the
+ * server count is only as fresh as the last dashboard refresh. Starting a habit
+ * navigates straight here, and `CREATE_USER_HABIT` lands in the store well
+ * before the refetch it races — without this the overlay flashed back at the
+ * user in the moment they had just succeeded. It is a within-session list that
+ * starts empty and is only ever added to by a confirmed start, so it can raise
+ * this answer but never staleley hold it true across a launch.
+ *
+ * Falls back to the goal count while eligibility has not loaded. There is no
+ * count to consult then, and flashing the full-screen overlay at someone who
+ * has used the app for months is worse than briefly trusting a goal that is
+ * almost always real.
+ */
+export const hasTrackedHabit = (
+    activeHabitCount: number | null | undefined,
+    trackedHabitCount: number,
+    habitGoalCount: number,
+): boolean => {
+    if (trackedHabitCount > 0) {
+        return true;
+    }
+
+    return typeof activeHabitCount === 'number' ? activeHabitCount > 0 : habitGoalCount > 0;
+};
+
+/**
  * Splits the habit list by whether its pact has started. Goals with no pact at
  * all are treated as live so a habit can never become un-checkin-able through
  * missing pact data.
