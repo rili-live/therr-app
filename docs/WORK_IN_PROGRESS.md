@@ -781,13 +781,6 @@ console configuration, and one verification that gates a payments change.
   Play build would ship looking finished while the threshold it advertises silently is not in
   effect. Push `general`, then `general → stage → main`, and confirm the new response shape is
   live before cutting the Android build.
-- [ ] (2026-08-17, /quality-peer-review-niche) **Decide whether `ENABLE_HABITS_SOLO` should
-  gate anything.** The flag is defined in `FeatureFlags`, set to `true` for HABITS in
-  `env-config.js`, and given a dependency rule in `validateFeatureFlags.ts` — but no call site
-  reads it. The solo path is gated entirely on server eligibility, so today the flag is inert
-  and flipping it off would not disable the feature. Either wire it into the solo affordances
-  (`PactPreviewOverlay` footer, `CreatePactInvite.renderSoloSection`) so there is a kill switch
-  that works, or delete it so nobody trusts a switch that does nothing.
 <!-- skill-followups:end -->
 
 ---
