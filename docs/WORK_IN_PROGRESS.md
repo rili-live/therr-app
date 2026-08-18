@@ -803,13 +803,39 @@ console configuration, and one verification that gates a payments change.
   Play build would ship looking finished while the threshold it advertises silently is not in
   effect. Push `general`, then `general → stage → main`, and confirm the new response shape is
   live before cutting the Android build.
-- [ ] (2026-08-17, /quality-peer-review-niche) **Decide whether `ENABLE_HABITS_SOLO` should
-  gate anything.** The flag is defined in `FeatureFlags`, set to `true` for HABITS in
-  `env-config.js`, and given a dependency rule in `validateFeatureFlags.ts` — but no call site
-  reads it. The solo path is gated entirely on server eligibility, so today the flag is inert
-  and flipping it off would not disable the feature. Either wire it into the solo affordances
-  (`PactPreviewOverlay` footer, `CreatePactInvite.renderSoloSection`) so there is a kill switch
-  that works, or delete it so nobody trusts a switch that does nothing.
+- [ ] (2026-08-18, /quality-peer-review) **Send one real Friends with Habits invite in prod
+  once `general → stage → main` lands.** This is the first release where a niche invite leaves
+  the Therr host: the email subject, the email body pitch, the SMS body and the magic-link host
+  are all now brand-resolved, and the habits link points at `https://habits.therr.com/invite/link/:token`
+  rather than therr.com. The unit tests stub SES and compose the SMS string directly, so nothing
+  in CI exercises Twilio, SES, or the habits subdomain actually resolving that route in prod.
+  Send one invite to each channel from a Habits account and confirm the subject names Friends
+  with Habits, the body reads "be the change" rather than "explore your local community", and
+  the link lands on the invite page instead of bouncing to therr.com.
+- [ ] (2026-08-18, /quality-peer-review) **Android 3.15.1 (versionCode 449) needs Play release
+  notes before rollout.** The bump ships three user-visible fixes: bottom sheets no longer sit
+  for 300ms before animating, the Connect lists stop snapping back to the top mid-scroll, and
+  the sign-in field no longer swaps the keyboard out from under you partway through a phone
+  number (with a new toggle button beside the field for the cases the automatic pick gets
+  wrong). Note the keyboard toggle explicitly — it is a new control, not just a fix. If
+  versionCode 447 never rolled out, the 2026-08-12 item above folds into this one and the notes
+  must cover both bumps.
+- [ ] (2026-08-18, /quality-peer-review) **Smoke-test every bottom sheet on a real Android
+  device before cutting 3.15.2.** `BaseActionSheet` now renders every sheet with
+  `isModal={false}`, so sheets are in-tree absolutely-positioned views instead of native Dialog
+  windows. Nothing in Jest or tsc covers that difference — the library keeps a `hardwareBackPress`
+  listener on the non-modal path (verified in `dist/src/index.js`) and `SheetProvider` sits inside
+  `GestureHandlerRootView` above `Layout`, so z-order and back should hold, but both are runtime
+  properties of the native view tree. Open content-options, group, user, user-profile,
+  image-picker, visibility-picker and list-picker sheets; confirm each draws over the bottom tab
+  bar, that the hardware back button dismisses it, that swipe-down dismisses (all but list-picker,
+  which opts out), and that the list-picker's text input is not covered by the keyboard.
+- [ ] (2026-08-18, /quality-peer-review) **Android 3.15.2 (versionCode 450) release notes —
+  supersedes the versionCode 449 item above.** 449 was bumped to 450 in the same cycle, so write
+  one set of notes covering both. On top of the 449 fixes, 450 adds: blank gaps in the Discovered
+  feed and the Connect lists are gone (`removeClippedSubviews` off, wider render window, Connect
+  back on FlatList), and the post options sheet no longer pops back open a moment after you react
+  to a post.
 <!-- skill-followups:end -->
 
 ---

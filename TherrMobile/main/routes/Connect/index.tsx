@@ -1,6 +1,5 @@
 import React from 'react';
-import { Dimensions, Text, View } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { Dimensions, FlatList, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -35,6 +34,25 @@ import ReferralStats from '../../components/UserContent/ReferralStats';
 
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
+
+/**
+ * Virtualization window for the three Connect lists.
+ *
+ * These lists were briefly on FlashList. Its recycler lays cells out from a single
+ * `estimatedItemSize` and repositions them once the real heights come back, and these rows
+ * are not a single height — the avatar floors a row at 67px, but a two-line DM preview or a
+ * "Connect" pill pushes it taller. The mismatch showed as blank bands between items that
+ * only filled in on re-layout. There is no per-row size hint in FlashList v1 to fix that,
+ * so these are plain FlatLists again; the lists page at 50 items, where FlatList is fine.
+ *
+ * `removeClippedSubviews` is deliberately not set (see AreaCarousel for why it is a blank-cell
+ * hazard on Android), and `windowSize` is kept wide enough that a fast flick cannot outrun
+ * the render batch.
+ */
+const LIST_INITIAL_NUM_TO_RENDER = 8;
+const LIST_MAX_TO_RENDER_PER_BATCH = 5;
+const LIST_WINDOW_SIZE = 11;
+
 const tabMap = {
     0: PEOPLE_CAROUSEL_TABS.PEOPLE,
     1: PEOPLE_CAROUSEL_TABS.MESSAGES,
@@ -123,9 +141,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     private themeForms = buildFormsStyles();
     private themeCategory = buildCategoryStyles();
     private unsubscribeFocusListener;
-    private peopleListRef: FlashList<any> | null = null;
-    private connectionsListRef: FlashList<any> | null = null;
-    private messagesListRef: FlashList<any> | null = null;
+    private peopleListRef: FlatList<any> | null = null;
+    private connectionsListRef: FlatList<any> | null = null;
+    private messagesListRef: FlatList<any> | null = null;
 
     constructor(props) {
         super(props);
@@ -404,18 +422,28 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         navigation.navigate('Invite');
     };
 
+    /**
+     * Scrolls the tab the user is actually looking at back to the top.
+     *
+     * Only ever called from an explicit gesture — the menu's action button. It used to be
+     * wired to every list's `onContentSizeChange` as well, which meant any growth in content
+     * height yanked the list back to offset 0 — including the growth from paginating in the
+     * next page of users. That was the "snaps back to the top unprovoked" report. Do not
+     * re-attach it to `onContentSizeChange`.
+     *
+     * Scoped to the active tab because the previous version scrolled all three lists at once,
+     * silently resetting the two tabs the user could not see.
+     */
     scrollTop = () => {
-        const { userConnections, user } = this.props;
+        const { activeTabIndex } = this.state;
 
-        if (userConnections.connections?.length) {
-            this.connectionsListRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
-        if (userConnections.groups?.length) {
-            this.messagesListRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
-        if (Object.keys(user.users || {}).length) {
-            this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
+        const listRef = {
+            [PEOPLE_CAROUSEL_TABS.PEOPLE]: this.peopleListRef,
+            [PEOPLE_CAROUSEL_TABS.MESSAGES]: this.messagesListRef,
+            [PEOPLE_CAROUSEL_TABS.CONNECTIONS]: this.connectionsListRef,
+        }[tabMap[activeTabIndex]];
+
+        listRef?.scrollToOffset({ animated: true, offset: 0 });
     };
 
     sortConnections = () => {
@@ -490,7 +518,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 } = this.sortUsers();
 
                 return (
-                    <FlashList
+                    <FlatList
                         ref={(component) => { this.peopleListRef = component; }}
                         data={people}
                         keyExtractor={(item) => String(item.id)}
@@ -537,19 +565,20 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshingUserSearch}
                             onRefresh={this.handleRefreshUsersSearch}
                         />}
-                        onContentSizeChange={this.scrollTop}
                         onEndReached={this.trySearchMoreUsers}
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
                         ListFooterComponentStyle={{ marginBottom: 80 }}
-                        estimatedItemSize={96}
+                        initialNumToRender={LIST_INITIAL_NUM_TO_RENDER}
+                        maxToRenderPerBatch={LIST_MAX_TO_RENDER_PER_BATCH}
+                        windowSize={LIST_WINDOW_SIZE}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.MESSAGES:
                 const messagedConnections = this.sortMessages();
 
                 return (
-                    <FlashList
+                    <FlatList
                         ref={(component) => { this.messagesListRef = component; }}
                         data={messagedConnections}
                         keyExtractor={(item) => String(item.id)}
@@ -576,15 +605,16 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshingDMsSearch}
                             onRefresh={this.handleRefreshDMsSearch}
                         />}
-                        onContentSizeChange={this.scrollTop}
-                        estimatedItemSize={88}
+                        initialNumToRender={LIST_INITIAL_NUM_TO_RENDER}
+                        maxToRenderPerBatch={LIST_MAX_TO_RENDER_PER_BATCH}
+                        windowSize={LIST_WINDOW_SIZE}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.CONNECTIONS:
                 const connections = this.sortConnections();
 
                 return (
-                    <FlashList
+                    <FlatList
                         ref={(component) => { this.connectionsListRef = component; }}
                         data={connections}
                         keyExtractor={(item) => String(item.id)}
@@ -625,8 +655,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshingConnections}
                             onRefresh={this.handleRefreshUserConnections}
                         />}
-                        onContentSizeChange={this.scrollTop}
-                        estimatedItemSize={88}
+                        initialNumToRender={LIST_INITIAL_NUM_TO_RENDER}
+                        maxToRenderPerBatch={LIST_MAX_TO_RENDER_PER_BATCH}
+                        windowSize={LIST_WINDOW_SIZE}
                     />
                 );
         }

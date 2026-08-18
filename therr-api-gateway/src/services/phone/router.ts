@@ -11,6 +11,7 @@ import {
 import {
     ErrorCodes,
     getAvailablePhoneAccountTypes,
+    getBrandName,
     getMaxAccountsPerPhone,
 } from 'therr-js-utilities/constants';
 import handleHttpError from '../../utilities/handleHttpError';
@@ -85,9 +86,21 @@ const buildInternalHeaders = (req: any) => ({
     'x-therr-origin-host': req.headers.origin?.match(hostRegex)?.[1] || '',
 });
 
-const sendVerificationSms = (locale: string, toPhoneNumber: string, verificationCode: number) => twilioClient.messages
+/**
+ * The code SMS names the app the user is actually signing in to. A Friends with Habits user
+ * who receives a code "for Therr" has no way to tell it apart from a phishing attempt, so the
+ * brand is interpolated rather than baked into the dictionary. `getBrandName` falls back to
+ * Therr for an absent or unrecognized header, matching `getBrandContext`.
+ */
+const sendVerificationSms = (
+    locale: string,
+    brandVariation: string,
+    toPhoneNumber: string,
+    verificationCode: number,
+) => twilioClient.messages
     .create({
         body: translate(locale, 'sms.yourVerificationCode', {
+            brandName: getBrandName(brandVariation),
             code: verificationCode,
         }),
         to: toPhoneNumber, // Text this number
@@ -225,7 +238,12 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
             redisClient.setex(codeCacheKey, expireSeconds, verificationCode),
             redisClient.setex(phoneCacheKey, expireSeconds, normalizedPhoneNumber),
         ])
-            .then(() => sendVerificationSms(userLocale, normalizedPhoneNumber, verificationCode))
+            .then(() => sendVerificationSms(
+                userLocale,
+                `${req.headers['x-brand-variation'] || ''}`,
+                normalizedPhoneNumber,
+                verificationCode,
+            ))
             // eslint-disable-next-line arrow-body-style
             .then(() => {
                 return res.status(200).send({
@@ -320,7 +338,7 @@ const dispatchLoginCode = async (headers: any, locale: string, phone: ICanonical
         const verificationCode = generateVerificationCode();
         await redisClient.setex(authCodeKey('login', phone.e164), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
         await redisClient.del(authAttemptsKey('login', phone.e164));
-        await sendVerificationSms(locale, phone.e164, verificationCode);
+        await sendVerificationSms(locale, `${headers['x-brand-variation'] || ''}`, phone.e164, verificationCode);
     } catch (err: any) {
         // The caller is already gone, so logging is the only channel left. Without this a
         // misconfigured Twilio sender would look, from the outside, exactly like a user
@@ -550,7 +568,7 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
         const verificationCode = generateVerificationCode();
         await redisClient.setex(authCodeKey('register', phone.e164), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
         await redisClient.del(authAttemptsKey('register', phone.e164));
-        await sendVerificationSms(userLocale, phone.e164, verificationCode);
+        await sendVerificationSms(userLocale, brandVariation, phone.e164, verificationCode);
 
         return res.status(200).send({
             status: 'sent',

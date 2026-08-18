@@ -68,7 +68,10 @@
         "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!"
     },
     "invites": {
-        "phone": "{name} invited you to Therr — the local community and rewards app. Sign up here to connect: {inviteUrl}",
+        "phone": "{name} invited you to {brandName}{brandTagline}. Sign up here to connect: {inviteUrl}",
+        "phoneTaglines": {
+            "therr": " — the local community and rewards app"
+        },
         "pact": {
             "sms": "{fromName} invited you to a {brandName} pact: {habitName}. Install and tap {claimUrl} — or use code {claimCode} at sign-up.",
             "smsTokenOnly": "{fromName} invited you to a {brandName} pact: {habitName}. Install and tap {claimUrl} to accept."
@@ -143,7 +146,11 @@
             "dearUser": "Hey {toEmail}!",
             "body1": "{fromName} wants you on {brandName}! You can also reach them directly at {fromEmail}.",
             "body2": "Click below to sign up and start exploring your local community.",
-            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
+            "body2ByBrand": {
+                "habits": "Click below to sign up and be the change — habits stick when you build them with friends."
+            },
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}",
+            "subject": "{fromName} invited you to {brandShortName}"
         },
         "newUserInvite": {
             "header": "Your Profile Is Waiting!",

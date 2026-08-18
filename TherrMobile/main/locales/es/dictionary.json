@@ -518,7 +518,9 @@
         "password": "Contraseña",
         "userName": "Correo/Teléfono/Usuario",
         "enterCode": "Ingresa tu código",
-        "switchAccount": "Cambiar de cuenta"
+        "switchAccount": "Cambiar de cuenta",
+        "useNumberKeypad": "Usar el teclado numérico",
+        "useLetterKeyboard": "Usar el teclado alfabético"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "invalidUsernamePassword": "Combinación de usuario/contraseña inválida.",

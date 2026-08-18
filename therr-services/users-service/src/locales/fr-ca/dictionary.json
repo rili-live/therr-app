@@ -68,7 +68,10 @@
         "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!"
     },
     "invites": {
-        "phone": "{name} t'a invité sur Therr — l'appli de communauté locale et de récompenses. Inscris-toi ici pour te connecter : {inviteUrl}",
+        "phone": "{name} t'a invité sur {brandName}{brandTagline}. Inscris-toi ici pour te connecter : {inviteUrl}",
+        "phoneTaglines": {
+            "therr": " — l'appli de communauté locale et de récompenses"
+        },
         "pact": {
             "sms": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} — ou utilise le code {claimCode} à l'inscription.",
             "smsTokenOnly": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} pour accepter."
@@ -143,7 +146,11 @@
             "dearUser": "Salut {toEmail}!",
             "body1": "{fromName} te veut sur {brandName}! Tu peux aussi le joindre directement à {fromEmail}.",
             "body2": "Clique ci-dessous pour t'inscrire et commencer à explorer ta communauté locale.",
-            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+            "body2ByBrand": {
+                "habits": "Clique ci-dessous pour t'inscrire et être le changement : les habitudes durent quand tu les bâtis avec des amis."
+            },
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}",
+            "subject": "{fromName} t'a invité sur {brandShortName}"
         },
         "newUserInvite": {
             "header": "Ton profil t'attend!",
