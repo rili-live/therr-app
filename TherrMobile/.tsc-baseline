@@ -39,7 +39,6 @@ TherrMobile/main/routes/Areas/index.tsx	TS2339	Property 'isLoadingActiveThoughts
 TherrMobile/main/routes/Areas/MyDrafts.tsx	TS2322	Type 'Function' is not assignable to type '(key: string, params?: any) => string'.
 TherrMobile/main/routes/Areas/Nearby/GPSEnableDialog.tsx	TS2741	Property 'children' is missing in type '{ variant: "bodyMedium"; style: any[]; }' but required in type '{ variant?: VariantProp<never> | undefined; children: ReactNode; theme?: ThemeProp | undefined; style?: StyleProp<TextStyle>; }'.
 TherrMobile/main/routes/Areas/Nearby/NearbyWrapper.tsx	TS2345	Argument of type '{ longitude: any; latitude: any; radiusOfAwareness: number; radiusOfInfluence: number; }' is not assignable to parameter of type 'ILocationChangeDetails'.
-TherrMobile/main/routes/Connect/index.tsx	TS2339	Property 'groups' does not exist on type 'IUserConnectionsState'.
 TherrMobile/main/routes/CreateProfile/index.tsx	TS2322	Type '(component: KeyboardAwareScrollViewRef | null) => KeyboardAwareScrollViewRef | null' is not assignable to type 'Ref<KeyboardAwareScrollViewRef> | undefined'.
 TherrMobile/main/routes/DirectMessage/index.tsx	TS18048	'messages' is possibly 'undefined'.
 TherrMobile/main/routes/DirectMessage/index.tsx	TS18048	'messages' is possibly 'undefined'.
