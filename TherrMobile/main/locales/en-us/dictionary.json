@@ -504,7 +504,9 @@
         "password": "Password",
         "userName": "Email/Phone/Username",
         "enterCode": "Enter your code",
-        "switchAccount": "Switch account"
+        "switchAccount": "Switch account",
+        "useNumberKeypad": "Use the number keypad",
+        "useLetterKeyboard": "Use the letter keyboard"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",

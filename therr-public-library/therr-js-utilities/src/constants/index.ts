@@ -40,6 +40,11 @@ import {
     getReadableBrands,
 } from './brandThoughtsVisibility';
 import {
+    BRAND_NAMES,
+    DEFAULT_BRAND_NAME,
+    getBrandName,
+} from './brandNames';
+import {
     PhoneAccountType,
     PHONE_ACCOUNT_TYPES,
     MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
@@ -94,6 +99,9 @@ export {
     AccessLevels,
     BrandVariations,
     BRAND_THOUGHTS_VISIBILITY,
+    BRAND_NAMES,
+    DEFAULT_BRAND_NAME,
+    getBrandName,
     getReadableBrands,
     FeatureFlags,
     HABITS_FREE_HABIT_LIMIT,

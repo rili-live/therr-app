@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-actions-sheet/dist/src/index.js b/node_modules/react-native-actions-sheet/dist/src/index.js
+index 0b9975e..06ed5c0 100644
+--- a/node_modules/react-native-actions-sheet/dist/src/index.js
++++ b/node_modules/react-native-actions-sheet/dist/src/index.js
+@@ -364,6 +364,7 @@ export default forwardRef(function ActionSheet(_a, ref) {
+             rootViewLayoutEventValues.current.layouTimer = setTimeout(function () {
+                 internalEventManager.publish(EVENTS_INTERNAL.safeAreaLayout);
+             }, Platform.OS === 'ios' ||
++                Platform.OS === 'android' ||
+                 rootViewLayoutEventValues.current.firstEventFired
+                 ? 0
+                 : 300);
