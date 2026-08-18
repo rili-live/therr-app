@@ -15,6 +15,12 @@ const translator = configureTranslator(locales);
  *
  * Used for copy that only some brands customize: the caller supplies its own fallback, which
  * is either the shared default (`?? translate(locale, baseKey)`) or nothing at all (`?? ''`).
+ *
+ * The `typeof` check covers the translator's other way of not returning a string: it walks the
+ * dictionary by path and hands back whatever it lands on, so a key naming a branch rather than
+ * a leaf (`emails.contactInvite.body2ByBrand`, no brand appended) resolves to the object
+ * itself. That is a miss for our purposes — and without the guard it would reach a caller
+ * typed to expect a string, and render as `[object Object]` in an email or SMS.
  */
 export const translateOptional = (
     locale: string,
@@ -23,7 +29,11 @@ export const translateOptional = (
 ): string | undefined => {
     const translated = translator(locale, key, params);
 
-    return translated === key ? undefined : translated;
+    if (typeof translated !== 'string' || translated === key) {
+        return undefined;
+    }
+
+    return translated;
 };
 
 export default translator;

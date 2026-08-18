@@ -35,4 +35,15 @@ describe('translateOptional', () => {
     it('resolves undefined for a wholly unknown namespace', () => {
         expect(translateOptional('en-us', 'not.a.real.key')).to.equal(undefined);
     });
+
+    it('treats a key naming a branch rather than a leaf as a miss', () => {
+        // The translator walks the dictionary by path and returns whatever it lands on, so
+        // these keys — the override namespaces with no brand appended — resolve to the parent
+        // object. Unguarded that object reaches a caller typed for a string and renders as
+        // '[object Object]' in a live email or SMS.
+        ['emails.contactInvite.body2ByBrand', 'invites.phoneTaglines'].forEach((branchKey) => {
+            expect(translate('en-us', branchKey)).to.be.an('object');
+            expect(translateOptional('en-us', branchKey)).to.equal(undefined);
+        });
+    });
 });
