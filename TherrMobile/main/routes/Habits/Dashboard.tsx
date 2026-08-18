@@ -274,22 +274,25 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             return null;
         }
 
+        const title = this.translate('pages.habits.soloUnlockBannerTitle', { remaining });
+        const body = this.translate('pages.habits.soloUnlockBannerBody', {
+            invited: invitedCount,
+            required: requiredCount,
+        });
+
         return (
             <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={this.translate('pages.habits.soloUnlockBannerTitle', { remaining })}
+                // Both lines, because an explicit label replaces the text the
+                // children would otherwise compose. Titling it alone announced
+                // the ask ("invite 2 more friends") while dropping the progress
+                // that makes it feel finishable — the whole point of the banner.
+                accessibilityLabel={`${title}. ${body}`}
                 onPress={this.handleCreatePact}
                 style={this.themeHabits.styles.dashboardSection}
             >
-                <Text style={this.themeHabits.styles.dashboardSectionTitle}>
-                    {this.translate('pages.habits.soloUnlockBannerTitle', { remaining })}
-                </Text>
-                <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                    {this.translate('pages.habits.soloUnlockBannerBody', {
-                        invited: invitedCount,
-                        required: requiredCount,
-                    })}
-                </Text>
+                <Text style={this.themeHabits.styles.dashboardSectionTitle}>{title}</Text>
+                <Text style={this.themeHabits.styles.dashboardSubtitle}>{body}</Text>
             </Pressable>
         );
     };
