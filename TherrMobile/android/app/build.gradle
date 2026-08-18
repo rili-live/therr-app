@@ -89,8 +89,8 @@ android {
         applicationId "com.therr.habits"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 24
-        versionName "1.0.0"
+        versionCode 25
+        versionName "1.1.0"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.
