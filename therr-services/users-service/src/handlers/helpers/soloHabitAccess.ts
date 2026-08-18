@@ -1,35 +1,52 @@
+import { HABITS_SOLO_UNLOCK_INVITE_COUNT } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 
+export interface ISoloInviteProgress {
+    /** Distinct people this user has invited to a pact they created. */
+    invitedCount: number;
+    /** How many are needed to unlock solo habits. */
+    requiredCount: number;
+    canCreateSolo: boolean;
+}
+
 /**
- * Has this user completed the invite-a-friend onboarding?
+ * Progress toward unlocking personal ("solo") habits.
  *
- * The answer is "has a pact they created ever had a partner invited to it" —
- * not "does an active pact exist". The distinction is the whole point of the
- * feature:
+ * Friends with Habits requires you to bring people with you before you can
+ * track anything alone; that mandatory invite is the growth loop. This returns
+ * the whole picture rather than a boolean because the requirement only works as
+ * a growth lever if the user can *see* it coming — a bare "no" reads as a wall,
+ * while "2 of 3 friends invited" reads as something to finish. Callers need the
+ * numbers on both the allow and the deny path, so both carry them.
  *
- *   - Gating on an *active* pact makes the user's progress depend on someone
- *     else's action. A friend who installs the app a week later, or never,
- *     leaves the inviter parked on the onboarding overlay with nothing they can
- *     do about it. That is a dead end, and it is the retention hole solo habits
- *     exist to close.
- *   - Gating on an *invite sent* keeps the requirement intact. The user still
- *     has to pick a habit, pick a person and send the invitation before the app
- *     will let them track anything alone, which is the behaviour the mandatory
- *     social onboarding was there to produce.
+ * WHAT COUNTS
  *
- * Declined and abandoned pacts still count. The user did the thing that was
- * asked of them; whether the friend said yes is not a test they can pass on
- * their own, and re-locking someone after a decline would punish them for it.
+ * Invites *sent*, to distinct people, in any state. Two deliberate choices:
  *
- * Fails CLOSED on error, unlike the habit cap. Wrongly allowing solo habits
- * would let a user skip the onboarding that the growth loop depends on and
- * cannot be undone once they have habits; wrongly denying is a retryable error
- * on a screen the user is already on.
+ *   - Sent, not accepted. Gating on acceptance measures the friend's action,
+ *     not the user's: someone whose friends install the app a week later — or
+ *     never — would be parked indefinitely with nothing they could do. Declined
+ *     and abandoned pacts still count; the user did what was asked, and
+ *     re-locking them for a decline punishes them for someone else's choice.
+ *   - Distinct people, not invitations. Otherwise inviting one friend to three
+ *     pacts clears a bar meant to put the app in front of three people.
+ *
+ * Fails CLOSED, unlike the habit cap. Wrongly allowing solo habits skips the
+ * onboarding the growth loop depends on and cannot be undone once the user has
+ * habits; wrongly denying is a retryable error on a screen they are already on.
  */
-export const hasSentPactInvite = async (userId: string): Promise<boolean> => {
+export const getSoloInviteProgress = async (userId: string): Promise<ISoloInviteProgress> => {
+    const requiredCount = HABITS_SOLO_UNLOCK_INVITE_COUNT;
+
     try {
-        return await Store.pactMembers.countInvitedByCreator(userId).then((count) => count > 0);
+        const invitedCount = await Store.pactMembers.countDistinctInvitedByCreator(userId);
+
+        return {
+            invitedCount,
+            requiredCount,
+            canCreateSolo: invitedCount >= requiredCount,
+        };
     } catch (err: any) {
         logSpan({
             level: 'error',
@@ -40,8 +57,12 @@ export const hasSentPactInvite = async (userId: string): Promise<boolean> => {
                 'user.id': userId,
             },
         });
-        return false;
+
+        // Zero rather than the real count: on the deny path the client renders
+        // this as progress, and inventing a number we could not read would show
+        // the user a bar that jumps backwards on the next successful call.
+        return { invitedCount: 0, requiredCount, canCreateSolo: false };
     }
 };
 
-export default { hasSentPactInvite };
+export default { getSoloInviteProgress };
