@@ -13,7 +13,7 @@ import * as globalConfig from '../../../../global-config';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
-import translate from '../utilities/translator';
+import translate, { translateOptional } from '../utilities/translator';
 import { translateNotification } from './notifications';
 import { createUserHelper } from './helpers/user';
 import sendContactInviteEmail from '../api/email/for-social/sendContactInviteEmail';
@@ -444,11 +444,8 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         const hostFull = contextConfig.emailTemplates.appHostFull
             || `${globalConfig[process.env.NODE_ENV].hostFull}`;
 
-        // Only Therr ships a tagline; every other brand renders the short form. `translate`
-        // returns the key itself when a dictionary has no entry, so that is the miss signal.
-        const taglineKey = `invites.phoneTaglines.${brandVariation}`;
-        const translatedTagline = translate(locale, taglineKey);
-        const brandTagline = translatedTagline === taglineKey ? '' : translatedTagline;
+        // Only Therr ships a tagline; every other brand renders the short form.
+        const brandTagline = translateOptional(locale, `invites.phoneTaglines.${brandVariation}`) ?? '';
         const emailInvitesToPersist = sendableEmailContacts.map((contact) => ({
             requestingUserId: userId,
             email: contact.email,

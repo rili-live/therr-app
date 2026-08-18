@@ -2,7 +2,7 @@
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
-import translate from '../../../utilities/translator';
+import translate, { translateOptional } from '../../../utilities/translator';
 
 export interface ISendContactInviteEmailConfig {
     charset?: string;
@@ -36,7 +36,11 @@ export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITem
         header: translate(locale, 'emails.contactInvite.header', { fromName: templateParams.fromName }),
         dearUser: translate(locale, 'emails.contactInvite.dearUser', { toEmail: templateParams.toEmail }),
         body1: translate(locale, 'emails.contactInvite.body1', { fromName: templateParams.fromName, fromEmail: templateParams.fromEmail, brandName: contextConfig.brandName }),
-        body2: translate(locale, 'emails.contactInvite.body2'),
+        // The default pitch — "start exploring your local community" — describes Therr. It is
+        // not what a Friends with Habits invite is offering, so brands may override it; those
+        // without an override fall back to the shared line.
+        body2: translateOptional(locale, `emails.contactInvite.body2ByBrand.${emailParams.brandVariation}`)
+            ?? translate(locale, 'emails.contactInvite.body2'),
         buttonHref: linkUrl,
         buttonText: contextConfig.brandGoLinkText,
         postBody1: translate(locale, 'emails.contactInvite.postBody1', { linkUrl }),

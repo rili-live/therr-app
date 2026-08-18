@@ -146,6 +146,9 @@
             "dearUser": "Hey {toEmail}!",
             "body1": "{fromName} wants you on {brandName}! You can also reach them directly at {fromEmail}.",
             "body2": "Click below to sign up and start exploring your local community.",
+            "body2ByBrand": {
+                "habits": "Click below to sign up and be the change — habits stick when you build them with friends."
+            },
             "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}",
             "subject": "{fromName} invited you to {brandShortName}"
         },

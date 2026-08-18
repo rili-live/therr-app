@@ -77,6 +77,30 @@ describe('sendContactInviteEmail', () => {
         });
     });
 
+    describe('body copy', () => {
+        it('pitches the brand the invite is actually for', async () => {
+            await send('habits');
+
+            expect(sentHtml()).to.contain('be the change');
+            // The default line pitches Therr's local-discovery premise, which is not what a
+            // Friends with Habits invite is offering.
+            expect(sentHtml()).to.not.contain('exploring your local community');
+        });
+
+        it('translates the override rather than falling back to English', async () => {
+            await send('habits', 'fr-ca');
+
+            expect(sentHtml()).to.contain('être le changement');
+            expect(sentHtml()).to.not.contain('be the change');
+        });
+
+        it('falls back to the shared line for a brand with no override', async () => {
+            await send('therr');
+
+            expect(sentHtml()).to.contain('exploring your local community');
+        });
+    });
+
     describe('magic link host', () => {
         it('points a niche brand at its own subdomain', async () => {
             await send('habits');
