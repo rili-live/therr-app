@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { IHabitsState } from 'therr-react/types';
 import { Button } from '../BaseButton';
@@ -8,6 +8,8 @@ import 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps as baseMapStateToProps, mapDispatchToProps } from './';
+import { getHabitsTabLayout } from './habitsTabLayout';
+import getConfig from '../../utilities/getConfig';
 import { getUserImageUri } from '../../utilities/content';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
@@ -20,12 +22,23 @@ interface IHabitsButtonMenuProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// HABITS app has 4 tabs: Habits, Pacts, Connect, Profile
-const HABITS_TAB_COUNT = 4;
-const buttonWidth = screenWidth / HABITS_TAB_COUNT;
+// HABITS shows 5 tabs — Habits, Journal, Pacts, Connect, Profile — or 4 when
+// the journal is switched off. See `habitsTabLayout.ts` for why the count is
+// derived from the flag rather than constant.
+const getTabLayout = () => getHabitsTabLayout(screenWidth, getConfig().featureFlags || {});
+
+const localStyles = StyleSheet.create({
+    // Unlike the icon-font tabs, the avatar is a bitmap that fills its box
+    // edge-to-edge with no side bearing, so it needs an explicit gap to sit
+    // the same distance from its label as the other tabs' glyphs do.
+    profileIconContainer: {
+        marginRight: 6,
+    },
+});
 
 const ViewProfileButton = ({
     activeRoute,
+    buttonWidth,
     goToMyProfile,
     imageStyle,
     themeMenu,
@@ -43,7 +56,7 @@ const ViewProfileButton = ({
         <Button
             buttonStyle={themeMenu.styles.buttons}
             containerStyle={themeMenu.styles.buttonContainerUserProfile}
-            iconContainerStyle={{ marginRight: 6 }}
+            iconContainerStyle={localStyles.profileIconContainer}
             titleStyle={themeMenu.styles.buttonsTitle}
             icon={
                 isUserAuthenticated(user) ?
@@ -155,8 +168,10 @@ class HabitsButtonMenu extends ButtonMenu {
         const {
             isCompact, translate, themeMenu, user, habits,
         } = (this.props as unknown as IHabitsButtonMenuProps);
+        const { isJournalEnabled, buttonWidth } = getTabLayout();
         const activeRoute = this.getActiveRoute();
         const isHabitsActive = ['HabitsDashboard', 'HabitDetail'].includes(activeRoute);
+        const isJournalActive = activeRoute === 'Journal';
         const isPactsActive = ['PactsList', 'PactDetail', 'CreatePact', 'CreatePactInvite'].includes(activeRoute);
         const isConnectActive = activeRoute === 'Connect';
         const currentUserId = user?.details?.id;
@@ -210,6 +225,41 @@ class HabitsButtonMenu extends ButtonMenu {
                     }
                     onPress={() => this.onNavPressDynamic('HabitsDashboard')}
                 />
+
+                {/* Journal Tab — gated on the same flag that registers the route */}
+                {isJournalEnabled && <Button
+                    title={!isCompact ? translate('menus.habits.buttons.journal') : null}
+                    buttonStyle={
+                        isJournalActive
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
+                    }
+                    containerStyle={[
+                        (isJournalActive
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer),
+                        {
+                            width: buttonWidth,
+                        },
+                    ]}
+                    titleStyle={
+                        isJournalActive
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
+                    }
+                    icon={
+                        <MaterialIcon
+                            name="menu-book"
+                            size={24}
+                            style={
+                                isJournalActive
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.onNavPressDynamic('Journal')}
+                />}
 
                 {/* Pacts Tab */}
                 <View style={{ width: buttonWidth }}>
@@ -311,6 +361,7 @@ class HabitsButtonMenu extends ButtonMenu {
                 {/* Profile Tab (always shown) */}
                 <ViewProfileButton
                     activeRoute={activeRoute}
+                    buttonWidth={buttonWidth}
                     goToMyProfile={this.goToMyProfile}
                     imageStyle={imageStyle}
                     themeMenu={themeMenu}

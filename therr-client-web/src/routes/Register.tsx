@@ -4,6 +4,7 @@ import { bindActionCreators } from 'redux';
 import { Location, NavigateFunction } from 'react-router-dom';
 import qs from 'qs';
 import { IUserState } from 'therr-react/types';
+import { getStoredAttribution } from 'therr-react/utilities/attribution';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
 import { getReturnTo, getRouteAfterLogin, shouldRenderLoginForm } from './Login';
@@ -118,6 +119,9 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         this.props.register({
             ...credentials,
             inviteCode: credentials.inviteCode || inviteCode,
+            // Captured on first landing by Layout. Advisory telemetry — the
+            // server drops anything malformed rather than failing the signup.
+            userAcquisition: getStoredAttribution() || undefined,
         }).then((response: any) => {
             const returnTo = getReturnTo(this.props.location?.search);
             const returnToParam = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';

@@ -132,6 +132,25 @@ export default class NotificationsStore extends BrandScopedStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
+    /**
+     * Deletes every notification addressed to the user, across all brands.
+     *
+     * Deliberately unscoped by brand: this only runs from account deletion, after the
+     * identity row in main.users is gone. Scoping to the requesting brand would leave
+     * notifications behind under every other brand the user belonged to — which is the
+     * orphan this closes, not a case to preserve.
+     */
+    deleteByUserId(userId: string) {
+        const queryString = knexBuilder
+            .from(NOTIFICATIONS_TABLE_NAME)
+            .where({ userId })
+            .delete()
+            .returning('id')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
     updateNotification(brand: BrandValue, conditions: IUpdateNotificationConditions, params: IUpdateNotificationParams) {
         const queryString = this.scopedUpdate(brand, { ...conditions })
             .update({

@@ -117,7 +117,21 @@
     "lessThanHours": "< 1h",
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}j",
-    "yearsSinceDate": "{count}a"
+    "yearsSinceDate": "{count}a",
+    "months": {
+      "january": "Janvier",
+      "february": "Février",
+      "march": "Mars",
+      "april": "Avril",
+      "may": "Mai",
+      "june": "Juin",
+      "july": "Juillet",
+      "august": "Août",
+      "september": "Septembre",
+      "october": "Octobre",
+      "november": "Novembre",
+      "december": "Décembre"
+    }
   },
   "quoteOfTheDay": "Citation du jour",
   "dailyQuotes": [
@@ -504,7 +518,9 @@
         "password": "Mot de passe",
         "userName": "Courriel/Téléphone/Nom d'utilisateur",
         "enterCode": "Entrez votre code",
-        "switchAccount": "Changer de compte"
+        "switchAccount": "Changer de compte",
+        "useNumberKeypad": "Utiliser le clavier numérique",
+        "useLetterKeyboard": "Utiliser le clavier alphabétique"
       },
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
       "invalidUsernamePassword": "Combinaison nom d'utilisateur/mot de passe invalide.",
@@ -1129,7 +1145,8 @@
         "habits": "Habitudes",
         "pacts": "Pactes",
         "partners": "Amis",
-        "profile": "Profil"
+        "profile": "Profil",
+        "journal": "Journal"
       }
     },
     "connections": {
@@ -1544,6 +1561,35 @@
         "pairingsDescription": "Des endroits parfaits à proximité pour compléter votre sortie à {spaceName}",
         "helpful": "Utile",
         "notHelpful": "Pas utile"
+      },
+      "suggestEdit": {
+        "trigger": "Suggérer une modification",
+        "title": "Suggérer une modification",
+        "description": "Vous avez repéré une information incorrecte? Suggérez une correction. Nous l'appliquerons lorsque plusieurs visiteurs seront d'accord.",
+        "fieldLabel": "Qu'est-ce qui doit être mis à jour?",
+        "valueLabel": "Valeur correcte",
+        "phoneOption": "Téléphone",
+        "websiteOption": "Site Web",
+        "phonePlaceholder": "(514) 555-1234",
+        "websitePlaceholder": "https://exemple.com",
+        "normalizedPreview": "Sera enregistré sous",
+        "submit": "Soumettre",
+        "cancel": "Annuler",
+        "close": "Fermer",
+        "appliedMessage": "Merci! Votre correction a été appliquée.",
+        "pendingMessage": "Merci! Nous avons besoin de {remaining} accord(s) supplémentaire(s) avant d'appliquer ce changement.",
+        "ownerClaimedMessage": "Merci! Cette entreprise a un propriétaire — nous lui avons transmis votre suggestion.",
+        "errorMessage": "Une erreur s'est produite lors de l'envoi de votre suggestion. Veuillez réessayer.",
+        "rateLimited": "Vous avez soumis beaucoup de suggestions récemment. Veuillez réessayer plus tard.",
+        "errors": {
+          "EMPTY_PHONE": "Veuillez saisir un numéro de téléphone.",
+          "INVALID_PHONE": "Cela ne ressemble pas à un numéro de téléphone valide.",
+          "EMPTY_URL": "Veuillez saisir un site Web.",
+          "INVALID_URL": "Cela ne ressemble pas à une URL valide.",
+          "INVALID_FIELD_NAME": "Ce champ ne peut pas être modifié.",
+          "UNSUPPORTED_FIELD": "Ce champ ne peut pas être modifié.",
+          "SPACE_NOT_FOUND": "Ce lieu n'est plus disponible."
+        }
       }
     },
     "viewMoment": {
@@ -1781,7 +1827,7 @@
         "noContactInfo": "Ce contact n'a ni numéro de téléphone ni adresse courriel pour recevoir une invitation",
         "tooManySelected": "Seuls les {count} premiers contacts ont été invités. Sélectionnez-en moins pour inviter les autres.",
         "inviteFailed": "Nous n'avons pas pu envoyer vos invitations. Veuillez réessayer.",
-        "phoneVerificationRequired": "Vérifiez votre numéro de téléphone dans votre profil avant d'envoyer des invitations"
+        "phoneVerificationRequired": "Touchez ici pour vérifier votre numéro de téléphone, puis renvoyez les invitations"
       }
     },
     "register": {
@@ -1901,7 +1947,12 @@
       "headerTitleGoal": "Objectif",
       "reply": "Répondre",
       "replies": "Réponses",
-      "repliesFailed": "Impossible de charger les réponses. Réessayez dans un instant."
+      "repliesFailed": "Impossible de charger les réponses. Réessayez dans un instant.",
+      "headerTitleReply": "Réponse",
+      "partOfThread": "Fait partie d'un fil",
+      "replyingTo": "En réponse à {userName}",
+      "viewParentThought": "Voir la publication à laquelle ceci répond",
+      "backToParent": "Retour au fil"
     },
     "habits": {
       "headerTitle": "Mes habitudes",
@@ -1910,6 +1961,8 @@
       "greetingAfternoon": "Bon après-midi!",
       "greetingEvening": "Bonsoir!",
       "dashboardSubtitle": "Suivez vos habitudes quotidiennes",
+      "soloUnlockBannerTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
+      "soloUnlockBannerBody": "{invited} sur {required} invités. Les habitudes en solo te permettent de suivre quelque chose sans partenaire.",
       "yourHabits": "Vos habitudes",
       "todayProgress": "Aujourd'hui",
       "bestStreak": "Meilleure série",
@@ -2006,6 +2059,8 @@
         "bannerHelper": "Touche ci-dessous pour envoyer ta première invitation",
         "bannerCTA": "Inviter un ami",
         "bannerSecondaryCTA": "Voir les invitations envoyées",
+        "soloCTA": "Ou suis une habitude de ton côté",
+        "soloUnlockProgress": "{invited} amis invités sur {required} — invite les autres pour débloquer les habitudes en solo",
         "sampleHabitTitle": "Commence avec une habitude/un objectif",
         "sampleHabitSubtitle": "Bâtis une bonne habitude, brise-en une mauvaise ou épargne vers un objectif commun — on l'activera dès que ton ami se joint.",
         "samplePartnerName": "Responsabilité amicale",
@@ -2072,7 +2127,19 @@
         "noPeopleFound": "Aucune personne trouvée",
         "searchHelp": "Tape un nom pour trouver quelqu'un, ou partage un lien d'invitation.",
         "friendBadge": "Ami",
-        "habitDefaultEmoji": "🎯"
+        "habitDefaultEmoji": "🎯",
+        "soloHint": "Tu préfères garder celle-ci pour toi? Commence en solo et ajoute des partenaires quand tu veux.",
+        "soloCta": "La suivre seul",
+        "soloStarting": "Démarrage…",
+        "soloSuccess": "Habitude démarrée",
+        "soloError": "Nous n'avons pas pu démarrer cette habitude.",
+        "soloReviewTitle": "Révise ton habitude",
+        "soloReviewSubtitle": "Tu commences celle-ci de ton côté.",
+        "soloJustYou": "Seulement toi",
+        "soloAddPartnersLater": "Tu peux inviter un ami à cette habitude quand tu veux.",
+        "pickPartnerFirstLocked": "Choisis un ami, ou invites-en {remaining} de plus pour débloquer les habitudes en solo",
+        "soloLockedTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
+        "soloLockedProgress": "{invited} amis invités sur {required}"
       },
       "status": {
         "pending": "En attente",
@@ -2229,6 +2296,72 @@
       },
       "messages": {
         "noHabits": "Aucune habitude active pour l'instant. Commencez par créer une habitude pour développer votre série !"
+      }
+    },
+    "journal": {
+      "headerTitle": "Journal",
+      "empty": {
+        "title": "Rien pour l'instant",
+        "subtitle": "Tes suivis, tes jalons, tes objectifs et tes notes apparaîtront ici au fil du temps."
+      },
+      "create": {
+        "title": "Qu'aimerais-tu ajouter?",
+        "entryTitle": "Entrée de journal",
+        "entrySubtitle": "Une note privée, juste pour toi.",
+        "goalTitle": "Objectif",
+        "goalSubtitle": "Partage ce que tu veux accomplir."
+      },
+      "composer": {
+        "title": "Nouvelle entrée",
+        "placeholder": "Qu'est-ce qui s'est passé aujourd'hui?",
+        "save": "Enregistrer",
+        "cancel": "Annuler"
+      },
+      "entry": {
+        "achievementEarned": "Nouvelle réalisation obtenue",
+        "milestoneReached": "Série de {days} jours!",
+        "habitStarted": "Tu as commencé à suivre {habit}",
+        "checkinCompleted": "Tu as complété {habit}",
+        "checkinSkipped": "Tu as sauté {habit}",
+        "goalChip": "Objectif",
+        "goalAccessibility": "Ouvrir cet objectif",
+        "editAccessibility": "Modifier cette entrée"
+      },
+      "errors": {
+        "loadFailed": "Nous n'avons pas pu charger ton journal.",
+        "saveFailed": "Nous n'avons pas pu enregistrer cette entrée."
+      }
+    },
+    "upgrade": {
+      "title": "Gratuit à vie",
+      "subtitle": "Un seul paiement. Toutes les fonctionnalités, pour toujours. Sans abonnement.",
+      "limitTitle": "Tu as atteint ta limite d'habitudes",
+      "limitSubtitle": "Les comptes gratuits suivent {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
+      "benefitsTitle": "Ce que tu obtiens",
+      "benefits": {
+        "unlimitedHabits": "Suis autant d'habitudes que tu veux",
+        "unlimitedPacts": "Pactes illimités avec un nombre illimité d'amis",
+        "allFutureFeatures": "Toutes les fonctionnalités premium à venir, pour toujours",
+        "foundersBadge": "Un numéro de fondateur sur ton profil",
+        "noSubscription": "Jamais d'abonnement"
+      },
+      "seatsRemaining": "Il reste {remaining} places de fondateur sur {total}",
+      "buyCta": "Débloquer à vie {price}",
+      "purchasing": "Achat en cours…",
+      "notNow": "Pas maintenant",
+      "owned": "Tu as déjà l'accès à vie.",
+      "ownedWithNumber": "Tu es le fondateur nº {number}.",
+      "soldOut": "Toutes les places de fondateur ont été réclamées.",
+      "unavailable": "Cette offre n'est pas disponible sur ton appareil pour le moment.",
+      "success": {
+        "title": "Tout est prêt",
+        "message": "Accès à vie débloqué. Merci de nous soutenir dès le début."
+      },
+      "errors": {
+        "verifyFailed": "Nous n'avons pas pu confirmer cet achat. Il sera restauré la prochaine fois que tu ouvriras cet écran.",
+        "purchaseFailed": "Cet achat n'a pas abouti.",
+        "purchasePending": "Toujours en cours de traitement. Si tu as été facturé, ton accès apparaîtra ici sous peu.",
+        "storeUnavailable": "La boutique est indisponible pour le moment."
       }
     }
   },

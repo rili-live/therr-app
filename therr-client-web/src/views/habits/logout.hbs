@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="robots" content="noindex">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    <style>
+        :root {
+            --habits-navy: #102a43;
+            --habits-coral: #ff6b35;
+            --habits-coral-dark: #e0521e;
+            --habits-cream: #fff8f3;
+            --habits-text: #243b53;
+            --habits-text-muted: #627d98;
+            --habits-border: #d9e2ec;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--habits-text);
+            background: var(--habits-cream);
+            min-height: 100vh;
+        }
+        a { color: var(--habits-coral-dark); }
+        header.site-header {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--habits-border);
+            background: #fff;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        header.site-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        header.site-header .brand-mark {
+            width: 2rem;
+            height: 2rem;
+            display: block;
+        }
+        header.site-header .brand {
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: var(--habits-navy);
+            letter-spacing: -0.01em;
+        }
+        main.wrap {
+            padding: 3.5rem 0 3rem;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--habits-navy);
+            margin: 0 0 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        p.lede {
+            color: var(--habits-text-muted);
+            margin: 0 0 1.75rem;
+        }
+        .alert {
+            padding: 0.75rem 0.875rem;
+            border-radius: 0.5rem;
+            margin: 0 0 1.5rem;
+            font-size: 0.9375rem;
+            border: 1px solid;
+            text-align: left;
+        }
+        .alert--success { background: #f0fff4; color: #2f855a; border-color: #c6f6d5; }
+        .cta {
+            display: inline-block;
+            width: 100%;
+            padding: 0.875rem 1.75rem;
+            background: var(--habits-coral);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 999px;
+            border: 0;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+        .cta:hover { background: var(--habits-coral-dark); }
+        .helper {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: var(--habits-text-muted);
+        }
+        /* Matches the pending affordance on verify-account.hbs. */
+        .pending {
+            display: inline-block;
+            width: 0.875rem;
+            height: 0.875rem;
+            margin-right: 0.5rem;
+            border: 2px solid var(--habits-border);
+            border-top-color: var(--habits-coral);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: -2px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .pending { animation: none; }
+        }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--habits-border);
+            background: #fff;
+            text-align: center;
+            color: var(--habits-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer .footer-links {
+            margin-bottom: 0.75rem;
+        }
+        footer.site-footer .footer-links a {
+            margin: 0 0.5rem;
+            color: var(--habits-text-muted);
+        }
+        footer.site-footer .footer-family {
+            margin-top: 0.5rem;
+        }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
+            <a class="brand" href="/" style="color: var(--habits-navy); text-decoration: none;">Friends with Habits</a>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="container">
+            <div id="state-pending">
+                <h1>Signing you out&hellip;</h1>
+                <p class="lede"><span class="pending" aria-hidden="true"></span>Closing your session on this device.</p>
+            </div>
+
+            <div id="state-done" hidden>
+                <h1>You&rsquo;re signed out</h1>
+                <div class="alert alert--success">This browser no longer has access to your Friends with Habits account.</div>
+                <a class="cta" href="/login">Sign in again</a>
+                <div class="helper">
+                    Signing out here does not sign you out of the Friends with Habits app on your phone,
+                    or of any other Therr app.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {{> habitsFooter}}
+
+    <script>
+        (function () {
+            var API_BASE = {{{apiBaseJson}}};
+
+            // A slow or hung gateway must never strand the user on "Signing you out…".
+            // The local session is already gone by the time this fires, which is the part
+            // that matters on this device, so the confirmation is honest either way.
+            var SETTLE_TIMEOUT_MS = 2500;
+            var settled = false;
+
+            function showDone() {
+                if (settled) return;
+                settled = true;
+                document.getElementById('state-pending').hidden = true;
+                document.getElementById('state-done').hidden = false;
+            }
+
+            function readStoredUser() {
+                // Same lookup order as UsersActions.logout in therr-react: session first,
+                // then local. login.hbs writes both.
+                try {
+                    var raw = sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser');
+                    return raw ? JSON.parse(raw) : null;
+                } catch (e) {
+                    // Unparseable, or storage disabled — treat as no session. The clear
+                    // below still runs, so a corrupt entry gets removed either way.
+                    return null;
+                }
+            }
+
+            function clearStoredSession() {
+                // Mirrors the web branch of UsersActions.logout. 'therrUserSettings' is
+                // deliberately left in place there (it survives logout to avoid cross-user
+                // contamination on the next sign-in), so it is left alone here too.
+                var keys = ['therrSession', 'therrUser', 'therrRefreshToken'];
+                keys.forEach(function (key) {
+                    try { sessionStorage.removeItem(key); } catch (e) { /* storage disabled */ }
+                    try { localStorage.removeItem(key); } catch (e) { /* storage disabled */ }
+                });
+            }
+
+            var user = readStoredUser();
+
+            // Clear before the network call, never after: if the request hangs, fails, or the
+            // user closes the tab mid-flight, the session must still be gone from this device.
+            // This is the same ordering UsersActions.logout uses.
+            clearStoredSession();
+
+            // /auth/logout requires a bearer token (to blacklist its jti) and a userName body
+            // field (logoutUserValidation). With neither there is nothing for the server to
+            // revoke, so skip straight to the confirmation.
+            if (!user || !user.idToken || !user.userName) {
+                showDone();
+                return;
+            }
+
+            setTimeout(showDone, SETTLE_TIMEOUT_MS);
+
+            fetch(API_BASE + '/users-service/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: 'Bearer ' + user.idToken,
+                    'x-userid': user.id || '',
+                    'x-brand-variation': 'habits',
+                },
+                // No `scope: 'all'`. The gateway defaults to per-brand refresh-token
+                // revocation, so signing out of Friends with Habits leaves a session in
+                // the core Therr app alone. Sending 'all' here would cascade across brands.
+                body: JSON.stringify({ userName: user.userName }),
+            }).then(showDone).catch(showDone);
+            // Every outcome lands on the same confirmation. An expired or already-blacklisted
+            // token 401s here, and that is not a failure worth showing: the token is dead
+            // either way and the local session is already cleared.
+        })();
+    </script>
+</body>
+</html>

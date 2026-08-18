@@ -86,12 +86,25 @@ describe('brand surface consistency', () => {
     });
 
     it.each(['light', 'dark'])('keeps the Therr base palette in the %s theme', (theme) => {
-        // Overwriting these rebrands every variant at once. The Habits purple lives in
-        // brandColorOverrides, which is why this holds on the niche branch too.
+        // Only asserted when the selected brand is Therr — i.e. on `general`, which is the
+        // branch this actually protects. The leak that shipped was Habits colors reaching
+        // `general`, and `general` still selects THERR, so the guard fires there.
+        //
+        // A niche branch is allowed to rebrand the base palettes. `niche/HABITS-general`
+        // does exactly that, because `brandColorOverrides` is one map applied to light,
+        // dark and retro alike and cannot express a per-theme value (Habits' retro purple
+        // differs from its light/dark purple). Asserting Therr's teal unconditionally
+        // therefore fails on every niche branch by construction, which is noise rather
+        // than a signal — and a red suite on the branch that triggers the Play build is
+        // worse than no suite at all.
         //
         // Anchored to the `primary3:` assignment rather than merely containing the hex —
         // the teal appears on several other keys, so a loose check still passed while
         // primary3 had been swapped to the Habits purple.
+        if (CURRENT_BRAND_VARIATION !== BrandVariations.THERR) {
+            return;
+        }
+
         const palette = read('main/styles/themes', theme, 'colors.ts');
         const primary3 = palette.match(/^\s*primary3:\s*'([^']+)'/m)?.[1];
 

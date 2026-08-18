@@ -117,7 +117,21 @@
     "lessThanHours": "< 1h",
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}d",
-    "yearsSinceDate": "{count}y"
+    "yearsSinceDate": "{count}y",
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    }
   },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [
@@ -504,7 +518,9 @@
         "password": "Password",
         "userName": "Email/Phone/Username",
         "enterCode": "Enter your code",
-        "switchAccount": "Switch account"
+        "switchAccount": "Switch account",
+        "useNumberKeypad": "Use the number keypad",
+        "useLetterKeyboard": "Use the letter keyboard"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",
@@ -1129,7 +1145,8 @@
         "habits": "Habits",
         "pacts": "Pacts",
         "partners": "Friends",
-        "profile": "Profile"
+        "profile": "Profile",
+        "journal": "Journal"
       }
     },
     "connections": {
@@ -1544,6 +1561,35 @@
         "pairingsDescription": "Perfect spots nearby to complete your outing at {spaceName}",
         "helpful": "Helpful",
         "notHelpful": "Not helpful"
+      },
+      "suggestEdit": {
+        "trigger": "Suggest an edit",
+        "title": "Suggest an edit",
+        "description": "Spotted incorrect info? Suggest a fix. We'll apply it once a few visitors agree.",
+        "fieldLabel": "What needs updating?",
+        "valueLabel": "Correct value",
+        "phoneOption": "Phone",
+        "websiteOption": "Website",
+        "phonePlaceholder": "(415) 555-1234",
+        "websitePlaceholder": "https://example.com",
+        "normalizedPreview": "Will be saved as",
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "close": "Close",
+        "appliedMessage": "Thanks! Your correction has been applied.",
+        "pendingMessage": "Thanks! We need {remaining} more agreement(s) before applying this change.",
+        "ownerClaimedMessage": "Thanks! This business has an owner — we've forwarded your suggestion to them.",
+        "errorMessage": "Something went wrong submitting your suggestion. Please try again.",
+        "rateLimited": "You've submitted a lot of suggestions recently. Please try again later.",
+        "errors": {
+          "EMPTY_PHONE": "Please enter a phone number.",
+          "INVALID_PHONE": "That doesn't look like a valid phone number.",
+          "EMPTY_URL": "Please enter a website.",
+          "INVALID_URL": "That doesn't look like a valid website URL.",
+          "INVALID_FIELD_NAME": "That field can't be edited.",
+          "UNSUPPORTED_FIELD": "That field can't be edited.",
+          "SPACE_NOT_FOUND": "This space is no longer available."
+        }
       }
     },
     "viewMoment": {
@@ -1781,7 +1827,7 @@
         "noContactInfo": "This contact has no phone number or email address to send an invite to",
         "tooManySelected": "Only the first {count} contacts were invited. Select fewer to invite the rest.",
         "inviteFailed": "We could not send your invites. Please try again.",
-        "phoneVerificationRequired": "Verify your phone number in your profile before sending invites"
+        "phoneVerificationRequired": "Tap here to verify your phone number, then try sending invites again"
       }
     },
     "register": {
@@ -1901,7 +1947,12 @@
       "headerTitleGoal": "Goal",
       "reply": "Reply",
       "replies": "Replies",
-      "repliesFailed": "We couldn't load the replies. Try again in a moment."
+      "repliesFailed": "We couldn't load the replies. Try again in a moment.",
+      "headerTitleReply": "Reply",
+      "partOfThread": "Part of a thread",
+      "replyingTo": "Replying to {userName}",
+      "viewParentThought": "View the post this replies to",
+      "backToParent": "Back to Thread"
     },
     "habits": {
       "headerTitle": "My Habits",
@@ -1910,6 +1961,8 @@
       "greetingAfternoon": "Good afternoon!",
       "greetingEvening": "Good evening!",
       "dashboardSubtitle": "Track your daily habits",
+      "soloUnlockBannerTitle": "Invite {remaining} more friend(s) to unlock solo habits",
+      "soloUnlockBannerBody": "{invited} of {required} invited. Solo habits let you track something without a partner.",
       "yourHabits": "Your Habits",
       "todayProgress": "Today",
       "bestStreak": "Best Streak",
@@ -2006,6 +2059,8 @@
         "bannerHelper": "Tap below to send your first invite",
         "bannerCTA": "Invite a friend",
         "bannerSecondaryCTA": "View sent invites",
+        "soloCTA": "Or track a habit on your own",
+        "soloUnlockProgress": "{invited} of {required} friends invited — invite the rest to unlock solo habits",
         "sampleHabitTitle": "Start with a habit/goal",
         "sampleHabitSubtitle": "Build a healthy habit, break a bad one, or save toward a shared goal — we'll lock it in once your friend joins.",
         "samplePartnerName": "Friendly accountability",
@@ -2072,7 +2127,19 @@
         "noPeopleFound": "No people found",
         "searchHelp": "Type a name to find someone, or share an invite link.",
         "friendBadge": "Friend",
-        "habitDefaultEmoji": "🎯"
+        "habitDefaultEmoji": "🎯",
+        "soloHint": "Prefer to keep this one to yourself? Start it solo and add partners whenever you like.",
+        "soloCta": "Track this on my own",
+        "soloStarting": "Starting…",
+        "soloSuccess": "Habit started",
+        "soloError": "We could not start that habit.",
+        "soloReviewTitle": "Review your habit",
+        "soloReviewSubtitle": "You are starting this one on your own.",
+        "soloJustYou": "Just you",
+        "soloAddPartnersLater": "You can invite a friend to this habit any time.",
+        "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
+        "soloLockedTitle": "Invite {remaining} more friend(s) to unlock solo habits",
+        "soloLockedProgress": "{invited} of {required} friends invited"
       },
       "status": {
         "pending": "Pending",
@@ -2229,6 +2296,72 @@
       },
       "messages": {
         "noHabits": "No active habits yet. Start by creating a habit to build your streak!"
+      }
+    },
+    "journal": {
+      "headerTitle": "Journal",
+      "empty": {
+        "title": "Nothing here yet",
+        "subtitle": "Your check-ins, milestones, goals and notes will show up here as you go."
+      },
+      "create": {
+        "title": "What would you like to add?",
+        "entryTitle": "Journal entry",
+        "entrySubtitle": "A private note, just for you.",
+        "goalTitle": "Goal",
+        "goalSubtitle": "Share what you're working toward."
+      },
+      "composer": {
+        "title": "New entry",
+        "placeholder": "What happened today?",
+        "save": "Save",
+        "cancel": "Cancel"
+      },
+      "entry": {
+        "achievementEarned": "Earned a new achievement",
+        "milestoneReached": "{days}-day streak!",
+        "habitStarted": "Started tracking {habit}",
+        "checkinCompleted": "Completed {habit}",
+        "checkinSkipped": "Skipped {habit}",
+        "goalChip": "Goal",
+        "goalAccessibility": "Open this goal",
+        "editAccessibility": "Edit this entry"
+      },
+      "errors": {
+        "loadFailed": "We could not load your journal.",
+        "saveFailed": "We could not save that entry."
+      }
+    },
+    "upgrade": {
+      "title": "Free for life",
+      "subtitle": "One payment. Every feature, forever. No subscription.",
+      "limitTitle": "You have reached your habit limit",
+      "limitSubtitle": "Free accounts track {limit} habits at a time. Archive one, or unlock everything for life.",
+      "benefitsTitle": "What you get",
+      "benefits": {
+        "unlimitedHabits": "Track as many habits as you want",
+        "unlimitedPacts": "Unlimited pacts with unlimited friends",
+        "allFutureFeatures": "Every premium feature we add, forever",
+        "foundersBadge": "A founder number on your profile",
+        "noSubscription": "No subscription, ever"
+      },
+      "seatsRemaining": "{remaining} of {total} founder spots left",
+      "buyCta": "Unlock for life {price}",
+      "purchasing": "Completing purchase…",
+      "notNow": "Not now",
+      "owned": "You already have lifetime access.",
+      "ownedWithNumber": "You are founder #{number}.",
+      "soldOut": "All founder spots have been claimed.",
+      "unavailable": "This offer is not available on your device right now.",
+      "success": {
+        "title": "You are all set",
+        "message": "Lifetime access unlocked. Thank you for backing us early."
+      },
+      "errors": {
+        "verifyFailed": "We could not confirm that purchase. It will be restored the next time you open this screen.",
+        "purchaseFailed": "That purchase did not go through.",
+        "purchasePending": "Still processing. If you were charged, your unlock will appear here shortly.",
+        "storeUnavailable": "The store is unavailable right now."
       }
     }
   },

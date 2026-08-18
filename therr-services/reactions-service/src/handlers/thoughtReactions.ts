@@ -5,6 +5,7 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
 import validateReactionMetrics from '../utilities/validateReactionMetrics';
+import pickReactionWriteFields from '../utilities/pickReactionWriteFields';
 // import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
 // import * as globalConfig from '../../../../global-config';
 
@@ -34,7 +35,7 @@ const createOrUpdateThoughtReaction = (req, res) => {
                 userId,
                 thoughtId: req.params.thoughtId,
             }, {
-                ...req.body,
+                ...pickReactionWriteFields('thought', req.body),
                 userLocale: locale,
                 // Number() is load-bearing: a JSON body may carry "1" as a string, and
                 // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
@@ -58,7 +59,7 @@ const createOrUpdateThoughtReaction = (req, res) => {
         return Store.thoughtReactions.create({
             userId,
             thoughtId: req.params.thoughtId,
-            ...req.body,
+            ...pickReactionWriteFields('thought', req.body),
             userLocale: locale,
             userHasActivated: true,
         }).then(([reaction]) => res.status(200).send(reaction));
@@ -87,16 +88,13 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
 
     const validThoughtIds = thoughtIds.filter((id) => !!id);
 
-    const params = { ...req.body };
-    delete params.thoughtIds;
-    // Per-thought, so it can't ride along in the shared param set that gets spread into
-    // every inserted/updated row — it is applied separately below.
-    delete params.relevanceScores;
-    // Sent once per run, but it describes the score rather than the row. Spreading it into
-    // the shared param set stamped it onto every row in the batch, including ones this run
-    // did not score — so a row could name a profile that never ranked it, which is exactly
-    // the invariant the column exists to make observable. Applied with the scores instead.
-    delete params.algorithmKey;
+    // Allow-listed rather than `{ ...req.body }` minus deletes, so a field nobody enumerated
+    // cannot reach the table. `thoughtIds`, `relevanceScores` and `algorithmKey` are excluded
+    // by that same allow-list and read off `req.body` directly below: the scores are per-thought
+    // and the algorithm key describes the score rather than the row, so spreading either into
+    // the shared param set would stamp it onto every row in the batch — including ones this run
+    // did not score, which is exactly the invariant `algorithmKey` exists to make observable.
+    const params = pickReactionWriteFields('thought', req.body);
 
     const { algorithmKey } = req.body;
     const relevanceScores = req.body.relevanceScores || {};

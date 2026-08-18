@@ -6,6 +6,7 @@ import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { useFeatureFlags } from '../../context/FeatureFlagContext';
 import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
+import { hasSentPactInvite, hasTrackedHabit } from '../../routes/Habits/pactState';
 
 interface IPactOnboardingGuardProps {
     user: IUserState;
@@ -20,11 +21,29 @@ const mapStateToProps = (state: any) => ({
 });
 
 /**
- * Soft-gates the Habits dashboard for HABITS users without an active pact.
+ * Soft-gates the Habits dashboard for HABITS users who have not yet started.
+ *
  * Renders <PactPreviewOverlay/> in place of children to show what's behind the
  * gate (sample habit + partner row + benefits) and route the user into the
- * pact-invite wizard. Once activePacts becomes non-empty, the gate releases
- * and any client-side pre-staged template marker is cleared.
+ * pact-invite wizard.
+ *
+ * WHAT RELEASES THE GATE
+ *
+ * Any of: an active pact, an invite the user has sent that nobody has accepted
+ * yet, or a habit of their own.
+ *
+ * The last condition matters for personal habits. Starting one navigates
+ * straight back here, so a guard that only knew about pacts would drop the user
+ * onto this overlay holding a habit it refused to show them. It reads the
+ * server's count of habits actually being tracked rather than the local goal
+ * list — see `hasTrackedHabit` for why a goal on its own is not a start — and
+ * the dashboard beneath already fetches that count on every focus.
+ *
+ * Note this asks "have you started", which is a different and looser question
+ * than "have you unlocked solo habits" — that one takes several invites and is
+ * enforced by the server on `POST /habits/user-habits`. A user who has sent one
+ * invite is past this overlay and still cannot track alone; the overlay's footer
+ * and the dashboard banner are what show them how far they have left to go.
  */
 const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     user,
@@ -40,6 +59,13 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         && isEnabled(FeatureFlags.REQUIRE_PACT_ONBOARDING)
         && user.isAuthenticated;
     const hasActivePact = activePactCount > 0;
+    const hasSentInvite = hasSentPactInvite(habits.pacts || [], user.details?.id);
+    const hasOwnHabit = hasTrackedHabit(
+        habits.userHabitEligibility?.activeHabitCount,
+        habits.userHabits?.length || 0,
+        habits.habitGoals?.length || 0,
+    );
+    const hasStarted = hasActivePact || hasSentInvite || hasOwnHabit;
 
     // Depend on the length, not the array reference, so unrelated Redux
     // dispatches that recreate `activePacts` don't re-run this effect.
@@ -51,7 +77,7 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         previousActivePactCount.current = activePactCount;
     }, [activePactCount]);
 
-    if (!guardActive || hasActivePact) {
+    if (!guardActive || hasStarted) {
         return <>{children}</>;
     }
 

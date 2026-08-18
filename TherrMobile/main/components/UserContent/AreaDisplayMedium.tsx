@@ -289,6 +289,7 @@ export const AreaDisplayContent = ({
                             /> :
                             <MissingImagePlaceholder
                                 area={area}
+                                theme={theme}
                                 themeViewArea={themeViewArea}
                                 dimensions={{
                                     width: mediaWidth,

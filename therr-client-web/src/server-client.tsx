@@ -283,10 +283,28 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
+    '/logout': {
+        view: 'habits/logout',
+        title: 'Sign out — Friends with Habits',
+        description: 'Sign out of your Friends with Habits account.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
     '/emails/unsubscribe': {
         view: 'habits/unsubscribe',
         title: 'Email preferences — Friends with Habits',
         description: 'Manage which Friends with Habits emails you receive.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
+    // Habits counterpart of the React /verify-phone route on www.therr.com. Both are the
+    // no-app fallback for the therr.com/verify-phone link, which opens the mobile app when
+    // it is installed — and this host is a verified App Link for com.therr.habits, so
+    // without this entry a HABITS user without the app hit the allowlist 404 instead.
+    '/verify-phone': {
+        view: 'habits/verify-phone',
+        title: 'Verify your phone — Friends with Habits',
+        description: 'Confirm your phone number for Friends with Habits.',
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
@@ -312,11 +330,19 @@ const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
 }> => {
     const empty = { inviterName: '', avatarUri: '' };
 
+    // These lookups render a Friends with Habits page, but axios' module-level default
+    // is THERR (correct for the React app, which never serves this host). Without the
+    // override, `by-username` — which IS brand-scoped, via getBrandContext + brandVariations
+    // enrollment — resolves a habits inviter against the therr brand and finds nothing for
+    // a habits-only account. This resolver is best-effort, so that surfaced as the generic
+    // headline rather than an error: the invite silently lost "X wants to make a pact with you".
+    const habitsHeaders = { 'x-brand-variation': BrandVariations.HABITS };
+
     try {
         if (match.kind === 'invite-username') {
             const response = await axios.get(
                 `/users-service/users/by-username/${encodeURIComponent(match.value)}`,
-                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS },
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS, headers: habitsHeaders },
             );
             const inviter = response?.data;
             if (!inviter?.userName) {
@@ -340,9 +366,11 @@ const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
         // so anything else is a malformed link — skip the round-trip and fall back
         // to the generic headline.
         if (match.kind === 'invite-link' && UUID_V4_RE.test(match.value)) {
+            // Sent for consistency; this endpoint resolves invites cross-brand on purpose,
+            // so the invitee can be deep-linked into whichever app the invite came from.
             const response = await axios.get(
                 `/users-service/users/invites/${encodeURIComponent(match.value)}`,
-                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS },
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS, headers: habitsHeaders },
             );
             return {
                 inviterName: response?.data?.inviterName || '',
@@ -436,6 +464,7 @@ app.use(async (req, res, next) => {
             'Disallow: /claim-pact/',
             'Disallow: /verify-account',
             'Disallow: /login',
+            'Disallow: /logout',
             'Disallow: /emails/',
             '',
             'Sitemap: https://habits.therr.com/sitemap.xml',

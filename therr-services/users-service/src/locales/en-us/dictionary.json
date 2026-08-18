@@ -14,8 +14,18 @@
             "duplicatePost": "Duplicate posts are not allowed"
         },
         "pacts": {
-            "habitGoalRequired": "A habit goal is required to create a pact",
-            "freeTierLimitReached": "Free tier is limited to {limit} active pact(s). Upgrade to premium for unlimited pacts."
+            "habitGoalRequired": "A habit goal is required to create a pact"
+        },
+        "habits": {
+            "habitGoalRequired": "A habit goal is required",
+            "freeTierHabitLimitReached": "Free accounts can track {limit} habits at a time. Archive one, or unlock everything for life.",
+            "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total.",
+            "journalBodyRequired": "Write something before saving this entry",
+            "journalEntryNotFound": "Journal entry not found",
+            "lifetimeVerificationFailed": "We could not verify that purchase right now. Please try again shortly.",
+            "lifetimePurchaseNotFound": "That purchase could not be found",
+            "lifetimePurchaseNotCompleted": "That purchase has not completed yet",
+            "lifetimeAlreadyClaimed": "That purchase has already been claimed by another account"
         },
         "user": {
             "invalidUserNamePassword": "User/password combination is incorrect",
@@ -58,14 +68,18 @@
         "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!"
     },
     "invites": {
-        "phone": "{name} invited you to Therr — the local community and rewards app. Sign up here to connect: {inviteUrl}",
+        "phone": "{name} invited you to {brandName}{brandTagline}. Sign up here to connect: {inviteUrl}",
+        "phoneTaglines": {
+            "therr": " — the local community and rewards app"
+        },
         "pact": {
             "sms": "{fromName} invited you to a {brandName} pact: {habitName}. Install and tap {claimUrl} — or use code {claimCode} at sign-up.",
             "smsTokenOnly": "{fromName} invited you to a {brandName} pact: {habitName}. Install and tap {claimUrl} to accept."
         }
     },
     "thoughts": {
-        "notFound": "Thought not found"
+        "notFound": "Thought not found",
+        "parentAccessRestricted": "This user is not permitted to reply to a thought they cannot access"
     },
     "thoughtReactions": {
         "thoughtNotActivated": "This user is not permitted to access content without first activating the thought"
@@ -132,7 +146,11 @@
             "dearUser": "Hey {toEmail}!",
             "body1": "{fromName} wants you on {brandName}! You can also reach them directly at {fromEmail}.",
             "body2": "Click below to sign up and start exploring your local community.",
-            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
+            "body2ByBrand": {
+                "habits": "Click below to sign up and be the change — habits stick when you build them with friends."
+            },
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}",
+            "subject": "{fromName} invited you to {brandShortName}"
         },
         "newUserInvite": {
             "header": "Your Profile Is Waiting!",

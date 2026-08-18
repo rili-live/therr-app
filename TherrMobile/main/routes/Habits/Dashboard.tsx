@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, ScrollView, Pressable } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
-import { FilePaths } from 'therr-js-utilities/constants';
+import { FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
@@ -21,6 +21,8 @@ import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { signImageUrl } from '../../utilities/content';
 import { showToast } from '../../utilities/toasts';
 import { IHabitWithPactState, splitHabitsByPactState } from './pactState';
+import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
+import getConfig from '../../utilities/getConfig';
 
 interface IHabitsDashboardDispatchProps {
     getUserGoals: Function;
@@ -28,6 +30,7 @@ interface IHabitsDashboardDispatchProps {
     getActiveStreaks: Function;
     getActivePacts: Function;
     getUserPacts: Function;
+    getUserHabitEligibility: Function;
     createCheckin: Function;
 }
 
@@ -58,6 +61,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getActiveStreaks: HabitActions.getActiveStreaks,
     getActivePacts: HabitActions.getActivePacts,
     getUserPacts: HabitActions.getUserPacts,
+    getUserHabitEligibility: HabitActions.getUserHabitEligibility,
     createCheckin: HabitActions.createCheckin,
 }, dispatch);
 
@@ -109,6 +113,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     handleRefresh = () => {
         const {
             getUserGoals, getTodayCheckins, getActiveStreaks, getActivePacts, getUserPacts,
+            getUserHabitEligibility,
         } = this.props;
 
         this.setState({ isRefreshing: true });
@@ -121,6 +126,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             // Needed to tell a habit whose pact is live apart from one whose
             // invite is still outstanding — getActivePacts only returns the former.
             getUserPacts(),
+            // Feeds the solo-unlock banner below, and the same progress on the
+            // onboarding overlay — which renders in place of this screen's
+            // children and so never gets a fetch of its own. Failing drops the
+            // progress line rather than blocking the whole refresh.
+            getUserHabitEligibility().catch(() => {}),
         ]).finally(() => {
             this.setState({ isRefreshing: false });
         });
@@ -246,6 +256,49 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         return this.translate('pages.habits.greetingEvening');
     };
 
+    /**
+     * Progress toward unlocking habits tracked alone.
+     *
+     * The onboarding overlay carries this too, but it stops rendering the
+     * moment a user sends their first invite — which is exactly when they have
+     * two invites left to go and the most reason to be told so. The dashboard
+     * is the screen they return to daily, so this is where a partial unlock
+     * stays visible. It disappears the moment it is earned.
+     */
+    renderSoloUnlockBanner = () => {
+        const { habits } = this.props;
+        const { isUnlocked, hasProgress, invitedCount, requiredCount, remaining } = getSoloUnlockProgress(
+            habits.userHabitEligibility,
+            getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
+        );
+
+        if (isUnlocked || !hasProgress) {
+            return null;
+        }
+
+        const title = this.translate('pages.habits.soloUnlockBannerTitle', { remaining });
+        const body = this.translate('pages.habits.soloUnlockBannerBody', {
+            invited: invitedCount,
+            required: requiredCount,
+        });
+
+        return (
+            <Pressable
+                accessibilityRole="button"
+                // Both lines, because an explicit label replaces the text the
+                // children would otherwise compose. Titling it alone announced
+                // the ask ("invite 2 more friends") while dropping the progress
+                // that makes it feel finishable — the whole point of the banner.
+                accessibilityLabel={`${title}. ${body}`}
+                onPress={this.handleCreatePact}
+                style={this.themeHabits.styles.dashboardSection}
+            >
+                <Text style={this.themeHabits.styles.dashboardSectionTitle}>{title}</Text>
+                <Text style={this.themeHabits.styles.dashboardSubtitle}>{body}</Text>
+            </Pressable>
+        );
+    };
+
     renderEmptyState = () => (
         <View style={this.themeHabits.styles.emptyStateContainer}>
             <Text style={this.themeHabits.styles.emptyStateEmoji}>{'\uD83C\uDFAF'}</Text>
@@ -364,6 +417,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                                 {this.translate('pages.habits.dashboardSubtitle')}
                             </Text>
                         </View>
+
+                        {this.renderSoloUnlockBanner()}
 
                         {this.renderOverallProgress(live)}
 

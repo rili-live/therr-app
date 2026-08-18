@@ -9,7 +9,8 @@ import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsService } from 'therr-react/services';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { showToast } from '../../utilities/toasts';
+import Toast from 'react-native-toast-message';
+import { showToast, DURATION } from '../../utilities/toasts';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
@@ -192,6 +193,18 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
         });
     };
 
+    /**
+     * Resumes the guided profile flow at its phone stage. Verification UI only exists
+     * inside that stack, so this is the entry point for every phone-gated action that
+     * needs to send the user somewhere rather than just telling them no.
+     */
+    goToPhoneVerification = () => {
+        const { navigation } = this.props;
+
+        Toast.hide();
+        navigation.navigate('CreateProfile', { stage: 'phone' });
+    };
+
     onViewUserPress = (contact: any) => {
         const { navigation } = this.props;
         const matchedUser = contact.matchedUser;
@@ -311,13 +324,23 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             // the button look dead; the SMS composer below still opens either way.
             const isPhoneUnverified = error?.response?.status === 403;
 
+            if (isPhoneUnverified) {
+                // The toast used to be the end of the road: it named the problem but the
+                // only phone-verification UI lives inside the CreateProfile stack, which
+                // nothing outside onboarding linked to. Tapping now resumes that flow at
+                // its phone stage, which is the same target the profile checklist uses.
+                showToast.error({
+                    text1: this.translate('pages.phoneContacts.alertTitles.phoneVerificationRequired'),
+                    text2: this.translate('pages.phoneContacts.alertMessages.phoneVerificationRequired'),
+                    duration: DURATION.LONG,
+                    onPress: this.goToPhoneVerification,
+                });
+                return;
+            }
+
             showToast.error({
-                text1: this.translate(isPhoneUnverified
-                    ? 'pages.phoneContacts.alertTitles.phoneVerificationRequired'
-                    : 'pages.phoneContacts.alertTitles.inviteFailed'),
-                text2: this.translate(isPhoneUnverified
-                    ? 'pages.phoneContacts.alertMessages.phoneVerificationRequired'
-                    : 'pages.phoneContacts.alertMessages.inviteFailed'),
+                text1: this.translate('pages.phoneContacts.alertTitles.inviteFailed'),
+                text2: this.translate('pages.phoneContacts.alertMessages.inviteFailed'),
             });
         });
 

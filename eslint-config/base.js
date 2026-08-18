@@ -13,6 +13,21 @@ module.exports = {
         'plugin:@typescript-eslint/recommended',
     ],
     ignorePatterns: ['**/.eslintrc.js'],
+    // Surface `eslint-disable` comments that no longer suppress anything. A blanket
+    // `/* eslint-disable max-len */` at the top of a file routinely outlives the one long line it
+    // was added for, and then silently exempts everything written after it. Deliberately a
+    // warning, not an error: there are ~200 stale directives across the repo today, and nothing
+    // in CI passes --max-warnings, so this reports the debt without failing a build on it.
+    //
+    // ⚠ This option makes stale directives AUTO-FIXABLE, and warning severity does not change
+    // that — a bare `eslint --fix` deletes every one it can see, including directives in files
+    // you only meant to reformat. That is why every `lint:fix` script in this repo passes
+    // `--fix-type problem,suggestion,layout`, which excludes the `directive` fix type and leaves
+    // the comments in place. Removing a stale directive should be a deliberate edit: some of them
+    // are load-bearing under a config this invocation did not resolve (a package-level override,
+    // or TherrMobile's `@react-native` base), and `--fix` cannot tell those apart. If you add a
+    // new lint-fixing entry point, carry the `--fix-type` flag over to it.
+    reportUnusedDisableDirectives: true,
     rules: {
         indent: [2, 4, { SwitchCase: 1 }],
         'max-len': [2, { code: 160 }],

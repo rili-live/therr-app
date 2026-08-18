@@ -14,8 +14,18 @@
             "duplicatePost": "Les publications en double ne sont pas autorisées"
         },
         "pacts": {
-            "habitGoalRequired": "Un objectif d'habitude est requis pour créer un pacte",
-            "freeTierLimitReached": "Le niveau gratuit est limité à {limit} pacte(s) actif(s). Passe au premium pour des pactes illimités."
+            "habitGoalRequired": "Un objectif d'habitude est requis pour créer un pacte"
+        },
+        "habits": {
+            "habitGoalRequired": "Un objectif d'habitude est requis",
+            "freeTierHabitLimitReached": "Les comptes gratuits peuvent suivre {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
+            "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout.",
+            "journalBodyRequired": "Écris quelque chose avant d'enregistrer cette entrée",
+            "journalEntryNotFound": "Entrée de journal introuvable",
+            "lifetimeVerificationFailed": "Nous n'avons pas pu vérifier cet achat pour le moment. Réessaie dans un instant.",
+            "lifetimePurchaseNotFound": "Cet achat est introuvable",
+            "lifetimePurchaseNotCompleted": "Cet achat n'est pas encore complété",
+            "lifetimeAlreadyClaimed": "Cet achat a déjà été réclamé par un autre compte"
         },
         "user": {
             "invalidUserNamePassword": "La combinaison utilisateur/mot de passe est incorrecte",
@@ -58,14 +68,18 @@
         "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!"
     },
     "invites": {
-        "phone": "{name} t'a invité sur Therr — l'appli de communauté locale et de récompenses. Inscris-toi ici pour te connecter : {inviteUrl}",
+        "phone": "{name} t'a invité sur {brandName}{brandTagline}. Inscris-toi ici pour te connecter : {inviteUrl}",
+        "phoneTaglines": {
+            "therr": " — l'appli de communauté locale et de récompenses"
+        },
         "pact": {
             "sms": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} — ou utilise le code {claimCode} à l'inscription.",
             "smsTokenOnly": "{fromName} t'a invité à un pacte {brandName} : {habitName}. Installe l'appli et ouvre {claimUrl} pour accepter."
         }
     },
     "thoughts": {
-        "notFound": "Pensée non trouvée"
+        "notFound": "Pensée non trouvée",
+        "parentAccessRestricted": "Cet utilisateur n'est pas autorisé à répondre à une pensée à laquelle il n'a pas accès"
     },
     "thoughtReactions": {
         "thoughtNotActivated": "Cet utilisateur n'est pas autorisé à accéder au contenu sans d'abord activer la pensée"
@@ -132,7 +146,11 @@
             "dearUser": "Salut {toEmail}!",
             "body1": "{fromName} te veut sur {brandName}! Tu peux aussi le joindre directement à {fromEmail}.",
             "body2": "Clique ci-dessous pour t'inscrire et commencer à explorer ta communauté locale.",
-            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}"
+            "body2ByBrand": {
+                "habits": "Clique ci-dessous pour t'inscrire et être le changement : les habitudes durent quand tu les bâtis avec des amis."
+            },
+            "postBody1": "Si le bouton ne fonctionne pas, copie et colle ce lien dans ton navigateur : {linkUrl}",
+            "subject": "{fromName} t'a invité sur {brandShortName}"
         },
         "newUserInvite": {
             "header": "Ton profil t'attend!",

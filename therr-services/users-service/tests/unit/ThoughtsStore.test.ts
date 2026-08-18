@@ -462,6 +462,107 @@ describe('ThoughtsStore brand filtering', () => {
         });
     });
 
+    describe('getById (parent thread context)', () => {
+        const buildParentAwareStub = (parentRow?: any) => {
+            const { connection, readStub } = buildMockConnection();
+            readStub.onFirstCall().callsFake(() => Promise.resolve({
+                rows: [{
+                    id: 'reply-1',
+                    parentId: 'thought-1',
+                    fromUserId: '22',
+                    message: 'a reply',
+                }],
+            }));
+            readStub.onSecondCall().callsFake(() => Promise.resolve({
+                rows: parentRow ? [parentRow] : [],
+            }));
+
+            return { connection, readStub };
+        };
+
+        it('does not query for a parent when withParent is not requested', async () => {
+            const { connection, readStub } = buildParentAwareStub({ id: 'thought-1' });
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.THERR, 'reply-1', {}, {});
+
+            expect(readStub.callCount).to.equal(1);
+            expect(thoughts[0].parent).to.equal(undefined);
+        });
+
+        it('attaches the parent thought when the thought is a reply', async () => {
+            const { connection, readStub } = buildParentAwareStub({
+                id: 'thought-1',
+                parentId: null,
+                fromUserId: '11',
+                message: 'the original thought',
+            });
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.THERR, 'reply-1', {}, { withParent: true });
+
+            expect(readStub.callCount).to.equal(2);
+            expect(readStub.args[1][0]).to.include('in (\'thought-1\')');
+            expect(thoughts[0].parent.id).to.equal('thought-1');
+            expect(thoughts[0].parent.message).to.equal('the original thought');
+        });
+
+        it('restricts the parent lookup to the caller brand', async () => {
+            const { connection, readStub } = buildParentAwareStub();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.getById(BrandVariations.HABITS, 'reply-1', {}, { withParent: true });
+
+            // Mirrors the reply join: a habits reader must not be linked up to a therr parent.
+            expect(readStub.args[1][0]).to.include('"brandVariation" in (\'habits\')');
+        });
+
+        it('leaves parent undefined when the parent is filtered out or deleted', async () => {
+            const { connection } = buildParentAwareStub();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.HABITS, 'reply-1', {}, { withParent: true });
+
+            expect(thoughts[0].parent).to.equal(undefined);
+        });
+
+        it('does not query for a parent on a root thought', async () => {
+            const { connection, readStub } = buildMockConnection();
+            readStub.callsFake(() => Promise.resolve({
+                rows: [{ id: 'thought-1', parentId: null }],
+            }));
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.getById(BrandVariations.THERR, 'thought-1', {}, { withParent: true });
+
+            expect(readStub.callCount).to.equal(1);
+        });
+
+        it('hydrates the parent author even when the reply author is missing', async () => {
+            const { connection } = buildParentAwareStub({
+                id: 'thought-1',
+                fromUserId: '11',
+                message: 'the original thought',
+            });
+            const usersStore: any = {
+                findUsers: () => Promise.resolve([{
+                    id: '11',
+                    userName: 'original-poster',
+                    media: { profilePicture: 'pic' },
+                }]),
+            };
+            const store = new ThoughtsStore(connection, usersStore);
+
+            const { thoughts } = await store.getById(BrandVariations.THERR, 'reply-1', {}, {
+                withUser: true,
+                withParent: true,
+            });
+
+            expect(thoughts[0].fromUserName).to.equal(undefined);
+            expect(thoughts[0].parent.fromUserName).to.equal('original-poster');
+        });
+    });
+
     describe('create', () => {
         it('stamps the row with the caller brand on insert (habits)', () => {
             const { connection, writeStub } = buildMockConnection();
@@ -504,6 +605,71 @@ describe('ThoughtsStore brand filtering', () => {
 
             const sql = readStub.args[0][0] as string;
             expect(sql).to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
+        });
+    });
+
+    describe('getForJournal', () => {
+        const runQuery = (brand: BrandVariations, before: any = null, limit = 51) => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.getForJournal(brand, 'user-1', before, limit);
+
+            return readStub.args[0][0] as string;
+        };
+
+        it('scopes the journal to the caller brand', () => {
+            // Unscoped, a HABITS journal would list the user's Therr posts.
+            expect(runQuery(BrandVariations.HABITS))
+                .to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
+        });
+
+        it('returns only the requesting user\'s own top-level posts', () => {
+            const sql = runQuery(BrandVariations.HABITS);
+
+            expect(sql).to.include(`"main"."thoughts"."fromUserId" = 'user-1'`);
+            // Replies are comments on someone else's post, not goals.
+            expect(sql).to.include(`"main"."thoughts"."parentId" is null`);
+            expect(sql).to.include(`"main"."thoughts"."isMatureContent" = false`);
+        });
+
+        it('excludes future-dated rows', () => {
+            // therr-ai-automator drips a run's output out over ~30h by writing
+            // future-dated thoughts. A journal must not open a section headed
+            // with tomorrow's date.
+            expect(runQuery(BrandVariations.HABITS)).to.include(`main.thoughts."createdAt" <= now()`);
+        });
+
+        it('orders on (createdAt, id) under C collation so it agrees with the handler merge', () => {
+            // The handler re-sorts these rows together with the habits half and
+            // compares ids by code point. A locale collation would order the
+            // dashes in a uuid differently and let the two halves disagree about
+            // what falls after the cursor — silently dropping a row.
+            const sql = runQuery(BrandVariations.HABITS);
+
+            expect(sql).to.include(`order by main.thoughts."createdAt" DESC, main.thoughts."id"::text COLLATE "C" DESC`);
+            expect(sql).to.include('limit 51');
+        });
+
+        it('applies a compound cursor on both legs of the ordering', () => {
+            const sql = runQuery(BrandVariations.HABITS, {
+                occurredAt: '2026-08-12T00:00:00.000Z',
+                id: 'thought-9',
+            });
+
+            expect(sql).to.include(`main.thoughts."createdAt" < '2026-08-12T00:00:00.000Z'::timestamptz`);
+            expect(sql).to.include(`main.thoughts."id"::text COLLATE "C" < 'thought-9'`);
+        });
+
+        it('treats a bare-ISO cursor as timestamp-exclusive', () => {
+            // A client mid-scroll across a deploy still holds one; it must keep
+            // paging rather than compare against a null id.
+            const sql = runQuery(BrandVariations.HABITS, {
+                occurredAt: '2026-08-12T00:00:00.000Z',
+                id: null,
+            });
+
+            expect(sql).to.include(`main.thoughts."createdAt" < '2026-08-12T00:00:00.000Z'::timestamptz`);
+            expect(sql).to.not.include('COLLATE "C" <');
         });
     });
 });

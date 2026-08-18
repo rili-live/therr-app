@@ -611,11 +611,16 @@ Build `therr-js-utilities` first when both changed — `therr-react` consumes it
 
 For each affected package:
 ```bash
-npx eslint <file1> <file2> ... --fix --no-error-on-unmatched-pattern 2>&1
+npx eslint <file1> <file2> ... --fix-type problem,suggestion,layout --fix --no-error-on-unmatched-pattern 2>&1
 npm run pr:typecheck:<pkg-short-name> 2>&1
 ```
 
 Available typecheck wrappers: `pr:typecheck:gateway`, `pr:typecheck:users`, `pr:typecheck:maps`, `pr:typecheck:messages`, `pr:typecheck:reactions`, `pr:typecheck:push`, `pr:typecheck:websocket`, `pr:typecheck:js-utils`, `pr:typecheck:therr-react`, `pr:typecheck:web`, `pr:typecheck:dashboard`, `pr:typecheck:mobile`.
+
+`--fix-type` is required, not cosmetic: `reportUnusedDisableDirectives` in
+`eslint-config/base.js` makes stale `eslint-disable` comments auto-fixable, so a bare
+`--fix` deletes them across every file you pass. After linting, check `git status --short`
+and revert anything you did not deliberately edit.
 
 Switch back to the niche branch when finished:
 ```bash

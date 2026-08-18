@@ -14,6 +14,8 @@ import { bindActionCreators } from 'redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
+import { FeatureFlags } from 'therr-js-utilities/constants';
+import getConfig from '../../utilities/getConfig';
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -26,11 +28,19 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { Button } from '../../components/BaseButton';
 import { HABITS_PRESTAGED_TEMPLATE_ID } from '../../components/Habits/PactPreviewOverlay';
 import { buildInviteUrl } from '../../utilities/shareUrls';
+import {
+    WizardStep as Step,
+    IWizardContext,
+    canAdvanceFromPartnerStep,
+    getBackTarget,
+    getFinalAction,
+    getNextStep,
+    isSoloReview,
+} from './wizardSteps';
+import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
-
-type Step = 1 | 2 | 3;
 
 interface IConnectionDetails {
     id: string;
@@ -43,6 +53,8 @@ interface IDispatchProps {
     getTemplates: Function;
     createGoal: Function;
     bulkInvitePact: Function;
+    startUserHabit: Function;
+    getUserHabitEligibility: Function;
     searchUsers: Function;
 }
 
@@ -54,6 +66,7 @@ interface IStoreProps extends IDispatchProps {
 
 interface ICreatePactInviteProps extends IStoreProps {
     navigation: any;
+    route: any;
 }
 
 interface ICreatePactInviteState {
@@ -66,6 +79,7 @@ interface ICreatePactInviteState {
     isSearching: boolean;
     isSending: boolean;
     isLoadingTemplates: boolean;
+    isStartingSolo: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -78,6 +92,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getTemplates: HabitActions.getTemplates,
     createGoal: HabitActions.createGoal,
     bulkInvitePact: HabitActions.bulkInvitePact,
+    startUserHabit: HabitActions.startUserHabit,
+    getUserHabitEligibility: HabitActions.getUserHabitEligibility,
     searchUsers: UsersActions.search,
 }, dispatch);
 
@@ -107,6 +123,9 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     private themeButtons = buildButtonStyles();
     private themeHabits = buildHabitStyles();
     private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    // The goal created for the current step-1 selection, so a retry after a
+    // failed invite/start reuses it instead of creating a duplicate.
+    private resolvedGoal: { selectionKey: string; habitGoalId: string } | null = null;
 
     constructor(props: ICreatePactInviteProps) {
         super(props);
@@ -121,6 +140,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             isSearching: false,
             isSending: false,
             isLoadingTemplates: false,
+            isStartingSolo: false,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -131,7 +151,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
 
     componentDidMount() {
         this.props.navigation.setOptions({
-            title: this.translate('pages.pacts.wizard.step1Title'),
+            title: this.getStepTitle(1),
         });
 
         if (!this.props.habits.templates?.length) {
@@ -140,6 +160,12 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                 .catch(() => {})
                 .finally(() => this.setState({ isLoadingTemplates: false }));
         }
+
+        // Decides whether step 2 may be skipped and what the locked state says.
+        // A failure leaves the wizard locked, which is the safe direction: the
+        // server would refuse the solo call anyway, and the user can still
+        // finish the flow the normal way by choosing a partner.
+        this.props.getUserHabitEligibility().catch(() => {});
     }
 
     componentWillUnmount() {
@@ -149,9 +175,42 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         }
     }
 
+    /**
+     * Entered from a "track a habit on my own" affordance rather than from the
+     * pact CTA, which means step 2 (choose partners) is skipped outright rather
+     * than merely being skippable. The wizard is otherwise identical — same
+     * habit picker, same review, same goal creation.
+     */
+    isSoloMode = (): boolean => this.props.route?.params?.mode === 'solo';
+
+    getSoloProgress = () => getSoloUnlockProgress(
+        this.props.habits.userHabitEligibility,
+        getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
+    );
+
+    getWizardContext = (): IWizardContext => ({
+        isSoloMode: this.isSoloMode(),
+        canCreateSolo: this.getSoloProgress().isUnlocked,
+    });
+
+    /**
+     * Step 3 reviews whatever the user actually assembled. With nobody selected
+     * it is a personal habit, whether they arrived via solo mode or simply
+     * moved past the partner step without picking anyone.
+     */
+    isSoloReview = (): boolean => isSoloReview(this.state.selectedPartnerIds.length);
+
+    getStepTitle = (step: Step): string => {
+        if (step === 3 && this.isSoloReview()) {
+            return this.translate('pages.pacts.wizard.soloReviewTitle');
+        }
+
+        return this.translate(`pages.pacts.wizard.step${step}Title`);
+    };
+
     setStep = (step: Step) => {
         this.props.navigation.setOptions({
-            title: this.translate(`pages.pacts.wizard.step${step}Title`),
+            title: this.getStepTitle(step),
         });
         this.setState({ step });
         if (step === 2) {
@@ -221,8 +280,6 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         this.state.selectedTemplateId || this.state.customHabitName.trim().length > 0,
     );
 
-    canAdvanceFromStep2 = (): boolean => this.state.selectedPartnerIds.length > 0;
-
     handleNext = () => {
         const { step } = this.state;
         if (step === 1) {
@@ -233,25 +290,46 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             if (this.state.selectedTemplateId) {
                 AsyncStorage.setItem(HABITS_PRESTAGED_TEMPLATE_ID, this.state.selectedTemplateId).catch(() => {});
             }
-            this.setStep(2);
+        }
+
+        if (step === 2 && !canAdvanceFromPartnerStep(
+            this.state.selectedPartnerIds.length,
+            this.getSoloProgress().isUnlocked,
+        )) {
+            // Locked: choosing someone is the only way on. The toast says how
+            // many invites unlock the solo path so the requirement reads as
+            // finite rather than as the screen simply refusing to respond.
+            Toast.show({ type: 'info', text1: this.getPartnerRequiredMessage() });
             return;
         }
-        if (step === 2) {
-            if (!this.canAdvanceFromStep2()) {
-                Toast.show({ type: 'info', text1: this.translate('pages.pacts.wizard.pickPartnerFirst') });
-                return;
-            }
-            this.setStep(3);
+
+        this.setStep(getNextStep(step, this.getWizardContext()));
+    };
+
+    /**
+     * Why the partner step will not advance. Falls back to the plain prompt
+     * when there are no counts to quote — promising an unlock without being
+     * able to say how far away it is is worse than not mentioning it.
+     */
+    getPartnerRequiredMessage = (): string => {
+        const { hasProgress, remaining } = this.getSoloProgress();
+
+        if (!hasProgress) {
+            return this.translate('pages.pacts.wizard.pickPartnerFirst');
         }
+
+        return this.translate('pages.pacts.wizard.pickPartnerFirstLocked', { remaining });
     };
 
     handleBack = () => {
-        const { step } = this.state;
-        if (step === 1) {
+        const target = getBackTarget(this.state.step, this.getWizardContext());
+
+        if (target === 'exit') {
             this.props.navigation.goBack();
             return;
         }
-        this.setStep((step - 1) as Step);
+
+        this.setStep(target);
     };
 
     onShareLink = () => {
@@ -268,41 +346,192 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         }).catch(() => {});
     };
 
+    /**
+     * Resolve the habit the user composed in step 1 into a real habit goal.
+     *
+     * Shared by the pact path and the solo path so the two cannot drift on how
+     * a template is cloned — cloning matters because per-user stats (streaks,
+     * completion rate) must not share rows across users.
+     *
+     * WHY THE RESULT IS CACHED
+     *
+     * `createGoal` runs before `bulkInvitePact` / `startUserHabit`, so a
+     * failure in the second call leaves a goal already created. Without a cache
+     * the obvious user response — tap the button again — created a second goal,
+     * and a third, each one counting against the free-tier habit cap. Retries
+     * are now common rather than rare: a 402 sends the user to the paywall and
+     * straight back here. The cache is keyed on the step-1 selection so
+     * changing the habit still creates a new goal.
+     */
+    resolveHabitGoalId = async (): Promise<string | null> => {
+        const { selectedTemplateId, customHabitName } = this.state;
+
+        const selectionKey = `${selectedTemplateId || ''}|${customHabitName.trim()}`;
+
+        if (this.resolvedGoal && this.resolvedGoal.selectionKey === selectionKey) {
+            return this.resolvedGoal.habitGoalId;
+        }
+
+        const habitGoalId = await this.createHabitGoal();
+
+        if (habitGoalId) {
+            this.resolvedGoal = { selectionKey, habitGoalId };
+        }
+
+        return habitGoalId;
+    };
+
+    /**
+     * The create half of `resolveHabitGoalId`, split out so the caching above
+     * has exactly one thing to wrap.
+     */
+    createHabitGoal = async (): Promise<string | null> => {
+        const { habits, createGoal } = this.props;
+        const { selectedTemplateId, customHabitName } = this.state;
+
+        if (selectedTemplateId) {
+            const template = habits.templates?.find((t) => t.id === selectedTemplateId);
+
+            if (!template) {
+                return selectedTemplateId;
+            }
+
+            const userGoal = await createGoal({
+                name: template.name,
+                description: template.description,
+                category: template.category,
+                emoji: template.emoji,
+                frequencyType: template.frequencyType,
+                frequencyCount: template.frequencyCount,
+                targetDaysOfWeek: template.targetDaysOfWeek,
+            });
+
+            return userGoal?.id || selectedTemplateId;
+        }
+
+        if (customHabitName.trim()) {
+            const newGoal = await createGoal({
+                name: customHabitName.trim(),
+                frequencyType: 'daily',
+                frequencyCount: 1,
+            });
+
+            return newGoal?.id || null;
+        }
+
+        return null;
+    };
+
+    /**
+     * The free-tier cap answers with 402 and paywall metadata rather than a
+     * generic error, so route to the offer instead of showing "something went
+     * wrong" for something the user can actually act on.
+     *
+     * Returns true when it handled the error.
+     *
+     * The flag check is not redundant with the 402: `UpgradePaywall` is
+     * registered conditionally on ENABLE_HABITS_LIFETIME_OFFER (see
+     * `routes/index.tsx`), so with the offer switched off `navigate` finds no
+     * matching screen and does nothing. Claiming to have handled the error
+     * would then swallow the toast too, and the button would look inert.
+     */
+    handlePossiblePaywall = (err: any): boolean => {
+        const response = err?.response;
+        const isPaywallRouteAvailable = getConfig()
+            .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
+
+        if (response?.status !== 402 || !isPaywallRouteAvailable) {
+            return false;
+        }
+
+        this.props.navigation.navigate('UpgradePaywall', {
+            reason: response.data?.error || 'habit-limit-reached',
+            limit: response.data?.limit,
+        });
+
+        return true;
+    };
+
+    /**
+     * A 403 means the invite threshold, not a failure. The server sends the
+     * progress counts with it, so say how many invites are left rather than
+     * "we could not start that habit" — the user can act on the first and not
+     * the second. Refreshes eligibility so the locked section on step 2 catches
+     * up with whatever the server just told us.
+     *
+     * Returns true when it handled the error.
+     */
+    handlePossibleSoloLock = (err: any): boolean => {
+        const response = err?.response;
+
+        if (response?.status !== 403 || response?.data?.error !== 'solo-locked') {
+            return false;
+        }
+
+        this.props.getUserHabitEligibility().catch(() => {});
+
+        const required = response.data?.requiredCount;
+        const invited = response.data?.invitedCount;
+        const remaining = typeof required === 'number' && typeof invited === 'number'
+            ? Math.max(required - invited, 0)
+            : null;
+
+        Toast.show({
+            type: 'info',
+            text1: remaining === null
+                ? this.translate('pages.pacts.wizard.soloError')
+                : this.translate('pages.pacts.wizard.soloLockedTitle', { remaining }),
+        });
+
+        return true;
+    };
+
+    /**
+     * "Track this on my own" — creates the habit goal and starts tracking it
+     * with no pact attached. The server can refuse it two ways: 403 while the
+     * user is short of the invite threshold, and 402 at the free-tier habit
+     * cap, which routes to the paywall like the pact path does.
+     */
+    handleStartSolo = async () => {
+        const { navigation, startUserHabit } = this.props;
+
+        this.setState({ isStartingSolo: true });
+
+        try {
+            const habitGoalId = await this.resolveHabitGoalId();
+
+            if (!habitGoalId) {
+                throw new Error('missing habitGoalId');
+            }
+
+            await startUserHabit({ habitGoalId });
+
+            Toast.show({
+                type: 'success',
+                text1: this.translate('pages.pacts.wizard.soloSuccess'),
+            });
+
+            navigation.navigate('HabitsDashboard');
+        } catch (err: any) {
+            if (!this.handlePossibleSoloLock(err) && !this.handlePossiblePaywall(err)) {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.wizard.soloError'),
+                });
+            }
+        } finally {
+            this.setState({ isStartingSolo: false });
+        }
+    };
+
     handleSend = async () => {
-        const { habits, createGoal, bulkInvitePact, navigation } = this.props;
-        const { selectedTemplateId, customHabitName, selectedPartnerIds } = this.state;
+        const { bulkInvitePact, navigation } = this.props;
+        const { selectedPartnerIds } = this.state;
 
         this.setState({ isSending: true });
 
         try {
-            let habitGoalId: string | null = null;
-
-            if (selectedTemplateId) {
-                // Clone the template into a user-owned goal so per-user stats
-                // (streaks, completion rate) don't share rows across users.
-                const template = habits.templates?.find((t) => t.id === selectedTemplateId);
-                if (template) {
-                    const userGoal = await createGoal({
-                        name: template.name,
-                        description: template.description,
-                        category: template.category,
-                        emoji: template.emoji,
-                        frequencyType: template.frequencyType,
-                        frequencyCount: template.frequencyCount,
-                        targetDaysOfWeek: template.targetDaysOfWeek,
-                    });
-                    habitGoalId = userGoal?.id || selectedTemplateId;
-                } else {
-                    habitGoalId = selectedTemplateId;
-                }
-            } else if (customHabitName.trim()) {
-                const newGoal = await createGoal({
-                    name: customHabitName.trim(),
-                    frequencyType: 'daily',
-                    frequencyCount: 1,
-                });
-                habitGoalId = newGoal?.id;
-            }
+            const habitGoalId = await this.resolveHabitGoalId();
 
             if (!habitGoalId) throw new Error('missing habitGoalId');
 
@@ -327,11 +556,15 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             permissions.requestIfAppropriate('notifications', { trigger: 'pactCreate' });
 
             navigation.navigate('HabitsDashboard');
-        } catch {
-            Toast.show({
-                type: 'error',
-                text1: this.translate('pages.pacts.wizard.sendingError'),
-            });
+        } catch (err: any) {
+            // A 402 means the free-tier habit cap, not a failure — send the
+            // user somewhere they can do something about it.
+            if (!this.handlePossiblePaywall(err)) {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.wizard.sendingError'),
+                });
+            }
         } finally {
             this.setState({ isSending: false });
         }
@@ -442,9 +675,62 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         );
     };
 
+    /**
+     * The solo branch at the foot of the partner step: an unlocked shortcut, or
+     * the progress that gets the user there.
+     */
+    renderSoloSection = (isStartingSolo: boolean) => {
+        const { isUnlocked, hasProgress, invitedCount, requiredCount, remaining } = this.getSoloProgress();
+
+        if (!isUnlocked) {
+            // Nothing to promise without counts — say nothing rather than
+            // dangling a feature with no stated price.
+            if (!hasProgress) {
+                return null;
+            }
+
+            return (
+                <View style={{ paddingHorizontal: 20, marginTop: 8, paddingBottom: 16 }}>
+                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { textAlign: 'center', fontWeight: '600' }]}>
+                        {this.translate('pages.pacts.wizard.soloLockedTitle', { remaining })}
+                    </Text>
+                    <Text style={[this.themeHabits.styles.streakMilestoneText, { textAlign: 'center', marginTop: 4 }]}>
+                        {this.translate('pages.pacts.wizard.soloLockedProgress', {
+                            invited: invitedCount,
+                            required: requiredCount,
+                        })}
+                    </Text>
+                </View>
+            );
+        }
+
+        return (
+            <View style={{ paddingHorizontal: 20, marginTop: 8, paddingBottom: 16 }}>
+                <Text style={[this.themeHabits.styles.habitCardSubtitle, { textAlign: 'center' }]}>
+                    {this.translate('pages.pacts.wizard.soloHint')}
+                </Text>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: isStartingSolo }}
+                    disabled={isStartingSolo}
+                    onPress={this.handleStartSolo}
+                    style={{ marginTop: 8, paddingVertical: 12, opacity: isStartingSolo ? 0.6 : 1 }}
+                >
+                    <Text style={[this.themeButtons.styles.btnTitleBlack, { textAlign: 'center' }]}>
+                        {isStartingSolo
+                            ? this.translate('pages.pacts.wizard.soloStarting')
+                            : this.translate('pages.pacts.wizard.soloCta')}
+                    </Text>
+                </Pressable>
+            </View>
+        );
+    };
+
     renderStep2 = () => {
         const { user, userConnections } = this.props;
-        const { selectedPartnerIds, searchQuery, isSearching } = this.state;
+        const {
+            selectedPartnerIds, searchQuery, isSearching, isStartingSolo,
+        } = this.state;
         const currentUserId = user.details?.id || '';
         const connections = (userConnections?.activeConnections || userConnections?.connections || []) as any[];
 
@@ -546,6 +832,16 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         {this.translate('forms.createConnection.shareLink.title')}
                     </Text>
                 </Pressable>
+
+                {/*
+                  * Non-default by design: the app is called Friends with Habits,
+                  * so the solo route sits below the partner list rather than
+                  * alongside it. While locked this is the one place in the flow
+                  * that explains what the invites are *for*, so it renders the
+                  * progress rather than hiding — a requirement nobody can see is
+                  * indistinguishable from a broken screen.
+                  */}
+                {this.renderSoloSection(isStartingSolo)}
             </View>
         );
     };
@@ -559,11 +855,14 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
         const habitName = template?.name || customHabitName.trim();
         const habitEmoji = template?.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji');
         const partnerCount = selectedPartnerIds.length;
+        const isSolo = this.isSoloReview();
 
         return (
             <View>
                 <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20 }]}>
-                    {this.translate('pages.pacts.wizard.step3Subtitle')}
+                    {isSolo
+                        ? this.translate('pages.pacts.wizard.soloReviewSubtitle')
+                        : this.translate('pages.pacts.wizard.step3Subtitle')}
                 </Text>
                 <View style={this.themeHabits.styles.habitCardContainer}>
                     <View style={this.themeHabits.styles.habitCardHeader}>
@@ -571,11 +870,18 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         <View style={this.themeHabits.styles.habitCardTitleContainer}>
                             <Text style={this.themeHabits.styles.habitCardTitle}>{habitName}</Text>
                             <Text style={this.themeHabits.styles.habitCardSubtitle}>
-                                {this.translate('pages.pacts.wizard.multiSelectCounter', { count: partnerCount })}
+                                {isSolo
+                                    ? this.translate('pages.pacts.wizard.soloJustYou')
+                                    : this.translate('pages.pacts.wizard.multiSelectCounter', { count: partnerCount })}
                             </Text>
                         </View>
                     </View>
                 </View>
+                {isSolo && (
+                    <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
+                        {this.translate('pages.pacts.wizard.soloAddPartnersLater')}
+                    </Text>
+                )}
             </View>
         );
     };
@@ -590,14 +896,27 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
     };
 
     renderFooter = () => {
-        const { step, isSending, selectedPartnerIds } = this.state;
+        const { step, isSending, isStartingSolo, selectedPartnerIds } = this.state;
         const isFinalStep = step === 3;
+        // With nobody selected the final action starts a personal habit rather
+        // than sending invites, so the label and the handler move together —
+        // a "Send invite" button that sends none reads as a broken button.
+        const isSolo = getFinalAction(selectedPartnerIds.length) === 'startSolo';
         const sendKey = selectedPartnerIds.length > 1
             ? 'pages.pacts.wizard.sendMultiple'
             : 'pages.pacts.wizard.send';
-        const primaryTitle = isFinalStep
-            ? this.translate(sendKey, { count: selectedPartnerIds.length })
-            : this.translate('pages.pacts.wizard.next');
+        let primaryTitle = this.translate('pages.pacts.wizard.next');
+        if (isFinalStep) {
+            primaryTitle = isSolo
+                ? this.translate('pages.pacts.wizard.soloCta')
+                : this.translate(sendKey, { count: selectedPartnerIds.length });
+        }
+        const isBusy = isSending || isStartingSolo;
+
+        let onPrimaryPress = this.handleNext;
+        if (isFinalStep) {
+            onPrimaryPress = isSolo ? this.handleStartSolo : this.handleSend;
+        }
 
         return (
             <SafeAreaInsetsContext.Consumer>
@@ -624,7 +943,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         >
                             <Pressable
                                 onPress={this.handleBack}
-                                disabled={isSending}
+                                disabled={isBusy}
                                 style={{ paddingVertical: 12, paddingHorizontal: 16 }}
                             >
                                 <Text style={this.themeButtons.styles.btnTitleBlack}>
@@ -638,8 +957,8 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                                     buttonStyle={[this.themeButtons.styles.btnLargeWithText, { width: '100%' }]}
                                     titleStyle={this.themeButtons.styles.btnLargeTitle}
                                     title={primaryTitle}
-                                    onPress={isFinalStep ? this.handleSend : this.handleNext}
-                                    disabled={isSending}
+                                    onPress={onPrimaryPress}
+                                    disabled={isBusy}
                                 />
                             </View>
                         </View>

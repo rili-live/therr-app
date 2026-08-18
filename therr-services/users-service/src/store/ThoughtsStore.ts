@@ -61,6 +61,33 @@ interface IDeleteThoughtsParams {
     ids: string[];
 }
 
+/**
+ * Where the previous page of the journal stopped, as the journal defines it.
+ *
+ * Structurally identical to `IJournalFeedCursor` in `JournalEntriesStore`, and
+ * deliberately re-declared rather than imported: this store must not take a
+ * dependency on the journal's module just to name a pair of strings.
+ */
+export interface IThoughtJournalCursor {
+    occurredAt: string;
+    id: string | null;
+}
+
+/**
+ * One of the user's own posts, shaped for the journal feed.
+ *
+ * The journal only needs enough to render a row and open the thought, so this
+ * deliberately does not return the full thought record.
+ */
+export interface IThoughtJournalRow {
+    id: string;
+    occurredAt: Date;
+    message: string;
+    category: string | null;
+    isPublic: boolean;
+    hashTags: string | null;
+}
+
 export default class ThoughtsStore {
     db: IConnection;
 
@@ -278,6 +305,88 @@ export default class ThoughtsStore {
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 
+    /**
+     * The user's own posts, newest first, for their journal.
+     *
+     * In the HABITS app a thought IS a goal — the profile's Goals tab and the
+     * journal's "Share a goal" both write here (see the note on
+     * `20260427000001_main.thoughts.brandVariation`). So the journal lists them
+     * alongside notes and check-ins rather than making the user go to a
+     * different screen to see what they posted.
+     *
+     * WHY THIS IS NOT IN THE JOURNAL'S UNION QUERY
+     *
+     * `JournalEntriesStore.getFeed` unions the four `habits.*` sources in SQL
+     * because they share a schema and need no brand context. This one needs the
+     * brand allowlist (`getReadableBrands`), which lives here with the rest of
+     * the thoughts access. It is therefore merged in `handlers/journal.ts`, the
+     * same way achievements are — which is sound because this returns
+     * `limit + 1` rows under exactly the ordering and cursor comparison the
+     * other half uses, so the merged top `limit` can never contain an item that
+     * fell outside either source's own window.
+     *
+     * ORDERING must stay `("createdAt" DESC, id::text COLLATE "C" DESC)`. The
+     * handler re-sorts both halves together and compares ids with JavaScript's
+     * code-point `<`; a locale collation gives punctuation variable weight and
+     * would order the dashes in a uuid differently, letting the two halves
+     * disagree about what "after the cursor" means and silently drop a row.
+     */
+    getForJournal(
+        brand: BrandValue,
+        userId: string,
+        before: IThoughtJournalCursor | null,
+        limit: number,
+    ): Promise<IThoughtJournalRow[]> {
+        let query = knexBuilder
+            .select([
+                `${THOUGHTS_TABLE_NAME}.id`,
+                `${THOUGHTS_TABLE_NAME}.message`,
+                `${THOUGHTS_TABLE_NAME}.category`,
+                `${THOUGHTS_TABLE_NAME}.isPublic`,
+                `${THOUGHTS_TABLE_NAME}.hashTags`,
+                // Aliased in object form, not as "col AS alias" in a string —
+                // knex only splits string aliases on a lowercase " as ".
+                { occurredAt: `${THOUGHTS_TABLE_NAME}.createdAt` },
+            ])
+            .from(THOUGHTS_TABLE_NAME)
+            .where(`${THOUGHTS_TABLE_NAME}.fromUserId`, userId)
+            // Replies are not goals — they are comments on someone else's post,
+            // and a journal full of the user's own replies is noise.
+            .whereNull(`${THOUGHTS_TABLE_NAME}.parentId`)
+            .where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false)
+            // therr-ai-automator drips a run's output out over ~30h by writing
+            // future-dated rows (see the note above `ICreateThoughtParams`). A
+            // journal is a record of what already happened, so a row dated
+            // tomorrow must not open a section headed with tomorrow's date; it
+            // appears on its own once the clock reaches it.
+            .whereRaw(`${THOUGHTS_TABLE_NAME}."createdAt" <= now()`);
+
+        const readable = getReadableBrands(brand);
+        if (readable !== 'all') {
+            query = query.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+        }
+
+        if (before?.id) {
+            query = query.whereRaw(
+                `(${THOUGHTS_TABLE_NAME}."createdAt" < ?::timestamptz
+                    OR (${THOUGHTS_TABLE_NAME}."createdAt" = ?::timestamptz
+                        AND ${THOUGHTS_TABLE_NAME}."id"::text COLLATE "C" < ?))`,
+                [before.occurredAt, before.occurredAt, before.id],
+            );
+        } else if (before) {
+            // A bare-ISO cursor from an earlier build stays timestamp-exclusive,
+            // matching what `JournalEntriesStore.getFeed` does with one.
+            query = query.whereRaw(`${THOUGHTS_TABLE_NAME}."createdAt" < ?::timestamptz`, [before.occurredAt]);
+        }
+
+        query = query
+            .orderByRaw(`${THOUGHTS_TABLE_NAME}."createdAt" DESC`)
+            .orderByRaw(`${THOUGHTS_TABLE_NAME}."id"::text COLLATE "C" DESC`)
+            .limit(limit);
+
+        return this.db.read.query(query.toString()).then((response) => response.rows as IThoughtJournalRow[]);
+    }
+
     getById(brand: BrandValue, thoughtId, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let query = knexBuilder
@@ -374,6 +483,62 @@ export default class ThoughtsStore {
                 });
             }
 
+            if (options.withParent) {
+                // A reply has no visible thread context of its own, so the details view renders a
+                // banner linking up to the parent — that needs the parent's author and a snippet
+                // of its message. Deliberately its own bounded query rather than a second
+                // self-join: joined onto the replies join it would multiply (parent rows x reply
+                // rows) and formatSQLJoinAsJSON would have to de-dupe the product.
+                const parentIds: string[] = [...new Set<string>(thoughts.map((thought) => thought.parentId).filter((id) => !!id))];
+
+                if (parentIds.length) {
+                    // This query is deliberately NOT an authorization boundary — it filters on
+                    // brand and mature content only, and will happily return a private parent.
+                    // `isPublic` and `fromUserId` are selected because the caller is what decides
+                    // whether the row may be shown: getThoughtDetails drops `parent` unless the
+                    // requesting user could open it in its own right. Any new consumer of
+                    // `withParent` has to make that same decision — returning these rows straight
+                    // to a client leaks the message of a thought the reader cannot access.
+                    let parentQuery = knexBuilder
+                        .select([
+                            'id',
+                            'parentId',
+                            'fromUserId',
+                            'message',
+                            'isPublic',
+                            'isMatureContent',
+                            'createdAt',
+                        ])
+                        .from(THOUGHTS_TABLE_NAME)
+                        .whereIn('id', parentIds);
+
+                    // Mirrors the reply join's restriction: a habits reader must never be handed a
+                    // therr-brand parent, since the banner links to a thought they cannot open.
+                    if (readable !== 'all') {
+                        parentQuery = parentQuery.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+                    }
+
+                    if (options?.shouldHideMatureContent) {
+                        parentQuery = parentQuery.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
+                    }
+
+                    const parentRows = await this.db.read.query(parentQuery.toString()).then(({ rows: pRows }) => pRows);
+                    const parentsMap = parentRows.reduce((acc, parent) => {
+                        acc[parent.id] = parent;
+                        return acc;
+                    }, {});
+
+                    thoughts.forEach((thought) => {
+                        const modifiedThought = thought;
+                        // Left undefined (not null) when the parent is filtered out or deleted, so
+                        // clients fall back to "this is a reply" without a broken link target.
+                        if (modifiedThought.parentId && parentsMap[modifiedThought.parentId]) {
+                            modifiedThought.parent = parentsMap[modifiedThought.parentId];
+                        }
+                    });
+                }
+            }
+
             if (options.withUser) {
                 const userIds: string[] = [];
                 const thoughtDetailsPromises: Promise<any>[] = [];
@@ -385,6 +550,10 @@ export default class ThoughtsStore {
                         thought.replies.forEach((reply) => {
                             userIds.push(reply.fromUserId);
                         });
+                    }
+
+                    if (thought.parent) {
+                        userIds.push(thought.parent.fromUserId);
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
@@ -427,6 +596,23 @@ export default class ThoughtsStore {
 
                                 return modifiedReply;
                             });
+                        }
+                    }
+
+                    // Parent author, hydrated outside the `matchingUser` branch above: the banner
+                    // names the *parent's* author, so it must not go unnamed just because the
+                    // reply's own author row is missing.
+                    if (modifiedThought.parent) {
+                        const matchingParentUser = usersMap[modifiedThought.parent.fromUserId];
+                        if (matchingParentUser) {
+                            modifiedThought.parent = {
+                                ...modifiedThought.parent,
+                                fromUserName: matchingParentUser.userName,
+                                fromUserFirstName: matchingParentUser.firstName,
+                                fromUserLastName: matchingParentUser.lastName,
+                                fromUserMedia: matchingParentUser.media,
+                                fromUserIsSuperUser: matchingParentUser.isSuperUser,
+                            };
                         }
                     }
 

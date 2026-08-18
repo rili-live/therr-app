@@ -15,7 +15,8 @@ import { CITIES, IMPORT_USER_ID } from './config';
 import {
   ProcessedType,
   markProcessed,
-  filterProcessedSpaces,
+  processedIdsArray,
+  resetProcessed,
   getProcessedStats,
 } from './utils/processedSpaces';
 import { assertDbConnection, createDbPool } from './utils/db';
@@ -43,13 +44,19 @@ Options:
   --delay <ms>         Delay between requests in ms (default: 2000)
   --user-id <uuid>     Override fromUserId for media records
                        (default: ${IMPORT_USER_ID})
+  --deep               On pages with no usable image, also try /about, /menu,
+                       /gallery before giving up (slower, higher yield)
   --dry-run            Crawl and log results without uploading/updating
+                       (still downloads + validates, so counts match a real run)
   --no-skip-processed  Re-process spaces even if previously attempted
+  --retry-failed       Clear the no-image-found list first, then run. Use after
+                       improving extraction to revisit past failures.
   --help, -h           Show this help message
 
 Examples:
   npx ts-node scripts/import-spaces/source-images --city eugene --dry-run --limit 5
   npx ts-node scripts/import-spaces/source-images --city all --category restaurant --limit 50
+  npx ts-node scripts/import-spaces/source-images --retry-failed --deep --limit 100
 `);
 }
 
@@ -61,6 +68,8 @@ interface ICliArgs {
   delay: number;
   userId: string;
   noSkipProcessed: boolean;
+  deep: boolean;
+  retryFailed: boolean;
 }
 
 // ── CLI arg parsing ──────────────────────────────────────────────────────────
@@ -76,6 +85,10 @@ function parseArgs(): ICliArgs {
       parsed.dryRun = 'true';
     } else if (args[i] === '--no-skip-processed') {
       parsed.noSkipProcessed = 'true';
+    } else if (args[i] === '--deep') {
+      parsed.deep = 'true';
+    } else if (args[i] === '--retry-failed') {
+      parsed.retryFailed = 'true';
     } else if (args[i].startsWith('--') && i + 1 < args.length) {
       parsed[args[i].replace('--', '')] = args[i + 1];
       i++;
@@ -90,6 +103,8 @@ function parseArgs(): ICliArgs {
     delay: parsed.delay ? parseInt(parsed.delay, 10) : 2000,
     userId: parsed['user-id'] || IMPORT_USER_ID,
     noSkipProcessed: parsed.noSkipProcessed === 'true',
+    deep: parsed.deep === 'true',
+    retryFailed: parsed.retryFailed === 'true',
   };
 }
 
@@ -100,46 +115,81 @@ interface ISpaceRow {
   hashTags: string;
   websiteUrl: string;
   fromUserId: string;
+  mediaIds: string | null;
+  medias: unknown;
 }
 
 // ── Query spaces needing images ──────────────────────────────────────────────
-async function querySpaces(db: Pool, args: ICliArgs): Promise<ISpaceRow[]> {
+type QueryParam = string | number | string[];
+
+/**
+ * Build the shared WHERE clause for "needs an image and has a website to try".
+ */
+function buildConditions(args: ICliArgs): { where: string; params: QueryParam[] } {
   const conditions = [
-    `("mediaIds" = '' OR "mediaIds" IS NULL)`,
+    '("mediaIds" = \'\' OR "mediaIds" IS NULL)',
     'medias IS NULL',
-    `"websiteUrl" != ''`,
-    `"websiteUrl" IS NOT NULL`,
+    '"websiteUrl" != \'\'',
+    '"websiteUrl" IS NOT NULL',
   ];
-  const params: (string | number)[] = [];
-  let paramIdx = 1;
+  const params: QueryParam[] = [];
 
   if (args.city !== 'all') {
     const cityConfig = CITIES[args.city];
     if (cityConfig) {
-      conditions.push(`"addressLocality" ILIKE $${paramIdx}`);
       params.push(`%${cityConfig.name}%`);
-      paramIdx++;
+      conditions.push(`"addressLocality" ILIKE $${params.length}`);
     }
   }
 
   if (args.category !== 'all') {
-    conditions.push(`category = $${paramIdx}`);
     params.push(args.category);
-    paramIdx++;
+    conditions.push(`category = $${params.length}`);
   }
 
-  let query = `SELECT id, "notificationMsg", category, "hashTags", "websiteUrl", "fromUserId"
+  // Exclude already-attempted spaces in SQL, before LIMIT is applied, so
+  // `--limit N` yields N spaces we have not tried rather than N random rows
+  // that are mostly already done.
+  if (!args.noSkipProcessed) {
+    const processedIds = processedIdsArray([
+      ProcessedType.NO_IMAGE_FOUND,
+      ProcessedType.IMAGE_FOUND,
+    ]);
+    if (processedIds.length > 0) {
+      params.push(processedIds);
+      conditions.push(`id != ALL($${params.length}::uuid[])`);
+    }
+  }
+
+  return { where: conditions.join(' AND '), params };
+}
+
+async function querySpaces(db: Pool, args: ICliArgs): Promise<ISpaceRow[]> {
+  const { where, params } = buildConditions(args);
+
+  let query = `SELECT id, "notificationMsg", category, "hashTags", "websiteUrl", "fromUserId",
+      "mediaIds", medias
     FROM main.spaces
-    WHERE ${conditions.join(' AND ')}
+    WHERE ${where}
     ORDER BY RANDOM()`;
 
   if (args.limit > 0) {
-    query += ` LIMIT $${paramIdx}`;
     params.push(args.limit);
+    query += ` LIMIT $${params.length}`;
   }
 
   const result = await db.query(query, params);
   return result.rows;
+}
+
+/**
+ * Total spaces still eligible, ignoring --limit, so a capped run can report
+ * how much backlog remains behind it.
+ */
+async function countEligible(db: Pool, args: ICliArgs): Promise<number> {
+  const { where, params } = buildConditions(args);
+  const result = await db.query(`SELECT COUNT(*)::int AS n FROM main.spaces WHERE ${where}`, params);
+  return result.rows[0].n;
 }
 
 // ── Sleep helper ─────────────────────────────────────────────────────────────
@@ -156,26 +206,22 @@ async function main() {
   console.log(`  Dry run:  ${args.dryRun}`);
   console.log(`  Limit:    ${args.limit || 'none'}`);
   console.log(`  Delay:    ${args.delay}ms`);
+  console.log(`  Deep:     ${args.deep}`);
   console.log('');
+
+  if (args.retryFailed) {
+    const cleared = resetProcessed(ProcessedType.NO_IMAGE_FOUND);
+    console.log(`--retry-failed: cleared ${cleared} previously failed space(s) for re-attempt.\n`);
+  }
 
   const db = createDbPool();
   await assertDbConnection(db);
   console.log('');
 
-  let spaces = await querySpaces(db, args);
+  const eligible = await countEligible(db, args);
+  const spaces = await querySpaces(db, args);
 
-  if (!args.noSkipProcessed) {
-    const { filtered, skippedCount } = filterProcessedSpaces(spaces, [
-      ProcessedType.NO_IMAGE_FOUND,
-      ProcessedType.IMAGE_FOUND,
-    ]);
-    if (skippedCount > 0) {
-      console.log(`Skipping ${skippedCount} previously processed space(s) for image lookup.`);
-    }
-    spaces = filtered;
-  }
-
-  console.log(`Found ${spaces.length} spaces needing images.\n`);
+  console.log(`${eligible} space(s) eligible; processing ${spaces.length} this run.\n`);
 
   if (spaces.length === 0) {
     await db.end();
@@ -200,7 +246,7 @@ async function main() {
         space,
         space.websiteUrl,
         userId,
-        { dryRun: args.dryRun, progress },
+        { dryRun: args.dryRun, deep: args.deep, progress },
       );
 
       switch (outcome.status) {
@@ -213,8 +259,14 @@ async function main() {
           break;
         }
         case 'dry-run': {
-          console.log(`${progress} DRY RUN — ${outcome.candidateCount} candidate(s) for: ${space.notificationMsg}`);
-          dryRunFound++;
+          if (outcome.validated) {
+            const { source, width, height } = outcome.validated;
+            console.log(`${progress} DRY RUN — WOULD SAVE (${source}) ${width}x${height}: ${space.notificationMsg}`);
+            dryRunFound++;
+          } else {
+            console.log(`${progress} DRY RUN — ${outcome.candidateCount} candidate(s), none valid: ${space.notificationMsg}`);
+            skippedTooSmall++;
+          }
           break;
         }
         case 'no-valid-image': {
@@ -249,13 +301,18 @@ async function main() {
   console.log('\n══════════════════════════════════════');
   console.log(`Total spaces processed:   ${spaces.length}`);
   if (args.dryRun) {
-    console.log(`Candidates found:         ${dryRunFound}`);
+    console.log(`Would save an image:      ${dryRunFound}`);
   } else {
     console.log(`Updated:                  ${updated}`);
   }
   console.log(`Skipped (no image):       ${skippedNoImage}`);
   console.log(`Skipped (too small):      ${skippedTooSmall}`);
   console.log(`Errors:                   ${errors}`);
+  const hitRate = spaces.length > 0
+    ? Math.round(((args.dryRun ? dryRunFound : updated) / spaces.length) * 100)
+    : 0;
+  console.log(`Hit rate:                 ${hitRate}%`);
+  console.log(`Eligible remaining:       ${Math.max(eligible - spaces.length, 0)}`);
   console.log('══════════════════════════════════════\n');
 
   // Show processed-spaces tracking stats

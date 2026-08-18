@@ -19,6 +19,7 @@ jest.mock('therr-react/services', () => ({
     },
 }));
 
+import { AccessLevels } from 'therr-js-utilities/constants';
 import {
     DEFAULT_PROFILE_COMPLETION_FLAGS,
     getProfileCompletionFlags,
@@ -84,6 +85,35 @@ describe('getProfileCompletionSummary', () => {
         });
     });
 
+    it('does not count an unverified phone number as a finished phone step', () => {
+        // The server revokes MOBILE_VERIFIED whenever a profile save changes the number, so a
+        // user can hold a phoneNumber with no verification behind it. Counting that as done
+        // would hide the checklist entry that is the only in-app route back to verification,
+        // while the phone-gated actions it unlocks (bulk invites) keep returning 403.
+        const unverified = getProfileCompletionSummary(
+            buildUser({ phoneNumber: '+15555555555' }),
+            DEFAULT_PROFILE_COMPLETION_FLAGS,
+        );
+        expect(unverified.steps.find((s) => s.key === 'phone')?.isComplete).toBe(false);
+
+        const verified = getProfileCompletionSummary(
+            buildUser({
+                phoneNumber: '+15555555555',
+                accessLevels: [AccessLevels.MOBILE_VERIFIED],
+            }),
+            DEFAULT_PROFILE_COMPLETION_FLAGS,
+        );
+        expect(verified.steps.find((s) => s.key === 'phone')?.isComplete).toBe(true);
+    });
+
+    it('does not count MOBILE_VERIFIED without a number as a finished phone step', () => {
+        const noNumber = getProfileCompletionSummary(
+            buildUser({ accessLevels: [AccessLevels.MOBILE_VERIFIED] }),
+            DEFAULT_PROFILE_COMPLETION_FLAGS,
+        );
+        expect(noNumber.steps.find((s) => s.key === 'phone')?.isComplete).toBe(false);
+    });
+
     it('treats the iOS placeholder name as no name at all', () => {
         // Onboarding seeds "Anonymous User" on iOS so an account can be created
         // without a name. Counting that as a finished step would silently hide
@@ -142,6 +172,7 @@ describe('getProfileCompletionSummary', () => {
                 firstName: 'Zack',
                 lastName: 'Anselm',
                 phoneNumber: '+15555555555',
+                accessLevels: [AccessLevels.MOBILE_VERIFIED],
                 media: { profilePicture: { path: 'some/path.jpeg' } },
             }),
             allFlags,

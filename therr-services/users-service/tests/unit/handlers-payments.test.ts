@@ -1,8 +1,9 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
+import stripe from '../../src/api/stripe';
+import { activateUserSubscription } from '../../src/handlers/payments';
 
 describe('Payments Handler', () => {
     afterEach(() => {
@@ -97,6 +98,118 @@ describe('Payments Handler', () => {
             expect(mockStripeResponse.mode).to.equal('subscription');
             expect(mockStripeResponse.payment_status).to.equal('paid');
             expect(mockStripeResponse.status).to.equal('complete');
+        });
+    });
+
+    // Unlike the block above, these drive the real handler rather than re-asserting a copy of its
+    // logic inline. They cover `notGrantedReason`, which exists because every one of these paths
+    // answers 200 — without it a refusal is indistinguishable from "nothing to grant".
+    describe('activateUserSubscription — notGrantedReason', () => {
+        const BASIC_PRODUCT_ID = 'prod_OK9dEHmueTGDZ1';
+
+        const buildSession = (overrides: any = {}) => ({
+            mode: 'subscription',
+            status: 'complete',
+            payment_status: 'paid',
+            customer_details: { email: 'buyer@test.com' },
+            customer_email: null,
+            subscription: {
+                status: 'active',
+                items: { data: [{ price: { product: BASIC_PRODUCT_ID } }] },
+            },
+            ...overrides,
+        });
+
+        const invoke = async (session: any, headers: any = {}) => {
+            sinon.stub(stripe.checkout.sessions, 'retrieve').resolves(session);
+            const res: any = {
+                status: sinon.stub().returnsThis(),
+                send: sinon.stub().returnsThis(),
+            };
+
+            await activateUserSubscription({ params: { id: 'cs_test' }, headers }, res);
+
+            return res.send.firstCall.args[0];
+        };
+
+        it('reports a billing-email mismatch instead of refusing silently', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-123',
+                email: 'someone-else@test.com',
+                accessLevels: [AccessLevels.DEFAULT],
+            }]);
+            const updateUserStub = sinon.stub(Store.users, 'updateUser').resolves([]);
+
+            const body = await invoke(buildSession(), { 'x-userid': 'user-123' });
+
+            expect(body.notGrantedReason).to.equal('billing-email-mismatch');
+            expect(body.isAccessLevelUpdated).to.be.eq(false);
+            expect(updateUserStub.called).to.be.eq(false);
+        });
+
+        it('reports a non-grantable session for a cancelled subscription', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-123',
+                email: 'buyer@test.com',
+                accessLevels: [AccessLevels.DEFAULT],
+            }]);
+            sinon.stub(Store.users, 'updateUser').resolves([]);
+
+            const body = await invoke(buildSession({
+                subscription: {
+                    status: 'canceled',
+                    items: { data: [{ price: { product: BASIC_PRODUCT_ID } }] },
+                },
+            }), { 'x-userid': 'user-123' });
+
+            expect(body.notGrantedReason).to.equal('session-not-grantable');
+            expect(body.isAccessLevelUpdated).to.be.eq(false);
+        });
+
+        it('reports account-not-found when no account holds the billing email', async () => {
+            sinon.stub(Store.users, 'getUserByConditions').resolves([]);
+            sinon.stub(Store.users, 'updateUser').resolves([]);
+
+            const body = await invoke(buildSession());
+
+            expect(body.notGrantedReason).to.equal('account-not-found');
+            expect(body.isAccessLevelUpdated).to.be.eq(false);
+        });
+
+        it('reports no-mapped-access-level for a product missing from productIdMap', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-123',
+                email: 'buyer@test.com',
+                accessLevels: [AccessLevels.DEFAULT],
+            }]);
+            sinon.stub(Store.users, 'updateUser').resolves([]);
+
+            const body = await invoke(buildSession({
+                subscription: {
+                    status: 'active',
+                    items: { data: [{ price: { product: 'prod_not_in_map' } }] },
+                },
+            }), { 'x-userid': 'user-123' });
+
+            expect(body.notGrantedReason).to.equal('no-mapped-access-level');
+        });
+
+        it('omits the reason entirely when the grant lands', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-123',
+                email: 'buyer@test.com',
+                accessLevels: [AccessLevels.DEFAULT],
+            }]);
+            const updateUserStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-123' }]);
+
+            const body = await invoke(buildSession(), { 'x-userid': 'user-123' });
+
+            expect(body.notGrantedReason).to.be.eq(undefined);
+            expect(body.isAccessLevelUpdated).to.be.eq(true);
+            expect(updateUserStub.calledOnce).to.be.eq(true);
+            // Unioned, never replaced — replacing here is what stripped EMAIL_VERIFIED and locked
+            // users out of login right after paying.
+            expect(JSON.parse(updateUserStub.firstCall.args[0].accessLevels)).to.include(AccessLevels.DEFAULT);
         });
     });
 

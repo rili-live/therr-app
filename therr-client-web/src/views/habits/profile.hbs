@@ -68,6 +68,13 @@
             color: var(--habits-navy);
             letter-spacing: -0.01em;
         }
+        header.site-header .session-link {
+            margin-left: auto;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--habits-text-muted);
+        }
+        [hidden] { display: none !important; }
         .profile {
             padding: 3rem 0 2.5rem;
             text-align: center;
@@ -183,6 +190,14 @@
         <div class="container">
             <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
             <a class="brand" href="/" style="color: var(--habits-navy);">Friends with Habits</a>
+            <!--
+                Hidden in the served markup and revealed by the script at the end of this
+                page. Profile pages are public and shared-proxy cached (see the
+                Cache-Control set alongside this render in server-client.tsx), so the
+                server cannot know whether the viewer is signed in — a server-rendered
+                "Sign out" would be cached and then shown to anonymous visitors.
+            -->
+            <a class="session-link" id="session-logout" href="/logout" hidden>Sign out</a>
         </div>
     </header>
 
@@ -206,7 +221,7 @@
                 <p class="label">Same person, more places</p>
                 <a class="therr-cta" href="{{therrProfileUrl}}" rel="noopener">
                     <img src="/assets/images/therr-email-logo.svg" alt="" aria-hidden="true">
-                    <span>Find me on the Therr app</span>
+                    <span>Find me on Therr app</span>
                 </a>
             </div>
         </section>
@@ -214,5 +229,18 @@
     </main>
 
     {{> habitsFooter}}
+
+    <script>
+        (function () {
+            // Reveal the sign-out affordance only for a viewer who actually has a session.
+            // Any session counts, not just this profile's owner: someone signed in while
+            // looking at a friend's profile still needs a way out.
+            try {
+                if (sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser')) {
+                    document.getElementById('session-logout').hidden = false;
+                }
+            } catch (e) { /* storage disabled — leave the link hidden */ }
+        })();
+    </script>
 </body>
 </html>

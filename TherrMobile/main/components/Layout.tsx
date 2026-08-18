@@ -1107,6 +1107,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
             case PushNotifications.Types.eveningCheckIn:
+            // Habit lifecycle milestones and check-ins
+            // (docs/HABIT_LIFECYCLE_MESSAGING.md). Listed here rather than left
+            // to `default` because that returns null — the notification would
+            // render, be tappable, and open nothing.
+            case PushNotifications.Types.habitEstablished:
+            case PushNotifications.Types.habitAutomaticity:
+            case PushNotifications.Types.habitMaintenanceCheckIn:
+            case PushNotifications.Types.habitComeback:
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
 
             default:
@@ -1631,6 +1639,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // public, so route signed-out users there too rather than deferring to targetRouteView.
             // '/api-keys' is matched as well because older marketing links still point at it.
             RootNavigation.navigate('ApiAccess');
+        } else if (url?.includes('therr.com/verify-phone')) {
+            // Phone verification lives only inside the CreateProfile stack, so anything that
+            // needs to send a user there — the bulk-invite 403, the profile checklist, an
+            // email or SMS nudge — points at this URL. The web page at the same path is the
+            // fallback for users without the app, and it verifies through the same endpoints.
+            // Signed-out users cannot verify anything, so defer via targetRouteView and let
+            // them land here after login rather than bouncing them to a screen that 401s.
+            if (isUserLoggedIn) {
+                RootNavigation.navigate('CreateProfile', { stage: 'phone' });
+            } else {
+                this.setState({
+                    targetRouteView: 'CreateProfile',
+                    targetRouteParams: { stage: 'phone' },
+                });
+            }
         } else if (url?.includes('therr.com/app-feedback')) {
             if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('Home');

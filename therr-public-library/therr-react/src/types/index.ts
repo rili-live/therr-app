@@ -27,6 +27,12 @@ import {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 
     // Messages
     MessageActionTypes,
@@ -122,6 +128,12 @@ export {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 
     // Maps
     IMapState,

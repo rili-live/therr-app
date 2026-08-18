@@ -453,7 +453,6 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                             initialNumToRender={6}
                             maxToRenderPerBatch={5}
                             windowSize={11}
-                            removeClippedSubviews={true}
                         />
                     )}
                 </SafeAreaView>

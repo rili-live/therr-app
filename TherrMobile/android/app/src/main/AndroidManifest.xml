@@ -17,6 +17,16 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+  <!-- Google Play Billing (react-native-iap / main/utilities/habitsBilling.ts).
+       Declared explicitly rather than relying on manifest merge: react-native-iap
+       ships an EMPTY android/src/main/AndroidManifest.xml, so the permission only
+       arrives transitively from the Play Billing AAR pulled in by
+       io.github.hyochan.openiap:openiap-google. Play Console will not let you create
+       in-app products or subscriptions until it has an uploaded artifact declaring
+       this permission, so an unlucky dependency change must not be able to silently
+       drop it. Keep it here. -->
+  <uses-permission android:name="com.android.vending.BILLING" />
+
   <!-- HABITS niche app does not use location. react-native-background-geolocation
        is removed from package.json on this branch (its Transistorsoft license is
        per-applicationId and does not cover com.therr.habits). react-native-geolocation-service

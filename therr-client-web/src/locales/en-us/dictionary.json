@@ -490,7 +490,13 @@
       "loginToReply": "Log in to reply",
       "loginToView": "Log in to view this post and join the conversation",
       "backToThoughts": "Back to Thoughts",
-      "viewReplies": "View {count} replies"
+      "viewReplies": "View {count} replies",
+      "headerTitleReply": "Reply",
+      "parentThread": "Thread",
+      "partOfThread": "Part of a thread",
+      "replyingTo": "Replying to {userName}",
+      "viewParentThought": "View the post this replies to",
+      "backToParent": "Back to Thread"
     },
     "explorePeople": {
       "pageTitle": "Search People",
@@ -725,6 +731,27 @@
       "infoTitle": "Why We Verify Your Phone Number",
       "info": "Your security matters to us. Phone verification helps us keep the community authentic and free from fake accounts. Combined with email and location-based safeguards, it ensures you're connecting with real people in a trusted environment."
     },
+    "verifyPhone": {
+      "pageTitle": "Verify Your Phone",
+      "pageTitleVerify": "Verify Your Phone: Enter Code",
+      "description": "We'll text you a code to confirm this number belongs to you.",
+      "labels": {
+        "mobilePhone": "Mobile phone"
+      },
+      "buttons": {
+        "sendCode": "Send Code"
+      },
+      "validationErrors": {
+        "phoneNumber": "Please enter a valid phone number"
+      },
+      "verifyPhoneSuccess": "Phone number verified!",
+      "verifyPhoneError": "Failed to send verification code. Please try again.",
+      "updateProfileError": "Failed to save your phone number. Please try again.",
+      "authError": "Your session has expired. Please log in again.",
+      "invalidCode": "Code is invalid or expired. Try again or resend.",
+      "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
+      "phoneRegionNotSupportedError": "SMS verification is not available for your region. Please use a different phone number."
+    },
     "login": {
       "pageTitle": "Sign In",
       "buttons": {
@@ -930,6 +957,9 @@
       "joinButton": "Join Now & Earn 5 Coins",
       "appStoreText": "Also available on mobile",
       "returnHome": "Return to home page"
+    },
+    "inviteLinkLanding": {
+      "appStoreText": "Finish joining on {appName}"
     },
     "claimPactLanding": {
       "title": "Accept Your Pact",
