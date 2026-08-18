@@ -769,6 +769,25 @@ console configuration, and one verification that gates a payments change.
   (`TherrMobile/android/app/build/intermediates/merged_manifests/release/AndroidManifest.xml`)
   or `aapt dump permissions` on the AAB before uploading — this is the gate on the in-app
   product item above, and a dependency change could silently drop it.
+- [ ] (2026-08-17, /quality-peer-review-niche) **Push `general` before merging
+  `niche/HABITS-general` into `niche/HABITS-main`.** The entire three-invite solo-habit
+  threshold — `getSoloInviteProgress`, `countDistinctInvitedByCreator`,
+  `HABITS_SOLO_UNLOCK_INVITE_COUNT`, and the `invitedCount` / `soloUnlockInviteCount` fields on
+  `GET /habits/user-habits/eligibility` — sits in five **unpushed** commits on local `general`
+  (`7795559f3`, `1fd821afc`, `87cd4a774` plus two docs commits). Production (`origin/main`)
+  still runs `hasSentPactInvite`, which unlocks solo habits after **one** invite and returns no
+  counts. The mobile client degrades cleanly against that (`hasProgress` is false, so every
+  progress surface simply hides), so this is not a crash — it is worse in a quieter way: the
+  Play build would ship looking finished while the threshold it advertises silently is not in
+  effect. Push `general`, then `general → stage → main`, and confirm the new response shape is
+  live before cutting the Android build.
+- [ ] (2026-08-17, /quality-peer-review-niche) **Decide whether `ENABLE_HABITS_SOLO` should
+  gate anything.** The flag is defined in `FeatureFlags`, set to `true` for HABITS in
+  `env-config.js`, and given a dependency rule in `validateFeatureFlags.ts` — but no call site
+  reads it. The solo path is gated entirely on server eligibility, so today the flag is inert
+  and flipping it off would not disable the feature. Either wire it into the solo affordances
+  (`PactPreviewOverlay` footer, `CreatePactInvite.renderSoloSection`) so there is a kill switch
+  that works, or delete it so nobody trusts a switch that does nothing.
 <!-- skill-followups:end -->
 
 ---
