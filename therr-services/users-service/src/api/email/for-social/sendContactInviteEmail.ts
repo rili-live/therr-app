@@ -7,7 +7,6 @@ import translate from '../../../utilities/translator';
 export interface ISendContactInviteEmailConfig {
     charset?: string;
     locale?: string;
-    subject: string;
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
@@ -23,7 +22,11 @@ export interface ITemplateParams {
 export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
-    const hostFull = `${globalConfig[process.env.NODE_ENV].hostFull}`;
+    // Prefer the brand's own host so a niche app's invite does not bounce the recipient to
+    // therr.com — same fallback ladder as `sendOneTimePasswordEmail`. Not `parentHomepageUrl`:
+    // for Therr that is the marketing site, which does not serve `/invite/link/:token`.
+    const hostFull = contextConfig.emailTemplates.appHostFull
+        || `${globalConfig[process.env.NODE_ENV].hostFull}`;
     // Magic invite link: pre-fills the invitee's known email and skips the
     // email-verification round-trip on signup. Falls back to the homepage if
     // no token is supplied (e.g. legacy callers).
@@ -42,5 +45,12 @@ export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITem
 
     return sendEmail({
         ...emailParams,
+        // Built here rather than taken from the caller, which passed a hard-coded English
+        // "... invited you to Therr app" regardless of locale or brand. Every sibling email
+        // (verification, one-time password) localizes its own subject the same way.
+        subject: translate(locale, 'emails.contactInvite.subject', {
+            fromName: templateParams.fromName,
+            brandShortName: contextConfig.brandShortName,
+        }),
     }, htmlConfig);
 };

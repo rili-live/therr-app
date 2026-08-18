@@ -21,6 +21,7 @@ import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 import { IFindUsersByContactInfo } from '../store/UsersStore';
+import { getHostContext } from '../constants/hostContext';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { getInterestRanking, logShadowInterestRanking } from '../utilities/interestWeights';
 
@@ -432,7 +433,22 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         // row, so an old link can't be reused after a new invite. Existing-user
         // invites are tracked separately below (they get in-app connection
         // requests, not magic links).
-        const hostFull = `${globalConfig[process.env.NODE_ENV].hostFull}`;
+        // Invite links must land on the host that belongs to the brand that sent them. A niche
+        // app with its own subdomain sets `appHostFull`, and `habitsSubdomainRoutes` exists
+        // specifically to serve `/invite/link/:token` there; without this, a Friends with
+        // Habits invite bounced the recipient to therr.com. Brands with no subdomain of their
+        // own keep falling back to the global host — note this deliberately does NOT fall back
+        // to `parentHomepageUrl` the way the pact flow does, because for Therr that resolves to
+        // the marketing site (therr.app), which does not serve this route.
+        const contextConfig = getHostContext(whiteLabelOrigin, brandVariation);
+        const hostFull = contextConfig.emailTemplates.appHostFull
+            || `${globalConfig[process.env.NODE_ENV].hostFull}`;
+
+        // Only Therr ships a tagline; every other brand renders the short form. `translate`
+        // returns the key itself when a dictionary has no entry, so that is the miss signal.
+        const taglineKey = `invites.phoneTaglines.${brandVariation}`;
+        const translatedTagline = translate(locale, taglineKey);
+        const brandTagline = translatedTagline === taglineKey ? '' : translatedTagline;
         const emailInvitesToPersist = sendableEmailContacts.map((contact) => ({
             requestingUserId: userId,
             email: contact.email,
@@ -463,7 +479,6 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
 
         // 3. Send email invites (with magic link) to non-existent, dedupe-filtered users
         const emailSendPromises: any[] = persistedEmailInvites.map((invite) => sendContactInviteEmail({
-            subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
             locale,
             toAddresses: [invite.email as string],
             agencyDomainName: whiteLabelOrigin,
@@ -480,6 +495,10 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             .create({
                 body: translate(locale, 'invites.phone', {
                     name: `${requestingUserFirstName} ${requestingUserLastName}`,
+                    // `brandShortName`, not `brandName`: for Therr the latter is "Therr App",
+                    // which would read "invited you to Therr App — the local community…".
+                    brandName: contextConfig.brandShortName,
+                    brandTagline,
                     inviteUrl: `${hostFull}/invite/link/${invite.token}`,
                 }),
                 to: invite.phoneNumber as string, // Text this number
