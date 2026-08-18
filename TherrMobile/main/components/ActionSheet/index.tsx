@@ -1,3 +1,16 @@
+/**
+ * Every bottom sheet in the app is registered here and opened through `SheetManager.show`.
+ *
+ * NOTE: `patches/react-native-actions-sheet+0.9.8.patch` removes a 300ms delay this library
+ * puts in front of every sheet on Android. Upstream defers its internal `safeAreaLayout`
+ * event by 300ms on the first root layout of an `ActionSheet` mount, to give iOS's
+ * `SafeAreaView` inset probes time to report. Those probes are never rendered on Android
+ * (inset comes from `StatusBar.currentHeight`, read synchronously), so the wait measures
+ * nothing — and because `SheetProvider` unmounts a sheet when it closes, the "first" layout
+ * is every layout. That is a flat 300ms between the tap and the sheet starting to animate,
+ * on every open of every sheet. Symptom that led here: the 3-dot menu on a user profile
+ * taking a visibly long time to appear.
+ */
 import { SheetDefinition, registerSheet } from 'react-native-actions-sheet';
 import GroupSheet from './GroupSheet';
 import UserSheet from './UserSheet';
