@@ -100,7 +100,6 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
             setIsCreating(false);
         } catch (err: any) {
             if (__DEV__) {
-
                 console.warn('[ListPickerSheet] createUserList failed', err?.response?.status, err?.response?.data || err?.message);
             }
             const isConflict = Number(err?.response?.status) === 409;

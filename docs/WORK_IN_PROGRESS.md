@@ -798,6 +798,22 @@ console configuration, and one verification that gates a payments change.
   wrong). Note the keyboard toggle explicitly — it is a new control, not just a fix. If
   versionCode 447 never rolled out, the 2026-08-12 item above folds into this one and the notes
   must cover both bumps.
+- [ ] (2026-08-18, /quality-peer-review) **Smoke-test every bottom sheet on a real Android
+  device before cutting 3.15.2.** `BaseActionSheet` now renders every sheet with
+  `isModal={false}`, so sheets are in-tree absolutely-positioned views instead of native Dialog
+  windows. Nothing in Jest or tsc covers that difference — the library keeps a `hardwareBackPress`
+  listener on the non-modal path (verified in `dist/src/index.js`) and `SheetProvider` sits inside
+  `GestureHandlerRootView` above `Layout`, so z-order and back should hold, but both are runtime
+  properties of the native view tree. Open content-options, group, user, user-profile,
+  image-picker, visibility-picker and list-picker sheets; confirm each draws over the bottom tab
+  bar, that the hardware back button dismisses it, that swipe-down dismisses (all but list-picker,
+  which opts out), and that the list-picker's text input is not covered by the keyboard.
+- [ ] (2026-08-18, /quality-peer-review) **Android 3.15.2 (versionCode 450) release notes —
+  supersedes the versionCode 449 item above.** 449 was bumped to 450 in the same cycle, so write
+  one set of notes covering both. On top of the 449 fixes, 450 adds: blank gaps in the Discovered
+  feed and the Connect lists are gone (`removeClippedSubviews` off, wider render window, Connect
+  back on FlatList), and the post options sheet no longer pops back open a moment after you react
+  to a post.
 <!-- skill-followups:end -->
 
 ---

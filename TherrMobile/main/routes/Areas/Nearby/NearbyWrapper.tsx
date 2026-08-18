@@ -274,7 +274,8 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             itemsPerPage: number,
             meItemsPerPage: number,
         },
-        overrides?: any) => {
+        overrides?: any
+    ) => {
         const {
             searchEvents,
             searchMoments,
