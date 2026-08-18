@@ -35,6 +35,19 @@ import ReferralStats from '../../components/UserContent/ReferralStats';
 
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
+
+/**
+ * Measured row heights, not guesses. `BaseListItem` lays out `paddingVertical: 8` around its
+ * tallest child and `bottomDivider` adds a 1px border, so a row built around a `medium`
+ * (50px) avatar is 8 + 50 + 8 + 1. The DM rows are taller because their subtitle is a two-line
+ * message preview (~20px title + 2 x ~18px) rather than a single-line name.
+ *
+ * FlashList sizes its initial render window from these, so an over-estimate (they were both
+ * 88) renders too few rows to fill the viewport and leaves a blank band under the last one
+ * until the user scrolls.
+ */
+const LIST_ITEM_HEIGHT = 67;
+const DM_LIST_ITEM_HEIGHT = 73;
 const tabMap = {
     0: PEOPLE_CAROUSEL_TABS.PEOPLE,
     1: PEOPLE_CAROUSEL_TABS.MESSAGES,
@@ -404,18 +417,30 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         navigation.navigate('Invite');
     };
 
+    /**
+     * Scrolls the tab the user is actually looking at back to the top.
+     *
+     * Only ever called from an explicit gesture — the menu's action button. It used to be
+     * wired to every list's `onContentSizeChange` as well, which meant any growth in content
+     * height yanked the list back to offset 0: FlashList reports a new content size as it
+     * measures recycled rows during a scroll, so scrolling down far enough to render unmeasured
+     * rows fired the handler and undid the scroll. That is the "snaps back to the top
+     * unprovoked" report, and the mid-scroll programmatic jump is also what left blank bands
+     * behind, since the recycler's visible window was being moved out from under it.
+     *
+     * Scoped to the active tab because the previous version scrolled all three lists at once,
+     * silently resetting the two tabs the user could not see.
+     */
     scrollTop = () => {
-        const { userConnections, user } = this.props;
+        const { activeTabIndex } = this.state;
 
-        if (userConnections.connections?.length) {
-            this.connectionsListRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
-        if (userConnections.groups?.length) {
-            this.messagesListRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
-        if (Object.keys(user.users || {}).length) {
-            this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
+        const listRef = {
+            [PEOPLE_CAROUSEL_TABS.PEOPLE]: this.peopleListRef,
+            [PEOPLE_CAROUSEL_TABS.MESSAGES]: this.messagesListRef,
+            [PEOPLE_CAROUSEL_TABS.CONNECTIONS]: this.connectionsListRef,
+        }[tabMap[activeTabIndex]];
+
+        listRef?.scrollToOffset({ animated: true, offset: 0 });
     };
 
     sortConnections = () => {
@@ -537,12 +562,11 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshingUserSearch}
                             onRefresh={this.handleRefreshUsersSearch}
                         />}
-                        onContentSizeChange={this.scrollTop}
                         onEndReached={this.trySearchMoreUsers}
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
                         ListFooterComponentStyle={{ marginBottom: 80 }}
-                        estimatedItemSize={96}
+                        estimatedItemSize={LIST_ITEM_HEIGHT}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.MESSAGES:
@@ -576,8 +600,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshingDMsSearch}
                             onRefresh={this.handleRefreshDMsSearch}
                         />}
-                        onContentSizeChange={this.scrollTop}
-                        estimatedItemSize={88}
+                        estimatedItemSize={DM_LIST_ITEM_HEIGHT}
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.CONNECTIONS:
@@ -611,8 +634,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshingConnections}
                             onRefresh={this.handleRefreshUserConnections}
                         />}
-                        onContentSizeChange={this.scrollTop}
-                        estimatedItemSize={88}
+                        estimatedItemSize={LIST_ITEM_HEIGHT}
                     />
                 );
         }
