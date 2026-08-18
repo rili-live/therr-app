@@ -392,7 +392,6 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
-                toggleAreaOptions: this.toggleAreaOptions,
                 translate: this.translate,
             });
         }
