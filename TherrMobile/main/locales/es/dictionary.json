@@ -401,7 +401,11 @@
       "viewAllReplies": "Ver las {count} respuestas",
       "viewReplies": "Ver {count} respuestas",
       "likeThought": "Me gusta esta publicación",
-      "unlikeThought": "Quitar me gusta de esta publicación"
+      "unlikeThought": "Quitar me gusta de esta publicación",
+      "crossBrandLabels": {
+        "format": "{label}: {message}",
+        "habits": "Actualización de objetivos"
+      }
     },
     "userMenu": {
       "buttons": {
