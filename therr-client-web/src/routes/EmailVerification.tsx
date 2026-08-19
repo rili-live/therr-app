@@ -50,7 +50,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.emailVerification.pageTitle')}`;
 
         const queryParams = new URLSearchParams(window.location.search);

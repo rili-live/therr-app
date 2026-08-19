@@ -67,7 +67,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         const { location } = this.props;
         document.title = `${getWebsiteName()} | ${this.translate('pages.emailVerification.pageTitle')}`;
 

@@ -401,7 +401,11 @@
       "viewAllReplies": "View all {count} replies",
       "viewReplies": "View {count} replies",
       "likeThought": "Like this post",
-      "unlikeThought": "Remove like from this post"
+      "unlikeThought": "Remove like from this post",
+      "crossBrandLabels": {
+        "format": "{label}: {message}",
+        "habits": "Goals update"
+      }
     },
     "userMenu": {
       "buttons": {

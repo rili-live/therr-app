@@ -61,7 +61,7 @@ export class AppFeedbackComponent extends React.Component<IAppFeedbackProps, IAp
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.appFeedback.pageTitle')}`;
         const { location } = this.props;
 

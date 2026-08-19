@@ -474,7 +474,6 @@ class ViewUser extends React.Component<
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
-                toggleAreaOptions: this.toggleAreaOptions,
                 translate: this.translate,
             });
         }
@@ -486,7 +485,6 @@ class ViewUser extends React.Component<
         handleThoughtReaction(thought, type, {
             user,
             createOrUpdateThoughtReaction,
-            toggleThoughtOptions: this.toggleThoughtOptions,
             translate: this.translate,
         });
     };

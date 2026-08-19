@@ -1,5 +1,10 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
+import {
+    NUDGE_COOLDOWN_MS,
+    classifyDispatchResult,
+    flattenNudgeOutcomes,
+    getCooldownOutcome,
+} from '../../src/utilities/pactNudgeOutcome';
 
 /**
  * Pacts handler — nudge eligibility + cooldown regression tests.
@@ -9,12 +14,12 @@ import { expect } from 'chai';
  * must be at least one still-pending partner, and each partner is rate-limited
  * by a 7-day cooldown keyed on their `nudgedAt`.
  *
- * These tests mirror the decision tree from `src/handlers/pacts.ts` in pure
- * form so we can exercise it without standing up Express, Stores, or push
- * notifications — matching the style of `handlers-pacts-bulk.test.ts`.
+ * The authorization tree below is mirrored from `src/handlers/pacts.ts` in pure form so we
+ * can exercise it without standing up Express, Stores, or push notifications — matching the
+ * style of `handlers-pacts-bulk.test.ts`. Everything past that gate (the cooldown gate, the
+ * dispatch classification and the result flattening) lives in `src/utilities/pactNudgeOutcome`
+ * and is imported here directly, so these assertions cover the code that actually runs.
  */
-
-const NUDGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // keep in sync with handler
 
 interface INudgeMember {
     role: 'creator' | 'partner';
@@ -49,44 +54,10 @@ const decideNudge = ({
     return { allowed: true };
 };
 
-// Mirrors the per-partner cooldown gate: a partner is skipped only when it was
-// nudged within the cooldown window. A null/undefined nudgedAt is always eligible.
-const isPartnerNudgeable = (partner: INudgeMember, nowMs: number): boolean => {
-    if (!partner.nudgedAt) {
-        return true;
-    }
-    const nudgedMs = new Date(partner.nudgedAt).getTime();
-    return nowMs - nudgedMs >= NUDGE_COOLDOWN_MS;
-};
-
-interface INudgeOutcome {
-    partnerId: string;
-    nudged: boolean;
-    reason?: 'cooldown' | 'error';
-    nextNudgeAvailableAt?: string;
-}
-
-// Mirrors the cooldown branch's outcome payload returned to the client.
-const cooldownOutcome = (partnerId: string, nudgedAtIso: string): INudgeOutcome => {
-    const nudgedMs = new Date(nudgedAtIso).getTime();
-    return {
-        partnerId,
-        nudged: false,
-        reason: 'cooldown',
-        nextNudgeAvailableAt: new Date(nudgedMs + NUDGE_COOLDOWN_MS).toISOString(),
-    };
-};
-
-// Mirrors how settled per-partner promises are flattened into the response:
-// a rejection becomes a generic error outcome rather than dropping the partner.
-const flattenOutcomes = (
-    settled: PromiseSettledResult<INudgeOutcome>[],
-    partnerIds: string[],
-): INudgeOutcome[] => settled.map((outcome, idx) => (
-    outcome.status === 'fulfilled'
-        ? outcome.value
-        : { partnerId: partnerIds[idx], nudged: false, reason: 'error' }
-));
+// The cooldown gate, expressed as the handler consumes it: an outcome means "skipped".
+const isPartnerNudgeable = (partner: INudgeMember, nowMs: number): boolean => (
+    getCooldownOutcome('partner-1', partner.nudgedAt, nowMs) === null
+);
 
 describe('Pacts handler — nudge authorization', () => {
     const creatorUserId = 'creator-1';
@@ -168,10 +139,52 @@ describe('Pacts handler — nudge cooldown gate', () => {
     it('reports nextNudgeAvailableAt exactly one cooldown after the last nudge', () => {
         const sixDaysAgoMs = nowMs - (6 * 24 * 60 * 60 * 1000);
         const sixDaysAgo = new Date(sixDaysAgoMs).toISOString();
-        const outcome = cooldownOutcome('partner-1', sixDaysAgo);
-        expect(outcome.nudged).to.be.eq(false);
-        expect(outcome.reason).to.equal('cooldown');
-        expect(outcome.nextNudgeAvailableAt).to.equal(new Date(sixDaysAgoMs + NUDGE_COOLDOWN_MS).toISOString());
+        const outcome = getCooldownOutcome('partner-1', sixDaysAgo, nowMs);
+        expect(outcome).to.not.be.eq(null);
+        expect(outcome?.nudged).to.be.eq(false);
+        expect(outcome?.reason).to.equal('cooldown');
+        expect(outcome?.nextNudgeAvailableAt).to.equal(new Date(sixDaysAgoMs + NUDGE_COOLDOWN_MS).toISOString());
+    });
+
+    // A NaN comparison is false, so an unparseable timestamp would otherwise fall through the
+    // cooldown check as "eligible" — but with `nextNudgeAvailableAt: "Invalid Date"` attached
+    // had it been built anyway. Treat it as eligible, with no outcome payload.
+    it('treats an unparseable nudgedAt as eligible rather than emitting an invalid date', () => {
+        expect(getCooldownOutcome('partner-1', 'not-a-date' as any, nowMs)).to.be.eq(null);
+    });
+});
+
+describe('Pacts handler — nudge dispatch classification', () => {
+    it('counts an on-brand partner as nudged (the brand push is sent next)', () => {
+        expect(classifyDispatchResult('p1', { isOnBrand: true }))
+            .to.deep.equal({ partnerId: 'p1', nudged: true });
+    });
+
+    it('counts an off-brand invite that actually went out as nudged', () => {
+        expect(classifyDispatchResult('p1', { isOnBrand: false, invitedVia: 'email' }))
+            .to.deep.equal({ partnerId: 'p1', nudged: true });
+    });
+
+    // The regression this exists for: `dispatchPactInvitation` returns a bare
+    // `{ isOnBrand: false }` both for a real off-brand send and for a partner it could not
+    // reach at all. Reading only `isOnBrand` reported "Nudge sent!" for the unreachable case
+    // and started the 7-day cooldown on a nudge that never left the building.
+    it('does NOT count an undeliverable partner as nudged', () => {
+        expect(classifyDispatchResult('p1', { isOnBrand: false, undeliverableReason: 'noContactMethod' }))
+            .to.deep.equal({ partnerId: 'p1', nudged: false, reason: 'undeliverable' });
+        expect(classifyDispatchResult('p1', { isOnBrand: false, undeliverableReason: 'partnerNotFound' }))
+            .to.deep.equal({ partnerId: 'p1', nudged: false, reason: 'undeliverable' });
+        expect(classifyDispatchResult('p1', { isOnBrand: false }))
+            .to.deep.equal({ partnerId: 'p1', nudged: false, reason: 'undeliverable' });
+    });
+
+    // A dispatch that threw is reported as null by the handler's catch. It used to be
+    // swallowed into `{ isOnBrand: true }`, which claimed success for a failed send.
+    it('reports a thrown dispatch as an error, not a success', () => {
+        expect(classifyDispatchResult('p1', null))
+            .to.deep.equal({ partnerId: 'p1', nudged: false, reason: 'error' });
+        expect(classifyDispatchResult('p1', undefined))
+            .to.deep.equal({ partnerId: 'p1', nudged: false, reason: 'error' });
     });
 });
 
@@ -182,7 +195,7 @@ describe('Pacts handler — nudge result flattening', () => {
             { status: 'fulfilled', value: { partnerId: 'p1', nudged: true } },
             { status: 'rejected', reason: new Error('boom') },
         ];
-        const results = flattenOutcomes(settled, partnerIds);
+        const results = flattenNudgeOutcomes(settled, partnerIds);
         expect(results).to.have.length(2);
         expect(results[0]).to.deep.equal({ partnerId: 'p1', nudged: true });
         expect(results[1]).to.deep.equal({ partnerId: 'p2', nudged: false, reason: 'error' });

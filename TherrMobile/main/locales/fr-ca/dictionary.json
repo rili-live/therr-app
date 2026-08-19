@@ -401,7 +401,11 @@
       "viewAllReplies": "Voir les {count} réponses",
       "viewReplies": "Voir {count} réponses",
       "likeThought": "Aimer cette publication",
-      "unlikeThought": "Retirer le « j'aime » de cette publication"
+      "unlikeThought": "Retirer le « j'aime » de cette publication",
+      "crossBrandLabels": {
+        "format": "{label} : {message}",
+        "habits": "Mise à jour des objectifs"
+      }
     },
     "userMenu": {
       "buttons": {

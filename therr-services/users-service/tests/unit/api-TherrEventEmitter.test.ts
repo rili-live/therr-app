@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 /**
  * The thought distributor's algorithm-awareness.
  *

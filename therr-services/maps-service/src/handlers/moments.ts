@@ -622,7 +622,6 @@ const createIntegratedMoment = (req, res) => {
 
     return axios({
         method: 'get',
-        // eslint-disable-next-line max-len
         url: externalIntegrationEndpoint,
     })
         .then((response) => createIntegratedMomentBase({
@@ -1093,7 +1092,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         const connections = connectionsResponse?.data?.results || [];
         fromUserIds = connections
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
-            .filter((id) => !!id); // eslint-disable-line eqeqeq
+            .filter((id) => !!id);
     }
     const searchPromise = Store.moments.searchMoments(
         req.headers,

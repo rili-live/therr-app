@@ -22,7 +22,6 @@ const initialState: IHabitsState = {
     isLoading: false,
 };
 
-// eslint-disable-next-line default-param-last
 const habits = produce((draft: IHabitsState, action: any) => {
     switch (action.type) {
         // Loading

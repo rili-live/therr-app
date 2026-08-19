@@ -1,5 +1,7 @@
 /**
  * Every bottom sheet in the app is registered here and opened through `SheetManager.show`.
+ * Each sheet renders `./BaseActionSheet` rather than the library's `ActionSheet` directly —
+ * see that file for the shared defaults and why they matter on Android.
  *
  * NOTE: `patches/react-native-actions-sheet+0.9.8.patch` removes a 300ms delay this library
  * puts in front of every sheet on Android. Upstream defers its internal `safeAreaLayout`

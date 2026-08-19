@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { NavigateFunction } from 'react-router-dom';

@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import { buildCheckinQrUrl, SPACES_BASE_URL } from '../../src/scripts/generate-qr-codes';
 

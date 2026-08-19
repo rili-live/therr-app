@@ -55,7 +55,6 @@ export default class UserMetricsStore {
             .from((builder: KnexBuilder.Knex<any, any[]>) => {
                 builder.distinct('userId')
                     .from(USER_METRICS_TABLE_NAME)
-                    // eslint-disable-next-line quotes
                     .whereRaw(`dimensions->>'${dimensionKey}' = ?`, [dimensionValue])
                     .as('sub_query');
             })

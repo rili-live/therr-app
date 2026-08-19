@@ -614,7 +614,6 @@ const setSitemapCache = (key: string, xml: string) => {
 };
 
 // Build URL entries for English (unprefixed), Spanish (/es), and French Canadian (/fr) versions
-// eslint-disable-next-line max-len
 const buildUrlSet = (loc: string, lastmod: string, priority: string) => {
     const esLoc = loc === '/' ? '/es' : `/es${loc}`;
     const frLoc = loc === '/' ? '/fr' : `/fr${loc}`;
@@ -643,7 +642,6 @@ const fetchSpacesPage = async (pageNumber: number): Promise<any[]> => {
 // latitude=0&longitude=0 with a global distanceOverride fetches all events regardless of location
 const fetchEventsPage = async (pageNumber: number): Promise<any[]> => {
     const response = await axios.post(
-        // eslint-disable-next-line max-len
         `/maps-service/events/search?itemsPerPage=${ITEMS_PER_SITEMAP}&pageNumber=${pageNumber}&latitude=0&longitude=0`,
         { distanceOverride: 40075 * (1000 / 2) },
     );
@@ -738,15 +736,12 @@ app.get('/sitemap.xml', async (req, res) => {
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-city-categories.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-guides.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         ...Array.from({ length: totalSpacePages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-spaces-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
         ...Array.from({ length: totalEventPages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-events-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
         ...Array.from({ length: totalGroupPages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-groups-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
     ];
@@ -935,7 +930,6 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
         });
         // Google accepts up to 1000 images per URL but most sites limit for file size
         return imageUrls.slice(0, 10).map((url) => (
-            // eslint-disable-next-line max-len
             `    <image:image>\n      <image:loc>${url.replace(/&/g, '&amp;')}</image:loc>\n    </image:image>`
         )).join('\n');
     };
@@ -1900,7 +1894,6 @@ const renderLocationsView = (req, res, config, {
         description = `Find the best ${categoryLabel.toLowerCase()} near you. Browse listings, read reviews, see hours, and get directions on Therr.`;
     } else if (searchQuery) {
         title = `Spaces near ${searchQuery} - ${config.head.title}`;
-        // eslint-disable-next-line max-len
         description = `Discover local businesses, restaurants, and events near ${searchQuery}. Browse listings, read reviews, and get directions on Therr.`;
     } else {
         title = config.head.title;

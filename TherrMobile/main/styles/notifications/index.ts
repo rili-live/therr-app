@@ -36,7 +36,7 @@ const getRowStyle = (theme: ITherrTheme): any => ({
 
 const notifications = StyleSheet.create({
     // Clears the floating bottom nav, which previously overlapped the last row.
-    flashListContentContainer: {
+    listContentContainer: {
         paddingBottom: buttonMenuHeight + space.lg,
     },
 });

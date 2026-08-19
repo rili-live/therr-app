@@ -110,7 +110,7 @@ export default class ThoughtsStore {
         }
 
         if (params.filterBy === 'fromUserIds') {
-            queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+            queryString = queryString.andWhere((builder) => {
                 builder.whereIn('fromUserId', fromUserIds);
             });
         } else if (params.query != undefined) { // eslint-disable-line eqeqeq
@@ -249,7 +249,7 @@ export default class ThoughtsStore {
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
 
             if (conditions.filterBy === 'fromUserIds') {
-                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                queryString = queryString.andWhere((builder) => {
                     builder.whereIn('fromUserId', fromUserIds);
                     if (includePublicResults) {
                         builder.orWhere({ isPublic: true });
@@ -257,7 +257,7 @@ export default class ThoughtsStore {
                 });
             } else {
                 queryString = queryString.andWhere(conditions.filterBy, operator, query);
-                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                queryString = queryString.andWhere((builder) => {
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {
                         builder.orWhere({ isPublic: true });
