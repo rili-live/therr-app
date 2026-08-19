@@ -84,9 +84,9 @@ const PACT: any = { id: 'pact-1' };
 // drain the microtask queue before asserting on the toast it fired.
 const flushPromises = () => new Promise<void>((resolve) => { setImmediate(resolve); });
 
-const buildInstance = (nudgeResponse: any, shouldReject = false) => {
+const buildInstance = (nudgeResponse: any, shouldReject = false, rejectionValue: any = new Error('network')) => {
     const nudgePact = jest.fn(() => (shouldReject
-        ? Promise.reject(new Error('network'))
+        ? Promise.reject(rejectionValue)
         : Promise.resolve(nudgeResponse))) as any;
 
     const props: any = {
@@ -144,7 +144,7 @@ describe('PactsList nudge outcome toasts', () => {
 
         const call: any = (Toast.show as any).mock.calls[0][0];
         expect(call.type).not.toBe('success');
-        expect(call.text1).toMatch(/nudgeCooldown|already sent/i);
+        expect(call.text1).toMatch(/nudgeCooldown|already (sent|nudged)/i);
     });
 
     it('reports an error — not a cooldown — when every partner dispatch failed', async () => {
@@ -158,7 +158,78 @@ describe('PactsList nudge outcome toasts', () => {
 
         const call: any = (Toast.show as any).mock.calls[0][0];
         expect(call.type).toBe('error');
-        expect(call.text1).not.toMatch(/nudgeCooldown|already sent/i);
+        expect(call.text1).not.toMatch(/nudgeCooldown|already (sent|nudged)/i);
+    });
+
+    // "Could not send the nudge. Please try again." is wrong advice for a partner with no
+    // Habits install and no email or phone on file — retrying can never work.
+    it('tells the user to share a link when the partner is unreachable', async () => {
+        const { instance } = buildInstance({
+            id: 'pact-1',
+            nudgeResults: [{ partnerId: 'p1', nudged: false, reason: 'undeliverable' }],
+        });
+
+        instance.handleNudge(PACT);
+        await flushPromises();
+
+        const call: any = (Toast.show as any).mock.calls[0][0];
+        expect(call.type).toBe('error');
+        expect(call.text1).toMatch(/no way to reach/i);
+        expect(call.text1).not.toMatch(/try again/i);
+    });
+
+    it('names the date the cooldown lifts when the server reports one', async () => {
+        const { instance } = buildInstance({
+            id: 'pact-1',
+            nudgeResults: [{
+                partnerId: 'p1',
+                nudged: false,
+                reason: 'cooldown',
+                nextNudgeAvailableAt: '2026-09-02T00:00:00.000Z',
+            }],
+        });
+
+        instance.handleNudge(PACT);
+        await flushPromises();
+
+        const call: any = (Toast.show as any).mock.calls[0][0];
+        expect(call.type).toBe('warn');
+        expect(call.text1).toMatch(/Sep 2|Sep 1/); // rendered in the device's timezone
+        expect(call.text1).not.toMatch(/\{date\}/);
+    });
+
+    it('reports the earliest date when several partners are in cooldown', async () => {
+        const { instance } = buildInstance({
+            id: 'pact-1',
+            nudgeResults: [
+                { partnerId: 'p1', nudged: false, reason: 'cooldown', nextNudgeAvailableAt: '2026-09-20T00:00:00.000Z' },
+                { partnerId: 'p2', nudged: false, reason: 'cooldown', nextNudgeAvailableAt: '2026-09-02T00:00:00.000Z' },
+            ],
+        });
+
+        instance.handleNudge(PACT);
+        await flushPromises();
+
+        const call: any = (Toast.show as any).mock.calls[0][0];
+        expect(call.text1).toMatch(/Sep 2|Sep 1/);
+        expect(call.text1).not.toMatch(/Sep 20|Sep 19/);
+    });
+
+    it('does not claim a clean success when only some partners were nudged', async () => {
+        const { instance } = buildInstance({
+            id: 'pact-1',
+            nudgeResults: [
+                { partnerId: 'p1', nudged: true },
+                { partnerId: 'p2', nudged: false, reason: 'undeliverable' },
+            ],
+        });
+
+        instance.handleNudge(PACT);
+        await flushPromises();
+
+        const call: any = (Toast.show as any).mock.calls[0][0];
+        expect(call.type).not.toBe('success');
+        expect(call.text1).toMatch(/1 of 2/);
     });
 
     it('surfaces a renderable error toast when the request itself rejects', async () => {
@@ -171,7 +242,39 @@ describe('PactsList nudge outcome toasts', () => {
         // The pre-fix code used `errorToast`, which is absent from toastConfig,
         // so the user saw nothing when a nudge failed.
         expect(REGISTERED_TOAST_TYPES).toContain(call.type);
-        expect(call.text1).not.toMatch(/nudgeCooldown|already sent/i);
+        expect(call.text1).not.toMatch(/nudgeCooldown|already (sent|nudged)/i);
+    });
+
+    // A rejection that never reached the API has no statusCode; `error.message` there is
+    // axios's "Network Error", which is not copy to put in front of a user.
+    it('reports a connection problem when the request never reached the API', async () => {
+        const { instance } = buildInstance(null, true);
+
+        instance.handleNudge(PACT);
+        await flushPromises();
+
+        const call: any = (Toast.show as any).mock.calls[0][0];
+        expect(call.text2).toMatch(/could not reach the server/i);
+        expect(call.text2).not.toMatch(/^network$/i);
+    });
+
+    // The API's error bodies are localized and name the actual reason, and the axios
+    // interceptor rejects with that body verbatim. Replacing it with this screen's generic
+    // copy is what made "send nudge" failures unactionable.
+    it('shows the API\'s own reason when the server rejected the nudge', async () => {
+        const apiError: any = {
+            statusCode: 403,
+            errorCode: 'NotPermitted',
+            message: 'Only the person who created this pact can send a nudge',
+        };
+        const { instance } = buildInstance(null, true, apiError);
+
+        instance.handleNudge(PACT);
+        await flushPromises();
+
+        const call: any = (Toast.show as any).mock.calls[0][0];
+        expect(call.type).toBe('error');
+        expect(call.text2).toBe('Only the person who created this pact can send a nudge');
     });
 
     it('only ever shows toast types registered in App.tsx toastConfig', async () => {

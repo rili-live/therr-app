@@ -19,6 +19,7 @@ import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import { NewPactButton, PactCard, SentInviteCard } from '../../components/Habits';
+import { getNudgeErrorMessage, getNudgeOutcomeToast } from './nudgeOutcome';
 
 type PactsTab = 'active' | 'pending' | 'outgoing' | 'all';
 
@@ -168,6 +169,15 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
             });
     };
 
+    formatNudgeDate = (isoDate: string): string => {
+        const { user } = this.props;
+
+        return new Date(isoDate).toLocaleDateString(user.settings?.locale || 'en-us', {
+            month: 'short',
+            day: 'numeric',
+        });
+    };
+
     handleNudge = (pact: IPact) => {
         const { nudgePact } = this.props;
 
@@ -175,39 +185,35 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
 
         nudgePact(pact.id)
             .then((response: any) => {
-                // The endpoint answers 200 even when nothing was sent: the
-                // 7-day per-partner cooldown and per-partner dispatch failures
-                // are reported inside `nudgeResults`, not as an HTTP error.
-                // Reading only the status would tell the user "Nudge sent!"
-                // when no nudge went out.
+                // The endpoint answers 200 even when nothing was sent: the 7-day per-partner
+                // cooldown, partners with no reachable channel, and per-partner dispatch
+                // failures are all reported inside `nudgeResults`, not as an HTTP error.
+                // Reading only the status would tell the user "Nudge sent!" when no nudge
+                // went out. See `nudgeOutcome.ts` for how each case is worded.
                 const results: IPactNudgeResult[] = response?.nudgeResults || [];
-                const wasAnyNudged = results.length === 0 || results.some((result) => result.nudged);
-                const isCooldown = !wasAnyNudged && results.some((result) => result.reason === 'cooldown');
+                const toast = getNudgeOutcomeToast(results, this.formatNudgeDate);
 
-                if (wasAnyNudged) {
-                    Toast.show({
-                        type: 'success',
-                        text1: this.translate('pages.pacts.outgoing.nudgeSuccess'),
-                        visibilityTime: 2000,
-                    });
-                } else {
-                    Toast.show({
-                        type: isCooldown ? 'warn' : 'error',
-                        text1: this.translate(isCooldown
-                            ? 'pages.pacts.outgoing.nudgeCooldown'
-                            : 'pages.pacts.outgoing.nudgeError'),
-                        visibilityTime: 2000,
-                    });
-                }
+                Toast.show({
+                    type: toast.type,
+                    text1: this.translate(toast.key, toast.params),
+                    // Partial and undeliverable outcomes need a sentence of explanation; a
+                    // plain success or cooldown says everything in its headline.
+                    visibilityTime: toast.type === 'success' ? 2000 : 4000,
+                });
 
                 this.handleRefresh();
             })
-            .catch(() => {
+            .catch((error: any) => {
+                // The API's rejection body is already localized and names the actual reason
+                // (not the creator, pact no longer pending, nobody left to nudge). Prefer it
+                // over this screen's generic copy.
+                const { key, message } = getNudgeErrorMessage(error);
+
                 Toast.show({
                     type: 'error',
                     text1: this.translate('pages.pacts.errorTitle'),
-                    text2: this.translate('pages.pacts.outgoing.nudgeError'),
-                    visibilityTime: 2000,
+                    text2: message || this.translate(key as string),
+                    visibilityTime: 4000,
                 });
             })
             .finally(() => {
