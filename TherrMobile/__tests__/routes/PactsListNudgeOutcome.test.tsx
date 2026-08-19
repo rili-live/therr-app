@@ -69,7 +69,11 @@ jest.mock('react-native-permissions', () => ({
 // Imported after the mocks above deliberately: PactsList pulls in a chain of
 // native modules at import time, and jest.mock factories must be registered
 // before that chain is required.
-import { PactsList } from '../../main/routes/Pacts/PactsList';
+import {
+    PactsList,
+    resolveBlockedNudgeCopy,
+    resolveNudgeRequestErrorKey,
+} from '../../main/routes/Pacts/PactsList';
 
 // The toast types registered in App.tsx's `toastConfig`. A `Toast.show` with a
 // type outside this set renders nothing, so asserting membership is what
@@ -191,6 +195,113 @@ describe('PactsList nudge outcome toasts', () => {
 
         (Toast.show as any).mock.calls.forEach(([call]: any[]) => {
             expect(REGISTERED_TOAST_TYPES).toContain(call.type);
+        });
+    });
+});
+
+/**
+ * Nudge failure copy.
+ *
+ * Every rejected nudge — wrong user, pact already accepted, no pending partners
+ * left, offline — used to render the same "Could not send the nudge. Please try
+ * again.", and every cooldown rendered "Try again in a few days" no matter how
+ * much of the 7-day window was actually left. Both are worse than uninformative:
+ * they tell the user to retry in cases where retrying can never work.
+ *
+ * These drive the exported resolvers directly with a stub translator, so the
+ * assertions are on which key was chosen rather than on dictionary prose.
+ */
+describe('nudge failure copy', () => {
+    // Echoes the key plus any params, so a test can assert on both.
+    const stubTranslate = (key: string, params?: any) => (params
+        ? `${key}:${JSON.stringify(params)}`
+        : key);
+
+    const inDays = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+    describe('cooldown', () => {
+        it('names the real number of days left rather than "a few days"', () => {
+            const { type, text1 } = resolveBlockedNudgeCopy(
+                // Just past 3 days so the ceiling lands on 4 unambiguously.
+                [{ partnerId: 'p1', nudged: false, reason: 'cooldown', nextNudgeAvailableAt: inDays(3.2) }],
+                stubTranslate,
+            );
+
+            expect(type).toBe('warn');
+            expect(text1).toContain('nudgeCooldownDays');
+            expect(text1).toContain('"count":4');
+        });
+
+        it('says "tomorrow" rather than "in 1 days" for a sub-day remainder', () => {
+            const { text1 } = resolveBlockedNudgeCopy(
+                [{ partnerId: 'p1', nudged: false, reason: 'cooldown', nextNudgeAvailableAt: inDays(0.5) }],
+                stubTranslate,
+            );
+
+            expect(text1).toBe('pages.pacts.outgoing.nudgeCooldownTomorrow');
+        });
+
+        it('falls back to the vague copy when the server sent no timestamp', () => {
+            const { type, text1 } = resolveBlockedNudgeCopy(
+                [{ partnerId: 'p1', nudged: false, reason: 'cooldown' }],
+                stubTranslate,
+            );
+
+            expect(type).toBe('warn');
+            expect(text1).toBe('pages.pacts.outgoing.nudgeCooldown');
+        });
+
+        it('never renders NaN when the timestamp is unparseable', () => {
+            const { text1 } = resolveBlockedNudgeCopy(
+                [{ partnerId: 'p1', nudged: false, reason: 'cooldown', nextNudgeAvailableAt: 'not-a-date' }],
+                stubTranslate,
+            );
+
+            expect(text1).not.toMatch(/NaN/);
+            expect(text1).toBe('pages.pacts.outgoing.nudgeCooldown');
+        });
+
+        it('falls back rather than counting backwards when the window already elapsed', () => {
+            const { text1 } = resolveBlockedNudgeCopy(
+                [{ partnerId: 'p1', nudged: false, reason: 'cooldown', nextNudgeAvailableAt: inDays(-2) }],
+                stubTranslate,
+            );
+
+            expect(text1).toBe('pages.pacts.outgoing.nudgeCooldown');
+        });
+
+        it('distinguishes a dispatch failure from a cooldown', () => {
+            const { type, text1 } = resolveBlockedNudgeCopy(
+                [{ partnerId: 'p1', nudged: false, reason: 'error' }],
+                stubTranslate,
+            );
+
+            expect(type).toBe('error');
+            expect(text1).toBe('pages.pacts.outgoing.nudgeErrorDispatch');
+        });
+    });
+
+    describe('rejected requests', () => {
+        it.each([
+            [403, 'nudgeErrorNotCreator'],
+            [404, 'nudgeErrorMissing'],
+            [400, 'nudgeErrorAlreadyResolved'],
+        ])('maps %s to its own message', (status, expected) => {
+            expect(resolveNudgeRequestErrorKey(status as number)).toContain(expected);
+        });
+
+        it('treats a missing status as offline, not as a server error', () => {
+            expect(resolveNudgeRequestErrorKey(undefined)).toContain('nudgeErrorOffline');
+        });
+
+        it('keeps the retry copy for a genuine server error', () => {
+            expect(resolveNudgeRequestErrorKey(500)).toBe('pages.pacts.outgoing.nudgeError');
+        });
+
+        it('gives every 4xx case a distinct message', () => {
+            const keys = [403, 404, 400].map((status) => resolveNudgeRequestErrorKey(status));
+
+            expect(new Set(keys).size).toBe(keys.length);
         });
     });
 });

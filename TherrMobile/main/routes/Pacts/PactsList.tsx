@@ -22,6 +22,80 @@ import { NewPactButton, PactCard, SentInviteCard } from '../../components/Habits
 
 type PactsTab = 'active' | 'pending' | 'outgoing' | 'all';
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+/**
+ * Copy for a nudge the server accepted (200) but did not actually send.
+ *
+ * The cooldown branch prefers the server's `nextNudgeAvailableAt` over the old
+ * fixed "try again in a few days". The window is 7 days from the *last* nudge,
+ * so someone who nudged six days ago was told to wait "a few days" when the
+ * real answer was "tomorrow" — vague enough that the honest reading was "this
+ * is broken".
+ */
+export const resolveBlockedNudgeCopy = (
+    results: IPactNudgeResult[],
+    translate: (key: string, params?: any) => string,
+): { type: string; text1: string } => {
+    const cooldown = results.find((result) => result.reason === 'cooldown');
+
+    if (!cooldown) {
+        return { type: 'error', text1: translate('pages.pacts.outgoing.nudgeErrorDispatch') };
+    }
+
+    const availableAtMs = cooldown.nextNudgeAvailableAt
+        ? new Date(cooldown.nextNudgeAvailableAt).getTime()
+        : NaN;
+    const msRemaining = availableAtMs - Date.now();
+
+    // An unusable timestamp — older server, clock skew, or a window that has
+    // already elapsed — falls back to the vague copy rather than rendering
+    // "in NaN days".
+    if (Number.isNaN(availableAtMs) || msRemaining <= 0) {
+        return { type: 'warn', text1: translate('pages.pacts.outgoing.nudgeCooldown') };
+    }
+
+    const daysRemaining = Math.ceil(msRemaining / MS_PER_DAY);
+
+    // Under a day rounds up to 1, where "in 1 days" reads badly and "tomorrow"
+    // is both correct and more concrete. The plural branch is therefore only
+    // ever reached with count >= 2, which keeps it translatable without
+    // plural-form support in the translator.
+    return {
+        type: 'warn',
+        text1: daysRemaining <= 1
+            ? translate('pages.pacts.outgoing.nudgeCooldownTomorrow')
+            : translate('pages.pacts.outgoing.nudgeCooldownDays', { count: daysRemaining }),
+    };
+};
+
+/**
+ * Copy for a nudge the server rejected outright.
+ *
+ * Every one of these used to collapse into "Could not send the nudge. Please
+ * try again." — advice that is actively wrong for the 4xx cases, where retrying
+ * can never succeed.
+ */
+export const resolveNudgeRequestErrorKey = (status?: number): string => {
+    switch (status) {
+        case 403:
+            return 'pages.pacts.outgoing.nudgeErrorNotCreator';
+        case 404:
+            return 'pages.pacts.outgoing.nudgeErrorMissing';
+        case 400:
+            // Two distinct 400s reach here — the pact is no longer `pending`, and
+            // every partner has already responded. They mean the same thing to the
+            // user, which is just as well: the handler sends no `errorCode`, so the
+            // client cannot tell them apart without matching on English prose.
+            return 'pages.pacts.outgoing.nudgeErrorAlreadyResolved';
+        default:
+            // No status at all means the request never reached the server.
+            return status
+                ? 'pages.pacts.outgoing.nudgeError'
+                : 'pages.pacts.outgoing.nudgeErrorOffline';
+    }
+};
+
 interface IPactsListDispatchProps {
     getUserPacts: Function;
     getActivePacts: Function;
@@ -182,7 +256,6 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                 // when no nudge went out.
                 const results: IPactNudgeResult[] = response?.nudgeResults || [];
                 const wasAnyNudged = results.length === 0 || results.some((result) => result.nudged);
-                const isCooldown = !wasAnyNudged && results.some((result) => result.reason === 'cooldown');
 
                 if (wasAnyNudged) {
                     Toast.show({
@@ -191,23 +264,24 @@ export class PactsList extends React.Component<IPactsListProps, IPactsListState>
                         visibilityTime: 2000,
                     });
                 } else {
+                    const { type, text1 } = resolveBlockedNudgeCopy(results, this.translate);
                     Toast.show({
-                        type: isCooldown ? 'warn' : 'error',
-                        text1: this.translate(isCooldown
-                            ? 'pages.pacts.outgoing.nudgeCooldown'
-                            : 'pages.pacts.outgoing.nudgeError'),
-                        visibilityTime: 2000,
+                        type,
+                        text1,
+                        // Cooldown copy carries a date and reads slower than a
+                        // one-word confirmation, so it gets longer on screen.
+                        visibilityTime: 4000,
                     });
                 }
 
                 this.handleRefresh();
             })
-            .catch(() => {
+            .catch((err: any) => {
                 Toast.show({
                     type: 'error',
                     text1: this.translate('pages.pacts.errorTitle'),
-                    text2: this.translate('pages.pacts.outgoing.nudgeError'),
-                    visibilityTime: 2000,
+                    text2: this.translate(resolveNudgeRequestErrorKey(err?.response?.status)),
+                    visibilityTime: 4000,
                 });
             })
             .finally(() => {
