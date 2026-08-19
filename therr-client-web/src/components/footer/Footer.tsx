@@ -65,7 +65,6 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
         });
     };
 
-    // eslint-disable-next-line class-methods-use-this
     handleInfoClick = () => {
         const { locale } = this.props;
         const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };

@@ -118,7 +118,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         }
     }
 
-    componentWillUnmount() { // eslint-disable-line class-methods-use-this
+    componentWillUnmount() {
         document.removeEventListener('mousedown', this.handleClickOutside);
     }
 
