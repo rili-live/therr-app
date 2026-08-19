@@ -70,7 +70,14 @@ export interface IPactMember {
 export interface IPactNudgeResult {
     partnerId: string;
     nudged: boolean;
-    reason?: 'cooldown' | 'error';
+    /**
+     * Why the nudge did not reach this partner. Mirrors `NudgeFailureReason` in
+     * users-service `src/utilities/pactNudgeOutcome.ts`:
+     *   cooldown      — nudged in the last 7 days; retry after `nextNudgeAvailableAt`
+     *   undeliverable — no Habits install and no email or phone on file; retrying cannot help
+     *   error         — dispatch threw; retrying is worth offering
+     */
+    reason?: 'cooldown' | 'undeliverable' | 'error';
     nextNudgeAvailableAt?: string;
 }
 
