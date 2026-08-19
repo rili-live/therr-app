@@ -96,7 +96,7 @@ Read the brief matching your branch early in a session:
 | `niche/<TAG>-general` | `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` |
 
 Teem is **shelved**; its brief is a stub. Friends With Habits is the active consumer bet
-and is in open testing.
+and is generally available on the Google Play production track.
 
 ## Commands
 
