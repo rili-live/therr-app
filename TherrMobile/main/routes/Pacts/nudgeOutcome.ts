@@ -1,13 +1,11 @@
 import { IPactNudgeResult } from 'therr-react/types';
 
 /**
- * `IPactNudgeResult.reason` gains `'undeliverable'` in the shared half of this work (the
- * users-service change, on `general`). Widening it here keeps this branch compiling before
- * that lands and stays correct afterwards — a union only ever grows.
+ * The shared half of this work has landed, so `IPactNudgeResult.reason` already carries
+ * `'undeliverable'`. The alias stays as the name this module reasons about; it deliberately
+ * does not re-widen the union, which would hide a future reason being dropped upstream.
  */
-export type INudgeResult = Omit<IPactNudgeResult, 'reason'> & {
-    reason?: IPactNudgeResult['reason'] | 'undeliverable';
-};
+export type INudgeResult = IPactNudgeResult;
 
 export type NudgeToastType = 'success' | 'warn' | 'error';
 
