@@ -2,7 +2,6 @@ import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Dimensions,
-    StyleSheet,
     Text,
     View} from 'react-native';
 import { FAB } from 'react-native-paper';
@@ -69,34 +68,25 @@ const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 const { width: viewportWidth } = Dimensions.get('window');
 const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
 
-const localStyles = StyleSheet.create({
-    fabIconBox: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    fabIcon: {
-        textAlign: 'center',
-        includeFontPadding: false,
-    },
-});
+// The profile FAB composes a post: a thought on Therr, a goal on HABITS — hence
+// the trophy rather than the lightbulb here.
+//
+// Render the glyph bare and let Paper's FAB do the centering, exactly as the base
+// app does. Both glyphs are already centered inside TherrFont's em box: "trophy"
+// spans x 43..981 against a 1024 advance and y 64..832 against ascender 960 /
+// descender -64, so its center sits at (512, 448) — the dead center of both the
+// advance and the line box. ("idea" is the same horizontally and 2% of an em low
+// vertically, under half a pixel at 24px.)
+//
+// Nothing therefore needs correcting, and two earlier revisions that tried anyway
+// made it worse: first an 8% upward translate, then a square wrapper with
+// `includeFontPadding: false`. Both imposed a second alignment on top of Paper's
+// and left the icon visibly off-center — and both existed only on this branch,
+// which is why the base Therr app always looked right. Do not reintroduce either.
+const FAB_ICON_NAME = IS_HABITS ? 'trophy' : 'idea';
 
-// In the shipped TherrFont the "idea" glyph is already centered on both axes:
-// it spans x 167..857 against a 1024 advance (dead center) and y -21..875
-// against ascender 960 / descender -64, i.e. only 2% of an em below the line
-// box center — under half a pixel at the FAB's 24px icon size. An earlier
-// revision assumed a ~14% drop and applied an 8% upward translate, which
-// over-corrected and left the lightbulb visibly high inside the circle.
-// Keep the square wrapper so the glyph centers in a deterministic 1:1 box,
-// and drop Android's asymmetric font padding, but do not nudge it.
-const renderIdeaIcon = (props: { size: number; color: string }) => (
-    <View style={[localStyles.fabIconBox, { width: props.size, height: props.size }]}>
-        <TherrIcon
-            name="idea"
-            size={props.size}
-            color={props.color}
-            style={localStyles.fabIcon}
-        />
-    </View>
+const renderFabIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name={FAB_ICON_NAME} size={props.size} color={props.color} />
 );
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -1075,7 +1065,7 @@ class ViewUser extends React.Component<
                 {
                     user.userInView?.id === user.details.id &&
                         <FAB
-                            icon={renderIdeaIcon}
+                            icon={renderFabIcon}
                             style={this.themeButtons.styles.addAThought}
                             variant="secondary"
                             size="small"
