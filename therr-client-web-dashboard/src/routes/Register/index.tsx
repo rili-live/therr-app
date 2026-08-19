@@ -88,7 +88,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `${getWebsiteName()} | ${this.translate('pages.register.pageTitle')}`;
     }
 

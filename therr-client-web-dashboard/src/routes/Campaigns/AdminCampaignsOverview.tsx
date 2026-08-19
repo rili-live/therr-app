@@ -106,7 +106,6 @@ export class AdminCampaignsOverviewComponent extends React.Component<IAdminCampa
         );
     };
 
-    // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
             <BaseCampaignsOverview isSuperAdmin={true} isSubscriber={this.isSubscribed()} />

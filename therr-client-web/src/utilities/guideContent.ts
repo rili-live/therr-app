@@ -92,7 +92,6 @@ interface IGuideManifest {
 function loadManifest(): IGuideManifest {
     const bySlug: Record<string, IPost> = {};
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const ctx: any = (require as any).context('../content/guides', false, /^\.\/(?!index\.json$).+\.json$/);
         ctx.keys().forEach((key: string) => {
             const post = ctx(key) as IPost;

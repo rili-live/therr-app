@@ -330,7 +330,6 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                 headers,
                             }, {
                                 method: 'post',
-                                // eslint-disable-next-line max-len
                                 url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/find/dynamic`,
                                 data: {
                                     userHasActivated: true,

@@ -35,7 +35,6 @@
  * the real transport.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // The SDK command/response shapes are internal to each vendor's client; typing
 // them here would couple these doubles to SDK internals for no test benefit.
 

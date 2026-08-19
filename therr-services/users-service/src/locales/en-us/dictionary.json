@@ -14,18 +14,42 @@
             "duplicatePost": "Duplicate posts are not allowed"
         },
         "pacts": {
-            "habitGoalRequired": "A habit goal is required to create a pact"
+            "activityTypeRequired": "Choose what you want to send",
+            "cannotDelete": "You can only delete a pact you created",
+            "claimTokenRequired": "That invitation link is missing its code",
+            "habitGoalRequired": "A habit goal is required to create a pact",
+            "invalidConsequenceType": "Pick one of these consequences: {allowed}",
+            "invalidDonationAmount": "Set a donation amount greater than zero",
+            "invalidDuration": "A pact can run for {allowed} days",
+            "invalidParams": "Something about that pact isn't right — check the details and try again",
+            "invitationBelongsToAnother": "That invitation was sent to someone else",
+            "invitationExpired": "That invitation has expired. Ask your partner to send a new one.",
+            "invitationNotFound": "We couldn't find that invitation",
+            "invitationNotRedeemable": "That invitation has already been used",
+            "inviteesNoneValid": "Choose someone other than yourself to invite",
+            "inviteesRequired": "Choose at least one person to invite",
+            "inviteesTooMany": "You can invite up to {limit} partners at a time",
+            "notAcceptingMembers": "This pact is full",
+            "notActive": "This pact isn't active",
+            "notFound": "That pact no longer exists",
+            "notInvitedPartner": "This invitation was sent to someone else",
+            "notParticipant": "You're not part of this pact",
+            "notPending": "You've already responded to this pact",
+            "nudgeCreatorOnly": "Only the person who created this pact can send a nudge",
+            "nudgeNoPendingPartners": "Everyone has already responded to this pact",
+            "nudgeNotPending": "This pact has already started, so there is no one left to nudge"
         },
         "habits": {
-            "habitGoalRequired": "A habit goal is required",
             "freeTierHabitLimitReached": "Free accounts can track {limit} habits at a time. Archive one, or unlock everything for life.",
-            "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total.",
+            "habitGoalNotFound": "We couldn't find that habit",
+            "habitGoalRequired": "A habit goal is required",
             "journalBodyRequired": "Write something before saving this entry",
             "journalEntryNotFound": "Journal entry not found",
-            "lifetimeVerificationFailed": "We could not verify that purchase right now. Please try again shortly.",
-            "lifetimePurchaseNotFound": "That purchase could not be found",
+            "lifetimeAlreadyClaimed": "That purchase has already been claimed by another account",
             "lifetimePurchaseNotCompleted": "That purchase has not completed yet",
-            "lifetimeAlreadyClaimed": "That purchase has already been claimed by another account"
+            "lifetimePurchaseNotFound": "That purchase could not be found",
+            "lifetimeVerificationFailed": "We could not verify that purchase right now. Please try again shortly.",
+            "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total."
         },
         "user": {
             "invalidUserNamePassword": "User/password combination is incorrect",
@@ -48,6 +72,27 @@
         },
         "privacy": {
             "restrictedMedia": "Restricted Media"
+        },
+        "habitCheckins": {
+            "dateRangeRequired": "Choose a start and end date",
+            "habitGoalRequired": "Choose a habit to check in on",
+            "notAuthorizedToUpdate": "You can only change your own check-in",
+            "notAuthorizedToView": "You can only view your own check-ins",
+            "notFound": "We couldn't find that check-in",
+            "notFoundOrNotAuthorizedToDelete": "We couldn't find that check-in, or it isn't yours to delete"
+        },
+        "streaks": {
+            "noGraceDaysAvailable": "You've used every grace day on this streak",
+            "notAuthorizedToModify": "You can only change your own streak",
+            "notAuthorizedToView": "You can only view your own streak",
+            "notAuthorizedToViewHistory": "You can only view your own streak history",
+            "notFound": "We couldn't find that streak"
+        },
+        "habitGoals": {
+            "cannotDelete": "You can only delete a habit you created",
+            "cannotModifyTemplate": "This habit is one of our templates, so it can't be edited",
+            "nameRequired": "Give this habit a name",
+            "notOwner": "You can only edit a habit you created"
         }
     },
     "metrics": {

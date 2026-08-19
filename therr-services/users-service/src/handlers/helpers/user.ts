@@ -193,7 +193,6 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
                 ? friendship?.type
                 : 0,
             isPendingConnection: friendship
-                // eslint-disable-next-line max-len
                 ? (friendship.requestStatus === UserConnectionTypes.DENIED
                     || friendship.requestStatus === UserConnectionTypes.PENDING
                     || friendship.requestStatus === UserConnectionTypes.BLOCKED)
@@ -225,7 +224,6 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
         // More details
         isNotConnected: true,
         isPendingConnection: friendship
-            // eslint-disable-next-line max-len
             ? (friendship.requestStatus === UserConnectionTypes.DENIED
                 || friendship.requestStatus === UserConnectionTypes.PENDING
                 || friendship.requestStatus === UserConnectionTypes.BLOCKED)
@@ -789,7 +787,6 @@ interface IValidateCredentials {
     };
 }
 
-// eslint-disable-next-line arrow-body-style
 const validateCredentials = (headers: InternalConfigHeaders, userSearchResults, {
     locale,
     reqBody,

@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import type { IPost, IPostSection, IResolvedPost } from './guideContent';
 
 const SITE_ORIGIN = 'https://www.therr.com';

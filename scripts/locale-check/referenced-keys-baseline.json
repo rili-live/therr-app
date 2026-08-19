@@ -1,0 +1,32 @@
+{
+  "$comment": "Referenced-but-undefined dictionary keys that predate the phase-2 check in scripts/locale-check/index.js. Each one is a live bug: `configureTranslator` returns the key path itself when it resolves nothing, so a user hitting this code path sees the literal string 'pages.editSpace.labels.name' where a sentence belongs. They are listed here rather than fixed in the same change that added the check, because they span four packages that deploy on different branches. This file is a ONE-WAY RATCHET: entries may be deleted (by defining the key in every locale for that package), never added — a new miss fails `npm run locales:check`. An entry that starts resolving is reported as a warning telling you to delete it, so the baseline cannot quietly accumulate dead weight.",
+  "generatedAt": "2026-08-19",
+  "keys": {
+    "therr-client-web": [
+      "pages.editSpace.buttons.backToProfile",
+      "pages.editSpace.failedMessageBadRequest",
+      "pages.editSpace.failedMessageServer",
+      "pages.editSpace.h2.basicInfo",
+      "pages.editSpace.h2.contactLinks",
+      "pages.editSpace.labels.address",
+      "pages.editSpace.labels.name"
+    ],
+    "therr-client-web-dashboard": [
+      "pages.createProfile.invalidRegion",
+      "pages.createProfile.tooManyAccounts",
+      "pages.userProfile.connectionSent",
+      "pages.userProfile.labels.email",
+      "pages.userProfile.labels.phoneNumber",
+      "pages.userProfile.validationErrors.phoneNumber"
+    ],
+    "TherrMobile": [
+      "alertTitles.duplicatePost",
+      "forms.editEvent.labels.maxProximity",
+      "forms.editMoment.labels.maxProximity",
+      "forms.editSpace.labels.maxProximity"
+    ],
+    "reactions-service": [
+      "eventReactions.eventNotActivated"
+    ]
+  }
+}
