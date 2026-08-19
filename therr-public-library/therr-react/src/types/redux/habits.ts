@@ -284,7 +284,6 @@ export interface IHabitsState {
 }
 
 // Action Types
-// eslint-disable-next-line no-shadow
 export enum HabitsActionTypes {
     // Habit Goals
     GET_USER_HABIT_GOALS = 'GET_USER_HABIT_GOALS',
