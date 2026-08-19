@@ -14,7 +14,11 @@
             "duplicatePost": "Les publications en double ne sont pas autorisées"
         },
         "pacts": {
-            "habitGoalRequired": "Un objectif d'habitude est requis pour créer un pacte"
+            "habitGoalRequired": "Un objectif d'habitude est requis pour créer un pacte",
+      "notFound": "Ce pacte n'existe plus",
+      "nudgeCreatorOnly": "Seule la personne qui a créé ce pacte peut envoyer un rappel",
+      "nudgeNotPending": "Ce pacte a déjà commencé, il ne reste donc personne à relancer",
+      "nudgeNoPendingPartners": "Tout le monde a déjà répondu à ce pacte"
         },
         "habits": {
             "habitGoalRequired": "Un objectif d'habitude est requis",

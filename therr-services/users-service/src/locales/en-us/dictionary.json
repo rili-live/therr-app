@@ -14,7 +14,11 @@
             "duplicatePost": "Duplicate posts are not allowed"
         },
         "pacts": {
-            "habitGoalRequired": "A habit goal is required to create a pact"
+            "habitGoalRequired": "A habit goal is required to create a pact",
+      "notFound": "That pact no longer exists",
+      "nudgeCreatorOnly": "Only the person who created this pact can send a nudge",
+      "nudgeNotPending": "This pact has already started, so there is no one left to nudge",
+      "nudgeNoPendingPartners": "Everyone has already responded to this pact"
         },
         "habits": {
             "habitGoalRequired": "A habit goal is required",

@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import {
+    ErrorCodes,
     MetricNames,
     PushNotifications,
 } from 'therr-js-utilities/constants';
@@ -10,6 +11,12 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import { dispatchPactInvitation } from '../utilities/dispatchPactInvitation';
+import {
+    INudgeOutcome,
+    classifyDispatchResult,
+    flattenNudgeOutcomes,
+    getCooldownOutcome,
+} from '../utilities/pactNudgeOutcome';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
@@ -970,24 +977,27 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: `Pact not found with id ${id}`,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (pact.creatorUserId !== userId) {
         return handleHttpError({
             res,
-            message: 'Only the pact creator can send a nudge',
+            message: translate(locale, 'errorMessages.pacts.nudgeCreatorOnly'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
     if (pact.status !== 'pending') {
         return handleHttpError({
             res,
-            message: 'Nudge is only available for pending pacts',
+            message: translate(locale, 'errorMessages.pacts.nudgeNotPending'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -1000,30 +1010,26 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
     if (pendingPartners.length === 0) {
         return handleHttpError({
             res,
-            message: 'No pending partners to nudge',
+            message: translate(locale, 'errorMessages.pacts.nudgeNoPendingPartners'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
-    const NUDGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days between nudges to the same partner
     const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
     const habitName = habitGoal?.name || 'your habit';
 
-    const settledOutcomes = await Promise.allSettled(
+    const settledOutcomes = await Promise.allSettled<INudgeOutcome>(
         pendingPartners.map(async (partner: any) => {
-            if (partner.nudgedAt) {
-                const nudgedMs = new Date(partner.nudgedAt).getTime();
-                if (Date.now() - nudgedMs < NUDGE_COOLDOWN_MS) {
-                    return {
-                        partnerId: partner.userId,
-                        nudged: false,
-                        reason: 'cooldown',
-                        nextNudgeAvailableAt: new Date(nudgedMs + NUDGE_COOLDOWN_MS).toISOString(),
-                    };
-                }
+            const cooldownOutcome = getCooldownOutcome(partner.userId, partner.nudgedAt);
+            if (cooldownOutcome) {
+                return cooldownOutcome;
             }
 
-            // Re-dispatch invitation via the same channel as the original invite
+            // Re-dispatch invitation via the same channel as the original invite.
+            // A throw here used to be swallowed into `{ isOnBrand: true }`, which pushed the
+            // partner down the on-brand path and then marked them nudged — reporting success
+            // and burning the 7-day cooldown on a nudge that failed.
             const dispatchResult = await dispatchPactInvitation({
                 pactMemberId: partner.id,
                 partnerUserId: partner.userId,
@@ -1039,10 +1045,18 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
                     messages: ['Error dispatching pact nudge'],
                     traceArgs: { 'error.message': err?.message },
                 });
-                return { isOnBrand: true };
+                return null;
             });
 
-            if (dispatchResult.isOnBrand) {
+            const outcome = classifyDispatchResult(partner.userId, dispatchResult);
+
+            if (!outcome.nudged) {
+                // Nothing went out, so the cooldown must not start — otherwise a partner with no
+                // reachable channel locks the creator out for a week for no benefit.
+                return outcome;
+            }
+
+            if (dispatchResult?.isOnBrand) {
                 // Partner is on Habits — send brand-scoped push
                 sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                     authorization,
@@ -1065,17 +1079,16 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
             }
 
             await Store.pactMembers.markNudged(id, partner.userId);
-            return { partnerId: partner.userId, nudged: true };
+            return outcome;
         }),
     );
 
     // Flatten settled results into a clean per-partner outcome list. A rejected
     // entry means the dispatch/markNudged chain threw for that partner.
-    const nudgeResults = settledOutcomes.map((outcome, idx) => (
-        outcome.status === 'fulfilled'
-            ? outcome.value
-            : { partnerId: pendingPartners[idx].userId, nudged: false, reason: 'error' }
-    ));
+    const nudgeResults = flattenNudgeOutcomes(
+        settledOutcomes,
+        pendingPartners.map((partner: any) => partner.userId),
+    );
 
     logSpan({
         level: 'info',

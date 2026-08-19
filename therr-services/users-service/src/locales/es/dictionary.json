@@ -14,7 +14,11 @@
             "duplicatePost": "No se permiten publicaciones duplicadas"
         },
         "pacts": {
-            "habitGoalRequired": "Se requiere una meta de hábito para crear un pacto"
+            "habitGoalRequired": "Se requiere una meta de hábito para crear un pacto",
+      "notFound": "Ese pacto ya no existe",
+      "nudgeCreatorOnly": "Solo quien creó este pacto puede enviar un recordatorio",
+      "nudgeNotPending": "Este pacto ya comenzó, así que no queda nadie a quien recordar",
+      "nudgeNoPendingPartners": "Todos ya respondieron a este pacto"
         },
         "habits": {
             "habitGoalRequired": "Se requiere una meta de hábito",

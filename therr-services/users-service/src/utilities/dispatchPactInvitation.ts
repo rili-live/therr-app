@@ -56,6 +56,13 @@ export interface IDispatchPactInvitationResult {
     claimToken?: string;
     claimCode?: string;
     invitedVia?: 'email' | 'sms' | 'push';
+    /**
+     * Set only when nothing was dispatched. `isOnBrand: false` on its own is ambiguous — it is
+     * returned both for a successful off-brand invite and for a partner we cannot reach at all —
+     * so callers that report an outcome to the user must read this (or `invitedVia`) rather than
+     * treating every non-throwing call as a delivery. See `pactNudgeOutcome.classifyDispatchResult`.
+     */
+    undeliverableReason?: 'partnerNotFound' | 'noContactMethod';
 }
 
 /**
@@ -81,7 +88,7 @@ export const dispatchPactInvitation = async (
     );
     const partner: any = partnerRows?.[0];
     if (!partner) {
-        return { isOnBrand: false };
+        return { isOnBrand: false, undeliverableReason: 'partnerNotFound' };
     }
 
     if (isOnHabits(partner.brandVariations)) {
@@ -94,7 +101,7 @@ export const dispatchPactInvitation = async (
     const hasEmail = !!partner.email && !partner.isUnclaimed;
     const hasPhone = !!partner.phoneNumber;
     if (!hasEmail && !hasPhone) {
-        return { isOnBrand: false };
+        return { isOnBrand: false, undeliverableReason: 'noContactMethod' };
     }
 
     const invitedVia: 'email' | 'sms' = hasEmail ? 'email' : 'sms';
