@@ -213,6 +213,33 @@ describe('Pacts handler — claim flow', () => {
             expect(smsOutbox[0].body).to.contain(result.claimCode);
         });
 
+        // `getSmsSender` returns undefined when no Twilio number is configured for the
+        // recipient's country, and the SMS branch then sends nothing. Reporting
+        // `invitedVia: 'sms'` anyway told the nudge caller the invite went out, which marked
+        // the partner nudged and burned their 7-day cooldown on a message nobody received.
+        it('reports an SMS-only partner as undeliverable when no Twilio sender is configured', async () => {
+            delete process.env.TWILIO_SENDER_PHONE_NUMBER;
+            sinon.stub(Store.users, 'findUser').resolves([{
+                id: 'partner-1',
+                email: null,
+                phoneNumber: '+13175550123',
+                isUnclaimed: false,
+                brandVariations: [],
+            }]);
+            const updateSpy = sinon.spy(Store.pactMembers, 'update');
+
+            const result = await dispatchPactInvitation(baseArgs);
+            await flushDispatch();
+
+            expect(result.isOnBrand).to.be.eq(false);
+            expect(result.invitedVia).to.be.eq(undefined);
+            expect(result.undeliverableReason).to.equal('noContactMethod');
+            // Nothing was sent, so no claim token should have been minted onto the row either.
+            expect(updateSpy.called).to.be.eq(false);
+            expect(emailOutbox).to.have.lengthOf(0);
+            expect(smsOutbox).to.have.lengthOf(0);
+        });
+
         it('skips dispatch entirely when the partner has neither email nor phone', async () => {
             sinon.stub(Store.users, 'findUser').resolves([{
                 id: 'partner-1',

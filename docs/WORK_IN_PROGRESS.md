@@ -814,6 +814,20 @@ console configuration, and one verification that gates a payments change.
   feed and the Connect lists are gone (`removeClippedSubviews` off, wider render window, Connect
   back on FlatList), and the post options sheet no longer pops back open a moment after you react
   to a post.
+- [ ] (2026-08-19, /quality-peer-review) **The habits landing page now advertises the $20 founder
+  unlock publicly — confirm the Play in-app product is live and the offer endpoint is configured
+  before this web deploy goes out.** `therr-client-web/src/views/habits/landing.hbs` and
+  `_static/habits-llms.txt` state the price, the 5,000-account cap and the 5-habit free limit as
+  fact, including in `Offer` JSON-LD that search engines will index. Two items above become
+  ordering constraints on this deploy rather than independent tasks: `habits_lifetime_founder`
+  must exist and be active, and `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` must be set, or the page sends
+  people into an app that hides the CTA (`isStoreConfigured: false`).
+- [ ] (2026-08-19, /quality-peer-review) **Confirm `TWILIO_SENDER_PHONE_NUMBER` and
+  `TWILIO_SENDER_PHONE_NUMBER_GB` are both set in the prod users-service secrets.**
+  `dispatchPactInvitation` now returns `undeliverableReason: 'noContactMethod'` for a phone-only
+  partner when no sender is configured for their country, instead of reporting the invite as sent.
+  That is the correct outcome, but it means a missing GB sender becomes user-visible as "we could
+  not reach them" on every UK pact invite and nudge, where it previously failed silently.
 <!-- skill-followups:end -->
 
 ---

@@ -106,6 +106,15 @@ export const dispatchPactInvitation = async (
 
     const invitedVia: 'email' | 'sms' = hasEmail ? 'email' : 'sms';
 
+    // Resolved here, before anything is persisted, because `getSmsSender` returns undefined
+    // whenever no Twilio number is configured for the recipient's country. The SMS branch below
+    // then sends nothing at all, and returning `invitedVia: 'sms'` regardless would report a
+    // delivery that never happened — exactly the ambiguity `undeliverableReason` exists to close.
+    const smsSender = invitedVia === 'sms' ? getSmsSender(partner.phoneNumber) : undefined;
+    if (invitedVia === 'sms' && !smsSender) {
+        return { isOnBrand: false, undeliverableReason: 'noContactMethod' };
+    }
+
     let claimCode = generateClaimCode();
     let attempt = 0;
     let persisted = false;
@@ -175,42 +184,39 @@ export const dispatchPactInvitation = async (
             });
         });
     } else if (invitedVia === 'sms') {
-        const sender = getSmsSender(partner.phoneNumber);
-        if (sender) {
-            const smsBody = translate(
-                partnerLocale,
-                hasCode ? 'invites.pact.sms' : 'invites.pact.smsTokenOnly',
-                hasCode
-                    ? {
-                        fromName: args.fromUserName,
-                        habitName: args.habitName,
-                        brandName: contextConfig.brandName,
-                        claimUrl,
-                        claimCode,
-                    }
-                    : {
-                        fromName: args.fromUserName,
-                        habitName: args.habitName,
-                        brandName: contextConfig.brandName,
-                        claimUrl,
-                    },
-            );
-            twilioClient.messages.create({
-                body: smsBody,
-                to: partner.phoneNumber,
-                from: sender,
-            }).catch((err: any) => {
-                logSpan({
-                    level: 'error',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['Failed to send pact invitation SMS'],
-                    traceArgs: {
-                        'error.message': err?.message,
-                        pactMemberId: args.pactMemberId,
-                    },
-                });
+        const smsBody = translate(
+            partnerLocale,
+            hasCode ? 'invites.pact.sms' : 'invites.pact.smsTokenOnly',
+            hasCode
+                ? {
+                    fromName: args.fromUserName,
+                    habitName: args.habitName,
+                    brandName: contextConfig.brandName,
+                    claimUrl,
+                    claimCode,
+                }
+                : {
+                    fromName: args.fromUserName,
+                    habitName: args.habitName,
+                    brandName: contextConfig.brandName,
+                    claimUrl,
+                },
+        );
+        twilioClient.messages.create({
+            body: smsBody,
+            to: partner.phoneNumber,
+            from: smsSender,
+        }).catch((err: any) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to send pact invitation SMS'],
+                traceArgs: {
+                    'error.message': err?.message,
+                    pactMemberId: args.pactMemberId,
+                },
             });
-        }
+        });
     }
 
     return {
