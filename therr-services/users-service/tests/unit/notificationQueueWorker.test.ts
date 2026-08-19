@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 /**
  * Notification queue worker — the queue row is the authority, not the payload.
  *

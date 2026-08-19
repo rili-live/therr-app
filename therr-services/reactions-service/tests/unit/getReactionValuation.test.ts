@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 import { expect } from 'chai';
 import { CurrentSocialValuations } from 'therr-js-utilities/constants';
 import getReactionValuation from '../../src/utilities/getReactionValuation';

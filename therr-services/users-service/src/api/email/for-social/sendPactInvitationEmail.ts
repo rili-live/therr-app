@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 import { getHostContext } from '../../../constants/hostContext';
 import translate from '../../../utilities/translator';

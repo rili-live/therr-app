@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { BrandVariations } from 'therr-js-utilities/constants';

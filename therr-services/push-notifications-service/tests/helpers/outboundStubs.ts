@@ -24,7 +24,6 @@
  * test, so ordering between spec files is not a correctness concern.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // The SDK message/response shapes are internal to firebase-admin; typing them
 // here would couple this double to SDK internals for no test benefit.
 

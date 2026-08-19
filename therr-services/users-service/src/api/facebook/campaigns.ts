@@ -50,7 +50,6 @@ const createCampaign = (adAccountId, accessToken, campaign: {
     status?: CampaignStatuses;
 }) => axios({
     method: 'post',
-    // eslint-disable-next-line max-len
     url: `https://graph.facebook.com/v18.0/${adAccountId}/campaigns?access_token=${accessToken}`,
     params: {
         name: `[automated] ${campaign.title}`,
@@ -85,7 +84,6 @@ const updateCampaign = (adAccountId, accessToken, campaign: {
 
     return axios({
         method: 'post',
-        // eslint-disable-next-line max-len
         url: `https://graph.facebook.com/v18.0/${campaign.id}?fields=configured_status&access_token=${accessToken}`,
         params,
     }).catch((err) => ({
@@ -100,7 +98,6 @@ const updateCampaign = (adAccountId, accessToken, campaign: {
  */
 const deleteCampaign = (adAccountId, accessToken, campaignId: string) => axios({
     method: 'delete',
-    // eslint-disable-next-line max-len
     url: `https://graph.facebook.com/v18.0/${campaignId}?access_token=${accessToken}`,
 }).catch((err) => ({
     data: {
