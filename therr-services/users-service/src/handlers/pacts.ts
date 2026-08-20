@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import {
+    ErrorCodes,
     MetricNames,
     PushNotifications,
 } from 'therr-js-utilities/constants';
@@ -10,6 +11,12 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import { dispatchPactInvitation } from '../utilities/dispatchPactInvitation';
+import {
+    INudgeOutcome,
+    classifyDispatchResult,
+    flattenNudgeOutcomes,
+    getCooldownOutcome,
+} from '../utilities/pactNudgeOutcome';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
@@ -66,8 +73,9 @@ const createPact: RequestHandler = async (req: any, res: any) => {
     if (!validation.valid) {
         return handleHttpError({
             res,
-            message: validation.error || 'Invalid pact parameters',
+            message: translate(locale, validation.errorKey || 'errorMessages.pacts.invalidParams', validation.errorParams),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -76,8 +84,9 @@ const createPact: RequestHandler = async (req: any, res: any) => {
     if (!habitGoal) {
         return handleHttpError({
             res,
-            message: 'Habit goal not found',
+            message: translate(locale, 'errorMessages.habits.habitGoalNotFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
@@ -224,8 +233,9 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
     if (!Array.isArray(partnerUserIds) || partnerUserIds.length === 0) {
         return handleHttpError({
             res,
-            message: 'partnerUserIds must be a non-empty array',
+            message: translate(locale, 'errorMessages.pacts.inviteesRequired'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -233,15 +243,17 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
     if (invitees.length === 0) {
         return handleHttpError({
             res,
-            message: 'At least one valid invitee is required',
+            message: translate(locale, 'errorMessages.pacts.inviteesNoneValid'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
     if (invitees.length > MAX_BULK_INVITEES) {
         return handleHttpError({
             res,
-            message: `Cannot invite more than ${MAX_BULK_INVITEES} partners at once`,
+            message: translate(locale, 'errorMessages.pacts.inviteesTooMany', { limit: MAX_BULK_INVITEES }),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -249,8 +261,9 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
     if (!validation.valid) {
         return handleHttpError({
             res,
-            message: validation.error || 'Invalid pact parameters',
+            message: translate(locale, validation.errorKey || 'errorMessages.pacts.invalidParams', validation.errorParams),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -258,8 +271,9 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
     if (!habitGoal) {
         return handleHttpError({
             res,
-            message: 'Habit goal not found',
+            message: translate(locale, 'errorMessages.habits.habitGoalNotFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
@@ -360,7 +374,7 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
 
 // READ
 const getPact: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
 
     return Store.pacts.getByIdWithDetails(id)
@@ -368,8 +382,9 @@ const getPact: RequestHandler = async (req: any, res: any) => {
             if (!pact) {
                 return handleHttpError({
                     res,
-                    message: `Pact not found with id ${id}`,
+                    message: translate(locale, 'errorMessages.pacts.notFound'),
                     statusCode: 404,
+                    errorCode: ErrorCodes.NOT_FOUND,
                 });
             }
 
@@ -384,8 +399,9 @@ const getPact: RequestHandler = async (req: any, res: any) => {
             if (!isParticipant) {
                 return handleHttpError({
                     res,
-                    message: 'You are not a participant in this pact',
+                    message: translate(locale, 'errorMessages.pacts.notParticipant'),
                     statusCode: 403,
+                    errorCode: ErrorCodes.NOT_PERMITTED,
                 });
             }
 
@@ -469,8 +485,9 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: `Pact not found with id ${id}`,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
@@ -483,8 +500,9 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
     if (!isInvitedPartner) {
         return handleHttpError({
             res,
-            message: 'You are not the invited partner for this pact',
+            message: translate(locale, 'errorMessages.pacts.notInvitedPartner'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
@@ -495,15 +513,17 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
     if (pact.status !== 'pending' && !memberInvitePending) {
         return handleHttpError({
             res,
-            message: 'Pact is not pending',
+            message: translate(locale, 'errorMessages.pacts.notPending'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
     if (pact.status === 'completed' || pact.status === 'abandoned' || pact.status === 'expired') {
         return handleHttpError({
             res,
-            message: 'Pact is no longer accepting members',
+            message: translate(locale, 'errorMessages.pacts.notAcceptingMembers'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -608,14 +628,15 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
 // inviter's connection list. This endpoint simply maps the claim back to
 // the pending pact and runs the same activation flow as acceptPact.
 const claimPactInvite: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { token, code } = req.body || {};
 
     if (!token && !code) {
         return handleHttpError({
             res,
-            message: 'A claim token or code is required',
+            message: translate(locale, 'errorMessages.pacts.claimTokenRequired'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -623,24 +644,27 @@ const claimPactInvite: RequestHandler = async (req: any, res: any) => {
     if (!member) {
         return handleHttpError({
             res,
-            message: 'Invitation not found',
+            message: translate(locale, 'errorMessages.pacts.invitationNotFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (member.userId !== userId) {
         return handleHttpError({
             res,
-            message: 'This invitation belongs to another user',
+            message: translate(locale, 'errorMessages.pacts.invitationBelongsToAnother'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
     if (member.claimTokenExpiresAt && new Date(member.claimTokenExpiresAt).getTime() < Date.now()) {
         return handleHttpError({
             res,
-            message: 'Invitation has expired',
+            message: translate(locale, 'errorMessages.pacts.invitationExpired'),
             statusCode: 410,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -653,8 +677,9 @@ const claimPactInvite: RequestHandler = async (req: any, res: any) => {
     if (member.status !== 'pending') {
         return handleHttpError({
             res,
-            message: 'Invitation is no longer redeemable',
+            message: translate(locale, 'errorMessages.pacts.invitationNotRedeemable'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -679,8 +704,9 @@ const declinePact: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: `Pact not found with id ${id}`,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
@@ -693,8 +719,9 @@ const declinePact: RequestHandler = async (req: any, res: any) => {
     if (!isInvitedPartner) {
         return handleHttpError({
             res,
-            message: 'You are not the invited partner for this pact',
+            message: translate(locale, 'errorMessages.pacts.notInvitedPartner'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
@@ -702,8 +729,9 @@ const declinePact: RequestHandler = async (req: any, res: any) => {
     if (pact.status !== 'pending' && !memberInvitePending) {
         return handleHttpError({
             res,
-            message: 'Pact is not pending',
+            message: translate(locale, 'errorMessages.pacts.notPending'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -770,24 +798,27 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: `Pact not found with id ${id}`,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)) {
         return handleHttpError({
             res,
-            message: 'You are not a participant in this pact',
+            message: translate(locale, 'errorMessages.pacts.notParticipant'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
     if (pact.status !== 'active') {
         return handleHttpError({
             res,
-            message: 'Pact is not active',
+            message: translate(locale, 'errorMessages.pacts.notActive'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -830,31 +861,34 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
 
 // COMPLETE — finalize an active pact, compute completion rates, award achievements
 const completePact: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
 
     const pact = await Store.pacts.getById(id);
     if (!pact) {
         return handleHttpError({
             res,
-            message: `Pact not found with id ${id}`,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)) {
         return handleHttpError({
             res,
-            message: 'You are not a participant in this pact',
+            message: translate(locale, 'errorMessages.pacts.notParticipant'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
     if (pact.status !== 'active') {
         return handleHttpError({
             res,
-            message: 'Pact is not active',
+            message: translate(locale, 'errorMessages.pacts.notActive'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -970,24 +1004,27 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: `Pact not found with id ${id}`,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (pact.creatorUserId !== userId) {
         return handleHttpError({
             res,
-            message: 'Only the pact creator can send a nudge',
+            message: translate(locale, 'errorMessages.pacts.nudgeCreatorOnly'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
     if (pact.status !== 'pending') {
         return handleHttpError({
             res,
-            message: 'Nudge is only available for pending pacts',
+            message: translate(locale, 'errorMessages.pacts.nudgeNotPending'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -1000,30 +1037,26 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
     if (pendingPartners.length === 0) {
         return handleHttpError({
             res,
-            message: 'No pending partners to nudge',
+            message: translate(locale, 'errorMessages.pacts.nudgeNoPendingPartners'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
-    const NUDGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days between nudges to the same partner
     const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
     const habitName = habitGoal?.name || 'your habit';
 
-    const settledOutcomes = await Promise.allSettled(
+    const settledOutcomes = await Promise.allSettled<INudgeOutcome>(
         pendingPartners.map(async (partner: any) => {
-            if (partner.nudgedAt) {
-                const nudgedMs = new Date(partner.nudgedAt).getTime();
-                if (Date.now() - nudgedMs < NUDGE_COOLDOWN_MS) {
-                    return {
-                        partnerId: partner.userId,
-                        nudged: false,
-                        reason: 'cooldown',
-                        nextNudgeAvailableAt: new Date(nudgedMs + NUDGE_COOLDOWN_MS).toISOString(),
-                    };
-                }
+            const cooldownOutcome = getCooldownOutcome(partner.userId, partner.nudgedAt);
+            if (cooldownOutcome) {
+                return cooldownOutcome;
             }
 
-            // Re-dispatch invitation via the same channel as the original invite
+            // Re-dispatch invitation via the same channel as the original invite.
+            // A throw here used to be swallowed into `{ isOnBrand: true }`, which pushed the
+            // partner down the on-brand path and then marked them nudged — reporting success
+            // and burning the 7-day cooldown on a nudge that failed.
             const dispatchResult = await dispatchPactInvitation({
                 pactMemberId: partner.id,
                 partnerUserId: partner.userId,
@@ -1039,10 +1072,18 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
                     messages: ['Error dispatching pact nudge'],
                     traceArgs: { 'error.message': err?.message },
                 });
-                return { isOnBrand: true };
+                return null;
             });
 
-            if (dispatchResult.isOnBrand) {
+            const outcome = classifyDispatchResult(partner.userId, dispatchResult);
+
+            if (!outcome.nudged) {
+                // Nothing went out, so the cooldown must not start — otherwise a partner with no
+                // reachable channel locks the creator out for a week for no benefit.
+                return outcome;
+            }
+
+            if (dispatchResult?.isOnBrand) {
                 // Partner is on Habits — send brand-scoped push
                 sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                     authorization,
@@ -1065,17 +1106,16 @@ const nudgePact: RequestHandler = async (req: any, res: any) => {
             }
 
             await Store.pactMembers.markNudged(id, partner.userId);
-            return { partnerId: partner.userId, nudged: true };
+            return outcome;
         }),
     );
 
     // Flatten settled results into a clean per-partner outcome list. A rejected
     // entry means the dispatch/markNudged chain threw for that partner.
-    const nudgeResults = settledOutcomes.map((outcome, idx) => (
-        outcome.status === 'fulfilled'
-            ? outcome.value
-            : { partnerId: pendingPartners[idx].userId, nudged: false, reason: 'error' }
-    ));
+    const nudgeResults = flattenNudgeOutcomes(
+        settledOutcomes,
+        pendingPartners.map((partner: any) => partner.userId),
+    );
 
     logSpan({
         level: 'info',

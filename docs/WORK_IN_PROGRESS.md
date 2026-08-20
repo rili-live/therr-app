@@ -798,6 +798,36 @@ console configuration, and one verification that gates a payments change.
   wrong). Note the keyboard toggle explicitly — it is a new control, not just a fix. If
   versionCode 447 never rolled out, the 2026-08-12 item above folds into this one and the notes
   must cover both bumps.
+- [ ] (2026-08-18, /quality-peer-review) **Smoke-test every bottom sheet on a real Android
+  device before cutting 3.15.2.** `BaseActionSheet` now renders every sheet with
+  `isModal={false}`, so sheets are in-tree absolutely-positioned views instead of native Dialog
+  windows. Nothing in Jest or tsc covers that difference — the library keeps a `hardwareBackPress`
+  listener on the non-modal path (verified in `dist/src/index.js`) and `SheetProvider` sits inside
+  `GestureHandlerRootView` above `Layout`, so z-order and back should hold, but both are runtime
+  properties of the native view tree. Open content-options, group, user, user-profile,
+  image-picker, visibility-picker and list-picker sheets; confirm each draws over the bottom tab
+  bar, that the hardware back button dismisses it, that swipe-down dismisses (all but list-picker,
+  which opts out), and that the list-picker's text input is not covered by the keyboard.
+- [ ] (2026-08-18, /quality-peer-review) **Android 3.15.2 (versionCode 450) release notes —
+  supersedes the versionCode 449 item above.** 449 was bumped to 450 in the same cycle, so write
+  one set of notes covering both. On top of the 449 fixes, 450 adds: blank gaps in the Discovered
+  feed and the Connect lists are gone (`removeClippedSubviews` off, wider render window, Connect
+  back on FlatList), and the post options sheet no longer pops back open a moment after you react
+  to a post.
+- [ ] (2026-08-19, /quality-peer-review) **The habits landing page now advertises the $20 founder
+  unlock publicly — confirm the Play in-app product is live and the offer endpoint is configured
+  before this web deploy goes out.** `therr-client-web/src/views/habits/landing.hbs` and
+  `_static/habits-llms.txt` state the price, the 5,000-account cap and the 5-habit free limit as
+  fact, including in `Offer` JSON-LD that search engines will index. Two items above become
+  ordering constraints on this deploy rather than independent tasks: `habits_lifetime_founder`
+  must exist and be active, and `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` must be set, or the page sends
+  people into an app that hides the CTA (`isStoreConfigured: false`).
+- [ ] (2026-08-19, /quality-peer-review) **Confirm `TWILIO_SENDER_PHONE_NUMBER` and
+  `TWILIO_SENDER_PHONE_NUMBER_GB` are both set in the prod users-service secrets.**
+  `dispatchPactInvitation` now returns `undeliverableReason: 'noContactMethod'` for a phone-only
+  partner when no sender is configured for their country, instead of reporting the invite as sent.
+  That is the correct outcome, but it means a missing GB sender becomes user-visible as "we could
+  not reach them" on every UK pact invite and nudge, where it previously failed silently.
 <!-- skill-followups:end -->
 
 ---

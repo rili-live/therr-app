@@ -128,7 +128,6 @@ const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
         return {
             platformUsername: responseData?.items[0]?.id,
             platformUserId: responseData?.items[0]?.id,
-            // eslint-disable-next-line max-len
             link: `https://www.youtube.com/channel/${responseData?.items[0]?.id}`,
             displayName: 'Youtube',
             followerCount: responseData?.items[0]?.statistics.subscriberCount || 1, // TODO: Create calculation for "Clout Score"

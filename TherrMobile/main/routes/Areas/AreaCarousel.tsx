@@ -356,10 +356,24 @@ const AreaCarousel = ({
                 data={activeData}
                 keyExtractor={keyExtractor}
                 renderItem={flatRenderItem}
-                initialNumToRender={1}
-                maxToRenderPerBatch={3}
-                windowSize={5}
-                removeClippedSubviews={true}
+                /*
+                 * `removeClippedSubviews` is intentionally absent, not merely false.
+                 *
+                 * It was turned on as a perf tune (6b639fe9) and is the direct cause of the
+                 * blank bands in the Discovered feed: on Android it detaches off-screen cells
+                 * from the native view hierarchy, and cells whose height changes after mount —
+                 * which is every post here, since media resolves its aspect ratio
+                 * asynchronously — are frequently never re-attached. The row keeps its slot in
+                 * the layout, so what the user sees is a correctly-sized gap with nothing in
+                 * it. React Native's own docs flag it as "may have bugs (missing content)".
+                 *
+                 * The window below is the actual perf lever, and it has to stay wide enough
+                 * that a fast flick through tall media posts cannot outrun the render batch —
+                 * that was the second half of the same regression.
+                 */
+                initialNumToRender={3}
+                maxToRenderPerBatch={5}
+                windowSize={11}
                 ListEmptyComponent={listEmptyComponent}
                 ListHeaderComponent={listHeaderComponent}
                 ListFooterComponent={listFooterComponent}

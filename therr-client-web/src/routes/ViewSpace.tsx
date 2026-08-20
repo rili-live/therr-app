@@ -167,7 +167,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         const { getSpaceDetails, map, user } = this.props;
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];

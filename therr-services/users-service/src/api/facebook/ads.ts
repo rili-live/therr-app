@@ -93,7 +93,6 @@ const createAdSet = (
     }
     return axios({
         method: 'post',
-        // eslint-disable-next-line max-len
         url: `https://graph.facebook.com/v18.0/${context.adAccountId}/adsets?fields=status&access_token=${context.accessToken}`,
         params: {
             campaign_id: campaign.id,
@@ -175,7 +174,6 @@ const updateAdSet = (
 
     return axios({
         method: 'post',
-        // eslint-disable-next-line max-len
         url: `https://graph.facebook.com/v18.0/${adSet.id}?fields=id,status&access_token=${context.accessToken}`,
         params,
     }).catch((err) => ({
@@ -222,7 +220,6 @@ const createAd = (
     }
     return axios({
         method: 'post',
-        // eslint-disable-next-line max-len
         url: `https://graph.facebook.com/v18.0/${context.adAccountId}/ads?fields=id,status&access_token=${context.accessToken}`,
         params: {
             adset_id: adSet.id,
@@ -277,7 +274,6 @@ const updateAd = (
     isAdmin = false,
 ) => axios({
     method: 'post',
-    // eslint-disable-next-line max-len
     url: `https://graph.facebook.com/v18.0/${ad.id}?fields=id,status&access_token=${context.accessToken}`,
     params: {
         name: `[automated] ${ad.name}`,

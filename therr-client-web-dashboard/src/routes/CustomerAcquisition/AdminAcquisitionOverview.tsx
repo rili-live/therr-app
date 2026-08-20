@@ -100,7 +100,6 @@ export class AdminAcquisitionOverviewComponent extends React.Component<IAdminAcq
         );
     };
 
-    // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
             <BaseAcquisitionDashboard fetchCampaigns={fetchAllCampaigns} isSuperAdmin={true} isSubscriber={this.isSubscribed()} />

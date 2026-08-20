@@ -97,7 +97,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         this.fetchUserData();
     }
 

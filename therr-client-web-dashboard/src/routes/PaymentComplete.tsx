@@ -124,7 +124,7 @@ export class PaymentCompleteComponent extends React.Component<IPaymentCompletePr
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         const {
             getMe, location, routeParams, user,
         } = this.props;
