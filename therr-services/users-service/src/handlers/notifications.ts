@@ -5,13 +5,8 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import notifyUserOfUpdate from '../utilities/notifyUserOfUpdate';
 import TherrEventEmitter from '../api/TherrEventEmitter';
+import { DISTRIBUTOR_MIN_SECONDS_BETWEEN_RUNS } from '../utilities/distributorGate';
 // import * as globalConfig from '../../../../global-config';
-
-// Minimum gap between thought distributor runs for one user. Env-tunable so the cadence can
-// be adjusted against real consumption rates without a deploy; 0 disables the gate.
-const DISTRIBUTOR_MIN_SECONDS_BETWEEN_RUNS = Number.isFinite(Number(process.env.THOUGHT_DISTRIBUTOR_MIN_INTERVAL_SECONDS))
-    ? Number(process.env.THOUGHT_DISTRIBUTOR_MIN_INTERVAL_SECONDS)
-    : 900; // 15 minutes
 
 export const translateNotification = (notification?: {
     messageLocaleKey: string;

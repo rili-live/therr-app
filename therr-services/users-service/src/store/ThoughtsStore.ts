@@ -7,6 +7,8 @@ import {
     getReadableBrands,
 } from 'therr-js-utilities/constants';
 import { withBrandOnInsert } from 'therr-js-utilities/db';
+import { getBoundingBox } from 'therr-js-utilities/location';
+import type { IBoundingBox } from 'therr-js-utilities/location';
 import {
     IAlgorithmProfile,
     getDefaultAlgorithmProfile,
@@ -21,6 +23,53 @@ type BrandValue = BrandVariations | string;
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const THOUGHTS_TABLE_NAME = 'main.thoughts';
+
+/**
+ * The thought's own coordinates as a PostGIS point.
+ *
+ * Built on the fly rather than stored: `main.thoughts` holds plain lat/long doubles, which
+ * is what keeps the writers simple (therr-ai-automator writes this table directly from
+ * another repository) and what the partial btree index is on. Only rows that already
+ * passed the bounding-box filter ever reach this expression.
+ */
+const THOUGHT_POINT_SQL = `ST_MakePoint(${THOUGHTS_TABLE_NAME}."longitude", ${THOUGHTS_TABLE_NAME}."latitude")`;
+
+/** A point to find thoughts near, plus how far "near" reaches. */
+export interface INearLocation {
+    latitude: number;
+    longitude: number;
+    radiusMeters: number;
+}
+
+interface INormalizedNearLocation extends INearLocation {
+    box: IBoundingBox;
+}
+
+/**
+ * Validates a caller-supplied point and precomputes its bounding box.
+ *
+ * Returns undefined — meaning "run the ordinary, non-local query" — for anything unusable
+ * rather than throwing or emitting NaN into SQL. The coordinates originate in
+ * `main.userLocations`, where latitude and longitude are nullable, so a user with a
+ * half-written location row is an expected input on the feed's hot path, not an error.
+ */
+const normalizeNearLocation = (location?: INearLocation): INormalizedNearLocation | undefined => {
+    if (!location) {
+        return undefined;
+    }
+
+    const { latitude, longitude, radiusMeters } = location;
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !(radiusMeters > 0)) {
+        return undefined;
+    }
+
+    return {
+        latitude,
+        longitude,
+        radiusMeters,
+        box: getBoundingBox(latitude, longitude, radiusMeters),
+    };
+};
 
 // The hot-score expression now comes from therr-js-utilities `content-ranking`, which emits it
 // from the user's selected algorithm profile. Under the default (PULSE) it produces the exact
@@ -138,21 +187,38 @@ export default class ThoughtsStore {
      * Rows come back as { ...returning, hotScore }. `hotScore` is persisted onto the
      * reaction row at activation (thoughtReactions.relevanceScore) and is what the stream
      * is ordered by on read.
+     *
+     * `nearLocation` restricts candidates to thoughts *about* somewhere near a point — posts
+     * carrying coordinates of their own (20260821000001_main.thoughts.location.js), which
+     * today means therr-ai-automator's location-aware bots. Omitted, the query is unchanged
+     * and location-tagged rows compete on hotness like anything else; supplied, the caller
+     * gets only local candidates back, and every row is guaranteed to have coordinates, so
+     * profiles with a geo weight can rank by proximity.
      */
+    /* eslint-disable default-param-last */
+    // `nearLocation` is optional and goes after the params that already have defaults;
+    // reordering the signature to satisfy the rule would break every existing caller.
     getRecentThoughts(
         brand: BrandValue,
         limit = 1,
         relatedInterestsKeys: string[] = [],
         returning = ['id'],
         profile: IAlgorithmProfile = getDefaultAlgorithmProfile(),
+        nearLocation?: INearLocation,
     ) {
+        /* eslint-enable default-param-last */
         const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
+        const location = normalizeNearLocation(nearLocation);
         // Built once and reused in the SELECT, the ORDER BY, and (when capping per author) the
         // window function, so the persisted score always explains the order the rows came back
         // in. Under PULSE this emits the exact expression that shipped before profiles existed.
         const scoreExpression = getScoreSqlExpression(profile, {
             engagementCount: '"replyCount"',
             createdAt: '"createdAt"',
+            // Referenced by alias rather than recomputing ST_Distance in the outer query:
+            // the inner query already paid for it, and two copies of the expression are two
+            // chances for the SELECTed score and the ORDER BY to drift.
+            distanceMeters: location ? '"distanceMeters"' : undefined,
         });
         // PULSE caps at 0 (uncapped), which must skip the extra query layer entirely rather
         // than emit a no-op window — that is what keeps the default path's SQL unchanged.
@@ -188,6 +254,41 @@ export default class ThoughtsStore {
         if (relatedInterestsKeys?.length) {
             // TODO: Test this with various interests lists
             innerQuery = innerQuery.whereRaw(`"interestsKeys" \\?| ARRAY[${interestsPlaceholders}]::text[]`, relatedInterestsKeys);
+        }
+
+        if (location) {
+            // Two-stage radius search. The bounding box is what the partial index on
+            // ("latitude", "longitude") can actually serve; ST_DWithin then trims the corners
+            // of the box that fall outside the circle. Doing only the exact test would mean a
+            // sequential scan of every thought ever posted, and doing only the box would let
+            // in points up to ~41% past the radius at the diagonals.
+            const {
+                box,
+                latitude,
+                longitude,
+                radiusMeters,
+            } = location;
+            innerQuery = innerQuery
+                .whereNotNull(`${THOUGHTS_TABLE_NAME}.latitude`)
+                .andWhereBetween(`${THOUGHTS_TABLE_NAME}.latitude`, [box.minLatitude, box.maxLatitude]);
+
+            // A box spanning the antimeridian has a min greater than its max, so BETWEEN
+            // matches nothing. Dropping the predicate costs index selectivity for the handful
+            // of users near ±180° and keeps the result correct, which ST_DWithin still
+            // guarantees on its own.
+            if (!box.wrapsAntimeridian) {
+                innerQuery = innerQuery.andWhereBetween(`${THOUGHTS_TABLE_NAME}.longitude`, [box.minLongitude, box.maxLongitude]);
+            }
+
+            innerQuery = innerQuery
+                .andWhereRaw(
+                    `ST_DWithin(${THOUGHT_POINT_SQL}::geography, ST_MakePoint(?, ?)::geography, ?)`,
+                    [longitude, latitude, radiusMeters],
+                )
+                .select(knexBuilder.raw(
+                    `ST_Distance(${THOUGHT_POINT_SQL}::geography, ST_MakePoint(?, ?)::geography) AS "distanceMeters"`,
+                    [longitude, latitude],
+                ));
         }
 
         // Author diversity, for profiles that ask for it (FOCUS keeps 2 per author). Ranked by

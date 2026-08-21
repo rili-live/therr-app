@@ -322,6 +322,119 @@ describe('ThoughtsStore brand filtering', () => {
                 expect(sql).to.not.include('authorRank');
             });
 
+            it('adds nothing to the query when no location is supplied', () => {
+                const withoutLocation = buildMockConnection();
+                new ThoughtsStore(withoutLocation.connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE));
+
+                const sql = withoutLocation.readStub.args[0][0] as string;
+                // A surface with no coordinates must emit no geo SQL at all, not a distance
+                // term multiplied by zero — that is what keeps PULSE byte-identical.
+                expect(sql).to.not.include('ST_DWithin');
+                expect(sql).to.not.include('ST_Distance');
+                expect(sql).to.not.include('latitude');
+            });
+
+            it('bounds a local query by an indexable box before the exact distance test', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // The box is what the partial (latitude, longitude) index can serve. Without
+                // it, ST_DWithin alone sequentially scans every thought ever posted.
+                expect(sql).to.include('"main"."thoughts"."latitude" between');
+                expect(sql).to.include('"main"."thoughts"."longitude" between');
+                // And the exact test trims the corners of the box that fall outside the circle.
+                expect(sql).to.include('ST_DWithin(');
+                expect(sql).to.include('60000');
+                // A NULL latitude can never satisfy the distance test, so it is excluded up front.
+                expect(sql).to.include('"main"."thoughts"."latitude" is not null');
+            });
+
+            it('passes the point as longitude-then-latitude, the order PostGIS expects', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // Swapping these silently searches the wrong hemisphere rather than failing.
+                expect(sql).to.include('ST_MakePoint(-87.6298, 41.8781)');
+                expect(sql).to.include('ST_MakePoint(main.thoughts."longitude", main.thoughts."latitude")');
+            });
+
+            it('feeds the distance into the score for a profile that weighs geo, by alias', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.WANDER), {
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                        radiusMeters: 25000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // Computed once in the candidate query and referenced by alias in the score,
+                // so the SELECTed value and the ORDER BY cannot drift apart.
+                expect(sql).to.include('AS "distanceMeters"');
+                expect(sql).to.include('EXP(-1 * GREATEST("distanceMeters", 0)');
+            });
+
+            it('still emits no geo term for a zero-geo-weight profile, even with a location', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // PULSE selects local candidates but ranks them on hotness; the boost that
+                // lifts them happens at activation, not in this query.
+                expect(sql).to.not.include('EXP(');
+            });
+
+            it('ignores an unusable point rather than emitting NaN into SQL', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: Number.NaN,
+                        longitude: -87.6298,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // main.userLocations.latitude is nullable, so a half-written row reaches this
+                // on the feed's hot path. Degrading to the ordinary query beats a query that
+                // errors or matches nothing.
+                expect(sql).to.not.include('NaN');
+                expect(sql).to.not.include('ST_DWithin');
+            });
+
+            it('drops only the longitude bound for a box that wraps the antimeridian', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: -16.5,
+                        longitude: 179.9,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // A wrapped range has min > max, so BETWEEN would match nothing at all.
+                expect(sql).to.not.include('"main"."thoughts"."longitude" between');
+                expect(sql).to.include('"main"."thoughts"."latitude" between');
+                expect(sql).to.include('ST_DWithin(');
+            });
+
             it('keeps the clamp and the score/order agreement under FOCUS too', () => {
                 const { connection, readStub } = buildMockConnection();
                 new ThoughtsStore(connection, stubUsersStore)
