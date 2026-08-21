@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, View, Platform } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/BaseButton';
@@ -229,10 +229,18 @@ class DirectMessage extends React.Component<
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
+                    {/*
+                      * `behavior` has to be set on Android too. Without it the component is a
+                      * documented no-op, and under edge-to-edge (API 36) the window no longer
+                      * resizes for the keyboard either — so the composer stayed put and the
+                      * keyboard covered it. `automaticOffset` measures this view's true position
+                      * on screen, which is what the hand-tuned iOS `keyboardVerticalOffset={90}`
+                      * used to approximate.
+                      */}
                     <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        behavior="padding"
+                        automaticOffset
                         style={this.themeMessage.styles.container}
-                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                     >
                         {
                             isLoading ?
