@@ -677,10 +677,10 @@ describe('ThoughtsStore brand filtering', () => {
     });
 
     describe('create', () => {
-        it('stamps the row with the caller brand on insert (habits)', () => {
+        it('stamps the row with the caller brand on insert (habits)', async () => {
             const { connection, writeStub } = buildMockConnection();
             const store = new ThoughtsStore(connection, stubUsersStore);
-            store.create(BrandVariations.HABITS, {
+            await store.create(BrandVariations.HABITS, {
                 fromUserId: 1 as any,
                 locale: 'en-us',
                 message: 'hello',
@@ -698,20 +698,29 @@ describe('ThoughtsStore brand filtering', () => {
          * inferred from where the author lives, and nothing is accepted from the request.
          */
         describe('city detection', () => {
-            const createWith = (params: any) => {
+            // Chicago, unless a case says otherwise. Detection is gated on the author being
+            // near the city they name, so every case has to say where the author is.
+            const AUTHOR_IN_CHICAGO = { latitude: 41.8781, longitude: -87.6298 };
+
+            const createWith = async (params: any, authorLocation: any = AUTHOR_IN_CHICAGO) => {
                 const { connection, writeStub } = buildMockConnection();
-                new ThoughtsStore(connection, stubUsersStore).create(BrandVariations.THERR, {
-                    fromUserId: 1 as any,
-                    locale: 'en-us',
-                    isPublic: true,
-                    ...params,
-                });
+                const stubUserLocationsStore: any = {
+                    getPrimary: sinon.stub().resolves(authorLocation),
+                };
+
+                await new ThoughtsStore(connection, stubUsersStore, stubUserLocationsStore)
+                    .create(BrandVariations.THERR, {
+                        fromUserId: 'author-1' as any,
+                        locale: 'en-us',
+                        isPublic: true,
+                        ...params,
+                    });
 
                 return writeStub.args[0][0] as string;
             };
 
-            it('stamps a public post that names a city', () => {
-                const sql = createWith({ message: 'deep dish in Chicago is a casserole' });
+            it('stamps a public post that names a city', async () => {
+                const sql = await createWith({ message: 'deep dish in Chicago is a casserole' });
 
                 expect(sql).to.include('"latitude"');
                 expect(sql).to.include('41.8781');
@@ -719,8 +728,11 @@ describe('ThoughtsStore brand filtering', () => {
                 expect(sql).to.include(`'Chicago, IL'`);
             });
 
-            it('writes the coordinates as a complete pair', () => {
-                const sql = createWith({ message: 'hot chicken in Nashville' });
+            it('writes the coordinates as a complete pair', async () => {
+                const sql = await createWith(
+                    { message: 'hot chicken in Nashville' },
+                    { latitude: 36.1627, longitude: -86.7816 },
+                );
 
                 // The local candidate query filters on `latitude IS NOT NULL` and computes
                 // distance from both columns; half a pair matches nothing but claims to be
@@ -729,37 +741,37 @@ describe('ThoughtsStore brand filtering', () => {
                 expect(sql).to.include('"longitude"');
             });
 
-            it('leaves a post that names nowhere untouched', () => {
-                const sql = createWith({ message: 'made a pumpkin latte at home' });
+            it('leaves a post that names nowhere untouched', async () => {
+                const sql = await createWith({ message: 'made a pumpkin latte at home' });
 
                 expect(sql).to.not.include('"latitude"');
                 expect(sql).to.not.include('"locality"');
             });
 
-            it('does not tag a reply, which can never reach a stream slot anyway', () => {
-                const sql = createWith({ message: 'Chicago for sure', parentId: 'parent-1' });
+            it('does not tag a reply, which can never reach a stream slot anyway', async () => {
+                const sql = await createWith({ message: 'Chicago for sure', parentId: 'parent-1' });
 
                 expect(sql).to.not.include('"latitude"');
             });
 
-            it('does not tag a private post', () => {
+            it('does not tag a private post', async () => {
                 // Excluded from candidates regardless, and writing a location onto a post the
                 // author kept private is data they did not ask for.
-                const sql = createWith({ message: 'thinking about Seattle again', isPublic: false });
+                const sql = await createWith({ message: 'thinking about Seattle again', isPublic: false });
 
                 expect(sql).to.not.include('"latitude"');
             });
 
-            it('does not tag a post forced private for mature content', () => {
-                const sql = createWith({ message: 'Seattle', isPublic: true, isMatureContent: true });
+            it('does not tag a post forced private for mature content', async () => {
+                const sql = await createWith({ message: 'Seattle', isPublic: true, isMatureContent: true });
 
                 expect(sql).to.not.include('"latitude"');
             });
 
-            it('ignores coordinates supplied by the caller', () => {
+            it('ignores coordinates supplied by the caller', async () => {
                 // createThought spreads req.body into this method, so honoring these would let
                 // any client drop a post into any city's local feed.
-                const sql = createWith({
+                const sql = await createWith({
                     message: 'no city named here at all',
                     latitude: 41.8781,
                     longitude: -87.6298,
@@ -770,24 +782,101 @@ describe('ThoughtsStore brand filtering', () => {
                 expect(sql).to.not.include(`'Chicago, IL'`);
             });
 
-            it('does not let a caller relocate a post that does name a city', () => {
-                const sql = createWith({
-                    message: 'sunset over Seattle',
-                    latitude: 41.8781,
-                    longitude: -87.6298,
-                });
+            it('refuses to tag a post about a city the author is nowhere near', async () => {
+                // Post text is user-controlled, so without this check, typing "Chicago" into
+                // every post is all it takes to farm the Chicago feed from another state.
+                const sql = await createWith(
+                    { message: 'chicago pizza is overrated' },
+                    { latitude: 40.7128, longitude: -74.0060 },
+                );
+
+                expect(sql).to.not.include('"latitude"');
+                expect(sql).to.not.include(`'Chicago, IL'`);
+            });
+
+            it('refuses to tag when the author has no known location', async () => {
+                // `null`, not `undefined` — the helper defaults an omitted argument to a
+                // Chicago author, and this case is specifically about having none.
+                const sql = await createWith({ message: 'deep dish in Chicago' }, null);
+
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('saves the post anyway when the location lookup fails', async () => {
+                const { connection, writeStub } = buildMockConnection();
+                const stubUserLocationsStore: any = {
+                    getPrimary: sinon.stub().rejects(new Error('connection terminated')),
+                };
+
+                await new ThoughtsStore(connection, stubUsersStore, stubUserLocationsStore)
+                    .create(BrandVariations.THERR, {
+                        fromUserId: 'author-1' as any,
+                        locale: 'en-us',
+                        isPublic: true,
+                        message: 'deep dish in Chicago',
+                    });
+
+                // An untagged post is exactly what every post was before this feature. A
+                // failed lookup must never cost somebody their post.
+                const sql = writeStub.args[0][0] as string;
+                expect(sql).to.include(`'deep dish in Chicago'`);
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('tags nothing at all when no locations store was wired in', async () => {
+                // Fails closed: the only thing that dependency does is enforce a check on
+                // user-controlled input, so its absence must not mean "tag it anyway".
+                const { connection, writeStub } = buildMockConnection();
+
+                await new ThoughtsStore(connection, stubUsersStore)
+                    .create(BrandVariations.THERR, {
+                        fromUserId: 'author-1' as any,
+                        locale: 'en-us',
+                        isPublic: true,
+                        message: 'deep dish in Chicago',
+                    });
+
+                expect(writeStub.args[0][0] as string).to.not.include('"latitude"');
+            });
+
+            it('does not look up a location for a post that could never be tagged', async () => {
+                const { connection } = buildMockConnection();
+                const getPrimary = sinon.stub().resolves(AUTHOR_IN_CHICAGO);
+
+                await new ThoughtsStore(connection, stubUsersStore, { getPrimary } as any)
+                    .create(BrandVariations.THERR, {
+                        fromUserId: 'author-1' as any,
+                        locale: 'en-us',
+                        isPublic: true,
+                        parentId: 'parent-1',
+                        message: 'deep dish in Chicago',
+                    });
+
+                // Replies and private posts add no query to the write path.
+                expect(getPrimary.called).to.equal(false);
+            });
+
+            it('does not let a caller relocate a post that does name a city', async () => {
+                const sql = await createWith(
+                    {
+                        message: 'sunset over Seattle',
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                    },
+                    { latitude: 47.6062, longitude: -122.3321 },
+                );
 
                 expect(sql).to.include('47.6062');
                 expect(sql).to.not.include('41.8781');
             });
         });
 
-        it('stamps the row with therr when caller is therr (legacy default behavior)', () => {
+        it('stamps the row with therr when caller is therr (legacy default behavior)', async () => {
             // Simulates a legacy token (no x-brand-variation header) that getBrandContext
             // resolved to THERR. The insert MUST stamp 'therr' so the row stays visible to Therr.
             const { connection, writeStub } = buildMockConnection();
             const store = new ThoughtsStore(connection, stubUsersStore);
-            store.create(BrandVariations.THERR, {
+            await store.create(BrandVariations.THERR, {
                 fromUserId: 1 as any,
                 locale: 'en-us',
                 message: 'hello legacy',

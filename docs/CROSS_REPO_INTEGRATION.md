@@ -103,6 +103,11 @@ What that means in practice:
   actually about the city, and always as a complete coordinate pair. The distributor's local
   candidate query filters on `latitude IS NOT NULL` and computes distance from both columns,
   so a half pair would be a row claiming to be from somewhere while matching nothing.
+- **Bot posts do not go through the author-proximity check.** Human posts are only tagged
+  when the author is within 60km of the city they named (`detectLocality`), because post
+  text is user-controlled. The automator writes `main.thoughts` directly and never touches
+  `ThoughtsStore.create`, so that gate does not apply to it — its bots are trusted content
+  and are seeded with a declared home matching the city they write about anyway.
 - **The `locality` label must read the same on both sides.** Human posts get theirs from
   `detectLocality` (`${name}, ${stateAbbr}` off the `Cities` catalog); bot posts get theirs
   from the automator's `locales.ts` `name` field. Both spell it `"Chicago, IL"`. If one

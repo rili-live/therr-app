@@ -1,4 +1,12 @@
 import Cities, { ICityEntry } from '../constants/Cities';
+import Location from '../constants/Location';
+import getDistanceInMeters from './get-distance';
+
+/** Where the author actually is, as resolved from `main.userLocations`. */
+export interface IAuthorLocation {
+    latitude?: number | null;
+    longitude?: number | null;
+}
 
 export interface IDetectedLocality {
     latitude: number;
@@ -160,22 +168,16 @@ const getPrecedingWord = (message: string, index: number): string => {
 /**
  * Finds the one city a post is explicitly about, or null.
  *
- * This is how a human-authored thought gets coordinates. There is no inference from where
- * the author lives — a post is tagged only when its own text names a city, so the column
- * means the same thing for a person as it does for a bot: this post is *about* this place,
- * not written from it. "Chicago pizza is overrated" is a Chicago post no matter where the
- * author is sitting, and belongs in front of people who will argue about it.
- *
  * Returns null unless exactly one distinct city is named. A post that mentions two —
  * "flying from Seattle to Denver tomorrow" — is about a journey, not a place, and picking
  * the first mention would be a coin flip that drops a travel post into one random city's
- * feed. Naming the same city several times is still one city, and still tagged.
+ * feed. Naming the same city several times is still one city.
+ *
+ * Deliberately module-private: every caller must go through `detectLocality`, which also
+ * checks that the author is anywhere near the city they named. An exported parse-only
+ * function would be an easy way to skip that check by accident.
  */
-const detectLocality = (message?: string | null): IDetectedLocality | null => {
-    if (!message) {
-        return null;
-    }
-
+const findNamedCity = (message: string): ICityEntry | null => {
     const matchedSlugs = new Set<string>();
     let matchedCity: ICityEntry | undefined;
     let consumedUntil = 0;
@@ -214,11 +216,70 @@ const detectLocality = (message?: string | null): IDetectedLocality | null => {
         return null;
     }
 
+    return matchedCity;
+};
+
+/**
+ * The city a post is about, when its author is close enough to be writing about home.
+ *
+ * Two independent gates, and a post has to clear both:
+ *
+ *  1. The text explicitly names exactly one city (`findNamedCity`).
+ *  2. The author is within `LOCAL_AUTHOR_MAX_DISTANCE_METERS` of it.
+ *
+ * The second gate is what makes this safe to run on user-controlled input. Post text is
+ * typed by the person being ranked, so without it, writing "Chicago" into every post is all
+ * it takes to farm a city's feed from anywhere in the world. It also raises what a local
+ * feed is made of: a post from someone who lives there carries knowledge a remote take
+ * does not.
+ *
+ * The cost, which is real: an outsider's post about a city is no longer tagged, including
+ * the informed ones — someone visiting Nashville who has a declared home in Chicago writes
+ * an untagged Nashville post. `authorLocation` should be the *same* point the feed uses to
+ * decide which local content that user sees (`UserLocationsStore.getPrimary`), which keeps
+ * the rule symmetrical: you can only tag a city whose local feed you would be served.
+ *
+ * Returns null when the author's location is unknown. That is the safe direction rather
+ * than an oversight — an unlocatable author cannot be shown to live anywhere, so there is
+ * nothing to verify against, and a missing location must never mean "skip the check".
+ */
+const detectLocality = (
+    message?: string | null,
+    authorLocation?: IAuthorLocation | null,
+): IDetectedLocality | null => {
+    if (!message) {
+        return null;
+    }
+
+    // Null-checked before coercion: both columns are nullable in main.userLocations, and
+    // `Number(null)` is 0 — treating a half-written row as the Gulf of Guinea would fail
+    // every real comparison while looking like a legitimate distance check.
+    if (authorLocation?.latitude == null || authorLocation?.longitude == null) {
+        return null;
+    }
+
+    const city = findNamedCity(message);
+    if (!city) {
+        return null;
+    }
+
+    const distance = getDistanceInMeters(
+        Number(authorLocation.latitude),
+        Number(authorLocation.longitude),
+        city.lat,
+        city.lng,
+    );
+
+    // NaN fails this comparison, which is the point: a non-finite coordinate must not pass.
+    if (!(distance <= Location.LOCAL_AUTHOR_MAX_DISTANCE_METERS)) {
+        return null;
+    }
+
     return {
-        latitude: matchedCity.lat,
-        longitude: matchedCity.lng,
-        locality: `${matchedCity.name}, ${matchedCity.stateAbbr}`,
-        slug: matchedCity.slug,
+        latitude: city.lat,
+        longitude: city.lng,
+        locality: `${city.name}, ${city.stateAbbr}`,
+        slug: city.slug,
     };
 };
 

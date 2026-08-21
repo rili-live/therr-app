@@ -14,9 +14,11 @@ import {
     getDefaultAlgorithmProfile,
     getScoreSqlExpression,
 } from 'therr-js-utilities/content-ranking';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { IConnection } from './connection';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import UsersStore from './UsersStore';
+import UserLocationsStore from './UserLocationsStore';
 
 type BrandValue = BrandVariations | string;
 
@@ -151,9 +153,53 @@ export default class ThoughtsStore {
 
     usersStore: UsersStore;
 
-    constructor(dbConnection, usersStore) {
+    /**
+     * Reads the author's own location, to check they are near the city their post names.
+     *
+     * Optional so the many places that build a ThoughtsStore for a read path do not have to
+     * supply one. When it is absent, `create` tags nothing at all — city detection fails
+     * closed rather than falling back to "tag it anyway", because the only thing this
+     * dependency does is enforce a check on user-controlled input.
+     */
+    userLocationsStore?: UserLocationsStore;
+
+    constructor(dbConnection, usersStore, userLocationsStore?: UserLocationsStore) {
         this.db = dbConnection;
         this.usersStore = usersStore;
+        this.userLocationsStore = userLocationsStore;
+    }
+
+    /**
+     * The author's own coordinates, or undefined if we cannot establish them.
+     *
+     * Deliberately the same lookup the thought distributor uses to decide which local feed a
+     * user is served (`getPrimary`), which is what keeps the write rule and the read rule
+     * symmetrical: you can only tag a city whose local content you would yourself see.
+     *
+     * Never throws. Somebody's post must not fail to save because a location lookup did, and
+     * the degraded outcome — an untagged post — is exactly what every post did before this
+     * feature existed.
+     */
+    private async getAuthorLocation(fromUserId?: string) {
+        if (!this.userLocationsStore || !fromUserId) {
+            return undefined;
+        }
+
+        try {
+            return await this.userLocationsStore.getPrimary(fromUserId);
+        } catch (error: any) {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'SQL:THOUGHTS_STORE',
+                messages: [error?.message],
+                traceArgs: {
+                    issue: 'failed to resolve author location for city detection',
+                    'user.id': fromUserId,
+                },
+            });
+
+            return undefined;
+        }
     }
 
     // Combine with search to avoid getting count out of sync
@@ -932,7 +978,7 @@ export default class ThoughtsStore {
         });
     }
 
-    create(brand: BrandValue, params: ICreateThoughtParams) {
+    async create(brand: BrandValue, params: ICreateThoughtParams) {
         // TODO: Support creating multiple
         const isTextMature = isTextUnsafe([params.message, params.hashTags || '']);
 
@@ -965,14 +1011,23 @@ export default class ThoughtsStore {
          * it — and inferring it would put someone's every post in front of their neighbors
          * while publishing a guess about where they live.
          *
+         * Naming a city is not enough on its own. `detectLocality` also requires the author to
+         * be near it — post text is typed by the person being ranked, so without that check,
+         * writing "Chicago" into every post is all it takes to farm the Chicago feed from
+         * anywhere in the world.
+         *
          * The condition mirrors the local candidate filter in `getRecentThoughts` exactly —
          * public, not mature, top-level. A post failing any of those can never be selected as
          * a candidate, so coordinates on it could never be read, and writing a location onto
          * a post the author kept private is data they did not ask for. Keep the two in sync:
          * if the read side ever widens, this is the write side that has to widen with it.
+         *
+         * The location read is skipped entirely for a post that could not be tagged anyway,
+         * so replies and private posts add no query to the write path.
          */
         if (sanitizedParams.isPublic && !sanitizedParams.isMatureContent && !params.parentId) {
-            const detected = detectLocality(sanitizedParams.message);
+            const authorLocation = await this.getAuthorLocation(params.fromUserId as any);
+            const detected = detectLocality(sanitizedParams.message, authorLocation);
 
             if (detected) {
                 sanitizedParams.latitude = detected.latitude;
