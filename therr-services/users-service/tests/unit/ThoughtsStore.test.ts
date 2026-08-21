@@ -691,6 +691,97 @@ describe('ThoughtsStore brand filtering', () => {
             expect(sql).to.include(`'habits'`);
         });
 
+        /**
+         * Coordinates on a human-authored post.
+         *
+         * Same meaning as on a bot post: this post is *about* this place. Nothing here is
+         * inferred from where the author lives, and nothing is accepted from the request.
+         */
+        describe('city detection', () => {
+            const createWith = (params: any) => {
+                const { connection, writeStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore).create(BrandVariations.THERR, {
+                    fromUserId: 1 as any,
+                    locale: 'en-us',
+                    isPublic: true,
+                    ...params,
+                });
+
+                return writeStub.args[0][0] as string;
+            };
+
+            it('stamps a public post that names a city', () => {
+                const sql = createWith({ message: 'deep dish in Chicago is a casserole' });
+
+                expect(sql).to.include('"latitude"');
+                expect(sql).to.include('41.8781');
+                expect(sql).to.include('-87.6298');
+                expect(sql).to.include(`'Chicago, IL'`);
+            });
+
+            it('writes the coordinates as a complete pair', () => {
+                const sql = createWith({ message: 'hot chicken in Nashville' });
+
+                // The local candidate query filters on `latitude IS NOT NULL` and computes
+                // distance from both columns; half a pair matches nothing but claims to be
+                // from somewhere.
+                expect(sql).to.include('"latitude"');
+                expect(sql).to.include('"longitude"');
+            });
+
+            it('leaves a post that names nowhere untouched', () => {
+                const sql = createWith({ message: 'made a pumpkin latte at home' });
+
+                expect(sql).to.not.include('"latitude"');
+                expect(sql).to.not.include('"locality"');
+            });
+
+            it('does not tag a reply, which can never reach a stream slot anyway', () => {
+                const sql = createWith({ message: 'Chicago for sure', parentId: 'parent-1' });
+
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('does not tag a private post', () => {
+                // Excluded from candidates regardless, and writing a location onto a post the
+                // author kept private is data they did not ask for.
+                const sql = createWith({ message: 'thinking about Seattle again', isPublic: false });
+
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('does not tag a post forced private for mature content', () => {
+                const sql = createWith({ message: 'Seattle', isPublic: true, isMatureContent: true });
+
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('ignores coordinates supplied by the caller', () => {
+                // createThought spreads req.body into this method, so honoring these would let
+                // any client drop a post into any city's local feed.
+                const sql = createWith({
+                    message: 'no city named here at all',
+                    latitude: 41.8781,
+                    longitude: -87.6298,
+                    locality: 'Chicago, IL',
+                });
+
+                expect(sql).to.not.include('41.8781');
+                expect(sql).to.not.include(`'Chicago, IL'`);
+            });
+
+            it('does not let a caller relocate a post that does name a city', () => {
+                const sql = createWith({
+                    message: 'sunset over Seattle',
+                    latitude: 41.8781,
+                    longitude: -87.6298,
+                });
+
+                expect(sql).to.include('47.6062');
+                expect(sql).to.not.include('41.8781');
+            });
+        });
+
         it('stamps the row with therr when caller is therr (legacy default behavior)', () => {
             // Simulates a legacy token (no x-brand-variation header) that getBrandContext
             // resolved to THERR. The insert MUST stamp 'therr' so the row stays visible to Therr.

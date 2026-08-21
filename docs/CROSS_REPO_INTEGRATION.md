@@ -103,6 +103,11 @@ What that means in practice:
   actually about the city, and always as a complete coordinate pair. The distributor's local
   candidate query filters on `latitude IS NOT NULL` and computes distance from both columns,
   so a half pair would be a row claiming to be from somewhere while matching nothing.
+- **The `locality` label must read the same on both sides.** Human posts get theirs from
+  `detectLocality` (`${name}, ${stateAbbr}` off the `Cities` catalog); bot posts get theirs
+  from the automator's `locales.ts` `name` field. Both spell it `"Chicago, IL"`. If one
+  repo restyles that label, the feed shows two spellings of one place — there is a parity
+  test in `therr-js-utilities/tests/detect-locality.test.ts`, but it can only see this repo.
 
 ### Rule: brand-scoping must be mirrored by hand
 

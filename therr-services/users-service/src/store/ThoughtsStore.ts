@@ -7,7 +7,7 @@ import {
     getReadableBrands,
 } from 'therr-js-utilities/constants';
 import { withBrandOnInsert } from 'therr-js-utilities/db';
-import { getBoundingBox } from 'therr-js-utilities/location';
+import { detectLocality, getBoundingBox } from 'therr-js-utilities/location';
 import type { IBoundingBox } from 'therr-js-utilities/location';
 import {
     IAlgorithmProfile,
@@ -103,6 +103,15 @@ export interface ICreateThoughtParams {
     hashTags?: string;
     maxViews?: number;
     interestsKeys?: string[];
+    /**
+     * Set by `create` when the message names a city — never accepted from a caller. See the
+     * comment at the assignment for why, and note the pair-or-nothing rule: the local
+     * candidate query filters on `latitude IS NOT NULL` and computes distance from both
+     * columns, so half a pair is a row claiming to be somewhere while matching nothing.
+     */
+    latitude?: number;
+    longitude?: number;
+    locality?: string;
 }
 
 interface IDeleteThoughtsParams {
@@ -941,6 +950,36 @@ export default class ThoughtsStore {
             hashTags: params.hashTags || '',
             maxViews: params.maxViews || 0,
         };
+
+        /**
+         * Coordinates for a post that names a city.
+         *
+         * Derived from the message text and nothing else. In particular it is NOT taken from
+         * the request body — `createThought` spreads `req.body` straight into this method, so
+         * honoring caller-supplied coordinates would let any client drop a post into any
+         * city's local feed, which is a spam vector with no legitimate caller today. A
+         * deliberate "tag a place" UI can add a validated path later.
+         *
+         * Nor is it inferred from where the author lives. The column means the same thing for
+         * a person as it does for a bot — this post is *about* this place, not written from
+         * it — and inferring it would put someone's every post in front of their neighbors
+         * while publishing a guess about where they live.
+         *
+         * The condition mirrors the local candidate filter in `getRecentThoughts` exactly —
+         * public, not mature, top-level. A post failing any of those can never be selected as
+         * a candidate, so coordinates on it could never be read, and writing a location onto
+         * a post the author kept private is data they did not ask for. Keep the two in sync:
+         * if the read side ever widens, this is the write side that has to widen with it.
+         */
+        if (sanitizedParams.isPublic && !sanitizedParams.isMatureContent && !params.parentId) {
+            const detected = detectLocality(sanitizedParams.message);
+
+            if (detected) {
+                sanitizedParams.latitude = detected.latitude;
+                sanitizedParams.longitude = detected.longitude;
+                sanitizedParams.locality = detected.locality;
+            }
+        }
 
         if (params.interestsKeys) {
             sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
