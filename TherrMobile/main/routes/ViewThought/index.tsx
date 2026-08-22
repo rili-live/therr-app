@@ -10,7 +10,7 @@ import {
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView, KeyboardStickyView, useKeyboardState } from 'react-native-keyboard-controller';
 import { IContentState, IUserState } from 'therr-react/types';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { ContentActions } from 'therr-react/redux/actions';
@@ -46,6 +46,16 @@ const localStyles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         backgroundColor: 'transparent',
+    },
+    /**
+     * `maxHeight` belongs on the native input (`contentStyle`), not on the Paper container
+     * (`style`): Paper only pins an explicit height on a multiline input when one is passed in
+     * `style`, so a cap set there would clip the text instead of letting the input scroll. On the
+     * native input it caps growth at roughly five lines and hands overflow to the input's own
+     * scroll.
+     */
+    replyInputContent: {
+        maxHeight: 120,
     },
     replyInputOutline: {
         borderRadius: 20,
@@ -178,6 +188,10 @@ const ViewThought = ({
     // Refs
     const scrollViewRef = useRef<any>(null);
     const replyInputRef = useRef<any>(null);
+
+    // Keyboard (selector keeps re-renders to visibility changes rather than every frame of the
+    // keyboard animation)
+    const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
     // Themes
     const theme = buildStyles(user.settings?.mobileThemeName);
@@ -556,60 +570,80 @@ const ViewThought = ({
                     </View>
                 </KeyboardAwareScrollView>
 
-                {/* Sticky reply input */}
-                <View style={[themeThought.styles.replyInputContainer]}>
-                    <PaperTextInput
-                        ref={replyInputRef}
-                        mode="outlined"
-                        placeholder={translate('forms.editThought.labels.messageReply')}
-                        value={inputMessage}
-                        onChangeText={setInputMessage}
-                        onSubmitEditing={handleSubmitReply}
-                        maxLength={255}
-                        dense
-                        style={localStyles.replyInput}
-                        outlineStyle={localStyles.replyInputOutline}
-                        outlineColor={isDarkMode ? theme.colors.accentDivider : theme.colors.tertiary}
-                        activeOutlineColor={theme.colors.primary3}
-                        textColor={isDarkMode ? theme.colors.accentTextWhite : theme.colors.tertiary}
-                        placeholderTextColor={isDarkMode ? theme.colorVariations?.accentTextWhiteFade : theme.colors.textGray}
-                        right={
-                            <PaperTextInput.Icon
-                                icon={renderSendIcon}
-                                onPress={handleSubmitReply}
-                                disabled={isFormDisabled}
-                            />
-                        }
-                    />
-                </View>
+                {/*
+                  * Sticky reply input + footer.
+                  *
+                  * Android targets API 36, where the window is edge-to-edge and no longer resizes
+                  * for the keyboard, so a bottom-anchored composer is simply covered by it. The
+                  * whole bar is translated by the keyboard height instead, which keeps the text
+                  * the user is typing on screen on both platforms.
+                  */}
+                <KeyboardStickyView>
+                    <View style={[themeThought.styles.replyInputContainer]}>
+                        <PaperTextInput
+                            ref={replyInputRef}
+                            mode="outlined"
+                            placeholder={translate('forms.editThought.labels.messageReply')}
+                            value={inputMessage}
+                            onChangeText={setInputMessage}
+                            maxLength={255}
+                            dense
+                            // A reply is a paragraph, not a search term: the return key inserts a
+                            // newline (so `onSubmitEditing` never fires here) and sending is the
+                            // send icon's job.
+                            multiline
+                            style={localStyles.replyInput}
+                            contentStyle={localStyles.replyInputContent}
+                            outlineStyle={localStyles.replyInputOutline}
+                            outlineColor={isDarkMode ? theme.colors.accentDivider : theme.colors.tertiary}
+                            activeOutlineColor={theme.colors.primary3}
+                            textColor={isDarkMode ? theme.colors.accentTextWhite : theme.colors.tertiary}
+                            placeholderTextColor={isDarkMode ? theme.colorVariations?.accentTextWhiteFade : theme.colors.textGray}
+                            right={
+                                <PaperTextInput.Icon
+                                    icon={renderSendIcon}
+                                    onPress={handleSubmitReply}
+                                    disabled={isFormDisabled}
+                                />
+                            }
+                        />
+                    </View>
 
-                {/* Footer */}
-                <View style={themeThought.styles.footer}>
-                    <PaperButton
-                        mode="outlined"
-                        onPress={handleGoBack}
-                        icon="arrow-left"
-                        textColor={brandColor}
-                        style={localStyles.footerButton}
-                    >
-                        {parentThought?.id
-                            ? translate('pages.viewThought.backToParent')
-                            : translate('forms.editThought.buttons.back')}
-                    </PaperButton>
-                    {isMyContent && (
-                        <PaperButton
-                            mode="contained"
-                            onPress={() => setIsDeleteDialogVisible(true)}
-                            icon="trash-can-outline"
-                            buttonColor={theme.colors.accentRed}
-                            textColor={theme.colors.brandingWhite}
-                            style={localStyles.footerButton}
-                            disabled={isDeleting}
-                        >
-                            {translate('forms.editThought.buttons.delete')}
-                        </PaperButton>
+                    {/*
+                      * Footer. Hidden while the keyboard is up so the composer sits directly on
+                      * top of it — otherwise these buttons would ride up between the two and eat
+                      * a row of the thread. Both navigation options remain reachable: dismissing
+                      * the keyboard brings them straight back.
+                      */}
+                    {!isKeyboardVisible && (
+                        <View style={themeThought.styles.footer}>
+                            <PaperButton
+                                mode="outlined"
+                                onPress={handleGoBack}
+                                icon="arrow-left"
+                                textColor={brandColor}
+                                style={localStyles.footerButton}
+                            >
+                                {parentThought?.id
+                                    ? translate('pages.viewThought.backToParent')
+                                    : translate('forms.editThought.buttons.back')}
+                            </PaperButton>
+                            {isMyContent && (
+                                <PaperButton
+                                    mode="contained"
+                                    onPress={() => setIsDeleteDialogVisible(true)}
+                                    icon="trash-can-outline"
+                                    buttonColor={theme.colors.accentRed}
+                                    textColor={theme.colors.brandingWhite}
+                                    style={localStyles.footerButton}
+                                    disabled={isDeleting}
+                                >
+                                    {translate('forms.editThought.buttons.delete')}
+                                </PaperButton>
+                            )}
+                        </View>
                     )}
-                </View>
+                </KeyboardStickyView>
             </SafeAreaView>
 
             {/* Delete confirmation modal */}

@@ -3,7 +3,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Dimensions,
     FlatList,
-    Platform,
     Pressable,
     Text,
     View} from 'react-native';
@@ -778,9 +777,17 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
                         </View>
                     </View>
+                    {/*
+                      * `behavior` has to be set on Android too. Without it the component is a
+                      * documented no-op, and under edge-to-edge (API 36) the window no longer
+                      * resizes for the keyboard either — so the composer stayed put and the
+                      * keyboard covered it. `automaticOffset` measures this view's true position
+                      * on screen, which is what the hand-tuned iOS `keyboardVerticalOffset={90}`
+                      * used to approximate.
+                      */}
                     <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+                        behavior="padding"
+                        automaticOffset
                     >
                         <View style={this.themeChat.styles.footer}>
                             <RoundInput
