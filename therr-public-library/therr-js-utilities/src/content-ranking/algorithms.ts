@@ -57,6 +57,22 @@ export interface IAlgorithmProfile {
     searchRadiusMeters: number;
     /** Multiplier applied to a thought that matched the user's interests at activation. */
     interestMatchBoost: number;
+    /**
+     * Multiplier applied to a thought that was selected because it is near where the user
+     * lives. Distinct from the `geo` weight: that term ranks *within* a candidate set the
+     * caller already chose, whereas this boost is what lifts a local candidate above the
+     * general ones once both are in the same activation batch. PULSE has a geo weight of 0
+     * and still boosts local content, which is the point — a user who shares their location
+     * should see their own city in the default feed without changing algorithms.
+     */
+    localMatchBoost: number;
+    /**
+     * Radius around the user's home/dwelling that counts as "where they live", for the
+     * distributor's local candidate query. Much wider than `searchRadiusMeters`, which
+     * bounds map searches for places you could walk to; this one bounds a *city*, so a post
+     * about downtown still reaches someone in the suburbs. `0` disables local candidates.
+     */
+    localFeedRadiusMeters: number;
     /** Rows scanned by the index-friendly inner query before re-ranking. */
     candidatePoolSize: number;
     /** Activation batch size range for the thought distributor. */
@@ -87,11 +103,14 @@ export const CONTENT_ALGORITHM_VALUES: ContentAlgorithms[] = Object.values(Conte
 /**
  * The algorithms a user may actually choose today.
  *
- * WANDER is defined and fully implemented but deliberately unreleased: it is geo-dominant and
- * `main.thoughts` carries no coordinates, so on the only surface that is currently
- * profile-aware its geo term contributes exactly 0 and it degenerates into a weak
- * low-engagement recency feed. It becomes selectable when the maps-service surfaces are
- * profile-aware too.
+ * WANDER is defined and fully implemented but deliberately unreleased. It is geo-dominant,
+ * and while `main.thoughts` now has coordinates (20260821000001_main.thoughts.location.js),
+ * only the small minority of posts that are *about* a place carry them — everything else
+ * still contributes a geo term of exactly 0, so choosing WANDER today would rank a handful
+ * of location-tagged posts above the entire rest of the feed. Local content instead reaches
+ * every profile through the distributor's local candidate query and `localMatchBoost`.
+ * WANDER becomes selectable when most content has coordinates and the maps-service surfaces
+ * are profile-aware too.
  *
  * The API gateway validates against THIS list rather than the full enum, so a client cannot
  * put itself onto an unreleased profile.

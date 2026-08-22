@@ -7,20 +7,71 @@ import {
     getReadableBrands,
 } from 'therr-js-utilities/constants';
 import { withBrandOnInsert } from 'therr-js-utilities/db';
+import { detectLocality, getBoundingBox } from 'therr-js-utilities/location';
+import type { IBoundingBox } from 'therr-js-utilities/location';
 import {
     IAlgorithmProfile,
     getDefaultAlgorithmProfile,
     getScoreSqlExpression,
 } from 'therr-js-utilities/content-ranking';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { IConnection } from './connection';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import UsersStore from './UsersStore';
+import UserLocationsStore from './UserLocationsStore';
 
 type BrandValue = BrandVariations | string;
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const THOUGHTS_TABLE_NAME = 'main.thoughts';
+
+/**
+ * The thought's own coordinates as a PostGIS point.
+ *
+ * Built on the fly rather than stored: `main.thoughts` holds plain lat/long doubles, which
+ * is what keeps the writers simple (therr-ai-automator writes this table directly from
+ * another repository) and what the partial btree index is on. Only rows that already
+ * passed the bounding-box filter ever reach this expression.
+ */
+const THOUGHT_POINT_SQL = `ST_MakePoint(${THOUGHTS_TABLE_NAME}."longitude", ${THOUGHTS_TABLE_NAME}."latitude")`;
+
+/** A point to find thoughts near, plus how far "near" reaches. */
+export interface INearLocation {
+    latitude: number;
+    longitude: number;
+    radiusMeters: number;
+}
+
+interface INormalizedNearLocation extends INearLocation {
+    box: IBoundingBox;
+}
+
+/**
+ * Validates a caller-supplied point and precomputes its bounding box.
+ *
+ * Returns undefined — meaning "run the ordinary, non-local query" — for anything unusable
+ * rather than throwing or emitting NaN into SQL. The coordinates originate in
+ * `main.userLocations`, where latitude and longitude are nullable, so a user with a
+ * half-written location row is an expected input on the feed's hot path, not an error.
+ */
+const normalizeNearLocation = (location?: INearLocation): INormalizedNearLocation | undefined => {
+    if (!location) {
+        return undefined;
+    }
+
+    const { latitude, longitude, radiusMeters } = location;
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !(radiusMeters > 0)) {
+        return undefined;
+    }
+
+    return {
+        latitude,
+        longitude,
+        radiusMeters,
+        box: getBoundingBox(latitude, longitude, radiusMeters),
+    };
+};
 
 // The hot-score expression now comes from therr-js-utilities `content-ranking`, which emits it
 // from the user's selected algorithm profile. Under the default (PULSE) it produces the exact
@@ -54,6 +105,15 @@ export interface ICreateThoughtParams {
     hashTags?: string;
     maxViews?: number;
     interestsKeys?: string[];
+    /**
+     * Set by `create` when the message names a city — never accepted from a caller. See the
+     * comment at the assignment for why, and note the pair-or-nothing rule: the local
+     * candidate query filters on `latitude IS NOT NULL` and computes distance from both
+     * columns, so half a pair is a row claiming to be somewhere while matching nothing.
+     */
+    latitude?: number;
+    longitude?: number;
+    locality?: string;
 }
 
 interface IDeleteThoughtsParams {
@@ -93,9 +153,53 @@ export default class ThoughtsStore {
 
     usersStore: UsersStore;
 
-    constructor(dbConnection, usersStore) {
+    /**
+     * Reads the author's own location, to check they are near the city their post names.
+     *
+     * Optional so the many places that build a ThoughtsStore for a read path do not have to
+     * supply one. When it is absent, `create` tags nothing at all — city detection fails
+     * closed rather than falling back to "tag it anyway", because the only thing this
+     * dependency does is enforce a check on user-controlled input.
+     */
+    userLocationsStore?: UserLocationsStore;
+
+    constructor(dbConnection, usersStore, userLocationsStore?: UserLocationsStore) {
         this.db = dbConnection;
         this.usersStore = usersStore;
+        this.userLocationsStore = userLocationsStore;
+    }
+
+    /**
+     * The author's own coordinates, or undefined if we cannot establish them.
+     *
+     * Deliberately the same lookup the thought distributor uses to decide which local feed a
+     * user is served (`getPrimary`), which is what keeps the write rule and the read rule
+     * symmetrical: you can only tag a city whose local content you would yourself see.
+     *
+     * Never throws. Somebody's post must not fail to save because a location lookup did, and
+     * the degraded outcome — an untagged post — is exactly what every post did before this
+     * feature existed.
+     */
+    private async getAuthorLocation(fromUserId?: string) {
+        if (!this.userLocationsStore || !fromUserId) {
+            return undefined;
+        }
+
+        try {
+            return await this.userLocationsStore.getPrimary(fromUserId);
+        } catch (error: any) {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'SQL:THOUGHTS_STORE',
+                messages: [error?.message],
+                traceArgs: {
+                    issue: 'failed to resolve author location for city detection',
+                    'user.id': fromUserId,
+                },
+            });
+
+            return undefined;
+        }
     }
 
     // Combine with search to avoid getting count out of sync
@@ -138,21 +242,38 @@ export default class ThoughtsStore {
      * Rows come back as { ...returning, hotScore }. `hotScore` is persisted onto the
      * reaction row at activation (thoughtReactions.relevanceScore) and is what the stream
      * is ordered by on read.
+     *
+     * `nearLocation` restricts candidates to thoughts *about* somewhere near a point — posts
+     * carrying coordinates of their own (20260821000001_main.thoughts.location.js), which
+     * today means therr-ai-automator's location-aware bots. Omitted, the query is unchanged
+     * and location-tagged rows compete on hotness like anything else; supplied, the caller
+     * gets only local candidates back, and every row is guaranteed to have coordinates, so
+     * profiles with a geo weight can rank by proximity.
      */
+    /* eslint-disable default-param-last */
+    // `nearLocation` is optional and goes after the params that already have defaults;
+    // reordering the signature to satisfy the rule would break every existing caller.
     getRecentThoughts(
         brand: BrandValue,
         limit = 1,
         relatedInterestsKeys: string[] = [],
         returning = ['id'],
         profile: IAlgorithmProfile = getDefaultAlgorithmProfile(),
+        nearLocation?: INearLocation,
     ) {
+        /* eslint-enable default-param-last */
         const interestsPlaceholders = relatedInterestsKeys.map(() => '?').join(', ');
+        const location = normalizeNearLocation(nearLocation);
         // Built once and reused in the SELECT, the ORDER BY, and (when capping per author) the
         // window function, so the persisted score always explains the order the rows came back
         // in. Under PULSE this emits the exact expression that shipped before profiles existed.
         const scoreExpression = getScoreSqlExpression(profile, {
             engagementCount: '"replyCount"',
             createdAt: '"createdAt"',
+            // Referenced by alias rather than recomputing ST_Distance in the outer query:
+            // the inner query already paid for it, and two copies of the expression are two
+            // chances for the SELECTed score and the ORDER BY to drift.
+            distanceMeters: location ? '"distanceMeters"' : undefined,
         });
         // PULSE caps at 0 (uncapped), which must skip the extra query layer entirely rather
         // than emit a no-op window — that is what keeps the default path's SQL unchanged.
@@ -188,6 +309,41 @@ export default class ThoughtsStore {
         if (relatedInterestsKeys?.length) {
             // TODO: Test this with various interests lists
             innerQuery = innerQuery.whereRaw(`"interestsKeys" \\?| ARRAY[${interestsPlaceholders}]::text[]`, relatedInterestsKeys);
+        }
+
+        if (location) {
+            // Two-stage radius search. The bounding box is what the partial index on
+            // ("latitude", "longitude") can actually serve; ST_DWithin then trims the corners
+            // of the box that fall outside the circle. Doing only the exact test would mean a
+            // sequential scan of every thought ever posted, and doing only the box would let
+            // in points up to ~41% past the radius at the diagonals.
+            const {
+                box,
+                latitude,
+                longitude,
+                radiusMeters,
+            } = location;
+            innerQuery = innerQuery
+                .whereNotNull(`${THOUGHTS_TABLE_NAME}.latitude`)
+                .andWhereBetween(`${THOUGHTS_TABLE_NAME}.latitude`, [box.minLatitude, box.maxLatitude]);
+
+            // A box spanning the antimeridian has a min greater than its max, so BETWEEN
+            // matches nothing. Dropping the predicate costs index selectivity for the handful
+            // of users near ±180° and keeps the result correct, which ST_DWithin still
+            // guarantees on its own.
+            if (!box.wrapsAntimeridian) {
+                innerQuery = innerQuery.andWhereBetween(`${THOUGHTS_TABLE_NAME}.longitude`, [box.minLongitude, box.maxLongitude]);
+            }
+
+            innerQuery = innerQuery
+                .andWhereRaw(
+                    `ST_DWithin(${THOUGHT_POINT_SQL}::geography, ST_MakePoint(?, ?)::geography, ?)`,
+                    [longitude, latitude, radiusMeters],
+                )
+                .select(knexBuilder.raw(
+                    `ST_Distance(${THOUGHT_POINT_SQL}::geography, ST_MakePoint(?, ?)::geography) AS "distanceMeters"`,
+                    [longitude, latitude],
+                ));
         }
 
         // Author diversity, for profiles that ask for it (FOCUS keeps 2 per author). Ranked by
@@ -822,7 +978,7 @@ export default class ThoughtsStore {
         });
     }
 
-    create(brand: BrandValue, params: ICreateThoughtParams) {
+    async create(brand: BrandValue, params: ICreateThoughtParams) {
         // TODO: Support creating multiple
         const isTextMature = isTextUnsafe([params.message, params.hashTags || '']);
 
@@ -840,6 +996,45 @@ export default class ThoughtsStore {
             hashTags: params.hashTags || '',
             maxViews: params.maxViews || 0,
         };
+
+        /**
+         * Coordinates for a post that names a city.
+         *
+         * Derived from the message text and nothing else. In particular it is NOT taken from
+         * the request body — `createThought` spreads `req.body` straight into this method, so
+         * honoring caller-supplied coordinates would let any client drop a post into any
+         * city's local feed, which is a spam vector with no legitimate caller today. A
+         * deliberate "tag a place" UI can add a validated path later.
+         *
+         * Nor is it inferred from where the author lives. The column means the same thing for
+         * a person as it does for a bot — this post is *about* this place, not written from
+         * it — and inferring it would put someone's every post in front of their neighbors
+         * while publishing a guess about where they live.
+         *
+         * Naming a city is not enough on its own. `detectLocality` also requires the author to
+         * be near it — post text is typed by the person being ranked, so without that check,
+         * writing "Chicago" into every post is all it takes to farm the Chicago feed from
+         * anywhere in the world.
+         *
+         * The condition mirrors the local candidate filter in `getRecentThoughts` exactly —
+         * public, not mature, top-level. A post failing any of those can never be selected as
+         * a candidate, so coordinates on it could never be read, and writing a location onto
+         * a post the author kept private is data they did not ask for. Keep the two in sync:
+         * if the read side ever widens, this is the write side that has to widen with it.
+         *
+         * The location read is skipped entirely for a post that could not be tagged anyway,
+         * so replies and private posts add no query to the write path.
+         */
+        if (sanitizedParams.isPublic && !sanitizedParams.isMatureContent && !params.parentId) {
+            const authorLocation = await this.getAuthorLocation(params.fromUserId as any);
+            const detected = detectLocality(sanitizedParams.message, authorLocation);
+
+            if (detected) {
+                sanitizedParams.latitude = detected.latitude;
+                sanitizedParams.longitude = detected.longitude;
+                sanitizedParams.locality = detected.locality;
+            }
+        }
 
         if (params.interestsKeys) {
             sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;

@@ -58,6 +58,7 @@ Coupling surface, regenerated 2026-07-30:
 | `main.notifications` | ✅ | — |
 | `main.userAchievements` | ✅ | — |
 | `main.thoughts` / `main.thoughtReactions` | — | ✅ (writes) |
+| `main.userLocations` | — | ✅ (declared homes of bot accounts) |
 | `habits.habit_phases` | ✅ (**writes**) | — |
 | `habits.habit_goals` / `habits.streaks` | ✅ | — |
 
@@ -83,6 +84,35 @@ grep -rn "columnName" ~/Code/therr-messaging-automator/src/store \
 ```
 
 Then: add the new column → backfill → ship the consumer repos → *only then* drop the old one.
+
+### Rule: a bot's home city lives here, its local colour lives there
+
+Location-aware bots (seeded by `therr-services/users-service/src/store/seeds/006_local_bot_users.js`)
+have a declared home in `main.userLocations`. `therr-ai-automator` reads those coordinates
+each run and matches them against its own metro catalog (`src/config/locales.ts`) **by
+proximity, within 80km** — there is no shared city key, deliberately, so neither repo has to
+be redeployed because the other reworded a city name.
+
+What that means in practice:
+
+- Moving or deleting a seeded bot's `userLocations` row silently turns its local posts off.
+  Nothing errors; the bot just goes back to writing generic content.
+- Adding a metro takes **both** halves: a catalog entry there and a seeded bot with a home
+  inside its radius here. Either alone does nothing.
+- The automator writes `main.thoughts.latitude/longitude/locality` only on posts that are
+  actually about the city, and always as a complete coordinate pair. The distributor's local
+  candidate query filters on `latitude IS NOT NULL` and computes distance from both columns,
+  so a half pair would be a row claiming to be from somewhere while matching nothing.
+- **Bot posts do not go through the author-proximity check.** Human posts are only tagged
+  when the author is within 60km of the city they named (`detectLocality`), because post
+  text is user-controlled. The automator writes `main.thoughts` directly and never touches
+  `ThoughtsStore.create`, so that gate does not apply to it — its bots are trusted content
+  and are seeded with a declared home matching the city they write about anyway.
+- **The `locality` label must read the same on both sides.** Human posts get theirs from
+  `detectLocality` (`${name}, ${stateAbbr}` off the `Cities` catalog); bot posts get theirs
+  from the automator's `locales.ts` `name` field. Both spell it `"Chicago, IL"`. If one
+  repo restyles that label, the feed shows two spellings of one place — there is a parity
+  test in `therr-js-utilities/tests/detect-locality.test.ts`, but it can only see this repo.
 
 ### Rule: brand-scoping must be mirrored by hand
 
