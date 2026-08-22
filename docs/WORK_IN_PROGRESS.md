@@ -828,6 +828,24 @@ console configuration, and one verification that gates a payments change.
   partner when no sender is configured for their country, instead of reporting the invite as sent.
   That is the correct outcome, but it means a missing GB sender becomes user-visible as "we could
   not reach them" on every UK pact invite and nudge, where it previously failed silently.
+- [ ] (2026-08-22, /quality-peer-review) **Run the `main.thoughts` location migration and the
+  location-bot seed in production.** `20260821000001_main.thoughts.location.js` adds nullable
+  `latitude`/`longitude`/`locality` plus a partial index (additive, verified re-runnable), and
+  `006_local_bot_users.js` seeds the 12 metro bot accounts with declared homes in
+  `main.userLocations`. The seed is the this-repo half of the bot contract — without it the
+  distributor's local query has no bot content to find.
+- [ ] (2026-08-22, /quality-peer-review) **Build the `therr-ai-automator` half before expecting
+  any location-aware bot content.** Verified against the sibling repo on 2026-08-22: it has no
+  `src/config/locales.ts`, does not read `main.userLocations`, and never writes
+  `main.thoughts.latitude/longitude/locality`. Until that ships, human city detection
+  (`detectLocality`) is the only source of location-tagged posts and the "Location-aware bots"
+  feature is inert. `docs/CROSS_REPO_INTEGRATION.md` § "a bot's home city lives here" and the
+  `docs/FEATURES.md` bullet describe that contract in the present tense — both are now marked as
+  pending, and the markers should be removed when the automator side deploys.
+- [ ] (2026-08-22, /quality-peer-review) **Keep the `locality` label spelling identical across
+  repos when the automator lands.** Human posts render `"${name}, ${stateAbbr}"` from the `Cities`
+  catalog; the automator must emit the same form ("Chicago, IL") or one place shows up under two
+  spellings in the feed. No CI can see both sides.
 <!-- skill-followups:end -->
 
 ---

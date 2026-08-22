@@ -87,6 +87,13 @@ Then: add the new column → backfill → ship the consumer repos → *only then
 
 ### Rule: a bot's home city lives here, its local colour lives there
 
+> **Status (2026-08-22): the automator half is not built yet.** This repo's side has shipped —
+> the columns, the seeded bots with declared homes, and the distributor's local query. But
+> `therr-ai-automator` currently has no `src/config/locales.ts`, does not read
+> `main.userLocations`, and never writes `main.thoughts.latitude/longitude/locality`. Until it
+> does, the only location-tagged posts come from `detectLocality` on human posts. Read the rest
+> of this section as the contract to build against, not as a description of what runs today.
+
 Location-aware bots (seeded by `therr-services/users-service/src/store/seeds/006_local_bot_users.js`)
 have a declared home in `main.userLocations`. `therr-ai-automator` reads those coordinates
 each run and matches them against its own metro catalog (`src/config/locales.ts`) **by
