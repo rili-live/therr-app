@@ -18,25 +18,46 @@ export interface IDetectedLocality {
 }
 
 /**
- * City names that are also ordinary English words or common given names.
+ * City names that collide with an ordinary word, in English or Spanish.
  *
- * These are the false-positive engine of any name matcher: "Austin said he'd be late",
- * "a phoenix rising", "my daughter Charlotte", "mesa" (Spanish for table, and this app has
- * an es locale), "Columbus Day", "George Washington". Matching them bare would tag a large
- * share of ordinary posts with a city nobody was talking about.
+ * These never match bare, however local the author is, because knowing where somebody lives
+ * tells you nothing about which sense they meant. A Mesa resident writing Spanish uses
+ * "mesa" for a table; a Phoenix resident still reaches for the bird as a metaphor; "aurora"
+ * is the dawn and the northern lights before it is a suburb of Denver.
  *
- * They are not dropped — they are the names of real, large cities and people write about
- * them constantly — but they only count when the sentence says they are a place: a
- * preceding preposition ("in Austin"), or a following state ("Austin, TX").
- *
- * The cost is recall on bare adjectival use — "Austin traffic is insane" goes untagged.
- * That is the right side to err on. A missed tag is a post that behaves exactly as it did
- * before this feature existed; a false tag puts somebody's post about their kid into a
- * stranger's city feed.
+ * They only count when the sentence says they are a place: a preceding preposition
+ * ("in Mesa"), or a following state ("Mesa, AZ").
  */
-const NAMES_NEEDING_CONTEXT = new Set([
-    'arlington',
+const NEEDS_CONTEXT_ALWAYS = new Set([
     'aurora',
+    'mesa',
+    'phoenix',
+    'santa ana',
+]);
+
+/**
+ * City names that collide with a person's name, or with the same name in another state.
+ *
+ * The bare mention is genuinely ambiguous — "Austin said he'd be late", "my daughter
+ * Charlotte", "Arlington" (TX or VA?) — so it needs a place cue in the general case. But
+ * when the author *lives* in the city they named, the ambiguity mostly resolves itself:
+ * locals talk about their own city by bare name constantly ("Austin traffic is insane"),
+ * and for the place-vs-place collisions their own location is precisely the disambiguator.
+ *
+ * So a local author is accepted as context in place of a preposition. The trade is a
+ * deliberate flip of which error we take:
+ *
+ *  - before: an Austinite's "Austin traffic is insane" went untagged, losing exactly the
+ *    local content this feature exists to collect.
+ *  - after:  an Austinite's "Austin said he'd be late" is tagged Austin — noise, but noise
+ *    confined to the poster's own city feed, which they could have tagged deliberately
+ *    anyway by writing "in Austin".
+ *
+ * A stranger's post is unaffected either way: the proximity gate in `detectLocality` still
+ * has to pass, so this relaxes nothing for someone who does not live there.
+ */
+const NEEDS_CONTEXT_UNLESS_LOCAL = new Set([
+    'arlington',
     'austin',
     'charlotte',
     'columbus',
@@ -44,10 +65,7 @@ const NAMES_NEEDING_CONTEXT = new Set([
     'denver',
     'greenville',
     'houston',
-    'mesa',
-    'phoenix',
     'richmond',
-    'santa ana',
     'washington',
 ]);
 
@@ -173,11 +191,15 @@ const getPrecedingWord = (message: string, index: number): string => {
  * the first mention would be a coin flip that drops a travel post into one random city's
  * feed. Naming the same city several times is still one city.
  *
+ * `isLocal` answers "does the author live in this city?", which some names need in order to
+ * count at all (see NEEDS_CONTEXT_UNLESS_LOCAL). It is a predicate rather than a point so
+ * this stays a text-matching function, and so the distance rule lives in exactly one place.
+ *
  * Deliberately module-private: every caller must go through `detectLocality`, which also
  * checks that the author is anywhere near the city they named. An exported parse-only
  * function would be an easy way to skip that check by accident.
  */
-const findNamedCity = (message: string): ICityEntry | null => {
+const findNamedCity = (message: string, isLocal: (city: ICityEntry) => boolean): ICityEntry | null => {
     const matchedSlugs = new Set<string>();
     let matchedCity: ICityEntry | undefined;
     let consumedUntil = 0;
@@ -196,9 +218,19 @@ const findNamedCity = (message: string): ICityEntry | null => {
             if (city) {
                 const qualifierLength = getStateQualifierLength(message.slice(start + token.length), city);
                 const hasPlaceCue = PLACE_CUES.has(getPrecedingWord(message, start));
-                const needsContext = NAMES_NEEDING_CONTEXT.has(city.name.toLowerCase());
+                const hasContext = qualifierLength > 0 || hasPlaceCue;
+                const name = city.name.toLowerCase();
 
-                if (!needsContext || qualifierLength > 0 || hasPlaceCue) {
+                let qualifies: boolean;
+                if (NEEDS_CONTEXT_ALWAYS.has(name)) {
+                    qualifies = hasContext;
+                } else if (NEEDS_CONTEXT_UNLESS_LOCAL.has(name)) {
+                    qualifies = hasContext || isLocal(city);
+                } else {
+                    qualifies = true;
+                }
+
+                if (qualifies) {
                     matchedSlugs.add(city.slug);
                     matchedCity = city;
                 }
@@ -258,20 +290,25 @@ const detectLocality = (
         return null;
     }
 
-    const city = findNamedCity(message);
+    // One definition of "the author lives here", used twice: to let a local's bare mention of
+    // an ambiguous name count as a place, and as the gate every match has to clear below.
+    // NaN fails this comparison, which is the point: a non-finite coordinate must not pass.
+    const isLocal = (candidate: ICityEntry) => getDistanceInMeters(
+        Number(authorLocation.latitude),
+        Number(authorLocation.longitude),
+        candidate.lat,
+        candidate.lng,
+    ) <= Location.LOCAL_AUTHOR_MAX_DISTANCE_METERS;
+
+    const city = findNamedCity(message, isLocal);
     if (!city) {
         return null;
     }
 
-    const distance = getDistanceInMeters(
-        Number(authorLocation.latitude),
-        Number(authorLocation.longitude),
-        city.lat,
-        city.lng,
-    );
-
-    // NaN fails this comparison, which is the point: a non-finite coordinate must not pass.
-    if (!(distance <= Location.LOCAL_AUTHOR_MAX_DISTANCE_METERS)) {
+    // Still checked for every match, not just the ambiguous ones: an unambiguous name is
+    // matched without consulting `isLocal` at all, and "chicago pizza is overrated" from
+    // someone in New York must not be tagged.
+    if (!isLocal(city)) {
         return null;
     }
 

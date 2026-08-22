@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { detectLocality as detect } from '../src/location';
+import Cities from '../src/constants/Cities';
 
 /** Author points, for the proximity gate every case below has to clear. */
 const AT = {
@@ -85,9 +86,11 @@ describe('detectLocality', () => {
 
     describe('names that are also people and ordinary words', () => {
         it('does not tag a person who happens to share a city name', () => {
-            expect(detectLocality('Austin said he would be late again', AT.austin)).to.equal(null);
-            expect(detectLocality('my daughter Charlotte lost her first tooth', AT.charlotte)).to.equal(null);
-            expect(detectLocality('Denver keeps stealing socks', AT.denverArea)).to.equal(null);
+            // Author in Chicago throughout: for someone who lives in the city being named,
+            // a bare mention is accepted instead (see "a local author as context" below).
+            expect(detectLocality('Austin said he would be late again')).to.equal(null);
+            expect(detectLocality('my daughter Charlotte lost her first tooth')).to.equal(null);
+            expect(detectLocality('Denver keeps stealing socks')).to.equal(null);
         });
 
         it('does not tag ordinary words that happen to be cities', () => {
@@ -109,10 +112,62 @@ describe('detectLocality', () => {
             expect(detectLocality('Richmond Virginia is underrated', AT.richmond)?.slug).to.equal('richmond-va');
         });
 
-        it('gives up recall on bare adjectival use, deliberately', () => {
-            // "Austin traffic is insane" is genuinely about Austin, and goes untagged. The
-            // alternative rule tags every sentence containing someone named Austin.
-            expect(detectLocality('Austin traffic is insane lately', AT.austin)).to.equal(null);
+        it('still gives up bare adjectival use by a non-local', () => {
+            // A stranger writing "Austin traffic is insane" gets nothing: no place cue, and
+            // they do not live there. The relaxation below is only for locals.
+            expect(detectLocality('Austin traffic is insane lately', AT.chicago)).to.equal(null);
+        });
+    });
+
+    /**
+     * A local author as context.
+     *
+     * Names that are also people, or that exist in several states, need a place cue in the
+     * general case. Living in the city is accepted instead: locals name their own city bare
+     * all the time, and for the place-vs-place collisions their location is exactly the
+     * disambiguator. Nothing here relaxes anything for a non-local — the proximity gate in
+     * `detectLocality` still has to pass.
+     */
+    describe('a local author as context', () => {
+        it('recovers bare adjectival use for someone who lives there', () => {
+            // The case this rule exists for: real local content that used to go untagged.
+            expect(detectLocality('Austin traffic is insane lately', AT.austin)?.slug).to.equal('austin-tx');
+            expect(detectLocality('Denver got eight inches overnight', AT.denverArea)?.slug).to.equal('denver-co');
+            expect(detectLocality('Charlotte is booming lately', AT.charlotte)?.slug).to.equal('charlotte-nc');
+        });
+
+        it('resolves a name shared with other states using where the author is', () => {
+            // "Arlington" is TX and VA in the world, and a national cemetery besides; the
+            // catalog carries only the TX one today. So the question this answers is "is the
+            // author near the Arlington we know about", which is what the gate was for.
+            // Were a second Arlington ever added, the guard test below fires first.
+            expect(detectLocality('Arlington is packed today', { latitude: 32.7357, longitude: -97.1081 })?.slug)
+                .to.equal('arlington-tx');
+            expect(detectLocality('Arlington is packed today', AT.chicago)).to.equal(null);
+        });
+
+        it('accepts the noise that comes with it, confined to the poster own city', () => {
+            // An Austinite writing about a person named Austin is now tagged Austin. That is
+            // the cost, and it is cheap: they could have written "in Austin" deliberately,
+            // and the post only reaches the feed they are already part of.
+            expect(detectLocality('Austin said he would be late again', AT.austin)?.slug).to.equal('austin-tx');
+        });
+
+        it('never relaxes a name that collides with an ordinary word', () => {
+            // Where you live says nothing about which sense you meant, so these still need a
+            // place cue no matter how local the author is.
+            expect(detectLocality('like a phoenix from the ashes', AT.phoenix)).to.equal(null);
+            // Mesa, AZ is ~25km from the Phoenix point, so this author is local to Mesa.
+            expect(detectLocality('la mesa estaba llena de comida', AT.phoenix)).to.equal(null);
+            expect(detectLocality('the aurora was visible last night', AT.denverArea)).to.equal(null);
+            // ...and the place cue still works for them.
+            expect(detectLocality('brunch in Mesa was worth the drive', AT.phoenix)?.slug).to.equal('mesa-az');
+        });
+
+        it('does not let a local mention override the two-city abstention', () => {
+            // Both qualify — Seattle unambiguously, Denver because the author lives there —
+            // so this is still a journey rather than a place.
+            expect(detectLocality('flying from Seattle to Denver tomorrow', AT.denverArea)).to.equal(null);
         });
     });
 
@@ -206,6 +261,20 @@ describe('detectLocality', () => {
             // Same author, two posts: the local one is tagged and the remote one is not.
             expect(detect('deep dish in Chicago', AT.chicago)?.slug).to.equal('chicago-il');
             expect(detect('sunset over Seattle', AT.chicago)).to.equal(null);
+        });
+    });
+
+    describe('catalog assumptions', () => {
+        it('has no two cities sharing a name', () => {
+            // Both `Cities.CityNameMap` and this matcher resolve a name to exactly one entry,
+            // last-one-wins, silently. Adding a second "Portland" or "Columbus" would
+            // therefore reroute every mention of that name to whichever entry sorts later,
+            // with nothing to notice it — so this fails loudly instead. The fix at that point
+            // is to resolve duplicates by author proximity, which every caller already has.
+            const names = Cities.CitiesList.map((city) => city.name.toLowerCase());
+            const duplicates = names.filter((name, index) => names.indexOf(name) !== index);
+
+            expect(duplicates).to.deep.equal([]);
         });
     });
 
