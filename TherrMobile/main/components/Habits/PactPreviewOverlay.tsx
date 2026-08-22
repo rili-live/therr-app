@@ -237,12 +237,15 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
         getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
     );
 
+    // Both land on the dashboard's pact segments. The `initialTab` is what tells
+    // `PactOnboardingGuard` to stand down for that visit — without it a user who
+    // has not started yet would be handed straight back to this overlay.
     const handleViewSent = () => {
-        navigation.navigate('PactsList', { initialTab: 'outgoing' });
+        navigation.navigate('HabitsDashboard', { initialTab: 'outgoing' });
     };
 
     const handleViewPending = () => {
-        navigation.navigate('PactsList', { initialTab: 'pending' });
+        navigation.navigate('HabitsDashboard', { initialTab: 'pending' });
     };
 
     return (

@@ -87,7 +87,7 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
 
     goToPacts = (initialTab = 'outgoing') => {
         const { navigation } = this.props;
-        navigation.navigate('PactsList', { initialTab });
+        navigation.navigate('HabitsDashboard', { initialTab });
     };
 
     renderEmptyState = () => (

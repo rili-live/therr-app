@@ -6,15 +6,28 @@ interface IFeatureDependency {
 }
 
 // Navigation tab flags for counting visible tabs (across all brands)
+//
+// ENABLE_PACTS is absent because pacts no longer have a tab of their own — they
+// are segments of the habits screen. Achievements took the slot, but only on
+// the HABITS button menu, so it is counted conditionally below rather than
+// listed here (on Therr it is a drawer item, and counting it there would push a
+// perfectly valid five-tab bar over the ceiling).
 const NAVIGATION_TAB_FLAGS = [
     FeatureFlags.ENABLE_AREAS,
     FeatureFlags.ENABLE_GROUPS,
     FeatureFlags.ENABLE_MAP,
     FeatureFlags.ENABLE_CONNECT,
     FeatureFlags.ENABLE_HABITS,
-    FeatureFlags.ENABLE_PACTS,
     FeatureFlags.ENABLE_HABITS_JOURNAL,
 ];
+
+const countNavigationTabs = (flags: Record<string, boolean>): number => {
+    const listed = NAVIGATION_TAB_FLAGS.filter(flag => flags[flag]).length;
+    const hasAchievementsTab = !!flags[FeatureFlags.ENABLE_HABITS]
+        && !!flags[FeatureFlags.ENABLE_ACHIEVEMENTS];
+
+    return listed + (hasAchievementsTab ? 1 : 0);
+};
 
 // Define dependencies (feature X requires feature Y)
 const FEATURE_DEPENDENCIES: IFeatureDependency[] = [
@@ -47,8 +60,7 @@ export const validateFeatureFlags = (flags: Record<string, boolean>): string[] =
 
     // Validate tab count (3-5 tabs required for good UI)
     // Note: Profile tab is always shown, so we need 2-4 additional tabs
-    const enabledTabCount = NAVIGATION_TAB_FLAGS.filter(flag => flags[flag]).length;
-    const totalTabsWithProfile = enabledTabCount + 1; // +1 for Profile tab (always shown)
+    const totalTabsWithProfile = countNavigationTabs(flags) + 1; // +1 for Profile tab (always shown)
 
     if (totalTabsWithProfile < 3) {
         errors.push(

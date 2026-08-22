@@ -22,9 +22,9 @@ interface IHabitsButtonMenuProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// HABITS shows 5 tabs — Habits, Journal, Pacts, Connect, Profile — or 4 when
-// the journal is switched off. See `habitsTabLayout.ts` for why the count is
-// derived from the flag rather than constant.
+// HABITS shows 5 tabs — Habits, Journal, Awards, Connect, Profile — dropping
+// the flagged ones where they are switched off. See `habitsTabLayout.ts` for
+// why the count is derived from the flags rather than constant.
 const getTabLayout = () => getHabitsTabLayout(screenWidth, getConfig().featureFlags || {});
 
 const localStyles = StyleSheet.create({
@@ -79,7 +79,11 @@ const ViewProfileButton = ({
 );
 
 /**
- * HABITS app button menu with Habits, Pacts, Connect, and Profile tabs
+ * HABITS app button menu with Habits, Journal, Awards, Connect, and Profile tabs.
+ *
+ * There is no Pacts tab: the pact lists are segments of the Habits screen now,
+ * so a second tab pointing at the same screen would only have split the two
+ * halves of one flow across the bar. Awards (Achievements) took the slot.
  */
 class HabitsButtonMenu extends ButtonMenu {
     constructor(props) {
@@ -168,21 +172,23 @@ class HabitsButtonMenu extends ButtonMenu {
         const {
             isCompact, translate, themeMenu, user, habits,
         } = (this.props as unknown as IHabitsButtonMenuProps);
-        const { isJournalEnabled, buttonWidth } = getTabLayout();
+        const { isJournalEnabled, isAchievementsEnabled, buttonWidth } = getTabLayout();
         const activeRoute = this.getActiveRoute();
-        const isHabitsActive = ['HabitsDashboard', 'HabitDetail'].includes(activeRoute);
+        const isHabitsActive = [
+            'HabitsDashboard', 'HabitDetail', 'PactDetail', 'CreatePact', 'CreatePactInvite',
+        ].includes(activeRoute);
         const isJournalActive = activeRoute === 'Journal';
-        const isPactsActive = ['PactsList', 'PactDetail', 'CreatePact', 'CreatePactInvite'].includes(activeRoute);
+        const isAchievementsActive = ['Achievements', 'AchievementClaim'].includes(activeRoute);
         const isConnectActive = activeRoute === 'Connect';
         const currentUserId = user?.details?.id;
         const outgoingCount = (habits?.pacts || []).filter(
             (p) => p.status === 'pending' && p.creatorUserId === currentUserId,
         ).length;
         const hasActivePacts = (habits?.activePacts?.length || 0) > 0;
-        // Only nudge into the Sent tab when the user has nothing active to
-        // act on. With active pacts, default to the Active tab so daily
-        // check-ins remain one tap away.
-        const initialPactsTab = !hasActivePacts && outgoingCount > 0 ? 'outgoing' : 'active';
+        // Only open onto the Sent segment when the user has nothing active to
+        // act on. With active pacts, land on Habits so daily check-ins remain
+        // one tap away.
+        const initialHabitsTab = !hasActivePacts && outgoingCount > 0 ? 'outgoing' : 'habits';
         const imageStyle = {
             height: 26,
             width: 26,
@@ -191,40 +197,66 @@ class HabitsButtonMenu extends ButtonMenu {
 
         return (
             <ButtonMenu {...this.props}>
-                {/* Habits Tab */}
-                <Button
-                    title={!isCompact ? translate('menus.habits.buttons.habits') : null}
-                    buttonStyle={
-                        isHabitsActive
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={[
-                        (isHabitsActive
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer),
-                        {
-                            width: buttonWidth,
-                        },
-                    ]}
-                    titleStyle={
-                        isHabitsActive
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <MaterialIcon
-                            name="check-circle"
-                            size={24}
-                            style={
-                                isHabitsActive
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.onNavPressDynamic('HabitsDashboard')}
-                />
+                {/* Habits Tab — habits and pacts both live behind this one */}
+                <View style={{ width: buttonWidth }}>
+                    <Button
+                        title={!isCompact ? translate('menus.habits.buttons.habits') : null}
+                        buttonStyle={
+                            isHabitsActive
+                                ? themeMenu.styles.buttonsActive
+                                : themeMenu.styles.buttons
+                        }
+                        containerStyle={[
+                            (isHabitsActive
+                                ? themeMenu.styles.buttonContainerActive
+                                : themeMenu.styles.buttonContainer),
+                            {
+                                width: buttonWidth,
+                            },
+                        ]}
+                        titleStyle={
+                            isHabitsActive
+                                ? themeMenu.styles.buttonsTitleActive
+                                : themeMenu.styles.buttonsTitle
+                        }
+                        icon={
+                            <MaterialIcon
+                                name="check-circle"
+                                size={24}
+                                style={
+                                    isHabitsActive
+                                        ? themeMenu.styles.buttonIconActive
+                                        : themeMenu.styles.buttonIcon
+                                }
+                            />
+                        }
+                        onPress={() => this.onNavPressDynamic('HabitsDashboard', { initialTab: initialHabitsTab })}
+                    />
+                    {/* Outgoing-invite count. It rode on the Pacts tab before the
+                        two screens merged; the Sent list it counts is a segment
+                        of the Habits screen now, so the badge moved with it. */}
+                    {outgoingCount > 0 && (
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: 7,
+                                right: buttonWidth / 2 - 20,
+                                minWidth: 18,
+                                height: 18,
+                                borderRadius: 9,
+                                backgroundColor: '#E37107',
+                                paddingHorizontal: 5,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                            pointerEvents="none"
+                        >
+                            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
+                                {outgoingCount > 9 ? '9+' : String(outgoingCount)}
+                            </Text>
+                        </View>
+                    )}
+                </View>
 
                 {/* Journal Tab — gated on the same flag that registers the route */}
                 {isJournalEnabled && <Button
@@ -261,63 +293,40 @@ class HabitsButtonMenu extends ButtonMenu {
                     onPress={() => this.onNavPressDynamic('Journal')}
                 />}
 
-                {/* Pacts Tab */}
-                <View style={{ width: buttonWidth }}>
-                    <Button
-                        title={!isCompact ? translate('menus.habits.buttons.pacts') : null}
-                        buttonStyle={
-                            isPactsActive
-                                ? themeMenu.styles.buttonsActive
-                                : themeMenu.styles.buttons
-                        }
-                        containerStyle={[
-                            (isPactsActive
-                                ? themeMenu.styles.buttonContainerActive
-                                : themeMenu.styles.buttonContainer),
-                            {
-                                width: buttonWidth,
-                            },
-                        ]}
-                        titleStyle={
-                            isPactsActive
-                                ? themeMenu.styles.buttonsTitleActive
-                                : themeMenu.styles.buttonsTitle
-                        }
-                        icon={
-                            <TherrIcon
-                                name="group"
-                                size={24}
-                                style={
-                                    isPactsActive
-                                        ? themeMenu.styles.buttonIconActive
-                                        : themeMenu.styles.buttonIcon
-                                }
-                            />
-                        }
-                        onPress={() => this.onNavPressDynamic('PactsList', { initialTab: initialPactsTab })}
-                    />
-                    {outgoingCount > 0 && (
-                        <View
-                            style={{
-                                position: 'absolute',
-                                top: 7,
-                                right: buttonWidth / 2 - 20,
-                                minWidth: 18,
-                                height: 18,
-                                borderRadius: 9,
-                                backgroundColor: '#E37107',
-                                paddingHorizontal: 5,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                            pointerEvents="none"
-                        >
-                            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
-                                {outgoingCount > 9 ? '9+' : String(outgoingCount)}
-                            </Text>
-                        </View>
-                    )}
-                </View>
+                {/* Achievements Tab — gated on the same flag that registers the route */}
+                {isAchievementsEnabled && <Button
+                    title={!isCompact ? translate('menus.habits.buttons.achievements') : null}
+                    buttonStyle={
+                        isAchievementsActive
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
+                    }
+                    containerStyle={[
+                        (isAchievementsActive
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer),
+                        {
+                            width: buttonWidth,
+                        },
+                    ]}
+                    titleStyle={
+                        isAchievementsActive
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
+                    }
+                    icon={
+                        <TherrIcon
+                            name="achievement"
+                            size={24}
+                            style={
+                                isAchievementsActive
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.onNavPressDynamic('Achievements')}
+                />}
 
                 {/* Connect Tab (for finding partners) */}
                 <Button
