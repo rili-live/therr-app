@@ -72,6 +72,45 @@ export default class UserLocationsStore {
             .then((response) => response.rows);
     }
 
+    /**
+     * The single location that best answers "where does this user live?", or undefined.
+     *
+     * Deliberately more permissive than `getDwellings`, which is the right question for
+     * notification muting but the wrong one here: a dwelling requires either an explicit
+     * declaration or DWELL_MIN_DISTINCT_DAYS of history, so a user who signed up an hour ago
+     * and shared their location has none — and they are exactly the audience for a feed
+     * seeded with posts about their own city. This accepts their first ping, while ordering
+     * a declared home and an established dwelling ahead of it.
+     *
+     * The recency guard is what keeps that safe: a location the user has not been near in
+     * DWELL_LOCATION_MAX_AGE_MS is ignored unless they declared it home, so a stale ping
+     * from a city they have since left cannot keep shaping their feed forever.
+     */
+    getPrimary(userId: string) {
+        const activeSince = new Date(Date.now() - Location.DWELL_LOCATION_MAX_AGE_MS).toISOString();
+
+        const queryString = knexBuilder
+            .select([
+                `${USER_LOCATIONS_TABLE_NAME}.*`,
+            ])
+            .from(USER_LOCATIONS_TABLE_NAME)
+            .where({ userId })
+            .whereNotNull('latitude')
+            .whereNotNull('longitude')
+            .andWhere((builder) => builder
+                .where({ isDeclaredHome: true })
+                .orWhere('lastVisitedAt', '>=', activeSince))
+            .orderBy('isDeclaredHome', 'desc')
+            .orderBy('distinctDayCount', 'desc')
+            .orderBy('visitCount', 'desc')
+            .orderBy('lastVisitedAt', 'desc')
+            .limit(1)
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => response.rows[0]);
+    }
+
     getById(id: string) {
         const queryString = knexBuilder.select()
             .from(USER_LOCATIONS_TABLE_NAME)

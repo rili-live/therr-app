@@ -138,6 +138,9 @@ const CitiesList: ICityEntry[] = [
         name: 'Tampa', state: 'Florida', stateAbbr: 'FL', slug: 'tampa-fl', lat: 27.9506, lng: -82.4572,
     },
     {
+        name: 'Miami', state: 'Florida', stateAbbr: 'FL', slug: 'miami-fl', lat: 25.7617, lng: -80.1918,
+    },
+    {
         name: 'New Orleans', state: 'Louisiana', stateAbbr: 'LA', slug: 'new-orleans-la', lat: 29.9511, lng: -90.0715,
     },
     {

@@ -222,7 +222,7 @@ gateway. No CI in any repo checks these couplings.
 | Repo | Couples to this repo via |
 |---|---|
 | `therr-messaging-automator` | Direct Knex reads (users/maps/reactions) **and writes** (`habits.habit_phases` email watermarks) + `POST /v1/habits/pacts/digest/run-daily` on users-service over the VPC |
-| `therr-ai-automator` | Direct Knex reads **and writes** — it authors `main.thoughts` / `main.thoughtReactions` |
+| `therr-ai-automator` | Direct Knex reads **and writes** — it authors `main.thoughts` / `main.thoughtReactions`, and reads its bots' declared homes from `main.userLocations` |
 | `therr-infra-terraform` | Provisions Cloud SQL, the Cloud Functions, Cloud Scheduler, and the internal IP that `k8s/prod` pins |
 | `therr-landing` | Public API only (`/v1/users-service/subscribers/signup`) — not coupled |
 
