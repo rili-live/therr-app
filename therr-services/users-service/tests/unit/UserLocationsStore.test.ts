@@ -19,6 +19,55 @@ const buildMockConnection = () => {
 };
 
 describe('UserLocationsStore', () => {
+    /**
+     * "Where does this user live?", for seeding a feed with local content.
+     *
+     * Deliberately a different question from getDwellings below, which gates on either an
+     * explicit declaration or several days of history. A user who signed up an hour ago has
+     * neither, and they are exactly who this is for.
+     */
+    describe('getPrimary', () => {
+        it('accepts a first ping, so a brand-new account is not excluded', () => {
+            const { connection, readStub } = buildMockConnection();
+            new UserLocationsStore(connection).getPrimary('user-1');
+
+            const queryString = readStub.args[0][0];
+            // No distinctDayCount threshold: requiring one would mean a new user waits
+            // DWELL_MIN_DISTINCT_DAYS before their own city can appear in their feed.
+            expect(queryString).to.not.contain('distinctDayCount" >=');
+            expect(queryString).to.contain('"userId" = \'user-1\'');
+            expect(queryString).to.contain('limit 1');
+        });
+
+        it('ignores a stale location unless the user declared it home', () => {
+            const { connection, readStub } = buildMockConnection();
+            new UserLocationsStore(connection).getPrimary('user-1');
+
+            const queryString = readStub.args[0][0];
+            // Otherwise a ping from a city they left years ago keeps shaping their feed.
+            expect(queryString).to.contain('"isDeclaredHome" = true');
+            expect(queryString).to.contain('"lastVisitedAt" >=');
+        });
+
+        it('prefers a declared home, then an established dwelling, over a one-off ping', () => {
+            const { connection, readStub } = buildMockConnection();
+            new UserLocationsStore(connection).getPrimary('user-1');
+
+            const queryString = readStub.args[0][0];
+            expect(queryString).to.contain('order by "isDeclaredHome" desc, "distinctDayCount" desc, "visitCount" desc, "lastVisitedAt" desc');
+        });
+
+        it('never returns a row with a missing coordinate', () => {
+            const { connection, readStub } = buildMockConnection();
+            new UserLocationsStore(connection).getPrimary('user-1');
+
+            const queryString = readStub.args[0][0];
+            // Both columns are nullable, and a half-written row is useless to every caller.
+            expect(queryString).to.contain('"latitude" is not null');
+            expect(queryString).to.contain('"longitude" is not null');
+        });
+    });
+
     describe('create', () => {
         it('increments distinctDayCount at most once per calendar day on conflict', () => {
             const { connection, writeStub } = buildMockConnection();
