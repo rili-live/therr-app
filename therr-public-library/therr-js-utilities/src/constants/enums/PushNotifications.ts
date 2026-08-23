@@ -17,6 +17,7 @@ export enum Types {
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',
     newThoughtReplyReceived = 'new-thought-reply-received',
+    newThoughtRepostReceived = 'new-thought-repost-received',
     reportConfirmed = 'report-confirmed',
 
     // Leaderboards (all brands)
@@ -112,6 +113,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'NEW_GROUP_MEMBERS'
 | 'NEW_LIKE_RECEIVED'
 | 'NEW_THOUGHT_REPLY_RECEIVED'
+| 'NEW_THOUGHT_REPOST_RECEIVED'
 | 'NEW_SUPER_LIKE_RECEIVED'
 | 'UNREAD_NOTIFICATIONS_REMINDER'
 | 'UNCLAIMED_ACHIEVEMENTS_REMINDER'
@@ -154,6 +156,7 @@ enum TeemAndroidIntentActions {
     NEW_GROUP_MEMBERS = 'com.therr.mobile.NEW_GROUP_MEMBERS',
     NEW_LIKE_RECEIVED = 'com.therr.mobile.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'com.therr.mobile.NEW_THOUGHT_REPLY_RECEIVED',
+    NEW_THOUGHT_REPOST_RECEIVED = 'com.therr.mobile.NEW_THOUGHT_REPOST_RECEIVED',
     NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -180,6 +183,7 @@ enum TherrAndroidIntentActions {
     NEW_GROUP_MEMBERS = 'app.therrmobile.NEW_GROUP_MEMBERS',
     NEW_LIKE_RECEIVED = 'app.therrmobile.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'app.therrmobile.NEW_THOUGHT_REPLY_RECEIVED',
+    NEW_THOUGHT_REPOST_RECEIVED = 'app.therrmobile.NEW_THOUGHT_REPOST_RECEIVED',
     NEW_SUPER_LIKE_RECEIVED = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -206,6 +210,7 @@ enum HabitsAndroidIntentActions {
     NEW_GROUP_MEMBERS = 'com.therr.mobile.habits.NEW_GROUP_MEMBERS',
     NEW_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'com.therr.mobile.habits.NEW_THOUGHT_REPLY_RECEIVED',
+    NEW_THOUGHT_REPOST_RECEIVED = 'com.therr.mobile.habits.NEW_THOUGHT_REPOST_RECEIVED',
     NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.habits.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.habits.UNCLAIMED_ACHIEVEMENTS_REMINDER',

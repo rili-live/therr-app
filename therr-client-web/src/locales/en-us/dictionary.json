@@ -476,7 +476,16 @@
       "viewAllReplies": "View all {count} replies",
       "viewReplies": "View {count} replies",
       "viewReply": "View 1 reply",
-      "reply": "Reply"
+      "reply": "Reply",
+      "repostedBy": "{userName} reposted",
+      "repostThought": "Repost",
+      "repostUnavailable": "This post is no longer available",
+      "repostModalTitle": "Repost",
+      "repostPlaceholder": "Add a comment (optional)",
+      "repostConfirm": "Repost",
+      "repostCancel": "Cancel",
+      "repostError": "We could not repost this. Please try again.",
+      "repostDuplicate": "You already reposted this"
     },
     "viewThought": {
       "headerTitle": "Thought",

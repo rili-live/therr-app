@@ -83,6 +83,11 @@
       "body": "{userName} replied to your post — see what they said",
       "pressActionView": "View Reply"
     },
+    "newThoughtRepostReceived": {
+      "title": "Your Post Was Reposted",
+      "body": "{userName} reposted your post — it's reaching a new audience",
+      "pressActionView": "View Post"
+    },
     "newAreasActivated": {
       "title": "New Spots Unlocked!",
       "body": "You just unlocked {totalAreasActivated} new area(s) — explore what's been shared nearby"
