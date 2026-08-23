@@ -7,6 +7,7 @@ import { CURRENT_BRAND_VARIATION } from './config/brandConfig';
 import getConfig from './utilities/getConfig';
 import UsersActions from './redux/actions/UsersActions';
 import { socketIO } from './socket-io-middleware';
+import { isNonRefreshableAuthUrl } from './utilities/authRequestPaths';
 
 const MAX_LOGOUT_ATTEMPTS = 3;
 const MAX_REFRESH_RETRIES = 2;
@@ -248,12 +249,14 @@ const initInterceptors = (
                 const is401 = Number(error.response.status) === 401 || Number(error.response.data?.statusCode) === 401;
                 const is403 = Number(error.response.status) === 403 || Number(error.response.data?.statusCode) === 403;
                 const url = originalRequest?.url || '';
-                // Skip refresh-and-retry on auth tear-down endpoints. /auth/logout
-                // 401s are expected when the idToken is expired (which is often
-                // why we're logging out in the first place) and queueing them
-                // onto the refresh subscriber list produces unhandled rejections
-                // when the refresh itself fails.
-                const isAuthTeardownUrl = url.includes('/auth/token/refresh') || url.includes('/auth/logout');
+                // Skip refresh-and-retry on the auth endpoints — sign-in, sign-up, and
+                // tear-down — enumerated in `utilities/authRequestPaths`. /auth/logout 401s
+                // are expected when the idToken is expired (which is often why we're logging
+                // out in the first place) and queueing them onto the refresh subscriber list
+                // produces unhandled rejections when the refresh itself fails; the sign-in
+                // endpoints need their 401 to reach the form intact so it can say what
+                // actually went wrong.
+                const isNonRefreshableAuth = isNonRefreshableAuthUrl(url);
 
                 // Once a logout is in flight, stop running the auth-recovery
                 // path on every concurrent 401/403 — let those requests fail
@@ -270,7 +273,7 @@ const initInterceptors = (
                 }
 
                 // Attempt token refresh on 401 (but not for refresh/logout requests or 403s)
-                if (is401 && !originalRequest._isRetry && !isAuthTeardownUrl) {
+                if (is401 && !originalRequest._isRetry && !isNonRefreshableAuth) {
                     originalRequest._isRetry = true;
 
                     if (!isRefreshing) {
