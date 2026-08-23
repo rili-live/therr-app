@@ -44,6 +44,8 @@ import IncompleteProfileBanner from '../../components/IncompleteProfileBanner';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import { isLocationPermissionGranted } from '../../utilities/requestOSPermissions';
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
+import RepostModal from '../../components/Modals/RepostModal';
+import { showToast } from '../../utilities/toasts';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 import UsersActions from '../../redux/actions/UsersActions';
 
@@ -93,6 +95,7 @@ interface IAreasDispatchProps {
     searchActiveThoughts: Function;
     updateActiveThoughtsStream: Function;
     createOrUpdateThoughtReaction: Function;
+    createThought: Function;
 
     updateLocationDisclosure: Function;
     updateLocationPermissions: Function;
@@ -127,6 +130,9 @@ interface IAreasState {
     isLocationUseDisclosureModalVisible: boolean;
     isTabViewLaidOut: boolean;
     locationDisclosureAreaType: IAreaType;
+    // The thought the repost composer is open for (null when closed).
+    repostTarget: any;
+    isReposting: boolean;
     tabRoutes: { key: string; title: string }[]
 }
 
@@ -169,6 +175,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateLocationPermissions: LocationActions.updateLocationPermissions,
 
             updateTour: UsersActions.updateTour,
+            createThought: UsersActions.createThought,
         },
         dispatch
     );
@@ -209,6 +216,8 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             isLocationUseDisclosureModalVisible: false,
             isTabViewLaidOut: false,
             locationDisclosureAreaType: 'moments',
+            repostTarget: null,
+            isReposting: false,
             tabRoutes: [
                 { key: CAROUSEL_TABS.DISCOVERIES, title: this.translate('menus.headerTabs.discoveries') },
                 { key: CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
@@ -607,6 +616,63 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         });
     };
 
+    handleRepostPress = (thought) => {
+        this.setState({ repostTarget: thought });
+    };
+
+    handleRepostCancel = () => {
+        this.setState({ repostTarget: null });
+    };
+
+    handleRepostConfirm = (message: string) => {
+        const { createThought, user } = this.props;
+        const { repostTarget } = this.state;
+
+        if (!repostTarget?.id) {
+            return;
+        }
+
+        // Hashtags come from the user's own quote only. Carrying the original's tags over would
+        // put the reposter's account in feeds they never chose to post into.
+        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
+        const hashTagsString = [
+            ...new Set(hashTags.map((t) => t.replace(/#/g, ''))),
+        ].join(',');
+
+        this.setState({ isReposting: true });
+
+        createThought({
+            fromUserId: user.details.id,
+            // Reposting is a public act by definition — it surfaces the original to the
+            // reposter's audience, so a private repost would be a no-op with a side effect.
+            isPublic: true,
+            message,
+            hashTags: hashTagsString,
+            repostThoughtId: repostTarget.id,
+            isDraft: false,
+        })
+            .then(() => {
+                this.setState({ repostTarget: null });
+                showToast.success({
+                    text1: this.translate('alertTitles.repostSuccess'),
+                    text2: this.translate('alertMessages.repostSuccess'),
+                });
+            })
+            .catch((error: any) => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    // 400 here is the server's "you already reposted this" duplicate guard,
+                    // which is a distinct and actionable thing to say.
+                    text2: error?.statusCode === 400
+                        ? this.translate('alertMessages.repostDuplicate')
+                        : this.translate('alertMessages.repostFailed'),
+                });
+            })
+            .finally(() => {
+                this.setState({ isReposting: false });
+            });
+    };
+
     toggleThoughtOptions = (displayThought) => {
         const thought = displayThought || {};
         SheetManager.show('content-options-sheet', {
@@ -698,6 +764,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
                         toggleThoughtOptions={this.toggleThoughtOptions}
+                        onRepostPress={this.handleRepostPress}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselDiscoveriesRef = component; }}
                         handleRefresh={this.handleRefresh}
@@ -739,6 +806,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
                         toggleThoughtOptions={this.toggleThoughtOptions}
+                        onRepostPress={this.handleRepostPress}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselThoughtsRef = component; }}
                         handleRefresh={this.handleRefresh}
@@ -781,6 +849,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
                         toggleThoughtOptions={this.toggleThoughtOptions}
+                        onRepostPress={this.handleRepostPress}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselEventsRef = component; }}
                         handleRefresh={this.handleRefresh}
@@ -840,7 +909,9 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             activeTabIndex,
             isLocationUseDisclosureModalVisible,
             isTabViewLaidOut,
+            isReposting,
             locationDisclosureAreaType,
+            repostTarget,
             tabRoutes,
         } = this.state;
         const { navigation, user } = this.props;
@@ -946,6 +1017,15 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     themeButtons={this.themeButtons}
                     themeDisclosure={this.themeDisclosure}
                     areaType={locationDisclosureAreaType}
+                />
+                <RepostModal
+                    isVisible={!!repostTarget}
+                    isSubmitting={isReposting}
+                    onCancel={this.handleRepostCancel}
+                    onConfirm={this.handleRepostConfirm}
+                    thought={repostTarget}
+                    translate={this.translate}
+                    themeButtons={this.themeButtons}
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu

@@ -41,12 +41,66 @@ const createThought = async (req, res) => {
     } = parseHeaders(req.headers);
     const { brandVariation: brand } = getBrandContext(req.headers);
 
+    // REPOST
+    // Resolved before the duplicate check because the check keys on it, and before the insert
+    // because a repost row pointing at something the author cannot see is not recoverable
+    // after the fact.
+    let originalThought: any;
+    let repostThoughtId: string | undefined;
+
+    if (req.body.repostThoughtId) {
+        const [requestedOriginal] = await Store.thoughts.getById(brand, req.body.repostThoughtId, {}, {
+            shouldHideMatureContent: true,
+        }).then(({ thoughts }) => thoughts);
+
+        if (!requestedOriginal) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'thoughts.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        // Reposting is a public act — it puts the original in front of the reposter's audience.
+        // A non-public thought is only ever reposted by its own author (who is choosing to
+        // surface their own post), never by a reader who happened to be granted access to it.
+        if (!requestedOriginal.isPublic && requestedOriginal.fromUserId !== userId) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'thoughts.repostRestricted'),
+                statusCode: 403,
+                errorCode: ErrorCodes.THOUGHT_ACCESS_RESTRICTED,
+            });
+        }
+
+        // Reposting a repost points at the root, not at the intermediate row. Chains would make
+        // the embed recursive (and `attachRepostDetails` only hydrates one level), and every
+        // repost in a chain crediting a different author is not what any of them intended.
+        if (requestedOriginal.repostThoughtId) {
+            const [rootThought] = await Store.thoughts.getById(brand, requestedOriginal.repostThoughtId, {}, {
+                shouldHideMatureContent: true,
+            }).then(({ thoughts }) => thoughts).catch(() => []);
+            // A root that is gone or out of brand leaves the intermediate repost as the best
+            // available target rather than failing the request.
+            originalThought = rootThought || requestedOriginal;
+        } else {
+            originalThought = requestedOriginal;
+        }
+
+        repostThoughtId = originalThought.id;
+    }
+
     // A reply names its parent, and "is a reply of X" is what every downstream consumer trusts
     // to decide what the author may see of X. Nothing else validates that claim, so it is
     // checked here at the only point where it is minted: without this, any user could attach a
     // reply to any thought id they know and then reach it through the details handler's
     // own-content path, which skips the activation check entirely.
-    if (req.body.parentId) {
+    //
+    // Skipped when this is a repost: the insert below drops parentId on a repost, so a stray
+    // parentId alongside repostThoughtId is never persisted. Validating it anyway could only
+    // ever reject a legitimate repost over a field that gets discarded.
+    if (req.body.parentId && !repostThoughtId) {
         const parentThought = await Store.thoughts.getById(brand, req.body.parentId, {})
             .then(({ thoughts }) => thoughts[0]);
 
@@ -82,13 +136,16 @@ const createThought = async (req, res) => {
         fromUserId: userId,
         message: req.body.message,
         parentId: req.body.parentId,
+        repostThoughtId,
     })
         .then((thoughts) => thoughts?.length);
 
     if (isDuplicate) {
         return handleHttpError({
             res,
-            message: translate(locale, 'errorMessages.posts.duplicatePost'),
+            message: translate(locale, repostThoughtId
+                ? 'errorMessages.posts.duplicateRepost'
+                : 'errorMessages.posts.duplicatePost'),
             statusCode: 400,
             errorCode: ErrorCodes.DUPLICATE_POST,
         });
@@ -96,6 +153,11 @@ const createThought = async (req, res) => {
 
     return Store.thoughts.create(brand, {
         ...req.body,
+        // A repost is always a top-level post. Letting it also carry a parentId would file it
+        // as a reply, where `ThoughtsStore.find` never surfaces it and the reply-side isPublic
+        // assumptions do not hold.
+        parentId: repostThoughtId ? undefined : req.body.parentId,
+        repostThoughtId,
         locale,
         fromUserId: userId,
     })
@@ -242,6 +304,86 @@ const createThought = async (req, res) => {
                             },
                         });
                     });
+
+                    // Tell the original author their post was reposted. Skipped when reposting
+                    // your own thought — that is a self-notification with nothing to say.
+                    if (originalThought && originalThought.fromUserId !== userId) {
+                        // Reposting is at least as strong an interest signal as replying, so it
+                        // carries the same weight. Without this the metric model would score a
+                        // reader who reposts a category lower than one who merely views it.
+                        userMetricsService.uploadMetric({
+                            name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${originalThought.category || 'uncategorized'}` as MetricNames,
+                            value: '5',
+                            valueType: MetricValueTypes.NUMBER,
+                            userId,
+                        }, {
+                            thoughtId: originalThought.id,
+                            isMatureContent: originalThought.isMatureContent,
+                            isPublic: originalThought.isPublic,
+                        }, {
+                            authorization,
+                            'x-platform': platform,
+                            'x-brand-variation': brandVariation,
+                            'x-therr-origin-host': whiteLabelOrigin,
+                            'x-localecode': locale,
+                            'x-requestid': requestId,
+                            'x-user-device-token': userDeviceToken,
+                            'x-userid': userId,
+                            'x-username': userName,
+                        }, {
+                            contentUserId: originalThought.fromUserId,
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['failed to upload user metric'],
+                                traceArgs: {
+                                    'error.message': err?.message,
+                                    'error.response': err?.response?.data,
+                                    'user.id': userId,
+                                    'thought.id': originalThought.id,
+                                },
+                            });
+                        });
+
+                        notifyUserOfUpdate(req.headers, {
+                            userId: originalThought.fromUserId,
+                            type: Notifications.Types.THOUGHT_REPOST,
+                            // Points at the original, not the repost: tapping the notification
+                            // should land the author on their own post.
+                            associationId: originalThought.id,
+                            isUnread: true,
+                            messageLocaleKey: Notifications.MessageKeys.THOUGHT_REPOST,
+                            messageParams: {
+                                thoughtId: originalThought.id,
+                                userName: user.userName,
+                                fromUserName: user.userName,
+                                contentUserId: originalThought.fromUserId,
+                                postType: 'thoughts',
+                            },
+                        }, {
+                            toUserId: originalThought.fromUserId,
+                            fromUser: {
+                                id: userId,
+                                userName: user.userName,
+                                name: user.userName,
+                            },
+                        }, {
+                            shouldCreateDBNotification: true,
+                            shouldSendPushNotification: true,
+                            shouldSendEmail: false,
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Error while creating notification for thought repost'],
+                                traceArgs: {
+                                    'error.message': err?.message,
+                                    'thought.id': originalThought.id,
+                                },
+                            });
+                        });
+                    }
                 }
             });
 
@@ -259,10 +401,18 @@ const createThought = async (req, res) => {
                 data: {
                     userHasActivated: true,
                 },
-            }).then(({ data: reaction }) => res.status(201).send({
-                ...thought,
-                reaction,
-            }));
+            }).then(async ({ data: reaction }) => {
+                // The same hydration every read path applies, so a freshly created repost comes
+                // back with its embed already attached instead of rendering as an empty card
+                // until the next feed fetch replaces it.
+                const [hydratedThought] = await Store.thoughts.attachRepostDetails(brand, [{ ...thought }])
+                    .catch(() => [thought]);
+
+                return res.status(201).send({
+                    ...hydratedThought,
+                    reaction,
+                });
+            });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
 };

@@ -87,6 +87,19 @@ const normalizeNearLocation = (location?: INearLocation): INormalizedNearLocatio
 // the second line of defense, because the cost of getting it wrong is a total feed outage
 // rather than one mis-ranked post.
 
+// The subset of an original thought that a repost embed renders. Deliberately narrow: the
+// embed is a preview, and selecting `*` here would ship every moderation/valuation column of
+// somebody else's post to the client on every feed page that contains a repost.
+const REPOST_ORIGINAL_COLUMNS = [
+    'id',
+    'fromUserId',
+    'message',
+    'category',
+    'hashTags',
+    'isPublic',
+    'createdAt',
+];
+
 export interface ICreateThoughtParams {
     parentId?: string;
     areaType?: string;
@@ -97,6 +110,7 @@ export interface ICreateThoughtParams {
     isPublic?: boolean;
     isMatureContent?: boolean;
     isRepost?: boolean;
+    repostThoughtId?: string;
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
@@ -427,10 +441,107 @@ export default class ThoughtsStore {
             .offset(offset)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => {
+        return this.db.read.query(queryString).then(async (response) => {
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
+            await this.attachRepostDetails(brand, configuredResponse);
             return configuredResponse;
         });
+    }
+
+    /**
+     * Loads the originals behind whichever rows in `thoughts` are reposts, plus how many times
+     * each row in `thoughts` has itself been reposted, and attaches both in place as
+     * `repostOf` / `repostCount`.
+     *
+     * Shared by every read path (`find`, `getById`, `search`) so a repost renders identically
+     * in the feed, the details view, and a profile — a repost whose embed is missing on one
+     * surface reads to the user as a broken empty post, not as a subtle inconsistency.
+     *
+     * Brand scoping is applied to the originals lookup, not just inherited from the outer
+     * query: the repost and its original are separate rows and nothing stops a Therr user
+     * (who reads 'all') from reposting something a HABITS reader must not see. An original
+     * that is out of brand, mature, or deleted simply yields no embed, which clients already
+     * have to handle.
+     *
+     * Both queries are skipped when they would be no-ops, so the common case of a page with
+     * no reposts on it costs one extra indexed GROUP BY and nothing else.
+     */
+    async attachRepostDetails(brand: BrandValue, thoughts: any[]) {
+        if (!thoughts?.length) {
+            return thoughts;
+        }
+
+        const readable = getReadableBrands(brand);
+        const originalIds = [...new Set(
+            thoughts.map((thought) => thought.repostThoughtId).filter((id) => !!id),
+        )];
+        const thoughtIds = thoughts.map((thought) => thought.id).filter((id) => !!id);
+
+        let originalsQuery = knexBuilder
+            .select(REPOST_ORIGINAL_COLUMNS)
+            .from(THOUGHTS_TABLE_NAME)
+            .whereIn('id', originalIds)
+            .andWhere(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
+        let countsQuery = knexBuilder
+            .select('repostThoughtId')
+            .count('* as count')
+            .from(THOUGHTS_TABLE_NAME)
+            .whereIn('repostThoughtId', thoughtIds)
+            .groupBy('repostThoughtId');
+
+        if (readable !== 'all') {
+            originalsQuery = originalsQuery.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+            countsQuery = countsQuery.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
+        }
+
+        const [originalRows, countRows] = await Promise.all([
+            originalIds.length
+                ? this.db.read.query(originalsQuery.toString()).then((response) => response.rows)
+                : Promise.resolve([]),
+            thoughtIds.length
+                ? this.db.read.query(countsQuery.toString()).then((response) => response.rows)
+                : Promise.resolve([]),
+        ]);
+
+        // Author details for the embeds. A separate lookup rather than a join because the
+        // callers that also fetch users do so for the *reposters*, and merging the two id
+        // sets would make an embed's author depend on whether the outer query asked for users.
+        const originalAuthors = originalRows.length
+            ? await this.usersStore.findUsers({ ids: originalRows.map((row) => row.fromUserId) }).catch(() => [])
+            : [];
+        const authorsById = (originalAuthors || []).reduce((acc, user) => {
+            acc[user.id] = user;
+            return acc;
+        }, {});
+
+        const originalsById = originalRows.reduce((acc, row) => {
+            const author = authorsById[row.fromUserId];
+            acc[row.id] = {
+                ...row,
+                fromUserName: author?.userName,
+                fromUserFirstName: author?.firstName,
+                fromUserLastName: author?.lastName,
+                fromUserMedia: author?.media,
+                fromUserIsSuperUser: author?.isSuperUser,
+            };
+            return acc;
+        }, {});
+
+        // pg returns COUNT(*) as a bigint string; clients render/compare it as a number
+        const countsById = countRows.reduce((acc, row) => {
+            acc[row.repostThoughtId] = parseInt(row.count || 0, 10);
+            return acc;
+        }, {});
+
+        thoughts.forEach((thought) => {
+            const modifiedThought = thought;
+            modifiedThought.repostCount = countsById[modifiedThought.id] || 0;
+            if (modifiedThought.repostThoughtId) {
+                modifiedThought.repostOf = originalsById[modifiedThought.repostThoughtId] || null;
+            }
+        });
+
+        return thoughts;
     }
 
     /**
@@ -456,6 +567,17 @@ export default class ThoughtsStore {
             query = query.whereNull('parentId');
         } else {
             query = query.where('parentId', filters.parentId);
+        }
+
+        // Reposts are keyed by what they re-share, not only by their text. A plain (unquoted)
+        // repost has an empty message, so without this every plain repost after a user's first
+        // one would be rejected as a duplicate of it. Discriminating on the column also keeps
+        // the check meaningful in the other direction: re-posting the *same* original twice
+        // still trips it, which is the "you already reposted this" guard we want.
+        if (!filters.repostThoughtId) {
+            query = query.whereNull('repostThoughtId');
+        } else {
+            query = query.where('repostThoughtId', filters.repostThoughtId);
         }
 
         return this.db.read.query(query.toString()).then((response) => response.rows);
@@ -638,6 +760,8 @@ export default class ThoughtsStore {
                     });
                 });
             }
+
+            await this.attachRepostDetails(brand, thoughts);
 
             if (options.withParent) {
                 // A reply has no visible thread context of its own, so the details view renders a
@@ -906,6 +1030,8 @@ export default class ThoughtsStore {
                 });
             }
 
+            await this.attachRepostDetails(brand, thoughts);
+
             if (options.withUser) {
                 const userIds: string[] = [];
                 const thoughtDetailsPromises: Promise<any>[] = [];
@@ -989,7 +1115,12 @@ export default class ThoughtsStore {
             locale: params.locale,
             isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
             isMatureContent: isTextMature || !!params.isMatureContent,
-            isRepost: !!params.isRepost,
+            // `isRepost` is derived rather than trusted: it existed as an unwired flag long
+            // before reposts did, so a client could set it on an ordinary post. Keeping the two
+            // columns in lockstep here means no read path has to handle the contradictory
+            // "isRepost with nothing reposted" state.
+            isRepost: !!params.repostThoughtId,
+            repostThoughtId: params.repostThoughtId || undefined,
             message: params.message.substring(0, 255),
             mentionsIds: params.mentionsIds || '',
             parentId: params.parentId,

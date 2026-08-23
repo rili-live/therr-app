@@ -35,6 +35,13 @@ jest.mock('therr-react/components', () => ({
     InlineSvg: () => null,
 }));
 
+// ViewThought reaches this through the repost embed. It reads globalConfig at module scope,
+// which is not resolvable under the test NODE_ENV — same reason ViewUser.test.tsx mocks it.
+jest.mock('../../utilities/getUserImageUri', () => ({
+    __esModule: true,
+    default: () => 'https://example.com/image.jpg',
+}));
+
 const mockGetThoughtDetails = jest.fn();
 
 jest.mock('../../redux/actions/UsersActions', () => ({

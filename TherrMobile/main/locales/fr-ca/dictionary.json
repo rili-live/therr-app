@@ -72,7 +72,8 @@
     "reactionFailed": "Échec de la réaction",
     "mediaUploadFailed": "Échec du téléversement de l'image",
     "tooManyAttempts": "Trop de tentatives",
-    "registerSuccess": "Compte créé"
+    "registerSuccess": "Compte créé",
+    "repostSuccess": "Republié"
   },
   "alertMessages": {
     "activityCreated": "Un nouveau groupe et événement ont été créés. Des invitations ont été envoyées à chaque membre du groupe.",
@@ -111,7 +112,10 @@
     "waitlistSuccess": "Vérifiez votre courriel pour confirmer votre compte",
     "mediaUploadFailed": "Votre image n'a pas pu être téléversée. Veuillez réessayer.",
     "tooManyAttempts": "Veuillez patienter quelques minutes avant de réessayer.",
-    "phoneRegisterSuccess": "Votre téléphone est vérifié. Consultez vos courriels pour confirmer votre adresse."
+    "phoneRegisterSuccess": "Votre téléphone est vérifié. Consultez vos courriels pour confirmer votre adresse.",
+    "repostSuccess": "Cette publication apparaît maintenant sur ton profil",
+    "repostFailed": "Nous n'avons pas pu republier ceci. Réessaie.",
+    "repostDuplicate": "Tu as déjà republié cette publication"
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -402,6 +406,9 @@
       "viewReplies": "Voir {count} réponses",
       "likeThought": "Aimer cette publication",
       "unlikeThought": "Retirer le « j'aime » de cette publication",
+      "repostedBy": "{userName} a republié",
+      "repostThought": "Republier cette publication",
+      "repostUnavailable": "Cette publication n'est plus disponible",
       "crossBrandLabels": {
         "format": "{label} : {message}",
         "habits": "Mise à jour des objectifs"
@@ -2159,6 +2166,12 @@
       "chooseHeader": "Choisissez un compte",
       "useAnotherAccount": "Utiliser un autre compte",
       "removeAccount": "Retirer le compte enregistré"
+    },
+    "repostModal": {
+      "header": "Republier",
+      "placeholder": "Ajoute un commentaire (optionnel)",
+      "confirm": "Republier",
+      "cancel": "Annuler"
     }
   },
   "permissions": {

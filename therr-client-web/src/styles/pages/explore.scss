@@ -220,6 +220,72 @@
   }
 }
 
+// Repost: attribution line above the author row, and the embedded original below the message.
+// The embed is boxed rather than left-bordered (which is how a thread preview reads) so the two
+// never look like the same relationship — a reply continues the post above it, an embed is a
+// different post being quoted.
+.thought-card-repost-attribution {
+  .inline-svg svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    fill: currentColor;
+    opacity: 0.6;
+  }
+}
+
+.thought-card-repost-embed {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+
+  [data-mantine-color-scheme="dark"] & {
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+}
+
+.thought-card-repost-embed-clickable {
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  [data-mantine-color-scheme="dark"] & {
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+}
+
+.thought-card-repost-embed-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.thought-card-repost-count {
+  padding-left: 4px;
+  padding-right: 6px;
+
+  .inline-svg {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+  }
+}
+
 // Reply-count control on a post card and on nested replies (thought details view)
 .thought-card-reply-count {
   padding-left: 4px;

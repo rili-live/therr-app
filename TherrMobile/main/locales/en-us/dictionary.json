@@ -72,7 +72,8 @@
     "reactionFailed": "Reaction Failed",
     "mediaUploadFailed": "Image Upload Failed",
     "tooManyAttempts": "Too Many Attempts",
-    "registerSuccess": "Account Created"
+    "registerSuccess": "Account Created",
+    "repostSuccess": "Reposted"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -111,7 +112,10 @@
     "waitlistSuccess": "Check your e-mail to verify your account",
     "mediaUploadFailed": "Your image could not be uploaded. Please try again.",
     "tooManyAttempts": "Please wait a few minutes before trying again.",
-    "phoneRegisterSuccess": "Your phone is verified. Check your e-mail to confirm your address."
+    "phoneRegisterSuccess": "Your phone is verified. Check your e-mail to confirm your address.",
+    "repostSuccess": "This post now shows on your profile",
+    "repostFailed": "We could not repost this. Please try again.",
+    "repostDuplicate": "You already reposted this"
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -402,6 +406,9 @@
       "viewReplies": "View {count} replies",
       "likeThought": "Like this post",
       "unlikeThought": "Remove like from this post",
+      "repostedBy": "{userName} reposted",
+      "repostThought": "Repost this post",
+      "repostUnavailable": "This post is no longer available",
       "crossBrandLabels": {
         "format": "{label}: {message}",
         "habits": "Goals update"
@@ -2159,6 +2166,12 @@
       "chooseHeader": "Choose an account",
       "useAnotherAccount": "Use another account",
       "removeAccount": "Remove saved account"
+    },
+    "repostModal": {
+      "header": "Repost",
+      "placeholder": "Add a comment (optional)",
+      "confirm": "Repost",
+      "cancel": "Cancel"
     }
   },
   "permissions": {
