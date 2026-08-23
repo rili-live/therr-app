@@ -494,12 +494,36 @@ export default class ThoughtsStore {
             countsQuery = countsQuery.whereIn(`${THOUGHTS_TABLE_NAME}.brandVariation`, readable);
         }
 
+        // Both lookups decorate the page; neither is what the caller asked for. A failure here
+        // therefore degrades to "no embed, no count" rather than propagating, because this runs
+        // inside every thoughts read path and a throw would take the whole feed down.
+        //
+        // The case that makes this load-bearing rather than defensive is the deploy window:
+        // `_bin/cicd/run-migrations.sh` applies migrations AFTER `kubectl set image`, so the
+        // new pod serves traffic against the pre-migration schema for a minute or two. The
+        // counts query names "repostThoughtId" on every non-empty page, so without this the
+        // entire feed 500s until the migration lands.
+        const decorationQuery = (queryString: string, description: string) => this.db.read
+            .query(queryString)
+            .then((response) => response.rows)
+            .catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'SQL:THOUGHTS_STORE',
+                    messages: [`failed to load ${description} for repost hydration`],
+                    traceArgs: {
+                        'error.message': err?.message,
+                    },
+                });
+                return [];
+            });
+
         const [originalRows, countRows] = await Promise.all([
             originalIds.length
-                ? this.db.read.query(originalsQuery.toString()).then((response) => response.rows)
+                ? decorationQuery(originalsQuery.toString(), 'repost originals')
                 : Promise.resolve([]),
             thoughtIds.length
-                ? this.db.read.query(countsQuery.toString()).then((response) => response.rows)
+                ? decorationQuery(countsQuery.toString(), 'repost counts')
                 : Promise.resolve([]),
         ]);
 

@@ -1069,6 +1069,51 @@ describe('ThoughtsStore reposts', () => {
             expect(thoughts[0]).to.not.have.property('repostOf');
             expect(thoughts[0].repostCount).to.equal(0);
         });
+
+        // _bin/cicd/run-migrations.sh applies migrations AFTER `kubectl set image`, so the new
+        // pod serves the pre-migration schema for a minute or two. The counts query names
+        // "repostThoughtId" on every non-empty page, so a propagating error here is a total
+        // feed outage for the length of that window — and this hydration is only decoration.
+        it('degrades to no counts rather than throwing when the counts query fails', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.reject(new Error('column "repostThoughtId" does not exist'));
+                }
+                return Promise.resolve({ rows: [] });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('degrades to no embed rather than throwing when the originals lookup fails', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.resolve({ rows: [] });
+                }
+                return Promise.reject(new Error('read replica unavailable'));
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'original-1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf).to.equal(null);
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
     });
 
     describe('getForJournal', () => {

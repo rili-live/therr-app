@@ -865,6 +865,17 @@ console configuration, and one verification that gates a payments change.
   way), and not something the empty-index guard addresses. Fix is to `git fetch origin stage` and
   re-load the ledger from the remote tip before `ledger_write`, so the guard sees the real state.
   Until then, recover by re-running the *stage pipeline* rather than the single job.
+- [ ] (2026-08-23, /quality-peer-review) **After the reposts deploy, confirm
+  `20260809000001_main.thoughts.repostThoughtId` actually applied to production.**
+  `_bin/cicd/run-migrations.sh` runs migrations *after* `kubectl set image`, so the new
+  users-service pod serves the pre-migration schema for the length of the rollout. Repost
+  hydration (`ThoughtsStore.attachRepostDetails`) is deliberately fail-soft so that window
+  degrades to "no embeds, no counts" instead of 500ing every thoughts feed — which also means an
+  unapplied migration is now **silent**. Verify explicitly: the column exists
+  (`\d main.thoughts`), and a repost created from the app comes back with a populated
+  `repostOf`. If migrations were skipped (`RUN_MIGRATIONS_ON_DEPLOY=false`), run
+  `npm run pr:migrate:users`.
+
 <!-- skill-followups:end -->
 
 ---
