@@ -1147,7 +1147,7 @@
     "habits": {
       "buttons": {
         "habits": "Habitudes",
-        "pacts": "Pactes",
+        "achievements": "Succès",
         "partners": "Amis",
         "profile": "Profil",
         "journal": "Journal"
@@ -1964,7 +1964,7 @@
       "greetingMorning": "Bon matin!",
       "greetingAfternoon": "Bon après-midi!",
       "greetingEvening": "Bonsoir!",
-      "dashboardSubtitle": "Suivez vos habitudes quotidiennes",
+      "dashboardSubtitle": "Suivez vos habitudes et vos pactes",
       "soloUnlockBannerTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
       "soloUnlockBannerBody": "{invited} sur {required} invités. Les habitudes en solo te permettent de suivre quelque chose sans partenaire.",
       "yourHabits": "Vos habitudes",
@@ -2015,6 +2015,9 @@
         "graceDaysRemaining": "Jours de grâce restants : {count}",
         "nextMilestoneCompact": "proch. {days} j",
         "graceDaysCompact": "{count} de grâce"
+      },
+      "tabs": {
+        "habits": "Habitudes"
       }
     },
     "pacts": {

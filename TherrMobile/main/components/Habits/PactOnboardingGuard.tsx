@@ -13,6 +13,7 @@ interface IPactOnboardingGuardProps {
     habits: IHabitsState;
     navigation: any;
     children: React.ReactNode;
+    isBypassed?: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -44,12 +45,18 @@ const mapStateToProps = (state: any) => ({
  * enforced by the server on `POST /habits/user-habits`. A user who has sent one
  * invite is past this overlay and still cannot track alone; the overlay's footer
  * and the dashboard banner are what show them how far they have left to go.
+ *
+ * `isBypassed` exists because the dashboard now also holds the pact invite
+ * lists. A user with an invite waiting has not "started" by any of the tests
+ * above, so a blanket gate would answer the notification that told them they
+ * have an invite — and this overlay's own link to it — with this overlay.
  */
 const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     user,
     habits,
     navigation,
     children,
+    isBypassed,
 }) => {
     const { isEnabled } = useFeatureFlags();
     const activePactCount = habits.activePacts?.length || 0;
@@ -77,7 +84,7 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         previousActivePactCount.current = activePactCount;
     }, [activePactCount]);
 
-    if (!guardActive || hasStarted) {
+    if (!guardActive || isBypassed || hasStarted) {
         return <>{children}</>;
     }
 

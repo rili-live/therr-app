@@ -397,12 +397,12 @@ class MainButtonMenuAlt extends ButtonMenu {
                         type="clear"
                         iconTop
                         buttonStyle={
-                            ['MyHabits', 'PactsList', 'PactDetail'].includes(activeRoute)
+                            ['MyHabits', 'HabitsDashboard', 'PactDetail'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsActive
                                 : themeMenu.styles.buttons
                         }
                         containerStyle={[
-                            (['MyHabits', 'PactsList', 'PactDetail'].includes(activeRoute)
+                            (['MyHabits', 'HabitsDashboard', 'PactDetail'].includes(activeRoute)
                                 ? themeMenu.styles.buttonContainerActive
                                 : themeMenu.styles.buttonContainer),
                             {
@@ -410,7 +410,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             },
                         ]}
                         titleStyle={
-                            ['MyHabits', 'PactsList', 'PactDetail'].includes(activeRoute)
+                            ['MyHabits', 'HabitsDashboard', 'PactDetail'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsTitleActive
                                 : themeMenu.styles.buttonsTitle
                         }
@@ -419,7 +419,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                                 name="flag"
                                 size={22}
                                 style={
-                                    ['MyHabits', 'PactsList', 'PactDetail'].includes(activeRoute)
+                                    ['MyHabits', 'HabitsDashboard', 'PactDetail'].includes(activeRoute)
                                         ? themeMenu.styles.buttonIconActive
                                         : themeMenu.styles.buttonIcon
                                 }

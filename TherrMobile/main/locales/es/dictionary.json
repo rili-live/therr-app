@@ -1147,7 +1147,7 @@
     "habits": {
       "buttons": {
         "habits": "Hábitos",
-        "pacts": "Pactos",
+        "achievements": "Logros",
         "partners": "Amigos",
         "profile": "Perfil",
         "journal": "Diario"
@@ -1964,7 +1964,7 @@
       "greetingMorning": "¡Buenos días!",
       "greetingAfternoon": "¡Buenas tardes!",
       "greetingEvening": "¡Buenas noches!",
-      "dashboardSubtitle": "Sigue tus hábitos diarios",
+      "dashboardSubtitle": "Sigue tus hábitos y pactos",
       "soloUnlockBannerTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
       "soloUnlockBannerBody": "{invited} de {required} invitados. Los hábitos en solitario te permiten seguir algo sin compañero.",
       "yourHabits": "Tus hábitos",
@@ -2015,6 +2015,9 @@
         "graceDaysRemaining": "Días de gracia restantes: {count}",
         "nextMilestoneCompact": "próx. {days} d",
         "graceDaysCompact": "{count} de gracia"
+      },
+      "tabs": {
+        "habits": "Hábitos"
       }
     },
     "pacts": {

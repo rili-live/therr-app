@@ -1147,7 +1147,7 @@
     "habits": {
       "buttons": {
         "habits": "Habits",
-        "pacts": "Pacts",
+        "achievements": "Awards",
         "partners": "Friends",
         "profile": "Profile",
         "journal": "Journal"
@@ -1964,7 +1964,7 @@
       "greetingMorning": "Good morning!",
       "greetingAfternoon": "Good afternoon!",
       "greetingEvening": "Good evening!",
-      "dashboardSubtitle": "Track your daily habits",
+      "dashboardSubtitle": "Track your habits and pacts",
       "soloUnlockBannerTitle": "Invite {remaining} more friend(s) to unlock solo habits",
       "soloUnlockBannerBody": "{invited} of {required} invited. Solo habits let you track something without a partner.",
       "yourHabits": "Your Habits",
@@ -2015,6 +2015,9 @@
         "graceDaysRemaining": "Grace days remaining: {count}",
         "nextMilestoneCompact": "next {days}d",
         "graceDaysCompact": "{count} grace"
+      },
+      "tabs": {
+        "habits": "Habits"
       }
     },
     "pacts": {

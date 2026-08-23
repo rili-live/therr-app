@@ -4,7 +4,7 @@ import {
 import Toast from 'react-native-toast-message';
 
 /**
- * PactsList nudge-outcome regression tests.
+ * Habits dashboard nudge-outcome regression tests.
  *
  * The users-service `nudgePact` handler answers **200** even when no nudge
  * actually went out: the 7-day per-partner cooldown and per-partner dispatch
@@ -50,6 +50,14 @@ jest.mock('react-native-image-crop-picker', () => ({
     default: { openPicker: jest.fn(), openCamera: jest.fn() },
 }));
 
+// Constructs a NativeEventEmitter at import time, which throws under Jest.
+// Pulled in by the dashboard for check-in proof uploads — which arrived on this
+// screen when the pacts list merged into it.
+jest.mock('react-native-blob-util', () => ({
+    __esModule: true,
+    default: { fetch: jest.fn(), wrap: jest.fn() },
+}));
+
 jest.mock('@react-native-firebase/analytics', () => ({
     __esModule: true,
     getAnalytics: jest.fn(() => ({})),
@@ -66,10 +74,10 @@ jest.mock('react-native-permissions', () => ({
     RESULTS: { GRANTED: 'granted', DENIED: 'denied', BLOCKED: 'blocked' },
 }));
 
-// Imported after the mocks above deliberately: PactsList pulls in a chain of
+// Imported after the mocks above deliberately: the screen pulls in a chain of
 // native modules at import time, and jest.mock factories must be registered
 // before that chain is required.
-import { PactsList } from '../../main/routes/Pacts/PactsList';
+import { HabitsDashboard } from '../../main/routes/Habits/Dashboard';
 
 // The toast types registered in App.tsx's `toastConfig`. A `Toast.show` with a
 // type outside this set renders nothing, so asserting membership is what
@@ -102,14 +110,14 @@ const buildInstance = (nudgeResponse: any, shouldReject = false, rejectionValue:
         getPendingInvites: jest.fn(),
     };
 
-    const instance = new PactsList(props);
+    const instance = new HabitsDashboard(props);
     instance.setState = jest.fn();
     instance.handleRefresh = jest.fn();
 
     return { instance, nudgePact };
 };
 
-describe('PactsList nudge outcome toasts', () => {
+describe('habits dashboard nudge outcome toasts', () => {
     beforeEach(() => {
         (Toast.show as any).mockClear();
     });
