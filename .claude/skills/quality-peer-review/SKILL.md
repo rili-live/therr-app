@@ -135,10 +135,16 @@ git status --short 2>&1
 
 A `general→stage` diff can be tens of thousands of lines. Reading it whole wastes the context you need for the actual review, and generated files carry no review signal. **Always exclude generated and binary paths**, and always look at `--stat` before requesting content:
 
+> Keep the compiled-library exclusion scoped to `therr-public-library/*/lib/**`. A bare
+> `**/lib/**` also swallows `_bin/lib/**` — the deploy pipeline's decision logic and its
+> tests — and hiding a change is indistinguishable from there being no change. A review
+> that ran with the broad glob silently skipped 1,230 of 1,831 changed lines, including
+> every new file in the diff.
+
 ```bash
 git diff origin/stage --stat -- . \
   ':(exclude)**/package-lock.json' \
-  ':(exclude)**/lib/**' \
+  ':(exclude)therr-public-library/*/lib/**' \
   ':(exclude)**/*.png' ':(exclude)**/*.jpg' ':(exclude)**/*.jpeg' ':(exclude)**/*.gif' \
   ':(exclude)**/*.svg' ':(exclude)**/*.jsbundle' ':(exclude)**/*.aab' ':(exclude)**/*.apk' \
   2>&1
@@ -148,7 +154,7 @@ Then:
 
 - **Under ~2,000 changed lines**: read the full filtered diff in one call (same pathspec, without `--stat`).
 - **Over ~2,000 changed lines**: do not read it in one call. Review **package by package**, highest-risk first — `therr-services/**` and `therr-api-gateway/**`, then `therr-public-library/**`, then clients. Scope each read with a path argument, e.g. `git diff origin/stage -- therr-services/users-service`.
-- Lockfile and compiled `lib/` changes still matter for *scope* (they tell you a dependency or shared library moved) but are never read line by line. Note them from `--stat` only.
+- Lockfile and compiled `therr-public-library/*/lib/` changes still matter for *scope* (they tell you a dependency or shared library moved) but are never read line by line. Note them from `--stat` only.
 
 If there is no diff at all (working tree is identical to origin/stage and no uncommitted changes):
 ```

@@ -127,6 +127,31 @@ jobs:
           name: Run web, dashboard, and mobile Jest suites
           command: ./_bin/cicd/test-clients.sh
           no_output_timeout: 20m
+  deploy_pipeline_gates:
+    # Guards the CI/CD scripts themselves: the service registry against k8s/prod, the
+    # rollout wave plan against the same, and the unit tests for the ledger, the
+    # per-service deploy verdicts and the git-range helpers those two are built on.
+    #
+    # Runs on every branch, before anything can reach stage. These checks decide which
+    # image production runs, and both bugs they were written for were silent — a
+    # service skipped as "No Changes" forever, and a deploy that reported green while
+    # leaving a service on an old image. Nothing else in this config exercises them.
+    #
+    # No `npm ci`: the tests are plain Node with no imports beyond the stdlib, and the
+    # registry/wave checks are bash. `npm run` only needs package.json.
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Service registry vs k8s/prod
+          command: npm run k8s:check-services
+      - run:
+          name: Rollout wave plan vs k8s/prod
+          command: npm run k8s:check-waves
+      - run:
+          name: Unit tests for _bin decision logic
+          command: npm run test:bin-scripts
   docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.24.4
@@ -345,6 +370,10 @@ workflows:
       # mobile Jest cases had no job at all.
       - typecheck
       - test_clients
+      # Also unfiltered: the deploy scripts decide what production runs, so a drift
+      # between the service registry and k8s/prod must fail on the branch that
+      # introduces it, not on the promotion that trips over it.
+      - deploy_pipeline_gates
       - docker_build_test_publish_images:
           requires:
           - docker_build_base_image

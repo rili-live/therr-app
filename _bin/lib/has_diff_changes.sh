@@ -82,3 +82,63 @@ has_prev_diff_changes()
         fi
     fi
 }
+
+# Accepts several paths, and returns 0 if any of them changed. `has_prev_diff_changes`
+# takes one path and is unquoted at every call site so that a space-separated string
+# word-splits into multiple pathspecs — which works, but only by accident, and breaks
+# on a path containing a space. Callers that hold a service's full source list should
+# use this instead.
+has_prev_diff_changes_any()
+{
+    local PATHSPEC
+    for PATHSPEC in "$@"; do
+        if has_prev_diff_changes "$PATHSPEC"; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# The tip of the branch this commit is promoting.
+#
+# On a stage->main merge commit, HEAD^2 is the stage tip that was merged in — the
+# exact revision whose code this deploy is meant to put into production. That makes
+# it the right thing to check published images against, and unlike HEAD^1 it does not
+# assume anything about how many merges accumulated on the other side.
+#
+# Falls back to HEAD when there is no second parent (a fast-forward or squashed
+# promotion, or a direct commit), which is also the only correct answer there: HEAD
+# *is* the promoted tip in those cases.
+promoted_tip()
+{
+    git rev-parse --verify --quiet "HEAD^2" 2>/dev/null || git rev-parse HEAD
+}
+
+# Returns 0 if any commit touching <path...> landed in <from>..<to>.
+#
+# This is the check the old scripts never made: "is the image we are about to deploy
+# built from code at least as new as what we are promoting?" It is independent of
+# merge shape and of whether previous deploys succeeded, which is what makes it able
+# to catch the silent under-deploy that a HEAD^1 range cannot see.
+#
+# A <from> that is not present locally (a shallow clone, or a SHA from a branch that
+# was since deleted) makes the range unanswerable. That returns 1 — not stale — with
+# a warning, because failing the deploy on an unresolvable ancestor would block on
+# checkout depth rather than on anything about the code.
+sources_changed_between()
+{
+    local FROM=$1
+    local TO=$2
+    shift 2
+
+    if ! git cat-file -e "${FROM}^{commit}" 2>/dev/null; then
+        printMessageWarning "Cannot resolve $FROM locally — skipping the staleness check for: $*"
+        return 1
+    fi
+
+    local NUM_COMMITS
+    NUM_COMMITS=$(git log --oneline "$FROM..$TO" -- "$@" 2>/dev/null | wc -l | tr -d ' ')
+
+    [ "${NUM_COMMITS:-0}" -gt 0 ]
+}
