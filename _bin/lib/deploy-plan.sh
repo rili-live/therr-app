@@ -46,7 +46,9 @@
 # VERDICTS
 #
 #   deploy         roll it: image exists, build is current, running tag differs
-#   up-to-date     running tag already equals the desired tag
+#   up-to-date     running tag already equals the desired tag. Decided before the
+#                  registry probe, because a service that will not be pulled must
+#                  not be blocked by whether its tag is still pushed.
 #   behind         desired tag is an ancestor of the running tag — a rollback.
 #                  Skipped unless DEPLOY_ALLOW_ROLLBACK=true, because reaching it
 #                  by accident (a re-run of an old pipeline) should not quietly
@@ -86,13 +88,22 @@ plan_verdict()
     return 0
   fi
 
-  if [ "$IMAGE_EXISTS" != "true" ]; then
-    echo "missing-image"
+  # Ahead of the existence probe on purpose. A service already on its desired tag is
+  # never pulled, so whether that tag is still in the registry decides nothing about
+  # this run — and missing-image is blocking, so probing first would let an absent
+  # tag for a service with nothing to do abort the whole deploy.
+  #
+  # That is not hypothetical: until the ledger has a row per service everything
+  # resolves through LAST_PUBLISHED_GIT_SHA, and that SHA was only ever pushed for
+  # the services the publish job actually rebuilt. Every other service points at a
+  # tag that was never created, while already running exactly the right image.
+  if [ "$RUNNING" = "$DESIRED" ]; then
+    echo "up-to-date"
     return 0
   fi
 
-  if [ "$RUNNING" = "$DESIRED" ]; then
-    echo "up-to-date"
+  if [ "$IMAGE_EXISTS" != "true" ]; then
+    echo "missing-image"
     return 0
   fi
 

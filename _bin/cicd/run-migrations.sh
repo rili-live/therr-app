@@ -49,13 +49,21 @@ CURRENT_BRANCH=${CICD_BRANCH:-$CIRCLE_BRANCH}
 ROLLOUT_TIMEOUT="${MIGRATION_ROLLOUT_TIMEOUT:-180s}"
 DEPLOY_PLAN_FILE="${DEPLOY_PLAN_FILE:-.deploy-plan.tsv}"
 
-# Echoes "<previous-tag> <desired-tag> <verdict>" for a service from the deploy
+# Echoes "<previous-tag>|<desired-tag>|<verdict>" for a service from the deploy
 # plan, or nothing when there is no plan file / no row for it.
 plan_row_for()
 {
   [ -f "$DEPLOY_PLAN_FILE" ] || return 0
 
-  awk -F'\t' -v key="$1" '$1 == key { print $2, $3, $4; exit }' "$DEPLOY_PLAN_FILE"
+  # Re-emitted '|'-separated rather than joined on whitespace. The running tag is
+  # legitimately empty — a Deployment that does not exist yet, or a `kubectl get`
+  # that failed while the plan was computed — and `read` discards leading empty
+  # fields for any IFS made only of whitespace, tabs included. Joined on a space or
+  # a tab the row then parses one column short: the verdict lands in $DESIRED,
+  # $VERDICT comes back empty, and the service is silently handed back to the HEAD^1
+  # merge diff this script exists to stop using. '|' cannot occur in a SHA or a
+  # verdict, so it survives the round trip.
+  awk -F'\t' -v key="$1" '$1 == key { printf "%s|%s|%s\n", $2, $3, $4; exit }' "$DEPLOY_PLAN_FILE"
 }
 
 # Whether this service has migrations to run in this deploy.
@@ -67,7 +75,7 @@ migrations_pending_for()
 
   local ROW PREVIOUS DESIRED VERDICT
   ROW="$(plan_row_for "$KEY")"
-  read -r PREVIOUS DESIRED VERDICT <<< "$ROW"
+  IFS='|' read -r PREVIOUS DESIRED VERDICT <<< "$ROW"
 
   if [ -z "$VERDICT" ]; then
     printMessageWarning "No deploy plan row for $KEY — falling back to the merge diff."

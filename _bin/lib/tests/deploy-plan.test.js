@@ -72,6 +72,21 @@ const OTHER = 'bbbbbbb';
 }
 
 {
+    // ...but a service already running the desired tag is never pulled, so an absent
+    // tag says nothing about this run. missing-image is blocking, so probing before
+    // the up-to-date check would let a service with nothing to do abort the whole
+    // deploy — which is the state every service is in until the ledger has per-service
+    // rows and they all resolve through a LAST_PUBLISHED_GIT_SHA that was only ever
+    // pushed for the services that merge rebuilt.
+    assert.strictEqual(verdict([DESIRED, DESIRED, 'false', 'false', 'false', 'true']), 'up-to-date');
+    assert.strictEqual(verdict([DESIRED, DESIRED, 'false', 'false', 'false', 'false']), 'up-to-date');
+
+    // A stale build still outranks it: the image predates the promoted code, so this
+    // service is running old code however matched its tag looks.
+    assert.strictEqual(verdict([DESIRED, DESIRED, 'false', 'true', 'false', 'true']), 'stale-build');
+}
+
+{
     // Changed in this merge but nothing published at all: the promotion would drop
     // this service's work on the floor.
     assert.strictEqual(verdict(['', OTHER, 'false', 'false', 'false', 'true']), 'unpublished');

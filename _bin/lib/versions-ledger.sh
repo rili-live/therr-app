@@ -33,16 +33,19 @@
 # kept its SHA, main kept an empty file, and every main->stage and main->general
 # back-merge then had a genuine three-way conflict on a file nobody reads by hand.
 # Resolving one toward the wrong side silently re-pointed the next deploy at an
-# arbitrary SHA. `origin/general` still carries a stale
-# LAST_PUBLISHED_GIT_SHA=eef996d from one of those resolutions, and commit f038f64
+# arbitrary SHA. One of those resolutions is still visible in the history: f038f64
 # ("fix(mobile): lift the thought reply composer...") is a feature commit that
-# picked up deploy state as collateral.
+# restored the truncated file to LAST_PUBLISHED_GIT_SHA=eef996d as collateral.
 #
 # Only publish.sh, only on stage, writes this file now. main reads it. With one
 # writer the file never diverges between branches, so the merge conflict and the
 # mis-resolution it invited both stop existing. deploy.sh does not need the
 # truncation to stay idempotent — it converges on cluster state instead (see
 # deploy-plan.sh).
+#
+# A later stage publish has since overwritten eef996d, and general, stage and main
+# now all read the same SHA — so there is no divergence left for this change to
+# resolve, only the per-service rows to accumulate.
 #
 # FORMAT
 #
@@ -106,9 +109,16 @@ ledger_get()
 #
 # The fallback is what carries the transition. Before this ledger existed no
 # service had a row, so on the first deploy after it lands every service resolves
-# through LAST_PUBLISHED_GIT_SHA — exactly the behaviour of the old script — and
-# rows accumulate from the next stage publish onward. It is also the honest answer
-# for a service whose image predates the ledger.
+# through LAST_PUBLISHED_GIT_SHA, and rows accumulate from the next stage publish
+# onward. It is also the honest answer for a service whose image predates the
+# ledger.
+#
+# Not quite the old script's behaviour, though, and the difference is worth knowing
+# once: the old script only pulled images for the services the merge diff named,
+# while the plan resolves a desired tag for every service. That SHA was only pushed
+# for the services its publish rebuilt, so the rest resolve to a -stage tag that was
+# never created. They are already on the right image, so they land on "up-to-date",
+# which plan_verdict decides ahead of the registry probe for exactly this reason.
 ledger_resolve()
 {
   local SHA

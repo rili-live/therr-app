@@ -54,7 +54,7 @@ The git range still has two jobs, neither of them "should this deploy":
 | Verdict | Meaning | Effect |
 |---|---|---|
 | `deploy` | running tag differs, image exists, build is current | rolls |
-| `up-to-date` | already on the desired tag | skipped |
+| `up-to-date` | already on the desired tag | skipped (decided before the registry probe) |
 | `behind` | desired tag is an ancestor of the running tag | skipped; `DEPLOY_ALLOW_ROLLBACK=true` forces it |
 | `stale-build` | sources changed after the image was published | **blocks** |
 | `missing-image` | desired tag is not in the registry | **blocks** |
@@ -93,8 +93,8 @@ green build:
 - **`main` truncating `VERSIONS.txt` and pushing it.** `stage` kept a SHA, `main`
   kept an empty file, and every back-merge carried a conflict on a file nobody edits
   by hand. Resolving one the wrong way re-pointed the next deploy at an arbitrary
-  SHA. `origin/general` still carries a stale `LAST_PUBLISHED_GIT_SHA=eef996d` from
-  one of those resolutions.
+  SHA — commit `f038f64`, a mobile fix, restored the truncated file to
+  `LAST_PUBLISHED_GIT_SHA=eef996d` as collateral.
 
 Convergence fixes the first four: it does not matter how many merges happened,
 what shape the merge was, or whether the last deploy finished — a service behind
@@ -103,18 +103,26 @@ the fifth.
 
 ## One-time transition
 
-Two things carry over from the truncating era and need handling once:
+One thing carries over from the truncating era:
 
-1. **`main`'s `VERSIONS.txt` is empty**, because the last deploy under the old
-   script truncated it. The first `stage` → `main` merge after this lands will
-   conflict on it — **resolve toward `stage`**. From then on `main` only reads the
-   file, so the two never diverge again and there is nothing left to resolve.
-2. **No service has a per-service row yet.** Every service resolves through
-   `LAST_PUBLISHED_GIT_SHA` on the first deploy — the same behaviour as the old
-   script — and rows accumulate from the next stage publish onward.
+**No service has a per-service row yet.** Every service resolves through
+`LAST_PUBLISHED_GIT_SHA` on the first deploy, and rows accumulate from the next
+stage publish onward.
 
-`general`'s stale copy was already aligned to `stage`'s value, so a `general` →
-`stage` merge has nothing to resolve.
+That fallback is not quite "the same behaviour as the old script", and the
+difference matters once: the old script only pulled images for services the merge
+diff named, whereas the plan now resolves a desired tag for **every** service. A
+`LAST_PUBLISHED_GIT_SHA` was only ever pushed for the services that publish actually
+rebuilt, so on the first deploy the other services point at a `-stage` tag that was
+never created. They are already running the right image, so they come out
+`up-to-date` and are skipped — but only because `up-to-date` is decided ahead of the
+registry probe (see `plan_verdict`). Any of them that the cluster *is* behind on will
+come out `missing-image` and block; the fix is the ordinary one — re-run the stage
+pipeline so it publishes and writes rows.
+
+`general`, `stage` and `main` currently all hold the same
+`LAST_PUBLISHED_GIT_SHA`, so no branch has a stale copy and no merge in either
+direction has anything to resolve on this file.
 
 ## The service registry
 
