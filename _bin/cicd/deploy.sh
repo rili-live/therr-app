@@ -123,20 +123,27 @@ queued_image_for()
 # apply's three-way merge leaves the live tag alone only because `:latest` is
 # unchanged between the manifest and its last-applied annotation. That is a thin
 # guarantee to read state through, so the plan snapshots the cluster first.
-running_tag_for()
+running_image_for()
 {
   local DEPLOYMENT=$1
   local CONTAINER=$2
-  local IMAGE
 
-  IMAGE="$(kubectl get "deployment/$DEPLOYMENT" \
+  kubectl get "deployment/$DEPLOYMENT" \
     -o jsonpath="{.spec.template.spec.containers[?(@.name==\"$CONTAINER\")].image}" \
-    2>/dev/null || true)"
+    2>/dev/null || true
+}
 
-  case "$IMAGE" in
-    *:*) printf '%s' "${IMAGE##*:}" ;;
+image_tag_of()
+{
+  case "$1" in
+    *:*) printf '%s' "${1##*:}" ;;
     *) printf '' ;;
   esac
+}
+
+running_tag_for()
+{
+  image_tag_of "$(running_image_for "$1" "$2")"
 }
 
 # `docker manifest inspect` asks the registry without downloading layers, which is
@@ -165,6 +172,12 @@ PLAN_VERDICTS=()
 
 BLOCKED=()
 
+# Services already on their desired tag, whose running image is no longer in the
+# registry. Nothing to do for them this run — but the Pod cannot be rescheduled onto
+# a node that has not cached the image, so a node replacement would strand the
+# service. Reported every run rather than waiting for the reschedule to find it.
+UNPULLABLE=()
+
 for KEY in $(service_keys); do
   DEPLOYMENT="$(service_deployment "$KEY")"
   CONTAINER="$(service_container "$KEY")"
@@ -172,7 +185,8 @@ for KEY in $(service_keys); do
   SOURCES="$(service_sources "$KEY")"
 
   DESIRED="$(ledger_resolve "$KEY")"
-  RUNNING="$(running_tag_for "$DEPLOYMENT" "$CONTAINER")"
+  RUNNING_IMAGE="$(running_image_for "$DEPLOYMENT" "$CONTAINER")"
+  RUNNING="$(image_tag_of "$RUNNING_IMAGE")"
 
   CHANGED_IN_MERGE=false
   # stdout only: the per-path "Found N files changed" lines would drown the plan
@@ -217,6 +231,19 @@ for KEY in $(service_keys); do
   if verdict_is_blocking "$VERDICT"; then
     BLOCKED+=("$KEY ($VERDICT): $(verdict_explanation "$VERDICT")")
   fi
+
+  # Probed against the image the Deployment actually holds, not against the -stage
+  # tag the deploy path would pull: on main the two differ (the running one is the
+  # retagged, un-suffixed copy), so the -stage tag's absence says nothing about
+  # whether the running Pod could be recreated.
+  #
+  # Only when the probe is a cheap registry lookup. The `docker pull` fallback would
+  # download a full image per up-to-date service purely to print a warning — and on a
+  # convergent re-run, where every service is up-to-date, that is the whole set.
+  if [ "$DOCKER_MANIFEST_SUPPORTED" = "true" ] && [ "$VERDICT" = "up-to-date" ] \
+    && ! image_exists "$RUNNING_IMAGE"; then
+    UNPULLABLE+=("$KEY is running $RUNNING_IMAGE, which the registry did not answer for")
+  fi
 done
 
 print_plan()
@@ -248,6 +275,13 @@ print_plan()
     fi
     INDEX=$((INDEX + 1))
   done
+
+  if [ ${#UNPULLABLE[@]} -gt 0 ]; then
+    local STRANDED
+    for STRANDED in "${UNPULLABLE[@]}"; do
+      printMessageWarning "$STRANDED — it may not reschedule onto a node without the image cached"
+    done
+  fi
 
   echo ""
 }
@@ -393,9 +427,13 @@ deploy_waves()
       local APPLY_OUTPUT
       APPLY_OUTPUT="$(kubectl apply -f "$K8S_PROD_DIR/$DEPLOYMENT.yaml")"
       echo "$APPLY_OUTPUT"
-      case "$APPLY_OUTPUT" in
-        *" configured") IS_ROLLING=true ;;
-      esac
+      # Matched per line, not against the whole blob: kubectl writes deprecation and
+      # field-validation notices to stdout in some versions, and a suffix match on the
+      # combined output then reads a rolling Deployment as "unchanged" — which skips
+      # its `rollout status` verification and lets a wedged rollout report green.
+      if printf '%s\n' "$APPLY_OUTPUT" | grep -q ' configured$'; then
+        IS_ROLLING=true
+      fi
 
       local IMAGE
       if IMAGE="$(queued_image_for "$DEPLOYMENT")"; then

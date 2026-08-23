@@ -27,7 +27,9 @@
 #   6 context     docker build context.
 #   7 sources     space-separated paths whose changes require a rebuild. This is
 #                 the full fan-out, libraries included — the deploy scripts no
-#                 longer keep separate HAS_*_LIBRARY_CHANGES flags.
+#                 longer keep separate HAS_*_LIBRARY_CHANGES flags. The service's
+#                 OWN directory must come first: `service_dir` reads it from here,
+#                 and assert_service_registry enforces the ordering.
 #
 # SOURCES, AND WHY THE LIBRARIES ARE SPELLED OUT PER SERVICE
 #
@@ -91,6 +93,18 @@ service_dockerfile() { service_field "$1" 5; }
 service_context()    { service_field "$1" 6; }
 service_sources()    { service_field "$1" 7; }
 
+# The service's own directory — the first entry in its source list, by construction:
+# everything after it (the shared libraries, global-config.js) belongs to no single
+# service. run-migrations.sh needs this to locate src/store/migrations, and
+# assert_service_registry checks the convention holds rather than leaving callers to
+# depend on an unwritten rule about field ordering.
+service_dir()
+{
+  local SOURCES
+  SOURCES="$(service_sources "$1")" || return 1
+  printf '%s' "${SOURCES%% *}"
+}
+
 # Fails loudly rather than building, publishing or deploying against a table that
 # no longer matches the repo. Called at the top of build.sh, publish.sh and
 # deploy.sh — the registry is upstream of all three, so a drift caught here is
@@ -139,6 +153,19 @@ assert_service_registry()
         PROBLEMS+=("$KEY lists a source path that does not exist: $SOURCE")
       fi
     done
+
+    # `service_dir` takes the first source path, and run-migrations.sh builds
+    # "<dir>/src/store/migrations" from it. Nothing about the row's shape forces
+    # that entry to be the service's own tree, so a row that led with a shared
+    # library would silently point migrations at the wrong directory — and
+    # "no migration changes" is a skip, not an error.
+    local DIR
+    DIR="$(service_dir "$KEY")"
+    if [ ! -d "$DIR" ]; then
+      PROBLEMS+=("$KEY must list its own directory first in sources; got '$DIR', which is not a directory")
+    elif [ "${DIR#therr-public-library/}" != "$DIR" ]; then
+      PROBLEMS+=("$KEY leads its sources with the shared library '$DIR' instead of its own directory")
+    fi
   done
 
   # The direction that actually bit: a Deployment running a therrapp/ image with
@@ -168,6 +195,16 @@ assert_service_registry()
   for MIGRATABLE in $THERR_MIGRATABLE_SERVICES; do
     if ! service_field "$MIGRATABLE" 1 >/dev/null 2>&1; then
       PROBLEMS+=("THERR_MIGRATABLE_SERVICES names '$MIGRATABLE', which is not a registry key")
+      continue
+    fi
+
+    # The path run-migrations.sh will look for. Absent, it finds no changes and
+    # skips the service silently — which is indistinguishable from "nothing to
+    # migrate" in the log.
+    local MIGRATIONS_DIR
+    MIGRATIONS_DIR="$(service_dir "$MIGRATABLE")/src/store/migrations"
+    if [ ! -d "$MIGRATIONS_DIR" ]; then
+      PROBLEMS+=("$MIGRATABLE is listed as migratable but $MIGRATIONS_DIR does not exist")
     fi
   done
 

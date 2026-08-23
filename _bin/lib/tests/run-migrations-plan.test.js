@@ -28,7 +28,7 @@ const withPlan = (rows, snippet) => {
     const planFile = path.join(dir, 'deploy-plan.tsv');
 
     if (rows !== null) {
-        fs.writeFileSync(planFile, rows.map((row) => row.join('\t')).join('\n') + '\n');
+        fs.writeFileSync(planFile, `${rows.map((row) => row.join('\t')).join('\n')}\n`);
     }
 
     try {

@@ -61,6 +61,12 @@ The git range still has two jobs, neither of them "should this deploy":
 | `unpublished` | changed in this merge, never published | **blocks** |
 | `unresolved` | no published tag, unchanged in this merge | warned, left as-is |
 
+A service that is `up-to-date` but whose *running* image is no longer in the registry
+is warned about separately. Nothing is due for it this run, so it does not block — but
+the Pod cannot be recreated on a node that has not cached the image, so a node
+replacement would strand it. The probe is against the image the Deployment actually
+holds, not the `-stage` tag the deploy path would pull: on `main` those differ.
+
 Blocking verdicts stop the run **before any manifest is applied**, and the plan
 table is printed either way. When a deploy is refused, the fix is almost always:
 re-run the stage pipeline, let it publish, merge the resulting `VERSIONS.txt`
@@ -142,7 +148,10 @@ published on every stage merge and then never deployed, and the log said nothing
 - a Deployment named with no manifest, or a container name the manifest doesn't define
 - a `therrapp/` Deployment in `k8s/prod` with no registry row
 - a Dockerfile or source path that doesn't exist
-- `THERR_MIGRATABLE_SERVICES` naming a key that isn't in the registry
+- a row that doesn't lead its sources with the service's own directory — `service_dir`
+  reads it from there, and `run-migrations.sh` builds `<dir>/src/store/migrations`
+- `THERR_MIGRATABLE_SERVICES` naming a key that isn't in the registry, or one whose
+  `src/store/migrations` directory doesn't exist
 
 ### Adding a service
 
@@ -176,4 +185,7 @@ opts out.
 npm run k8s:check-services   # registry vs k8s/prod
 npm run k8s:check-waves      # wave plan vs k8s/prod
 npm run test:bin-scripts     # ledger, verdicts, git-range and registry tests
+npx eslint _bin --ext .js    # _bin/.eslintrc.js covers these; there is no root config
 ```
+
+All three `npm` checks run in CI on every branch, as the `deploy_pipeline_gates` job.

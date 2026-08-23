@@ -162,4 +162,79 @@ const withMutatedManifests = (mutate) => {
     assert.match(result.stderr, /brand-new-service-deployment runs a therrapp\/ image but has no entry/);
 }
 
+// --- The service's own directory ---------------------------------------------------------------
+
+// Runs assert_service_registry after mutating the registry table in memory, so a bad
+// row can be checked without one ever being committed.
+const withMutatedRegistry = (setup) => spawnSync('bash', ['-c', `
+    source ./_bin/lib/service-registry.sh
+    ${setup}
+    assert_service_registry
+`], { cwd: REPO_ROOT, encoding: 'utf8' });
+
+{
+    // run-migrations.sh builds "<service_dir>/src/store/migrations". That path is only
+    // correct while the service's own directory leads its source list — an ordering
+    // nothing about the row's shape enforces.
+    assert.strictEqual(bash('service_dir users-service'), 'therr-services/users-service');
+    assert.strictEqual(bash('service_dir client-web'), 'therr-client-web');
+
+    for (const key of bash('service_keys').split('\n')) {
+        const dir = bash(`service_dir ${key}`);
+        assert.ok(
+            fs.existsSync(path.join(REPO_ROOT, dir)) && fs.statSync(path.join(REPO_ROOT, dir)).isDirectory(),
+            `${key} must lead its sources with its own directory; got '${dir}'`,
+        );
+    }
+}
+
+{
+    // An unknown key must fail here too, for the same reason service_image does: an
+    // empty directory string would make run-migrations.sh look in "/src/store/migrations".
+    const result = spawnSync('bash', ['-c', 'source ./_bin/lib/service-registry.sh; service_dir no-such-service'], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+    });
+
+    assert.notStrictEqual(result.status, 0);
+}
+
+{
+    // A row that leads with a shared library resolves service_dir to therr-js-utilities,
+    // which has no src/store/migrations — so run-migrations.sh would report "no migration
+    // changes" and skip the service. A skip, not an error.
+    const result = withMutatedRegistry(
+        'THERR_SERVICES=("users-service|users-service|users-service-deployment|server-users'
+        + '|./therr-services/users-service/Dockerfile|./therr-services/users-service'
+        + '|therr-public-library/therr-js-utilities therr-services/users-service global-config.js")',
+    );
+
+    assert.notStrictEqual(result.status, 0);
+    assert.match(result.stderr, /users-service leads its sources with the shared library/);
+}
+
+{
+    // A first source that is not a directory at all — a Dockerfile pasted into the
+    // wrong field, say. The pre-existing per-source existence check also fires here,
+    // so assert on the message rather than just the exit status.
+    const result = withMutatedRegistry(
+        'THERR_SERVICES=("users-service|users-service|users-service-deployment|server-users'
+        + '|./therr-services/users-service/Dockerfile|./therr-services/users-service'
+        + '|therr-services/users-service/package.json global-config.js")',
+    );
+
+    assert.notStrictEqual(result.status, 0);
+    assert.match(result.stderr, /users-service must list its own directory first in sources/);
+}
+
+{
+    // A service listed as migratable that owns no migrations directory is either a typo
+    // or a service that lost its migrations — either way run-migrations.sh would skip it
+    // silently rather than say so.
+    const result = withMutatedRegistry('THERR_MIGRATABLE_SERVICES="client-web"');
+
+    assert.notStrictEqual(result.status, 0);
+    assert.match(result.stderr, /client-web is listed as migratable but .* does not exist/);
+}
+
 console.log('service-registry: all assertions passed');

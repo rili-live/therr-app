@@ -856,6 +856,15 @@ console configuration, and one verification that gates a payments change.
 - [ ] (2026-08-23, /quality-peer-review) **After the first successful deploy, confirm `VERSIONS.txt`
   on `stage` has grown a `PUBLISHED_*` row per service.** That is the signal the ledger transition
   is complete and the `LAST_PUBLISHED_GIT_SHA` fallback is no longer load-bearing.
+- [ ] (2026-08-23, /quality-peer-review) **Make a CircleCI rerun of the stage publish job
+  reconcile with `origin/stage` before committing `VERSIONS.txt`.** A rerun starts from a fresh
+  checkout at `CIRCLE_SHA1`, so the working tree holds the pre-publish ledger while
+  `origin/stage` already carries the `[skip ci]` commit the first run pushed. `publish.sh` then
+  builds a sibling commit and `git push` is rejected as non-fast-forward — the job reports a
+  broken publish that actually succeeded. Pre-existing (the pre-rewrite script failed the same
+  way), and not something the empty-index guard addresses. Fix is to `git fetch origin stage` and
+  re-load the ledger from the remote tip before `ledger_write`, so the guard sees the real state.
+  Until then, recover by re-running the *stage pipeline* rather than the single job.
 <!-- skill-followups:end -->
 
 ---
@@ -1779,6 +1788,15 @@ the `<!-- skill-followups:start -->` and `- [ ] (2026-08-23, /quality-peer-revie
 - [ ] (2026-08-23, /quality-peer-review) **After the first successful deploy, confirm `VERSIONS.txt`
   on `stage` has grown a `PUBLISHED_*` row per service.** That is the signal the ledger transition
   is complete and the `LAST_PUBLISHED_GIT_SHA` fallback is no longer load-bearing.
+- [ ] (2026-08-23, /quality-peer-review) **Make a CircleCI rerun of the stage publish job
+  reconcile with `origin/stage` before committing `VERSIONS.txt`.** A rerun starts from a fresh
+  checkout at `CIRCLE_SHA1`, so the working tree holds the pre-publish ledger while
+  `origin/stage` already carries the `[skip ci]` commit the first run pushed. `publish.sh` then
+  builds a sibling commit and `git push` is rejected as non-fast-forward — the job reports a
+  broken publish that actually succeeded. Pre-existing (the pre-rewrite script failed the same
+  way), and not something the empty-index guard addresses. Fix is to `git fetch origin stage` and
+  re-load the ledger from the remote tip before `ledger_write`, so the guard sees the real state.
+  Until then, recover by re-running the *stage pipeline* rather than the single job.
 <!-- skill-followups:end -->`
 markers, prefixed with the date and originating skill:
 

@@ -57,11 +57,9 @@ const withTempFile = (contents, fn) => {
         return fs.readFileSync(file, 'utf8');
     });
 
-    assert.match(ledger, /^PUBLISHED_USERS_SERVICE=aaaaaaa$/m,
-        'The second publish must not overwrite the first service\'s recorded SHA.');
+    assert.match(ledger, /^PUBLISHED_USERS_SERVICE=aaaaaaa$/m, 'The second publish must not overwrite the first service\'s recorded SHA.');
     assert.match(ledger, /^PUBLISHED_MAPS_SERVICE=bbbbbbb$/m);
-    assert.match(ledger, /^LAST_PUBLISHED_GIT_SHA=bbbbbbb$/m,
-        'LAST_PUBLISHED_GIT_SHA still tracks the most recent publish, for the fallback.');
+    assert.match(ledger, /^LAST_PUBLISHED_GIT_SHA=bbbbbbb$/m, 'LAST_PUBLISHED_GIT_SHA still tracks the most recent publish, for the fallback.');
 }
 
 {

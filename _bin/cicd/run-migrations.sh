@@ -106,7 +106,7 @@ run_service_migrations()
   local DEPLOYMENT
   local COMPONENT
 
-  SERVICE_DIR="$(printf '%s' "$(service_sources "$KEY")" | cut -d' ' -f1)"
+  SERVICE_DIR="$(service_dir "$KEY")"
   DEPLOYMENT="$(service_deployment "$KEY")"
   COMPONENT="$(service_container "$KEY")"
 

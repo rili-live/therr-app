@@ -148,7 +148,7 @@ const withRepo = (fn) => {
     const commit = (file, message) => {
         fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
         fs.appendFileSync(path.join(dir, file), `${message}\n`);
-        git(`add -A`);
+        git('add -A');
         git(`commit -q -m '${message}'`);
         return git('rev-parse HEAD');
     };
