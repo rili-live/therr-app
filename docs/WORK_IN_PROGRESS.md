@@ -846,16 +846,16 @@ console configuration, and one verification that gates a payments change.
   repos when the automator lands.** Human posts render `"${name}, ${stateAbbr}"` from the `Cities`
   catalog; the automator must emit the same form ("Chicago, IL") or one place shows up under two
   spellings in the feed. No CI can see both sides.
-- [ ] (2026-08-23, /quality-peer-review) **Watch the first `stage` → `main` deploy after the
-  pipeline rewrite lands, and confirm the plan table before letting it roll.** No service has a
-  `PUBLISHED_*` row yet, so all eight resolve through `LAST_PUBLISHED_GIT_SHA=3f1d5ba` — a tag the
-  publish job only ever pushed for the services that merge rebuilt. Services already on that tag
-  come out `up-to-date` and are skipped; any the cluster is genuinely behind on will come out
-  `missing-image` and block before touching the cluster. The fix in that case is to re-run the
-  stage pipeline so it publishes and writes per-service rows — not to hand-edit `VERSIONS.txt`.
-- [ ] (2026-08-23, /quality-peer-review) **After the first successful deploy, confirm `VERSIONS.txt`
-  on `stage` has grown a `PUBLISHED_*` row per service.** That is the signal the ledger transition
-  is complete and the `LAST_PUBLISHED_GIT_SHA` fallback is no longer load-bearing.
+- [ ] (2026-08-23) **Promote the `global-config.js` touch through `general` → `stage` → `main` to
+  repopulate the ledger.** The fallback deadlock is fixed in code, so a promotion no longer blocks —
+  but seven services still have no `PUBLISHED_*` row and will report `unresolved` until one stage
+  publish rebuilds them all. `global-config.js` is in every service's source fan-out, so that single
+  commit publishes all eight and writes eight rows at one SHA. Watch the plan table on the
+  `stage` → `main` run and confirm eight `deploy` verdicts. If the stage publish job needs a retry,
+  re-run the whole *stage pipeline*, not the single job (see the non-fast-forward item below).
+- [ ] (2026-08-23) **After that deploy, confirm `VERSIONS.txt` on `stage` has a `PUBLISHED_*` row per
+  service, and that the cluster has moved off `eef996d`.** Eight rows is the signal the ledger
+  transition is finally complete; until then the cluster is still on the pre-rewrite image.
 - [ ] (2026-08-23, /quality-peer-review) **Make a CircleCI rerun of the stage publish job
   reconcile with `origin/stage` before committing `VERSIONS.txt`.** A rerun starts from a fresh
   checkout at `CIRCLE_SHA1`, so the working tree holds the pre-publish ledger while

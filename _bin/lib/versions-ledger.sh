@@ -49,9 +49,12 @@
 #
 # FORMAT
 #
-#   LAST_PUBLISHED_GIT_SHA=<sha>     most recent stage publish, any service.
-#                                    Kept as the fallback for a service with no
-#                                    row yet, and for backwards compatibility.
+#   LAST_PUBLISHED_GIT_SHA=<sha>     most recent stage publish, any service. A
+#                                    human-readable watermark and the file's
+#                                    backwards-compatible first line — NOT a
+#                                    per-service tag. Nothing resolves through it;
+#                                    see ledger_resolve for what happened when it
+#                                    did.
 #   PUBLISHED_<KEY>=<sha>            per-service. <KEY> is the registry key
 #                                    upper-cased with '-' mapped to '_'.
 #
@@ -104,31 +107,53 @@ ledger_get()
   return 0
 }
 
-# The tag a service should actually deploy at: its own row, else the file-wide
-# LAST_PUBLISHED_GIT_SHA.
+# The tag a service should actually deploy at: its own row, or nothing.
 #
-# The fallback is what carries the transition. Before this ledger existed no
-# service had a row, so on the first deploy after it lands every service resolves
-# through LAST_PUBLISHED_GIT_SHA, and rows accumulate from the next stage publish
-# onward. It is also the honest answer for a service whose image predates the
-# ledger.
+# WHY THERE IS NO LONGER A FALLBACK TO LAST_PUBLISHED_GIT_SHA
 #
-# Not quite the old script's behaviour, though, and the difference is worth knowing
-# once: the old script only pulled images for the services the merge diff named,
-# while the plan resolves a desired tag for every service. That SHA was only pushed
-# for the services its publish rebuilt, so the rest resolve to a -stage tag that was
-# never created. They are already on the right image, so they land on "up-to-date",
-# which plan_verdict decides ahead of the registry probe for exactly this reason.
+# This used to return LEDGER_LAST_PUBLISHED for a service with no row, to carry the
+# transition from the single-SHA era. That fallback deadlocked production for three
+# promotions, and the shape of it is worth keeping written down.
+#
+# LAST_PUBLISHED_GIT_SHA means "most recent stage publish, ANY service". It is a
+# watermark, not a per-service promise. But publish.sh is incremental — it pushes
+# only the services whose sources changed in the merge, and then bumps the watermark
+# regardless. So a stage merge touching one service pushes one image and
+# simultaneously re-points every OTHER service at that same new SHA:
+#
+#   stage merge  users-service changes  -> pushes users-service-stage:A
+#                                          writes LAST_PUBLISHED_GIT_SHA=A
+#   stage -> main                       -> maps-service has no row, resolves to A,
+#                                          and therrapp/maps-service-stage:A was
+#                                          never built -> missing-image -> BLOCKS
+#
+# missing-image is blocking, so the whole deploy is refused and nothing rolls —
+# including the one service whose image was fine.
+#
+# plan_verdict's up-to-date-before-the-registry-probe ordering was supposed to
+# absorb this, on the reasoning that an unrowed service is "already running exactly
+# the right image". That only holds while the cluster's running tag equals the
+# watermark. It never did: when the ledger landed the watermark was 3f1d5ba and the
+# cluster was on eef996d, so every service fell straight through to the probe.
+#
+# Worse, it ratchets. Each attempt to force a deploy by touching one service bumps
+# the watermark to a NEWER absent tag for the other seven, so every retry widens the
+# gap instead of closing it. The prescribed recovery ("re-run the stage pipeline so
+# it publishes and writes rows") cannot work either, because a re-run republishes
+# only the services that changed in that merge.
+#
+# So: a row is a promise that the tag is pullable, and only publish.sh can make it,
+# only after both pushes succeed. Absent a row there is no promise, and guessing one
+# is what wedged the pipeline. Returning empty routes the service into the verdicts
+# that already exist for exactly this state — `unresolved` (warn, left as-is) when
+# the merge did not touch it, `unpublished` (blocking) when it did, which is correct
+# because a service that changed and was not published IS work being dropped.
+#
+# Always returns 0 — "no row yet" is an ordinary state, and callers distinguish it
+# by testing for the empty string.
 ledger_resolve()
 {
-  local SHA
-  SHA="$(ledger_get "$1")"
-
-  if [ -n "$SHA" ]; then
-    printf '%s' "$SHA"
-  else
-    printf '%s' "$LEDGER_LAST_PUBLISHED"
-  fi
+  ledger_get "$1"
 }
 
 ledger_set()
