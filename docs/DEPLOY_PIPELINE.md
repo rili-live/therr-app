@@ -101,6 +101,21 @@ what shape the merge was, or whether the last deploy finished — a service behi
 its desired tag is simply still behind, and gets picked up. The single writer fixes
 the fifth.
 
+## One-time transition
+
+Two things carry over from the truncating era and need handling once:
+
+1. **`main`'s `VERSIONS.txt` is empty**, because the last deploy under the old
+   script truncated it. The first `stage` → `main` merge after this lands will
+   conflict on it — **resolve toward `stage`**. From then on `main` only reads the
+   file, so the two never diverge again and there is nothing left to resolve.
+2. **No service has a per-service row yet.** Every service resolves through
+   `LAST_PUBLISHED_GIT_SHA` on the first deploy — the same behaviour as the old
+   script — and rows accumulate from the next stage publish onward.
+
+`general`'s stale copy was already aligned to `stage`'s value, so a `general` →
+`stage` merge has nothing to resolve.
+
 ## The service registry
 
 `_bin/lib/service-registry.sh` is the one list `build.sh`, `publish.sh`,
