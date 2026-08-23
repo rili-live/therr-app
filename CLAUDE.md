@@ -23,6 +23,17 @@ branch to `main`. Only `general → stage → main` deploys. Code committed only
 `niche/*` branch is dead code — it runs locally, it shows in diffs, it never runs in
 production.
 
+`general → stage` builds and publishes `therrapp/<svc>-stage:<sha>` and records what it
+published, per service, in `VERSIONS.txt`. `stage → main` reads that ledger, compares each
+service's published tag against the tag actually running in the cluster, and rolls whatever
+differs. It refuses to deploy — before touching the cluster — when a published image is
+missing or predates the code being promoted, rather than deploying a stale version and
+reporting green. Full detail: [`docs/DEPLOY_PIPELINE.md`](docs/DEPLOY_PIPELINE.md).
+
+> `VERSIONS.txt` has exactly one writer: the publish job, on `stage`. Never hand-edit it,
+> and never resolve a merge conflict on it toward anything but the `stage` side — that file
+> is what decides which image version production runs.
+
 These paths **MUST** land on `general` to ever ship:
 
 - `therr-services/**`, `therr-api-gateway/**` — backend
@@ -109,6 +120,8 @@ npm run test:changed     # test changed packages
 npm run locales:check    # locale dictionary parity across all packages
 npm run test:lint-rules  # unit tests for the custom ESLint rules
 npm run test:bin-scripts # unit tests for decision logic in _bin gate scripts
+npm run k8s:check-services # service registry vs k8s/prod manifests
+npm run k8s:check-waves    # rollout wave plan vs k8s/prod manifests
 ```
 
 Type-check and lint a specific package:

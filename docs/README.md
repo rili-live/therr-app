@@ -55,6 +55,7 @@ went unread.
 - [MEMORY_SYSTEM_SETUP.md](./MEMORY_SYSTEM_SETUP.md) — the `context/` memory system
 
 ### Operations & debugging
+- [DEPLOY_PIPELINE.md](./DEPLOY_PIPELINE.md) — general → stage → main: what `VERSIONS.txt` records, how the deploy decides per service, and the silent-staleness failures it now refuses
 - [PROD_DEBUG_CLAUDE.md](./PROD_DEBUG_CLAUDE.md) — production debugging runbook
 - [PUSH_NOTIFICATIONS_DEBUGGING.md](./PUSH_NOTIFICATIONS_DEBUGGING.md) — why a push didn't arrive; the diagnostics endpoints, and why a separate Firebase project per brand is usually the wrong fix
 - [NOTIFICATION_QUEUE_DESIGN.md](./NOTIFICATION_QUEUE_DESIGN.md) — the deduplicated, schedulable notification queue; what must land before send frequency goes up

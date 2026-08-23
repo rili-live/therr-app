@@ -2,18 +2,20 @@
 
 set -e
 
-GIT_SHA=$(git rev-parse HEAD)
-
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
+source ./_bin/lib/service-registry.sh
+source ./_bin/lib/versions-ledger.sh
+
+assert_service_registry
 
 CURRENT_BRANCH=${CICD_BRANCH:-$CIRCLE_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
 
-DESTINATION_BRANCH="main"
-echo "Destination branch is $DESTINATION_BRANCH"
+GIT_SHA="${GIT_SHA:-$(git rev-parse HEAD)}"
+echo "Publishing at $GIT_SHA"
 
-# Only build the docker images when the source branch is stage or main
+# Only publish the docker images when the source branch is stage or main
 if [[ ("$CURRENT_BRANCH" != "stage") && ("$CURRENT_BRANCH" != "main") ]]; then
   echo "Skipping post build stage."
   exit 0
@@ -21,97 +23,48 @@ fi
 
 [[ "$CURRENT_BRANCH" = "stage" ]] && SUFFIX="-stage" || SUFFIX=""
 
-HAS_GLOBAL_CONFIG_FILE_CHANGES=false
-HAS_ANY_LIBRARY_CHANGES=false
-HAS_UTILITIES_LIBRARY_CHANGES=false
+# Start from what is already recorded so that services untouched by this merge keep
+# the SHA of the build that *does* contain them. Overwriting the whole file with one
+# SHA — what this script used to do — is what made a second merge to stage point
+# every service at a tag only the second merge's services were built for. See the
+# header of versions-ledger.sh.
+ledger_load VERSIONS.txt
 
-if has_prev_diff_changes "global-config.js"; then
-  HAS_GLOBAL_CONFIG_FILE_CHANGES=true
-fi
+PUBLISHED_KEYS=()
 
-if has_prev_diff_changes "therr-public-library/therr-styles" || \
-  has_prev_diff_changes "therr-public-library/therr-js-utilities" || \
-  has_prev_diff_changes "therr-public-library/therr-react"; then
-  HAS_ANY_LIBRARY_CHANGES=true
-fi
+for KEY in $(service_keys); do
+  IMAGE="$(service_image "$KEY")"
 
-if has_prev_diff_changes "therr-public-library/therr-js-utilities"; then
-  HAS_UTILITIES_LIBRARY_CHANGES=true
-fi
+  if ! has_prev_diff_changes_any $(service_sources "$KEY"); then
+    echo "Skipping $KEY publish (No Changes) — ledger keeps $(ledger_resolve "$KEY")"
+    continue
+  fi
 
-should_publish_web_app()
-{
-  has_prev_diff_changes "therr-client-web" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
-}
+  printMessageNeutral "Publishing therrapp/$IMAGE$SUFFIX:$GIT_SHA"
+  docker push "therrapp/$IMAGE$SUFFIX:latest"
+  docker push "therrapp/$IMAGE$SUFFIX:$GIT_SHA"
 
-# NOTE: This is currently included in the web app build (container)
-should_publish_web_app_dashboard()
-{
-  has_prev_diff_changes "therr-client-web-dashboard" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
-}
+  # Recorded only after both pushes succeed. A ledger row is a promise to the deploy
+  # that this exact tag is pullable; writing it before the push would turn a failed
+  # push into a missing-image abort one job later, at the cluster, instead of here.
+  ledger_set "$KEY" "$GIT_SHA"
+  PUBLISHED_KEYS+=("$KEY")
+done
 
-should_publish_service()
-{
-  SERVICE_DIR=$1
-  has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
-}
+if [[ "$CURRENT_BRANCH" == "stage" && ${#PUBLISHED_KEYS[@]} -gt 0 ]]; then
+  LEDGER_LAST_PUBLISHED="$GIT_SHA"
+  ledger_write VERSIONS.txt
 
-NUMBER_SERVICES_PUBLISHED=0
-
-# Docker Publish
-if should_publish_web_app || should_publish_web_app_dashboard; then
-  NUMBER_SERVICES_PUBLISHED=$((NUMBER_SERVICES_PUBLISHED + 1))
-  docker push therrapp/client-web$SUFFIX:latest
-  docker push therrapp/client-web$SUFFIX:$GIT_SHA
-fi
-if should_publish_service "therr-api-gateway"; then
-  NUMBER_SERVICES_PUBLISHED=$((NUMBER_SERVICES_PUBLISHED + 1))
-  docker push therrapp/api-gateway$SUFFIX:latest
-  docker push therrapp/api-gateway$SUFFIX:$GIT_SHA
-fi
-if should_publish_service "therr-services/maps-service"; then
-  NUMBER_SERVICES_PUBLISHED=$((NUMBER_SERVICES_PUBLISHED + 1))
-  docker push therrapp/maps-service$SUFFIX:latest
-  docker push therrapp/maps-service$SUFFIX:$GIT_SHA
-fi
-if should_publish_service "therr-services/messages-service"; then
-  NUMBER_SERVICES_PUBLISHED=$((NUMBER_SERVICES_PUBLISHED + 1))
-  docker push therrapp/messages-service$SUFFIX:latest
-  docker push therrapp/messages-service$SUFFIX:$GIT_SHA
-fi
-if should_publish_service "therr-services/push-notifications-service"; then
-  NUMBER_SERVICES_PUBLISHED=$((NUMBER_SERVICES_PUBLISHED + 1))
-  docker push therrapp/push-notifications-service$SUFFIX:latest
-  docker push therrapp/push-notifications-service$SUFFIX:$GIT_SHA
-fi
-if should_publish_service "therr-services/reactions-service"; then
-  NUMBER_SERVICES_PUBLISHED=$((NUMBER_SERVICES_PUBLISHED + 1))
-  docker push therrapp/reactions-service$SUFFIX:latest
-  docker push therrapp/reactions-service$SUFFIX:$GIT_SHA
-fi
-if should_publish_service "therr-services/users-service"; then
-  NUMBER_SERVICES_PUBLISHED=$((NUMBER_SERVICES_PUBLISHED + 1))
-  docker push therrapp/users-service$SUFFIX:latest
-  docker push therrapp/users-service$SUFFIX:$GIT_SHA
-fi
-if should_publish_service "therr-services/websocket-service"; then
-  NUMBER_SERVICES_PUBLISHED=$((NUMBER_SERVICES_PUBLISHED + 1))
-  docker push therrapp/websocket-service$SUFFIX:latest
-  docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
-fi
-
-if [[ "$CURRENT_BRANCH" == "stage" && ${NUMBER_SERVICES_PUBLISHED} -gt 0 ]]; then
-## TODO: Output a list of all services that should be deployed for the given commit
-cat > VERSIONS.txt <<EOF
-LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
-EOF
+  printMessageSuccess "Published: ${PUBLISHED_KEYS[*]}"
+  echo "--- VERSIONS.txt ---"
+  cat VERSIONS.txt
+  echo "--------------------"
 
   git config user.email "rili.main@gmail.com"
   git config user.name "Rili Admin"
   git add VERSIONS.txt
-  git commit -m "[skip ci] Updated VERSIONS.txt"
+  git commit -m "[skip ci] Publish ${PUBLISHED_KEYS[*]} at ${GIT_SHA:0:7}"
   git push --set-upstream origin stage --no-verify
 fi
-
 
 echo "Docker publish complete for all services with changes"
