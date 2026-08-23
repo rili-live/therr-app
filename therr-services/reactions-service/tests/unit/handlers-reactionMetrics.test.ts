@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import Store from '../../src/store';

@@ -28,6 +28,7 @@ import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequest
 import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
+import { resolveAccessLevelsForAccountEmail } from './helpers/checkoutSessionAccessLevels';
 import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
@@ -209,7 +210,20 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     return [];
                 });
             } else if (paymentSessionId) {
-                // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+                // The dashboard sends this after a completed Stripe checkout
+                // (`PaymentComplete.tsx` redirects to `/register?paymentSessionId=`), so the
+                // plan the user just bought becomes an access level on the account being
+                // created rather than waiting on the subscription webhook.
+                //
+                // Scoped to the address they paid with: a session id is a bearer token for a
+                // purchase, not for an account, so without the match any registration quoting
+                // a leaked id would inherit that subscription's plan. Mismatches resolve to
+                // no levels and the registration still succeeds — see
+                // `resolveAccessLevelsForAccountEmail`.
+                getSubsAccessLvlsPromise = resolveAccessLevelsForAccountEmail(paymentSessionId, req.body.email, {
+                    'user.email': req.body.email,
+                    handler: 'createUser',
+                });
             }
 
             // PACT-XXXX codes are pact-invite claims, not username referrals.
@@ -307,6 +321,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         inviteToken: req.body.inviteToken,
                         isPreVerified: isPreVerifiedByPactClaim,
                         isPhoneVerified: !!verifiedPhoneNumber,
+                        userAcquisition: req.body.userAcquisition,
                     },
                 );
             }).then(async (user) => {
@@ -939,6 +954,7 @@ const updateUser = (req, res) => {
             const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
                 userSearchResults[0].accessLevels,
                 isMissingUserProps,
+                isChangingPhoneNumber,
             );
             if (nextAccessLevels) {
                 updateArgs.accessLevels = nextAccessLevels;
@@ -1045,6 +1061,17 @@ const updateUser = (req, res) => {
         });
 };
 
+/**
+ * Deliberately NOT brand-scoped, and it should stay that way. The handler already 403s
+ * unless the route param equals the caller's own id, so the update is keyed on the single
+ * identity row of the person making the request — `main.users` has no brand column, and
+ * membership lives in the `brandVariations` JSONB array.
+ *
+ * Adding a brandContainment predicate here would be actively wrong: a user whose
+ * `brandVariations` array has not yet picked up the brand they are signed in under would
+ * match zero rows, and this update reports success without reading rowCount, so their
+ * location would silently stop being recorded. There is no cross-brand read to leak.
+ */
 const updateLastKnownLocation = (req, res) => {
     const {
         locale,
@@ -1113,23 +1140,27 @@ const updatePhoneVerification = (req, res) => Store.users.findUser({ id: req.par
         statusCode: 400,
     }));
 
+/**
+ * Increments the caller's TherrCoin balance. Internal-only: `PUT /users/:id/coins` is not
+ * registered in the api-gateway router, and its sole caller is reactions-service's
+ * `sendUserCoinUpdateRequest`, which sends `settingsTherrCoinTotal` and nothing else.
+ *
+ * This resolves the "Investigate security issue / Lockdown updateUser" markers that sat here.
+ * The handler used to assemble the same broad `updateArgs` as `updateUser` — `phoneNumber`,
+ * `userName`, `media`, `deviceMobileFirebaseToken`, `accessLevels` — but without any of
+ * `updateUser`'s guards: no accounts-per-phone cap, no media-safety check, no username
+ * uniqueness handling. It was a second, weaker write path onto the same columns, reachable by
+ * anything that could reach the service port. It is now scoped to the one field its caller
+ * sends, so the broad path no longer exists to be locked down.
+ *
+ * The password branch went with it: no caller has ever sent `password`/`oldPassword` here, and
+ * `updateUserPassword` below is the real, gateway-registered path for that.
+ */
 const updateUserCoins = (req, res) => {
-    const {
-        locale,
-        userId,
-        whiteLabelOrigin,
-        brandVariation,
-    } = parseHeaders(req.headers);
+    const { userId } = parseHeaders(req.headers);
 
-    return Store.users.getUserById(userId)
+    return Store.users.getUserById(userId, ['id', 'settingsPushBackground'])
         .then((userSearchResults) => {
-            const {
-                email,
-                password,
-                oldPassword,
-                userName,
-            } = req.body;
-
             if (!userSearchResults.length) {
                 return handleHttpError({
                     res,
@@ -1138,88 +1169,34 @@ const updateUserCoins = (req, res) => {
                 });
             }
 
-            // TODO: If password, validate and update password
-            let passwordPromise: Promise<any> = Promise.resolve();
-
-            if (password && oldPassword) {
-                passwordPromise = updatePassword({
-                    hashedPassword: userSearchResults[0].password,
-                    inputPassword: oldPassword,
-                    locale,
-                    oneTimePassword: userSearchResults[0].oneTimePassword,
-                    res,
-                    emailArgs: {
-                        email,
-                        userName,
-                    },
-                    newPassword: password,
-                    userId,
-                    whiteLabelOrigin,
-                    brandVariation,
-                }).catch((e) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['bad password update'],
-                        traceArgs: {
-                            'error.message': e?.message,
-                            'error.response': e?.response?.data,
-                        },
-                    });
-                    throw new Error('bad-password');
-                });
-            }
-
-            const updateArgs: any = {
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                media: req.body.media,
-                phoneNumber: req.body.phoneNumber,
-                hasAgreedToTerms: req.body.hasAgreedToTerms,
-                userName: req.body.userName,
-                deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
-                shouldHideMatureContent: req.body.shouldHideMatureContent,
-            };
+            // NOTE: `UsersStore.updateUser` treats `settingsTherrCoinTotal` as a *delta* — it
+            // calls `.increment()` on the column, and skips anything not `> 0`. The previous
+            // code passed `userSearchResults[0] + req.body.settingsTherrCoinTotal`: the whole
+            // user row, not the column, so the sum stringified to "[object Object]<delta>",
+            // failed the `> 0` guard, and no coins were ever awarded through this route.
+            // Negative valuations are still dropped by that same store-side guard — a
+            // pre-existing behaviour, left alone here so this fix doesn't start applying
+            // penalties that have never applied.
+            const coinDelta = Number(req.body.settingsTherrCoinTotal);
 
             // IMPORTANT: Only reward users who opt-in to background push notifications
             // TODO: Weight reward based on settingsPushTopics opt-in (Each with its own valuation)
             // TODO: increment/decrement should be stored on block-chain for auditability
-            if (req.body.settingsTherrCoinTotal && userSearchResults[0].settingsPushBackground) {
-                // increment/decrement
-                updateArgs.settingsTherrCoinTotal = userSearchResults[0] + req.body.settingsTherrCoinTotal;
+            if (!Number.isFinite(coinDelta) || coinDelta === 0 || !userSearchResults[0].settingsPushBackground) {
+                return res.status(202).send({ id: userId });
             }
 
-            const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
-            const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
-                userSearchResults[0].accessLevels,
-                isMissingUserProps,
-            );
-            if (nextAccessLevels) {
-                updateArgs.accessLevels = nextAccessLevels;
-            }
+            return Store.users
+                .updateUser({ settingsTherrCoinTotal: coinDelta }, {
+                    id: userId,
+                })
+                .then((results) => {
+                    const user = results[0];
+                    // Remove credentials from object
+                    redactUserCreds(user);
 
-            passwordPromise
-                .then(() => Store.users
-                    .updateUser(updateArgs, {
-                        id: userId,
-                    })
-                    .then((results) => {
-                        const user = results[0];
-                        // Remove credentials from object
-                        redactUserCreds(user);
-
-                        // Phase 2 dual-write to brand-scoped token table.
-                        syncDeviceTokenForBrand(req.headers, user.id, req.body.deviceMobileFirebaseToken);
-
-                        // TODO: Investigate security issue
-                        // Lockdown updateUser
-                        return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent pollution
-                    }))
-                .catch((e) => handleHttpError({
-                    res,
-                    message: translate(locale, 'User/password combination is incorrect'),
-                    statusCode: 400,
-                }));
+                    return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent pollution
+                });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
@@ -1342,13 +1319,31 @@ const deleteUser = (req, res) => {
 
     return Store.users.deleteUsers({ id: req.params.id })
         .then(([deletedUser]) => {
-            // TODO: Delete notifications in users service
-            // TODO: Delete messages in messages service
-            // TODO: Delete forums, forumMessages in messages service
-            requestToDeleteUserData(req.headers);
+            // Notifications live in this service, so they are deleted directly rather than
+            // over the internal fan-out. Both are unscoped by brand — the identity row is
+            // gone, so there is no brand under which the rows should survive.
+            const localDeletes = Promise.all([
+                Store.notifications.deleteByUserId(userId),
+                Store.notificationQueue.deleteByUserId(userId),
+            ]).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to delete user notifications'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'error.origin': 'deleteUser',
+                        'user.deletedId': userId,
+                    },
+                });
+            });
 
-            // TODO: Delete user session from redis in websocket-service
+            // Deliberately not awaited before responding: the account row is already gone,
+            // so the user's deletion has taken effect regardless of how long the fan-out
+            // takes. Failures are logged per-service rather than surfaced to the client.
             // TODO: Delete user media data from cloud storage
+            localDeletes.then(() => requestToDeleteUserData(req.headers));
+
             sendUserDeletedEmail({
                 subject: '😞 User Account Deleted',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],

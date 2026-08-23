@@ -297,6 +297,17 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
+    // Habits counterpart of the React /verify-phone route on www.therr.com. Both are the
+    // no-app fallback for the therr.com/verify-phone link, which opens the mobile app when
+    // it is installed — and this host is a verified App Link for com.therr.habits, so
+    // without this entry a HABITS user without the app hit the allowlist 404 instead.
+    '/verify-phone': {
+        view: 'habits/verify-phone',
+        title: 'Verify your phone — Friends with Habits',
+        description: 'Confirm your phone number for Friends with Habits.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
 };
 // Public profile path on the Habits subdomain — used by user-profile QR codes.
 // Format: /u/:userName  (alphanumeric, dot, dash, underscore — keep tight to avoid abuse)
@@ -319,11 +330,19 @@ const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
 }> => {
     const empty = { inviterName: '', avatarUri: '' };
 
+    // These lookups render a Friends with Habits page, but axios' module-level default
+    // is THERR (correct for the React app, which never serves this host). Without the
+    // override, `by-username` — which IS brand-scoped, via getBrandContext + brandVariations
+    // enrollment — resolves a habits inviter against the therr brand and finds nothing for
+    // a habits-only account. This resolver is best-effort, so that surfaced as the generic
+    // headline rather than an error: the invite silently lost "X wants to make a pact with you".
+    const habitsHeaders = { 'x-brand-variation': BrandVariations.HABITS };
+
     try {
         if (match.kind === 'invite-username') {
             const response = await axios.get(
                 `/users-service/users/by-username/${encodeURIComponent(match.value)}`,
-                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS },
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS, headers: habitsHeaders },
             );
             const inviter = response?.data;
             if (!inviter?.userName) {
@@ -347,9 +366,11 @@ const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
         // so anything else is a malformed link — skip the round-trip and fall back
         // to the generic headline.
         if (match.kind === 'invite-link' && UUID_V4_RE.test(match.value)) {
+            // Sent for consistency; this endpoint resolves invites cross-brand on purpose,
+            // so the invitee can be deep-linked into whichever app the invite came from.
             const response = await axios.get(
                 `/users-service/users/invites/${encodeURIComponent(match.value)}`,
-                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS },
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS, headers: habitsHeaders },
             );
             return {
                 inviterName: response?.data?.inviterName || '',
@@ -593,7 +614,6 @@ const setSitemapCache = (key: string, xml: string) => {
 };
 
 // Build URL entries for English (unprefixed), Spanish (/es), and French Canadian (/fr) versions
-// eslint-disable-next-line max-len
 const buildUrlSet = (loc: string, lastmod: string, priority: string) => {
     const esLoc = loc === '/' ? '/es' : `/es${loc}`;
     const frLoc = loc === '/' ? '/fr' : `/fr${loc}`;
@@ -622,7 +642,6 @@ const fetchSpacesPage = async (pageNumber: number): Promise<any[]> => {
 // latitude=0&longitude=0 with a global distanceOverride fetches all events regardless of location
 const fetchEventsPage = async (pageNumber: number): Promise<any[]> => {
     const response = await axios.post(
-        // eslint-disable-next-line max-len
         `/maps-service/events/search?itemsPerPage=${ITEMS_PER_SITEMAP}&pageNumber=${pageNumber}&latitude=0&longitude=0`,
         { distanceOverride: 40075 * (1000 / 2) },
     );
@@ -717,15 +736,12 @@ app.get('/sitemap.xml', async (req, res) => {
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-city-categories.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-guides.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         ...Array.from({ length: totalSpacePages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-spaces-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
         ...Array.from({ length: totalEventPages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-events-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
         ...Array.from({ length: totalGroupPages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-groups-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
     ];
@@ -914,7 +930,6 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
         });
         // Google accepts up to 1000 images per URL but most sites limit for file size
         return imageUrls.slice(0, 10).map((url) => (
-            // eslint-disable-next-line max-len
             `    <image:image>\n      <image:loc>${url.replace(/&/g, '&amp;')}</image:loc>\n    </image:image>`
         )).join('\n');
     };
@@ -1879,7 +1894,6 @@ const renderLocationsView = (req, res, config, {
         description = `Find the best ${categoryLabel.toLowerCase()} near you. Browse listings, read reviews, see hours, and get directions on Therr.`;
     } else if (searchQuery) {
         title = `Spaces near ${searchQuery} - ${config.head.title}`;
-        // eslint-disable-next-line max-len
         description = `Discover local businesses, restaurants, and events near ${searchQuery}. Browse listings, read reviews, and get directions on Therr.`;
     } else {
         title = config.head.title;

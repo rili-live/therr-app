@@ -64,6 +64,12 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.pactAccepted,
     PushNotifications.Types.pactCompleted,
     PushNotifications.Types.pactExpiring,
+    // HABITS lifecycle celebrations (docs/HABIT_LIFECYCLE_MESSAGING.md). Data-only
+    // like the rest of the streak family — the app is expected to be awake for a
+    // milestone about a habit the user is actively keeping.
+    PushNotifications.Types.habitEstablished,
+    PushNotifications.Types.habitAutomaticity,
+    PushNotifications.Types.habitMaintenanceCheckIn,
 ];
 
 // Every type that createMessage renders through createNotificationMessage (display).
@@ -86,6 +92,9 @@ const DISPLAY_TYPES = [
     PushNotifications.Types.dailyHabitReminder,
     PushNotifications.Types.morningMotivation,
     PushNotifications.Types.eveningCheckIn,
+    // The one lifecycle message aimed at someone who has stopped opening the
+    // app, so it has to render even when the app never wakes to handle it.
+    PushNotifications.Types.habitComeback,
 ];
 
 describe('firebaseAdmin brand routing', () => {

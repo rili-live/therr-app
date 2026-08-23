@@ -160,7 +160,7 @@ Rules:
 Run these together from the repo root:
 
 ```bash
-npx eslint <changed files> --fix --no-error-on-unmatched-pattern 2>&1
+npx eslint <changed files> --fix-type problem,suggestion,layout --fix --no-error-on-unmatched-pattern 2>&1
 npm run pr:tsc-baseline:mobile 2>&1
 npm run pr:test:unit:mobile 2>&1
 ```

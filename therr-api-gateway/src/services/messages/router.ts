@@ -49,6 +49,14 @@ messagesServiceRouter.get('/forums-messages/:forumId', handleServiceRequest({
 }));
 
 // Forums
+//
+// Literal '/forums/<name>' routes must precede 'GET /forums/:forumId' -- it is a
+// same-method sibling of the same shape and matches them first.
+messagesServiceRouter.get('/forums/categories', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
+    method: 'get',
+}));
+
 messagesServiceRouter.get('/forums/:forumId', authenticateOptional, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'get',
@@ -67,11 +75,6 @@ messagesServiceRouter.post('/forums/activities', createActivityValidation, valid
 messagesServiceRouter.post('/forums/search', authenticateOptional, searchForumsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
-}));
-
-messagesServiceRouter.get('/forums/categories', validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
-    method: 'get',
 }));
 
 messagesServiceRouter.put('/forums/:forumId', updateForumValidation, handleServiceRequest({

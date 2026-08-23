@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { ErrorCodes } from 'therr-js-utilities/constants';
@@ -118,6 +117,26 @@ describe('handlers/thoughts createThought reposts', () => {
 
         await run({ repostThoughtId: 'original-1', parentId: 'some-parent' });
 
+        expect(createStub.firstCall.args[1].parentId).to.equal(undefined);
+    });
+
+    it('does not run the parent-access gate on a repost that carries a stray parentId', async () => {
+        // The reply path added a parent-access check that 403s on a parent the author cannot
+        // reach. A repost drops parentId before the insert, so running that check would only
+        // be able to reject a legitimate repost over a field that is discarded anyway.
+        getByIdStub.withArgs(sinon.match.any, 'original-1').resolves({
+            thoughts: [{ id: 'original-1', fromUserId: AUTHOR_USER_ID, isPublic: true }],
+        });
+        // A parent the reposter is plainly not allowed to reply to.
+        getByIdStub.withArgs(sinon.match.any, 'forbidden-parent').resolves({
+            thoughts: [{ id: 'forbidden-parent', fromUserId: AUTHOR_USER_ID, isPublic: false }],
+        });
+
+        await run({ repostThoughtId: 'original-1', parentId: 'forbidden-parent' });
+
+        // Reaching `create` at all is the assertion: both gates are `return`s, so an insert
+        // proves neither the 404 nor the 403 fired.
+        expect(createStub.calledOnce).to.equal(true);
         expect(createStub.firstCall.args[1].parentId).to.equal(undefined);
     });
 

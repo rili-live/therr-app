@@ -19,6 +19,7 @@ import TherrIcon from '../TherrIcon';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
 import formatDate from '../../utilities/formatDate';
+import { formatCrossBrandMessage } from '../../utilities/crossBrandPostLabel';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
 
 // const hapticFeedbackOptions = {
@@ -474,6 +475,14 @@ const ThoughtContent = ({
 }) => {
     const totalReplies = replyCount ?? thought.replyCount ?? thought.replies?.length;
     const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
+    // A post written in another Therr-family app (a Friends with Habits goal, say) reads as
+    // a bare sentence here with nothing saying where it came from. See crossBrandPostLabel.
+    const message = formatCrossBrandMessage({
+        message: thought.message,
+        brandVariation: thought.brandVariation,
+        parentId: thought.parentId,
+        translate,
+    });
     const hasRepliableActions = !thought.isDraft && isRepliable;
     const totalReposts = thought.repostCount ?? 0;
     // Drafts have no id the server would accept as a repost target, and a repost of a repost
@@ -490,7 +499,7 @@ const ThoughtContent = ({
             <View style={spacingStyles.flexOne}>
                 <RichText
                     style={themeViewContent.styles.thoughtMessage}
-                    text={thought.message}
+                    text={message}
                     linkStyle={theme.styles.link}
                     onMentionPress={onMentionPress}
                     numberOfLines={isExpanded ? undefined : 7}

@@ -96,7 +96,7 @@ Read the brief matching your branch early in a session:
 | `niche/<TAG>-general` | `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` |
 
 Teem is **shelved**; its brief is a stub. Friends With Habits is the active consumer bet
-and is in open testing.
+and is generally available on the Google Play production track.
 
 ## Commands
 
@@ -108,6 +108,7 @@ npm run lint:changed     # lint changed packages
 npm run test:changed     # test changed packages
 npm run locales:check    # locale dictionary parity across all packages
 npm run test:lint-rules  # unit tests for the custom ESLint rules
+npm run test:bin-scripts # unit tests for decision logic in _bin gate scripts
 ```
 
 Type-check and lint a specific package:
@@ -116,7 +117,7 @@ Type-check and lint a specific package:
 npx eslint <path> --fix
 npm run pr:typecheck:<pkg>       # gateway|users|maps|messages|reactions|push|
                                  # websocket|js-utils|therr-react|web|dashboard
-npm run pr:tsc-baseline:mobile   # mobile gates on "no NEW errors" vs a 104-error baseline
+npm run pr:tsc-baseline:mobile   # mobile gates on "no NEW errors" vs TherrMobile/.tsc-baseline
 ```
 
 Or just run `/quality-check`, which groups changed files by package and does both.
@@ -220,8 +221,8 @@ gateway. No CI in any repo checks these couplings.
 
 | Repo | Couples to this repo via |
 |---|---|
-| `therr-messaging-automator` | Direct Knex reads (users/maps/reactions) + `POST /v1/habits/pacts/digest/run-daily` on users-service over the VPC |
-| `therr-ai-automator` | Direct Knex reads **and writes** — it authors `main.thoughts` / `main.thoughtReactions` |
+| `therr-messaging-automator` | Direct Knex reads (users/maps/reactions) **and writes** (`habits.habit_phases` email watermarks) + `POST /v1/habits/pacts/digest/run-daily` on users-service over the VPC |
+| `therr-ai-automator` | Direct Knex reads **and writes** — it authors `main.thoughts` / `main.thoughtReactions`, and reads its bots' declared homes from `main.userLocations` |
 | `therr-infra-terraform` | Provisions Cloud SQL, the Cloud Functions, Cloud Scheduler, and the internal IP that `k8s/prod` pins |
 | `therr-landing` | Public API only (`/v1/users-service/subscribers/signup`) — not coupled |
 
@@ -237,8 +238,14 @@ The four rules that actually bite:
 3. **`main.thoughts` rows can be dated in the future** (ai-automator drips a run's output out
    over ~30h). Any SQL doing arithmetic on `NOW() - "createdAt"` must assume a negative
    result — an unclamped `POWER()` on one caused an 8-day feed outage.
-4. **The habits digest has no server-side dedup.** Once-a-day is a property of there being a
-   single Cloud Scheduler job, not of the code. Never add a second trigger path.
+4. **The habits digest dedups through `main.notificationQueue`, not through scheduling.**
+   It queues via `enqueueNotification` with period-stamped dedupe keys, and a UNIQUE
+   (brandVariation, userId, dedupeKey) constraint drops a repeat — so a retry, an extra
+   firing or a manual curl is safe. What is *not* safe is a producer whose `dedupeKey`
+   varies per call (anything holding `Date.now()` or a random value), which silently turns
+   dedup off. Sending is done by the users-service worker, gated on
+   `NOTIFICATION_QUEUE_WORKER_ENABLED=true`; with the flag off the digest queues and
+   nothing is delivered.
 
 Full detail, including the table-by-table coupling surface and the internal-LB network path:
 `docs/CROSS_REPO_INTEGRATION.md`.

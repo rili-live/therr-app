@@ -40,6 +40,11 @@ import {
     getReadableBrands,
 } from './brandThoughtsVisibility';
 import {
+    BRAND_NAMES,
+    DEFAULT_BRAND_NAME,
+    getBrandName,
+} from './brandNames';
+import {
     PhoneAccountType,
     PHONE_ACCOUNT_TYPES,
     MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
@@ -50,9 +55,17 @@ import {
 } from './phoneAccounts';
 import {
     FeatureFlags,
-    HABITS_FREE_PACT_LIMIT,
-    DEFAULT_HABITS_FREE_PACT_LIMIT,
+    HABITS_FREE_HABIT_LIMIT,
+    DEFAULT_HABITS_FREE_HABIT_LIMIT,
+    HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    DEFAULT_HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    HABITS_LIFETIME_FOUNDER_LIMIT,
+    DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
 } from './enums/FeatureFlags';
+import {
+    HABITS_PREMIUM_ACCESS_LEVELS,
+    hasHabitsPremiumEntitlement,
+} from './habitsEntitlements';
 import {
     HabitGoalTypes,
     HabitGoalType,
@@ -86,10 +99,19 @@ export {
     AccessLevels,
     BrandVariations,
     BRAND_THOUGHTS_VISIBILITY,
+    BRAND_NAMES,
+    DEFAULT_BRAND_NAME,
+    getBrandName,
     getReadableBrands,
     FeatureFlags,
-    HABITS_FREE_PACT_LIMIT,
-    DEFAULT_HABITS_FREE_PACT_LIMIT,
+    HABITS_FREE_HABIT_LIMIT,
+    DEFAULT_HABITS_FREE_HABIT_LIMIT,
+    HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    DEFAULT_HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    HABITS_LIFETIME_FOUNDER_LIMIT,
+    DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
+    HABITS_PREMIUM_ACCESS_LEVELS,
+    hasHabitsPremiumEntitlement,
     HabitGoalTypes,
     HabitGoalType,
     CampaignTypes,

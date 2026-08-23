@@ -408,7 +408,11 @@
       "unlikeThought": "Remove like from this post",
       "repostedBy": "{userName} reposted",
       "repostThought": "Repost this post",
-      "repostUnavailable": "This post is no longer available"
+      "repostUnavailable": "This post is no longer available",
+      "crossBrandLabels": {
+        "format": "{label}: {message}",
+        "habits": "Goals update"
+      }
     },
     "userMenu": {
       "buttons": {
@@ -511,7 +515,9 @@
         "password": "Password",
         "userName": "Email/Phone/Username",
         "enterCode": "Enter your code",
-        "switchAccount": "Switch account"
+        "switchAccount": "Switch account",
+        "useNumberKeypad": "Use the number keypad",
+        "useLetterKeyboard": "Use the letter keyboard"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",
@@ -1535,6 +1541,35 @@
         "pairingsDescription": "Perfect spots nearby to complete your outing at {spaceName}",
         "helpful": "Helpful",
         "notHelpful": "Not helpful"
+      },
+      "suggestEdit": {
+        "trigger": "Suggest an edit",
+        "title": "Suggest an edit",
+        "description": "Spotted incorrect info? Suggest a fix. We'll apply it once a few visitors agree.",
+        "fieldLabel": "What needs updating?",
+        "valueLabel": "Correct value",
+        "phoneOption": "Phone",
+        "websiteOption": "Website",
+        "phonePlaceholder": "(415) 555-1234",
+        "websitePlaceholder": "https://example.com",
+        "normalizedPreview": "Will be saved as",
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "close": "Close",
+        "appliedMessage": "Thanks! Your correction has been applied.",
+        "pendingMessage": "Thanks! We need {remaining} more agreement(s) before applying this change.",
+        "ownerClaimedMessage": "Thanks! This business has an owner — we've forwarded your suggestion to them.",
+        "errorMessage": "Something went wrong submitting your suggestion. Please try again.",
+        "rateLimited": "You've submitted a lot of suggestions recently. Please try again later.",
+        "errors": {
+          "EMPTY_PHONE": "Please enter a phone number.",
+          "INVALID_PHONE": "That doesn't look like a valid phone number.",
+          "EMPTY_URL": "Please enter a website.",
+          "INVALID_URL": "That doesn't look like a valid website URL.",
+          "INVALID_FIELD_NAME": "That field can't be edited.",
+          "UNSUPPORTED_FIELD": "That field can't be edited.",
+          "SPACE_NOT_FOUND": "This space is no longer available."
+        }
       }
     },
     "viewMoment": {
@@ -1771,7 +1806,7 @@
         "noContactInfo": "This contact has no phone number or email address to send an invite to",
         "tooManySelected": "Only the first {count} contacts were invited. Select fewer to invite the rest.",
         "inviteFailed": "We could not send your invites. Please try again.",
-        "phoneVerificationRequired": "Verify your phone number in your profile before sending invites"
+        "phoneVerificationRequired": "Tap here to verify your phone number, then try sending invites again"
       }
     },
     "register": {
@@ -1890,7 +1925,12 @@
       "headerTitle": "Thoughts",
       "reply": "Reply",
       "replies": "Replies",
-      "repliesFailed": "We couldn't load the replies. Try again in a moment."
+      "repliesFailed": "We couldn't load the replies. Try again in a moment.",
+      "headerTitleReply": "Reply",
+      "partOfThread": "Part of a thread",
+      "replyingTo": "Replying to {userName}",
+      "viewParentThought": "View the post this replies to",
+      "backToParent": "Back to Thread"
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",

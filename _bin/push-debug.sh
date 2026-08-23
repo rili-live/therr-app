@@ -125,8 +125,8 @@ request() {
     RESPONSE="${raw%$'\n'*}"
 }
 
-# Print the raw response plus what that status usually means here, then stop.
-fail_response() {
+# Print the raw response plus what that status usually means here.
+report_response() {
     local context="$1"
     echo "    !! ${context} (HTTP ${RESPONSE_STATUS})" >&2
     # Order matters: send stdout to the real stderr *before* silencing jq's own.
@@ -141,6 +141,11 @@ fail_response() {
         5*)  echo "       5xx: the service errored. Check push-notifications-service logs." >&2 ;;
     esac
     echo "       See docs/PUSH_NOTIFICATIONS_DEBUGGING.md" >&2
+}
+
+# Same, but fatal — for links whose failure makes everything after them meaningless.
+fail_response() {
+    report_response "$1"
     exit 1
 }
 
@@ -173,19 +178,29 @@ if [[ -n "$USER_ID" ]]; then
     REG="$RESPONSE"
 
     if [[ "$(echo "$REG" | jq -r 'if type == "object" and has("deviceTokens") then "ok" else "no" end' 2>/dev/null)" != "ok" ]]; then
-        fail_response "Device-token diagnostics failed for user ${USER_ID}"
-    fi
-
-    echo "$REG" | jq '{ requestedBrand, isRegisteredForRequestedBrand, brandsRegistered, deviceTokens, legacy }'
-
-    if [[ "$(echo "$REG" | jq -r '.isRegisteredForRequestedBrand // false')" != "true" ]]; then
+        # Non-fatal on purpose: links 4-5 send through a different route and do not
+        # depend on this one, so a broken link 2 should narrow the report, not end it.
+        report_response "Device-token diagnostics failed for user ${USER_ID}"
+        if [[ "$RESPONSE_STATUS" == "403" ]]; then
+            echo "       If [3/5] above succeeded with this same token, you DO have SUPER_ADMIN" >&2
+            echo "       and this is the unanchored public-profile matcher in the gateway's" >&2
+            echo "       unauthenticated-path list swallowing /users/:id/push-diagnostics," >&2
+            echo "       so authenticate never ran. Fixed on general; needs a deploy." >&2
+        fi
+        echo "    Continuing to the test send — links 4-5 do not depend on this." >&2
         echo
-        echo "    !! No device token registered for brand '${BRAND}'."
-        echo "       Either the app never registered (check OS notification permission),"
-        echo "       or its CURRENT_BRAND_VARIATION differs from the brand sending the push."
-        echo "       See docs/PUSH_NOTIFICATIONS_DEBUGGING.md, links 1-2."
+    else
+        echo "$REG" | jq '{ requestedBrand, isRegisteredForRequestedBrand, brandsRegistered, deviceTokens, legacy }'
+
+        if [[ "$(echo "$REG" | jq -r '.isRegisteredForRequestedBrand // false')" != "true" ]]; then
+            echo
+            echo "    !! No device token registered for brand '${BRAND}'."
+            echo "       Either the app never registered (check OS notification permission),"
+            echo "       or its CURRENT_BRAND_VARIATION differs from the brand sending the push."
+            echo "       See docs/PUSH_NOTIFICATIONS_DEBUGGING.md, links 1-2."
+        fi
+        echo
     fi
-    echo
 fi
 
 # ---------------------------------------------------------------- links 4-5

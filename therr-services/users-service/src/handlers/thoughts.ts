@@ -91,6 +91,47 @@ const createThought = async (req, res) => {
         repostThoughtId = originalThought.id;
     }
 
+    // A reply names its parent, and "is a reply of X" is what every downstream consumer trusts
+    // to decide what the author may see of X. Nothing else validates that claim, so it is
+    // checked here at the only point where it is minted: without this, any user could attach a
+    // reply to any thought id they know and then reach it through the details handler's
+    // own-content path, which skips the activation check entirely.
+    //
+    // Skipped when this is a repost: the insert below drops parentId on a repost, so a stray
+    // parentId alongside repostThoughtId is never persisted. Validating it anyway could only
+    // ever reject a legitimate repost over a field that gets discarded.
+    if (req.body.parentId && !repostThoughtId) {
+        const parentThought = await Store.thoughts.getById(brand, req.body.parentId, {})
+            .then(({ thoughts }) => thoughts[0]);
+
+        if (!parentThought) {
+            // Also the cross-brand answer: getById is brand-scoped, so a habits user naming a
+            // therr thought sees "not found" rather than a confirmation that the id exists.
+            return handleHttpError({
+                res,
+                message: translate(locale, 'thoughts.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        // Mirrors the read gate in getThoughtDetails: public, authored by them, or activated.
+        // Every legitimate way to reach a reply box satisfies one of these — viewing a private
+        // thought requires activating it, and opening a thread activates all of its replies.
+        const canReplyToParent = parentThought.isPublic
+            || parentThought.fromUserId === userId
+            || await hasUserReacted(req.body.parentId, req.headers);
+
+        if (!canReplyToParent) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'thoughts.parentAccessRestricted'),
+                statusCode: 403,
+                errorCode: ErrorCodes.THOUGHT_ACCESS_RESTRICTED,
+            });
+        }
+    }
+
     const isDuplicate = await Store.thoughts.get(brand, {
         fromUserId: userId,
         message: req.body.message,
@@ -396,15 +437,18 @@ const getThoughtDetails = (req, res) => {
     const {
         withUser,
         withReplies,
+        withParent,
     } = req.body;
 
     const shouldFetchUser = !!withUser;
     const shouldFetchReplies = !!withReplies;
+    const shouldFetchParent = !!withParent;
 
     return Promise.all([
         Store.thoughts.getById(brand, thoughtId, {}, {
             withUser: shouldFetchUser,
             withReplies: shouldFetchReplies,
+            withParent: shouldFetchParent,
             shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
         }),
         Store.userMetrics.countWhere('thoughtId', thoughtId),
@@ -489,12 +533,29 @@ const getThoughtDetails = (req, res) => {
 
                 const replyIds = (thought.replies || []).map((reply) => reply.id).filter((id) => !!id);
                 // Activating this thought too (when it is itself a reply) keeps a reply reachable
-                // on its own after it was first opened via the parent's access.
+                // on its own after it was first opened via the parent's access. The parent is
+                // deliberately NOT activated here: every legitimate way to reach a reply already
+                // implies activation on the parent (a private parent can only be opened by a user
+                // who has activated it, and viewing it is what activates the replies), so adding
+                // it would only ever hand out access the caller did not already have.
                 const idsToActivate = thought.parentId ? [thought.id, ...replyIds] : replyIds;
 
                 // Activate child thoughts otherwise
                 if (idsToActivate.length) {
                     createReactionsPromise = createReactions(idsToActivate, req.headers);
+                }
+
+                // Access to a reply is not access to the thought it replies to. `createThought`
+                // never verifies the caller can see `parentId`, so any user can attach their own
+                // reply to any thought id they know and reach this handler as its owner. The thread
+                // context is therefore gated on the caller being able to open the parent in its own
+                // right — public, authored by them, or already activated. Only reached when the
+                // client asked for `withParent`, so the extra lookup stays off the default path.
+                let parentAccessPromise = Promise.resolve(false);
+                if (thought.parent) {
+                    parentAccessPromise = thought.parent.isPublic || thought.parent.fromUserId === userId
+                        ? Promise.resolve(true)
+                        : hasUserReacted(thought.parentId, req.headers);
                 }
 
                 // Replies render their own like control, so they need the same reaction state the
@@ -507,7 +568,8 @@ const getThoughtDetails = (req, res) => {
                     createReactionsPromise,
                     replyCountsPromise,
                     replyReactionsPromise,
-                ]).then(([thoughtCounts, , replyLikeCounts, replyReactions]) => {
+                    parentAccessPromise,
+                ]).then(([thoughtCounts, , replyLikeCounts, replyReactions, hasParentAccess]) => {
                     const thoughtResult = {
                         ...thought,
                     };
@@ -519,6 +581,12 @@ const getThoughtDetails = (req, res) => {
                         likeCount: replyLikeCounts[reply.id] || 0,
                         reaction: replyReactions[reply.id],
                     }));
+
+                    if (thoughtResult.parent && !hasParentAccess) {
+                        // Clients treat a missing `parent` as "this is a reply, but the thread is
+                        // not reachable" and fall back to the generic wording without a link.
+                        delete thoughtResult.parent;
+                    }
 
                     if (userId && userId !== thought.fromUserId) {
                         Store.userConnections.incrementUserConnection(userId, thought.fromUserId, 1)
@@ -595,7 +663,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
         }));
         fromUserIds = connectionsResponse.data.results
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
-            .filter((id) => !!id); // eslint-disable-line eqeqeq
+            .filter((id) => !!id);
         searchArgs[0].filterBy = 'fromUserIds';
     }
     const searchPromise = Store.thoughts.search(brand, searchArgs[0], searchArgs[1], fromUserIds, {}, query !== 'me');

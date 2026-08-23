@@ -58,6 +58,9 @@ Coupling surface, regenerated 2026-07-30:
 | `main.notifications` | ✅ | — |
 | `main.userAchievements` | ✅ | — |
 | `main.thoughts` / `main.thoughtReactions` | — | ✅ (writes) |
+| `main.userLocations` | — | ✅ (declared homes of bot accounts) |
+| `habits.habit_phases` | ✅ (**writes**) | — |
+| `habits.habit_goals` / `habits.streaks` | ✅ | — |
 
 Regenerate it — do this rather than trusting the table above, it ages:
 
@@ -81,6 +84,42 @@ grep -rn "columnName" ~/Code/therr-messaging-automator/src/store \
 ```
 
 Then: add the new column → backfill → ship the consumer repos → *only then* drop the old one.
+
+### Rule: a bot's home city lives here, its local colour lives there
+
+> **Status (2026-08-22): the automator half is not built yet.** This repo's side has shipped —
+> the columns, the seeded bots with declared homes, and the distributor's local query. But
+> `therr-ai-automator` currently has no `src/config/locales.ts`, does not read
+> `main.userLocations`, and never writes `main.thoughts.latitude/longitude/locality`. Until it
+> does, the only location-tagged posts come from `detectLocality` on human posts. Read the rest
+> of this section as the contract to build against, not as a description of what runs today.
+
+Location-aware bots (seeded by `therr-services/users-service/src/store/seeds/006_local_bot_users.js`)
+have a declared home in `main.userLocations`. `therr-ai-automator` reads those coordinates
+each run and matches them against its own metro catalog (`src/config/locales.ts`) **by
+proximity, within 80km** — there is no shared city key, deliberately, so neither repo has to
+be redeployed because the other reworded a city name.
+
+What that means in practice:
+
+- Moving or deleting a seeded bot's `userLocations` row silently turns its local posts off.
+  Nothing errors; the bot just goes back to writing generic content.
+- Adding a metro takes **both** halves: a catalog entry there and a seeded bot with a home
+  inside its radius here. Either alone does nothing.
+- The automator writes `main.thoughts.latitude/longitude/locality` only on posts that are
+  actually about the city, and always as a complete coordinate pair. The distributor's local
+  candidate query filters on `latitude IS NOT NULL` and computes distance from both columns,
+  so a half pair would be a row claiming to be from somewhere while matching nothing.
+- **Bot posts do not go through the author-proximity check.** Human posts are only tagged
+  when the author is within 60km of the city they named (`detectLocality`), because post
+  text is user-controlled. The automator writes `main.thoughts` directly and never touches
+  `ThoughtsStore.create`, so that gate does not apply to it — its bots are trusted content
+  and are seeded with a declared home matching the city they write about anyway.
+- **The `locality` label must read the same on both sides.** Human posts get theirs from
+  `detectLocality` (`${name}, ${stateAbbr}` off the `Cities` catalog); bot posts get theirs
+  from the automator's `locales.ts` `name` field. Both spell it `"Chicago, IL"`. If one
+  repo restyles that label, the feed shows two spellings of one place — there is a parity
+  test in `therr-js-utilities/tests/detect-locality.test.ts`, but it can only see this repo.
 
 ### Rule: brand-scoping must be mirrored by hand
 
@@ -149,10 +188,23 @@ requires switching to `externalTrafficPolicy: Local`.
 NetworkPolicy `ipBlock` is missing — packets are dropped, not refused. `ECONNREFUSED` means
 something else (wrong port, pod down). The ~2-minute hang is the Linux SYN-retry budget.
 
-**The digest has no server-side dedup.** At-most-once-per-day is a property of there being a
-single Cloud Scheduler job (`0 9 * * *` America/Chicago), not of the code. Never add a second
-firing, never wire it into a default task path or a timeout continuation — a retry
-double-sends to real users.
+**The digest now dedups server-side.** It queues into `main.notificationQueue` with
+period-stamped dedupe keys (`streak-at-risk:<pactId>:<YYYY-MM-DD>`) behind a UNIQUE
+(brandVariation, userId, dedupeKey) constraint, so a retry, an overlapping firing or a
+timeout continuation costs a wasted read pass rather than a double-send to real users.
+The single Cloud Scheduler job (`0 9 * * *` America/Chicago) is still the intended trigger,
+but it is no longer the *only* thing standing between a retry and duplicate pushes.
+
+Two consequences for the automator side:
+
+- `triggerHabitsDailyDigest`'s "do NOT retry" comment and its `dispatched-pending` status
+  predate this. A retry after a timeout is now safe; whatever the first call already queued
+  will conflict rather than re-send.
+- Delivery is asynchronous. The counters in the response say what was *queued*, not what was
+  sent — `deduped` is the new field, and a run that queued nothing because everything was
+  already queued looks identical to a run with nothing to do apart from that counter. The
+  actual send happens on the users-service worker, which only runs when
+  `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
 
 ---
 
@@ -168,6 +220,12 @@ Cloud Scheduler's free tier is **3 jobs per billing account and all 3 are in use
 still bill). New scheduled backend work should multiplex onto an existing function via the
 request-body `task` field rather than assuming a 4th job can be added for free.
 
+The habit lifecycle emails (`{"task":"habits-milestone-emails"}`) are the worked example.
+The task exists and is independently invocable, but rather than assume a 4th job it can also
+be chained onto the existing digest firing with `HABITS_MILESTONE_EMAILS_ON_DIGEST=true` —
+which is the better order regardless, since the digest is what advances the maintenance
+stages the emails mail on. Enable the chained path *or* a dedicated job, never both.
+
 ---
 
 ## 5. Checklist: does my change need a sibling repo?
@@ -178,6 +236,8 @@ request-body `task` field rather than assuming a 4th job can be added for free.
 | Adding a table to `BRAND_SCOPED_TABLES` | Grep both automators; mirror into `src/store/brandScoped.ts` if read there |
 | SQL doing date math on `thoughts."createdAt"` | Clamp for future-dated rows (§2) |
 | Changing the shape or auth of `/v1/habits/pacts/digest/run-daily` | Update `therr-messaging-automator/src/api/habitsDigest.ts` |
+| Renaming/dropping any `habits.habit_phases` column | Grep `therr-messaging-automator/src/store/HabitPhasesStore.ts`; it reads the row and **writes** `maintenanceEmailedStage` / `lastComebackEmailedAt` |
+| Changing how `lastConsistencyPercent` is computed | It is read, not recomputed, by the automator's maintenance email — the number users see in both channels comes from this repo alone |
 | Changing `k8s/prod` users-service ports, selector, or NetworkPolicy | Re-check the internal LB path in §3 |
 | Needing a new scheduled backend job | Multiplex onto an existing Cloud Function (§4), or budget for a paid job |
 | Adding a public API route the marketing site consumes | Coordinate with `therr-landing`; it pins absolute `api.therr.com/v1/...` URLs |

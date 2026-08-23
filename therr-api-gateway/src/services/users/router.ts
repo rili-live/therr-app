@@ -64,6 +64,7 @@ import {
     handoffMintLimiter,
 } from './limitation/auth';
 import { createApiKeyValidation, revokeApiKeyValidation } from './validation/apiKeys';
+import { createCheckoutSessionValidation } from './validation/payments';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 import {
     createThoughtValidation,
@@ -308,7 +309,19 @@ usersServiceRouter.post('/users/interests/me', validate, handleServiceRequest({
 }));
 
 // Payments
-usersServiceRouter.post('/payments/checkout/sessions/:id', validate, handleServiceRequest({
+// Both checkout routes use authenticateOptional and are exempted from `authenticate` in
+// config/unauthenticatedPaths.ts. Buy-then-register is a supported path, so the buyer may
+// hold no session either when starting checkout or when Stripe returns them to
+// /payment-complete. Optional (not absent) auth so a signed-in buyer still arrives with
+// x-userid, which both handlers prefer over the session's billing email.
+//
+// Registered before the `:id` route below — Express matches in registration
+// order, and `sessions` would otherwise be read as an id.
+usersServiceRouter.post('/payments/checkout/sessions', authenticateOptional, createCheckoutSessionValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/payments/checkout/sessions/:id', authenticateOptional, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -416,11 +429,6 @@ usersServiceRouter.post('/users/:id/push-diagnostics/send-test', authorize(
     method: 'post',
 }));
 
-usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'get',
-}));
-
 usersServiceRouter.get('/users/by-phone/:phoneNumber', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
@@ -437,11 +445,6 @@ usersServiceRouter.get('/users/invites/:token', emailPrecheckLimiter, [param('to
     method: 'get',
 }));
 
-usersServiceRouter.put('/users/:id', updateUserValidation, validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'put',
-}));
-
 usersServiceRouter.put('/users/:id/block', blockUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
@@ -452,7 +455,12 @@ usersServiceRouter.put('/users/:id/report', reportUserValidation, validate, hand
     method: 'put',
 }));
 
-usersServiceRouter.put('/users/change-password', changePasswordValidation, handleServiceRequest({
+// `validate` is what turns the chain above into a 400 -- without it express-validator
+// collects the errors and nothing ever reads them. Latent until 2026-08-14, because the
+// route was shadowed by `PUT /users/:id` and never ran; un-shadowing it made the missing
+// check live, so it is fixed here rather than left as the one route in this file that
+// declares a body contract it does not enforce.
+usersServiceRouter.put('/users/change-password', changePasswordValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
@@ -549,10 +557,8 @@ usersServiceRouter.post('/social-sync', createUpdateSocialSyncsValidation, handl
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
-usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'get',
-}));
+// The four oauth2 callback routes must precede '/social-sync/:userId' -- they are
+// literal siblings on the same method, and the param route matched all four first.
 usersServiceRouter.get('/social-sync/oauth2-facebook', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
@@ -566,6 +572,10 @@ usersServiceRouter.get('/social-sync/oauth2-instagram', handleServiceRequest({
     method: 'get',
 }));
 usersServiceRouter.get('/social-sync/oauth2-tiktok', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
@@ -710,6 +720,13 @@ usersServiceRouter.put('/habits/pacts/:id/complete', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
+// The nudge route existed in the service, in PactsService and in the mobile
+// PactsList screen, but was never registered here — so every "nudge" a user
+// sent died at the gateway with nothing in the UI to say so.
+usersServiceRouter.put('/habits/pacts/:id/nudge', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
 usersServiceRouter.delete('/habits/pacts/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
@@ -797,8 +814,77 @@ usersServiceRouter.put('/habits/streaks/:id/grace', handleServiceRequest({
     method: 'put',
 }));
 
-// Catch-all param route -- MUST stay last. Any literal `POST /users/<name>` route
-// registered below this line will be shadowed by it and rejected with a 400.
+// HABITS — Tracked habits (including solo/personal habits)
+// `eligibility` before any `:id` sibling; assertNoShadowedRoutes fails the boot
+// if that ordering regresses.
+usersServiceRouter.get('/habits/user-habits/eligibility', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/user-habits', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/user-habits', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/user-habits/:id/archive', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/user-habits/:id/restore', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
+// HABITS — Lifetime founder purchase (Google Play Billing)
+usersServiceRouter.get('/habits/lifetime', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/lifetime/verify', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// HABITS — Journal
+usersServiceRouter.get('/habits/journal', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/journal', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/journal/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.delete('/habits/journal/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
+
+// Catch-all `/users/:id` param routes -- MUST stay last, one per method. Any
+// literal `/users/<name>` route registered below this line is shadowed by its
+// same-method catch-all and rejected with a 400 that reads like a client bug.
+//
+// GET and PUT were moved down here on 2026-08-14; before that they sat with the
+// rest of the /users block and were silently swallowing four literal routes:
+// GET /users/notifications, GET /users/organizations, PUT /users/change-password.
+// `assertNoShadowedRoutes` (src/utilities/routeOrdering.ts) now fails the boot
+// if this ordering regresses, so this comment is enforced rather than advisory.
+usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.put('/users/:id', updateUserValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
 usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',

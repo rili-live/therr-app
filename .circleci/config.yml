@@ -175,9 +175,9 @@ jobs:
             at: ~/
       - run:
           name: Apply Stage w/ Kubectl
-          # This should pull the latest images (verify and determine if necessary to set image with commit SHA)
-          # command: kubectl apply -f k8s/test && kubectl wait -f k8s/test --for=condition=ContainersReady --timeout=1s
-          command: echo "Hello, Apply Kubectl"
+          # No-op. There is no stage cluster: the k8s/test manifests this step used to apply
+          # were deleted after the GKE migration, having gone unused for years.
+          command: echo "No stage cluster — nothing to apply"
       - run:
           name: Run Integration Tests
           command: echo "Hello, Integration Tests"
@@ -289,12 +289,15 @@ jobs:
             echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
             source ~/.bashrc
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-            # Defaults target the current (blue) cluster, so behavior is unchanged unless
-            # overridden. Cutover to a new cluster is done by setting GKE_CLUSTER / GKE_ZONE
-            # (and optionally GKE_PROJECT) as CircleCI project env vars — no code merge needed.
+            # Defaults target therr-prod-1, the live production cluster. The old cluster-1
+            # default was removed when that cluster was deleted — leaving it would have meant
+            # that losing the CircleCI env var silently redirected deploys at a cluster that
+            # no longer exists. Cutover to a new cluster is still done by setting
+            # GKE_CLUSTER / GKE_ZONE (and optionally GKE_PROJECT) as CircleCI project env
+            # vars — no code merge needed. Keep the defaults pointing at whatever is live.
             gcloud --quiet config set project "${GKE_PROJECT:-therr-app}"
             gcloud --quiet config set compute/zone "${GKE_ZONE:-us-central1-a}"
-            gcloud container clusters get-credentials "${GKE_CLUSTER:-cluster-1}" \
+            gcloud container clusters get-credentials "${GKE_CLUSTER:-therr-prod-1}" \
               --zone "${GKE_ZONE:-us-central1-a}"
       - add_ssh_keys:
           fingerprints:

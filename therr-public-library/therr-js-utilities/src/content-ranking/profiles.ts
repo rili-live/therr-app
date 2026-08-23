@@ -70,6 +70,10 @@ const PROFILE_DEFAULTS: { [key in ContentAlgorithms]: IProfileDefaults } = {
         geoScaleMeters: 800,
         searchRadiusMeters: 3000,
         interestMatchBoost: 1.1,
+        // Local discovery is the whole point of WANDER: strongest boost, tightest radius,
+        // because "near me" here means the part of the city you could actually go to.
+        localMatchBoost: 2,
+        localFeedRadiusMeters: 25000,
         candidatePoolSize: 400,
         minActivationBatch: 7,
         maxActivationBatch: 14,
@@ -84,6 +88,11 @@ const PROFILE_DEFAULTS: { [key in ContentAlgorithms]: IProfileDefaults } = {
         geoScaleMeters: 1000,
         searchRadiusMeters: 1000,
         interestMatchBoost: 1.5,
+        // FOCUS is about precision on declared interests, so a local post still has to clear
+        // the interest filter to be activated at all — the boost only breaks ties among
+        // posts that already matched.
+        localMatchBoost: 1.2,
+        localFeedRadiusMeters: 60000,
         candidatePoolSize: 300,
         minActivationBatch: 7,
         maxActivationBatch: 20,
@@ -98,6 +107,12 @@ const PROFILE_DEFAULTS: { [key in ContentAlgorithms]: IProfileDefaults } = {
         geoScaleMeters: 1000,
         searchRadiusMeters: 1000,
         interestMatchBoost: 1.5,
+        // The one place PULSE is not "production exactly": a post about the user's own city
+        // ranks just below an interest match. This does not touch the emitted SQL — the geo
+        // *weight* stays 0, so the hot score is byte-identical — it only decides ordering
+        // within an activation batch, and only for users who have shared a location at all.
+        localMatchBoost: 1.4,
+        localFeedRadiusMeters: 60000,
         candidatePoolSize: 200,
         minActivationBatch: 7,
         maxActivationBatch: 20,
@@ -124,6 +139,8 @@ const buildProfile = (key: ContentAlgorithms): IAlgorithmProfile => {
         geoScaleMeters: numberFromEnv(envKey(key, 'GEO_SCALE_METERS'), defaults.geoScaleMeters),
         searchRadiusMeters: numberFromEnv(envKey(key, 'SEARCH_RADIUS_METERS'), defaults.searchRadiusMeters),
         interestMatchBoost: numberFromEnv(envKey(key, 'INTEREST_MATCH_BOOST'), defaults.interestMatchBoost),
+        localMatchBoost: numberFromEnv(envKey(key, 'LOCAL_MATCH_BOOST'), defaults.localMatchBoost),
+        localFeedRadiusMeters: numberFromEnv(envKey(key, 'LOCAL_FEED_RADIUS_METERS'), defaults.localFeedRadiusMeters),
         candidatePoolSize: numberFromEnv(envKey(key, 'CANDIDATE_POOL_SIZE'), defaults.candidatePoolSize),
         minActivationBatch: numberFromEnv(envKey(key, 'MIN_ACTIVATION_BATCH'), defaults.minActivationBatch),
         maxActivationBatch: numberFromEnv(envKey(key, 'MAX_ACTIVATION_BATCH'), defaults.maxActivationBatch),

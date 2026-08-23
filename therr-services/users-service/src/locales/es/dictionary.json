@@ -15,8 +15,42 @@
             "duplicateRepost": "Ya republicaste esta publicación"
         },
         "pacts": {
+            "activityTypeRequired": "Elige qué quieres enviar",
+            "cannotDelete": "Solo puedes eliminar un pacto que hayas creado",
+            "claimTokenRequired": "A ese enlace de invitación le falta el código",
             "habitGoalRequired": "Se requiere una meta de hábito para crear un pacto",
-            "freeTierLimitReached": "El nivel gratuito está limitado a {limit} pacto(s) activo(s). Actualiza a premium para tener pactos ilimitados."
+            "invalidConsequenceType": "Elige una de estas consecuencias: {allowed}",
+            "invalidDonationAmount": "Indica un monto de donación mayor que cero",
+            "invalidDuration": "Un pacto puede durar {allowed} días",
+            "invalidParams": "Algo en ese pacto no está bien: revisa los datos e inténtalo de nuevo",
+            "invitationBelongsToAnother": "Esa invitación se envió a otra persona",
+            "invitationExpired": "Esa invitación ya venció. Pídele a tu compañero que te envíe otra.",
+            "invitationNotFound": "No encontramos esa invitación",
+            "invitationNotRedeemable": "Esa invitación ya se usó",
+            "inviteesNoneValid": "Elige a alguien que no seas tú para invitar",
+            "inviteesRequired": "Elige al menos a una persona para invitar",
+            "inviteesTooMany": "Puedes invitar hasta {limit} compañeros a la vez",
+            "notAcceptingMembers": "Este pacto ya está completo",
+            "notActive": "Este pacto no está activo",
+            "notFound": "Ese pacto ya no existe",
+            "notInvitedPartner": "Esta invitación se envió a otra persona",
+            "notParticipant": "No formas parte de este pacto",
+            "notPending": "Ya respondiste a este pacto",
+            "nudgeCreatorOnly": "Solo quien creó este pacto puede enviar un recordatorio",
+            "nudgeNoPendingPartners": "Todos ya respondieron a este pacto",
+            "nudgeNotPending": "Este pacto ya comenzó, así que no queda nadie a quien recordar"
+        },
+        "habits": {
+            "freeTierHabitLimitReached": "Las cuentas gratuitas pueden seguir {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
+            "habitGoalNotFound": "No encontramos ese hábito",
+            "habitGoalRequired": "Se requiere una meta de hábito",
+            "journalBodyRequired": "Escribe algo antes de guardar esta entrada",
+            "journalEntryNotFound": "Entrada del diario no encontrada",
+            "lifetimeAlreadyClaimed": "Otra cuenta ya reclamó esa compra",
+            "lifetimePurchaseNotCompleted": "Esa compra aún no se ha completado",
+            "lifetimePurchaseNotFound": "No se encontró esa compra",
+            "lifetimeVerificationFailed": "No pudimos verificar esa compra en este momento. Inténtalo de nuevo en unos instantes.",
+            "soloLocked": "Invita a {remaining} amigo(s) más para desbloquear los hábitos que sigues por tu cuenta: {required} invitaciones en total."
         },
         "user": {
             "invalidUserNamePassword": "La combinación de usuario/contraseña es incorrecta",
@@ -39,6 +73,27 @@
         },
         "privacy": {
             "restrictedMedia": "Contenido restringido"
+        },
+        "habitCheckins": {
+            "dateRangeRequired": "Elige una fecha de inicio y una de fin",
+            "habitGoalRequired": "Elige un hábito para registrar",
+            "notAuthorizedToUpdate": "Solo puedes modificar tu propio registro",
+            "notAuthorizedToView": "Solo puedes ver tus propios registros",
+            "notFound": "No encontramos ese registro",
+            "notFoundOrNotAuthorizedToDelete": "No encontramos ese registro, o no es tuyo para eliminarlo"
+        },
+        "streaks": {
+            "noGraceDaysAvailable": "Ya usaste todos los días de gracia de esta racha",
+            "notAuthorizedToModify": "Solo puedes modificar tu propia racha",
+            "notAuthorizedToView": "Solo puedes ver tu propia racha",
+            "notAuthorizedToViewHistory": "Solo puedes ver el historial de tu propia racha",
+            "notFound": "No encontramos esa racha"
+        },
+        "habitGoals": {
+            "cannotDelete": "Solo puedes eliminar un hábito que hayas creado",
+            "cannotModifyTemplate": "Este hábito es una de nuestras plantillas, así que no se puede editar",
+            "nameRequired": "Ponle un nombre a este hábito",
+            "notOwner": "Solo puedes editar un hábito que hayas creado"
         }
     },
     "metrics": {
@@ -60,7 +115,10 @@
         "discoveredUniqueSpace": "Alerta de joya oculta — ¡estás cerca de un espacio único!"
     },
     "invites": {
-        "phone": "{name} te invitó a Therr — la app de comunidad local y recompensas. Regístrate aquí para conectar: {inviteUrl}",
+        "phone": "{name} te invitó a {brandName}{brandTagline}. Regístrate aquí para conectar: {inviteUrl}",
+        "phoneTaglines": {
+            "therr": " — la app de comunidad local y recompensas"
+        },
         "pact": {
             "sms": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala y abre {claimUrl} — o usa el código {claimCode} al registrarte.",
             "smsTokenOnly": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala la app y abre {claimUrl} para aceptar."
@@ -68,7 +126,8 @@
     },
     "thoughts": {
         "notFound": "Pensamiento no encontrado",
-        "repostRestricted": "Esta publicación no se puede republicar"
+        "repostRestricted": "Esta publicación no se puede republicar",
+        "parentAccessRestricted": "Este usuario no tiene permiso para responder a un pensamiento al que no puede acceder"
     },
     "thoughtReactions": {
         "thoughtNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el pensamiento"
@@ -135,7 +194,11 @@
             "dearUser": "¡Hola {toEmail}!",
             "body1": "¡{fromName} te quiere en {brandName}! También puedes contactarlo/a directamente en {fromEmail}.",
             "body2": "Haz clic abajo para registrarte y comenzar a explorar tu comunidad local.",
-            "postBody1": "Si el botón no funciona, copia y pega este enlace en tu navegador: {linkUrl}"
+            "body2ByBrand": {
+                "habits": "Haz clic abajo para registrarte y ser el cambio: los hábitos duran cuando los construyes con amigos."
+            },
+            "postBody1": "Si el botón no funciona, copia y pega este enlace en tu navegador: {linkUrl}",
+            "subject": "{fromName} te invitó a {brandShortName}"
         },
         "newUserInvite": {
             "header": "¡Tu perfil te está esperando!",

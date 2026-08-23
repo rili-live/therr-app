@@ -9,6 +9,61 @@ import { createReactions } from './reactions';
 const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
 /**
+ * Share of the activation batch reserved for posts about where the user lives.
+ *
+ * Half, because local content is a reason to open the app and not a category of feed — a
+ * user who shares their location should recognize their city in the stream without the
+ * stream becoming only their city. The local query is a third candidate set alongside
+ * interest matches and general hotness, not a replacement for either.
+ */
+const LOCAL_CANDIDATE_SHARE = 0.5;
+
+/**
+ * The point to treat as "where this user lives", or undefined if we don't know.
+ *
+ * Resolved per run rather than cached on the user row, because it changes as location pings
+ * arrive and the cost is one indexed single-row read. A failure here must never fail the
+ * run: no location simply means no local candidates, which is the pre-existing behavior for
+ * every user who has not shared one.
+ */
+const resolveHomeLocation = async (userId?: string): Promise<{ latitude: number; longitude: number } | undefined> => {
+    if (!userId) {
+        return undefined;
+    }
+
+    try {
+        const location = await Store.userLocations.getPrimary(userId);
+        // Null-checked before the numeric coercion, not after: latitude and longitude are
+        // both nullable, and `Number(null)` is 0 — a half-written row would otherwise
+        // resolve to the Gulf of Guinea and quietly run a local query against it.
+        if (location?.latitude == null || location?.longitude == null) {
+            return undefined;
+        }
+
+        const latitude = Number(location.latitude);
+        const longitude = Number(location.longitude);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return undefined;
+        }
+
+        return { latitude, longitude };
+    } catch (err: any) {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'TherrEventEmitter',
+            messages: [err?.message],
+            traceArgs: {
+                issue: 'failed to resolve home location for local thought candidates',
+                'user.id': userId,
+            },
+        });
+
+        return undefined;
+    }
+};
+
+/**
  * The context user whose content algorithm may rank this run, or `undefined` when the run
  * cannot be attributed to one.
  *
@@ -29,7 +84,8 @@ class TherrEventEmitter {
     /**
      * Activates a batch of candidate thoughts for the requesting user's stream.
      * Candidates are ranked by engagement-aware hot score (see ThoughtsStore.getRecentThoughts):
-     * thoughts matching the user's interests lead, top generally-hot thoughts fill the rest.
+     * thoughts matching the user's interests lead, posts about the city the user lives in are
+     * mixed in behind them, and top generally-hot thoughts fill the rest.
      * `shouldIncludeGeneralCandidates` (recentUsersCount > 0) widens the batch beyond
      * interest matches — used at login; the lighter notifications-poll path activates
      * interest matches only (with a single-thought fallback).
@@ -96,8 +152,12 @@ class TherrEventEmitter {
             // interest set to be strict about.
             const shouldSuppressGeneral = profile.hardInterestFilter && interestsKeys.length > 0;
             const generalLimit = shouldIncludeGeneralCandidates ? numThoughts : 1;
+            const localLimit = Math.max(1, Math.round(numThoughts * LOCAL_CANDIDATE_SHARE));
 
-            return Promise.all([
+            // Only the user the reactions are written for gets local candidates. A batched run
+            // names several people with different homes, and there is no single location that
+            // would be "near" for all of them.
+            return resolveHomeLocation(targetUser?.id).then((homeLocation) => Promise.all([
                 interestsKeys.length
                     ? Store.thoughts.getRecentThoughts(brand, numThoughts, interestsKeys, ['id'], profile)
                     : Promise.resolve([]),
@@ -107,10 +167,29 @@ class TherrEventEmitter {
                 shouldSuppressGeneral
                     ? Promise.resolve([])
                     : Store.thoughts.getRecentThoughts(brand, generalLimit, [], ['id'], profile),
-            ]).then(([thoughtsForContext, thoughtsForRecent]) => [thoughtsForContext, thoughtsForRecent, profile] as const);
-        }).then(([thoughtsForContext, thoughtsForRecent, profile]) => {
+                // Posts about where the user lives. Under a hard interest filter these are
+                // held to the same interest predicate as everything else — FOCUS means
+                // precision, and "it happens to be nearby" is not a reason to break that.
+                homeLocation && profile.localFeedRadiusMeters > 0
+                    ? Store.thoughts.getRecentThoughts(
+                        brand,
+                        localLimit,
+                        shouldSuppressGeneral ? interestsKeys : [],
+                        ['id'],
+                        profile,
+                        { ...homeLocation, radiusMeters: profile.localFeedRadiusMeters },
+                    )
+                    : Promise.resolve([]),
+            ])).then(([thoughtsForContext, thoughtsForRecent, thoughtsForLocation]) => [
+                thoughtsForContext,
+                thoughtsForRecent,
+                thoughtsForLocation,
+                profile,
+            ] as const);
+        }).then(([thoughtsForContext, thoughtsForRecent, thoughtsForLocation, profile]) => {
             const interestMatches = thoughtsForContext || [];
             const generalMatches = thoughtsForRecent || [];
+            const localMatches = thoughtsForLocation || [];
             const thoughtIds = new Set<string>();
             // Scores ride along to the reaction rows so the stream can be ordered by relevance
             // on read. Highest score wins when a thought appears in both candidate sets.
@@ -135,6 +214,11 @@ class TherrEventEmitter {
                 // If no new thoughts match user interests, fallback to the hottest general thought
                 generalMatches.slice(0, 1).forEach((thought) => recordScore(thought, 1));
             }
+
+            // Added on every path, including the no-interest-match fallback above: a brand-new
+            // user has no interests yet but may well have shared their location, and posts
+            // about their own city are the strongest thing we can put in that empty feed.
+            localMatches.forEach((thought) => recordScore(thought, profile.localMatchBoost));
 
             if (shouldIncludeGeneralCandidates) {
                 generalMatches.forEach((thought) => recordScore(thought, 1));

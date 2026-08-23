@@ -10,6 +10,7 @@ export const getThoughtDetailsValidation = [
     param('thoughtId').exists(),
     body('withUser').isBoolean().optional(),
     body('withReplies').isBoolean().optional(),
+    body('withParent').isBoolean().optional(),
 ];
 
 export const createThoughtValidation = [

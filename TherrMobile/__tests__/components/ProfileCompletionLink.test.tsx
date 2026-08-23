@@ -22,6 +22,7 @@ jest.mock('therr-react/services', () => ({
     },
 }));
 
+import { AccessLevels } from 'therr-js-utilities/constants';
 import ProfileCompletionLink from '../../main/components/ProfileCompletionLink';
 import { markContactsSkipped, markContactsSynced, markInterestsSelected } from '../../main/utilities/profileCompletion';
 
@@ -42,6 +43,7 @@ const completeUser = buildUser({
     firstName: 'Zack',
     lastName: 'Anselm',
     phoneNumber: '+15555555555',
+    accessLevels: [AccessLevels.MOBILE_VERIFIED],
     media: { profilePicture: { path: 'some/path.jpeg' } },
 });
 
@@ -101,6 +103,7 @@ describe('ProfileCompletionLink', () => {
                 firstName: 'Zack',
                 lastName: 'Anselm',
                 phoneNumber: '+15555555555',
+                accessLevels: [AccessLevels.MOBILE_VERIFIED],
             }),
             themeName: 'light',
         });

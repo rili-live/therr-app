@@ -1,5 +1,3 @@
-/* eslint-disable quotes */
-/* eslint-disable max-len */
 import { MetricNames, MetricValueTypes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import sendEmail from '../sendEmail';

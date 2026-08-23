@@ -408,7 +408,11 @@
       "unlikeThought": "Quitar me gusta de esta publicación",
       "repostedBy": "{userName} republicó",
       "repostThought": "Republicar esta publicación",
-      "repostUnavailable": "Esta publicación ya no está disponible"
+      "repostUnavailable": "Esta publicación ya no está disponible",
+      "crossBrandLabels": {
+        "format": "{label}: {message}",
+        "habits": "Actualización de objetivos"
+      }
     },
     "userMenu": {
       "buttons": {
@@ -511,7 +515,9 @@
         "password": "Contraseña",
         "userName": "Correo/Teléfono/Usuario",
         "enterCode": "Ingresa tu código",
-        "switchAccount": "Cambiar de cuenta"
+        "switchAccount": "Cambiar de cuenta",
+        "useNumberKeypad": "Usar el teclado numérico",
+        "useLetterKeyboard": "Usar el teclado alfabético"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "invalidUsernamePassword": "Combinación de usuario/contraseña inválida.",
@@ -1535,6 +1541,35 @@
         "pairingsDescription": "Lugares perfectos cerca para completar tu salida en {spaceName}",
         "helpful": "Útil",
         "notHelpful": "No útil"
+      },
+      "suggestEdit": {
+        "trigger": "Sugerir una edición",
+        "title": "Sugerir una edición",
+        "description": "¿Viste información incorrecta? Sugiere una corrección. La aplicaremos cuando varias personas estén de acuerdo.",
+        "fieldLabel": "¿Qué necesita actualización?",
+        "valueLabel": "Valor correcto",
+        "phoneOption": "Teléfono",
+        "websiteOption": "Sitio web",
+        "phonePlaceholder": "+34 600 000 000",
+        "websitePlaceholder": "https://ejemplo.com",
+        "normalizedPreview": "Se guardará como",
+        "submit": "Enviar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "appliedMessage": "¡Gracias! Tu corrección ha sido aplicada.",
+        "pendingMessage": "¡Gracias! Necesitamos {remaining} confirmación(es) más antes de aplicar este cambio.",
+        "ownerClaimedMessage": "¡Gracias! Este negocio tiene un propietario — le hemos reenviado tu sugerencia.",
+        "errorMessage": "Algo salió mal al enviar tu sugerencia. Por favor, intenta de nuevo.",
+        "rateLimited": "Has enviado muchas sugerencias recientemente. Por favor, inténtalo de nuevo más tarde.",
+        "errors": {
+          "EMPTY_PHONE": "Por favor, introduce un número de teléfono.",
+          "INVALID_PHONE": "Eso no parece un número de teléfono válido.",
+          "EMPTY_URL": "Por favor, introduce un sitio web.",
+          "INVALID_URL": "Eso no parece una URL válida.",
+          "INVALID_FIELD_NAME": "Ese campo no se puede editar.",
+          "UNSUPPORTED_FIELD": "Ese campo no se puede editar.",
+          "SPACE_NOT_FOUND": "Este lugar ya no está disponible."
+        }
       }
     },
     "viewMoment": {
@@ -1771,7 +1806,7 @@
         "noContactInfo": "Este contacto no tiene un número de teléfono ni un correo electrónico al que enviar la invitación",
         "tooManySelected": "Solo se invitó a los primeros {count} contactos. Selecciona menos para invitar al resto.",
         "inviteFailed": "No pudimos enviar tus invitaciones. Inténtalo de nuevo.",
-        "phoneVerificationRequired": "Verifica tu número de teléfono en tu perfil antes de enviar invitaciones"
+        "phoneVerificationRequired": "Toca aquí para verificar tu número de teléfono y vuelve a enviar las invitaciones"
       }
     },
     "register": {
@@ -1890,7 +1925,12 @@
       "headerTitle": "Pensamientos",
       "reply": "Responder",
       "replies": "Respuestas",
-      "repliesFailed": "No pudimos cargar las respuestas. Inténtalo de nuevo en un momento."
+      "repliesFailed": "No pudimos cargar las respuestas. Inténtalo de nuevo en un momento.",
+      "headerTitleReply": "Respuesta",
+      "partOfThread": "Parte de una conversación",
+      "replyingTo": "Respondiendo a {userName}",
+      "viewParentThought": "Ver la publicación a la que responde",
+      "backToParent": "Volver a la conversación"
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",

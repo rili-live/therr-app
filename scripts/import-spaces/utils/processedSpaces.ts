@@ -50,20 +50,41 @@ function filePath(type: ProcessedType): string {
 }
 
 /**
- * Load all entries from a processed-spaces JSON file.
+ * In-process cache of each file's parsed contents, alongside an ID index.
+ *
+ * Without this, `markProcessed` re-read and re-parsed the whole file on every
+ * single space. These files reach several thousand entries, so a long run spent
+ * most of its non-network time re-parsing JSON it had just written.
+ */
+const fileCache = new Map<ProcessedType, IProcessedFile>();
+const idCache = new Map<ProcessedType, Set<string>>();
+
+/**
+ * Load all entries from a processed-spaces JSON file (cached per process).
  */
 function loadFile(type: ProcessedType): IProcessedFile {
+  const cached = fileCache.get(type);
+  if (cached) return cached;
+
   const fp = filePath(type);
+  let data: IProcessedFile;
+
   if (!fs.existsSync(fp)) {
-    return { type, updatedAt: new Date().toISOString(), entries: [] };
+    data = { type, updatedAt: new Date().toISOString(), entries: [] };
+  } else {
+    try {
+      const raw = fs.readFileSync(fp, 'utf-8');
+      data = JSON.parse(raw) as IProcessedFile;
+      if (!Array.isArray(data.entries)) data.entries = [];
+    } catch (err) {
+      console.error(`Warning: Could not parse ${fp}, starting fresh. Error: ${(err as Error).message}`);
+      data = { type, updatedAt: new Date().toISOString(), entries: [] };
+    }
   }
-  try {
-    const raw = fs.readFileSync(fp, 'utf-8');
-    return JSON.parse(raw) as IProcessedFile;
-  } catch (err) {
-    console.error(`Warning: Could not parse ${fp}, starting fresh. Error: ${(err as Error).message}`);
-    return { type, updatedAt: new Date().toISOString(), entries: [] };
-  }
+
+  fileCache.set(type, data);
+  idCache.set(type, new Set(data.entries.map((e) => e.id)));
+  return data;
 }
 
 /**
@@ -73,15 +94,15 @@ function saveFile(data: IProcessedFile): void {
   ensureDataDir();
   const fp = path.join(DATA_DIR, `${data.type}.json`);
   data.updatedAt = new Date().toISOString();
-  fs.writeFileSync(fp, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+  fs.writeFileSync(fp, `${JSON.stringify(data, null, 2)}\n`, 'utf-8');
 }
 
 /**
  * Load the set of all processed space IDs for a given type.
  */
 export function loadProcessedIds(type: ProcessedType): Set<string> {
-  const data = loadFile(type);
-  return new Set(data.entries.map((e) => e.id));
+  loadFile(type);
+  return idCache.get(type) as Set<string>;
 }
 
 /**
@@ -102,14 +123,16 @@ export function loadProcessedIdsMulti(types: ProcessedType[]): Set<string> {
  */
 export function markProcessed(type: ProcessedType, id: string, name: string): void {
   const data = loadFile(type);
+  const ids = idCache.get(type) as Set<string>;
   // Avoid duplicates
-  if (data.entries.some((e) => e.id === id)) return;
+  if (ids.has(id)) return;
 
   data.entries.push({
     id,
     name,
     processedAt: new Date().toISOString(),
   });
+  ids.add(id);
   saveFile(data);
 }
 
@@ -120,7 +143,7 @@ export function markProcessedBatch(type: ProcessedType, items: Array<{ id: strin
   if (items.length === 0) return;
 
   const data = loadFile(type);
-  const existing = new Set(data.entries.map((e) => e.id));
+  const existing = idCache.get(type) as Set<string>;
   const now = new Date().toISOString();
 
   for (const item of items) {
@@ -131,6 +154,38 @@ export function markProcessedBatch(type: ProcessedType, items: Array<{ id: strin
   }
 
   saveFile(data);
+}
+
+/**
+ * Clear a processed-spaces file entirely.
+ *
+ * Needed whenever the extraction logic improves: the prior run recorded
+ * thousands of "no image found" IDs that a better extractor would now succeed
+ * on, and without a reset those spaces are skipped forever.
+ *
+ * Returns the number of entries removed.
+ */
+export function resetProcessed(type: ProcessedType): number {
+  const data = loadFile(type);
+  const removed = data.entries.length;
+  data.entries = [];
+  (idCache.get(type) as Set<string>).clear();
+  saveFile(data);
+  return removed;
+}
+
+/**
+ * Processed IDs for the given types as a plain array, for use as a Postgres
+ * query parameter (`id != ALL($n::uuid[])`).
+ *
+ * Excluding in SQL rather than in JS is what makes `--limit N` mean "N spaces
+ * I have not tried yet". Filtering after the query applied its LIMIT meant a
+ * run asking for 50 spaces would sample 50 rows at random from the whole
+ * eligible set — most of which were already processed — and then do almost
+ * nothing, which looks identical to the script being broken.
+ */
+export function processedIdsArray(types: ProcessedType[]): string[] {
+  return Array.from(loadProcessedIdsMulti(types));
 }
 
 /**

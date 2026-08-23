@@ -9,7 +9,6 @@ import ApiService, {
 } from '../../services/ApiService';
 import { ContentActionTypes } from '../../types/redux/content';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchThoughtsArgs {}
 interface ILoginSSOTokens {
     google?: string;

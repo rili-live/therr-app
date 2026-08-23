@@ -54,6 +54,12 @@ export const createUserValidation = [
     body('inviteToken').optional().isUUID(4),
     body('activationCode').optional().isString(),
     body('paymentSessionId').optional().isString(),
+    // Marketing attribution captured on first landing. Only the shape is checked here —
+    // the individual fields are attacker-controlled URL parameters and are truncated and
+    // filtered to known columns by `sanitizeUserAcquisition` in the users-service, which
+    // is the layer that actually has to be safe. Deliberately not stricter than this: a
+    // 400 on telemetry would cost a real signup, which is the opposite of the trade we want.
+    body('userAcquisition').optional().isObject(),
 ];
 
 export const changePasswordValidation = [

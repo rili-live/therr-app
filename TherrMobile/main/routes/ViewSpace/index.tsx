@@ -38,6 +38,8 @@ import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaScrollerCard from '../../components/UserContent/AreaScrollerCard';
 import HorizontalCardScroller, { getScrollerCardWidth } from '../../components/UserContent/HorizontalCardScroller';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import SuggestEditModal from '../../components/Modals/SuggestEditModal';
+import { CorrectionFieldName } from '../../utilities/correctionValue';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { isMyContent as checkIsMySpace, getUserContentUri } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -148,6 +150,8 @@ const ViewSpace = ({
     const [isUserInSpace, setIsUserInSpace] = useState(true);
     const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
     const [isViewingIncentives, setIsViewingIncentives] = useState(false);
+    const [isSuggestEditModalVisible, setIsSuggestEditModalVisible] = useState(false);
+    const [suggestEditInitialField, setSuggestEditInitialField] = useState<CorrectionFieldName | undefined>(undefined);
     const [moments, setMoments] = useState<any[]>([]);
     const [fetchedSpace, setFetchedSpace] = useState<any>({});
     const [previewStyleState, setPreviewStyleState] = useState<any>({});
@@ -192,6 +196,10 @@ const ViewSpace = ({
         areaType: 'spaces',
         associatedMoments: moments,
     }), [space, fetchedSpace, moments]);
+
+    // The route param is set by the caller; re-derive from the fetched space too,
+    // since a space reached via a share link or a pairing card arrives without it.
+    const isMySpace = isMyContent || checkIsMySpace(spaceInView, user);
 
     const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
     const spaceUserMedia = isMyContent ? user.details.media : (spaceInView.fromUserMedia || {});
@@ -484,6 +492,29 @@ const ViewSpace = ({
         MapsService.submitPairingFeedback(space.id, pairedSpaceId, isHelpful).catch(() => {});
     }, [space.id]);
 
+    // An auto-applied correction writes the new value server-side while the
+    // screen is still rendering the old one. The gateway invalidates the
+    // space-details cache on apply, so a plain refetch returns the new value.
+    const handleCorrectionApplied = useCallback(() => {
+        getSpaceDetails(space.id, {
+            withEvents: false,
+            withMedia: false,
+            withUser: false,
+            withRatings: false,
+        }).then((data) => {
+            // Merged rather than replaced: this refetch asks only for the space
+            // itself, so it must not drop what the initial fetch already resolved.
+            setFetchedSpace((prev) => ({ ...prev, ...(data?.space || {}) }));
+        }).catch(() => {
+            // Non-fatal: the modal already confirmed the correction was applied
+        });
+    }, [getSpaceDetails, space.id]);
+
+    const handleSuggestEdit = useCallback((fieldName?: CorrectionFieldName) => {
+        setSuggestEditInitialField(fieldName);
+        setIsSuggestEditModalVisible(true);
+    }, []);
+
     const handleGoToViewSpace = useCallback((pairedSpace: any) => {
         navigation.push('ViewSpace', {
             space: pairedSpace,
@@ -708,6 +739,9 @@ const ViewSpace = ({
                                 isDarkMode={isDarkMode}
                                 isExpanded={true}
                                 inspectContent={() => null}
+                                // Owners edit their own space directly from the footer —
+                                // no reason to route them through crowdsourced agreement.
+                                onSuggestEditPress={isMySpace ? undefined : handleSuggestEdit}
                                 area={spaceInView}
                                 goToViewEvent={handleGoToViewEvent}
                                 goToViewMoment={handleGoToViewMoment}
@@ -794,6 +828,18 @@ const ViewSpace = ({
                 theme={theme}
                 themeModal={themeConfirmModal}
                 themeButtons={themeButtons}
+            />
+
+            {/* Crowdsourced business info corrections */}
+            <SuggestEditModal
+                isVisible={isSuggestEditModalVisible}
+                onRequestClose={() => setIsSuggestEditModalVisible(false)}
+                spaceId={space.id}
+                initialField={suggestEditInitialField}
+                onApplied={handleCorrectionApplied}
+                translate={translate}
+                themeButtons={themeButtons}
+                themeForms={themeForms}
             />
         </>
     );

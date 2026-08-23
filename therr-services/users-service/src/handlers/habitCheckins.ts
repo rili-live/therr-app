@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express';
-import { HabitGoalType, MetricNames, PushNotifications } from 'therr-js-utilities/constants';
+import {
+    ErrorCodes, HabitGoalType, MetricNames, PushNotifications,
+} from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
@@ -68,8 +70,9 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     if (!habitGoal) {
         return handleHttpError({
             res,
-            message: 'Habit goal not found',
+            message: translate(locale, 'errorMessages.habits.habitGoalNotFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
@@ -87,8 +90,9 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         if (!requestedPact) {
             return handleHttpError({
                 res,
-                message: 'Pact not found',
+                message: translate(locale, 'errorMessages.pacts.notFound'),
                 statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
             });
         }
 
@@ -101,8 +105,9 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         if (!isParticipant) {
             return handleHttpError({
                 res,
-                message: 'You are not a participant in this pact',
+                message: translate(locale, 'errorMessages.pacts.notParticipant'),
                 statusCode: 403,
+                errorCode: ErrorCodes.NOT_PERMITTED,
             });
         }
 
@@ -115,6 +120,14 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     // pacts the row is attributed to the earliest-started one (the store
     // orders by startDate); every pact is still credited below.
     const attributedPactId = pactId || pacts[0]?.id;
+
+    // Make sure the habit is registered as tracked. Every deliberate entry
+    // point already does this, so in practice the row exists — but a check-in
+    // is proof the user is tracking the habit, and a habit that is being
+    // checked into while missing from `user_habits` would be invisible on the
+    // dashboard and uncounted by the free-tier cap. getOrCreate will not
+    // resurrect a row the user archived.
+    await Store.userHabits.getOrCreate(userId, habitGoalId);
 
     // Create or update the checkin
     return Store.habitCheckins.createOrUpdate({
@@ -374,7 +387,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
 // READ
 const getCheckin: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
 
     return Store.habitCheckins.getById(id)
@@ -382,8 +395,9 @@ const getCheckin: RequestHandler = async (req: any, res: any) => {
             if (!checkin) {
                 return handleHttpError({
                     res,
-                    message: `Checkin not found with id ${id}`,
+                    message: translate(locale, 'errorMessages.habitCheckins.notFound'),
                     statusCode: 404,
+                    errorCode: ErrorCodes.NOT_FOUND,
                 });
             }
 
@@ -391,8 +405,9 @@ const getCheckin: RequestHandler = async (req: any, res: any) => {
             if (checkin.userId !== userId) {
                 return handleHttpError({
                     res,
-                    message: 'Not authorized to view this checkin',
+                    message: translate(locale, 'errorMessages.habitCheckins.notAuthorizedToView'),
                     statusCode: 403,
+                    errorCode: ErrorCodes.NOT_PERMITTED,
                 });
             }
 
@@ -413,14 +428,15 @@ const getTodayCheckins: RequestHandler = async (req: any, res: any) => {
 };
 
 const getCheckinsByDateRange: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { startDate, endDate, habitGoalId } = req.query;
 
     if (!startDate || !endDate) {
         return handleHttpError({
             res,
-            message: 'startDate and endDate are required',
+            message: translate(locale, 'errorMessages.habitCheckins.dateRangeRequired'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -435,7 +451,7 @@ const getCheckinsByDateRange: RequestHandler = async (req: any, res: any) => {
 };
 
 const getPactCheckins: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { pactId } = req.params;
     const { limit, offset } = req.query;
 
@@ -444,16 +460,18 @@ const getPactCheckins: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: 'Pact not found',
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (pact.creatorUserId !== userId && pact.partnerUserId !== userId) {
         return handleHttpError({
             res,
-            message: 'You are not a participant in this pact',
+            message: translate(locale, 'errorMessages.pacts.notParticipant'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
@@ -468,7 +486,7 @@ const getPactCheckins: RequestHandler = async (req: any, res: any) => {
 
 // UPDATE
 const updateCheckin: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
 
     const {
@@ -483,16 +501,18 @@ const updateCheckin: RequestHandler = async (req: any, res: any) => {
     if (!existingCheckin) {
         return handleHttpError({
             res,
-            message: `Checkin not found with id ${id}`,
+            message: translate(locale, 'errorMessages.habitCheckins.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (existingCheckin.userId !== userId) {
         return handleHttpError({
             res,
-            message: 'Not authorized to update this checkin',
+            message: translate(locale, 'errorMessages.habitCheckins.notAuthorizedToUpdate'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
@@ -508,7 +528,7 @@ const updateCheckin: RequestHandler = async (req: any, res: any) => {
 };
 
 const skipCheckin: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
     const { notes } = req.body;
 
@@ -517,16 +537,18 @@ const skipCheckin: RequestHandler = async (req: any, res: any) => {
     if (!existingCheckin) {
         return handleHttpError({
             res,
-            message: `Checkin not found with id ${id}`,
+            message: translate(locale, 'errorMessages.habitCheckins.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (existingCheckin.userId !== userId) {
         return handleHttpError({
             res,
-            message: 'Not authorized to update this checkin',
+            message: translate(locale, 'errorMessages.habitCheckins.notAuthorizedToUpdate'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
@@ -537,7 +559,7 @@ const skipCheckin: RequestHandler = async (req: any, res: any) => {
 
 // DELETE
 const deleteCheckin: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
 
     return Store.habitCheckins.delete(id, userId)
@@ -545,8 +567,9 @@ const deleteCheckin: RequestHandler = async (req: any, res: any) => {
             if (!deleted) {
                 return handleHttpError({
                     res,
-                    message: 'Checkin not found or not authorized to delete',
+                    message: translate(locale, 'errorMessages.habitCheckins.notFoundOrNotAuthorizedToDelete'),
                     statusCode: 404,
+                    errorCode: ErrorCodes.NOT_FOUND,
                 });
             }
             return res.status(200).send({ deleted: true });

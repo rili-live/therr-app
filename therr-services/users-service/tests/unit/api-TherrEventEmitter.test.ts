@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 /**
  * The thought distributor's algorithm-awareness.
  *
@@ -12,6 +11,7 @@ import sinon from 'sinon';
 import { ContentAlgorithms } from 'therr-js-utilities/content-ranking';
 import TherrEventEmitter from '../../src/api/TherrEventEmitter';
 import Store from '../../src/store';
+import * as reactionsApi from '../../src/api/reactions';
 
 const HEADERS: any = {
     'x-userid': 'user-1',
@@ -21,6 +21,7 @@ const HEADERS: any = {
 describe('TherrEventEmitter.runThoughtDistributorAlgorithm — content algorithms', () => {
     let findUsersStub: sinon.SinonStub;
     let getRecentThoughtsStub: sinon.SinonStub;
+    let getPrimaryLocationStub: sinon.SinonStub;
 
     const stubContextUsers = (users: any[]) => {
         findUsersStub.callsFake(() => Promise.resolve(users));
@@ -38,6 +39,10 @@ describe('TherrEventEmitter.runThoughtDistributorAlgorithm — content algorithm
         // Empty results end the run before createReactions, which is what keeps this a pure
         // unit test of the selection logic.
         getRecentThoughtsStub = sinon.stub(Store.thoughts, 'getRecentThoughts').callsFake(() => Promise.resolve([]));
+        // Most cases describe a user who has never shared a location, which is the state
+        // every account starts in and the one the call-count assertions below are written
+        // against. The local candidate query has its own describe block.
+        getPrimaryLocationStub = sinon.stub(Store.userLocations, 'getPrimary').resolves(undefined);
     });
 
     afterEach(() => {
@@ -173,6 +178,119 @@ describe('TherrEventEmitter.runThoughtDistributorAlgorithm — content algorithm
             expect(getRecentThoughtsStub.callCount).to.equal(2);
             expect(getRecentThoughtsStub.args[0][2]).to.deep.equal(['interests.hiking']);
             expect(getRecentThoughtsStub.args[1][2]).to.deep.equal([]);
+        });
+    });
+
+    /**
+     * Posts about the city the user lives in.
+     *
+     * This is the feature's whole point for a new account: someone who signs up and shares
+     * their location has no interests, no connections and nothing in their stream, and the
+     * one thing we can say about them is where they are.
+     */
+    describe('local candidates', () => {
+        const CHICAGO = { latitude: 41.8781, longitude: -87.6298 };
+
+        it('runs no local query for a user who has not shared a location', async () => {
+            stubContextUsers([userWith(ContentAlgorithms.PULSE, ['interests.hiking'])]);
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1'], 'createdAt', 10);
+
+            expect(getRecentThoughtsStub.callCount).to.equal(2);
+            getRecentThoughtsStub.args.forEach((args) => {
+                expect(args[5]).to.equal(undefined);
+            });
+        });
+
+        it('adds a third candidate query, bounded by the profile radius, once one is known', async () => {
+            stubContextUsers([userWith(ContentAlgorithms.PULSE, ['interests.hiking'])]);
+            getPrimaryLocationStub.resolves(CHICAGO);
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1'], 'createdAt', 10);
+
+            expect(getRecentThoughtsStub.callCount).to.equal(3);
+            const [, , interestKeys, , profile, location] = getRecentThoughtsStub.args[2];
+            expect(location).to.deep.equal({ ...CHICAGO, radiusMeters: profile.localFeedRadiusMeters });
+            // Under PULSE local candidates are not held to the interest filter — a brand-new
+            // user has no interests, and their own city is the best thing we have for them.
+            expect(interestKeys).to.deep.equal([]);
+        });
+
+        it('holds local candidates to the interest filter under FOCUS', async () => {
+            stubContextUsers([userWith(ContentAlgorithms.FOCUS, ['interests.hiking'])]);
+            getPrimaryLocationStub.resolves(CHICAGO);
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1'], 'createdAt', 10);
+
+            // FOCUS suppresses general candidates, so this is the interest query plus the
+            // local one — and the local one is still interest-filtered. "It happens to be
+            // nearby" is not a reason to break a profile whose whole point is precision.
+            expect(getRecentThoughtsStub.callCount).to.equal(2);
+            expect(getRecentThoughtsStub.args[1][2]).to.deep.equal(['interests.hiking']);
+            expect(getRecentThoughtsStub.args[1][5]).to.not.equal(undefined);
+        });
+
+        it('resolves the location for the reaction owner, not for some other user in the batch', async () => {
+            stubContextUsers([
+                userWith(ContentAlgorithms.PULSE, ['interests.coffee'], 'user-2'),
+                userWith(ContentAlgorithms.PULSE, ['interests.hiking'], 'user-1'),
+            ]);
+            getPrimaryLocationStub.resolves(CHICAGO);
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1', 'user-2'], 'createdAt', 10);
+
+            expect(getPrimaryLocationStub.calledOnceWith('user-1')).to.equal(true);
+        });
+
+        it('runs no local query for a batch it cannot attribute to one person', async () => {
+            stubContextUsers([
+                userWith(ContentAlgorithms.PULSE, ['interests.hiking'], 'user-2'),
+                userWith(ContentAlgorithms.PULSE, ['interests.coffee'], 'user-3'),
+            ]);
+            getPrimaryLocationStub.resolves(CHICAGO);
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-2', 'user-3'], 'createdAt', 10);
+
+            // There is no single point that is "near" for several different people.
+            expect(getPrimaryLocationStub.called).to.equal(false);
+            expect(getRecentThoughtsStub.callCount).to.equal(2);
+        });
+
+        it('ignores a location row with no usable coordinates', async () => {
+            stubContextUsers([userWith(ContentAlgorithms.PULSE, ['interests.hiking'])]);
+            // Both columns are nullable in main.userLocations.
+            getPrimaryLocationStub.resolves({ latitude: null, longitude: null });
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1'], 'createdAt', 10);
+
+            expect(getRecentThoughtsStub.callCount).to.equal(2);
+        });
+
+        it('seeds the stream anyway when the location lookup fails', async () => {
+            stubContextUsers([userWith(ContentAlgorithms.PULSE, ['interests.hiking'])]);
+            getPrimaryLocationStub.rejects(new Error('connection terminated'));
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1'], 'createdAt', 10);
+
+            // No local content is a degraded feed; a thrown error is no feed at all.
+            expect(getRecentThoughtsStub.callCount).to.equal(2);
+        });
+
+        it('boosts local candidates above equally hot general ones', async () => {
+            stubContextUsers([userWith(ContentAlgorithms.PULSE, [])]);
+            getPrimaryLocationStub.resolves(CHICAGO);
+            const createReactionsStub = sinon.stub(reactionsApi, 'createReactions').resolves({} as any);
+
+            // General and local both return the same thought hotness; only the boost differs.
+            getRecentThoughtsStub.callsFake((...args: any[]) => Promise.resolve(
+                args[5] ? [{ id: 'local-thought', hotScore: 10 }] : [{ id: 'general-thought', hotScore: 10 }],
+            ));
+
+            await TherrEventEmitter.runThoughtDistributorAlgorithm(HEADERS, ['user-1'], 'createdAt', 10);
+
+            const [thoughtIds, , relevanceScores] = createReactionsStub.args[0] as any[];
+            expect(thoughtIds).to.include('local-thought');
+            expect(relevanceScores['local-thought']).to.be.greaterThan(relevanceScores['general-thought']);
         });
     });
 

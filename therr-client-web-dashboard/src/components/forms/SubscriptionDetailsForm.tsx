@@ -1,5 +1,3 @@
-/* eslint-disable react/jsx-indent-props */
-/* eslint-disable max-len */
 import React, { useState } from 'react';
 import { IUserState } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';

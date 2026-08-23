@@ -23,7 +23,6 @@
  * service a cross-service change.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // The SDK request/response shapes are internal to Twilio's client; typing them
 // here would couple this double to SDK internals for no test benefit.
 

@@ -335,6 +335,35 @@
   }
 }
 
+// "Replying to ..." banner above a reply. Styled as a quoted block (left rule, muted text) so it
+// reads as context for the post rather than as the post itself.
+.view-thought-parent {
+  display: block;
+  padding: 10px 14px;
+  border-left: 3px solid var(--mantine-primary-color-filled, #1c7ed6);
+  border-radius: 0 8px 8px 0;
+  background: rgba(0, 0, 0, 0.03);
+  color: inherit;
+  margin-bottom: -8px;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  .discovered-tile-icon {
+    height: 16px;
+    width: 16px;
+  }
+
+  [data-mantine-color-scheme="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+
 .view-thought-reply-input {
   padding: 16px;
   border: 1px solid rgba(0, 0, 0, 0.1);

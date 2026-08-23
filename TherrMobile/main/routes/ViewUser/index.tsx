@@ -21,7 +21,7 @@ import {
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
-import { TabBar, TabView } from 'react-native-tab-view';
+import { TabBar } from 'react-native-tab-view';
 import { showToast } from '../../utilities/toasts';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -43,6 +43,7 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import RepostModal from '../../components/Modals/RepostModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
+import CollapsibleHeaderTabView, { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { isMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -51,6 +52,7 @@ import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../
 import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
 import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
+import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -537,7 +539,6 @@ class ViewUser extends React.Component<
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
-                toggleAreaOptions: this.toggleAreaOptions,
                 translate: this.translate,
             });
         }
@@ -549,7 +550,6 @@ class ViewUser extends React.Component<
         handleThoughtReaction(thought, type, {
             user,
             createOrUpdateThoughtReaction,
-            toggleThoughtOptions: this.toggleThoughtOptions,
             translate: this.translate,
         });
     };
@@ -667,12 +667,10 @@ class ViewUser extends React.Component<
         }
     };
 
+    // NOTE: Tab switches deliberately do NOT reset scroll position. CollapsibleHeaderTabView
+    // keeps every tab aligned with the header, so resetting here would fight that sync and
+    // yank the header back open on each swipe.
     onTabSelect = (index: number) => {
-        if (index === 0) {
-            this.carouselMomentsRef?.scrollToOffset({ animated: true, offset: 0 });
-        } else if (index === 1) {
-            this.carouselThoughtsRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
         this.setState({
             activeTabIndex: index,
         });
@@ -686,6 +684,41 @@ class ViewUser extends React.Component<
         if (width > 0 && height > 0) {
             this.setState({ isTabViewLaidOut: true });
         }
+    };
+
+    // The collapsible part of the screen: everything above the tab bar.
+    renderProfileHeader = () => {
+        const { navigation, user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
+
+        return (
+            <>
+                <UserDisplayHeader
+                    goToConnections={this.goToConnections}
+                    navigation={navigation}
+                    isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
+                    onProfilePicturePress={this.onProfilePicturePress}
+                    onBlockUser={this.onBlockUser}
+                    onConnectionRequest={this.onConnectionRequest}
+                    onMessageUser={this.onMessageUser}
+                    onReportUser={this.onReportUser}
+                    themeForms={this.themeForms}
+                    themeUser={this.themeUser}
+                    translate={this.translate}
+                    user={user}
+                    userInView={user.userInView || {}}
+                />
+                {
+                    isMe &&
+                    <ProfileCompletionLink
+                        navigation={navigation}
+                        translate={this.translate as any}
+                        user={user}
+                        themeName={user.settings?.mobileThemeName}
+                    />
+                }
+            </>
+        );
     };
 
     renderTabBar = props => {
@@ -707,7 +740,7 @@ class ViewUser extends React.Component<
         );
     };
 
-    renderSceneMap = ({ route }) => {
+    renderSceneMap = ({ route, collapsible }: { route: any; collapsible: ICollapsibleSceneProps }) => {
         const { isRefreshingUserMedia, userInViewsThoughts, userInViewsMoments } = this.state;
         const {
             content,
@@ -725,6 +758,7 @@ class ViewUser extends React.Component<
                 return (
                     <AreaCarousel
                         activeData={momentsData}
+                        collapsible={collapsible}
                         content={content}
                         inspectContent={this.goToContent}
                         isLoading={isRefreshingUserMedia}
@@ -755,6 +789,7 @@ class ViewUser extends React.Component<
                 return (
                     <AreaCarousel
                         activeData={thoughtsData}
+                        collapsible={collapsible}
                         content={content}
                         inspectContent={this.goToContent}
                         isLoading={isRefreshingUserMedia}
@@ -808,58 +843,36 @@ class ViewUser extends React.Component<
                         isLoading ?
                             <LottieLoader id="therr-black-rolling" theme={this.themeLoader} /> :
                             <View style={this.themeUser.styles.container}>
-                                <UserDisplayHeader
-                                    goToConnections={this.goToConnections}
-                                    navigation={navigation}
-                                    isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
-                                    onProfilePicturePress={this.onProfilePicturePress}
-                                    onBlockUser={this.onBlockUser}
-                                    onConnectionRequest={this.onConnectionRequest}
-                                    onMessageUser={this.onMessageUser}
-                                    onReportUser={this.onReportUser}
-                                    themeForms={this.themeForms}
-                                    themeUser={this.themeUser}
-                                    translate={this.translate}
-                                    user={user}
-                                    userInView={user.userInView || {}}
+                                <CollapsibleHeaderTabView
+                                    lazy
+                                    lazyPreloadDistance={0}
+                                    headerStyle={this.themeUser.styles.profileHeaderCollapsible}
+                                    listBottomInset={buttonMenuHeight}
+                                    navigationState={{
+                                        index: activeTabIndex,
+                                        routes: tabRoutes,
+                                    }}
+                                    onIndexChange={this.onTabSelect}
+                                    onLayout={this.handleTabContainerLayout}
+                                    renderHeader={this.renderProfileHeader}
+                                    renderTabBar={this.renderTabBar}
+                                    renderScene={this.renderSceneMap}
+                                    renderLazyPlaceholder={() => (
+                                        <View style={this.theme.styles.sectionContainer}>
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                            <LazyPlaceholder lines={[undefined, undefined]} />
+                                        </View>
+                                    )}
+                                    initialLayout={{ width: viewportWidth }}
+                                    style={this.theme.styles.tabviewContainer}
                                 />
-                                {
-                                    user.userInView?.id === user.details.id &&
-                                    <ProfileCompletionLink
-                                        navigation={navigation}
-                                        translate={this.translate as any}
-                                        user={user}
-                                        themeName={user.settings?.mobileThemeName}
-                                    />
-                                }
-                                <View style={this.theme.styles.tabviewContainer} onLayout={this.handleTabContainerLayout}>
-                                    <TabView
-                                        lazy
-                                        lazyPreloadDistance={0}
-                                        navigationState={{
-                                            index: activeTabIndex,
-                                            routes: tabRoutes,
-                                        }}
-                                        renderTabBar={this.renderTabBar}
-                                        renderScene={this.renderSceneMap}
-                                        renderLazyPlaceholder={() => (
-                                            <View style={this.theme.styles.sectionContainer}>
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                                <LazyPlaceholder lines={[undefined, undefined]} />
-                                            </View>
-                                        )}
-                                        onIndexChange={this.onTabSelect}
-                                        initialLayout={{ width: viewportWidth }}
-                                        style={this.theme.styles.tabviewContainer}
-                                    />
-                                    {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
-                                </View>
+                                {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
                             </View>
                     }
                 </SafeAreaView>

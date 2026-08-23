@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
-import { PACT_MEMBERS_TABLE_NAME, USERS_TABLE_NAME } from './tableNames';
+import { PACTS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME, USERS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -114,6 +114,36 @@ export default class PactMembersStore {
 
     getActiveMembersByUserId(userId: string) {
         return this.getByUserId(userId, 'active');
+    }
+
+    /**
+     * How many *distinct people* this user has ever invited into a pact they
+     * created.
+     *
+     * Backs the solo-habit unlock (`helpers/soloHabitAccess.ts`), which asks
+     * "have they invited the friends we asked them to?" — so it deliberately
+     * counts every partner regardless of invite status. A declined or abandoned
+     * invite still means the user did their part; only their own creator row is
+     * excluded.
+     *
+     * Distinct is load-bearing, not tidiness. This used to count partner rows,
+     * which was indistinguishable from counting people while the threshold was
+     * one. Now that it takes several to unlock, counting rows would let the same
+     * friend be invited to three pacts and satisfy "invite three people" without
+     * a single extra person hearing about the app — which is the entire point of
+     * the requirement.
+     */
+    countDistinctInvitedByCreator(creatorUserId: string): Promise<number> {
+        const queryString = knexBuilder
+            .from(`${PACT_MEMBERS_TABLE_NAME} as pm`)
+            .innerJoin(`${PACTS_TABLE_NAME} as p`, 'p.id', 'pm.pactId')
+            .where('p.creatorUserId', creatorUserId)
+            .andWhere('pm.role', 'partner')
+            .countDistinct('pm.userId as count')
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
     }
 
     create(params: ICreatePactMemberParams) {

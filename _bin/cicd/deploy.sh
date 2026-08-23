@@ -4,6 +4,12 @@ set -e
 
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
+source ./_bin/lib/rollout-waves.sh
+
+# Validate the wave plan before anything touches the cluster, so a service that
+# was added to k8s/prod without being placed in a wave fails here rather than by
+# silently rejoining the all-at-once rollout this file exists to prevent.
+assert_rollout_waves
 
 CURRENT_BRANCH=${CICD_BRANCH:-$CIRCLE_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
@@ -60,42 +66,77 @@ should_deploy_service()
 }
 
 # `kubectl set image` returns as soon as the Deployment spec is patched, so a pod
-# that never passes its startup probe used to leave this job green while the
-# rollout sat wedged. Deployments touched by this run are recorded here and
-# verified together at the end, so they still roll out in parallel.
-UPDATED_DEPLOYMENTS=()
+# that never passes its startup probe would otherwise leave this job green while
+# the rollout sat wedged. Every Deployment this run touches is verified with
+# `kubectl rollout status` before the deploy moves on.
+#
+# Rollouts still go out in waves, but only three of them, and only to control
+# version skew — everything internal, then the API gateway, then the browser
+# bundle last. The seven-wave plan that predated the cluster move existed to keep
+# at most one surge Pod per node pool; the new cluster's nodes absorb the whole
+# surge footprint, so that constraint is gone. _bin/lib/rollout-waves.sh holds the
+# plan and the reasoning.
+#
 # Deliberately longer than the manifests' progressDeadlineSeconds (300s) so the
 # Deployment controller is the one to give up first. It marks the rollout
 # Failed with a ProgressDeadlineExceeded reason that `rollout status` then
 # prints, which beats the bare "timed out waiting for the condition" we would
 # get from losing that race.
 ROLLOUT_TIMEOUT="${DEPLOY_ROLLOUT_TIMEOUT:-360s}"
+# How long to let a wave's superseded Pods finish terminating before the next
+# wave surges. This was a capacity gate: `rollout status` returns as soon as the
+# new ReplicaSet is complete, but the old Pod holds its memory reservation
+# through terminationGracePeriodSeconds (30s, 45s for users-service), and on the
+# old cluster starting the next wave before it was gone handed the scheduler an
+# over-subscribed node.
+#
+# Defaults to 0 (skip the wait) now that there is headroom to spare — it bought
+# nothing but ~30-45s per wave boundary. Set DEPLOY_DRAIN_TIMEOUT to a positive
+# number of seconds to bring the gate back, e.g. while draining a node pool or
+# after shrinking the cluster.
+DRAIN_TIMEOUT="${DEPLOY_DRAIN_TIMEOUT:-0}"
 
-# Idempotent: a Deployment can be both reconfigured by `kubectl apply` and
-# re-imaged by `kubectl set image` in the same run, and verifying it twice would
-# just double the timeout budget on a wedged rollout.
-track_rollout()
+# Image bumps are queued here instead of applied inline, so that the wave walker
+# below — not the order these service blocks happen to be written in — decides
+# when each Deployment actually starts rolling.
+QUEUED_DEPLOYMENTS=()
+QUEUED_IMAGES=()
+
+queue_image()
 {
-  local DEPLOYMENT
-  for DEPLOYMENT in ${UPDATED_DEPLOYMENTS[@]+"${UPDATED_DEPLOYMENTS[@]}"}; do
-    if [ "$DEPLOYMENT" = "$1" ]; then
-      return 0
-    fi
-  done
-  UPDATED_DEPLOYMENTS+=("$1")
+  QUEUED_DEPLOYMENTS+=("$1")
+  QUEUED_IMAGES+=("$2")
 }
 
-verify_rollouts()
+# Echoes the queued "<container>=<image>" for a Deployment; non-zero if none.
+#
+# Indexed by position rather than by iterating `${!QUEUED_DEPLOYMENTS[@]}`: the
+# guarded form of that expansion (needed for the empty-array case) silently
+# yields nothing even when the array is populated, which would skip every image
+# bump while still reporting a green deploy.
+queued_image_for()
 {
-  if [ ${#UPDATED_DEPLOYMENTS[@]} -eq 0 ]; then
-    echo "No deployments updated — nothing to verify."
-    return 0
-  fi
+  local TOTAL=${#QUEUED_DEPLOYMENTS[@]}
+  local INDEX=0
 
+  while [ "$INDEX" -lt "$TOTAL" ]; do
+    if [ "${QUEUED_DEPLOYMENTS[$INDEX]}" = "$1" ]; then
+      echo "${QUEUED_IMAGES[$INDEX]}"
+      return 0
+    fi
+    INDEX=$((INDEX + 1))
+  done
+
+  return 1
+}
+
+wait_for_rollouts()
+{
   local DEPLOYMENT
-  local FAILED=()
+  local FAILED
+  FAILED=()
 
-  for DEPLOYMENT in "${UPDATED_DEPLOYMENTS[@]}"; do
+  for DEPLOYMENT in "$@"; do
     echo "Verifying rollout of $DEPLOYMENT (timeout $ROLLOUT_TIMEOUT)..."
     if kubectl rollout status "deployment/$DEPLOYMENT" --timeout="$ROLLOUT_TIMEOUT"; then
       printMessageSuccess "$DEPLOYMENT rolled out successfully."
@@ -110,6 +151,10 @@ verify_rollouts()
       # Deployment-owned pods are always named "<deployment>-<rs>-<pod>", which is
       # a more dependable handle than reconstructing the label selector.
       kubectl get pods --no-headers | grep "^$DEPLOYMENT-" || true
+      # FailedScheduling is reported against the Pod, not the Deployment, so the
+      # describe above misses the "Insufficient memory" case entirely.
+      kubectl get events --field-selector reason=FailedScheduling \
+        --sort-by=.lastTimestamp --no-headers 2>/dev/null | tail -n 10 || true
       echo "--- End events for $DEPLOYMENT ---"
     fi
   done
@@ -124,25 +169,153 @@ verify_rollouts()
   return 0
 }
 
-# Kubectl Apply
+# Blocks until each Deployment's superseded Pods are actually gone. Best effort:
+# a Pod stuck Terminating is worth a warning, not a failed deploy, since the
+# rollout it belongs to has already been confirmed complete.
 #
-# This also rolls pods on its own: a manifest-only change (probes, env, strategy,
-# resources) reconfigures a Deployment with no corresponding `set image` below,
-# so those rollouts have to be tracked here or they go unverified. `apply` prints
-# one "deployment.apps/<name> configured" line per Deployment it actually
-# changed, and "unchanged" for the rest.
-APPLY_OUTPUT="$(kubectl apply -f k8s/prod)"
-echo "$APPLY_OUTPUT"
+# A DRAIN_TIMEOUT of 0 (the default) skips the wait entirely.
+wait_for_drain()
+{
+  if [ "$DRAIN_TIMEOUT" -le 0 ]; then
+    return 0
+  fi
 
-while read -r RECONFIGURED; do
-  track_rollout "$RECONFIGURED"
-done < <(echo "$APPLY_OUTPUT" | sed -n 's|^deployment\.apps/\(.*\) configured$|\1|p')
+  local DEADLINE=$((SECONDS + DRAIN_TIMEOUT))
+  local PENDING
+
+  while [ $SECONDS -lt $DEADLINE ]; do
+    PENDING=""
+
+    local DEPLOYMENT
+    for DEPLOYMENT in "$@"; do
+      # .status.replicas counts every non-terminated Pod the Deployment owns, so
+      # it stays above .spec.replicas until the old Pod is fully gone.
+      local CURRENT
+      local DESIRED
+      CURRENT="$(kubectl get "deployment/$DEPLOYMENT" -o jsonpath='{.status.replicas}' 2>/dev/null || echo "")"
+      DESIRED="$(kubectl get "deployment/$DEPLOYMENT" -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "")"
+
+      if [ -n "$CURRENT" ] && [ -n "$DESIRED" ] && [ "$CURRENT" -gt "$DESIRED" ]; then
+        PENDING="$PENDING $DEPLOYMENT"
+      fi
+    done
+
+    if [ -z "$PENDING" ]; then
+      return 0
+    fi
+
+    echo "Waiting for superseded pods to terminate:$PENDING"
+    sleep 5
+  done
+
+  printMessageWarning "Superseded pods still terminating after ${DRAIN_TIMEOUT}s:$PENDING"
+  printMessageWarning "Continuing — the next wave may contend for their memory."
+  return 0
+}
+
+# Walks the wave plan, rolling each wave to completion before starting the next.
+#
+# Both kinds of change are applied here: a manifest edit (probes, env, strategy,
+# resources) rolls a Deployment just as an image bump does, so applying the
+# Deployment manifests wave by wave — rather than in one directory-wide apply —
+# is what keeps a manifest-only deploy ordered too.
+deploy_waves()
+{
+  local WAVE_INDEX=0
+  local WAVE
+
+  for WAVE in "${ROLLOUT_WAVES[@]}"; do
+    local WAVE_NAME="${ROLLOUT_WAVE_NAMES[$WAVE_INDEX]}"
+    local WAVE_LABEL="wave $((WAVE_INDEX + 1))/${#ROLLOUT_WAVES[@]} ($WAVE_NAME)"
+    WAVE_INDEX=$((WAVE_INDEX + 1))
+
+    local ROLLING
+    ROLLING=()
+
+    local DEPLOYMENT
+    for DEPLOYMENT in $WAVE; do
+      local IS_ROLLING=false
+
+      # `apply` prints "deployment.apps/<name> configured" only when it actually
+      # changed the spec, and "unchanged" otherwise — so this both reconciles the
+      # manifest and tells us whether doing so started a rollout.
+      local APPLY_OUTPUT
+      APPLY_OUTPUT="$(kubectl apply -f "$K8S_PROD_DIR/$DEPLOYMENT.yaml")"
+      echo "$APPLY_OUTPUT"
+      case "$APPLY_OUTPUT" in
+        *" configured") IS_ROLLING=true ;;
+      esac
+
+      local IMAGE
+      if IMAGE="$(queued_image_for "$DEPLOYMENT")"; then
+        kubectl set image "deployments/$DEPLOYMENT" "$IMAGE"
+        IS_ROLLING=true
+      fi
+
+      if [ "$IS_ROLLING" = "true" ]; then
+        ROLLING+=("$DEPLOYMENT")
+      fi
+    done
+
+    if [ ${#ROLLING[@]} -eq 0 ]; then
+      echo "Skipping $WAVE_LABEL — nothing changed."
+      continue
+    fi
+
+    printMessageNeutral "Rolling $WAVE_LABEL: ${ROLLING[*]}"
+
+    if ! wait_for_rollouts "${ROLLING[@]}"; then
+      printMessageError "Aborting deploy at $WAVE_LABEL."
+      # Stopping here keeps the skew window closed in the safe direction: if the
+      # backend never came up, the last thing we want is to hand browsers a new
+      # bundle that calls it.
+      local REMAINING
+      REMAINING=()
+      local LATER
+      for LATER in "${ROLLOUT_WAVES[@]:$WAVE_INDEX}"; do
+        REMAINING+=($LATER)
+      done
+      if [ ${#REMAINING[@]} -gt 0 ]; then
+        printMessageError "Not deployed (still on the previous version): ${REMAINING[*]}"
+      fi
+      return 1
+    fi
+
+    wait_for_drain "${ROLLING[@]}"
+  done
+
+  return 0
+}
+
+# Kubectl Apply — everything except the Deployments.
+#
+# Services, Ingresses, PDBs, Certificates and the ServiceAccount cause no pod
+# churn, so they are reconciled up front in one shot. The Deployment manifests
+# are deliberately excluded and applied inside deploy_waves instead.
+NON_DEPLOYMENT_MANIFESTS=()
+for MANIFEST in "$K8S_PROD_DIR"/*.yaml; do
+  case "$MANIFEST" in
+    *-deployment.yaml) continue ;;
+  esac
+
+  # Directory-mode apply silently skips a file holding no objects, but naming
+  # one explicitly with -f is an error, and k8s/prod has a fully commented-out
+  # manifest (internal-ingress-service.yaml).
+  if grep -qE '^[[:space:]]*[^#[:space:]]' "$MANIFEST"; then
+    NON_DEPLOYMENT_MANIFESTS+=("-f" "$MANIFEST")
+  fi
+done
+
+kubectl apply "${NON_DEPLOYMENT_MANIFESTS[@]}"
 
 # Short circuit if GIT_SHA is empty
 if [ -z "$GIT_SHA" ]; then
   echo "No new build SHA for deploy."
   echo "This might mean that the deploy was started before the stage publish job completed."
   echo "Please wait for stage to finish before merging to master"
+  # No images to bump, but a manifest-only change still needs reconciling — and
+  # still needs staggering, since it rolls just as many pods as an image bump.
+  deploy_waves
   exit 0
 fi
 
@@ -155,8 +328,7 @@ if should_deploy_web_app || should_deploy_web_app_dashboard; then
     docker push therrapp/client-web:$GIT_SHA
     docker push therrapp/client-web:latest
   fi
-  kubectl set image deployments/client-deployment web=therrapp/client-web$SUFFIX:$GIT_SHA
-  track_rollout client-deployment
+  queue_image client-deployment web=therrapp/client-web$SUFFIX:$GIT_SHA
 else
   echo "Skipping client-web deployment (No Changes)"
 fi
@@ -168,8 +340,7 @@ if should_deploy_service "therr-api-gateway"; then
     docker push therrapp/api-gateway:$GIT_SHA
     docker push therrapp/api-gateway:latest
   fi
-  kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway$SUFFIX:$GIT_SHA
-  track_rollout api-gateway-service-deployment
+  queue_image api-gateway-service-deployment server-api-gateway=therrapp/api-gateway$SUFFIX:$GIT_SHA
 else
   echo "Skipping api-gateway deployment (No Changes)"
 fi
@@ -181,8 +352,7 @@ if should_deploy_service "therr-services/push-notifications-service"; then
     docker push therrapp/push-notifications-service:$GIT_SHA
     docker push therrapp/push-notifications-service:latest
   fi
-  kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service$SUFFIX:$GIT_SHA
-  track_rollout push-notifications-service-deployment
+  queue_image push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping push-notifications-service deployment (No Changes)"
 fi
@@ -194,8 +364,7 @@ if should_deploy_service "therr-services/maps-service"; then
     docker push therrapp/maps-service:$GIT_SHA
     docker push therrapp/maps-service:latest
   fi
-  kubectl set image deployments/maps-service-deployment server-maps=therrapp/maps-service$SUFFIX:$GIT_SHA
-  track_rollout maps-service-deployment
+  queue_image maps-service-deployment server-maps=therrapp/maps-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping maps-service deployment (No Changes)"
 fi
@@ -207,8 +376,7 @@ if should_deploy_service "therr-services/messages-service"; then
     docker push therrapp/messages-service:$GIT_SHA
     docker push therrapp/messages-service:latest
   fi
-  kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service$SUFFIX:$GIT_SHA
-  track_rollout messages-service-deployment
+  queue_image messages-service-deployment server-messages=therrapp/messages-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping messages-service deployment (No Changes)"
 fi
@@ -220,8 +388,7 @@ if should_deploy_service "therr-services/reactions-service"; then
     docker push therrapp/reactions-service:$GIT_SHA
     docker push therrapp/reactions-service:latest
   fi
-  kubectl set image deployments/reactions-service-deployment server-reactions=therrapp/reactions-service$SUFFIX:$GIT_SHA
-  track_rollout reactions-service-deployment
+  queue_image reactions-service-deployment server-reactions=therrapp/reactions-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping reactions-service deployment (No Changes)"
 fi
@@ -233,8 +400,7 @@ if should_deploy_service "therr-services/users-service"; then
     docker push therrapp/users-service:$GIT_SHA
     docker push therrapp/users-service:latest
   fi
-  kubectl set image deployments/users-service-deployment server-users=therrapp/users-service$SUFFIX:$GIT_SHA
-  track_rollout users-service-deployment
+  queue_image users-service-deployment server-users=therrapp/users-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping users-service deployment (No Changes)"
 fi
@@ -246,17 +412,17 @@ if should_deploy_service "therr-services/websocket-service"; then
     docker push therrapp/websocket-service:$GIT_SHA
     docker push therrapp/websocket-service:latest
   fi
-  kubectl set image deployments/websocket-service-deployment server-websocket=therrapp/websocket-service$SUFFIX:$GIT_SHA
-  track_rollout websocket-service-deployment
+  queue_image websocket-service-deployment server-websocket=therrapp/websocket-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping websocket-service deployment (No Changes)"
 fi
 
-echo "Kubectl apply complete for all services with changes"
+echo "Image bumps queued for all services with changes"
 
-# Fail the deploy if any pod never reached Ready. Runs before migrations so we
-# never migrate the schema underneath a rollout that is already wedged.
-verify_rollouts
+# Roll the queued images out wave by wave, failing the deploy if any pod never
+# reached Ready. Runs before migrations so we never migrate the schema
+# underneath a rollout that is already wedged.
+deploy_waves
 
 # Run any pending database migrations for services whose migration files
 # changed in this deploy. Reuses the freshly rolled-out pods (which already

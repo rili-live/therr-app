@@ -32,6 +32,7 @@ jest.mock('../../main/utilities/translator', () => ({
 
 jest.mock('../../main/components/ButtonMenu/MainButtonMenu', () => () => null);
 
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { ProfileCompletion } from '../../main/routes/ProfileCompletion';
 import { markContactsSkipped, markContactsSynced, markInterestsSelected } from '../../main/utilities/profileCompletion';
 
@@ -57,6 +58,7 @@ const completeUser = buildUser({
     firstName: 'Zack',
     lastName: 'Anselm',
     phoneNumber: '+15555555555',
+    accessLevels: [AccessLevels.MOBILE_VERIFIED],
     media: { profilePicture: { path: 'some/path.jpeg' } },
 });
 
@@ -128,6 +130,7 @@ describe('ProfileCompletion', () => {
                 firstName: 'Zack',
                 lastName: 'Anselm',
                 phoneNumber: '+15555555555',
+                accessLevels: [AccessLevels.MOBILE_VERIFIED],
             }),
         });
 

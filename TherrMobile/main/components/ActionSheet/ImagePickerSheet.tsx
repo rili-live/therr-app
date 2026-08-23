@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import ActionSheet from './BaseActionSheet';
 import { Button } from '../BaseButton';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import spacingStyles from '../../styles/layouts/spacing';

@@ -1,7 +1,9 @@
 import { RequestHandler } from 'express';
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
+import translate from '../utilities/translator';
 import { isUserInPact } from '../utilities/pactHelpers';
 import { PactActivityType } from '../store/PactActivitiesStore';
 import {
@@ -13,7 +15,7 @@ const REACTION_TYPES: PactActivityType[] = ['reaction_added', 'encouragement_sen
 const CELEBRATION_TYPES: PactActivityType[] = ['celebration_sent'];
 
 const createActivity: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { pactId } = req.params;
     const {
         activityType, targetUserId, checkinId, data,
@@ -22,8 +24,9 @@ const createActivity: RequestHandler = async (req: any, res: any) => {
     if (!activityType) {
         return handleHttpError({
             res,
-            message: 'activityType is required',
+            message: translate(locale, 'errorMessages.pacts.activityTypeRequired'),
             statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -31,16 +34,18 @@ const createActivity: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: `Pact not found with id ${pactId}`,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)) {
         return handleHttpError({
             res,
-            message: 'You are not a participant in this pact',
+            message: translate(locale, 'errorMessages.pacts.notParticipant'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
@@ -65,7 +70,7 @@ const createActivity: RequestHandler = async (req: any, res: any) => {
 };
 
 const getActivitiesByPactId: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { pactId } = req.params;
     const { limit, offset } = req.query;
 
@@ -73,16 +78,18 @@ const getActivitiesByPactId: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: `Pact not found with id ${pactId}`,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)) {
         return handleHttpError({
             res,
-            message: 'You are not a participant in this pact',
+            message: translate(locale, 'errorMessages.pacts.notParticipant'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
