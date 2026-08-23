@@ -85,10 +85,14 @@ fi
 #    so running from the repo root still applies each package's own config.
 # ---------------------------------------------------------------------------
 
+# The compiled-library exclusion is scoped to therr-public-library on purpose. A bare
+# `grep -v '/lib/'` also swallowed `_bin/lib/**` — the deploy pipeline's decision logic
+# and its tests — so a lint error there committed cleanly and only failed in CI. Kept in
+# lockstep with the same filter in _bin/cicd/lint-changed-files.sh.
 staged_src=$(printf '%s\n' "$staged" \
   | grep -E '\.(ts|tsx|js|jsx)$' \
   | grep -v node_modules \
-  | grep -v '/lib/' \
+  | grep -v 'therr-public-library/[^/]*/lib/' \
   | grep -v '/build/' \
   || true)
 
