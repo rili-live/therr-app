@@ -31,8 +31,16 @@ import { formatTimeAgo } from '../utilities/formatDate';
 /**
  * A repost of a repost is collapsed to the root server-side, so offering the control on one
  * would silently re-share something other than the post the reader clicked.
+ *
+ * The visibility clause mirrors the server's own gate (handlers/thoughts createThought): only
+ * an author may repost their own non-public thought. Replies are minted with isPublic=false by
+ * every client, so without this the control renders on every reply in the thread and returns
+ * 403 for anyone but its author — under copy that asks the user to try again.
  */
-const canRepost = (t: any) => !!t && !t.isRepost && !t.isDraft;
+const canRepost = (t: any, currentUserId?: string) => !!t
+    && !t.isRepost
+    && !t.isDraft
+    && (!!t.isPublic || t.fromUserId === currentUserId);
 
 const ViewThought: React.FC = () => {
     const { t: translate, locale } = useTranslation();
@@ -406,7 +414,7 @@ const ViewThought: React.FC = () => {
                                 </ActionIcon>
                             </Tooltip>
                         )}
-                        {user?.isAuthenticated && canRepost(thought) && (
+                        {user?.isAuthenticated && canRepost(thought, user.details.id) && (
                             <Tooltip label={translate('pages.exploreThoughts.repostThought')}>
                                 <Button
                                     variant="subtle"
@@ -492,7 +500,7 @@ const ViewThought: React.FC = () => {
                                                         </ActionIcon>
                                                     </Tooltip>
                                                 )}
-                                                {user?.isAuthenticated && canRepost(reply) && (
+                                                {user?.isAuthenticated && canRepost(reply, user.details.id) && (
                                                     <Tooltip label={translate('pages.exploreThoughts.repostThought')}>
                                                         <Button
                                                             variant="subtle"

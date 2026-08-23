@@ -112,10 +112,11 @@ interface IThoughtCardProps {
     onLike: (thought: any) => void;
     onBookmark: (thought: any) => void;
     onRepost: (thought: any) => void;
+    currentUserId?: string;
 }
 
 const ThoughtCard: React.FC<IThoughtCardProps> = ({
-    thought, onLike, onBookmark, onRepost,
+    thought, onLike, onBookmark, onRepost, currentUserId,
 }) => {
     const navigate = useNavigate();
     const { t: translate, locale } = useTranslation();
@@ -127,8 +128,12 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     const repliesLabel = translate(getRepliesLabelKey(replyCount), { count: replyCount });
     const repostCount = thought.repostCount || 0;
     // A repost of a repost is collapsed to the root server-side, so offering the control on one
-    // would silently re-share something other than the card the reader clicked.
-    const canRepost = !thought.isRepost && !thought.isDraft;
+    // would silently re-share something other than the card the reader clicked. The visibility
+    // clause mirrors the server's own gate (handlers/thoughts createThought): only an author
+    // may repost their own non-public thought.
+    const canRepost = !thought.isRepost
+        && !thought.isDraft
+        && (!!thought.isPublic || thought.fromUserId === currentUserId);
 
     const handleUserClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -629,6 +634,7 @@ const ExploreThoughts: React.FC = () => {
                                     onLike={handleLike}
                                     onBookmark={handleBookmark}
                                     onRepost={handleRepost}
+                                    currentUserId={user?.details?.id}
                                 />
                             ))}
                         </Stack>

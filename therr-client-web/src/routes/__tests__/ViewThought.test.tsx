@@ -157,3 +157,75 @@ describe('ViewThought thread context', () => {
         expect(wrapper.find(`a[href="/thoughts/${PARENT_ID}"]`).length).toBeGreaterThan(0);
     });
 });
+
+/**
+ * The server refuses to repost a non-public thought unless the requester wrote it
+ * (handlers/thoughts createThought → 403 THOUGHT_ACCESS_RESTRICTED). Clients mint every reply
+ * with isPublic=false, so a control offered on all of them fails for anyone but the author —
+ * and the client maps that 403 onto copy that asks the user to try again.
+ */
+describe('ViewThought repost control visibility', () => {
+    const findRepostButtons = (wrapper: ReactWrapper) => wrapper.find('button[aria-label="Repost"]');
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('offers no repost control on a non-public thought written by somebody else', async () => {
+        const wrapper = await mountViewThought({
+            ...rootThought,
+            isPublic: false,
+        });
+
+        expect(findRepostButtons(wrapper).length).toBe(0);
+    });
+
+    it('offers a repost control on a non-public thought the viewer wrote themselves', async () => {
+        const wrapper = await mountViewThought({
+            ...rootThought,
+            fromUserId: 'viewer-1',
+            isPublic: false,
+        });
+
+        expect(findRepostButtons(wrapper).length).toBeGreaterThan(0);
+    });
+
+    it('offers a repost control on a public thought written by somebody else', async () => {
+        const wrapper = await mountViewThought({
+            ...rootThought,
+            isPublic: true,
+        });
+
+        expect(findRepostButtons(wrapper).length).toBeGreaterThan(0);
+    });
+
+    it('offers no repost control on another user\'s reply in the thread', async () => {
+        const wrapper = await mountViewThought({
+            ...rootThought,
+            isPublic: true,
+            replies: [{
+                id: 'reply-1',
+                parentId: rootThought.id,
+                fromUserId: 'author-2',
+                fromUserName: 'replier',
+                message: 'a reply nobody may repost',
+                createdAt: new Date().toISOString(),
+                isPublic: false,
+            }],
+        });
+
+        // Only the root thought's own control, never the reply's.
+        expect(findRepostButtons(wrapper).length).toBe(1);
+    });
+
+    it('offers no repost control on a thought that is already a repost', async () => {
+        const wrapper = await mountViewThought({
+            ...rootThought,
+            isPublic: true,
+            isRepost: true,
+            repostOf: null,
+        });
+
+        expect(findRepostButtons(wrapper).length).toBe(0);
+    });
+});
