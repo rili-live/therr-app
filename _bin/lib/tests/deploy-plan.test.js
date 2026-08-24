@@ -75,9 +75,14 @@ const OTHER = 'bbbbbbb';
     // ...but a service already running the desired tag is never pulled, so an absent
     // tag says nothing about this run. missing-image is blocking, so probing before
     // the up-to-date check would let a service with nothing to do abort the whole
-    // deploy — which is the state every service is in until the ledger has per-service
-    // rows and they all resolve through a LAST_PUBLISHED_GIT_SHA that was only ever
-    // pushed for the services that merge rebuilt.
+    // deploy.
+    //
+    // This case used to carry a second justification: that unrowed services resolving
+    // through LAST_PUBLISHED_GIT_SHA would land here rather than on missing-image. They
+    // did not — that only holds while the cluster's running tag equals the watermark,
+    // and it never did — so the fallback is gone (see ledger_resolve) and an unrowed
+    // service now arrives with an empty desired tag instead. The ordering stays for the
+    // reason above, which stands on its own.
     assert.strictEqual(verdict([DESIRED, DESIRED, 'false', 'false', 'false', 'true']), 'up-to-date');
     assert.strictEqual(verdict([DESIRED, DESIRED, 'false', 'false', 'false', 'false']), 'up-to-date');
 
@@ -115,6 +120,67 @@ const OTHER = 'bbbbbbb';
         verdict([DESIRED, OTHER, 'true', 'false', 'true', 'false'], { DEPLOY_ALLOW_ROLLBACK: 'true' }),
         'deploy',
     );
+}
+
+{
+    // The deadlock, end to end: ledger_resolve feeding plan_verdict, on the exact
+    // VERSIONS.txt that refused three consecutive promotions.
+    //
+    // stage had published only users-service, twice in a row, so the file held the
+    // watermark plus a single row while the cluster sat on a much older tag. Under the
+    // old fallback all seven unrowed services resolved to the watermark, and the
+    // watermark's -stage tag had only ever been pushed for users-service — so all seven
+    // came out missing-image, which is blocking, and the deploy refused before touching
+    // the cluster. Including users-service, whose image was fine.
+    const LEDGER_LIB = path.join(REPO_ROOT, '_bin', 'lib', 'versions-ledger.sh');
+    const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'deploy-ledger-')), 'VERSIONS.txt');
+
+    fs.writeFileSync(file, [
+        'LAST_PUBLISHED_GIT_SHA=83a9a7d3730b1248a42a7d2eced7447b303bfef3',
+        'PUBLISHED_USERS_SERVICE=83a9a7d3730b1248a42a7d2eced7447b303bfef3',
+        '',
+    ].join('\n'));
+
+    // The cluster's tag, unchanged through all of it.
+    const running = 'eef996d4d5';
+
+    const planFor = (key, imageExists) => bash(`
+        source "${LEDGER_LIB}"
+        source "${PLAN_LIB}"
+        ledger_load "${file}"
+        DESIRED="$(ledger_resolve ${key})"
+        plan_verdict "$DESIRED" '${running}' '${imageExists}' 'false' 'false' 'false'
+    `);
+
+    // The one service with a row, and a real image behind it, still rolls.
+    assert.strictEqual(planFor('users-service', 'true'), 'deploy');
+
+    // The seven without a row are left alone with a warning instead of blocking the
+    // promotion. `false` is the honest probe result: that tag does not exist for them.
+    const unrowed = [
+        'client-web',
+        'api-gateway',
+        'maps-service',
+        'messages-service',
+        'reactions-service',
+        'push-notifications-service',
+        'websocket-service',
+    ];
+
+    for (const key of unrowed) {
+        const v = planFor(key, 'false');
+        assert.strictEqual(v, 'unresolved', `${key} must not block a promotion it is not part of`);
+        assert.strictEqual(bash(`source "${PLAN_LIB}"; verdict_is_blocking ${v} || echo not-blocking`), 'not-blocking');
+    }
+
+    fs.rmSync(path.dirname(file), { recursive: true, force: true });
+}
+
+{
+    // ...but an unrowed service that DID change in this merge still blocks. Not being
+    // published is only benign when the promotion does not carry the service's work.
+    assert.strictEqual(verdict(['', OTHER, 'false', 'false', 'false', 'true']), 'unpublished');
+    assert.ok(bash(`source "${PLAN_LIB}"; verdict_is_blocking unpublished && echo blocking`));
 }
 
 {

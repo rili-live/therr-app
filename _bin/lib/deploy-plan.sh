@@ -93,10 +93,12 @@ plan_verdict()
   # this run — and missing-image is blocking, so probing first would let an absent
   # tag for a service with nothing to do abort the whole deploy.
   #
-  # That is not hypothetical: until the ledger has a row per service everything
-  # resolves through LAST_PUBLISHED_GIT_SHA, and that SHA was only ever pushed for
-  # the services the publish job actually rebuilt. Every other service points at a
-  # tag that was never created, while already running exactly the right image.
+  # This ordering used to be load-bearing for a second reason: unrowed services
+  # resolved through LAST_PUBLISHED_GIT_SHA and were expected to land here rather
+  # than on missing-image. They did not — see ledger_resolve — and that fallback is
+  # gone, so an unrowed service now arrives with an empty DESIRED and is handled
+  # above. The ordering stays because the first reason is reason enough: a tag that
+  # will not be pulled must not decide whether this deploy runs.
   if [ "$RUNNING" = "$DESIRED" ]; then
     echo "up-to-date"
     return 0
@@ -144,7 +146,7 @@ verdict_explanation()
     stale-build)   echo "sources changed after this image was published — re-run the stage build" ;;
     missing-image) echo "published tag is not in the registry — the stage publish did not complete" ;;
     unpublished)   echo "changed in this merge but has never been published" ;;
-    unresolved)    echo "no published tag on record; unchanged in this merge, so left as-is" ;;
+    unresolved)    echo "no published tag on record; unchanged in this merge, so left as-is — it gets a row the next time its sources change and stage publishes it" ;;
     *)             echo "unknown verdict" ;;
   esac
 }
