@@ -576,19 +576,36 @@ describe('ThoughtsStore brand filtering', () => {
     });
 
     describe('getById (parent thread context)', () => {
+        // getById issues other queries besides the parent lookup (notably the repost-count
+        // aggregate), so these stubs dispatch on the shape of the SQL rather than on call
+        // index — "the second call" is not a stable way to name the parent query, and
+        // indexing into it silently fed parent rows to an unrelated query.
+        //
+        // The parent lookup is the only one that selects "parentId" while filtering on an
+        // id list; the repost-originals lookup also uses `id in (...)` but never selects it.
+        const isParentQuery = (sql: string) => sql.includes('"id" in (') && sql.includes('"parentId"');
+        const findParentQuery = (readStub: sinon.SinonStub): string | undefined => readStub.args
+            .map((args) => args[0] as string)
+            .find(isParentQuery);
+
         const buildParentAwareStub = (parentRow?: any) => {
             const { connection, readStub } = buildMockConnection();
-            readStub.onFirstCall().callsFake(() => Promise.resolve({
-                rows: [{
-                    id: 'reply-1',
-                    parentId: 'thought-1',
-                    fromUserId: '22',
-                    message: 'a reply',
-                }],
-            }));
-            readStub.onSecondCall().callsFake(() => Promise.resolve({
-                rows: parentRow ? [parentRow] : [],
-            }));
+            readStub.callsFake((sql: string) => {
+                if (isParentQuery(sql)) {
+                    return Promise.resolve({ rows: parentRow ? [parentRow] : [] });
+                }
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.resolve({ rows: [] });
+                }
+                return Promise.resolve({
+                    rows: [{
+                        id: 'reply-1',
+                        parentId: 'thought-1',
+                        fromUserId: '22',
+                        message: 'a reply',
+                    }],
+                });
+            });
 
             return { connection, readStub };
         };
@@ -599,7 +616,7 @@ describe('ThoughtsStore brand filtering', () => {
 
             const { thoughts } = await store.getById(BrandVariations.THERR, 'reply-1', {}, {});
 
-            expect(readStub.callCount).to.equal(1);
+            expect(findParentQuery(readStub)).to.equal(undefined);
             expect(thoughts[0].parent).to.equal(undefined);
         });
 
@@ -614,8 +631,7 @@ describe('ThoughtsStore brand filtering', () => {
 
             const { thoughts } = await store.getById(BrandVariations.THERR, 'reply-1', {}, { withParent: true });
 
-            expect(readStub.callCount).to.equal(2);
-            expect(readStub.args[1][0]).to.include('in (\'thought-1\')');
+            expect(findParentQuery(readStub)).to.include('in (\'thought-1\')');
             expect(thoughts[0].parent.id).to.equal('thought-1');
             expect(thoughts[0].parent.message).to.equal('the original thought');
         });
@@ -627,7 +643,7 @@ describe('ThoughtsStore brand filtering', () => {
             await store.getById(BrandVariations.HABITS, 'reply-1', {}, { withParent: true });
 
             // Mirrors the reply join: a habits reader must not be linked up to a therr parent.
-            expect(readStub.args[1][0]).to.include('"brandVariation" in (\'habits\')');
+            expect(findParentQuery(readStub)).to.include('"brandVariation" in (\'habits\')');
         });
 
         it('leaves parent undefined when the parent is filtered out or deleted', async () => {
@@ -648,7 +664,7 @@ describe('ThoughtsStore brand filtering', () => {
 
             await store.getById(BrandVariations.THERR, 'thought-1', {}, { withParent: true });
 
-            expect(readStub.callCount).to.equal(1);
+            expect(findParentQuery(readStub)).to.equal(undefined);
         });
 
         it('hydrates the parent author even when the reply author is missing', async () => {
@@ -898,6 +914,247 @@ describe('ThoughtsStore brand filtering', () => {
 
             const sql = readStub.args[0][0] as string;
             expect(sql).to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
+        });
+
+        it('requires a null repostThoughtId for an ordinary post', () => {
+            // Without this, a plain repost (empty message, no parentId) would collide with an
+            // ordinary empty-message post by the same author and be rejected as a duplicate.
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.get(BrandVariations.THERR, {
+                fromUserId: 1,
+                message: 'hi',
+            });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include(`"repostThoughtId" is null`);
+        });
+
+        it('keys the duplicate check on repostThoughtId for a repost', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.get(BrandVariations.THERR, {
+                fromUserId: 1,
+                message: '',
+                repostThoughtId: 'original-1',
+            });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include(`"repostThoughtId" = 'original-1'`);
+            expect(sql).to.not.include(`"repostThoughtId" is null`);
+        });
+    });
+});
+
+describe('ThoughtsStore reposts', () => {
+    describe('create', () => {
+        it('persists repostThoughtId and derives isRepost from it', () => {
+            const { connection, writeStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.create(BrandVariations.THERR, {
+                fromUserId: 1 as any,
+                locale: 'en-us',
+                message: '',
+                repostThoughtId: 'original-1',
+            });
+
+            const sql = writeStub.args[0][0] as string;
+            expect(sql).to.include(`'original-1'`);
+            expect(sql).to.include(`"isRepost"`);
+            expect(sql).to.include('true');
+        });
+
+        it('ignores a client-supplied isRepost when nothing is being reposted', () => {
+            // `isRepost` shipped years before reposts did, so a client can set it on an ordinary
+            // post. Deriving it keeps "isRepost with nothing reposted" out of the table entirely.
+            const { connection, writeStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.create(BrandVariations.THERR, {
+                fromUserId: 1 as any,
+                locale: 'en-us',
+                message: 'not actually a repost',
+                isRepost: true,
+            });
+
+            const sql = writeStub.args[0][0] as string;
+            expect(sql).to.include('false');
+        });
+    });
+
+    describe('attachRepostDetails', () => {
+        it('is a no-op on an empty page and issues no queries', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, []);
+
+            expect(readStub.callCount).to.equal(0);
+        });
+
+        it('skips the originals lookup when the page contains no reposts', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, [{ id: 't1' }]);
+
+            // Only the repost-count aggregate should run.
+            expect(readStub.callCount).to.equal(1);
+            expect(readStub.args[0][0] as string).to.include('group by "repostThoughtId"');
+        });
+
+        it('scopes the originals lookup to the caller brand', async () => {
+            // The repost and its original are separate rows, so a Therr user (who reads 'all')
+            // can repost something a HABITS reader must not see. The embed has to re-filter.
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.HABITS, [
+                { id: 't1', repostThoughtId: 'original-1' },
+            ]);
+
+            const originalsSql = readStub.args.map((args) => args[0] as string)
+                .find((sql) => sql.includes('"id" in'));
+            expect(originalsSql).to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
+            expect(originalsSql).to.include('"isMatureContent" = false');
+        });
+
+        it('attaches a null repostOf when the original is not readable', async () => {
+            const { connection } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'gone' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf).to.equal(null);
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('hydrates repostOf with the original author and coerces repostCount to a number', async () => {
+            const readStub = sinon.stub();
+            // Originals lookup (has the id IN filter) vs the count aggregate (has GROUP BY).
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    // pg returns COUNT(*) as a bigint string.
+                    return Promise.resolve({ rows: [{ repostThoughtId: 't1', count: '3' }] });
+                }
+                return Promise.resolve({
+                    rows: [{ id: 'original-1', fromUserId: 'u9', message: 'hello' }],
+                });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const usersStore: any = {
+                findUsers: () => Promise.resolve([{ id: 'u9', userName: 'author', isSuperUser: true }]),
+            };
+            const store = new ThoughtsStore(connection, usersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'original-1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf.message).to.equal('hello');
+            expect(thoughts[0].repostOf.fromUserName).to.equal('author');
+            expect(thoughts[0].repostOf.fromUserIsSuperUser).to.equal(true);
+            expect(thoughts[0].repostCount).to.equal(3);
+        });
+
+        it('leaves repostOf unset on a non-repost row', async () => {
+            const { connection } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0]).to.not.have.property('repostOf');
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        // find/getById attach up to three reply previews per parent, and the details view
+        // renders a repost control against each one. A reply left out of the walk renders a
+        // permanently blank count next to a control that works.
+        it('counts reposts of nested reply previews, not only of the parents', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.resolve({ rows: [{ repostThoughtId: 'reply-1', count: '2' }] });
+                }
+                return Promise.resolve({ rows: [] });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{
+                id: 't1',
+                replies: [{ id: 'reply-1' }, { id: 'reply-2' }],
+            }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].replies[0].repostCount).to.equal(2);
+            expect(thoughts[0].replies[1].repostCount).to.equal(0);
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('includes reply ids in the counts lookup', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, [{
+                id: 't1',
+                replies: [{ id: 'reply-1' }],
+            }]);
+
+            const countsSql = readStub.args.map((args) => args[0] as string)
+                .find((sql) => sql.includes('group by "repostThoughtId"'));
+            expect(countsSql).to.include('reply-1');
+        });
+
+        // _bin/cicd/run-migrations.sh applies migrations AFTER `kubectl set image`, so the new
+        // pod serves the pre-migration schema for a minute or two. The counts query names
+        // "repostThoughtId" on every non-empty page, so a propagating error here is a total
+        // feed outage for the length of that window — and this hydration is only decoration.
+        it('degrades to no counts rather than throwing when the counts query fails', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.reject(new Error('column "repostThoughtId" does not exist'));
+                }
+                return Promise.resolve({ rows: [] });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('degrades to no embed rather than throwing when the originals lookup fails', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.resolve({ rows: [] });
+                }
+                return Promise.reject(new Error('read replica unavailable'));
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'original-1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf).to.equal(null);
+            expect(thoughts[0].repostCount).to.equal(0);
         });
     });
 

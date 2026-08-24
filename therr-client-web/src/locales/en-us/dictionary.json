@@ -41,7 +41,11 @@
   },
   "common": {
     "share": "Share",
-    "linkCopied": "Link copied!"
+    "linkCopied": "Link copied!",
+    "justNow": "just now",
+    "minutesAgo": "{count}m",
+    "hoursAgo": "{count}h",
+    "daysAgo": "{count}d"
   },
   "components": {
     "incompleteProfileBanner": {
@@ -476,7 +480,17 @@
       "viewAllReplies": "View all {count} replies",
       "viewReplies": "View {count} replies",
       "viewReply": "View 1 reply",
-      "reply": "Reply"
+      "reply": "Reply",
+      "repostedBy": "{userName} reposted",
+      "repostThought": "Repost",
+      "repostUnavailable": "This post is no longer available",
+      "repostModalTitle": "Repost",
+      "repostPlaceholder": "Add a comment (optional)",
+      "repostConfirm": "Repost",
+      "repostCancel": "Cancel",
+      "repostError": "We could not repost this. Please try again.",
+      "repostDuplicate": "You already reposted this",
+      "repostRestricted": "Only the author can repost a post that isn't public"
     },
     "viewThought": {
       "headerTitle": "Thought",

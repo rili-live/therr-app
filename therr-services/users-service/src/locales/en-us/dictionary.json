@@ -11,7 +11,8 @@
             "invalidPassword": "Password is Invalid"
         },
         "posts": {
-            "duplicatePost": "Duplicate posts are not allowed"
+            "duplicatePost": "Duplicate posts are not allowed",
+            "duplicateRepost": "You already reposted this"
         },
         "pacts": {
             "activityTypeRequired": "Choose what you want to send",
@@ -105,6 +106,7 @@
         "reactionLikeReceived": "{userName} liked your post",
         "reactionSuperLikeReceived": "{userName} super-liked your post!",
         "newThoughtReplyReceived": "{userName} replied to your post",
+        "newThoughtRepostReceived": "{userName} reposted your post",
         "newDmReceived": "New message from {userName} while you were away",
         "newGroupMembers": "{members} just joined your group, {groupName}",
         "newGroupInvite": "{inviterUserName} invited you to join {groupName}",
@@ -124,6 +126,7 @@
     },
     "thoughts": {
         "notFound": "Thought not found",
+        "repostRestricted": "This post cannot be reposted",
         "parentAccessRestricted": "This user is not permitted to reply to a thought they cannot access"
     },
     "thoughtReactions": {
