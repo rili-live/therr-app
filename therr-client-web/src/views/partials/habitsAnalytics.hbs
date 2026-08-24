@@ -1,0 +1,53 @@
+{{!
+    Google Analytics for every Friends with Habits view.
+
+    These templates are server-rendered and ship no React bundle, so the app's
+    normal initialisation path - getGa4Configs() called from a React component in
+    src/components - never runs on this host. Until this partial existed that was
+    silent: habits.therr.com served real traffic and appeared as a hostname in
+    zero GA4 properties, while simultaneously showing up as a referral source in
+    another property. Every install driven from the web was unattributed.
+
+    The measurement ids arrive as gaMeasurementIdsJson, a serialize-javascript
+    JSON string built by the habits middleware from the same getGa4Configs()
+    helper the React clients use, so the two stay on one source of truth. It is a
+    triple-stash because it is raw JSON going into a script body, not text going
+    into markup.
+
+    When the array is empty the snippet does nothing and no request is made -
+    that is the local-dev and misconfiguration case, and analytics must never be
+    what breaks a page.
+
+    Two constraints inherited from the sibling footer partial, both of which took
+    down every habits page when they were violated there:
+
+      1. No partial call inside this comment. Handlebars executes one even inside
+         an HTML comment, and a partial that names itself recurses until the
+         stack blows.
+      2. No long-form comment delimiter inside this block. The long form ends at
+         the FIRST closing delimiter, even one written as prose, which dumps the
+         rest of the explanation onto the page as visible copy. Hence the short
+         bare-bang form.
+}}
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { window.dataLayer.push(arguments); }
+    (function () {
+        var ids = {{#if gaMeasurementIdsJson}}{{{gaMeasurementIdsJson}}}{{else}}[]{{/if}};
+        if (!Array.isArray(ids) || !ids.length) { return; }
+        gtag('js', new Date());
+        ids.forEach(function (id) {
+            gtag('config', id, {
+                surface: 'habits',
+                // habits.therr.com and therr.app are different registrable domains.
+                // Without the linker a visitor crossing between them starts a fresh
+                // session attributed to a referral and the original campaign is lost.
+                linker: { domains: ['therr.app', 'therr.com'], accept_incoming: true }
+            });
+        });
+        var tag = document.createElement('script');
+        tag.async = true;
+        tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ids[0]);
+        document.head.appendChild(tag);
+    })();
+</script>
