@@ -1159,6 +1159,9 @@
         "partners": "Amis",
         "profile": "Profil",
         "journal": "Journal"
+      },
+      "accessibility": {
+        "habitsWithInvites": "Habitudes, {count} invitation(s) en attente de votre réponse"
       }
     },
     "connections": {
@@ -2047,6 +2050,7 @@
       "createPact": "Nouveau pacte",
       "createPactCta": "Créer un pacte",
       "createPactAccessibility": "Créez un nouveau pacte et invitez un ami",
+      "invitesTabLabel": "Invitations",
       "allTabLabel": "Tous",
       "pactNotFound": "Pacte introuvable",
       "acceptedTitle": "Pacte accepté!",
@@ -2165,7 +2169,9 @@
         "active": "Actif",
         "completed": "Terminé",
         "abandoned": "Abandonné",
-        "expired": "Expiré"
+        "expired": "Expiré",
+        "awaitingAcceptance": "En attente d’acceptation",
+        "needsYourReply": "Nécessite votre réponse"
       },
       "pactType": {
         "accountability": "Responsabilité",
@@ -2194,6 +2200,10 @@
         "completed": "Terminé",
         "left": "A quitté le pacte",
         "removed": "Retiré"
+      },
+      "incoming": {
+        "emptyTitle": "Aucune invitation en attente",
+        "emptySubtitle": "Quand un ami vous invite à un pacte, elle apparaît ici."
       }
     },
     "pushOptIn": {

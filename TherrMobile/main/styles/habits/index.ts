@@ -720,6 +720,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.onSurface,
             fontWeight: fontWeights.semibold,
         },
+        // Nested inside the label so the count wraps and truncates with it.
+        // Deliberately not a pill: four flex:1 segments leave roughly 80dp of
+        // usable width each, which a badge plus a label does not survive.
+        segmentedControlCount: {
+            color: therrTheme.colors.onSurfaceMuted,
+            fontWeight: fontWeights.semibold,
+        },
 
         // ------------------------------------------------------------------
         // My Habits

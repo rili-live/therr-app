@@ -74,17 +74,13 @@ const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
 // (lightbulb) and, on HABITS, the Goals tab — so it carries a trophy rather than a lightbulb.
 const FAB_ICON_NAME = IS_HABITS ? 'trophy' : 'idea';
 
-// Rendered bare, exactly as Therr does it, because react-native-paper's FAB already centers
-// whatever the icon prop returns and both glyphs are centered in the em square: "trophy" spans
-// x 43..981 (center 512 of a 1024 advance) and y 64..832 above the baseline, dead center of the
-// line box (ascender 960 / descender -64). "idea" sits 21/1024 — 2% of an em, under half a pixel
-// at 24px — below that center.
-//
-// A previous revision wrapped this in a fixed size x size View with `includeFontPadding: false`
-// to "fix" centering. That box is shorter than the line the Text lays out, so the glyph is
-// centered against a clipped box instead of its own line box, and the icon sits visibly off
-// centre inside the circle — which is why this looked right on Therr and wrong on HABITS.
-// Neither glyph needs a correction; do not add one back.
+// Rendered bare: react-native-paper's FAB centers whatever the icon prop returns, and
+// that is enough now that the font's side bearings are correct. Earlier revisions chased
+// the misalignment in layout — a fixed size x size wrapper, `includeFontPadding: false`,
+// a nudge transform — but the cause was in TherrFont.ttf: an IcoMoon rebuild left every
+// glyph's `lsb` at 0 while recalculating its `xMin`, so FreeType slid each outline left by
+// its own bearing. See `resources/fonts/fix-icon-font-bearings.py`. No layout correction
+// belongs here; if icons drift again, check the font first.
 const renderComposerIcon = (props: { size: number; color: string }) => (
     <TherrIcon name={FAB_ICON_NAME} size={props.size} color={props.color} />
 );

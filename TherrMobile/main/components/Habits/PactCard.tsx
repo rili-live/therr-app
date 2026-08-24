@@ -21,11 +21,33 @@ interface IPactCardProps {
     translate: (key: string, params?: any) => string;
 }
 
-const getStatusText = (
+/**
+ * Badge wording for a pact's status.
+ *
+ * `pending` is deliberately not rendered as the word "Pending". The dashboard's
+ * invite segment is also about pending things, so one screen carried the word
+ * twice with two meanings: the segment meant "waiting on you", the badge meant
+ * "not started yet". Both halves of a pending pact are named for whoever has to
+ * act instead — "Awaiting acceptance" for the sender, "Needs your reply" for the
+ * person holding the invite — which also makes the badge match the wording
+ * `SentInviteCard` already uses on the Sent segment.
+ *
+ * `isAwaitingMyResponse` comes from the caller because only it knows: a group
+ * pact can be `active` for the pact while this user's own member row is still an
+ * open invite (see `isPactInviteAwaitingResponse`).
+ */
+export const getStatusText = (
     status: string,
     translate: (key: string, params?: any) => string,
+    isAwaitingMyResponse: boolean,
 ): string => {
-    const known = ['pending', 'active', 'completed', 'abandoned', 'expired'];
+    if (status === 'pending') {
+        return isAwaitingMyResponse
+            ? translate('pages.pacts.status.needsYourReply')
+            : translate('pages.pacts.status.awaitingAcceptance');
+    }
+
+    const known = ['active', 'completed', 'abandoned', 'expired'];
     if (known.includes(status)) {
         return translate(`pages.pacts.status.${status}`);
     }
@@ -101,7 +123,7 @@ const PactCard: React.FC<IPactCardProps> = ({
             <View style={[themeHabits.styles.pactCardStatusBadge, statusStyles.container]}>
                 <View style={[themeHabits.styles.pactCardStatusDot, { backgroundColor: statusStyles.dot }]} />
                 <Text style={[themeHabits.styles.pactCardStatusText, statusStyles.label]}>
-                    {getStatusText(pact.status, translate)}
+                    {getStatusText(pact.status, translate, showInviteActions)}
                 </Text>
             </View>
 

@@ -9,6 +9,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps as baseMapStateToProps, mapDispatchToProps } from './';
 import { getHabitsTabLayout } from './habitsTabLayout';
+import { getHabitsBadgeState } from './habitsBadgeState';
 import getConfig from '../../utilities/getConfig';
 import { getUserImageUri } from '../../utilities/content';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
@@ -33,6 +34,28 @@ const localStyles = StyleSheet.create({
     // the same distance from its label as the other tabs' glyphs do.
     profileIconContainer: {
         marginRight: 6,
+    },
+    // `menu-book` is one of the few Material glyphs that fills its 24px em box
+    // horizontally, so its label sits flush against it while the other tabs'
+    // narrower glyphs get a gap from their own side bearing.
+    journalIconContainer: {
+        marginRight: 4,
+    },
+    badge: {
+        position: 'absolute',
+        top: 7,
+        minWidth: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: '#E37107',
+        paddingHorizontal: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    badgeText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: '700',
     },
 });
 
@@ -180,15 +203,17 @@ class HabitsButtonMenu extends ButtonMenu {
         const isJournalActive = activeRoute === 'Journal';
         const isAchievementsActive = ['Achievements', 'AchievementClaim'].includes(activeRoute);
         const isConnectActive = activeRoute === 'Connect';
-        const currentUserId = user?.details?.id;
-        const outgoingCount = (habits?.pacts || []).filter(
-            (p) => p.status === 'pending' && p.creatorUserId === currentUserId,
-        ).length;
-        const hasActivePacts = (habits?.activePacts?.length || 0) > 0;
-        // Only open onto the Sent segment when the user has nothing active to
-        // act on. With active pacts, land on Habits so daily check-ins remain
-        // one tap away.
-        const initialHabitsTab = !hasActivePacts && outgoingCount > 0 ? 'outgoing' : 'habits';
+        // Badge counts only invites awaiting this user's reply, and the landing
+        // segment follows it — see `habitsBadgeState.ts` for why the sent-invite
+        // count no longer badges the tab bar. That count still exists: it is the
+        // chip on the dashboard's Sent segment, beside the nudge and re-invite
+        // actions that can actually move it.
+        const { badgeCount, initialTab: initialHabitsTab } = getHabitsBadgeState(
+            habits?.pendingInvites,
+            habits?.pacts,
+            habits?.activePacts,
+            user?.details?.id,
+        );
         const imageStyle = {
             height: 26,
             width: 26,
@@ -231,28 +256,22 @@ class HabitsButtonMenu extends ButtonMenu {
                             />
                         }
                         onPress={() => this.onNavPressDynamic('HabitsDashboard', { initialTab: initialHabitsTab })}
+                        accessibilityLabel={badgeCount > 0
+                            ? translate('menus.habits.accessibility.habitsWithInvites', { count: badgeCount })
+                            : translate('menus.habits.buttons.habits')}
                     />
-                    {/* Outgoing-invite count. It rode on the Pacts tab before the
-                        two screens merged; the Sent list it counts is a segment
-                        of the Habits screen now, so the badge moved with it. */}
-                    {outgoingCount > 0 && (
+                    {/* Count of invites awaiting this user's reply. Hidden from
+                        the accessibility tree because the button above already
+                        says it in words. */}
+                    {badgeCount > 0 && (
                         <View
-                            style={{
-                                position: 'absolute',
-                                top: 7,
-                                right: buttonWidth / 2 - 20,
-                                minWidth: 18,
-                                height: 18,
-                                borderRadius: 9,
-                                backgroundColor: '#E37107',
-                                paddingHorizontal: 5,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
+                            style={[localStyles.badge, { right: buttonWidth / 2 - 20 }]}
                             pointerEvents="none"
+                            importantForAccessibility="no-hide-descendants"
+                            accessibilityElementsHidden
                         >
-                            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
-                                {outgoingCount > 9 ? '9+' : String(outgoingCount)}
+                            <Text style={localStyles.badgeText}>
+                                {badgeCount > 9 ? '9+' : String(badgeCount)}
                             </Text>
                         </View>
                     )}
@@ -290,6 +309,7 @@ class HabitsButtonMenu extends ButtonMenu {
                             }
                         />
                     }
+                    iconContainerStyle={!isCompact ? localStyles.journalIconContainer : undefined}
                     onPress={() => this.onNavPressDynamic('Journal')}
                 />}
 

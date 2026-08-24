@@ -1159,6 +1159,9 @@
         "partners": "Friends",
         "profile": "Profile",
         "journal": "Journal"
+      },
+      "accessibility": {
+        "habitsWithInvites": "Habits, {count} invite(s) awaiting your reply"
       }
     },
     "connections": {
@@ -2047,6 +2050,7 @@
       "createPact": "New Pact",
       "createPactCta": "Start a Pact",
       "createPactAccessibility": "Create a new pact and invite a friend",
+      "invitesTabLabel": "Invites",
       "allTabLabel": "All",
       "pactNotFound": "Pact not found",
       "acceptedTitle": "Pact Accepted!",
@@ -2165,7 +2169,9 @@
         "active": "Active",
         "completed": "Completed",
         "abandoned": "Abandoned",
-        "expired": "Expired"
+        "expired": "Expired",
+        "awaitingAcceptance": "Awaiting acceptance",
+        "needsYourReply": "Needs your reply"
       },
       "pactType": {
         "accountability": "Accountability",
@@ -2194,6 +2200,10 @@
         "completed": "Completed",
         "left": "Left the pact",
         "removed": "Removed"
+      },
+      "incoming": {
+        "emptyTitle": "No invites waiting on you",
+        "emptySubtitle": "When a friend invites you to a pact, it shows up here."
       }
     },
     "pushOptIn": {

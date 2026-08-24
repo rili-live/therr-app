@@ -63,9 +63,9 @@ jest.mock('react-native-permissions', () => ({
 
 // Imported after the mocks above deliberately — the screen pulls in a chain of
 // native modules at import time.
-import { HabitsDashboard, normalizeInitialTab } from '../../main/routes/Habits/Dashboard';
+import { HabitsDashboard, normalizeInitialTab, TAB_LABEL_KEYS } from '../../main/routes/Habits/Dashboard';
 
-const buildInstance = (initialTab?: string) => {
+const buildInstance = (initialTab?: string, habitsOverrides: any = {}) => {
     const props: any = {
         user: { settings: {}, isAuthenticated: true, details: { id: 'me' } },
         habits: {
@@ -75,6 +75,7 @@ const buildInstance = (initialTab?: string) => {
             pendingInvites: [],
             todayCheckins: [],
             activeStreaks: [],
+            ...habitsOverrides,
         },
         navigation: { navigate: jest.fn(), addListener: jest.fn(), setOptions: jest.fn() },
         route: { params: initialTab ? { initialTab } : {} },
@@ -133,5 +134,65 @@ describe('HabitsDashboard onboarding guard bypass', () => {
     it('opens on the segment it was asked for', () => {
         expect(buildInstance('outgoing').state.activeTab).toBe('outgoing');
         expect(buildInstance().state.activeTab).toBe('habits');
+    });
+});
+
+/**
+ * The segment labelled "Pending" used to render `pages.pacts.status.pending` —
+ * the exact string the pact status badge renders. One screen therefore used the
+ * word twice with two meanings: the segment meant "waiting on you", the badge
+ * meant "not started yet". A user holding two sent invites saw an empty
+ * "Pending" segment beside an "All" segment listing two pacts badged "Pending",
+ * which is the confusion these cases exist to prevent recurring.
+ */
+describe('HabitsDashboard segment labels', () => {
+    it('does not name the invites segment after a pact status', () => {
+        const instance: any = buildInstance();
+        const labelKeys = Object.values(TAB_LABEL_KEYS);
+
+        expect(TAB_LABEL_KEYS.pending).toBe('pages.pacts.invitesTabLabel');
+        expect(labelKeys).not.toContain('pages.pacts.status.pending');
+        expect(instance).toBeTruthy();
+    });
+
+    it('gives every segment a distinct label key', () => {
+        const labelKeys = Object.values(TAB_LABEL_KEYS);
+
+        expect(new Set(labelKeys).size).toBe(labelKeys.length);
+    });
+});
+
+describe('HabitsDashboard segment counts', () => {
+    const pact = (overrides: any = {}) => ({
+        id: 'p1', status: 'pending', creatorUserId: 'me', ...overrides,
+    });
+
+    it('counts received invites on the invites segment', () => {
+        const instance: any = buildInstance(undefined, {
+            pendingInvites: [pact({ id: 'in1', creatorUserId: 'them' })],
+        });
+
+        expect(instance.getTabCount('pending')).toBe(1);
+    });
+
+    it('counts sent invites on the sent segment', () => {
+        const instance: any = buildInstance(undefined, {
+            pacts: [pact({ id: 'a' }), pact({ id: 'b' }), pact({ id: 'c', creatorUserId: 'them' })],
+        });
+
+        expect(instance.getTabCount('outgoing')).toBe(2);
+    });
+
+    it('leaves Habits and All uncounted', () => {
+        // Habits is the default landing segment and All is a superset of the
+        // other two, so a number on either reports nothing new.
+        const instance: any = buildInstance(undefined, {
+            pacts: [pact()],
+            pendingInvites: [pact({ id: 'in1', creatorUserId: 'them' })],
+            habitGoals: [{ id: 'g1', name: 'Read' }],
+        });
+
+        expect(instance.getTabCount('habits')).toBe(0);
+        expect(instance.getTabCount('all')).toBe(0);
     });
 });

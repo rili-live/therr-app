@@ -55,9 +55,20 @@ const TABS: HabitsTab[] = ['habits', 'pending', 'outgoing', 'all'];
  */
 const PACT_TABS: HabitsTab[] = ['pending', 'outgoing', 'all'];
 
-const TAB_LABEL_KEYS: Record<HabitsTab, string> = {
+/**
+ * The 'pending' segment is labelled "Invites", not "Pending".
+ *
+ * It used to reuse `pages.pacts.status.pending` — the very same string the pact
+ * status badge renders — so the word "Pending" meant two different things on one
+ * screen: the segment meant "invites waiting on *you*", while the badge meant
+ * "this pact has not started yet". A user with two sent invites therefore saw an
+ * empty "Pending" segment next to an "All" segment listing two pacts badged
+ * "Pending". The segment name and the badge vocabulary are kept disjoint here
+ * and in `PactCard.getStatusText` so that can't recur.
+ */
+export const TAB_LABEL_KEYS: Record<HabitsTab, string> = {
     habits: 'pages.habits.tabs.habits',
-    pending: 'pages.pacts.status.pending',
+    pending: 'pages.pacts.invitesTabLabel',
     outgoing: 'pages.pacts.outgoing.tabLabel',
     all: 'pages.pacts.allTabLabel',
 };
@@ -758,6 +769,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         const activeTab = this.getEffectiveTab();
         const isHabits = activeTab === 'habits';
         const isOutgoing = activeTab === 'outgoing';
+        const isIncoming = activeTab === 'pending';
 
         let titleKey = 'pages.pacts.noPactsTitle';
         let subtitleKey = 'pages.pacts.noPactsSubtitle';
@@ -767,6 +779,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         } else if (isOutgoing) {
             titleKey = 'pages.pacts.outgoing.emptyTitle';
             subtitleKey = 'pages.pacts.outgoing.emptySubtitle';
+        } else if (isIncoming) {
+            // "No pacts yet" was actively wrong here for the common case: a user
+            // who has sent two invites has pacts, they just have none waiting on
+            // their own reply. Name what this segment holds instead.
+            titleKey = 'pages.pacts.incoming.emptyTitle';
+            subtitleKey = 'pages.pacts.incoming.emptySubtitle';
         }
 
         return (
@@ -804,23 +822,39 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      * without truncating a label — which is why the Habits segment took the
      * place of the old "Active" pacts segment rather than being added beside it.
      */
+    /**
+     * How many items a segment would show, for the inline count. Only the two
+     * invite segments carry one — "Habits" is the default landing segment and
+     * "All" is a superset, so a number on either is noise rather than news.
+     */
+    getTabCount = (tab: HabitsTab): number => {
+        const { habits } = this.props;
+
+        if (tab === 'pending') {
+            return (habits.pendingInvites || []).length;
+        }
+        if (tab === 'outgoing') {
+            return this.getOutgoingInvites().length;
+        }
+
+        return 0;
+    };
+
     renderTabBar = () => {
         const { activeTab } = this.state;
-        const outgoingCount = this.getOutgoingInvites().length;
 
         return (
             <View style={this.themeHabits.styles.segmentedControl}>
                 {TABS.map((tab) => {
                     const isActive = activeTab === tab;
                     const label = this.translate(TAB_LABEL_KEYS[tab]);
+                    const count = this.getTabCount(tab);
                     return (
                         <Pressable
                             key={tab}
                             accessibilityRole="tab"
                             accessibilityState={{ selected: isActive }}
-                            accessibilityLabel={tab === 'outgoing' && outgoingCount > 0
-                                ? `${label}, ${outgoingCount}`
-                                : label}
+                            accessibilityLabel={count > 0 ? `${label}, ${count}` : label}
                             onPress={() => this.setActiveTab(tab)}
                             style={[
                                 this.themeHabits.styles.segmentedControlItem,
@@ -835,6 +869,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                                 ]}
                             >
                                 {label}
+                                {count > 0 && (
+                                    <Text style={this.themeHabits.styles.segmentedControlCount}>
+                                        {` \u00B7 ${count}`}
+                                    </Text>
+                                )}
                             </Text>
                         </Pressable>
                     );

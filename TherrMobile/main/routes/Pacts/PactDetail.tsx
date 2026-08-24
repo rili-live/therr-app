@@ -7,6 +7,8 @@ import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
+// Shared so the pending-pact wording can't drift between the card and this screen.
+import { getStatusText } from '../../components/Habits/PactCard';
 import getPactTimeline from '../../utilities/pactTimeline';
 import getConfig from '../../utilities/getConfig';
 import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
@@ -451,7 +453,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                     : this.themeHabits.styles.pactCardStatusPending,
                             ]}>
                                 <Text style={this.themeHabits.styles.pactCardStatusText}>
-                                    {this.translate(`pages.pacts.status.${pact.status}`).toUpperCase()}
+                                    {getStatusText(pact.status, this.translate, isInvitedUser).toUpperCase()}
                                 </Text>
                             </View>
 

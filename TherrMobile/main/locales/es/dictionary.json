@@ -1159,6 +1159,9 @@
         "partners": "Amigos",
         "profile": "Perfil",
         "journal": "Diario"
+      },
+      "accessibility": {
+        "habitsWithInvites": "Hábitos, {count} invitación(es) esperando tu respuesta"
       }
     },
     "connections": {
@@ -2047,6 +2050,7 @@
       "createPact": "Nuevo pacto",
       "createPactCta": "Crear un pacto",
       "createPactAccessibility": "Crea un nuevo pacto e invita a un amigo",
+      "invitesTabLabel": "Invitaciones",
       "allTabLabel": "Todos",
       "pactNotFound": "Pacto no encontrado",
       "acceptedTitle": "¡Pacto aceptado!",
@@ -2165,7 +2169,9 @@
         "active": "Activo",
         "completed": "Completado",
         "abandoned": "Abandonado",
-        "expired": "Expirado"
+        "expired": "Expirado",
+        "awaitingAcceptance": "Esperando aceptación",
+        "needsYourReply": "Necesita tu respuesta"
       },
       "pactType": {
         "accountability": "Responsabilidad",
@@ -2194,6 +2200,10 @@
         "completed": "Completado",
         "left": "Dejó el pacto",
         "removed": "Eliminado"
+      },
+      "incoming": {
+        "emptyTitle": "No tienes invitaciones pendientes",
+        "emptySubtitle": "Cuando un amigo te invite a un pacto, aparecerá aquí."
       }
     },
     "pushOptIn": {
