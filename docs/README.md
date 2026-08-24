@@ -68,6 +68,7 @@ went unread.
 - [TARGET_MARKETS.md](./TARGET_MARKETS.md) — consumer and business target markets
 - [QR_CODE_MAIL_CAMPAIGN.md](./QR_CODE_MAIL_CAMPAIGN.md) — direct mail campaign
 - [PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md](./PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md) — push engagement plan
+- [CONTENT_CREATION_FLYWHEEL.md](./CONTENT_CREATION_FLYWHEEL.md) — raising moment supply as input to the B2B funnel
 
 ### Content pipeline
 - [CONTENT_GUIDES.md](./CONTENT_GUIDES.md) — editorial guides overview
