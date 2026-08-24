@@ -35,6 +35,7 @@ import {
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
     MAX_ANIMATION_LATITUDE_DELTA,
+    METERS_PER_MILE,
     ANIMATE_TO_REGION_DURATION_FAST,
     MAX_ANIMATION_LONGITUDE_DELTA,
     getAndroidChannel,
@@ -400,7 +401,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 // Load the users last known location
                 // Note: See getLongitudeDelta()
                 // This converts degrees to miles then miles to meters (times 4 for extended search)
-                const radiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
+                const radiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * METERS_PER_MILE;
                 this.handleSearchThisLocation(radiusMeters, user?.details?.lastKnownLatitude, user?.details?.lastKnownLongitude)
                     .finally(() => this.autoOpenPreviewStrip(user?.details?.lastKnownLatitude, user?.details?.lastKnownLongitude));
             } else {
@@ -450,7 +451,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     previewScrollIndex: undefined,
                 });
 
-                const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
+                const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * METERS_PER_MILE;
                 const latitude = map?.latitude || location?.user?.latitude;
                 const longitude = map?.longitude || location?.user?.longitude;
                 this.handleSearchThisLocation(searchRadiusMeters, latitude, longitude)
@@ -1881,7 +1882,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
      */
     searchFromCachedOrFallbackLocation = () => getLastMapLocation().then((cached) => {
         const coords = cached || FALLBACK_METRO_COORDS;
-        const radiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
+        const radiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * METERS_PER_MILE;
 
         this.updateCircleCenter({ latitude: coords.latitude, longitude: coords.longitude });
 

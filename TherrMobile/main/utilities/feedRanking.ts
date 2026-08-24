@@ -31,6 +31,9 @@ import {
     rankByScore,
     scoreContent,
 } from 'therr-js-utilities/content-ranking';
+// From the leaf module, not the `constants` barrel: that barrel imports Notifee at module
+// load, which this file must not drag into a pure ranking utility (or its unit tests).
+import { METERS_PER_MILE } from '../constants/units';
 
 const MS_PER_HOUR = 1000 * 60 * 60;
 
@@ -228,8 +231,6 @@ const AREA_WEIGHT_GEO = 1;
 const AREA_WEIGHT_RECENCY = 0.8;
 const AREA_WEIGHT_ACTIVITY = 0.5;
 const AREA_WEIGHT_FEATURED = 0.2;
-
-const METERS_PER_MILE = 1609.34;
 
 export interface IAreaActivity {
     latestActivityMs?: number;

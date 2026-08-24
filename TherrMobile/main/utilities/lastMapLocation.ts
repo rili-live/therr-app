@@ -30,8 +30,16 @@ export interface ILastMapLocation {
 
 let lastWriteAt = 0;
 
+/**
+ * A usable coordinate component. `Number.isFinite` rather than a truthiness check because
+ * `0` is a real latitude and a real longitude — the prime meridian runs through the UK,
+ * France, Spain and Ghana — while still rejecting undefined, null, NaN, Infinity, and the
+ * strings a corrupt cache entry can deserialize into.
+ */
+const isUsableCoordinate = (value: any): value is number => Number.isFinite(value);
+
 export const setLastMapLocation = (latitude?: number, longitude?: number): Promise<void> => {
-    if (!latitude || !longitude) {
+    if (!isUsableCoordinate(latitude) || !isUsableCoordinate(longitude)) {
         return Promise.resolve();
     }
 
@@ -56,10 +64,10 @@ export const getLastMapLocation = (): Promise<ILastMapLocation | undefined> => A
         }
 
         const parsed = JSON.parse(raw);
-        if (!parsed?.latitude || !parsed?.longitude) {
+        if (!isUsableCoordinate(parsed?.latitude) || !isUsableCoordinate(parsed?.longitude)) {
             return undefined;
         }
-        if (!parsed.updatedAt || Date.now() - parsed.updatedAt > MAX_AGE_MS) {
+        if (!isUsableCoordinate(parsed.updatedAt) || Date.now() - parsed.updatedAt > MAX_AGE_MS) {
             return undefined;
         }
 

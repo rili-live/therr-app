@@ -30,6 +30,7 @@ import {
     MAX_ANIMATION_LATITUDE_DELTA,
     MAX_ANIMATION_LONGITUDE_DELTA,
     MAX_DISTANCE_TO_NEARBY_SPACE,
+    METERS_PER_MILE,
     HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
 import { buildStyles } from '../../styles';
@@ -49,8 +50,8 @@ const { width: viewPortWidth } = Dimensions.get('window');
 const IS_SMALL_SCREEN = viewPortWidth < 400;
 const CARD_HEIGHT = areaPreviewCardHeight;
 const CARD_WIDTH = IS_SMALL_SCREEN ? viewPortWidth / 3 : CARD_HEIGHT - 70;
-// distanceTo() returns meters; getReadableDistance() expects miles.
-const METERS_PER_MILE = 1609.34;
+// NOTE: distanceTo() returns meters; getReadableDistance() expects miles. The conversion
+// factor is shared via ../../constants so this file and utilities/feedRanking cannot drift.
 const PREVIEW_HEADER_HEIGHT = 22;
 // const CARD_WIDTH = viewPortWidth / 4;
 // const spaceBubbleWidth = viewPortWidth / 8;
@@ -996,7 +997,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             previewHeaderLabel = this.translate('pages.map.preview.activeNearby', { count: areasInPreview.length });
         }
         // This converts degrees to miles then miles to meters (divided by 10)
-        const focusedAreaRadius = Math.abs(((map?.longitudeDelta || 0) * 69 * 1609.34) / 12);
+        const focusedAreaRadius = Math.abs(((map?.longitudeDelta || 0) * 69 * METERS_PER_MILE) / 12);
         const unfocusedAreaRadius = focusedAreaRadius / 2;
 
         return (
