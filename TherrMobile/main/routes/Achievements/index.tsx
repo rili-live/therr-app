@@ -17,6 +17,7 @@ import {
     triggerClaimPressFeedback,
     triggerClaimSuccessFeedback,
 } from '../../utilities/rewardFeedback';
+import { recordPositiveSignal } from '../../utilities/appReviewPrompt';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
@@ -121,6 +122,9 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
 
         claimMyAchievement(userAchievement.id, userAchievement.unclaimedRewardPts).then(() => {
             triggerClaimSuccessFeedback();
+            // Counts toward the app-review prompt. Fire-and-forget: a storage failure must
+            // not affect the claim that just succeeded.
+            recordPositiveSignal('achievementClaimed').catch((err) => console.log('APP_REVIEW_SIGNAL_ERROR', err));
             showToast.success({
                 text1: this.translate('alertTitles.coinsReceived'),
                 text2: this.translate('alertMessages.coinsReceived', {
