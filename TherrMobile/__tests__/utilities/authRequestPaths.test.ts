@@ -12,7 +12,6 @@ describe('isNonRefreshableAuthUrl', () => {
         ['phone account select', '/phone/auth/select'],
         ['phone sign-up start', '/phone/register/start'],
         ['phone sign-up verify', '/phone/register/verify'],
-        ['code validation', '/phone/validate-code'],
     ])('keeps the response interceptor off %s', (_label, url) => {
         expect(isNonRefreshableAuthUrl(url)).toEqual(true);
     });
@@ -30,6 +29,10 @@ describe('isNonRefreshableAuthUrl', () => {
         ['handoff mint', '/users-service/auth/handoff/mint'],
         ['handoff cancel', '/users-service/auth/handoff/cancel'],
         ['e-mail precheck', '/users-service/auth/email-precheck'],
+        // Authenticated (absent from the gateway's unauthenticatedPaths) and answers a wrong
+        // code with 400, not 401. It runs mid-onboarding while the user waits on an SMS, so a
+        // 401 there is a genuinely expired token that refresh-and-retry should recover.
+        ['phone code validation', '/phone/validate-code'],
         ['an ordinary read', '/users-service/users/me'],
         ['a maps read', '/maps-service/areas/search'],
     ])('leaves refresh-and-retry alone for %s', (_label, url) => {

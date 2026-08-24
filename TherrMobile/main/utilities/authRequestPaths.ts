@@ -13,8 +13,11 @@
  *     password is replayed, the second 401 trips the retry branch, and the user is logged out
  *     instead of being told their password was wrong.
  *
- * `/auth/handoff/mint` and `/auth/handoff/cancel` are deliberately absent: those are called by
- * an already-signed-in user, where a 401 really can mean an expired token worth refreshing.
+ * `/auth/handoff/mint`, `/auth/handoff/cancel` and `/phone/validate-code` are deliberately
+ * absent: those are called by an already-signed-in user, where a 401 really can mean an
+ * expired token worth refreshing. `/phone/validate-code` in particular answers a wrong code
+ * with 400, and runs mid-onboarding (CreateProfilePhoneVerify) where the session can easily
+ * age out while the user waits on an SMS — exactly the case refresh-and-retry exists for.
  */
 export const NON_REFRESHABLE_AUTH_PATHS = [
     '/users-service/auth',                  // password + SSO sign-in
@@ -26,7 +29,6 @@ export const NON_REFRESHABLE_AUTH_PATHS = [
     '/phone/auth/select',
     '/phone/register/start',                // passwordless sign-up
     '/phone/register/verify',
-    '/phone/validate-code',
 ];
 
 /**
