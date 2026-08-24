@@ -23,6 +23,7 @@ import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/settingsForm';
 import textStyles from '../../styles/text';
 import BaseInput from '../../components/Input';
+import PasswordInput from '../../components/Input/PasswordInput';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import UserImage from '../../components/UserContent/UserImage';
@@ -84,7 +85,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     private passwordSectionYOffset: number | null = null;
     private isUserSectionScrollPending = false;
     private firstNameInputRef;
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
     private themeMenu = buildMenuStyles();
     private themeForms = buildFormStyles();
@@ -873,7 +874,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </View>
                             <View style={this.themeSettingsForm.styles.passwordContainer}>
                                 <PasswordRequirements translate={this.translate} password={inputs.password} themeForms={this.themeForms} />
-                                <BaseInput
+                                <PasswordInput
                                     variant="square"
                                     placeholder={this.translate(
                                         'forms.settings.labels.password'
@@ -883,18 +884,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('oldPassword', text)
                                     }
-                                    secureTextEntry={true}
                                     errorMessage={formErrors.oldPassword}
-                                    rightIcon={
-                                        <MaterialIcon
-                                            name="vpn-key"
-                                            size={26}
-                                            color={this.theme.colorVariations.primary3Fade}
-                                        />
-                                    }
+                                    translate={this.translate}
+                                    iconColor={this.theme.colorVariations.primary3Fade}
                                     themeForms={this.themeForms}
+                                    testID="settings-old-password"
                                 />
-                                <BaseInput
+                                <PasswordInput
                                     variant="square"
                                     placeholder={this.translate(
                                         'forms.settings.labels.newPassword'
@@ -904,18 +900,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('password', text)
                                     }
-                                    secureTextEntry={true}
                                     errorMessage={formErrors.password}
-                                    rightIcon={
-                                        <MaterialIcon
-                                            name="lock"
-                                            size={26}
-                                            color={this.theme.colorVariations.primary3Fade}
-                                        />
-                                    }
+                                    translate={this.translate}
+                                    iconColor={this.theme.colorVariations.primary3Fade}
                                     themeForms={this.themeForms}
+                                    testID="settings-new-password"
                                 />
-                                <BaseInput
+                                <PasswordInput
                                     variant="square"
                                     placeholder={this.translate(
                                         'forms.settings.labels.repeatPassword'
@@ -925,16 +916,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('repeatPassword', text)
                                     }
-                                    secureTextEntry={true}
                                     errorMessage={formErrors.repeatPassword}
-                                    rightIcon={
-                                        <MaterialIcon
-                                            name="lock"
-                                            size={26}
-                                            color={this.theme.colorVariations.primary3Fade}
-                                        />
-                                    }
+                                    translate={this.translate}
+                                    iconColor={this.theme.colorVariations.primary3Fade}
                                     themeForms={this.themeForms}
+                                    testID="settings-repeat-password"
                                 />
                                 <Button
                                     type="clear"

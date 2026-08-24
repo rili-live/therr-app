@@ -73,6 +73,7 @@
     "mediaUploadFailed": "Error al cargar imagen",
     "tooManyAttempts": "Demasiados intentos",
     "registerSuccess": "Cuenta creada",
+    "accountNotVerified": "Verifica tu correo"
     "repostSuccess": "Republicado"
   },
   "alertMessages": {
@@ -534,7 +535,8 @@
         "phoneSignInHint": "Te enviaremos un código de 6 dígitos: no necesitas contraseña."
       },
       "invalidCode": "Ese código no es válido o ha expirado.",
-      "invalidPhoneNumber": "Ingresa un número de teléfono válido."
+      "invalidPhoneNumber": "Ingresa un número de teléfono válido.",
+      "accountNotVerified": "Tu correo electrónico aún no está verificado. Revisa tu bandeja de entrada para encontrar el enlace de verificación."
     },
     "nearbyForm": {
       "buttons": {
@@ -792,7 +794,8 @@
         "invalidPhoneNumber": "El número de teléfono es inválido.",
         "repeatPassword": "Las contraseñas no coinciden",
         "passwordInsecure": "La contraseña no cumple los requisitos mínimos de seguridad",
-        "birthdateTooYoung": "Debes tener al menos {minAge} años para registrarte"
+        "birthdateTooYoung": "Debes tener al menos {minAge} años para registrarte",
+        "accountExists": "Ya existe una cuenta con ese correo o nombre de usuario. Intenta iniciar sesión."
       },
       "labels": {
         "email": "Correo electrónico",
@@ -960,6 +963,12 @@
         "accountExists": "Ya existe una cuenta con este número. Intenta iniciar sesión.",
         "accountTypeTaken": "Este número ya tiene una cuenta de ese tipo. Elige otro tipo o inicia sesión.",
         "accountLimitReached": "Este número ya tiene el número máximo de cuentas. Intenta iniciar sesión."
+      }
+    },
+    "passwordInput": {
+      "labels": {
+        "showPassword": "Mostrar contraseña",
+        "hidePassword": "Ocultar contraseña"
       }
     }
   },

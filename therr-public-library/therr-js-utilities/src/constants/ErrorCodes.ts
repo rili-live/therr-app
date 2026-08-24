@@ -4,6 +4,10 @@ const ErrorCodes = {
     UNKNOWN_ERROR: 'UnknownError',
     DUPLICATE_POST: 'DuplicatePost',
     NOT_FOUND: 'NotFound',
+    // Correct credentials on an account that has never confirmed its e-mail. Distinct from a
+    // credential rejection so clients can point the user at their inbox instead of at a
+    // password reset they don't need.
+    NOT_VERIFIED: 'AccountNotVerified',
     USER_EXISTS: 'UserAlreadyExists',
     INVALID_REGION: 'InvalidRegion',
     INSUFFICIENT_THERR_COIN_FUNDS: 'InsufficientTherrCoinFunds',

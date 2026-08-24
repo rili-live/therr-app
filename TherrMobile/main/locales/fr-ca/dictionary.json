@@ -73,6 +73,7 @@
     "mediaUploadFailed": "Échec du téléversement de l'image",
     "tooManyAttempts": "Trop de tentatives",
     "registerSuccess": "Compte créé",
+    "accountNotVerified": "Vérifiez votre courriel"
     "repostSuccess": "Republié"
   },
   "alertMessages": {
@@ -534,7 +535,8 @@
         "phoneSignInHint": "Nous vous enverrons un code à 6 chiffres — aucun mot de passe requis."
       },
       "invalidCode": "Ce code est invalide ou expiré.",
-      "invalidPhoneNumber": "Veuillez entrer un numéro de téléphone valide."
+      "invalidPhoneNumber": "Veuillez entrer un numéro de téléphone valide.",
+      "accountNotVerified": "Votre adresse courriel n'est pas encore vérifiée. Consultez votre boîte de réception pour trouver le lien de vérification."
     },
     "nearbyForm": {
       "buttons": {
@@ -792,7 +794,8 @@
         "invalidPhoneNumber": "Le numéro de téléphone est invalide.",
         "repeatPassword": "Les mots de passe ne correspondent pas",
         "passwordInsecure": "Le mot de passe ne respecte pas les exigences minimales de sécurité",
-        "birthdateTooYoung": "Vous devez avoir au moins {minAge} ans pour vous inscrire"
+        "birthdateTooYoung": "Vous devez avoir au moins {minAge} ans pour vous inscrire",
+        "accountExists": "Un compte utilise déjà ce courriel ou ce nom d’utilisateur. Essayez plutôt de vous connecter."
       },
       "labels": {
         "email": "Courriel",
@@ -960,6 +963,12 @@
         "accountExists": "Un compte utilise déjà ce numéro. Essayez de vous connecter.",
         "accountTypeTaken": "Ce numéro a déjà un compte de ce type. Choisissez un autre type ou connectez-vous.",
         "accountLimitReached": "Ce numéro a déjà le nombre maximal de comptes. Essayez de vous connecter."
+      }
+    },
+    "passwordInput": {
+      "labels": {
+        "showPassword": "Afficher le mot de passe",
+        "hidePassword": "Masquer le mot de passe"
       }
     }
   },

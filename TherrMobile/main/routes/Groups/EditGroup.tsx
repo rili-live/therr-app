@@ -330,7 +330,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             error.statusCode === 404
                         ) {
                             let errorMessage = '';
-                            if (error.errorCode === ErrorCodes.DuplicatePost) {
+                            if (error.errorCode === ErrorCodes.DUPLICATE_POST) {
                                 errorMessage = this.translate('alertTitles.duplicatePost');
                             } else {
                                 errorMessage = `${error.message}${

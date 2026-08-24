@@ -43,6 +43,18 @@ export interface IBaseInputProps extends TextInputProps {
     inputRef?: React.Ref<any>;
     rightIcon?: React.ReactNode;
     leftIcon?: React.ReactNode;
+    /**
+     * Paper adornments, forwarded to the underlying TextInput untouched (they land in
+     * `textInputProps`, which is spread last and so wins over `rightIcon`/`leftIcon`).
+     *
+     * Use these — not `rightIcon`/`leftIcon` — for anything that must actually appear.
+     * Paper only renders an adornment whose element type is `TextInput.Icon` or
+     * `TextInput.Affix`; `getAdornmentConfig` assigns any other element a config entry with
+     * no type, which renders nothing. The `rightIcon`/`leftIcon` props below wrap their node
+     * in a plain `<View>`, so what they pass is dropped on the floor.
+     */
+    right?: React.ReactNode;
+    left?: React.ReactNode;
     rightIconContainerStyle?: any;
     leftIconContainerStyle?: any;
     errorMessage?: string;
