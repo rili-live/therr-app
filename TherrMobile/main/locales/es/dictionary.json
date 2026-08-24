@@ -2050,6 +2050,27 @@
     }
   },
   "modals": {
+    "appReviewPrompt": {
+      "sentiment": {
+        "header": "¿Te gusta {appName}?",
+        "message": "Últimamente has usado bastante {appName}. ¿Qué te parece hasta ahora?",
+        "notReally": "La verdad, no",
+        "yes": "¡Sí!"
+      },
+      "review": {
+        "header": "¡Nos alegra saberlo!",
+        "message": "¿Te importaría dejar una reseña rápida? Solo toma un momento y ayuda a que otras personas descubran {appName}.",
+        "maybeLater": "Quizás más tarde",
+        "writeReview": "Escribir una reseña"
+      },
+      "feedback": {
+        "header": "Lamentamos oír eso",
+        "message": "Cuéntanos qué no está funcionando y lo revisaremos. Tus comentarios llegan directamente a nuestro equipo.",
+        "noThanks": "No, gracias",
+        "sendFeedback": "Enviar comentarios"
+      },
+      "emailSubject": "Comentarios sobre {appName}"
+    },
     "confirmModal": {
       "agree": "Aceptar",
       "confirm": "Sí",

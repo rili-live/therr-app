@@ -2,9 +2,12 @@ import React from 'react';
 import axios from 'axios';
 import qs from 'qs';
 import {
+    AppState,
+    AppStateStatus,
     Image,
     Linking,
     NativeModules,
+    NativeEventSubscription,
     PermissionsAndroid,
     Platform,
 } from 'react-native';
@@ -60,6 +63,7 @@ import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildModalStyles } from '../styles/modal';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
 import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
@@ -67,6 +71,15 @@ import permissions, { PermType } from '../utilities/permissionsOrchestrator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackgroundLocationDisclosureModal from './Modals/BackgroundLocationDisclosureModal';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
+import AppReviewPromptModal, { AppReviewPromptOutcome } from './Modals/AppReviewPromptModal';
+import {
+    markReviewPromptCompleted,
+    markReviewPromptDeclined,
+    markReviewPromptShown,
+    shouldShowReviewPrompt,
+} from '../utilities/appReviewPrompt';
+import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
+import { openSupportEmail } from '../utilities/supportContact';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
@@ -155,9 +168,21 @@ interface ILayoutState {
     permissionPrimerType: PermType | null;
     shouldSpinSplashLogo: boolean;
     isSplashSpinnerVisible: boolean;
+    isAppReviewPromptVisible: boolean;
 }
 
 const BG_LOCATION_DISCLOSURE_KEY = 'bgLocationDisclosureShown';
+
+/**
+ * Delay before the review prompt is considered on a cold start, measured from the splash
+ * handoff. Long enough that the first screen has settled and the user is looking at their
+ * own content rather than at a loading state.
+ */
+const APP_REVIEW_PROMPT_COLD_START_DELAY_MS = 8000;
+/** Same idea on a warm return, where there is no splash and no first fetch to wait on. */
+const APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS = 3000;
+/** How long the app must have been away for a return to count as the user coming back to it. */
+const APP_REVIEW_PROMPT_MIN_AWAY_MS = 60000;
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -216,11 +241,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private themeForms = buildFormStyles();
     private themeInfoModal = buildInfoModalStyles();
     private themeModal = buildModalStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
     private themeDisclosure = buildDisclosureStyles();
     private permissionPrimerResolve: ((allowed: boolean) => void) | null = null;
     private unsubscribeNotificationsGranted: (() => void) | null = null;
     private fcmRegistrationStarted = false;
+    private appStateListener: NativeEventSubscription | null = null;
+    private lastBackgroundedAt: number | null = null;
+    private appReviewPromptTimeout: ReturnType<typeof setTimeout> | null = null;
     subscriptions: Subscription[] = [];
 
     constructor(props) {
@@ -233,6 +262,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             permissionPrimerType: null,
             shouldSpinSplashLogo: false,
             isSplashSpinnerVisible: true,
+            isAppReviewPromptVisible: false,
         };
 
         this.reloadTheme();
@@ -275,6 +305,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             .catch((err) => console.log('FCM_INITIAL_NOTIFICATION_ERROR', err));
         // Universal links handler
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
+
+        // Returning to the app is the calmest moment we get: nothing is mid-flow and no
+        // other modal is being opened, which is where the review prompt belongs.
+        this.appStateListener = AppState.addEventListener('change', this.handleAppStateChange);
 
         if (appleAuth.isSupported) {
             this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
@@ -440,6 +474,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     componentWillUnmount() {
         this.nativeEventListener?.remove();
         this.urlEventListener?.remove();
+        this.appStateListener?.remove();
+
+        if (this.appReviewPromptTimeout) {
+            clearTimeout(this.appReviewPromptTimeout);
+            this.appReviewPromptTimeout = null;
+        }
 
         if (this.authCredentialListener) {
             this.authCredentialListener();
@@ -493,6 +533,120 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     handleBackgroundLocationDisclosureDecline = () => {
         this.setState({ isBackgroundLocationDisclosureVisible: false });
         AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
+    };
+
+    handleAppStateChange = (nextAppState: AppStateStatus) => {
+        if (nextAppState !== 'active') {
+            // Keep the *first* transition away: iOS reports 'inactive' before 'background',
+            // and overwriting would read as a much shorter absence than it was.
+            if (this.lastBackgroundedAt === null) {
+                this.lastBackgroundedAt = Date.now();
+            }
+
+            return;
+        }
+
+        const backgroundedAt = this.lastBackgroundedAt;
+        this.lastBackgroundedAt = null;
+
+        // Only a deliberate return counts. The app also goes inactive for an OS permission
+        // dialog, the camera, and the share sheet — all of which are the middle of a flow the
+        // user started, and the worst possible moment to interrupt with a review prompt.
+        if (backgroundedAt !== null && Date.now() - backgroundedAt >= APP_REVIEW_PROMPT_MIN_AWAY_MS) {
+            this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS);
+        }
+    };
+
+    /**
+     * Whether this is a moment the prompt may interrupt. Everything here is a
+     * "the user is busy with something else" check — eligibility itself (how engaged the
+     * user is, how recently they were last asked) lives in `utilities/appReviewPrompt`.
+     */
+    isAppReviewPromptInterruptible = (): boolean => {
+        const {
+            isAppReviewPromptVisible,
+            isBackgroundLocationDisclosureVisible,
+            isSplashSpinnerVisible,
+            permissionPrimerType,
+        } = this.state;
+
+        return this.isUserAuthenticated()
+            && !isAppReviewPromptVisible
+            && !isBackgroundLocationDisclosureVisible
+            && !isSplashSpinnerVisible
+            && !permissionPrimerType
+            && !this.props.user?.settings?.isTouring;
+    };
+
+    scheduleAppReviewPromptCheck = (delayMs: number) => {
+        // A single pending check at a time. Foregrounding twice in quick succession (a
+        // permission dialog, a share sheet) should not queue up two prompts.
+        if (this.appReviewPromptTimeout) {
+            return;
+        }
+
+        this.appReviewPromptTimeout = setTimeout(() => {
+            this.appReviewPromptTimeout = null;
+            this.checkAppReviewPrompt();
+        }, delayMs);
+    };
+
+    checkAppReviewPrompt = () => {
+        if (!this.isAppReviewPromptInterruptible()) {
+            return;
+        }
+
+        shouldShowReviewPrompt().then((shouldShow) => {
+            // Re-check: the read is async, and a permission primer or the tour may have
+            // opened while it was in flight.
+            if (!shouldShow || !this.isAppReviewPromptInterruptible()) {
+                return;
+            }
+
+            // Stamped on display rather than on an answer, so a prompt the user swipes away
+            // still starts the quiet period.
+            markReviewPromptShown();
+            this.setState({ isAppReviewPromptVisible: true });
+            logEvent(getAnalytics(), 'app_review_prompt_shown', {
+                userId: this.props.user?.details?.id,
+            }).catch((err) => console.log(err));
+        }).catch((err) => console.log('APP_REVIEW_PROMPT_CHECK_ERROR', err));
+    };
+
+    handleAppReviewPromptClose = (outcome: AppReviewPromptOutcome) => {
+        this.setState({ isAppReviewPromptVisible: false });
+
+        logEvent(getAnalytics(), 'app_review_prompt_closed', {
+            userId: this.props.user?.details?.id,
+            outcome,
+        }).catch((err) => console.log(err));
+
+        if (outcome === 'reviewRequested') {
+            openStoreReviewPage().then((didOpen) => {
+                // Only terminal if the store actually opened. If nothing could handle the
+                // link the user never got the chance to review, so leave them askable.
+                if (didOpen) {
+                    markReviewPromptCompleted();
+                }
+            }).catch((err) => console.log('APP_REVIEW_STORE_LINK_ERROR', err));
+
+            return;
+        }
+
+        if (outcome === 'feedbackRequested') {
+            markReviewPromptDeclined();
+            openSupportEmail(this.translate('modals.appReviewPrompt.emailSubject'))
+                .catch((err) => console.log('APP_REVIEW_SUPPORT_LINK_ERROR', err));
+
+            return;
+        }
+
+        if (outcome === 'declined') {
+            markReviewPromptDeclined();
+        }
+
+        // 'dismissed' leaves the user eligible for a later prompt; the shown-stamp above
+        // already started the quiet period.
     };
 
     // IMPORTANT: This should only be called once per session
@@ -572,6 +726,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.themeMenu = buildMenuStyles(themeName);
         this.themeInfoModal = buildInfoModalStyles(themeName);
         this.themeModal = buildModalStyles(themeName);
+        this.themeConfirmModal = buildConfirmModalStyles(themeName);
         this.themeDisclosure = buildDisclosureStyles(themeName);
         if (shouldForceUpdate) {
             this.forceUpdate();
@@ -1969,7 +2124,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
-        const { isBackgroundLocationDisclosureVisible, permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
+        const {
+            isAppReviewPromptVisible,
+            isBackgroundLocationDisclosureVisible,
+            permissionPrimerType,
+            isSplashSpinnerVisible,
+            shouldSpinSplashLogo,
+        } = this.state;
 
         return (
             <>
@@ -1998,6 +2159,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         // exactly, so the transition is invisible and the spin starts cleanly.
                             SplashScreen.hide({ fade: false });
                             this.setState({ shouldSpinSplashLogo: true });
+                            // AppState never reports the launch itself as a change, so the
+                            // cold-start path has to arm its own check.
+                            this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_COLD_START_DELAY_MS);
                         });
                     }}
                     onStateChange={async () => {
@@ -2269,6 +2433,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             themeDisclosure={this.themeDisclosure}
                         />
                     ) : null}
+                    <AppReviewPromptModal
+                        isVisible={isAppReviewPromptVisible}
+                        onClose={this.handleAppReviewPromptClose}
+                        translate={this.translate}
+                        themeModal={this.themeConfirmModal}
+                        themeButtons={this.themeButtons}
+                    />
+
                 </NavigationContainer>
                 {isSplashSpinnerVisible ? (
                     <SplashLogoSpinner
