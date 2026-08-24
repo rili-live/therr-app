@@ -922,7 +922,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'Connect';
             } else if (data.action === brandIntents.NEW_LIKE_RECEIVED
                 || data.action === brandIntents.NEW_SUPER_LIKE_RECEIVED
-                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED) {
+                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED
+                || data.action === brandIntents.NEW_THOUGHT_REPOST_RECEIVED) {
                 targetRouteView = 'Notifications';
             } else if (data.action === brandIntents.NUDGE_SPACE_ENGAGEMENT) {
                 targetRouteView = 'Areas';
@@ -1120,6 +1121,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 if (area?.id) return buildSpaceRoute(area);
                 return { targetRouteView: 'Map', targetRouteParams: {} };
             case PushNotifications.Types.newThoughtReplyReceived:
+            case PushNotifications.Types.newThoughtRepostReceived:
                 if (thought?.id) return buildThoughtRoute(thought);
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
             case PushNotifications.Types.postVisitReviewReminder:

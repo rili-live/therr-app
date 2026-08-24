@@ -83,6 +83,11 @@
       "body": "{userName} a répondu à ta publication — regarde ce qu'il a dit",
       "pressActionView": "Voir la réponse"
     },
+    "newThoughtRepostReceived": {
+      "title": "Ta publication a été republiée",
+      "body": "{userName} a republié ta publication — elle rejoint un nouveau public",
+      "pressActionView": "Voir la publication"
+    },
     "newAreasActivated": {
       "title": "Nouveaux secteurs débloqués!",
       "body": "Tu viens de débloquer {totalAreasActivated} nouveau(x) secteur(s) — explore ce qui a été partagé à proximité"

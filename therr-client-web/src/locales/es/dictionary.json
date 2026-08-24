@@ -41,7 +41,11 @@
   },
   "common": {
     "share": "Compartir",
-    "linkCopied": "¡Enlace copiado!"
+    "linkCopied": "¡Enlace copiado!",
+    "justNow": "ahora mismo",
+    "minutesAgo": "{count} min",
+    "hoursAgo": "{count} h",
+    "daysAgo": "{count} d"
   },
   "components": {
     "incompleteProfileBanner": {
@@ -476,7 +480,17 @@
       "viewAllReplies": "Ver las {count} respuestas",
       "viewReplies": "Ver {count} respuestas",
       "viewReply": "Ver 1 respuesta",
-      "reply": "Responder"
+      "reply": "Responder",
+      "repostedBy": "{userName} republicó",
+      "repostThought": "Republicar",
+      "repostUnavailable": "Esta publicación ya no está disponible",
+      "repostModalTitle": "Republicar",
+      "repostPlaceholder": "Añade un comentario (opcional)",
+      "repostConfirm": "Republicar",
+      "repostCancel": "Cancelar",
+      "repostError": "No pudimos republicar esto. Inténtalo de nuevo.",
+      "repostDuplicate": "Ya republicaste esta publicación",
+      "repostRestricted": "Solo el autor puede republicar una publicación que no es pública"
     },
     "viewThought": {
       "headerTitle": "Pensamiento",

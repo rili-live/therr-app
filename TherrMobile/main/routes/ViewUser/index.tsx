@@ -23,6 +23,7 @@ import {
 } from 'therr-react/types';
 import { TabBar } from 'react-native-tab-view';
 import { showToast } from '../../utilities/toasts';
+import getRepostErrorKey from '../../utilities/repostErrors';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -40,6 +41,7 @@ import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import UserDisplayHeader from './UserDisplayHeader';
 import ProfileCompletionLink from '../../components/ProfileCompletionLink';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import RepostModal from '../../components/Modals/RepostModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import CollapsibleHeaderTabView, { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
@@ -73,6 +75,7 @@ interface IViewUserDispatchProps {
     createOrUpdateThoughtReaction: Function;
     createOrUpdateSpaceReaction: Function;
     searchThoughts: Function;
+    createThought: Function;
     updateUserInView: Function;
     createUserConnection: Function;
     updateUserConnection: Function;
@@ -100,6 +103,9 @@ interface IViewUserState {
     isRefreshingUserMoments: boolean;
     isRefreshingUserThoughts: boolean;
     isTabViewLaidOut: boolean;
+    // The thought the repost composer is open for (null when closed).
+    repostTarget: any;
+    isReposting: boolean;
     tabRoutes: { key: string; title: string }[];
     userInViewsMoments: any[];
     userInViewsThoughts: any[];
@@ -120,6 +126,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
     createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
     searchThoughts: UsersActions.searchThoughts,
+    createThought: UsersActions.createThought,
     updateUserInView: UsersActions.updateUserInView,
     createUserConnection: UserConnectionsActions.create,
     updateUserConnection: UserConnectionsActions.update,
@@ -169,6 +176,8 @@ class ViewUser extends React.Component<
             isRefreshingUserMoments: false,
             isRefreshingUserThoughts: false,
             isTabViewLaidOut: false,
+            repostTarget: null,
+            isReposting: false,
             tabRoutes,
             userInViewsMoments: [],
             userInViewsThoughts: [],
@@ -316,6 +325,63 @@ class ViewUser extends React.Component<
                 onSelect: (type: IContentSelectionType) => this.onAreaOptionSelect(type, area),
             },
         });
+    };
+
+    handleRepostPress = (thought) => {
+        this.setState({ repostTarget: thought });
+    };
+
+    handleRepostCancel = () => {
+        this.setState({ repostTarget: null });
+    };
+
+    handleRepostConfirm = (message: string) => {
+        const { createThought, user } = this.props;
+        const { repostTarget } = this.state;
+
+        if (!repostTarget?.id) {
+            return;
+        }
+
+        // Hashtags come from the user's own quote only. Carrying the original's tags over would
+        // put the reposter's account in feeds they never chose to post into.
+        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
+        const hashTagsString = [
+            ...new Set(hashTags.map((t) => t.replace(/#/g, ''))),
+        ].join(',');
+
+        this.setState({ isReposting: true });
+
+        createThought({
+            fromUserId: user.details.id,
+            // Reposting is a public act by definition — it surfaces the original to the
+            // reposter's audience, so a private repost would be a no-op with a side effect.
+            isPublic: true,
+            message,
+            hashTags: hashTagsString,
+            repostThoughtId: repostTarget.id,
+            isDraft: false,
+        })
+            .then(() => {
+                this.setState({ repostTarget: null });
+                showToast.success({
+                    text1: this.translate('alertTitles.repostSuccess'),
+                    text2: this.translate('alertMessages.repostSuccess'),
+                });
+            })
+            .catch((error: any) => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    // 400 is the server's "you already reposted this" duplicate guard. The
+                    // control is gated on the same rule the server enforces, so a 403 means the
+                    // original went non-public between opening the composer and confirming —
+                    // distinct, and not something retrying fixes.
+                    text2: this.translate(getRepostErrorKey(error?.statusCode)),
+                });
+            })
+            .finally(() => {
+                this.setState({ isReposting: false });
+            });
     };
 
     toggleThoughtOptions = (displayThought) => {
@@ -733,6 +799,7 @@ class ViewUser extends React.Component<
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={noop}
                         toggleThoughtOptions={this.toggleThoughtOptions}
+                        onRepostPress={this.handleRepostPress}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselThoughtsRef = component; }}
                         handleRefresh={this.handleUserThoughtsRefresh}
@@ -763,7 +830,9 @@ class ViewUser extends React.Component<
             confirmModalText,
             isConfirmProcessing,
             isLoading,
+            isReposting,
             isTabViewLaidOut,
+            repostTarget,
             tabRoutes,
         } = this.state;
 
@@ -829,6 +898,15 @@ class ViewUser extends React.Component<
                     theme={this.theme}
                     themeButtons={this.themeButtons}
                     themeModal={this.themeConfirmModal}
+                />
+                <RepostModal
+                    isVisible={!!repostTarget}
+                    isSubmitting={isReposting}
+                    onCancel={this.handleRepostCancel}
+                    onConfirm={this.handleRepostConfirm}
+                    thought={repostTarget}
+                    translate={this.translate}
+                    themeButtons={this.themeButtons}
                 />
                 <MainButtonMenu
                     activeRoute="ViewUser"

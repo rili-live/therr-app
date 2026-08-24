@@ -887,6 +887,25 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'NEW_THOUGHT_REPLY_RECEIVED'), brandVariation);
             return baseMessage;
+        case PushNotifications.Types.newThoughtRepostReceived:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newThoughtRepostReceived.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newThoughtRepostReceived.body', {
+                        userName: String(config.fromUserName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.thoughtView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.thoughtView,
+                            title: translate(config.userLocale, 'notifications.newThoughtRepostReceived.pressActionView'),
+                        },
+                    ]),
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'NEW_THOUGHT_REPOST_RECEIVED'), brandVariation);
+            return baseMessage;
 
         // HABITS — Streak framing & pact lifecycle.
         // These notifications are HABITS' core retention loop. Loss-aversion
@@ -1328,6 +1347,10 @@ const predictAndSendNotification = (
             }
 
             if (type === PushNotifications.Types.newThoughtReplyReceived) {
+                return messaging.send(message);
+            }
+
+            if (type === PushNotifications.Types.newThoughtRepostReceived) {
                 return messaging.send(message);
             }
 
