@@ -41,7 +41,11 @@
   },
   "common": {
     "share": "Compartir",
-    "linkCopied": "¡Enlace copiado!"
+    "linkCopied": "¡Enlace copiado!",
+    "justNow": "ahora mismo",
+    "minutesAgo": "{count} min",
+    "hoursAgo": "{count} h",
+    "daysAgo": "{count} d"
   },
   "components": {
     "incompleteProfileBanner": {
@@ -485,7 +489,8 @@
       "repostConfirm": "Republicar",
       "repostCancel": "Cancelar",
       "repostError": "No pudimos republicar esto. Inténtalo de nuevo.",
-      "repostDuplicate": "Ya republicaste esta publicación"
+      "repostDuplicate": "Ya republicaste esta publicación",
+      "repostRestricted": "Solo el autor puede republicar una publicación que no es pública"
     },
     "viewThought": {
       "headerTitle": "Pensamiento",

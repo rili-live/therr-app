@@ -85,7 +85,7 @@ const EmbeddedThought: React.FC<IEmbeddedThoughtProps> = ({ repostOf, isInteract
                     {repostOf.fromUserName}
                 </Text>
                 <Text size="xs" c="dimmed">
-                    {repostOf.createdAt && formatTimeAgo(repostOf.createdAt, locale)}
+                    {repostOf.createdAt && formatTimeAgo(repostOf.createdAt, locale, translate)}
                 </Text>
             </Group>
             <Text size="sm" className="thought-card-repost-embed-message">

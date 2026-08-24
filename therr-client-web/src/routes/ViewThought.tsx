@@ -22,25 +22,13 @@ import {
     Title,
     Tooltip,
 } from '@mantine/core';
+import { canRepostThought } from 'therr-js-utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
 import useTranslation from '../hooks/useTranslation';
 import EmbeddedThought from '../components/EmbeddedThought';
 import RepostModal from '../components/RepostModal';
 import { formatTimeAgo } from '../utilities/formatDate';
-
-/**
- * A repost of a repost is collapsed to the root server-side, so offering the control on one
- * would silently re-share something other than the post the reader clicked.
- *
- * The visibility clause mirrors the server's own gate (handlers/thoughts createThought): only
- * an author may repost their own non-public thought. Replies are minted with isPublic=false by
- * every client, so without this the control renders on every reply in the thread and returns
- * 403 for anyone but its author — under copy that asks the user to try again.
- */
-const canRepost = (t: any, currentUserId?: string) => !!t
-    && !t.isRepost
-    && !t.isDraft
-    && (!!t.isPublic || t.fromUserId === currentUserId);
+import getRepostErrorKey from '../utilities/repostErrors';
 
 const ViewThought: React.FC = () => {
     const { t: translate, locale } = useTranslation();
@@ -232,11 +220,7 @@ const ViewThought: React.FC = () => {
                 }
             })
             .catch((err: any) => {
-                // 400 here is the server's "you already reposted this" duplicate guard,
-                // which is a distinct and actionable thing to say.
-                setRepostError(translate(err?.statusCode === 400
-                    ? 'pages.exploreThoughts.repostDuplicate'
-                    : 'pages.exploreThoughts.repostError'));
+                setRepostError(translate(getRepostErrorKey(err?.statusCode)));
             })
             .finally(() => {
                 setIsReposting(false);
@@ -363,7 +347,7 @@ const ViewThought: React.FC = () => {
                             {thought.fromUserName || thought.fromUserFirstName}
                         </Text>
                         <Text size="xs" c="dimmed">
-                            {thought.createdAt && formatTimeAgo(thought.createdAt, locale)}
+                            {thought.createdAt && formatTimeAgo(thought.createdAt, locale, translate)}
                         </Text>
                     </Group>
 
@@ -414,7 +398,7 @@ const ViewThought: React.FC = () => {
                                 </ActionIcon>
                             </Tooltip>
                         )}
-                        {user?.isAuthenticated && canRepost(thought, user.details.id) && (
+                        {user?.isAuthenticated && canRepostThought(thought, user.details.id) && (
                             <Tooltip label={translate('pages.exploreThoughts.repostThought')}>
                                 <Button
                                     variant="subtle"
@@ -466,7 +450,7 @@ const ViewThought: React.FC = () => {
                                                     {reply.fromUserName || reply.fromUserFirstName || user.details.userName}
                                                 </Text>
                                                 <Text size="xs" c="dimmed">
-                                                    {reply.createdAt && formatTimeAgo(reply.createdAt, locale)}
+                                                    {reply.createdAt && formatTimeAgo(reply.createdAt, locale, translate)}
                                                 </Text>
                                             </Group>
 
@@ -500,7 +484,7 @@ const ViewThought: React.FC = () => {
                                                         </ActionIcon>
                                                     </Tooltip>
                                                 )}
-                                                {user?.isAuthenticated && canRepost(reply, user.details.id) && (
+                                                {user?.isAuthenticated && canRepostThought(reply, user.details.id) && (
                                                     <Tooltip label={translate('pages.exploreThoughts.repostThought')}>
                                                         <Button
                                                             variant="subtle"

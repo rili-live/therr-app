@@ -41,7 +41,11 @@
   },
   "common": {
     "share": "Share",
-    "linkCopied": "Link copied!"
+    "linkCopied": "Link copied!",
+    "justNow": "just now",
+    "minutesAgo": "{count}m",
+    "hoursAgo": "{count}h",
+    "daysAgo": "{count}d"
   },
   "components": {
     "incompleteProfileBanner": {
@@ -485,7 +489,8 @@
       "repostConfirm": "Repost",
       "repostCancel": "Cancel",
       "repostError": "We could not repost this. Please try again.",
-      "repostDuplicate": "You already reposted this"
+      "repostDuplicate": "You already reposted this",
+      "repostRestricted": "Only the author can repost a post that isn't public"
     },
     "viewThought": {
       "headerTitle": "Thought",

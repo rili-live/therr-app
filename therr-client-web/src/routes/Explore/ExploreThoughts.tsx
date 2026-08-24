@@ -24,6 +24,7 @@ import {
     Tooltip,
 } from '@mantine/core';
 import { Categories } from 'therr-js-utilities/constants';
+import { canRepostThought } from 'therr-js-utilities/content';
 import { formatTimeAgo } from '../../utilities/formatDate';
 import getUserImageUri from '../../utilities/getUserImageUri';
 import {
@@ -33,6 +34,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import useTranslation from '../../hooks/useTranslation';
 import EmbeddedThought from '../../components/EmbeddedThought';
 import RepostModal from '../../components/RepostModal';
+import getRepostErrorKey from '../../utilities/repostErrors';
 
 const categoryOptions = Categories.ThoughtCategories.map((cat: string) => {
     const label = cat.replace('categories.', '').replace('/', ' / ');
@@ -91,7 +93,7 @@ const ThreadPreview: React.FC<IThreadPreviewProps> = ({ onOpenThread, replyCount
                         </Text>
                     )}
                     <Text size="xs" c="dimmed">
-                        {topReply.createdAt && formatTimeAgo(topReply.createdAt, locale)}
+                        {topReply.createdAt && formatTimeAgo(topReply.createdAt, locale, translate)}
                     </Text>
                 </Group>
                 <Text size="sm" className="thought-card-thread-preview-message">
@@ -127,13 +129,9 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     const topReply = shouldAutoExpandThread(thought) ? getTopReply(thought) : undefined;
     const repliesLabel = translate(getRepliesLabelKey(replyCount), { count: replyCount });
     const repostCount = thought.repostCount || 0;
-    // A repost of a repost is collapsed to the root server-side, so offering the control on one
-    // would silently re-share something other than the card the reader clicked. The visibility
-    // clause mirrors the server's own gate (handlers/thoughts createThought): only an author
-    // may repost their own non-public thought.
-    const canRepost = !thought.isRepost
-        && !thought.isDraft
-        && (!!thought.isPublic || thought.fromUserId === currentUserId);
+    // Shared with the server's own gate (handlers/thoughts createThought) so the control is
+    // only ever offered where a repost would actually be accepted.
+    const canRepost = canRepostThought(thought, currentUserId);
 
     const handleUserClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -167,7 +165,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                         {thought.fromUserName}
                     </Text>
                     <Text size="xs" c="dimmed">
-                        {thought.createdAt && formatTimeAgo(thought.createdAt, locale)}
+                        {thought.createdAt && formatTimeAgo(thought.createdAt, locale, translate)}
                     </Text>
                     {thought.category && categoryLabelMap[thought.category] && (
                         <Text size="xs" c="dimmed" className="thought-card-category">
@@ -568,11 +566,7 @@ const ExploreThoughts: React.FC = () => {
                 fetchThoughts(1);
             })
             .catch((err: any) => {
-                // 400 here is the server's "you already reposted this" duplicate guard,
-                // which is a distinct and actionable thing to say.
-                setRepostError(translate(err?.statusCode === 400
-                    ? 'pages.exploreThoughts.repostDuplicate'
-                    : 'pages.exploreThoughts.repostError'));
+                setRepostError(translate(getRepostErrorKey(err?.statusCode)));
             })
             .finally(() => {
                 setIsReposting(false);
