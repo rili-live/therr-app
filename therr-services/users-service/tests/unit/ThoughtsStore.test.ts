@@ -1070,6 +1070,48 @@ describe('ThoughtsStore reposts', () => {
             expect(thoughts[0].repostCount).to.equal(0);
         });
 
+        // find/getById attach up to three reply previews per parent, and the details view
+        // renders a repost control against each one. A reply left out of the walk renders a
+        // permanently blank count next to a control that works.
+        it('counts reposts of nested reply previews, not only of the parents', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.resolve({ rows: [{ repostThoughtId: 'reply-1', count: '2' }] });
+                }
+                return Promise.resolve({ rows: [] });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{
+                id: 't1',
+                replies: [{ id: 'reply-1' }, { id: 'reply-2' }],
+            }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].replies[0].repostCount).to.equal(2);
+            expect(thoughts[0].replies[1].repostCount).to.equal(0);
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('includes reply ids in the counts lookup', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, [{
+                id: 't1',
+                replies: [{ id: 'reply-1' }],
+            }]);
+
+            const countsSql = readStub.args.map((args) => args[0] as string)
+                .find((sql) => sql.includes('group by "repostThoughtId"'));
+            expect(countsSql).to.include('reply-1');
+        });
+
         // _bin/cicd/run-migrations.sh applies migrations AFTER `kubectl set image`, so the new
         // pod serves the pre-migration schema for a minute or two. The counts query names
         // "repostThoughtId" on every non-empty page, so a propagating error here is a total

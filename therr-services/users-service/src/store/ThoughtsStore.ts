@@ -465,6 +465,11 @@ export default class ThoughtsStore {
      *
      * Both queries are skipped when they would be no-ops, so the common case of a page with
      * no reposts on it costs one extra indexed GROUP BY and nothing else.
+     *
+     * Nested reply previews are decorated too. `find`/`getById` attach up to three replies per
+     * parent via a lateral join, and the details view renders a repost control against each —
+     * so a reply left out of this walk renders a permanently blank count next to a control that
+     * works. Their ids cost nothing extra: they join the same IN-list the parents already use.
      */
     async attachRepostDetails(brand: BrandValue, thoughts: any[]) {
         if (!thoughts?.length) {
@@ -472,10 +477,21 @@ export default class ThoughtsStore {
         }
 
         const readable = getReadableBrands(brand);
+        // Parents and their reply previews, as one flat list. Replies come from the lateral
+        // join, whose column list has no `repostThoughtId` — they can only ever take a count,
+        // never an embed, which is correct: the insert drops `parentId` on a repost, so a
+        // reply is never itself a repost.
+        const decoratable = thoughts.reduce((acc: any[], thought) => {
+            acc.push(thought);
+            (thought?.replies || []).forEach((reply) => acc.push(reply));
+            return acc;
+        }, []);
         const originalIds = [...new Set(
-            thoughts.map((thought) => thought.repostThoughtId).filter((id) => !!id),
+            decoratable.map((thought) => thought.repostThoughtId).filter((id) => !!id),
         )];
-        const thoughtIds = thoughts.map((thought) => thought.id).filter((id) => !!id);
+        const thoughtIds = [...new Set(
+            decoratable.map((thought) => thought.id).filter((id) => !!id),
+        )];
 
         let originalsQuery = knexBuilder
             .select(REPOST_ORIGINAL_COLUMNS)
@@ -557,7 +573,7 @@ export default class ThoughtsStore {
             return acc;
         }, {});
 
-        thoughts.forEach((thought) => {
+        decoratable.forEach((thought) => {
             const modifiedThought = thought;
             modifiedThought.repostCount = countsById[modifiedThought.id] || 0;
             if (modifiedThought.repostThoughtId) {

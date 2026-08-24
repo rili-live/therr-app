@@ -9,6 +9,7 @@ import {
     ErrorCodes, MetricNames, MetricValueTypes, Notifications,
     UserConnectionTypes,
 } from 'therr-js-utilities/constants';
+import { isThoughtRepostableBy } from 'therr-js-utilities/content';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { RequestHandler } from 'express';
 import userMetricsService from '../api/userMetricsService';
@@ -65,7 +66,12 @@ const createThought = async (req, res) => {
         // Reposting is a public act — it puts the original in front of the reposter's audience.
         // A non-public thought is only ever reposted by its own author (who is choosing to
         // surface their own post), never by a reader who happened to be granted access to it.
-        if (!requestedOriginal.isPublic && requestedOriginal.fromUserId !== userId) {
+        //
+        // Shared with the clients (therr-js-utilities/content) rather than restated here: they
+        // have to ask the same question to decide whether to render a repost control, and when
+        // they answered it independently they offered one on every reply — all of which are
+        // minted non-public — that this gate then rejected.
+        if (!isThoughtRepostableBy(requestedOriginal, userId)) {
             return handleHttpError({
                 res,
                 message: translate(locale, 'thoughts.repostRestricted'),
