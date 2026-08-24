@@ -55,20 +55,6 @@ append new items here rather than only printing them once.
 
 ## Analytics & traffic (added 2026-08-24, from the GA4 review)
 
-- [ ] **Confirm whether the June web-organic collapse is a tag bug or an indexing
-  problem.** Organic search sessions to `www.therr.com` ran at 23-48/week with
-  30-42% engagement through the week of 14 June, then recorded **exactly zero for
-  three consecutive weeks** (21 Jun, 28 Jun, 5 Jul) and resumed at 1-5/week. The
-  homepage `/` fell 41 -> 8 in the same window. Rankings do not go to precisely
-  zero for 21 days and return at a tenth, so this is far more likely a collection
-  break than a traffic loss — but GA4 alone cannot tell the two apart. Two checks
-  settle it: (1) Search Console -> Performance, compare impressions/clicks across
-  14 Jun - 12 Jul against the GA series; (2) load a space page and watch for a
-  request to `google-analytics.com/g/collect`. GA initialises from
-  `therr-client-web/src/components/Layout.tsx` (`getGa4Configs(..., 'web')`), a
-  React component — anything that stopped SSR landings from mounting it produces
-  exactly this signature: entry-page sessions vanish while in-app sessions keep
-  flowing. Note the window also overlaps the GA4 consolidation going live.
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
   1,010 of 1,156 sessions (87%) in Consolidated Domains (`549794383`) over the 60
   days to 23 Aug were Singapore desktop at 2.1% engagement and ~17s duration.
