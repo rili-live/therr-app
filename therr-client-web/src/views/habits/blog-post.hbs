@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="keywords" content="{{keywords}}">
+    <meta name="author" content="{{author}}">
+    <!-- Full snippets so answer engines can quote the argument rather than a truncated stub. -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="theme-color" content="#102a43">
+    <meta property="og:site_name" content="Friends with Habits">
+    <meta property="og:type" content="article">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:url" content="{{canonicalUrl}}">
+    <meta property="og:title" content="{{title}}">
+    <meta property="og:description" content="{{description}}">
+    <meta property="og:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta property="article:published_time" content="{{date}}">
+    <meta property="article:author" content="{{author}}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@therr_app">
+    <meta name="twitter:title" content="{{title}}">
+    <meta name="twitter:description" content="{{description}}">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    {{!
+        Article schema. jsonLd is built server-side with JSON.stringify, so quotes and
+        angle brackets in the title or description are already escaped for a script
+        body - which is why this is a triple-stash. Handlebars' default escaping would
+        turn every apostrophe into an entity that JSON-LD parsers do not decode, which
+        is the exact bug the landing page's schema block carries a warning about.
+    }}
+    <script type="application/ld+json">{{{jsonLd}}}</script>
+    <style>
+        :root {
+            --habits-navy: #102a43;
+            --habits-coral-dark: #e0521e;
+            --habits-cream: #fff8f3;
+            --habits-text: #243b53;
+            --habits-text-muted: #627d98;
+            --habits-border: #d9e2ec;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--habits-text);
+            background: var(--habits-cream);
+            -webkit-font-smoothing: antialiased;
+        }
+        a { color: var(--habits-coral-dark); }
+        .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+        header.site-header {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--habits-border);
+            background: #fff;
+        }
+        header.site-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        header.site-header .brand-mark { width: 2rem; height: 2rem; display: block; }
+        header.site-header .brand { font-weight: 800; font-size: 1.125rem; color: var(--habits-navy); }
+        header.site-header a { color: var(--habits-navy); text-decoration: none; }
+        main { padding: 2.5rem 0 4rem; }
+        .breadcrumb { font-size: 0.875rem; margin: 0 0 1.5rem; color: var(--habits-text-muted); }
+        .breadcrumb a { color: var(--habits-text-muted); }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--habits-navy); margin: 0 0 0.5rem; letter-spacing: -0.02em; line-height: 1.2; }
+        .post-meta { color: var(--habits-text-muted); font-size: 0.9375rem; margin: 0 0 2rem; }
+        article h2 { font-size: 1.375rem; font-weight: 700; color: var(--habits-navy); margin: 2.5rem 0 0.75rem; letter-spacing: -0.01em; }
+        article h3 { font-size: 1.0625rem; font-weight: 600; color: var(--habits-navy); margin: 1.75rem 0 0.5rem; }
+        article p { margin: 0 0 1.125rem; }
+        article ul { padding-left: 1.25rem; }
+        article ul li { margin-bottom: 0.4rem; }
+        article > p:first-child { font-size: 1.125rem; color: var(--habits-navy); }
+        .cta-band {
+            margin-top: 3rem;
+            padding: 1.75rem;
+            background: #fff;
+            border: 1px solid var(--habits-border);
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        .cta-band p { margin: 0 0 1rem; font-weight: 600; color: var(--habits-navy); }
+        .cta-band a.cta {
+            display: inline-block;
+            background: var(--habits-coral-dark);
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+        }
+        .related {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--habits-border);
+            font-size: 0.9375rem;
+            color: var(--habits-text-muted);
+        }
+        a:focus-visible { outline: 3px solid var(--habits-navy); outline-offset: 2px; }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--habits-border);
+            background: #fff;
+            text-align: center;
+            color: var(--habits-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer .footer-links { margin-bottom: 0.75rem; }
+        footer.site-footer .footer-links a { margin: 0 0.5rem; color: var(--habits-text-muted); }
+        footer.site-footer .footer-family { margin-top: 0.5rem; }
+    </style>
+    {{> habitsAnalytics}}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
+            <a href="/" class="brand">Friends with Habits</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <p class="breadcrumb"><a href="/blog">Notes on habits and accountability</a></p>
+            <h1>{{postTitle}}</h1>
+            <p class="post-meta">{{dateDisplay}} · {{author}}</p>
+
+            {{!
+                bodyHtml is authored in this repo's own data file and generated by the
+                export script in the therr-landing repo - it is never user input, and it
+                is semantic article markup that must render as markup, not as escaped text.
+            }}
+            <article>{{{bodyHtml}}}</article>
+
+            <div class="cta-band">
+                <p>Habits stick when a friend is on the hook too.</p>
+                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits">Get Friends with Habits — free</a>
+            </div>
+
+            <p class="related">A different version of this piece, written for a general audience, is on <a href="{{relatedLandingUrl}}">the Therr blog</a>.</p>
+        </div>
+    </main>
+
+    {{> habitsFooter}}
+</body>
+</html>

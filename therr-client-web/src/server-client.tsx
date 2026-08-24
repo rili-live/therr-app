@@ -21,6 +21,7 @@ import {
     BrandVariations, Categories, Cities, Content,
 } from 'therr-js-utilities/constants';
 import { buildSpaceSlug } from 'therr-js-utilities/slugify';
+import { getGa4Configs } from 'therr-react/utilities/analytics';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -34,6 +35,14 @@ import { buildGuideSchemas } from './utilities/guideJsonLd';
 import {
     IHabitsInviteRouteMatch, UUID_V4_RE, matchHabitsInviteRoute,
 } from './utilities/habitsSubdomainRoutes';
+import {
+    HABITS_BLOG_LIST_DESCRIPTION,
+    HABITS_BLOG_LIST_TITLE,
+    HABITS_BLOG_POSTS,
+    buildHabitsBlogJsonLd,
+    isHabitsBlogListPath,
+    matchHabitsBlogPost,
+} from './utilities/habitsBlog';
 import { HABITS_HOSTS, resolveAssetLinksFileName } from './utilities/wellKnownAssets';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
@@ -247,6 +256,25 @@ interface IHabitsRendererEntry {
     // into the template (Handlebars triple-stash safe-string for raw JSON).
     needsApiBase?: boolean;
 }
+/**
+ * Measurement ids for the habits views, as a JSON string for the analytics partial.
+ *
+ * Derived from the same `getGa4Configs` the React clients call, so habits.therr.com
+ * cannot drift onto a different property than therr.com. Computed once at boot —
+ * `globalConfig` does not change per request.
+ *
+ * `'habits'` is its own attribution surface: the subdomain shares a registrable
+ * domain and a serving pod with therr.com, so without a distinct `surface` value
+ * its traffic is unsplittable from the main web app in every GA4 report.
+ *
+ * serialize-javascript escapes `<`, `>` and `&`, which is what makes this safe to
+ * interpolate into a `<script>` body via a Handlebars triple-stash.
+ */
+const HABITS_GA_MEASUREMENT_IDS_JSON = serialize(
+    getGa4Configs(globalConfig[process.env.NODE_ENV] || globalConfig.production, 'habits')
+        .map(({ trackingId }) => trackingId),
+    { isJSON: true },
+);
 const HABITS_DEFAULT_CACHE = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
 const HABITS_NO_STORE = 'no-store';
 const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
@@ -450,6 +478,11 @@ app.use(async (req, res, next) => {
     if (!HABITS_HOSTS.has(req.hostname)) {
         return next();
     }
+    // Set on res.locals rather than passed per `res.render` call: Express merges
+    // locals into every view's context, so a habits view added later inherits
+    // analytics without anyone remembering to wire it. That is the failure this
+    // fixes — the views were never tagged at all, and nothing failed loudly.
+    res.locals.gaMeasurementIdsJson = HABITS_GA_MEASUREMENT_IDS_JSON;
     // Crawler policy for this host. Deliberately permissive to AI retrieval agents —
     // GEO discovery is the point of this subdomain — but the personal, token-bearing
     // and auth-sensitive paths are kept out of the crawl budget. They already carry
@@ -477,6 +510,15 @@ app.use(async (req, res, next) => {
         const today = new Date().toISOString().split('T')[0];
         const urls = [
             { loc: 'https://habits.therr.com/', priority: '1.0', changefreq: 'weekly' },
+            { loc: 'https://habits.therr.com/blog', priority: '0.8', changefreq: 'weekly' },
+            // Generated from the same list the routes serve, so a new cross-post is
+            // never published without a sitemap entry — this subdomain has almost no
+            // inbound links, so the sitemap is most of how a page gets discovered.
+            ...HABITS_BLOG_POSTS.map((post) => ({
+                loc: post.canonicalUrl,
+                priority: '0.7',
+                changefreq: 'monthly',
+            })),
             { loc: 'https://habits.therr.com/privacy-policy', priority: '0.4', changefreq: 'yearly' },
             { loc: 'https://habits.therr.com/terms-of-service', priority: '0.4', changefreq: 'yearly' },
         ].map(({ loc, priority, changefreq }) => `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>`
@@ -493,6 +535,36 @@ app.use(async (req, res, next) => {
         res.type('text/plain');
         res.setHeader('Cache-Control', 'public, max-age=3600');
         return res.sendFile('habits-llms.txt', { root: path.resolve(__dirname, '../build/static') });
+    }
+    if (isHabitsBlogListPath(req.path)) {
+        res.setHeader('Cache-Control', HABITS_DEFAULT_CACHE);
+        return res.render('habits/blog-list', {
+            title: HABITS_BLOG_LIST_TITLE,
+            description: HABITS_BLOG_LIST_DESCRIPTION,
+            canonicalUrl: 'https://habits.therr.com/blog',
+            posts: HABITS_BLOG_POSTS,
+        });
+    }
+    // Returns null for an unknown slug as well as a non-blog path, so a mistyped
+    // URL falls through to the 404 below rather than rendering an empty post.
+    const blogPost = matchHabitsBlogPost(req.path);
+    if (blogPost) {
+        res.setHeader('Cache-Control', HABITS_DEFAULT_CACHE);
+        return res.render('habits/blog-post', {
+            // `title` is the <title> tag and carries the brand suffix; `postTitle`
+            // is the <h1>, which should not repeat it.
+            title: `${blogPost.title} — Friends with Habits`,
+            postTitle: blogPost.title,
+            description: blogPost.description,
+            keywords: blogPost.keywords,
+            canonicalUrl: blogPost.canonicalUrl,
+            date: blogPost.date,
+            dateDisplay: blogPost.dateDisplay,
+            author: blogPost.author,
+            bodyHtml: blogPost.bodyHtml,
+            relatedLandingUrl: blogPost.relatedLandingUrl,
+            jsonLd: buildHabitsBlogJsonLd(blogPost),
+        });
     }
     const profileMatch = req.path.match(HABITS_PROFILE_PATH_RE);
     if (profileMatch) {

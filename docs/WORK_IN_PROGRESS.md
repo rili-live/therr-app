@@ -53,6 +53,51 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Analytics & traffic (added 2026-08-24, from the GA4 review)
+
+- [ ] **Confirm whether the June web-organic collapse is a tag bug or an indexing
+  problem.** Organic search sessions to `www.therr.com` ran at 23-48/week with
+  30-42% engagement through the week of 14 June, then recorded **exactly zero for
+  three consecutive weeks** (21 Jun, 28 Jun, 5 Jul) and resumed at 1-5/week. The
+  homepage `/` fell 41 -> 8 in the same window. Rankings do not go to precisely
+  zero for 21 days and return at a tenth, so this is far more likely a collection
+  break than a traffic loss — but GA4 alone cannot tell the two apart. Two checks
+  settle it: (1) Search Console -> Performance, compare impressions/clicks across
+  14 Jun - 12 Jul against the GA series; (2) load a space page and watch for a
+  request to `google-analytics.com/g/collect`. GA initialises from
+  `therr-client-web/src/components/Layout.tsx` (`getGa4Configs(..., 'web')`), a
+  React component — anything that stopped SSR landings from mounting it produces
+  exactly this signature: entry-page sessions vanish while in-app sessions keep
+  flowing. Note the window also overlaps the GA4 consolidation going live.
+- [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
+  1,010 of 1,156 sessions (87%) in Consolidated Domains (`549794383`) over the 60
+  days to 23 Aug were Singapore desktop at 2.1% engagement and ~17s duration.
+  Signature: Chrome/Windows at screen resolution **1280x1200** (799 sessions) and
+  **800x600** (207), walking `/spaces/*` two-to-three sessions per URL across 969
+  distinct landing pages — a JS-executing sitemap crawler from a cloud region, not
+  an audience. It is not on the IAB list, so GA4's built-in bot exclusion misses it.
+  > **A GA4 data filter cannot do this.** Data filters only support Developer and
+  > Internal traffic; there is no country, resolution, or user-agent filter. The two
+  > mechanisms that actually work are (a) block it at the edge — a Cloudflare or k8s
+  > ingress rule on the source ASN/user-agent, which removes the load as well as the
+  > analytics noise, and (b) pull the source IPs out of the ingress access logs, add
+  > them under Admin -> Data streams -> Configure tag settings -> Define internal
+  > traffic, then enable the Internal Traffic data filter to Exclude.
+  Do this **before** the old GA4 properties are retired, or the consolidated
+  property's only history is a baseline inflated roughly 8x.
+- [ ] **Re-register the `surface` custom dimension** now that habits.therr.com
+  reports as its own surface (`landing` / `web` / `habits` / `dashboard`). GA4 admin
+  -> Custom definitions, event-scoped, parameter `surface`. Without registration the
+  value is collected but not reportable, and habits web traffic stays indistinguishable
+  from therr.com.
+- [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
+  grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
+  inbound links, so the sitemap is most of how those pages get discovered at all.
+- [ ] **Verify `therr-for-business` (property `351769800`) is tagged.** It returned
+  zero rows for every window checked on 2026-08-24 — either not deployed or not
+  collecting. The B2B funnel is Priority 1 in `docs/GROWTH_STRATEGY.md`, and it is
+  currently unmeasured.
+
 ## Standing items (always re-verify after a deploy that touches the area)
 
 - [ ] **Submit / re-submit sitemap to Google Search Console** after any change

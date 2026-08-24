@@ -21,7 +21,7 @@ made *here*. Internal architecture is in [ARCHITECTURE.md](./ARCHITECTURE.md).
 | **therr-messaging-automator** | GCP Cloud Function (nodejs22): lifecycle email via AWS SES, push notifications, HABITS daily digest | **Direct Knex reads** on users/maps/reactions DBs + **HTTP call into users-service** over the VPC |
 | **therr-ai-automator** | GCP Cloud Function (nodejs22): scheduled AI content generation (thoughts, replies, reactions) via Anthropic/OpenAI | **Direct Knex reads and writes** on users/maps/reactions DBs |
 | **therr-infra-terraform** | GCP infra: Cloud Functions, Cloud Scheduler, VPC connector, Cloud SQL, reserved internal IPs, Secret Manager | Provisions the DB this repo's services use; owns the internal IP that `k8s/prod` pins |
-| **therr-landing** | Marketing site (therr.app), React 18 + Vite SSG behind nginx | Public API only — `POST /v1/users-service/subscribers/signup`. **Not coupled**; changes there cannot break the backend |
+| **therr-landing** | Marketing site (therr.app), React 18 + Vite SSG behind nginx | Public API only — `POST /v1/users-service/subscribers/signup` — plus a **build-time content export** that produces `therr-client-web/src/data/habitsBlogPosts.json` here (see § Habits blog cross-posts). Not coupled at runtime; changes there cannot break the backend |
 
 All four are separate deploy pipelines. Both automators auto-deploy on merge to their
 `main` (GitHub Actions → artifacts committed into `therr-infra-terraform` → `repository_dispatch`
@@ -241,8 +241,64 @@ stages the emails mail on. Enable the chained path *or* a dedicated job, never b
 | Changing `k8s/prod` users-service ports, selector, or NetworkPolicy | Re-check the internal LB path in §3 |
 | Needing a new scheduled backend job | Multiplex onto an existing Cloud Function (§4), or budget for a paid job |
 | Adding a public API route the marketing site consumes | Coordinate with `therr-landing`; it pins absolute `api.therr.com/v1/...` URLs |
+| Editing `therr-client-web/src/data/habitsBlogPosts.json` | Don't — it is generated. Change the `habits` block in `therr-landing`'s `src/data/blog-posts.json` and re-run the export |
 
 Known gaps, in rough value order: no schema contract test (a test in each automator running
 its store queries against a migrated schema would be the highest-value gate available), no
 shared locale check across repos, no Renovate/Dependabot anywhere, no telemetry — so every
 failure above is currently found by a human noticing.
+
+---
+
+## Habits blog cross-posts (therr-landing → this repo)
+
+The only content coupling between the two repos, and the only one that is a
+**build-time file handoff rather than a shared database or an HTTP call**.
+
+### Why it exists
+
+therr.app's blog is the only organic channel that grows on its own (+58% over the
+60 days to 2026-08-24, from roughly a dozen posts). `habits.therr.com` — the
+domain that actually sells Friends with Habits — shipped with a three-URL sitemap
+and no content, while the habit-and-accountability posts that rank sat on the
+other domain.
+
+### How it works
+
+1. A post in `therr-landing/src/data/blog-posts.json` gains a `habits` block:
+   its own slug, title, description, excerpt, keywords, and an **adapted**
+   `bodyHtml`.
+2. `npm run export:habits-blog -- --out <path>` in therr-landing validates every
+   block and writes the consumable JSON.
+3. That file is committed here at `therr-client-web/src/data/habitsBlogPosts.json`,
+   **on `general`** — habits.therr.com is served by the production therr-client-web
+   pod, so a niche branch would never ship it.
+4. `therr-client-web/src/utilities/habitsBlog.ts` reads it; the habits middleware
+   in `server-client.tsx` serves `/blog` and `/blog/:slug`, and the habits
+   `sitemap.xml` is generated from the same list so a post can never be published
+   without a sitemap entry.
+
+### The rule that keeps this safe
+
+**A cross-post is not a copy.** Both the therr.app original and the habits version
+are self-canonical, so two near-identical pages on two domains compete, Google
+picks one, and the loser gets nothing — which would put the therr.app rankings
+that currently work at risk. The habits version must carry its own title, framing,
+opening and close, written for someone deciding whether to start a pact.
+
+`assertAdapted` in `therr-landing/scripts/export-habits-blog.ts` enforces this
+mechanically: it compares 5-word shingles between the two bodies and fails the
+export above 50% overlap. Pasting the original in does not "just work".
+
+### Cross-post a post when…
+
+…its subject is habit formation, accountability, streaks, or the friendships that
+carry them. Leave it on therr.app when it is about local discovery, businesses,
+creators, or privacy. Skip app-roundup listicles outright — Friends with Habits is
+one entry among ten in those, so there is no honest habits-first version.
+
+### Gotcha
+
+No CI in either repo checks this. Step 3 is manual, and a `habits` block edited in
+therr-landing changes nothing in production until the export is re-run and the
+regenerated JSON is committed here.
