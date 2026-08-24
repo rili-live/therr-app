@@ -73,7 +73,7 @@
     "mediaUploadFailed": "Image Upload Failed",
     "tooManyAttempts": "Too Many Attempts",
     "registerSuccess": "Account Created",
-    "accountNotVerified": "Verify Your E-mail"
+    "accountNotVerified": "Verify Your E-mail",
     "repostSuccess": "Reposted"
   },
   "alertMessages": {

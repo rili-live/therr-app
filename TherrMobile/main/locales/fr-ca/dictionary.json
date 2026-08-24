@@ -73,7 +73,7 @@
     "mediaUploadFailed": "Échec du téléversement de l'image",
     "tooManyAttempts": "Trop de tentatives",
     "registerSuccess": "Compte créé",
-    "accountNotVerified": "Vérifiez votre courriel"
+    "accountNotVerified": "Vérifiez votre courriel",
     "repostSuccess": "Republié"
   },
   "alertMessages": {

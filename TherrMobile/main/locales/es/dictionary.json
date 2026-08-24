@@ -73,7 +73,7 @@
     "mediaUploadFailed": "Error al cargar imagen",
     "tooManyAttempts": "Demasiados intentos",
     "registerSuccess": "Cuenta creada",
-    "accountNotVerified": "Verifica tu correo"
+    "accountNotVerified": "Verifica tu correo",
     "repostSuccess": "Republicado"
   },
   "alertMessages": {
